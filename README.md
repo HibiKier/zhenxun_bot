@@ -1,4 +1,4 @@
-<div align=center><img width="400" height="400" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/zhenxun.jpg"/></div>
+<div align=center><img width="320" height="320" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/zhenxun.jpg"/></div>
 
 # 绪山真寻Bot
 ****
