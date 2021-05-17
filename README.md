@@ -1,6 +1,6 @@
 <div align=center><img width="320" height="320" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/zhenxun.jpg"/></div>
 
-![maven](https://img.shields.io/badge/Redis-5.0+-yellow.svg)(https://redis.io/)
+![maven](https://img.shields.io/badge/python-3.8%2B-blue)
 
 # 绪山真寻Bot
 ****
