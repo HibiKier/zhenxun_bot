@@ -8,8 +8,10 @@
 ****
 此项目基于 Nonebot2 和 go-cqhttp 开发的QQ群娱乐机器人
 ## 关于
-用爱发电的项目，某些功能借鉴了大佬们的代码，因为绪山真寻实在太可爱了因此开发了 
+用爱发电的项目，某些功能学习借鉴了大佬们的代码，因为绪山真寻实在太可爱了因此开发了 
 绪山真寻bot，实现了一些对群友的娱乐功能和实用功能（大概）。
+
+如果该项目的图片等等侵犯豆腐猫老师权益请联系我删除！
 
 ## 声明
 此项目仅用于学习交流，请勿用于非法用途
@@ -112,6 +114,18 @@
 - [ ] 明日方舟卡片式的签到..(大概)
 
 ## 感谢
-[Onebot]("https://github.com/howmanybots/onebot")
-[go-cqhttp]("https://github.com/Mrs4s/go-cqhttp")
-[nonebot2]("https://github.com/nonebot/nonebot2")
+[Onebot](https://github.com/howmanybots/onebot)
+<br>
+[go-cqhttp](https://github.com/Mrs4s/go-cqhttp)
+<br>
+[nonebot2](https://github.com/nonebot/nonebot2)
+<br>
+[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)
+<br>
+[cappuccilo_plugins](https://github.com/pcrbot/cappuccilo_plugins#%E7%94%9F%E6%88%90%E5%99%A8%E6%8F%92%E4%BB%B6)
+<br>
+[nonebot_plugin_cocdicer](https://github.com/abrahum/nonebot_plugin_cocdicer)
+<br>
+[nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2)
+<br>
+[nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager)
