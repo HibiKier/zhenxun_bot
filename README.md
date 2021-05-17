@@ -1,5 +1,7 @@
 <div align=center><img width="320" height="320" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/zhenxun.jpg"/></div>
+
 ![maven](https://img.shields.io/badge/Redis-5.0+-yellow.svg)(https://redis.io/)
+
 # 绪山真寻Bot
 ****
 此项目基于 Nonebot2 和 go-cqhttp 开发的QQ群娱乐机器人
