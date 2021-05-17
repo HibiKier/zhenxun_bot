@@ -129,3 +129,5 @@
 [nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2)
 <br>
 [nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager)
+<br>
+[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)
