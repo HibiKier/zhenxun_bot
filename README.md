@@ -105,6 +105,7 @@
 
 ## Todo
 - [ ] 提供更多对插件的控制
+- [ ] 明日方舟卡片式的签到..(大概)
 
 ## 感谢
 [Onebot]("https://github.com/howmanybots/onebot")
