@@ -22,7 +22,7 @@
 
 ## 功能列表
 <details>
-<summary>展开查看已实现的功能</summary>
+<summary>已实现的功能</summary>
 
 ## 已实现的常用功能
 - [x] 昵称系统（群与群与私聊分开.）
