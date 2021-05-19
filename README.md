@@ -6,9 +6,9 @@
 
 # 绪山真寻Bot
 ****
-此项目基于 Nonebot2 和 go-cqhttp 开发的QQ群娱乐机器人
+此项目基于 Nonebot2 和 go-cqhttp 开发，以 postgresql 作为数据库的QQ群娱乐机器人
 ## 关于
-用爱发电的项目，某些功能学习借鉴了大佬们的代码，因为绪山真寻实在太可爱了因此开发了 
+用爱发电的项目，某些功能学习借鉴了大佬们的代码，因为绪山真寻实在太可爱了因此开发了
 绪山真寻bot，实现了一些对群友的娱乐功能和实用功能（大概）。
 
 如果该项目的图片等等侵犯豆腐猫老师权益请联系我删除！
@@ -24,9 +24,9 @@
 <details>
 <summary>已实现的功能</summary>
 
-## 已实现的常用功能
+### 已实现的常用功能
 - [x] 昵称系统（群与群与私聊分开.）
-- [x] 图灵AI（会把'你'等关键字替换为你的昵称）  
+- [x] 图灵AI（会把'你'等关键字替换为你的昵称）
 - [x] 签到/我的签到/好感度排行（影响色图概率和开箱次数，支持配置）
 - [x] 发送某文件夹下的随机图片（支持自定义，默认：美图，萝莉，壁纸）
 - [x] 色图（可配置是否存储到本地，并会判断该色图是否已在本地，存在则跳过）
@@ -48,7 +48,7 @@
 
 - [x] pil对图片的一些操作
 - [x] BUFF饰品底价查询（需要session）
-- [x] 天气查询  
+- [x] 天气查询
 - [x] 疫情查询
 - [x] bt搜索
 - [x] reimu搜索（上车）
@@ -69,7 +69,7 @@
 - [x] go-cqhttp最新版下载和上传（不需要请删除）
 - [x] 滴滴滴-（用户对超级用户发送消息）
 
-## 已实现的管理员功能
+### 已实现的管理员功能
 - [x] 更新群组成员信息
 - [x] 95%的群功能开关
 - [x] 查看群内被动技能状态
@@ -80,17 +80,17 @@
 - [x] 移动图片  （同上）
 - [x] 删除图片  （同上）
 
-## 已实现的超级用户功能
+### 已实现的超级用户功能
 - [x] 添加/删除管理
 - [x] 开启/关闭指定群的广播通知
 - [x] 广播
-- [x] 自检（检查系统状态）  
+- [x] 自检（检查系统状态）
 - [x] 所有群组/所有好友
 - [x] 退出指定群
 - [x] 更新好友信息/更新群信息
 - [x] /t（对用户进行回复或发送消息）
 
-## 已实现的被动技能
+### 已实现的被动技能
 - [x] 进群欢迎消息
 - [x] 群早晚安
 - [x] 每日开箱重置提醒
@@ -100,13 +100,179 @@
 - [x] 原神黄历提醒
 - [x] 复读
 
-## 已实现的看不见的技能！
+### 已实现的看不见的技能！
 - [x] 刷屏禁言检测
 - [x] 功能调用统计
 - [x] 检测恶意触发命令（将被最高权限ban掉30分钟，只有最高权限(9级)可以进行unban）
 - [x] 自动同意好友请求，加群请求将会提醒管理员等等
 - [x] 群聊时间检测（当群聊最后一人发言时间大于当前36小时后将关闭该群所有通知（即被动技能））
 - [x] 支持对各个管理员功能的权限配置
+</details>
+
+## 部分功能展示
+<details>
+<summary>部分功能展示及说明</summary>
+
+### 帮助以及开关
+
+群帮助将会在功能左侧展示该功能的开关，私聊则没有，带有√或×的功能代表可以开关
+此插件使用 [nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager) 并魔改一点实现
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/help.PNG)
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/kg1.png)
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/kg3.png)
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/kg2.png)
+
+### 签到
+普普通通的签到，设置影响开箱次数和涩图触发成功的概率（可配置）<br>
+开箱次数 = 初始开箱数量 + 好感度 / 3<br>
+金币 = random.randint(100) + random.randint(好感度)【好感度获取的金币不会超过200】
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/sign.png)
+
+### 黑白草图
+
+整活生成器（从未设想的道路）
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/w2b.png)
+
+### 发送文件夹下随机图片
+
+提供了 美图589（获取该图库下文件名589.jpg的图片）方法，图库内图片名称需要有序（如:0.jpg,1.jpg....）
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/send_img.png)
+
+### 开箱（csgo模拟开箱）
+
+我的开箱/群开箱统计/我的金色 功能是对开箱数据的统计展示
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/kaixiang.png)
+
+### coser
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/coser.png)
+
+### 鸡汤/语录
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/jitang.png)
+
+### 骂我
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/mawo.png)
+
+### 鲁迅说
+
+此插件使用 [nonebot2_luxun_says](https://github.com/NothAmor/nonebot2_luxun_says)
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/luxun.png)
+
+### 假消息
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/jiaxiaoxi.png)
+
+### 商店系统
+
+商店内的道具支持自定义，但需要写触发后的效果...整不出活，到头来也就增加好感度概率的商品
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/shop.png)
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/daoju.png)
+
+
+### 昵称系统
+
+养成方法第一步，让可爱的小真寻叫自己昵称！（替换ai中的'你'等等）
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/nicheng1.png)
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/nicheng2.png)
+
+### 抽卡
+
+已经上传至nb2商店，不再放图片了，项目地址：[nonebot_plugin_gamedraw](https://github.com/HibiKier/nonebot_plugin_gamedraw)
+
+### 我有一个朋友...
+
+使用大佬的插件 [cappuccilo_plugins](https://github.com/pcrbot/cappuccilo_plugins#%E7%94%9F%E6%88%90%E5%99%A8%E6%8F%92%E4%BB%B6)
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/one_firend.png)
+
+
+### 原神黄历/今日素材/丘丘语翻译/地图资源查询
+
+使用大佬的插件 [Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)
+
+### 对图片的操作
+
+只是一些简单对图片操作（娱乐整活）
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/tupian.png)
+
+### 识番
+
+使用大佬的插件 [Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/shifan.png)
+
+
+### 识图
+
+使用nb2商店插件 [nonebot_plugin_cocdicer](https://github.com/abrahum/nonebot_plugin_cocdicer) （可配置图片返回的最大数量）
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/shitu.png)
+
+### epic免费游戏
+
+访问rsshub获取数据解析<br>可以不玩，不能没有
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/epic.png)
+
+
+### P站排行/搜图
+
+访问rsshub获取数据解析<br>自己试试吧（# #）
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/p_rank.png)
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/p_sou.png)
+
+
+### 翻译
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/fanyi.png)
+
+### 查看当前群欢迎消息
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/qunhuanying.png)
+
+### 自检
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/check.png)
+
+### .ban/.unban
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/ban.png)
+
+### 查看被动技能（被动技能除复读外都提供了开关）
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/beidong.png)
+
+### 自我介绍
+
+只是一段简单自我介绍，但是，还是想放上来
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/jieshao.png)
+
+### 我的信息/我的权限
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/info.png)
+
+<br>
+
+### 其他
+
+点歌：使用 [nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2) 插件<br>
+骰子娘：使用 [nonebot_plugin_cocdicer](https://github.com/abrahum/nonebot_plugin_cocdicer) 插件
+<br><br>
+## 其他功能请自己试一试 ）
+
 </details>
 
 ## Todo
@@ -132,3 +298,5 @@
 [nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager)
 <br>
 [Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)
+<br>
+[nonebot2_luxun_says](https://github.com/NothAmor/nonebot2_luxun_says)
