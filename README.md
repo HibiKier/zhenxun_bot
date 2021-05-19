@@ -293,16 +293,23 @@
 
 ## 感谢
 [Onebot](https://github.com/howmanybots/onebot)
+<br>
 [go-cqhttp](https://github.com/Mrs4s/go-cqhttp)
+<br>
 [nonebot2](https://github.com/nonebot/nonebot2)
 <br>
 [XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)
+<br>
 [cappuccilo_plugins](https://github.com/pcrbot/cappuccilo_plugins#%E7%94%9F%E6%88%90%E5%99%A8%E6%8F%92%E4%BB%B6)
+<br>
 [nonebot_plugin_cocdicer](https://github.com/abrahum/nonebot_plugin_cocdicer)
 <br>
 [nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2)
+<br>
 [nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager)
+<br>
 [Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)
 <br>
 [nonebot2_luxun_says](https://github.com/NothAmor/nonebot2_luxun_says)
+<br>
 [AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus)
