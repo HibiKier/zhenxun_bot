@@ -311,3 +311,5 @@
 [Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)
 <br>
 [nonebot2_luxun_says](https://github.com/NothAmor/nonebot2_luxun_says)
+<br>
+[AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus)
