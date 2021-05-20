@@ -19,6 +19,7 @@ def init_config():
             'apikey': {
                 'LOLICON_KEY': '',
                 'TL_KEY': [],
+                'RSSHUBAPP': str = "https://docs.rsshub.app/"
             },
             'sql': {
                 'bind': '',
