@@ -11,7 +11,6 @@ from nonebot.adapters.cqhttp.exception import ActionFailed
 import re
 from models.count_user import UserCount
 from aiohttp.client_exceptions import ClientConnectorError
-from configs.config import LOCAL_SETU
 
 __plugin_name__ = '色图'
 __plugin_usage__ = '''示例：
@@ -58,7 +57,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         await setu.finish(f"您有色图正在处理，请稍等")
     _ulmt.set_True(event.user_id)
     setu_img, index = get_setu(img_id)
-    if setu_img and LOCAL_SETU:
+    if setu_img:
         try:
             await setu.send(setu_img)
         except:
