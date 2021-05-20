@@ -151,6 +151,10 @@
 
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/send_img.png)
 
+### 色图
+
+略，send_setu/check_setu_hash.py文件用于记录涩图hash和检测文件名是否连贯（例如：0.jpg, 1.jpg....）
+
 ### 开箱（csgo模拟开箱）
 
 我的开箱/群开箱统计/我的金色 功能是对开箱数据的统计展示 <br>
