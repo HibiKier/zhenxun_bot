@@ -63,9 +63,8 @@ async def get_setu_urls(keyword: str, num: int = 1, r18: int = 0):
                                 text_list.append(f'title：{title}\nauthor：{author}\nPID：{pid}')
                                 img_url = str(img_url).replace('img-master', 'img-original').replace('_master1200', '')
                                 txt_data += img_url + ','
-                            if DOWNLOAD_SETU:
-                                with open(TXT_PATH + file_name, 'w') as f:
-                                    f.write(txt_data)
+                            with open(TXT_PATH + file_name, 'w') as f:
+                                f.write(txt_data)
                             return urls, text_list, 200
                         else:
                             return "没找到符合条件的色图...", '', 401
@@ -100,6 +99,8 @@ async def search_online_setu(url: str):
 
 def get_setu(index: str):
     length = len(os.listdir(IMAGE_PATH + path))
+    if length == 0:
+        return None, None
     if not index:
         index = random.randint(0, length - 1)
     if is_number(index):
