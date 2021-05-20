@@ -366,7 +366,7 @@ USE_CONFIG_FILE = True
     # 数据库配置（如果填写了bind，后面就不用再填了)只是帮你拼接好）
     # 示例："bind": "postgresql://user:password@127.0.0.1:5432/database"
     "sql": {
-        "bind": "postgresql://hibiki:KEWang130123@hibiki0v0.cn:5432/hibikibot",
+        "bind": "",
         "sql_name": "",
         "user": "",
         "password": "",
