@@ -29,6 +29,8 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 msg = msg.replace('[at]', '')
     if img or msg:
         await view_custom_welcome.finish(msg + img, at_sender=True)
+    else:
+        await view_custom_welcome.finish('当前还没有自定义群欢迎消息哦', at_sender=True)
 
 
 
