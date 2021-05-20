@@ -35,6 +35,9 @@ async def _(bot: Bot, event: Event, state: T_State):
         logger.warning(f'未找到 {path} 文件夹，调用取消!')
         return
     length = len(os.listdir(IMAGE_PATH + path)) - 1
+    if length == 0:
+        logger.warning(f'图库 {path} 为空，调用取消！')
+        return
     index = img_id if img_id else str(random.randint(0, length))
     if not is_number(index):
         await send_img.finish("id错误！")
