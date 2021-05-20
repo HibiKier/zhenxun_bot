@@ -116,7 +116,7 @@
 
 ### 帮助以及开关（功能控制）
 
-群帮助将会在功能左侧展示该功能的开关，私聊则没有，带有√或×的功能代表可以开关
+群帮助将会在功能左侧展示该功能的开关，带有√或×的功能代表可以开关
 此插件使用 [nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager) 并魔改一点实现
 
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/help.PNG)
@@ -126,7 +126,7 @@
 
 <br>
 如果你希望某功能暂时停用<br>
-私聊发送 npm block xx （xx==功能名）来锁定<br>
+私聊发送 npm block xx （xx=功能名）来锁定<br>
 使用npm unblock xx 进行解锁
 
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/ocgn.png)
@@ -156,17 +156,26 @@
 我的开箱/群开箱统计/我的金色 功能是对开箱数据的统计展示 <br>
 
 目前支持的武器箱（数据已备好）：
-  * 狂牙大行动武器箱
-  * 突围大行动武器箱
-  * 命悬一线武器箱
-  * 裂空武器箱
-  * 光谱武器箱
- <br>
- 如果是第一次启动请先使用命令 “更新价格”， “更新图片” <br>
- 如果需要配置新的箱子，请在.config.py中配置好该箱子中的皮肤，且列表名是箱子名称的大写拼音<br>
- 示例：光谱武器箱 GUANGPU_CASE_KNIFE,GUANGPU_CASE_RED...后面的颜色代表皮肤品质
+* 狂牙大行动武器箱
+* 突围大行动武器箱
+* 命悬一线武器箱
+* 裂空武器箱
+* 光谱武器箱
+  <br>
+  如果是第一次启动请先使用命令 “更新价格”， “更新图片” （需要配置cookie！！如果经常超时请设置代理，配置文件中的 buff_proxy!）<br>
+  如果需要配置新的箱子，请在.config.py中配置好该箱子中的皮肤，且列表名是箱子名称的大写拼音<br>
+  示例：光谱武器箱 GUANGPU_CASE_KNIFE,GUANGPU_CASE_RED...后面的颜色代表皮肤品质
 
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/kaixiang.png)
+
+
+### BUFF皮肤底价查询
+
+需要配置cookie！！！！！！！！<br>
+如果经常超时请设置代理，配置文件中的 buff_proxy!
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/buff.png)
+
 
 ### coser
 
@@ -228,7 +237,7 @@
 
 ### 识番
 
-使用大佬的插件 [Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)
+使用大佬的插件 [XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)
 
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/shifan.png)
 
@@ -257,6 +266,12 @@
 ### 翻译
 
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/fanyi.png)
+
+### 自定义群欢迎消息
+
+关键字 [at] 判断是否艾特入群用户
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/qhyxx.png)
 
 ### 查看当前群欢迎消息
 
@@ -299,6 +314,186 @@
 - [ ] 提供更多对插件的控制
 - [ ] 明日方舟卡片式的签到..(大概)
 - [ ] 更多的群管理功能
+
+## 部署
+```
+# 获取代码
+git clone https://github.com/Angel-Hair/XUN_Bot.git
+
+# 安装依赖
+pip install -r requirements.txt
+
+# 进入目录
+cd zhenxun_bot
+
+# 进行基础配置
+####请查看 配置 部分####
+
+# 开始运行
+python bot.py
+```
+
+## 配置
+在 ./configs/config.py 中，默认为True
+
+```
+# 是否使用配置文件（为True时这将会生成三份配置文件
+                 ./config.json：主要配置
+                 ./configs/plugins2cmd_config.json: 功能模块与对应命令配置
+                 ./configs/other_config.json: 一些插件配置）
+                 
+USE_CONFIG_FILE = True
+
+# 如果不使用配置文件，将USE_CONFIG_FILE设置为False，可在./configs/config.py文件中修改配置，在./configs/path_config.py修改资源路径
+# 已在./configs/config.py和./configs/path_config.py中为各个配置提供注解！
+```
+
+## 配置文件注解（如果使用配置文件的话）
+<details>
+<summary>配置文件注解</summary>
+./config.json
+
+```
+{
+    # 必填（影响功能运行）
+    "apikey": {
+        "LOLICON_KEY": "",      # loliconAPI，缺失会导致色图功能异常
+        "TL_KEY": []            # 图灵Key（为什么要用列表？因为白嫖用户能拿5个apikey，每个apikey每日限制100条）
+    },
+    
+    # （必填！！！）
+    # 数据库配置（如果填写了bind，后面就不用再填了)只是帮你拼接好）
+    # 示例："bind": "postgresql://user:password@127.0.0.1:5432/database"
+    "sql": {
+        "bind": "postgresql://hibiki:KEWang130123@hibiki0v0.cn:5432/hibikibot",
+        "sql_name": "",
+        "user": "",
+        "password": "",
+        "address": "",
+        "port": "",
+        "database": ""
+    },
+    
+    # 路径设置（不填则使用默认）
+    "path": {
+        "IMAGE_PATH": "",   # 图片路径
+        "VOICE_PATH": "",   # 音频路径
+        "TXT_PATH": "",     # 文本路径
+        "LOG_PATH": "",     # 日志路径
+        "DATA_PATH": "",    # 数据路径
+        "DRAW_PATH": ""     # 抽卡数据路径
+        "TEMP_PATH": ""     # 临时图片路径
+    },
+    
+    # 代理设置
+    "proxy": {
+        "system_proxy": "",     # 系统代理
+        "buff_proxy": ""        # buff代理
+    },
+    
+    # RSSHUB地址
+    "rsshub": {
+        "RSSHUBAPP": "https:\/\/docs.rsshub.app\/"
+    },
+    
+    # 各个管理员功能 对应的 权限
+    "level": {
+        "DELETE_IMG_LEVEL": 7,
+        "MOVE_IMG_LEVEL": 7,
+        "UPLOAD_LEVEL": 6,
+        "BAN_LEVEL": 5,
+        "OC_LEVEL": 2,
+        "MUTE_LEVEL": 5
+    }
+}
+```
+
+./configs/plugins2cmd_config.json
+```
+# 单个例子注解
+"send_img": [
+            "发送图片",
+            "萝莉",
+            "美图",
+            "壁纸"
+        ]
+# 发送 关闭发送图片/关闭萝莉/关闭美图/关闭壁纸 都将触发命令 关闭send_img
+```
+
+./configs/other_config.json
+```
+{
+    "base": {
+        # 图库配置，会影响 上传/删除/移动/发送图片等功能
+        "IMAGE_DIR_LIST": [
+            "色图",
+            "美图",
+            "萝莉",
+            "壁纸"
+        ],
+        "BAN_RESULT": "才不会给你发消息."   # 当被ban用户触发命令后发送的消息
+    },
+    
+    "bool": {
+        "AUTO_ADD_FRIEND": true,    # 是否自动添加好友
+        "DOWNLOAD_SETU": true       # 是否下载bot发送过的色图（不会重复）
+    },
+    
+    "max_count": {
+        "MAXINFO_REIMU": 7,           # 上车(reimu)功能查找目的地的最大数
+        "COUNT_PER_DAY_REIMU": 5,     # 每日上车(reimu)次数限制
+        "MAXINFO_BT": 10,             # bt功能单次查找最大数
+        "MAXINFO_PRIVATE_ANIME": 20,  # 私聊搜索动漫返回的最大数量
+        "MAXINFO_GROUP_ANIME": 5,     # 群搜索动漫返回的最大数量
+        "MAX_FIND_IMG_COUNT": 3,      # 识图最大返回数
+        "MAX_SIGN_GOLD": 200          # 签到好感度加成额外获得的最大金币数
+    },
+    
+    "probability": {
+        "INITIAL_SETU_PROBABILITY": 0.7,    # 涩图触发的基础概率（触发概率 = 基础概率 + 好感度）
+        "FUDU_PROBABILITY": 0.7             # 复读概率
+    },
+    
+    # 注：即在 MALICIOUS_CHECK_TIME 时间内触发相同命令 MALICIOUS_BAN_COUNT 将被ban MALICIOUS_BAN_TIME 分钟
+    "malicious_ban": {
+        "MALICIOUS_BAN_TIME": 30,       # 恶意触发命令被ban的时长（分钟）
+        "MALICIOUS_BAN_COUNT": 4,       # 恶意触发命令的规定次数
+        "MALICIOUS_CHECK_TIME": 5       # 恶意触发命令的规定时间（秒）
+    },
+    "open_case": {
+        "INITIAL_OPEN_CASE_COUNT": 20   # 每日开箱的基本数量（总数量=基本数量 + 好感度/3）
+    },
+    
+    # 注：即在 MUTE_DEFAULT_TIME 内发送相似（包含）消息超过 MUTE_DEFAULT_COUNT 将会被 MUTE_DEFAULT_DURATION 分钟
+    # 这只是默认配置，各个群可以自由设置群内刷屏检测配置
+    "mute": {
+        "MUTE_DEFAULT_COUNT": 10,       # 刷屏检测默认检测最大次数
+        "MUTE_DEFAULT_TIME": 7,         # 刷屏检测默认规定时间（秒）
+        "MUTE_DEFAULT_DURATION": 10     # 刷屏检测默认禁言时长（分钟）
+    },
+    "other": {
+        "UPDATE_GOCQ_GROUP": [],      # 是否需要为某些群上传最新版的gocq？
+        "ADMIN_DEFAULT_AUTH": 5       # 默认群管理员权限
+    },
+    
+    # 管理员功能 和 对应的 权限
+    "auth": {
+        "admin_plugins_auth": {
+            "admin_bot_manage": 2,
+            "ban": 5,
+            "delete_img": 7,
+            "move_img": 7,
+            "upload_img": 6,
+            "admin_help": 1,
+            "mute": 5
+        }
+    }
+}
+```
+</details>
+
+
+
 
 ## 感谢
 [Onebot](https://github.com/howmanybots/onebot)
