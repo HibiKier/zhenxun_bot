@@ -17,7 +17,7 @@ RSSHUBAPP: str = ""  # rsshub
 TL_KEY: List[str] = []
 
 # 数据库（必要）
-bind: str = 'postgresql://hibiki:KEWang130123@hibiki0v0.cn:5432/hibikibot'
+bind: str = ''
 sql_name: str = ''
 user: str = ''
 password: str = ''
@@ -77,8 +77,6 @@ buff_proxy: str = ''
 
 # 是否存储色图
 DOWNLOAD_SETU: bool = True
-# 是否使用本地色图
-LOCAL_SETU: bool = True
 # 是否自动同意好友添加
 AUTO_ADD_FRIEND: bool = True
 
