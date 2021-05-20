@@ -6,6 +6,7 @@ except ModuleNotFoundError:
 
 
 # 是否使用配置文件
+<<<<<<< HEAD
 USE_CONFIG_FILE = True
 
 
@@ -24,6 +25,9 @@ password = ''
 address = ''
 port = ''
 database = ''
+=======
+USE_CONFIG_FILE = False
+>>>>>>> master
 
 
 # 公开图库列表
@@ -32,6 +36,7 @@ IMAGE_DIR_LIST = ["色图", "美图", "萝莉", "壁纸"]
 # 对被ban用户发送的消息
 BAN_RESULT = "才不会给你发消息."
 
+<<<<<<< HEAD
 
 # 插件配置
 MAXINFO_REIMU: int = 7      # 上车(reimu)功能查找目的地的最大数
@@ -39,11 +44,22 @@ COUNT_PER_DAY_REIMU: int = 5    # 每日上车(reimu)次数限制
 MAXINFO_BT: int = 10        # bt功能单次查找最大数
 MAXINFO_PRIVATE_ANIME: int = 20     # 私聊搜索动漫返回的最大数量
 MAXINFO_GROUP_ANIME: int = 5       # 群搜索动漫返回的最大数量
+=======
+MAXINFO_REIMU: int = 7      # 上车功能查找目的地的最大数
+COUNT_PER_DAY_REIMU: int = 5    # 每日上车次数限制
+MAXINFO_BT: int = 10        # bt功能单次查找最大数
+MAXINFO_PRIVATE_ANIME: int = 20     # 私聊单词搜索动漫最大数
+MAXINFO_GROUP_ANIME: int = 5       # 群单词搜索动漫最大数
+>>>>>>> master
 MAX_FIND_IMG_COUNT = 3      # 识图最大返回数
 
 ADMIN_DEFAULT_AUTH = 5  # 默认群管理员权限
 
+<<<<<<< HEAD
 MAX_SIGN_GOLD = 200     # 签到好感度加成额外获得的最大金币数
+=======
+MAX_SIGN_GOLD = 200     # 好感度加成额外获得的最大金币数
+>>>>>>> master
 
 INITIAL_SETU_PROBABILITY = 0.7   # 色图概率
 FUDU_PROBABILITY = 0.7          # 复读概率
@@ -54,6 +70,7 @@ MUTE_DEFAULT_TIME = 7       # 刷屏检测默认规定时间
 
 MUTE_DEFAULT_DURATION = 10  # 刷屏检测默禁言时长（分钟）
 
+<<<<<<< HEAD
 # 注：即在 MALICIOUS_CHECK_TIME 时间内触发相同命令 MALICIOUS_BAN_COUNT 将被ban MALICIOUS_BAN_TIME 分钟
 MALICIOUS_BAN_TIME = 30    # 恶意命令触发检测触发后ban的时长（分钟）
 MALICIOUS_BAN_COUNT = 4     # 恶意命令触发检测最大触发次数
@@ -71,6 +88,25 @@ MUTE_LEVEL: int = 5                 # 更改禁言设置权限
 # 示例：[434995955, 239483248]
 UPDATE_GOCQ_GROUP = []
 
+=======
+# 注：即在 MALICIOUS_BAN_COUNT 时间内触发相同命令 MALICIOUS_CHECK_TIME 将被ban MALICIOUS_BAN_TIME 分钟
+MALICIOUS_BAN_TIME = 30    # 恶意命令触发检测触发后ban的时长（分钟）
+MALICIOUS_BAN_COUNT = 4     # 恶意命令触发检测规定时间内（秒）
+MALICIOUS_CHECK_TIME = 5     # 恶意命令触发检测最大触发次数
+
+# LEVEL
+DELETE_IMG_LEVEL: int = 7
+MOVE_IMG_LEVEL: int = 7
+UPLOAD_LEVEL: int = 6
+BAN_LEVEL: int = 5
+OC_LEVEL: int = 2
+MUTE_LEVEL: int = 5
+
+# 需要更新gocq吗？
+UPDATE_GOCQ_GROUP = []
+
+
+>>>>>>> master
 # 代理
 system_proxy = 'http://127.0.0.1:7890'
 buff_proxy = ''
@@ -83,8 +119,28 @@ LOCAL_SETU = True
 AUTO_ADD_FRIEND = True
 
 
+<<<<<<< HEAD
 # 模块与对应命令
 # 用于生成帮助图片 和 开关功能
+=======
+# API KEY
+LOLICON_KEY: str = "336595836015174952daa2"  # lolicon
+RSSHUBAPP: str = "https://docs.rsshub.app/"  # rsshub
+# 图灵
+TL_KEY = ["4474710fabbf4540bfaa569c192bb457", "6f4c0920d2ff4962b5cbd8148aef771b",
+          "f5595738894042fb9fad88ecdc4acf41", "c24400595fed48f9a5c5bc3ff03a3267", "efab135b75d84b02a59115f5b571f277"]
+
+# 数据库
+bind = 'postgresql://hibiki:KEWang130123@hibiki0v0.cn:5432/hibikibot'
+sql_name = ''
+user = ''
+password = ''
+address = ''
+port = ''
+database = ''
+
+
+>>>>>>> master
 plugins2name_dict = {
     'sign_in': ['签到'],
     'send_img': ['发送图片', '萝莉', '美图', '壁纸'],
@@ -123,7 +179,11 @@ plugins2name_dict = {
     'query_resource_points': ['原神资源查询', '原神资源列表'],
 }
 
+<<<<<<< HEAD
 # 群管理员功能 与 对应权限
+=======
+
+>>>>>>> master
 admin_plugins_auth = {
     'admin_bot_manage': OC_LEVEL,
     'ban': BAN_LEVEL,
@@ -134,16 +194,23 @@ admin_plugins_auth = {
     'mute': MUTE_LEVEL,
 }
 
+<<<<<<< HEAD
 # 配置文件应用
+=======
+
+>>>>>>> master
 if USE_CONFIG_FILE:
     config = get_config_data()
     if config:
         for key in config.keys():
             if isinstance(config[key], str):
                 config[key] = config[key].strip()
+<<<<<<< HEAD
             if key.find('proxy') != -1:
                 if not config[key]:
                     config[key] = None
+=======
+>>>>>>> master
             # if not configs[key] and key.find("PATH") == -1:
             #     configs[key] = None
         globals().update(config)

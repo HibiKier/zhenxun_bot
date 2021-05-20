@@ -16,6 +16,7 @@ def init_config():
     if not base_config.exists():
         base_config.parent.mkdir(parents=True, exist_ok=True)
         config_dict = {
+<<<<<<< HEAD
             'apikey': {
                 'LOLICON_KEY': '',
                 'TL_KEY': [],
@@ -29,6 +30,8 @@ def init_config():
                 'port': '',
                 'database': '',
             },
+=======
+>>>>>>> master
             'path': {
                 'IMAGE_PATH': '',
                 'VOICE_PATH': '',
@@ -42,9 +45,28 @@ def init_config():
                 'system_proxy': '',
                 'buff_proxy': ''
             },
+<<<<<<< HEAD
             'rsshub': {
                 'RSSHUBAPP': 'https://docs.rsshub.app/',
             },
+=======
+            'apikey': {
+                'LOLICON_KEY': '',
+                'TL_KEY': [],
+            },
+            'rsshub': {
+                'RSSHUBAPP': 'https://docs.rsshub.app/',
+            },
+            'sql': {
+                'bind': '',
+                'sql_name': '',
+                'user': '',
+                'password': '',
+                'address': '',
+                'port': '',
+                'database': '',
+            },
+>>>>>>> master
             'level': {
                 'DELETE_IMG_LEVEL': 7,
                 'MOVE_IMG_LEVEL': 7,
