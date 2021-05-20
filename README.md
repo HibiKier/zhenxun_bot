@@ -116,7 +116,7 @@
 
 ### 帮助以及开关（功能控制）
 
-群帮助将会在功能左侧展示该功能的开关，带有√或×的功能代表可以开关
+群帮助将会在功能左侧展示该功能的开关，带有√或×的功能代表可以开关<br>
 此插件使用 [nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager) 并魔改一点实现
 
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/help.PNG)
