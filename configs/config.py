@@ -17,6 +17,7 @@ RSSHUBAPP: str = ""  # rsshub
 TL_KEY: List[str] = []
 
 # 数据库（必要）
+# 如果填写了bind就不需要再填写后面的字段了#）
 bind: str = ''
 sql_name: str = ''
 user: str = ''
