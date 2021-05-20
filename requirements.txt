@@ -33,7 +33,6 @@ matplotlib==3.4.1
 multidict==5.1.0
 nonebot-adapter-cqhttp==2.0.0a12
 nonebot-plugin-apscheduler==0.1.2
-nonebot-plugin-gamedraw==0.1.4
 nonebot-plugin-picsearcher==0.1.4
 nonebot-plugin-wordbank==1.0.1
 nonebot2==2.0.0a13.post1
