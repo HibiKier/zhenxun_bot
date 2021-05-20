@@ -22,10 +22,10 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
 
 # @server_ip.handle()
 # async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-#     if event.group_id == 698279647:
+#     if event.group_id == ***********:
 #         await server_ip.finish("嗨呀！当前服务器地址是:"
 #                                "\ncsgo:***********")
-#     elif event.group_id == 1046451860:
+#     elif event.group_id == ***********:
 #         await server_ip.finish("嗨呀！当前服务器地址是:*********** !diy")
 #     else:
 #         await server_ip.finish("不好意思呀，小真寻不能为你使用此功能，因为服务器IP是真寻的小秘密呀！", at_sender=True)
