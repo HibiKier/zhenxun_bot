@@ -42,25 +42,6 @@ def init_config():
                 'system_proxy': '',
                 'buff_proxy': ''
             },
-            'rsshub': {
-                'RSSHUBAPP': 'https://docs.rsshub.app/',
-            },
-            'apikey': {
-                'LOLICON_KEY': '',
-                'TL_KEY': [],
-            },
-            'rsshub': {
-                'RSSHUBAPP': 'https://docs.rsshub.app/',
-            },
-            'sql': {
-                'bind': '',
-                'sql_name': '',
-                'user': '',
-                'password': '',
-                'address': '',
-                'port': '',
-                'database': '',
-            },
             'level': {
                 'DELETE_IMG_LEVEL': 7,
                 'MOVE_IMG_LEVEL': 7,
