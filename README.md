@@ -123,6 +123,14 @@
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/kg3.png)
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/kg2.png)
 
+<br>
+如果你希望某功能暂时停用<br>
+私聊发送 npm block xx （xx==功能名）来锁定<br>
+使用npm unblock xx 进行解锁
+
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/ocgn.png)
+![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/ocgn2.png)
+
 ### 签到
 普普通通的签到，设置影响开箱次数和涩图触发成功的概率（可配置）<br>
 开箱次数 = 初始开箱数量 + 好感度 / 3<br>
