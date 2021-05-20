@@ -5,6 +5,7 @@ from services.log import logger
 from nonebot.adapters.cqhttp import Bot, Event
 from nonebot.typing import T_State
 import aiohttp
+from asyncio.exceptions import TimeoutError
 
 
 __plugin_name__ = '鸡汤'
@@ -30,6 +31,8 @@ async def _(bot: Bot, event: Event, state: T_State):
                 logger.info(
                     f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'})"
                     f" 发送鸡汤:" + result)
+    except TimeoutError:
+        await jitang.send("鸡汤煮超时了##", at_sender=True)
     except Exception as e:
         await jitang.send("出错啦！再试一次吧！", at_sender=True)
         logger.info(f'鸡汤error e:{e}')
