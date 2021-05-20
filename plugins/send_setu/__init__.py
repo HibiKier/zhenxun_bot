@@ -219,6 +219,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         for _ in range(num):
             try:
                 img, index = get_setu('')
+                if not img:
+                    break
                 await setu_reg.send(img)
             except Exception as e:
                 await setu_reg.send('有图太色了发不出来...')
@@ -226,22 +228,23 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 logger.info(
                     f"USER {event.user_id} GROUP {event.group_id if event.message_type != 'private' else 'private'}"
                     f" 发送 {index} 色图成功")
-    else:
-        urls, text_list, code = await get_setu_urls(keyword, num)
-        if code == 200:
-            for i in range(len(urls)):
-                try:
-                    setu_img, index = await search_online_setu(urls[i])
-                    await setu_reg.send(text_list[i] + '\n' + setu_img)
-                except ActionFailed as e:
-                    await setu_reg.send('这图太色了，会教坏小孩子的，不给看..')
-                else:
-                    logger.info(
-                        f"USER {event.user_id} GROUP {event.group_id if event.message_type != 'private' else 'private'}"
-                        f" 发送 {keyword} {num}连 色图成功")
         else:
-            _ulmt.set_False(event.user_id)
-            await setu_reg.finish(urls, at_sender=True)
+            return
+    urls, text_list, code = await get_setu_urls(keyword, num)
+    if code == 200:
+        for i in range(len(urls)):
+            try:
+                setu_img, index = await search_online_setu(urls[i])
+                await setu_reg.send(text_list[i] + '\n' + setu_img)
+            except ActionFailed as e:
+                await setu_reg.send('这图太色了，会教坏小孩子的，不给看..')
+            else:
+                logger.info(
+                    f"USER {event.user_id} GROUP {event.group_id if event.message_type != 'private' else 'private'}"
+                    f" 发送 {keyword} {num}连 色图成功")
+    else:
+        _ulmt.set_False(event.user_id)
+        await setu_reg.finish(urls, at_sender=True)
     _ulmt.set_False(event.user_id)
 
 
