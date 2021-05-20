@@ -114,7 +114,7 @@
 <details>
 <summary>部分功能展示及说明</summary>
 
-### 帮助以及开关
+### 帮助以及开关（功能控制）
 
 群帮助将会在功能左侧展示该功能的开关，私聊则没有，带有√或×的功能代表可以开关
 此插件使用 [nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager) 并魔改一点实现
