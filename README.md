@@ -215,7 +215,7 @@
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/nicheng1.png)
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/nicheng2.png)
 
-### 抽卡
+### 抽卡（原神/明日方舟/赛马娘）
 
 已经上传至nb2商店，不再放图片了，项目地址：[nonebot_plugin_gamedraw](https://github.com/HibiKier/nonebot_plugin_gamedraw)
 
