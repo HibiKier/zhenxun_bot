@@ -1,4 +1,5 @@
 from .utils.util import get_config_data
+from typing import List
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -6,30 +7,30 @@ except ModuleNotFoundError:
 
 
 # 是否使用配置文件
-USE_CONFIG_FILE = False
+USE_CONFIG_FILE = True
 
 
 # API KEY（必要）
 LOLICON_KEY: str = ""  # lolicon
-RSSHUBAPP: str = "https://docs.rsshub.app/"  # rsshub
+RSSHUBAPP: str = ""  # rsshub
 # 图灵
-TL_KEY = []
+TL_KEY: List[str] = []
 
 # 数据库（必要）
-bind = ''
-sql_name = ''
-user = ''
-password = ''
-address = ''
-port = ''
-database = ''
+bind: str = 'postgresql://hibiki:KEWang130123@hibiki0v0.cn:5432/hibikibot'
+sql_name: str = ''
+user: str = ''
+password: str = ''
+address: str = ''
+port: str = ''
+database: str = ''
 
 
 # 公开图库列表
-IMAGE_DIR_LIST = ["色图", "美图", "萝莉", "壁纸"]
+IMAGE_DIR_LIST: List[str] = ["色图", "美图", "萝莉", "壁纸"]
 
 # 对被ban用户发送的消息
-BAN_RESULT = "才不会给你发消息."
+BAN_RESULT: str = "才不会给你发消息."
 
 
 # 插件配置
@@ -38,27 +39,25 @@ COUNT_PER_DAY_REIMU: int = 5    # 每日上车(reimu)次数限制
 MAXINFO_BT: int = 10        # bt功能单次查找最大数
 MAXINFO_PRIVATE_ANIME: int = 20     # 私聊搜索动漫返回的最大数量
 MAXINFO_GROUP_ANIME: int = 5       # 群搜索动漫返回的最大数量
+MAX_FIND_IMG_COUNT: int = 3      # 识图最大返回数
 
-MAX_FIND_IMG_COUNT = 3      # 识图最大返回数
+ADMIN_DEFAULT_AUTH: int = 5  # 默认群管理员权限
 
-ADMIN_DEFAULT_AUTH = 5  # 默认群管理员权限
+MAX_SIGN_GOLD: int = 200     # 签到好感度加成额外获得的最大金币数
 
-MAX_SIGN_GOLD = 200     # 签到好感度加成额外获得的最大金币数
+INITIAL_SETU_PROBABILITY: float = 0.7   # 色图概率
+FUDU_PROBABILITY: float = 0.7          # 复读概率
 
-INITIAL_SETU_PROBABILITY = 0.7   # 色图概率
-FUDU_PROBABILITY = 0.7          # 复读概率
+INITIAL_OPEN_CASE_COUNT: int = 20    # 初始开箱次数
+MUTE_DEFAULT_COUNT: int = 10      # 刷屏禁言默认检测次数
+MUTE_DEFAULT_TIME: int = 7       # 刷屏检测默认规定时间
 
-INITIAL_OPEN_CASE_COUNT = 20    # 初始开箱次数
-MUTE_DEFAULT_COUNT = 10      # 刷屏禁言默认检测次数
-MUTE_DEFAULT_TIME = 7       # 刷屏检测默认规定时间
-
-MUTE_DEFAULT_DURATION = 10  # 刷屏检测默禁言时长（分钟）
-
+MUTE_DEFAULT_DURATION: int = 10  # 刷屏检测默禁言时长（分钟）
 
 # 注：即在 MALICIOUS_CHECK_TIME 时间内触发相同命令 MALICIOUS_BAN_COUNT 将被ban MALICIOUS_BAN_TIME 分钟
-MALICIOUS_BAN_TIME = 30    # 恶意命令触发检测触发后ban的时长（分钟）
-MALICIOUS_BAN_COUNT = 4     # 恶意命令触发检测最大触发次数
-MALICIOUS_CHECK_TIME = 5     # 恶意命令触发检测规定时间内（秒）
+MALICIOUS_BAN_TIME: int = 30    # 恶意命令触发检测触发后ban的时长（分钟）
+MALICIOUS_BAN_COUNT: int = 4     # 恶意命令触发检测最大触发次数
+MALICIOUS_CHECK_TIME: int = 5     # 恶意命令触发检测规定时间内（秒）
 
 # LEVEL
 DELETE_IMG_LEVEL: int = 7           # 删除图片权限
@@ -70,22 +69,22 @@ MUTE_LEVEL: int = 5                 # 更改禁言设置权限
 
 # 需要为哪些群更新最新版gocq吗？（上传最新版gocq）
 # 示例：[434995955, 239483248]
-UPDATE_GOCQ_GROUP = []
-
+UPDATE_GOCQ_GROUP: List[int] = []
 
 # 代理
-system_proxy = ''
-buff_proxy = ''
+system_proxy: str = 'http://127.0.0.1:7890'
+buff_proxy: str = ''
 
 # 是否存储色图
-DOWNLOAD_SETU = True
+DOWNLOAD_SETU: bool = True
 # 是否使用本地色图
-LOCAL_SETU = True
+LOCAL_SETU: bool = True
 # 是否自动同意好友添加
-AUTO_ADD_FRIEND = True
+AUTO_ADD_FRIEND: bool = True
 
 
-# 功能模块 及 对应命令
+# 模块与对应命令
+# 用于生成帮助图片 和 开关功能
 plugins2name_dict = {
     'sign_in': ['签到'],
     'send_img': ['发送图片', '萝莉', '美图', '壁纸'],
@@ -124,7 +123,6 @@ plugins2name_dict = {
     'query_resource_points': ['原神资源查询', '原神资源列表'],
 }
 
-
 # 群管理员功能 与 对应权限
 admin_plugins_auth = {
     'admin_bot_manage': OC_LEVEL,
@@ -136,7 +134,6 @@ admin_plugins_auth = {
     'mute': MUTE_LEVEL,
 }
 
-
 # 配置文件应用
 if USE_CONFIG_FILE:
     config = get_config_data()
@@ -147,6 +144,8 @@ if USE_CONFIG_FILE:
             if key.find('proxy') != -1:
                 if not config[key]:
                     config[key] = None
+            # if not configs[key] and key.find("PATH") == -1:
+            #     configs[key] = None
         globals().update(config)
 
 
