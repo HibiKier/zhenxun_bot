@@ -451,7 +451,8 @@ USE_CONFIG_FILE = True
         "MAXINFO_PRIVATE_ANIME": 20,  # 私聊搜索动漫返回的最大数量
         "MAXINFO_GROUP_ANIME": 5,     # 群搜索动漫返回的最大数量
         "MAX_FIND_IMG_COUNT": 3,      # 识图最大返回数
-        "MAX_SIGN_GOLD": 200          # 签到好感度加成额外获得的最大金币数
+        "MAX_SIGN_GOLD": 200,         # 签到好感度加成额外获得的最大金币数
+        "MAX_SETU_R_COUNT": 5,        # 每日色图r次数限制
     },
     
     "probability": {
