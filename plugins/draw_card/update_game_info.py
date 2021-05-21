@@ -136,6 +136,7 @@ async def _last_check(data: dict, game_name: str, session: aiohttp.ClientSession
                 elif obtain.find('<br>'):
                     obtain = obtain.split('<br>')
                 data[key]['获取途径'] = obtain
+                logger.info(f'明日方舟获取额外信息....{obtain}')
     # if game_name == 'genshin':
     #     for key in data.keys():
     #         async with session.get(f'https://wiki.biligame.com/ys/{key}', timeout=7) as res:
@@ -152,6 +153,7 @@ async def _last_check(data: dict, game_name: str, session: aiohttp.ClientSession
                 r = re.search(r'.*?40px-(.*)图标.png', str(data[keys][key]))
                 if r:
                     data[keys][key] = r.group(1)
+                    logger.info(f'赛马额外修改数据....{keys}[{key}]=> {r.group(1)}')
     return data
 
 
