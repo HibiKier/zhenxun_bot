@@ -7,18 +7,19 @@ except ModuleNotFoundError:
 
 
 # 是否使用配置文件
-USE_CONFIG_FILE = True
+USE_CONFIG_FILE = False
 
 
 # API KEY（必要）
-LOLICON_KEY: str = ""  # lolicon
+LOLICON_KEY: str = "336595836015174952daa2"  # lolicon
 RSSHUBAPP: str = "https://docs.rsshub.app/"  # rsshub
 # 图灵
-TL_KEY: List[str] = []
+TL_KEY: List[str] = ["4474710fabbf4540bfaa569c192bb457", "6f4c0920d2ff4962b5cbd8148aef771b",
+                     "f5595738894042fb9fad88ecdc4acf41", "c24400595fed48f9a5c5bc3ff03a3267", "efab135b75d84b02a59115f5b571f277"]
 
 # 数据库（必要）
 # 如果填写了bind就不需要再填写后面的字段了#）
-bind: str = ''
+bind: str = 'postgresql://hibiki:KEWang130123@hibiki0v0.cn:5432/hibikibot'
 sql_name: str = ''
 user: str = ''
 password: str = ''
@@ -41,6 +42,7 @@ MAXINFO_BT: int = 10        # bt功能单次查找最大数
 MAXINFO_PRIVATE_ANIME: int = 20     # 私聊搜索动漫返回的最大数量
 MAXINFO_GROUP_ANIME: int = 5       # 群搜索动漫返回的最大数量
 MAX_FIND_IMG_COUNT: int = 3      # 识图最大返回数
+MAX_SETU_R_COUNT: int = 5       # 每日色图r次数限制 
 
 ADMIN_DEFAULT_AUTH: int = 5  # 默认群管理员权限
 
