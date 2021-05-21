@@ -19,7 +19,6 @@ def init_config():
             'apikey': {
                 'LOLICON_KEY': '',
                 'TL_KEY': [],
-                'RSSHUBAPP': str = "https://docs.rsshub.app/"
             },
             'sql': {
                 'bind': '',
@@ -120,6 +119,7 @@ def init_config():
                 'MAXINFO_GROUP_ANIME': 5,
                 'MAX_FIND_IMG_COUNT': 3,
                 'MAX_SIGN_GOLD': 200,
+                'MAX_SETU_R_COUNT': 5,
             },
             'malicious_ban': {
                 'MALICIOUS_BAN_TIME': 30,
