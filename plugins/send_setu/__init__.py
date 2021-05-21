@@ -230,6 +230,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                     f" 发送 {index} 色图成功")
         else:
             return
+    if keyword.find(list(bot.config.nickname)[0]) != -1:
+        await setu.finish('咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀')
     urls, text_list, code = await get_setu_urls(keyword, num)
     if code == 200:
         for i in range(len(urls)):
