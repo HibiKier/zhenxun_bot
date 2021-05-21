@@ -1,5 +1,5 @@
 from pathlib import Path
-from services.init_config import init_config
+from configs.utils.init_config import init_config
 try:
     import ujson as json
 except ModuleNotFoundError:
