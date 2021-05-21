@@ -57,7 +57,7 @@ MUTE_DEFAULT_DURATION: int = 10  # 刷屏检测默禁言时长（分钟）
 
 # 注：即在 MALICIOUS_CHECK_TIME 时间内触发相同命令 MALICIOUS_BAN_COUNT 将被ban MALICIOUS_BAN_TIME 分钟
 MALICIOUS_BAN_TIME: int = 30    # 恶意命令触发检测触发后ban的时长（分钟）
-MALICIOUS_BAN_COUNT: int = 4     # 恶意命令触发检测最大触发次数
+MALICIOUS_BAN_COUNT: int = 8     # 恶意命令触发检测最大触发次数
 MALICIOUS_CHECK_TIME: int = 5     # 恶意命令触发检测规定时间内（秒）
 
 # LEVEL
