@@ -11,9 +11,10 @@ from nonebot.adapters.cqhttp.exception import ActionFailed
 import re
 from models.count_user import UserCount
 from aiohttp.client_exceptions import ClientConnectorError
+from configs.config import MAX_SETU_R_COUNT
 
 __plugin_name__ = '色图'
-__plugin_usage__ = '''示例：
+__plugin_usage__ = f'''示例：
     1. 色图   （随机本地色图）
     2. 色图r   （随机在线十张r18涩图）
     3. 色图 666 （本地色图id）
@@ -21,7 +22,7 @@ __plugin_usage__ = '''示例：
     5. 色图r xx   （搜索十张xx的r18涩图，注意空格）（仅私聊）
     6. 来n张涩图  （本地涩图连发）（1<=n<=9）
     7. 来n张xx的涩图   （在线搜索xx涩图）（较慢，看网速）
-注：【色图r每日提供5次
+注：【色图r每日提供{MAX_SETU_R_COUNT}次
     本地涩图没有r18！
     联网搜索会较慢！
     如果图片数量与数字不符，
@@ -33,7 +34,6 @@ url = "https://api.lolicon.app/setu/"
 _flmt = FreqLimiter(5)
 _ulmt = UserExistLimiter()
 path = "setu/"
-MAX_COUNT = 5
 
 
 setu = on_command("色图", aliases={"涩图", "不够色", "来一发", "再来点"}, priority=5, block=True)
@@ -122,7 +122,7 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
             await setu.finish('咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀')
         keyword, r18, num = await check_r18_and_keyword(msg, event.user_id)
         if r18 == 1:
-            if await UserCount.check_count(event.user_id, 'setu_r18', MAX_COUNT):
+            if await UserCount.check_count(event.user_id, 'setu_r18', MAX_SETU_R_COUNT):
                 _ulmt.set_False(event.user_id)
                 await setu.finish('要节制啊，请明天再来...\n【每日提供5次】', at_sender=True)
         try:
