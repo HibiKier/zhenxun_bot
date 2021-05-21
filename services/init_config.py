@@ -123,7 +123,7 @@ def init_config():
             },
             'malicious_ban': {
                 'MALICIOUS_BAN_TIME': 30,
-                'MALICIOUS_BAN_COUNT': 4,
+                'MALICIOUS_BAN_COUNT': 8,
                 'MALICIOUS_CHECK_TIME': 5,
             },
             'open_case': {
