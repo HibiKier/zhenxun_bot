@@ -67,7 +67,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             f"USER {event.user_id} GROUP {event.group_id} 发送色图 {index}.jpg 成功")
     else:
         msg = img_id
-        if msg.find(list(bot.config.nickname)[0]) != -1:
+        if list(bot.config.nickname)[0].find(msg) != -1:
             _ulmt.set_False(event.user_id)
             await setu.finish('咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀')
         keyword, r18, num = await check_r18_and_keyword(msg, event.user_id)
@@ -117,7 +117,7 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
             f"USER {event.user_id} GROUP private 发送色图 {index}.jpg 成功")
     else:
         msg = img_id
-        if msg.find(list(bot.config.nickname)[0]) != -1:
+        if list(bot.config.nickname)[0].find(msg) != -1:
             _ulmt.set_False(event.user_id)
             await setu.finish('咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀')
         keyword, r18, num = await check_r18_and_keyword(msg, event.user_id)
@@ -230,7 +230,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                     f" 发送 {index} 色图成功")
         else:
             return
-    if keyword.find(list(bot.config.nickname)[0]) != -1:
+    if list(bot.config.nickname)[0].find(keyword) != -1:
         await setu.finish('咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀')
     urls, text_list, code = await get_setu_urls(keyword, num)
     if code == 200:
