@@ -28,7 +28,7 @@ __plugin_usage__ = (
 
 _flmt = FreqLimiter(3)
 
-cases_name = ['狂牙大行动', '突围大行动', '命悬一线', '裂空']
+cases_name = ['狂牙大行动', '突围大行动', '命悬一线', '裂空', '光谱']
 
 cases_matcher_group = MatcherGroup(priority=5, permission=GROUP, block=True)
 
