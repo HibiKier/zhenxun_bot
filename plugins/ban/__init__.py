@@ -29,9 +29,10 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     result = ''
     qq = int(get_message_at(event.json())[0])
     if qq:
-        nickname = await GroupInfoUser.get_group_member_nickname(qq, event.group_id)
-        if not nickname:
-            nickname = '用户'
+        try:
+            user_name = (await GroupInfoUser.select_member_info(qq, event.group_id)).user_name
+        except AttributeError:
+            user_name = '用户'
         msg = get_message_text(event.json())
         if msg:
             msg = msg.split(" ")
@@ -48,10 +49,10 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         if state["_prefix"]["raw_command"] in [".ban", '/ban']:
             if await LevelUser.get_user_level(event.user_id, event.group_id) <= await \
                     LevelUser.get_user_level(qq, event.group_id) and str(event.user_id) not in bot.config.superusers:
-                await ban.finish(f"您的权限等级比对方低或相等, {list(bot.config.nickname)[0]}不能为您使用此功能!", at_sender=True)
+                await ban.finish(f"您的权限等级比对方低或相等, {list(bot.config.user_name)[0]}不能为您使用此功能!", at_sender=True)
             if await BanUser.ban(qq, await LevelUser.get_user_level(event.user_id, event.group_id), time):
                 logger.info(f"USER {event.user_id} GROUP {event.group_id} 将 USER {qq} 封禁 时长 {time/60} 分钟")
-                result = f"已经将 {nickname} 加入{list(bot.config.nickname)[0]}的黑名单了！"
+                result = f"已经将 {user_name} 加入{list(bot.config.user_name)[0]}的黑名单了！"
                 if time != -1:
                     result += f"将在 {time/60} 分钟后解封"
             else:
@@ -64,16 +65,16 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                         time = str(int(time / 60)) + ' 分钟'
                 else:
                     time += ' 分钟'
-                result = f"{nickname} 已在黑名单！预计 {time}后解封"
+                result = f"{user_name} 已在黑名单！预计 {time}后解封"
         else:
             if await BanUser.check_ban_level(qq, await LevelUser.get_user_level(event.user_id, event.group_id)) and\
                     str(event.user_id) not in bot.config.superusers:
-                await ban.finish(f"ban掉 {nickname} 的管理员权限比您高，无法进行unban", at_sender=True)
+                await ban.finish(f"ban掉 {user_name} 的管理员权限比您高，无法进行unban", at_sender=True)
             if await BanUser.unban(qq):
                 logger.info(f"USER {event.user_id} GROUP {event.group_id} 将 USER {qq} 解禁")
-                result = f"已经把 {nickname} 从黑名单中删除了！"
+                result = f"已经把 {user_name} 从黑名单中删除了！"
             else:
-                result = f"{nickname} 不在黑名单！"
+                result = f"{user_name} 不在黑名单！"
     else:
         await ban.finish('艾特人了吗？？', at_sender=True)
     # except Exception as e:
