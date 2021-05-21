@@ -49,10 +49,10 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         if state["_prefix"]["raw_command"] in [".ban", '/ban']:
             if await LevelUser.get_user_level(event.user_id, event.group_id) <= await \
                     LevelUser.get_user_level(qq, event.group_id) and str(event.user_id) not in bot.config.superusers:
-                await ban.finish(f"您的权限等级比对方低或相等, {list(bot.config.user_name)[0]}不能为您使用此功能!", at_sender=True)
+                await ban.finish(f"您的权限等级比对方低或相等, {list(bot.config.nickname)[0]}不能为您使用此功能!", at_sender=True)
             if await BanUser.ban(qq, await LevelUser.get_user_level(event.user_id, event.group_id), time):
                 logger.info(f"USER {event.user_id} GROUP {event.group_id} 将 USER {qq} 封禁 时长 {time/60} 分钟")
-                result = f"已经将 {user_name} 加入{list(bot.config.user_name)[0]}的黑名单了！"
+                result = f"已经将 {user_name} 加入{list(bot.config.nickname)[0]}的黑名单了！"
                 if time != -1:
                     result += f"将在 {time/60} 分钟后解封"
             else:
