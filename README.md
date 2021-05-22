@@ -50,9 +50,9 @@
 - [x] BUFF饰品底价查询（需要session）
 - [x] 天气查询
 - [x] 疫情查询
-- [x] bt搜索  使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件
-- [x] reimu搜索（上车） 使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件
-- [x] 靠图识番  使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件
+- [x] bt搜索  (使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件)
+- [x] reimu搜索（上车） (使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件)
+- [x] 靠图识番  (使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件)
 - [x] 以图搜图
 - [x] 搜番
 - [x] 点歌  nb2商店[nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2)插件（删除了选歌和评论）
