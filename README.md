@@ -42,9 +42,9 @@
 - [x] 原神/明日方舟/赛马娘的抽卡【原神抽卡设置小保底与大保底/重置原神抽卡次数】（根据bwiki自动更新）
 - [x] 骰子娘（nb2商店插件[nonebot_plugin_cocdicer](https://github.com/abrahum/nonebot_plugin_cocdicer)）
 - [x] 我有一个朋友想问问..（pcrbot插件..重构）
-- [x] 原神黄历
-- [x] 原神今日素材/天赋材料
-- [x] 原神资源查询
+- [x] 原神黄历  (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
+- [x] 原神今日素材/天赋材料 (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
+- [x] 原神资源查询  (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
 
 - [x] pil对图片的一些操作
 - [x] BUFF饰品底价查询（需要session）
