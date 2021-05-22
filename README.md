@@ -40,7 +40,7 @@
 - [x] 构造假消息（自定义的分享链接）
 - [x] 商店/我的金币/购买道具/使用道具
 - [x] 原神/明日方舟/赛马娘的抽卡【原神抽卡设置小保底与大保底/重置原神抽卡次数】（根据bwiki自动更新）
-- [x] 骰子娘（nb2商店插件）
+- [x] 骰子娘（nb2商店插件[nonebot_plugin_cocdicer](https://github.com/abrahum/nonebot_plugin_cocdicer)）
 - [x] 我有一个朋友想问问..（pcrbot插件..重构）
 - [x] 原神黄历
 - [x] 原神今日素材/天赋材料
@@ -50,12 +50,12 @@
 - [x] BUFF饰品底价查询（需要session）
 - [x] 天气查询
 - [x] 疫情查询
-- [x] bt搜索
-- [x] reimu搜索（上车）
-- [x] 靠图识番
+- [x] bt搜索  使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件
+- [x] reimu搜索（上车） 使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件
+- [x] 靠图识番  使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件
 - [x] 以图搜图
 - [x] 搜番
-- [x] 点歌
+- [x] 点歌  nb2商店[nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2)插件（删除了选歌和评论）
 - [x] epic免费游戏
 - [x] p站排行榜（可含参数）
 - [x] p站搜图（可含参数）
