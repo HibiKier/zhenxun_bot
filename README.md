@@ -323,7 +323,7 @@
 ## 部署
 ```
 # 获取代码
-git clone https://github.com/Angel-Hair/XUN_Bot.git
+git clone https://github.com/HibiKier/zhenxun_bot.git
 
 # 安装依赖
 pip install -r requirements.txt
