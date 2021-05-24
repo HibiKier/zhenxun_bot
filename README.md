@@ -339,7 +339,7 @@ python bot.py
 ```
 
 ## 配置
-在 ./configs/config.py 中，默认为True
+在 ./configs/config.py 中的 USE_CONFIG_FILE，默认为True
 
 ```
 # 是否使用配置文件（为True时这将会生成三份配置文件
