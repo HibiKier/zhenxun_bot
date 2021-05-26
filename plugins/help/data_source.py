@@ -113,15 +113,10 @@ def create_group_help_img(group_id: int):
 def parse_cmd(cmd, group_id, plugin_list):
     flag = '√'
     dfg = None
-    if cmd == 'draw_card_p':
-        cmd = 'draw_card'
-        dfg = 'p'
-    elif cmd == 'draw_card_g':
-        cmd = 'draw_card'
-        dfg = 'g'
-    elif cmd == 'draw_card_h':
-        cmd = 'draw_card'
-        dfg = 'h'
+    if cmd.find('draw_card') != -1:
+        lst = cmd.split('_')
+        cmd = lst[0] + '_' + lst[1]
+        dfg = lst[-1]
     elif cmd == 'pixiv_r':
         cmd = 'pixiv'
         dfg = 'r'
@@ -137,12 +132,8 @@ def parse_cmd(cmd, group_id, plugin_list):
 
 
 def rcmd(dfg):
-    if dfg == 'p':
-        return 'draw_card_p'
-    if dfg == 'g':
-        return 'draw_card_g'
-    if dfg == 'h':
-        return 'draw_card_h'
+    if dfg in ['prts', 'genshin', 'pretty', 'guardian', 'pcr']:
+        return 'draw_card_' + dfg
     if dfg == 'r':
         return 'pixiv_r'
     if dfg == 's':

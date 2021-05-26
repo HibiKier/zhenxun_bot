@@ -2,16 +2,17 @@ import aiohttp
 from bs4 import BeautifulSoup
 import re
 from datetime import datetime
+from .config import DRAW_PATH
+from util.utils import get_local_proxy
 from pathlib import Path
-from configs.path_config import DRAW_PATH
-from util.user_agent import get_user_agent
-
 try:
     import ujson as json
 except ModuleNotFoundError:
     import json
 
-up_char_file = Path(DRAW_PATH) / "draw_card_up" / "prts_up_char.json"
+headers = {'User-Agent': '"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; TencentTraveler 4.0)"'}
+
+up_char_file = Path(DRAW_PATH + "/draw_card_up/prts_up_char.json")
 
 prts_url = "https://wiki.biligame.com/arknights/%E6%96%B0%E9%97%BB%E5%85%AC%E5%91%8A"
 
@@ -29,7 +30,7 @@ class PrtsAnnouncement:
 
     @staticmethod
     async def get_announcement_text():
-        async with aiohttp.ClientSession(headers=get_user_agent()) as session:
+        async with aiohttp.ClientSession(headers=headers) as session:
             async with session.get(prts_url, timeout=7) as res:
                 soup = BeautifulSoup(await res.text(), 'lxml')
                 trs = soup.find('table').find('tbody').find_all('tr')
@@ -38,7 +39,7 @@ class PrtsAnnouncement:
                     if a.text.find('寻访') != -1:
                         url = a.get('href')
                         break
-            async with session.get(f'https://wiki.biligame.com/{url}', timeout=7) as res:
+            async with session.get(f'https://wiki.biligame.com/{url}', proxy=get_local_proxy(), timeout=7) as res:
                 return await res.text(), a.text[:-4]
 
     @staticmethod

@@ -137,19 +137,6 @@ def is_number(s) -> bool:
     return False
 
 
-def get_lines(path: str, start: int = 0, end: int = 0) -> list:
-    l = []
-    with open(path, 'r', errors='ignore', encoding="UTF-8") as f:
-        lines = f.readlines()
-        for line in lines:
-            if line != "\n" and line != "":
-                if end == 0:
-                    l.append(line[start:])
-                else:
-                    l.append(line[start: end])
-    return l
-
-
 # 获取bot
 def get_bot():
     return list(nonebot.get_bots().values())[0]

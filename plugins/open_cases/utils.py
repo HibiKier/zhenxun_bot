@@ -17,6 +17,7 @@ from nonebot.adapters.cqhttp.exception import ActionFailed
 from configs.config import buff_proxy
 
 url = "https://buff.163.com/api/market/goods"
+# proxies = 'http://49.75.59.242:3128'
 
 
 async def util_get_buff_price(case_name: str = "狂牙大行动") -> str:
@@ -261,7 +262,7 @@ async def update_count_daily():
             for user in users:
                 await user.update(
                     today_open_total=0,
-                ).apply()
+                    ).apply()
         bot = get_bot()
         gl = await bot.get_group_list(self_id=bot.self_id)
         gl = [g['group_id'] for g in gl]

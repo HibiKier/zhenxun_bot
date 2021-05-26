@@ -38,7 +38,7 @@ async def get_setu_urls(keyword: str, num: int = 1, r18: int = 0):
         'keyword': keyword,  # 若指定关键字，将会返回从插画标题、作者、标签中模糊搜索的结果
         'num': num,  # 一次返回的结果数量，范围为1到10，不提供 APIKEY 时固定为1
         'size1200': 1,  # 是否使用 master_1200 缩略图，以节省流量或提升加载速度
-        }
+    }
     urls = []
     text_list = []
     for count in range(3):
