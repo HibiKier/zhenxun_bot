@@ -39,7 +39,7 @@
 - [x] 鲁迅说过
 - [x] 构造假消息（自定义的分享链接）
 - [x] 商店/我的金币/购买道具/使用道具
-- [x] 原神/明日方舟/赛马娘的抽卡【原神抽卡设置小保底与大保底/重置原神抽卡次数】（根据bwiki自动更新）
+- [x] 原神/明日方舟/赛马娘/坎公骑冠剑/公主连结的抽卡【原神抽卡设置小保底与大保底/重置原神抽卡次数】（根据bwiki自动更新）
 - [x] 骰子娘（nb2商店插件[nonebot_plugin_cocdicer](https://github.com/abrahum/nonebot_plugin_cocdicer)）
 - [x] 我有一个朋友想问问..（pcrbot插件..重构）
 - [x] 原神黄历  (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
