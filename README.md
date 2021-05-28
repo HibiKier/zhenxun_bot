@@ -262,7 +262,7 @@
 
 ### P站排行/搜图
 
-访问rsshub获取数据解析<br>自己试试吧（# #）
+访问rsshub获取数据解析
 
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/p_rank.png)
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/p_sou.png)
