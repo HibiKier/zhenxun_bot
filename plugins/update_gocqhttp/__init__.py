@@ -9,7 +9,8 @@ from util.utils import scheduler, get_bot, UserExistLimiter
 from configs.config import UPDATE_GOCQ_GROUP
 from pathlib import Path
 
-path = str(Path('/resources/gocqhttp_file/').absolute()) + '/'
+path = str((Path() / "resources" / "gocqhttp_file").absolute()) + '/'
+print(path)
 
 lasted_gocqhttp = on_command("更新gocq", permission=GROUP, priority=5, block=True)
 
