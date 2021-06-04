@@ -50,7 +50,7 @@
 - [x] BUFF饰品底价查询（需要session）
 - [x] 天气查询
 - [x] 疫情查询
-- [x] bt搜索  (使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件)
+- [x] bt搜索 
 - [x] reimu搜索（上车） (使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件)
 - [x] 靠图识番  (使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件)
 - [x] 以图搜图
@@ -219,9 +219,9 @@
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/nicheng1.png)
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/nicheng2.png)
 
-### 抽卡（原神/明日方舟/赛马娘）
+### 抽卡（8种手游的抽卡）
 
-已经上传至nb2商店，不再放图片了，项目地址：[nonebot_plugin_gamedraw](https://github.com/HibiKier/nonebot_plugin_gamedraw)
+已单独分离并上传至nb2商店，不再放图片了，项目地址：[nonebot_plugin_gamedraw](https://github.com/HibiKier/nonebot_plugin_gamedraw)
 
 ### 我有一个朋友...
 
@@ -503,6 +503,10 @@ USE_CONFIG_FILE = True
 
 
 ## 更新
+
+### 2021/6/4
+  * 重写BT功能
+  * 进行一些BUG修复和微笑调整
 
 ### 2021/5/26
   * 将语录源更换为一言api
