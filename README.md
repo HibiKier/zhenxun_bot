@@ -507,6 +507,7 @@ USE_CONFIG_FILE = True
   * 重写BT功能
   * 进行一些BUG修复和微笑调整
   * 添加撤回功能[nonebot-plugin-withdraw](https://github.com/MeetWq/nonebot-plugin-withdraw)
+  * 为色图功能添加额外的 上传色图 和 删除色图方法（影响hash）
 
 ### 2021/5/26
   * 将语录源更换为一言api
