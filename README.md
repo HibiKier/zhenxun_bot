@@ -39,8 +39,7 @@
 - [x] 鲁迅说过
 - [x] 构造假消息（自定义的分享链接）
 - [x] 商店/我的金币/购买道具/使用道具
-- [x] 原神/明日方舟/赛马娘/坎公骑冠剑/公主连结的抽卡【原神抽卡设置小保底与大保底/重置原神抽卡次数】（根据bwiki自动更新）
-- [x] 骰子娘（nb2商店插件[nonebot_plugin_cocdicer](https://github.com/abrahum/nonebot_plugin_cocdicer)）
+- [x] 8抽手游抽卡
 - [x] 我有一个朋友想问问..（pcrbot插件..重构）
 - [x] 原神黄历  (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
 - [x] 原神今日素材/天赋材料 (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
@@ -67,6 +66,7 @@
 - [x] 我的信息（只是为了看看什么时候入群）
 - [x] 更新信息（如果继续更新的话）
 - [x] go-cqhttp最新版下载和上传（不需要请删除）
+- [x] 撤回
 - [x] 滴滴滴-（用户对超级用户发送消息）
 
 ### 已实现的管理员功能
@@ -309,7 +309,6 @@
 ### 其他
 
 点歌：使用 [nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2) 插件<br>
-骰子娘：使用 [nonebot_plugin_cocdicer](https://github.com/abrahum/nonebot_plugin_cocdicer) 插件
 <br><br>
 ## 其他功能请自己试一试 ）
 
@@ -344,7 +343,7 @@ python bot.py
 在./configs/config.py中配置基本配置（除API ，数据库和代理外都含有默认值）
 在./configs/path_config.py配置路径（含有默认配置）
 
-##############################（暂时不更新 json 配置，请将USE_CONFIG_FILE设置为False）
+##############################（暂时不更新 json 配置，请将USE_CONFIG_FILE设置为False，直接进入./configs/config.py进行配置）
 # 是否使用配置文件（为True时这将会生成三份配置文件
                  ./config.json：主要配置
                  ./configs/plugins2cmd_config.json: 功能模块与对应命令配置
@@ -507,6 +506,7 @@ USE_CONFIG_FILE = True
 ### 2021/6/4
   * 重写BT功能
   * 进行一些BUG修复和微笑调整
+  * 添加撤回功能[nonebot-plugin-withdraw](https://github.com/MeetWq/nonebot-plugin-withdraw)
 
 ### 2021/5/26
   * 将语录源更换为一言api
@@ -518,24 +518,14 @@ USE_CONFIG_FILE = True
 - [ ] 更多的群管理功能
 
 ## 感谢
-[Onebot](https://github.com/howmanybots/onebot)
-<br>
-[go-cqhttp](https://github.com/Mrs4s/go-cqhttp)
-<br>
-[nonebot2](https://github.com/nonebot/nonebot2)
-<br>
-[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)
-<br>
-[cappuccilo_plugins](https://github.com/pcrbot/cappuccilo_plugins#%E7%94%9F%E6%88%90%E5%99%A8%E6%8F%92%E4%BB%B6)
-<br>
-[nonebot_plugin_cocdicer](https://github.com/abrahum/nonebot_plugin_cocdicer)
-<br>
-[nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2)
-<br>
-[nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager)
-<br>
-[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)
-<br>
-[nonebot2_luxun_says](https://github.com/NothAmor/nonebot2_luxun_says)
-<br>
-[AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus)
+[Onebot](https://github.com/howmanybots/onebot)  
+[go-cqhttp](https://github.com/Mrs4s/go-cqhttp)  
+[nonebot2](https://github.com/nonebot/nonebot2)  
+[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)  
+[cappuccilo_plugins](https://github.com/pcrbot/cappuccilo_plugins#%E7%94%9F%E6%88%90%E5%99%A8%E6%8F%92%E4%BB%B6)  
+[nonebot-plugin-withdraw](https://github.com/MeetWq/nonebot-plugin-withdraw)  
+[nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2)  
+[nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager)  
+[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)  
+[nonebot2_luxun_says](https://github.com/NothAmor/nonebot2_luxun_says)  
+[AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus)  
