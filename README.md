@@ -29,7 +29,7 @@
 - [x] 图灵AI（会把'你'等关键字替换为你的昵称），且带有 [AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus)，够味
 - [x] 签到/我的签到/好感度排行（影响色图概率和开箱次数，支持配置）
 - [x] 发送某文件夹下的随机图片（支持自定义，默认：美图，萝莉，壁纸）
-- [x] 色图（可配置是否存储到本地，并会判断该色图是否已在本地，存在则跳过）
+- [x] 色图（这不是基础功能嘛喂）
 - [x] coser
 - [x] 黑白草图生成器
 - [x] 鸡汤/语录
@@ -52,12 +52,12 @@
 - [x] bt搜索 
 - [x] reimu搜索（上车） (使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件)
 - [x] 靠图识番  (使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件)
-- [x] 以图搜图
+- [x] 以图搜图 (使用[nonebot_plugin_picsearcher](https://github.com/synodriver/nonebot_plugin_picsearcher)插件)
 - [x] 搜番
-- [x] 点歌  nb2商店[nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2)插件（删除了选歌和评论）
+- [x] 点歌  [nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2)插件（删除了选歌和评论）
 - [x] epic免费游戏
-- [x] p站排行榜（可含参数）
-- [x] p站搜图（可含参数）
+- [x] p站排行榜
+- [x] p站搜图
 - [x] 翻译（日英韩）
 
 - [x] 群内csgo服务器（如果没有csgo服务器请删除）
@@ -71,7 +71,7 @@
 
 ### 已实现的管理员功能
 - [x] 更新群组成员信息
-- [x] 95%的群功能开关
+- [x] 95%的群功能开关 (基于[nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager)插件)  
 - [x] 查看群内被动技能状态
 - [x] 自定义群欢迎消息（是真寻的不是管家的！）
 - [x] .ban/.unban（支持设置ban时长）
