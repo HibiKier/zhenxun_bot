@@ -506,7 +506,7 @@ USE_CONFIG_FILE = True
 
 ### 2021/6/4
   * 重写BT功能
-  * 进行一些BUG修复和微笑调整
+  * 进行一些BUG修复和微小调整
   * 添加撤回功能[nonebot-plugin-withdraw](https://github.com/MeetWq/nonebot-plugin-withdraw)
   * 为色图功能添加额外的 上传色图 和 删除色图方法（影响hash）
 
