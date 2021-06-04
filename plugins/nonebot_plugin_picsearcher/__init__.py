@@ -9,6 +9,7 @@ from nonebot.typing import T_State
 from services.log import logger
 from util.utils import get_message_text, get_message_imgs
 from configs.config import MAX_FIND_IMG_COUNT
+from nonebot.rule import to_me
 
 from .ex import get_des as get_des_ex
 from .iqdb import get_des as get_des_iqdb
@@ -127,7 +128,7 @@ async def handle_pic(bot: Bot, event: GroupMessageEvent, state: T_State):
         pass
 
 
-previous = on_command("上一张图是什么", aliases={"上一张", "这是什么"})
+previous = on_command("上一张图是什么", aliases={"上一张", "这是什么"}, rule=to_me(), block=True)
 
 
 @previous.handle()

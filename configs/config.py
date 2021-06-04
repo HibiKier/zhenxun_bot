@@ -7,7 +7,7 @@ except ModuleNotFoundError:
 
 
 # 是否使用配置文件
-USE_CONFIG_FILE = False
+USE_CONFIG_FILE = True
 
 
 # API KEY（必要）

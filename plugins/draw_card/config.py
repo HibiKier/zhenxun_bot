@@ -1,22 +1,30 @@
 import nonebot
 from pathlib import Path
-from configs.path_config import DRAW_PATH
+from configs.path_config import DATA_PATH
+from configs.config import FGO_FLAG, PCR_FLAG, AZUR_FLAG, PRTS_FLAG,\
+    PRETTY_FLAG, GUARDIAN_FLAG, GENSHIN_FLAG, ONMYOJI_FLAG, PCR_TAI
 try:
     import ujson as json
 except ModuleNotFoundError:
     import json
 
-DRAW_PATH = DRAW_PATH
+
+DRAW_PATH = DATA_PATH + '/draw_card/'
 
 _draw_config = Path(rf"{DRAW_PATH}/draw_card_config/draw_card_config.json")
 
 
 # 开关
-PRTS_FLAG = False if str(nonebot.get_driver().config.prts_flag).lower() == 'false' else True
-GENSHIN_FLAG = False if str(nonebot.get_driver().config.genshin_flag).lower() == 'false' else True
-PRETTY_FLAG = False if str(nonebot.get_driver().config.pretty_flag).lower() == 'false' else True
-GUARDIAN_FLAG = False if str(nonebot.get_driver().config.guardian_flag).lower() == 'false' else True
-PCR_FLAG = False if str(nonebot.get_driver().config.PCR_flag).lower() == 'false' else True
+PRTS_FLAG = PRTS_FLAG
+GENSHIN_FLAG = GENSHIN_FLAG
+PRETTY_FLAG = PRETTY_FLAG
+GUARDIAN_FLAG = GUARDIAN_FLAG
+PCR_FLAG = PCR_FLAG
+AZUR_FLAG = AZUR_FLAG
+FGO_FLAG = FGO_FLAG
+ONMYOJI_FLAG = ONMYOJI_FLAG
+
+PCR_TAI = PCR_TAI
 
 # 方舟概率
 PRTS_SIX_P = 0.02
@@ -65,12 +73,37 @@ PCR_ONE_P = 0.795
 PCR_G_THREE_P = 0.025
 PCR_G_TWO_P = 0.975
 
+# 碧蓝航线
+AZUR_FIVE_P = 0.012
+AZUR_FOUR_P = 0.07
+AZUR_THREE_P = 0.12
+AZUR_TWO_P = 0.51
+AZUR_ONE_P = 0.3
+
+# FGO
+FGO_SERVANT_FIVE_P = 0.01
+FGO_SERVANT_FOUR_P = 0.03
+FGO_SERVANT_THREE_P = 0.4
+FGO_CARD_FIVE_P = 0.04
+FGO_CARD_FOUR_P = 0.12
+FGO_CARD_THREE_P = 0.4
+
+# 阴阳师
+ONMYOJI_SP = 0.0025
+ONMYOJI_SSR = 0.01
+ONMYOJI_SR = 0.2
+ONMYOJI_R = 0.7875
+
+
 path_dict = {
     'genshin': '原神',
     'prts': '明日方舟',
     'pretty': '赛马娘',
     'guardian': '坎公骑冠剑',
     'pcr': '公主连结',
+    'azur': '碧蓝航线',
+    'fgo': '命运-冠位指定',
+    'onmyoji': '阴阳师',
 }
 
 driver: nonebot.Driver = nonebot.get_driver()
@@ -82,7 +115,10 @@ config_default_data = {
         'prts': '明日方舟',
         'pretty': '赛马娘',
         'guardian': '坎公骑冠剑',
-        'PCR': '公主连结',
+        'pcr': '公主连结',
+        'azur': '碧蓝航线',
+        'fgo': '命运-冠位指定',
+        'onmyoji': '阴阳师',
     },
 
     'prts': {
@@ -130,6 +166,30 @@ config_default_data = {
         'PCR_TWO_P': 0.18,
         'PCR_ONE_P': 0.795,
     },
+
+    'azur': {
+        'AZUR_FIVE_P': 0.012,
+        'AZUR_FOUR_P': 0.07,
+        'AZUR_THREE_P': 0.12,
+        'AZUR_TWO_P': 0.51,
+        'AZUR_ONE_P': 0.3,
+    },
+
+    'fgo': {
+        'FGO_SERVANT_FIVE_P': 0.01,
+        'FGO_SERVANT_FOUR_P': 0.03,
+        'FGO_SERVANT_THREE_P': 0.4,
+        'FGO_CARD_FIVE_P': 0.04,
+        'FGO_CARD_FOUR_P': 0.12,
+        'FGO_CARD_THREE_P': 0.4,
+    },
+
+    'onmyoji': {
+        'ONMYOJI_SP': 0.0025,
+        'ONMYOJI_SSR': 0.01,
+        'ONMYOJI_SR': 0.2,
+        'ONMYOJI_R': 0.7875,
+    }
 }
 
 
@@ -141,7 +201,9 @@ def check_config():
         GUARDIAN_THREE_CHAR_UP_P, GUARDIAN_THREE_CHAR_OTHER_P, GUARDIAN_EXCLUSIVE_ARMS_P, GUARDIAN_FIVE_ARMS_P, \
         GUARDIAN_FOUR_ARMS_P, GUARDIAN_THREE_ARMS_P, GUARDIAN_TWO_ARMS_P, GENSHIN_FLAG, PRTS_FLAG, \
         PRETTY_FLAG, GUARDIAN_FLAG, GUARDIAN_EXCLUSIVE_ARMS_UP_P, GUARDIAN_EXCLUSIVE_ARMS_OTHER_P, DRAW_PATH, \
-        PCR_THREE_P, PCR_TWO_P, PCR_ONE_P
+        PCR_THREE_P, PCR_TWO_P, PCR_ONE_P, AZUR_FOUR_P, AZUR_THREE_P, AZUR_TWO_P, AZUR_ONE_P, AZUR_FIVE_P, FGO_CARD_FIVE_P,\
+        FGO_CARD_FOUR_P, FGO_CARD_THREE_P, FGO_SERVANT_THREE_P, FGO_SERVANT_FOUR_P, FGO_SERVANT_FIVE_P, ONMYOJI_R, ONMYOJI_SP, \
+        ONMYOJI_SSR, ONMYOJI_SR
     _draw_config.parent.mkdir(parents=True, exist_ok=True)
     try:
         data = json.load(open(_draw_config, 'r', encoding='utf8'))
@@ -226,6 +288,48 @@ def check_config():
             data['pcr']['PCR_THREE_P'] = config_default_data['pcr']['PCR_THREE_P']
             data['pcr']['PCR_TWO_P'] = config_default_data['pcr']['PCR_TWO_P']
             data['pcr']['PCR_ONE_P'] = config_default_data['pcr']['PCR_ONE_P']
+
+        try:
+            AZUR_FIVE_P = float(data['azur']['AZUR_FIVE_P'])
+            AZUR_FOUR_P = float(data['azur']['AZUR_FOUR_P'])
+            AZUR_THREE_P = float(data['azur']['AZUR_THREE_P'])
+            AZUR_TWO_P = float(data['azur']['AZUR_TWO_P'])
+            AZUR_ONE_P = float(data['azur']['AZUR_ONE_P'])
+        except KeyError:
+            data['azur'] = {}
+            data['azur']['AZUR_FIVE_P'] = config_default_data['azur']['AZUR_FIVE_P']
+            data['azur']['AZUR_FOUR_P'] = config_default_data['azur']['AZUR_FOUR_P']
+            data['azur']['AZUR_THREE_P'] = config_default_data['azur']['AZUR_THREE_P']
+            data['azur']['AZUR_TWO_P'] = config_default_data['azur']['AZUR_TWO_P']
+            data['azur']['AZUR_ONE_P'] = config_default_data['azur']['AZUR_ONE_P']
+
+        try:
+            FGO_SERVANT_FIVE_P = float(data['fgo']['FGO_SERVANT_FIVE_P'])
+            FGO_SERVANT_FOUR_P = float(data['fgo']['FGO_SERVANT_FOUR_P'])
+            FGO_SERVANT_THREE_P = float(data['fgo']['FGO_SERVANT_THREE_P'])
+            FGO_CARD_FIVE_P = float(data['fgo']['FGO_CARD_FIVE_P'])
+            FGO_CARD_FOUR_P = float(data['fgo']['FGO_CARD_FOUR_P'])
+            FGO_CARD_THREE_P = float(data['fgo']['FGO_CARD_THREE_P'])
+        except KeyError:
+            data['fgo'] = {}
+            data['fgo']['FGO_SERVANT_FIVE_P'] = config_default_data['fgo']['FGO_SERVANT_FIVE_P']
+            data['fgo']['FGO_SERVANT_FOUR_P'] = config_default_data['fgo']['FGO_SERVANT_FOUR_P']
+            data['fgo']['FGO_SERVANT_THREE_P'] = config_default_data['fgo']['FGO_SERVANT_THREE_P']
+            data['fgo']['FGO_CARD_FIVE_P'] = config_default_data['fgo']['FGO_CARD_FIVE_P']
+            data['fgo']['FGO_CARD_FOUR_P'] = config_default_data['fgo']['FGO_CARD_FOUR_P']
+            data['fgo']['FGO_CARD_THREE_P'] = config_default_data['fgo']['FGO_CARD_THREE_P']
+
+        try:
+            ONMYOJI_SP = float(data['onmyoji']['ONMYOJI_SP'])
+            ONMYOJI_SSR = float(data['onmyoji']['ONMYOJI_SSR'])
+            ONMYOJI_SR = float(data['onmyoji']['ONMYOJI_SR'])
+            ONMYOJI_R = float(data['onmyoji']['ONMYOJI_R'])
+        except KeyError:
+            data['onmyoji'] = {}
+            data['onmyoji']['ONMYOJI_SP'] = config_default_data['onmyoji']['ONMYOJI_SP']
+            data['onmyoji']['ONMYOJI_SSR'] = config_default_data['onmyoji']['ONMYOJI_SSR']
+            data['onmyoji']['ONMYOJI_SR'] = config_default_data['onmyoji']['ONMYOJI_SR']
+            data['onmyoji']['ONMYOJI_R'] = config_default_data['onmyoji']['ONMYOJI_R']
 
         json.dump(data, open(_draw_config, 'w', encoding='utf8'), indent=4, ensure_ascii=False)
 

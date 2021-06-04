@@ -10,7 +10,6 @@ from configs.config import UPDATE_GOCQ_GROUP
 from pathlib import Path
 
 path = str((Path() / "resources" / "gocqhttp_file").absolute()) + '/'
-print(path)
 
 lasted_gocqhttp = on_command("更新gocq", permission=GROUP, priority=5, block=True)
 
@@ -23,7 +22,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     # try:
     if event.group_id in UPDATE_GOCQ_GROUP:
         await lasted_gocqhttp.send('检测中...')
-        info = await download_gocq_lasted()
+        info = await download_gocq_lasted(path)
         if info == 'gocqhttp没有更新！':
             await lasted_gocqhttp.finish('gocqhttp没有更新！')
         if _ulmt.check(event.group_id):
@@ -31,7 +30,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         _ulmt.set_True(event.group_id)
         try:
             for file in os.listdir(path):
-                await upload_gocq_lasted(file, event.group_id)
+                await upload_gocq_lasted(path, file, event.group_id)
                 logger.info(f'更新了cqhttp...{file}')
             await lasted_gocqhttp.send(f'gocqhttp更新了，已上传成功！\n更新内容：\n{info}')
         except Exception as e:
@@ -49,13 +48,13 @@ async def _():
     if UPDATE_GOCQ_GROUP:
         bot = get_bot()
         try:
-            info = await download_gocq_lasted()
+            info = await download_gocq_lasted(path)
             if info == 'gocqhttp没有更新！':
                 logger.info('gocqhttp没有更新！')
                 return
             for group in UPDATE_GOCQ_GROUP:
                 for file in os.listdir(path):
-                    await upload_gocq_lasted(file, group)
+                    await upload_gocq_lasted(path, file, group)
                 await bot.send_group_msg(group_id=group, message=f"gocqhttp更新了，已上传成功！\n更新内容：\n{info}")
         except Exception as e:
             logger.error(f'自动更新gocq出错 e:{e}')

@@ -2,7 +2,6 @@
 import os
 import nonebot
 from nonebot.adapters.cqhttp import MessageSegment
-from util.init_result import image
 from .update_game_info import update_info
 from .util import init_star_rst, generate_img, max_card, BaseData,\
     set_list, get_star, format_card_information
@@ -13,6 +12,7 @@ from .config import DRAW_PATH, GUARDIAN_ONE_CHAR_P, GUARDIAN_TWO_CHAR_P, GUARDIA
     GUARDIAN_EXCLUSIVE_ARMS_OTHER_P, GUARDIAN_FLAG
 from dataclasses import dataclass
 from .init_card_pool import init_game_pool
+import asyncio
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -46,7 +46,8 @@ async def guardian_draw(count: int, pool_name):
     rst = init_star_rst(star_list, cnlist, max_list, max_index_list)
     if count > 90:
         obj_list = set_list(obj_list)
-    return image(b64=await generate_img(obj_list, 'guardian', star_list)) \
+    return MessageSegment.image(
+        "base64://" + await generate_img(obj_list, 'guardian', star_list)) \
            + '\n' + rst[:-1] + '\n' + max_card(obj_dict)
 
 
@@ -65,8 +66,7 @@ async def update_guardian_info():
         ALL_ARMS = init_game_pool('guardian_arms', data, GuardianArms)
 
 
-@driver.on_startup
-async def init_data():
+async def init_guardian_data():
     global ALL_CHAR, ALL_ARMS
     if GUARDIAN_FLAG:
         if not os.path.exists(DRAW_PATH + 'guardian.json') or not os.path.exists(DRAW_PATH + 'guardian_arms.json'):
@@ -81,17 +81,17 @@ async def init_data():
 
 
 # 抽取卡池
-def _get_guardian_card(itype):
+def _get_guardian_card(pool_name: str):
     global ALL_CHAR, ALL_ARMS
-    if itype != 'arms':
+    if pool_name != 'arms':
         star = get_star([3, 2, 1], [GUARDIAN_THREE_CHAR_P, GUARDIAN_TWO_CHAR_P, GUARDIAN_ONE_CHAR_P])
         chars = [x for x in ALL_CHAR if x.star == star]
-        return random.choice(chars), abs(star - 3)
+        return random.choice(chars), 3- star
     else:
         star = get_star([5, 4, 3, 2], [GUARDIAN_FIVE_ARMS_P, GUARDIAN_FOUR_ARMS_P,
                                        GUARDIAN_THREE_ARMS_P, GUARDIAN_TWO_ARMS_P])
         arms = [x for x in ALL_ARMS if x.star == star]
-        return random.choice(arms), abs(star - 5)
+        return random.choice(arms), 5 - star
 
 
 # 整理数据

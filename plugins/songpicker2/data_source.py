@@ -90,7 +90,7 @@ class dataGet(dataApi):
     #         ['nickname']] = r['hotComments'][i]['content']
     #     return songComments
 
-    async def songInfo(self, songId: int) -> dict:
+    async def songInfo(self, songId: int):
         '''
         根据传递的songId，获取歌曲名、歌手、专辑等信息，作为dict返回
         '''
@@ -98,6 +98,9 @@ class dataGet(dataApi):
         r = await self.api.getSongInfo(songId)
         if r is None:
             raise WrongDataError
+        print(r)
+        if r['code'] == '-460':
+            return '网易云网络繁忙！'
         songInfo["songName"] = r["songs"][0]["name"]
 
         songArtists = list()

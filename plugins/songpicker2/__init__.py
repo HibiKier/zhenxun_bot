@@ -28,6 +28,8 @@ async def handle_songName(bot: Bot, event: Event, state: T_State):
     songInfoList = list()
     for songId in songIdList:
         songInfoDict = await dataget.songInfo(songId)
+        if songInfoDict == '网易云网络繁忙！':
+            await songpicker.finish('网易云网络繁忙！')
         songInfoList.append(songInfoDict)
     # songInfoMessage = await dataProcess.mergeSongInfo(songInfoList)
     # await songpicker.send(songInfoMessage)

@@ -24,7 +24,17 @@ def init_game_pool(game: str, data: dict, Operator: Any):
         for key in data.keys():
             if key.find('旅行者') != -1:
                 continue
-            tmp_lst.append(Operator(name=key, star=int(data[key]['稀有度'][:1]), limited=False))
+            limited = False
+            if data[key]['常驻/限定'] == '限定UP':
+                limited = True
+            tmp_lst.append(Operator(name=key, star=int(data[key]['稀有度'][:1]), limited=limited))
+    if game == 'genshin_arms':
+        for key in data.keys():
+            if data[key]['获取途径'].find('祈愿') != -1:
+                limited = False
+                if data[key]['获取途径'].find('限定祈愿') != -1:
+                    limited = True
+                tmp_lst.append(Operator(name=key, star=int(data[key]['稀有度'][:1]), limited=limited))
     if game == 'pretty':
         for key in data.keys():
             tmp_lst.append(Operator(name=key, star=data[key]['初始星级'], limited=False))
@@ -40,5 +50,27 @@ def init_game_pool(game: str, data: dict, Operator: Any):
             if key.find('（') != -1:
                 limited = True
             tmp_lst.append(Operator(name=data[key]['名称'], star=int(data[key]['星级']), limited=limited))
+    if game == 'azur':
+        for key in data.keys():
+            limited = False
+            if int(data[key]['星级']) > 4 or key.find('兵装') != -1 or key[-1] == '改' or key.find('布里') != -1:
+                limited = True
+            tmp_lst.append(Operator(name=data[key]['名称'], star=int(data[key]['星级']), limited=limited, itype=data[key]['类型']))
+    if game in ['fgo', 'fgo_card']:
+        for key in data.keys():
+            limited = False
+            try:
+                if "圣晶石召唤" not in data[key]['入手方式'] and "圣晶石召唤（Story卡池）" not in data[key]['入手方式']:
+                    limited = True
+            except KeyError:
+                pass
+            tmp_lst.append(Operator(name=data[key]['名称'], star=int(data[key]['星级']), limited=limited))
+    if game == 'onmyoji':
+        for key in data.keys():
+            limited = False
+            if key in ['奴良陆生', '卖药郎', '鬼灯', '阿香', '蜜桃&芥子', '犬夜叉', '杀生丸', '桔梗', '朽木露琪亚', '黑崎一护',
+                       '灶门祢豆子', '灶门炭治郎']:
+                limited = True
+            tmp_lst.append(Operator(name=data[key]['名称'], star=data[key]['星级'], limited=limited))
     return tmp_lst
 

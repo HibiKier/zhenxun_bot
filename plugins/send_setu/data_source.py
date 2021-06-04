@@ -143,14 +143,6 @@ async def check_r18_and_keyword(msg: str, user_id) -> 'str, int, int':
     return keyword, r18, num
 
 
-# def delete_img(index):
-#     if os.path.exists(IMAGE_PATH + path + f"{index}.jpg"):
-#         img_hash = str(get_img_hash(IMAGE_PATH + f"setu/{index}.jpg"))
-#         tp = list(setu_hash_dict.keys())[list(setu_hash_dict.values()).index(img_hash)]
-#         logger.info(f"色图 {index}.jpg 与 {tp}.jpg 相似， 删除....")
-#         os.remove(IMAGE_PATH + path + f"{index}.jpg")
-
-
 async def find_img_index(img_url, user_id):
     try:
         setu_hash_dict = json.load(open(TXT_PATH + 'setu_img_hash.json'))
@@ -166,5 +158,59 @@ async def find_img_index(img_url, user_id):
         return "id --> " + str(tp)
     except ValueError:
         return "该图不在色图库中！"
+
+
+def delete_img(_id: int):
+    lens = len(os.listdir(IMAGE_PATH + path)) - 1
+    if _id < 0 or _id > lens:
+        return False, f'超过上下限限制，上限：{lens}'
+    try:
+        os.remove(IMAGE_PATH + path + f'{_id}.jpg')
+        if _id != lens:
+            setu_hash_dict = json.load(open(TXT_PATH + 'setu_img_hash.json'))
+            setu_hash_dict[str(_id)] = setu_hash_dict[str(lens)]
+            os.rename(IMAGE_PATH + path + f'{lens}.jpg', IMAGE_PATH + path + f'{_id}.jpg')
+            with open(TXT_PATH + 'setu_img_hash.json', 'w') as f:
+                json.dump(setu_hash_dict, f, ensure_ascii=False, indent=4)
+        return True, ''
+    except Exception as e:
+        logger.error(f'删除色图错误 e：{e}')
+        return False, str(type(e))
+
+
+# 添加涩图
+async def add_img(imgs: list):
+    index = 0
+    lens = len(os.listdir(IMAGE_PATH + path))
+    add_count = 0
+    setu_hash_dict = json.load(open(TXT_PATH + 'setu_img_hash.json'))
+    async with aiohttp.ClientSession() as session:
+        for img in imgs:
+            async with session.get(img, proxy=get_local_proxy(), timeout=5) as res:
+                async with aiofiles.open(IMAGE_PATH + f"temp/add_setu_check_{index}.jpg", 'wb') as f:
+                    await f.write(await res.read())
+            index += 1
+    index -= 1
+    for i in range(index, -1, -1):
+        img_hash = str(get_img_hash(IMAGE_PATH + f"temp/add_setu_check_{index}.jpg"))
+        print(f'img_hash: {img_hash}')
+        if img_hash not in setu_hash_dict.values():
+            os.rename(IMAGE_PATH + f"temp/add_setu_check_{index}.jpg", IMAGE_PATH + path + f'/{lens}.jpg')
+            print(f'{lens}: {img_hash}')
+            setu_hash_dict[lens] = img_hash
+            lens += 1
+            add_count += 1
+    if add_count:
+        with open(TXT_PATH + 'setu_img_hash.json', 'w') as f:
+            json.dump(setu_hash_dict, f, ensure_ascii=False, indent=4)
+    return lens, add_count
+
+
+
+
+
+
+
+
 
 

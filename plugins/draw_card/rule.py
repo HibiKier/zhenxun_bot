@@ -1,7 +1,7 @@
 from nonebot.rule import Rule
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 from nonebot.typing import T_State
-from .config import GENSHIN_FLAG, PRTS_FLAG, PRETTY_FLAG, GUARDIAN_FLAG, PCR_FLAG
+from .config import GENSHIN_FLAG, PRTS_FLAG, PRETTY_FLAG, GUARDIAN_FLAG, PCR_FLAG, AZUR_FLAG, FGO_FLAG, ONMYOJI_FLAG
 
 
 def is_switch(game_name: str) -> Rule:
@@ -17,6 +17,12 @@ def is_switch(game_name: str) -> Rule:
             return GUARDIAN_FLAG
         if game_name == 'pcr':
             return PCR_FLAG
+        if game_name == 'azur':
+            return AZUR_FLAG
+        if game_name == 'fgo':
+            return FGO_FLAG
+        if game_name == 'onmyoji':
+            return ONMYOJI_FLAG
         else:
             return False
 

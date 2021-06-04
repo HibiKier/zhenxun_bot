@@ -8,10 +8,10 @@ from configs.config import INITIAL_OPEN_CASE_COUNT, INITIAL_SETU_PROBABILITY, AD
 
 export = require("nonebot_plugin_manager")
 
-width = 1200
+width = 1500
 e_height = 0
-u_height = 700
-o_height = 1250
+u_height = 850
+o_height = 1500
 # f_height =
 
 
@@ -47,9 +47,9 @@ def create_help_img():
     A.paste(e, (0, 0))
     A.paste(u, (0, u_height))
     A.paste(o, (0, o_height))
-    A.text((10, h * 0.72), '大部分交互功能可以通过输入‘取消’，‘算了’来取消当前交互\n对我说 “指令名 帮助” 获取对应详细帮助\n'
+    A.text((10, h * 0.76), '大部分交互功能可以通过输入‘取消’，‘算了’来取消当前交互\n对我说 “指令名 帮助” 获取对应详细帮助\n'
                            '可以通过 “滴滴滴- 后接内容” 联系管理员（有趣的想法尽管来吧！<还有Bug和建议>）\n[群管理员请看 管理员帮助（群主与管理员自带 5 级权限）]')
-    A.text((10, h * 0.79), f"【注】「色图概率：好感度 + 70%\n"
+    A.text((10, h * 0.81), f"【注】「色图概率：好感度 + 70%\n"
                            f"\t\t每 3 点好感度 + 1次开箱，初始 20 次\n"
                            f"\t\t开启/关闭功能只需输入‘开启/关闭 指令名’（每个功能的第一个指令）」\n"
                            f"\t\t示例：开启签到")
@@ -98,10 +98,10 @@ def create_group_help_img(group_id: int):
     A.paste(u, (0, u_height))
     A.paste(o, (0, o_height))
     # A.text((width, 10), f'总开关【{"√" if data["总开关"] else "×"}】')
-    A.text((10, h * 0.72), '大部分交互功能可以通过输入‘取消’，‘算了’来取消当前交互\n对我说 “指令名 帮助” 获取对应详细帮助\n'
+    A.text((10, h * 0.76), '大部分交互功能可以通过输入‘取消’，‘算了’来取消当前交互\n对我说 “指令名 帮助” 获取对应详细帮助\n'
                            '可以通过 “滴滴滴- 后接内容” 联系管理员（有趣的想法尽管来吧！<还有Bug和建议>）'
                            f'\n[群管理员请看 管理员帮助（群主与管理员自带 {ADMIN_DEFAULT_AUTH} 级权限）]')
-    A.text((10, h * 0.79), f"【注】「色图概率：好感度 + {int(INITIAL_SETU_PROBABILITY*100)}%\n"
+    A.text((10, h * 0.81), f"【注】「色图概率：好感度 + {int(INITIAL_SETU_PROBABILITY*100)}%\n"
                            f"\t\t每 3 点好感度 + 1次开箱，初始 {INITIAL_OPEN_CASE_COUNT} 次\n"
                            f"\t\t开启/关闭功能只需输入‘开启/关闭 指令名’（每个功能的第一个指令）」\n"
                            f"\t\t示例：开启签到\n"
@@ -132,7 +132,7 @@ def parse_cmd(cmd, group_id, plugin_list):
 
 
 def rcmd(dfg):
-    if dfg in ['prts', 'genshin', 'pretty', 'guardian', 'pcr']:
+    if dfg in ['prts', 'genshin', 'pretty', 'guardian', 'pcr', 'azur', 'onmyoji', 'fgo']:
         return 'draw_card_' + dfg
     if dfg == 'r':
         return 'pixiv_r'

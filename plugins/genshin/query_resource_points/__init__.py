@@ -1,4 +1,5 @@
 from nonebot import on_command, on_regex
+from nonebot.rule import to_me
 from .query_resource import get_resource_map_mes, get_resource_list_mes, up_label_and_point_list
 from util.utils import get_message_text, scheduler
 from nonebot.adapters.cqhttp import Bot, MessageEvent
@@ -13,7 +14,7 @@ except ModuleNotFoundError:
 
 qr = on_command("原神资源查询", priority=5, block=True)
 qr_lst = on_command("原神资源列表", priority=5, block=True)
-rex_qr = on_regex('.*?(在哪|在哪里|哪有|哪里有).*?', priority=5, block=True)
+rex_qr = on_regex('.*?(在哪|在哪里|哪有|哪里有).*?', rule=to_me(), priority=5, block=True)
 
 
 with open(os.path.dirname(__file__) + '/resource_type_id.json', 'r', encoding='utf-8') as f:

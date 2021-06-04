@@ -80,7 +80,13 @@ def check_exists_key(group_id, plugin_name):
         _prefix_count_dict['total_statistics'][group_id][plugin_name] = 0
     if not _prefix_count_dict['day_statistics'].get(group_id):
         _prefix_count_dict['day_statistics'][group_id] = {
-            plugin_name: 0,
+            '1': {plugin_name: 0},
+            '2': {plugin_name: 0},
+            '3': {plugin_name: 0},
+            '4': {plugin_name: 0},
+            '5': {plugin_name: 0},
+            '6': {plugin_name: 0},
+            '7': {plugin_name: 0},
         }
     elif not _prefix_count_dict['day_statistics'][group_id].get(plugin_name):
         _prefix_count_dict['day_statistics'][group_id][plugin_name] = 0

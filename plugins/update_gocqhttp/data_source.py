@@ -7,16 +7,13 @@ import aiofiles
 from bs4 import BeautifulSoup
 import os
 if platform.system() == 'Windows':
-    path = os.getcwd() + '/resources/gocqhttp_file/'
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-else:
-    path = r'/home/hibiki/hibikibot/resources/gocqhttp_file/'
 
 
 url = 'https://github.com/Mrs4s/go-cqhttp/releases'
 
 
-async def download_gocq_lasted():
+async def download_gocq_lasted(path: str):
     async with aiohttp.ClientSession(headers=get_user_agent()) as session:
         async with session.get(url, proxy=get_local_proxy()) as response:
             soup = BeautifulSoup(await response.text(), 'lxml')
@@ -52,7 +49,7 @@ async def download_gocq_lasted():
                 return update_info
 
 
-async def upload_gocq_lasted(name, group_id):
+async def upload_gocq_lasted(path, name, group_id):
     bot = get_bot()
     folder_id = 0
     for folder in (await bot.get_group_root_files(group_id=group_id))['folders']:

@@ -1,6 +1,5 @@
 
-import os
-from util.init_result import image
+from nonebot.adapters.cqhttp import MessageSegment
 import nonebot
 import random
 from .config import PRTS_FIVE_P, PRTS_FOUR_P, PRTS_SIX_P, PRTS_THREE_P, DRAW_PATH, PRTS_FLAG
@@ -9,6 +8,7 @@ from .util import generate_img, init_star_rst, max_card, BaseData, UpEvent, set_
 from .init_card_pool import init_game_pool
 from pathlib import Path
 from .announcement import PrtsAnnouncement
+from services.log import logger
 from dataclasses import dataclass
 try:
     import ujson as json
@@ -23,6 +23,7 @@ prts_dict = {}
 UP_OPERATOR = []
 ALL_OPERATOR = []
 _CURRENT_POOL_TITLE = ''
+POOL_IMG = ''
 
 
 @dataclass
@@ -46,7 +47,8 @@ async def prts_draw(count: int = 300):
     if count > 90:
         operator_list = set_list(operator_list)
     pool_info = "当前up池: " if _CURRENT_POOL_TITLE else ""
-    return pool_info + _CURRENT_POOL_TITLE + image(b64=await generate_img(operator_list, 'prts', star_list)) \
+    return pool_info + _CURRENT_POOL_TITLE + MessageSegment.image(
+        "base64://" + await generate_img(operator_list, 'prts', star_list)) \
            + '\n' + rst[:-1] + '\n' + max_card(operator_dict)
 
 
@@ -58,18 +60,15 @@ async def update_prts_info():
     if code == 200:
         prts_dict = data
         ALL_OPERATOR = init_game_pool('prts', prts_dict, Operator)
+        await _init_up_char()
 
 
-@driver.on_startup
-async def init_data():
+async def init_prts_data():
     global prts_dict, ALL_OPERATOR
     if PRTS_FLAG:
-        if not os.path.exists(DRAW_PATH + 'prts.json'):
-            await update_prts_info()
-        else:
-            with open(DRAW_PATH + 'prts.json', 'r', encoding='utf8') as f:
-                prts_dict = json.load(f)
-            ALL_OPERATOR = init_game_pool('prts', prts_dict, Operator)
+        with open(DRAW_PATH + 'prts.json', 'r', encoding='utf8') as f:
+            prts_dict = json.load(f)
+        ALL_OPERATOR = init_game_pool('prts', prts_dict, Operator)
         await _init_up_char()
 
 
@@ -105,16 +104,19 @@ def _get_operator_card():
     else:
         acquire_operator = random.choice([x for x in ALL_OPERATOR if x.star == star
                                           and not any([x.limited, x.event_only, x.recruit_only])])
-    return acquire_operator, abs(star - 6)
+    return acquire_operator, 6 - star
 
 
 # 获取up干员和概率
 async def _init_up_char():
-    global _CURRENT_POOL_TITLE
+    global _CURRENT_POOL_TITLE, POOL_IMG, UP_OPERATOR
+    UP_OPERATOR = []
     up_char_dict = await PrtsAnnouncement.update_up_char()
     _CURRENT_POOL_TITLE = up_char_dict['title']
+    if _CURRENT_POOL_TITLE:
+        POOL_IMG = MessageSegment.image(up_char_dict['pool_img'])
     up_char_dict = up_char_dict['up_char']
-    print(f'成功获取明日方舟当前up信息...当前up池: {_CURRENT_POOL_TITLE}')
+    logger.info(f'成功获取明日方舟当前up信息...当前up池: {_CURRENT_POOL_TITLE}')
     average_dict = {'6': {}, '5': {}, '4': {}}
     for star in up_char_dict.keys():
         for key in up_char_dict[star].keys():
@@ -131,5 +133,6 @@ async def _init_up_char():
             UP_OPERATOR.append(UpEvent(star=int(star), operators=average_dict[star][str_zoom], zoom=zoom))
 
 
-async def reload_pool():
+async def reload_prts_pool():
     await _init_up_char()
+    return f'当前UP池：{_CURRENT_POOL_TITLE} {POOL_IMG}'

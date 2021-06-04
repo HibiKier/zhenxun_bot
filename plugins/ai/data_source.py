@@ -82,7 +82,7 @@ async def get_qqbot_chat_result(text: str, img_url: str, user_id: int, user_name
                 return ''
             resp_payload = json.loads(await response.text())
             if resp_payload['intent']:
-                if resp_payload['intent']['code'] == 4003:
+                if resp_payload['intent']['code'] != 0:
                     index += 1
                     # 该AI很屑！！！！！！！！！！！！
                     async with sess.get(f'http://api.qingyunke.com/api.php?key=free&appid=0&msg={text}') as res:

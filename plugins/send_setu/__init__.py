@@ -1,12 +1,13 @@
 import random
 from nonebot import on_command, on_regex
+from nonebot.permission import SUPERUSER
 from services.log import logger
 from models.sigin_group_user import SignGroupUser
 from util.utils import FreqLimiter, UserExistLimiter, is_number, get_message_text, get_message_imgs
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent, PrivateMessageEvent
 from .data_source import get_setu, get_luoxiang, search_online_setu, get_setu_urls, \
-    check_r18_and_keyword, find_img_index
+    check_r18_and_keyword, find_img_index, delete_img, add_img
 from nonebot.adapters.cqhttp.exception import ActionFailed
 import re
 from models.count_user import UserCount
@@ -39,6 +40,8 @@ path = "setu/"
 setu = on_command("色图", aliases={"涩图", "不够色", "来一发", "再来点"}, priority=5, block=True)
 setu_reg = on_regex('(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图', priority=5, block=True)
 find_setu = on_command("查色图", priority=5, block=True)
+delete_setu = on_command('删除色图', aliases={'删除涩图'}, priority=5, block=True, permission=SUPERUSER)
+upload_setu = on_command('上传色图', aliases={'上传涩图'}, priority=5, block=True, permission=SUPERUSER)
 
 
 @setu.handle()
@@ -228,7 +231,9 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 logger.info(
                     f"USER {event.user_id} GROUP {event.group_id if event.message_type != 'private' else 'private'}"
                     f" 发送 {index} 色图成功")
+                _ulmt.set_False(event.user_id)
         else:
+            _ulmt.set_False(event.user_id)
             return
     if list(bot.config.nickname)[0].find(keyword) != -1:
         await setu.finish('咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀')
@@ -275,6 +280,32 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     await find_setu.send(await find_img_index(img, event.user_id), at_sender=True)
 
 
+@delete_setu.handle()
+async def _(bot: Bot, event: MessageEvent, state: T_State):
+    _id = get_message_text(event.json())
+    if _id:
+        flag, text = delete_img(int(_id))
+        if flag:
+            await delete_setu.finish(f'删除色图 id：{_id} 成功', at_sender=True)
+        else:
+            await delete_setu.finish(f'删除色图 id：{_id} 失败，{text}', at_sender=True)
 
+
+@upload_setu.handle()
+async def _(bot: Bot, event: MessageEvent, state: T_State):
+    imgs = get_message_imgs(event.json())
+    if imgs:
+        lens, add_count = await add_img(imgs)
+        if add_count == 0:
+            await upload_setu.finish('上传的涩图已在色图库中，未成功上传，可以通过 查色图 来查看色图在图库中的id', at_sender=True)
+        id_s = ''
+        for i in range(add_count, 0, -1):
+            id_s += f'{lens - add_count} '
+        await upload_setu.finish(f"这次一共为 色图 库 添加了 {add_count} 张图片\n"
+                                 f"依次的Id为：{id_s[:-1]}\n"
+                                 f"小真寻感谢您对图库的扩充!WW", at_sender=True)
+        logger.info(
+            f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'})"
+            f" 上传色图ID：{id_s[:-1]}")
 
 

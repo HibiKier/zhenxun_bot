@@ -31,7 +31,7 @@ group_status = on_command('oc_reminds', aliases={'开启早晚安', '关闭早�
                                                  '开启丢人爬', '关闭丢人爬',
                                                  '开启原神黄历提醒', '关闭原神黄历提醒',
                                                  '开启全部通知', '开启所有通知', '关闭全部通知', '关闭所有通知',
-                                                 '群通知状态'}, permission=GROUP, priority=4, block=True)
+                                                 '群通知状态'}, permission=GROUP, priority=1, block=True)
 
 switch_rule = on_command('switch_rule', aliases=cmds, permission=GROUP, priority=4, block=True)
 custom_welcome = on_command('自定义进群欢迎消息', aliases={'自定义欢迎消息', '自定义群欢迎消息'}, permission=GROUP, priority=5, block=True)

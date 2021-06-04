@@ -27,7 +27,7 @@ async def download_pixiv_imgs(urls: list, user_id: int) -> str:
     for img in urls:
         async with aiohttp.ClientSession(headers=get_user_agent()) as session:
             for _ in range(3):
-                async with session.get(img, proxy=get_local_proxy(), timeout=3) as response:
+                async with session.get(img, proxy=get_local_proxy(), timeout=2) as response:
                     async with aiofiles.open(IMAGE_PATH + f'temp/{user_id}_{index}_pixiv.jpg', 'wb') as f:
                         try:
                             await f.write(await response.read())
@@ -53,7 +53,7 @@ async def parser_data(url: str, num: int) -> 'list, list, int':
     async with aiohttp.ClientSession() as session:
         for _ in range(3):
             try:
-                async with session.get(url, proxy=get_local_proxy(), timeout=4) as response:
+                async with session.get(url, proxy=get_local_proxy(), timeout=2) as response:
                     data = feedparser.parse(await response.text())['entries']
                     break
             except TimeoutError:

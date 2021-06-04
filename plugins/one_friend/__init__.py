@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 from nonebot import on_regex
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from util.utils import get_message_text, get_local_proxy
+from util.utils import get_message_text, get_local_proxy, get_message_at
 from util.img_utils import pic2b64
 from configs.path_config import TTF_PATH
 import re
@@ -28,10 +28,14 @@ async def get_pic(qq):
 @one_friend.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     arr = []
-    member_list = await bot.get_group_member_list(self_id=event.self_id, group_id=event.group_id)
-    for member in member_list:
-        arr.append(member['user_id'])
     msg = get_message_text(event.json())
+    qq = get_message_at(event.json())
+    if not qq:
+        member_list = await bot.get_group_member_list(self_id=event.self_id, group_id=event.group_id)
+        for member in member_list:
+            arr.append(member['user_id'])
+    else:
+        qq = qq[0]
     msg = re.search(r'^我.*?朋友.*?'
                     r'(想问问|说|让我问问|想问|让我问|想知道|让我帮他问问|让我帮他问|让我帮忙问|让我帮忙问问|问)(.*)',
                     msg)
@@ -39,7 +43,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if not msg:
         msg = '都不知道问什么'
     msg = msg.replace('他', '我').replace('她', '我')
-    image = Image.open(BytesIO(await get_pic(choice(arr))))
+    image = Image.open(BytesIO(await get_pic(choice(arr) if not qq else qq)))
     img_origin = Image.new('RGBA', (100, 100), (255, 255, 255))
     scale = 3
     # 使用新的半径构建alpha层

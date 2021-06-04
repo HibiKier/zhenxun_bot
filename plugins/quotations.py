@@ -22,7 +22,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     async with aiohttp.ClientSession() as session:
         async with session.get(url, proxy=get_local_proxy(), timeout=5) as response:
             data = await response.json()
-    result = f'{data["hitokoto"]}\t————{data["from"]}'
+    result = f'{data["hitokoto"]}\t——{data["from"]}'
     await quotations.send(result)
     logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'}) 发送语录:"

@@ -6,9 +6,9 @@ class GroupRemind(db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     group_id = db.Column(db.BigInteger(), nullable=False)
-    hy = db.Column(db.Boolean(), default=True)      # 进群欢迎
-    kxcz = db.Column(db.Boolean(), default=True)    # 开箱重置
-    zwa = db.Column(db.Boolean(), default=True)     # 早晚安
+    hy = db.Column(db.Boolean(), default=False)      # 进群欢迎
+    kxcz = db.Column(db.Boolean(), default=False)    # 开箱重置
+    zwa = db.Column(db.Boolean(), default=False)     # 早晚安
     gb = db.Column(db.Boolean(), default=True)      # 广播
     blpar = db.Column(db.Boolean(), default=True)   # bilibili转发解析
     pa = db.Column(db.Boolean(), default=True)      # 爬
