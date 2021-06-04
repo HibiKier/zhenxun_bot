@@ -351,7 +351,8 @@ python bot.py
                  
 USE_CONFIG_FILE = True
 
-# 如果不使用配置文件，将USE_CONFIG_FILE设置为False，可在./configs/config.py文件中修改配置，在./configs/path_config.py修改资源路径
+# 如果不使用配置文件，将USE_CONFIG_FILE设置为False
+#可在./configs/config.py文件中修改配置，在./configs/path_config.py修改资源路径
 # 已在./configs/config.py和./configs/path_config.py中为各个配置提供注解！
 ```
 
