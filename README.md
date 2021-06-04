@@ -333,10 +333,18 @@ cd zhenxun_bot
 python bot.py
 ```
 
-## 配置
-在 ./configs/config.py 中的 USE_CONFIG_FILE，默认为True
+## 配置（暂时不更新 json 配置，请将USE_CONFIG_FILE设置为False）
+在 ./configs/config.py 中的 USE_CONFIG_FILE，默认为False
 
 ```
+必填：
+  1. API KEY
+  2.数据库配置
+  
+在./configs/config.py中配置基本配置（除API ，数据库和代理外都含有默认值）
+在./configs/path_config.py配置路径（含有默认配置）
+
+##############################（暂时不更新 json 配置，请将USE_CONFIG_FILE设置为False）
 # 是否使用配置文件（为True时这将会生成三份配置文件
                  ./config.json：主要配置
                  ./configs/plugins2cmd_config.json: 功能模块与对应命令配置
