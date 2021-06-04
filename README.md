@@ -66,7 +66,7 @@
 - [x] 我的信息（只是为了看看什么时候入群）
 - [x] 更新信息（如果继续更新的话）
 - [x] go-cqhttp最新版下载和上传（不需要请删除）
-- [x] 撤回
+- [x] 撤回 (使用[nonebot-plugin-withdraw](https://github.com/MeetWq/nonebot-plugin-withdraw)插件)
 - [x] 滴滴滴-（用户对超级用户发送消息）
 
 ### 已实现的管理员功能
@@ -106,7 +106,6 @@
 - [x] 检测恶意触发命令（将被最高权限ban掉30分钟，只有最高权限(9级)可以进行unban）
 - [x] 自动同意好友请求，加群请求将会提醒管理员，退群提示，加群欢迎等等
 - [x] 群聊时间检测（当群聊最后一人发言时间大于当前36小时后将关闭该群所有通知（即被动技能））
-- [x] 支持对各个管理员功能的权限配置
 - [x] 群管理员监控，自动为新晋管理员增加权限，为失去群管理员的用户删除权限
 </details>
 
@@ -249,7 +248,7 @@
 
 ### 识图
 
-使用nb2商店插件 [nonebot_plugin_cocdicer](https://github.com/abrahum/nonebot_plugin_cocdicer) （可配置图片返回的最大数量）
+使用nb2商店插件 [nonebot_plugin_picsearcher](https://github.com/synodriver/nonebot_plugin_picsearcher) （可配置图片返回的最大数量）
 
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/shitu.png)
 
