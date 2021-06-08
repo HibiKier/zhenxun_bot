@@ -13,7 +13,7 @@ server_ip = on_command("服务器", aliases={'ip'}, rule=to_me(), priority=5, bl
 @server_ip.handle()
 async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
     await server_ip.finish("|* 请不要发给其他人！ *|\n"
-                           "\t121.40.195.22\n"
+                           "\t*************\n"
                            "|* 请不要发给其他人！ *|\n"
                            "csgo ~号键控制台输入 connect 121.40.195.22 进入服务器\n"
                            "然后再公屏输入 !diy 来使用皮肤（英文感叹号，注意）\n"
@@ -24,8 +24,7 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if event.group_id == 698279647:
         await server_ip.finish("嗨呀！当前服务器地址是:"
-                               "\ncsgo:\n\tay: 121.40.195.22\n\t"
-                               "wzt: 101.200.199.143\n\t夜之北枭: 101.132.170.254\n我的世界:\n\t47.111.1.220：25565")
+                               "*************")
     elif event.group_id == 1046451860:
         await server_ip.finish("嗨呀！当前服务器地址是:\n121.40.195.22\n !diy")
     else:
