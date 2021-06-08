@@ -39,7 +39,7 @@
 - [x] 鲁迅说过
 - [x] 构造假消息（自定义的分享链接）
 - [x] 商店/我的金币/购买道具/使用道具
-- [x] 8抽手游抽卡
+- [x] 8种手游抽卡
 - [x] 我有一个朋友想问问..（pcrbot插件..重构）
 - [x] 原神黄历  (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
 - [x] 原神今日素材/天赋材料 (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
