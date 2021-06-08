@@ -71,7 +71,7 @@
 
 ### 已实现的管理员功能
 - [x] 更新群组成员信息
-- [x] 95%的群功能开关 (基于[nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager)插件)  
+- [x] 95%的群功能开关 (基于[nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager)插件修改)  
 - [x] 查看群内被动技能状态
 - [x] 自定义群欢迎消息（是真寻的不是管家的！）
 - [x] .ban/.unban（支持设置ban时长）
