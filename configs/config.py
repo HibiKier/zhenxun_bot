@@ -18,13 +18,14 @@ TL_KEY: List[str] = []
 
 # 数据库（必要）
 # 如果填写了bind就不需要再填写后面的字段了#）
-bind: str = ''
-sql_name: str = ''
-user: str = ''
-password: str = ''
-address: str = ''
-port: str = ''
-database: str = ''
+# bind示例："bind": "postgresql://user:password@127.0.0.1:5432/database"
+bind: str = ''      # 数据库连接url
+sql_name: str = 'postgresql'
+user: str = ''      # 数据库用户名
+password: str = ''  # 数据库密码
+address: str = ''   # 数据库地址
+port: str = ''      # 数据库端口
+database: str = ''  # 数据库名称
 
 
 # 公开图库列表
@@ -32,6 +33,19 @@ IMAGE_DIR_LIST: List[str] = ["色图", "美图", "萝莉", "壁纸"]
 
 # 对被ban用户发送的消息
 BAN_RESULT: str = "才不会给你发消息."
+    
+
+# 各种抽卡卡池的开关
+PRTS_FLAG = True       # 明日方舟
+GENSHIN_FLAG = True    # 原神
+PRETTY_FLAG = True      # 赛马娘
+GUARDIAN_FLAG = True   # 坎公骑冠剑
+PCR_FLAG = True        # 公主连结
+AZUR_FLAG = True       # 碧蓝航线
+FGO_FLAG = True        # 命运-冠位指定（FGO）
+ONMYOJI_FLAG = True    # 阴阳师
+
+PCR_TAI = True         # pcr是否开启台服卡池
 
 
 # 插件配置
