@@ -88,8 +88,8 @@ MUTE_LEVEL: int = 5                 # 更改禁言设置权限
 UPDATE_GOCQ_GROUP: List[int] = []
 
 # 代理
-system_proxy: str = ''
-buff_proxy: str = ''
+system_proxy: str = ''      # 系统代理
+buff_proxy: str = ''        # buff代理
 
 # 是否存储色图
 DOWNLOAD_SETU: bool = True
