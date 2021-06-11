@@ -36,16 +36,16 @@ BAN_RESULT: str = "才不会给你发消息."
     
 
 # 各种抽卡卡池的开关
-PRTS_FLAG = True       # 明日方舟
-GENSHIN_FLAG = True    # 原神
-PRETTY_FLAG = True      # 赛马娘
-GUARDIAN_FLAG = True   # 坎公骑冠剑
-PCR_FLAG = True        # 公主连结
-AZUR_FLAG = True       # 碧蓝航线
-FGO_FLAG = True        # 命运-冠位指定（FGO）
-ONMYOJI_FLAG = True    # 阴阳师
+PRTS_FLAG: bool = True       # 明日方舟
+GENSHIN_FLAG: bool = True    # 原神
+PRETTY_FLAG: bool = True      # 赛马娘
+GUARDIAN_FLAG: bool = True   # 坎公骑冠剑
+PCR_FLAG: bool = True        # 公主连结
+AZUR_FLAG: bool = True       # 碧蓝航线
+FGO_FLAG: bool = True        # 命运-冠位指定（FGO）
+ONMYOJI_FLAG: bool = True    # 阴阳师
 
-PCR_TAI = True         # pcr是否开启台服卡池
+PCR_TAI: bool = True         # pcr是否开启台服卡池
 
 
 # 插件配置
