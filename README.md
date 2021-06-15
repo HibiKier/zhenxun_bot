@@ -75,7 +75,7 @@
 - [x] 95%的群功能开关 (基于[nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager)插件修改)  
 - [x] 查看群内被动技能状态
 - [x] 自定义群欢迎消息（是真寻的不是管家的！）
-- [x] .ban/.unban（支持设置ban时长）
+- [x] .ban/.unban（支持设置ban时长）= 黑白名单
 - [x] 刷屏禁言相关：刷屏检测设置/设置禁言时长/设置检测次数
 - [x] 上传图片 （上传图片至指定图库）
 - [x] 移动图片  （同上）
