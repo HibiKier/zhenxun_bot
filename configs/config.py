@@ -11,20 +11,21 @@ USE_CONFIG_FILE = False
 
 
 # API KEY（必要）
-LOLICON_KEY: str = ""  # lolicon
-RSSHUBAPP: str = ""  # rsshub
+LOLICON_KEY: str = ""  # lolicon(可不填，lolicon已放开api限制)
+RSSHUBAPP: str = "https://docs.rsshub.app/"  # rsshub
 # 图灵
 TL_KEY: List[str] = []
 
 # 数据库（必要）
 # 如果填写了bind就不需要再填写后面的字段了#）
-bind: str = ''
-sql_name: str = ''
-user: str = ''
-password: str = ''
-address: str = ''
-port: str = ''
-database: str = ''
+# 示例："bind": "postgresql://user:password@127.0.0.1:5432/database"
+bind: str = ''          # 数据库连接url
+sql_name: str = 'postgresql'      
+user: str = ''          # 数据库用户名
+password: str = ''      # 数据库密码
+address: str = ''       # 数据库地址
+port: str = ''          # 数据库端口
+database: str = ''      # 数据库名称
 
 
 # 公开图库列表
@@ -83,10 +84,10 @@ MUTE_LEVEL: int = 5                 # 更改禁言设置权限
 
 # 需要为哪些群更新最新版gocq吗？（上传最新版gocq）
 # 示例：[434995955, 239483248]
-UPDATE_GOCQ_GROUP: List[int] = [774261838]
+UPDATE_GOCQ_GROUP: List[int] = []
 
 # 代理
-system_proxy: str = 'http://127.0.0.1:7890'
+system_proxy: str = ''
 buff_proxy: str = ''
 
 # 是否存储色图
