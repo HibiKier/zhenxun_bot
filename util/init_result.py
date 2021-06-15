@@ -2,6 +2,7 @@ from configs.path_config import IMAGE_PATH, VOICE_PATH
 from nonebot.adapters.cqhttp.message import MessageSegment
 import os
 from services.log import logger
+import ujson
 
 
 def image(img_name: str = None, path: str = '', abspath: str = None, b64: str = None):
@@ -68,6 +69,7 @@ def xml(data):
 
 
 def json(data):
+    data = ujson.dumps(data)
     return MessageSegment.json(data)
 
 

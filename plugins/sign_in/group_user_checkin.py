@@ -5,7 +5,7 @@ from services.log import logger
 from services.db_context import db
 from models.sigin_group_user import SignGroupUser
 from models.group_member_info import GroupInfoUser
-from models.bag_user import UserBag
+from models.bag_user import BagUser
 from configs.config import MAX_SIGN_GOLD
 
 
@@ -57,7 +57,7 @@ async def _handle_check_in(user_qq: int, group: int, present: datetime) -> str:
     imgold = random.randint(1, int(impression))
     if imgold > MAX_SIGN_GOLD:
         imgold = MAX_SIGN_GOLD
-    await UserBag.add_glod(user_qq, group, gold + imgold)
+    await BagUser.add_gold(user_qq, group, gold + imgold)
     if critx2 + add_probability > 0.97 or critx2 < specify_probability:
         logger.info(f'(USER {user.user_qq}, GROUP {user.belonging_group})'
                     f' CHECKED IN successfully. score: {new_impression:.2f} (+{impression_added * 2:.2f}).获取金币：{gold+imgold}')
@@ -71,10 +71,10 @@ async def _handle_check_in(user_qq: int, group: int, present: datetime) -> str:
 async def group_user_check(user_qq: int, group: int) -> str:
     # heuristic: if users find they have never checked in they are probable to check in
     user = await SignGroupUser.ensure(user_qq, group)
-    glod = await UserBag.get_gold(user_qq, group)
+    gold = await BagUser.get_gold(user_qq, group)
     return '好感度：{:.2f}\n金币：{}\n历史签到数：{}\n上次签到日期：{}'.format(
         user.impression,
-        glod,
+        gold,
         user.checkin_count,
         user.checkin_time_last.date() if user.checkin_time_last != datetime.min else '从未',
     )
@@ -85,13 +85,12 @@ async def group_impression_rank(group: int) -> str:
     user_qq_list, impression_list = await SignGroupUser.query_impression_all(group)
     _count = 11
     if user_qq_list and impression_list:
-        for i in range(1, 100):
+        for i in range(1, len(user_qq_list)):
             if len(user_qq_list) == 0 or len(impression_list) == 0 or i == _count:
                 break
             impression = max(impression_list)
             index = impression_list.index(impression)
             user_qq = user_qq_list[index]
-            print(user_qq, group)
             try:
                 user_name = (await GroupInfoUser.select_member_info(user_qq, group)).user_name
             except Exception as e:
@@ -106,12 +105,12 @@ async def group_impression_rank(group: int) -> str:
     return result[:-1]
 
 
-async def random_glod(user_id, group_id, impression):
+async def random_gold(user_id, group_id, impression):
     if impression < 1:
         impression = 1
-    glod = random.randint(1, 100) + random.randint(1, int(impression))
-    if await UserBag.add_glod(user_id, group_id, glod):
-        return glod
+    gold = random.randint(1, 100) + random.randint(1, int(impression))
+    if await BagUser.add_gold(user_id, group_id, gold):
+        return gold
     else:
         return 0
 

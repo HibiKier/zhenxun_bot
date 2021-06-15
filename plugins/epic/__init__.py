@@ -7,7 +7,9 @@ from .data_source import get_epic_game
 from models.group_remind import GroupRemind
 from nonebot.adapters.cqhttp.exception import ActionFailed
 
-__plugin_usage__ = 'epic免费游戏提醒'
+__plugin_name__ = 'epic免费游戏提醒'
+
+__plugin_usage__ = '用法：发送’epic‘'
 
 
 epic = on_command("epic", priority=5, block=True)
@@ -16,8 +18,6 @@ epic = on_command("epic", priority=5, block=True)
 @epic.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     # try:
-    if str(event.get_message()) in ['帮助']:
-        await epic.finish(__plugin_usage__)
     try:
         result = await get_epic_game()
     except:

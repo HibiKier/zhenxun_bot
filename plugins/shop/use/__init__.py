@@ -3,7 +3,7 @@ from services.log import logger
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from nonebot.typing import T_State
 from util.utils import is_number, get_message_text
-from models.bag_user import UserBag
+from models.bag_user import BagUser
 from nonebot.adapters.cqhttp.permission import GROUP
 from services.db_context import db
 from .data_source import effect
@@ -21,7 +21,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     msg = get_message_text(event.json())
     if msg in ['', '帮助']:
         await use_props.finish(__plugin_usage__)
-    props = await UserBag.get_props(event.user_id, event.group_id)
+    props = await BagUser.get_props(event.user_id, event.group_id)
     if props:
         async with db.transaction():
             pname_list = []
@@ -39,7 +39,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 if msg not in pname_list:
                     await use_props.finish('道具名称错误！', at_sender=True)
                 name = msg
-            if await UserBag.del_props(event.user_id, event.group_id, name) and\
+            if await BagUser.del_props(event.user_id, event.group_id, name) and\
                     await effect(event.user_id, event.group_id, name):
                 await use_props.send(f'使用道具 {name} 成功！', at_sender=True)
                 logger.info(f'USER {event.user_id} GROUP {event.group_id} 使用道具 {name} 成功')

@@ -18,6 +18,8 @@ except ModuleNotFoundError:
 
 __plugin_name__ = '刷屏禁言'
 
+__plugin_usage__ = '刷屏禁言检测'
+
 
 mute = on_message(priority=1, block=False)
 mute_setting = on_command('mute_setting', aliases={'设置检测时间', '设置检测次数', '设置禁言时长', '刷屏检测设置'}, permission=GROUP, block=True)

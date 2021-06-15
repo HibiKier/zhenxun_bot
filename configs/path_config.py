@@ -14,14 +14,12 @@ LOG_PATH = Path("log/")
 TTF_PATH = Path("resources/ttf/")
 # 数据路径
 DATA_PATH = Path("data/")
-# 抽卡数据路径
-DRAW_PATH = Path("data/draw_card/")
 # 临时图片路径
 TEMP_PATH = Path("resources/img/temp/")
 
 
 def init_path():
-    global IMAGE_PATH, VOICE_PATH, TXT_PATH, LOG_PATH, TTF_PATH, DATA_PATH, DRAW_PATH, TEMP_PATH
+    global IMAGE_PATH, VOICE_PATH, TXT_PATH, LOG_PATH, TTF_PATH, DATA_PATH, TEMP_PATH
     if USE_CONFIG_FILE:
         data = get_config_data()
         if data.get('IMAGE_PATH'):
@@ -46,7 +44,6 @@ def init_path():
     LOG_PATH.mkdir(parents=True, exist_ok=True)
     TTF_PATH.mkdir(parents=True, exist_ok=True)
     DATA_PATH.mkdir(parents=True, exist_ok=True)
-    DRAW_PATH.mkdir(parents=True, exist_ok=True)
     TEMP_PATH.mkdir(parents=True, exist_ok=True)
 
     IMAGE_PATH = str(IMAGE_PATH.absolute()) + '/'
@@ -55,7 +52,6 @@ def init_path():
     LOG_PATH = str(LOG_PATH.absolute()) + '/'
     TTF_PATH = str(TTF_PATH.absolute()) + '/'
     DATA_PATH = str(DATA_PATH.absolute()) + '/'
-    DRAW_PATH = str(DRAW_PATH.absolute()) + '/'
     TEMP_PATH = str(TEMP_PATH.absolute()) + '/'
 
 

@@ -5,6 +5,8 @@ import os
 from .config import *
 from nonebot import require
 from configs.config import INITIAL_OPEN_CASE_COUNT, INITIAL_SETU_PROBABILITY, ADMIN_DEFAULT_AUTH
+from configs.config import plugins2name_dict
+import nonebot
 
 export = require("nonebot_plugin_manager")
 
@@ -48,11 +50,10 @@ def create_help_img():
     A.paste(u, (0, u_height))
     A.paste(o, (0, o_height))
     A.text((10, h * 0.76), '大部分交互功能可以通过输入‘取消’，‘算了’来取消当前交互\n对我说 “指令名 帮助” 获取对应详细帮助\n'
-                           '可以通过 “滴滴滴- 后接内容” 联系管理员（有趣的想法尽管来吧！<还有Bug和建议>）\n[群管理员请看 管理员帮助（群主与管理员自带 5 级权限）]')
-    A.text((10, h * 0.81), f"【注】「色图概率：好感度 + 70%\n"
-                           f"\t\t每 3 点好感度 + 1次开箱，初始 20 次\n"
-                           f"\t\t开启/关闭功能只需输入‘开启/关闭 指令名’（每个功能的第一个指令）」\n"
-                           f"\t\t示例：开启签到")
+                           '可以通过 “滴滴滴- 后接内容” 联系管理员（有趣的想法尽管来吧！<还有Bug和建议>）'
+                           '\n[群管理员请看 管理员帮助（群主与管理员自带 5 级权限）]\n\n'
+                           '\t「如果真寻回复了一些不符合人设的话，那是因为每日白嫖的图灵次数已用完，使用的是备用接口【QAQ】」')
+
     A.save(IMAGE_PATH + 'help.png')
 
 
@@ -106,7 +107,8 @@ def create_group_help_img(group_id: int):
                            f"\t\t开启/关闭功能只需输入‘开启/关闭 指令名’（每个功能的第一个指令）」\n"
                            f"\t\t示例：开启签到\n"
                            f"\t\t可以通过管理员开关自动发送消息(早晚安等)\n"
-                           f"\t\t^请查看管理员帮助^")
+                           f"\t\t^请查看管理员帮助^\n\n"
+                           f"\t「如果真寻回复了一些不符合人设的话，那是因为每日白嫖的图灵次数已用完，使用的是备用接口【QAQ】」")
     A.save(DATA_PATH + f'group_help/{group_id}.png')
 
 
@@ -140,4 +142,15 @@ def rcmd(dfg):
         return 'pixiv_s'
 
 
+def get_plugin_help(msg: str) -> str:
+    plugin = None
+    for p in plugins2name_dict.keys():
+        if msg in plugins2name_dict[p]:
+            plugin = nonebot.plugin.get_plugin(p)
+            break
+    if plugin:
+        result = plugin.module.__getattribute__("__plugin_usage__")
+        return result
+    else:
+        return '没有此功能的帮助信息...'
 

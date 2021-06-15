@@ -20,6 +20,9 @@ import asyncio
 from util.utils import scheduler
 from services.log import logger
 
+__plugin_name__ = '游戏抽卡'
+
+
 prts = on_regex(r'.*?方舟[1-9|一][0-9]{0,2}[抽|井]', rule=is_switch('prts'), priority=5, block=True)
 prts_update = on_keyword({'更新方舟信息', '更新明日方舟信息'}, permission=SUPERUSER, priority=1, block=True)
 prts_up_reload = on_keyword({'重载方舟卡池'}, priority=1, block=True)

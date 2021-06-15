@@ -23,16 +23,15 @@ from services.log import logger
 # RU2ZH_CN 俄语　»　中文
 # SP2ZH_CN 西语　»　中文
 
+__plugin_name__ = '黑白草图'
 
-__plugin_usage__ = '用法： \n\t黑白图 文字 图片\n示例：黑白草图 没有人不喜欢萝莉 （图片）'
+__plugin_usage__ = '用法： \n\t黑白图 [文字] [图片]\n示例：黑白草图 没有人不喜欢萝莉 [图片]'
 
 w2b_img = on_command('黑白草图', aliases={'黑白图'}, priority=5, block=True)
 
 
 @w2b_img.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if not get_message_text(event.json()) or get_message_text(event.json()) in ['帮助']:
-        await w2b_img.finish(__plugin_usage__)
     # try:
     img = get_message_imgs(event.json())
     msg = get_message_text(event.json())

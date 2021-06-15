@@ -6,7 +6,9 @@ from services.log import logger
 from util.init_result import image
 import requests
 
-__plugin_usage_coser__ = '不得看看可爱的coser？发送‘coser’'
+__plugin_name__ = 'coser'
+
+__plugin_usage__ = '用法：发送‘coser’'
 
 
 coser = on_command('cos', aliases={'coser', '括丝'}, priority=5, block=True)
@@ -17,8 +19,6 @@ url_2 = 'http://api.rosysun.cn/cos'
 
 @coser.handle()
 async def _(bot: Bot, event: Event, state: T_State):
-    if get_message_text(event.json()) in ['帮助']:
-        await coser.finish(__plugin_usage_coser__)
     img_url = requests.get(url_2).text
     await coser.send(image(img_url))
     logger.info(

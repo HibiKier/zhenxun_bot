@@ -42,16 +42,15 @@ class BanUser(db.Model):
         if await cls.check_ban_time(user_qq):
             return True
         else:
-            await cls.unban(user_qq, True)
+            await cls.unban(user_qq)
             return False
 
     @classmethod
-    async def ban(cls, user_qq: int, ban_level: int, duration: int, for_update: bool = False) -> 'bool':
+    async def ban(cls, user_qq: int, ban_level: int, duration: int) -> 'bool':
         query = cls.query.where(
             (cls.user_qq == user_qq)
         )
-        if for_update:
-            query = await query.with_for_update()
+        query = query.with_for_update()
         user = await query.gino.first()
         if not await cls.check_ban_time(user_qq):
             await cls.unban(user_qq)
@@ -68,12 +67,11 @@ class BanUser(db.Model):
             return False
 
     @classmethod
-    async def unban(cls, user_qq: int, for_update: bool = False) -> 'bool':
+    async def unban(cls, user_qq: int) -> 'bool':
         query = cls.query.where(
             (cls.user_qq == user_qq)
         )
-        if for_update:
-            query = query.with_for_update()
+        query = query.with_for_update()
         user = await query.gino.first()
         if user is None:
             return False

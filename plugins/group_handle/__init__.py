@@ -17,6 +17,11 @@ except ModuleNotFoundError:
     import json
 
 
+__plugin_name__ = '群事件处理 [Hidden]'
+
+__usage__ = '用法：无'
+
+
 export = require("admin_bot_manage")
 
 # 群员增加处理

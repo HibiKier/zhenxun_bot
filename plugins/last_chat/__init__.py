@@ -9,6 +9,8 @@ from services.log import logger
 
 __plugin_name__ = '查看群最后聊天时间 [Hidden]'
 
+__plugin_usage__ = '用法：无'
+
 
 last_chat = on_message(priority=1, block=False, permission=GROUP)
 

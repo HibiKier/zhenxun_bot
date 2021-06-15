@@ -96,7 +96,7 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
 # 为什么AI会自己和自己聊天
 @run_preprocessor
 async def _(matcher: Matcher, bot: Bot, event: PrivateMessageEvent, state: T_State):
-    if matcher.type == 'message' and event.user_id == int(bot.self_id):
+    if event.user_id == int(bot.self_id):
         raise IgnoredException('为什么AI会自己和自己聊天')
 
 

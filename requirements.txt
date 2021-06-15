@@ -5,7 +5,7 @@ async-timeout==3.0.1
 asyncpg==0.22.0
 attrs==20.3.0
 beautifulsoup4==4.9.3
-bilibili-api==4.0.4
+bilibili-api==5.1.1
 bleach==3.3.0
 certifi==2020.12.5
 chardet==4.0.0
@@ -31,8 +31,10 @@ loguru==0.5.3
 lxml==4.6.3
 matplotlib==3.4.1
 multidict==5.1.0
+nest-asyncio==1.5.1
 nonebot-adapter-cqhttp==2.0.0a12
 nonebot-plugin-apscheduler==0.1.2
+nonebot-plugin-gamedraw==0.1.6.6.6
 nonebot-plugin-picsearcher==0.1.4
 nonebot-plugin-wordbank==1.0.1
 nonebot2==2.0.0a13.post1

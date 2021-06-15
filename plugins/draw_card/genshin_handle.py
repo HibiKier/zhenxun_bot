@@ -2,14 +2,17 @@ import os
 from nonebot.adapters.cqhttp import MessageSegment
 import nonebot
 import random
+from configs.path_config import IMAGE_PATH
 from .update_game_info import update_info
-from .util import generate_img, init_star_rst, BaseData, set_list, get_star, UpEvent
+from .util import generate_img, init_star_rst, BaseData, set_list, get_star, UpEvent, download_img
 from .config import GENSHIN_FIVE_P, GENSHIN_FOUR_P, GENSHIN_G_FIVE_P, GENSHIN_G_FOUR_P, GENSHIN_THREE_P, I72_ADD, \
     DRAW_PATH, GENSHIN_FLAG
 from dataclasses import dataclass
 from .init_card_pool import init_game_pool
 from .announcement import GenshinAnnouncement
 from services.log import logger
+from util.init_result import image
+
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -26,7 +29,6 @@ ALL_ARMS = []
 
 UP_CHAR = []
 UP_ARMS = []
-
 
 _CURRENT_CHAR_POOL_TITLE = ''
 _CURRENT_ARMS_POOL_TITLE = ''
@@ -65,7 +67,8 @@ async def genshin_draw(user_id: int, count: int, pool_name: str):
     pool_info = f'当前up池：{title}\n{tmp}' if title else ''
     if count > 90:
         char_list = set_list(char_list)
-    return pool_info + '\n' + MessageSegment.image("base64://" + await generate_img(char_list, 'genshin', star_list)) + '\n' + rst[:-1] + \
+    return pool_info + '\n' + MessageSegment.image(
+        "base64://" + await generate_img(char_list, 'genshin', star_list)) + '\n' + rst[:-1] + \
            temp[:-1] + f'\n距离保底发还剩 {90 - genshin_count[user_id] if genshin_count.get(user_id) else "^"} 抽' \
            + "\n【五星：0.6%，四星：5.1%\n第72抽开始五星概率每抽加0.585%】"
 
@@ -205,9 +208,17 @@ async def _init_up_char():
     up_char_dict = await GenshinAnnouncement.update_up_char()
     _CURRENT_CHAR_POOL_TITLE = up_char_dict['char']['title']
     _CURRENT_ARMS_POOL_TITLE = up_char_dict['arms']['title']
+
     if _CURRENT_CHAR_POOL_TITLE and _CURRENT_ARMS_POOL_TITLE:
-        POOL_IMG = MessageSegment.image(up_char_dict['char']['pool_img']) + \
-                   MessageSegment.image(up_char_dict['arms']['pool_img'])
+        await download_img(up_char_dict['char']['pool_img'], 'genshin', 'up_char_pool_img')
+        await download_img(up_char_dict['arms']['pool_img'], 'genshin', 'up_arms_pool_img')
+        POOL_IMG = image('up_char_pool_img.png', '/draw_card/genshin/') + \
+                   image('up_arms_pool_img.png', '/draw_card/genshin/')
+    else:
+        if os.path.exists(IMAGE_PATH + '/draw_card/genshin/up_char_pool_img.png'):
+            os.remove(IMAGE_PATH + '/draw_card/genshin/up_char_pool_img.png')
+        if os.path.exists(IMAGE_PATH + '/draw_card/genshin/up_arms_pool_img.png'):
+            os.remove(IMAGE_PATH + '/draw_card/genshin/up_arms_pool_img.png')
     logger.info(f'成功获取原神当前up信息...当前up池: {_CURRENT_CHAR_POOL_TITLE} & {_CURRENT_ARMS_POOL_TITLE}')
     for key in up_char_dict.keys():
         for star in up_char_dict[key]['up_char'].keys():
@@ -223,7 +234,3 @@ async def _init_up_char():
 async def reload_genshin_pool():
     await _init_up_char()
     return f'当前UP池子：{_CURRENT_CHAR_POOL_TITLE} & {_CURRENT_ARMS_POOL_TITLE} {POOL_IMG}'
-
-
-
-

@@ -246,8 +246,13 @@ class CreateImg:
         self.markImg.show(self.markImg)
 
     # 压缩
-    def resize(self, ratio):
-        self.markImg = self.markImg.resize((int(self.w * ratio), int(self.h * ratio)), Image.ANTIALIAS)
+    def resize(self, ratio=0, w=0, h=0):
+        if not w and not h and not ratio:
+            raise Exception('缺少参数...')
+        if not w and not h and ratio:
+            w = int(self.w * ratio)
+            h = int(self.h * ratio)
+        self.markImg = self.markImg.resize((w, h), Image.ANTIALIAS)
         self.w, self.h = self.markImg.size
         self.size = self.w, self.h
         self.draw = ImageDraw.Draw(self.markImg)
@@ -273,11 +278,32 @@ class CreateImg:
         buf = BytesIO()
         self.markImg.save(buf, format='PNG')
         base64_str = base64.b64encode(buf.getvalue()).decode()
-        return 'base64://' + base64_str
+        return base64_str
 
     #
     def convert(self, itype):
         self.markImg = self.markImg.convert(itype)
+
+    # 变圆
+    def circle(self):
+        self.convert('RGBA')
+        r2 = min(self.w, self.h)
+        if self.w != self.h:
+            self.resize(w=r2, h=r2)
+        r3 = int(r2 / 2)
+        imb = Image.new('RGBA', (r3 * 2, r3 * 2), (255, 255, 255, 0))
+        pima = self.markImg.load()  # 像素的访问对象
+        pimb = imb.load()
+        r = float(r2 / 2)
+        for i in range(r2):
+            for j in range(r2):
+                lx = abs(i - r)  # 到圆心距离的横坐标
+                ly = abs(j - r)  # 到圆心距离的纵坐标
+                l = (pow(lx, 2) + pow(ly, 2)) ** 0.5  # 三角函数 半径
+                if l < r3:
+                    pimb[i - (r - r3), j - (r - r3)] = pima[i, j]
+        self.markImg = imb
+
 
 
 if __name__ == '__main__':

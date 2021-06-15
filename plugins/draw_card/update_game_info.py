@@ -131,15 +131,15 @@ async def _modify_avatar_url(session: aiohttp.ClientSession, game_name: str, cha
 
 # 数据最后处理（是否需要额外数据或处理数据）
 async def _last_check(data: dict, game_name: str, session: aiohttp.ClientSession):
-    if game_name == 'prts':
-        url = 'https://wiki.biligame.com/arknights/'
-        tasks = []
-        for key in data.keys():
-            tasks.append(asyncio.ensure_future(_async_update_prts_extra_info(url, key, session)))
-        asyResult = await asyncio.gather(*tasks)
-        for x in asyResult:
-            for key in x.keys():
-                data[key]['获取途径'] = x[key]['获取途径']
+    # if game_name == 'prts':
+    #     url = 'https://wiki.biligame.com/arknights/'
+    #     tasks = []
+    #     for key in data.keys():
+    #         tasks.append(asyncio.ensure_future(_async_update_prts_extra_info(url, key, session)))
+    #     asyResult = await asyncio.gather(*tasks)
+    #     for x in asyResult:
+    #         for key in x.keys():
+    #             data[key]['获取途径'] = x[key]['获取途径']
     if game_name == 'genshin':
         for key in data.keys():
             async with session.get(f'https://wiki.biligame.com/ys/{key}', timeout=7) as res:
@@ -177,6 +177,14 @@ async def _last_check(data: dict, game_name: str, session: aiohttp.ClientSession
 
 # 对抓取每行数据是否需要额外处理？
 def intermediate_check(member_dict: dict, key: str, game_name: str, td: bs4.element.Tag):
+    if game_name == 'prts':
+        if key == '获取途径':
+            msg = re.search('<td.*?>([\\s\\S]*)</td>', str(td)).group(1).strip()
+            msg = msg[:-1] if msg[-1] == '\n' else msg
+            if msg.find('<a') != -1:
+                for a in td.find_all('a'):
+                    msg = msg.replace(str(a), a.text)
+            member_dict['获取途径'] = msg.split('<br/>')
     if game_name == 'pretty':
         if key == '初始星级':
             member_dict['初始星级'] = len(td.find_all('img'))

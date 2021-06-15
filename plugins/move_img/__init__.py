@@ -11,8 +11,8 @@ from configs.path_config import IMAGE_PATH
 
 __plugin_name__ = '移动图片'
 __plugin_usage__ = '移动图片帮助：\n\t' \
-                   '1.查看列表 --> 指令: 移动图片 列表/目录\n\t' \
-                   '2.移动图片 源 目的 id\n\t\t示例: 移动图片 色图 美图 1234'
+            '1.查看列表 --> 指令: 移动图片 列表/目录\n\t' \
+            '2.移动图片 源 目的 id\n\t\t示例: 移动图片 色图 美图 1234'
 
 
 move_img = on_command('移动图片', priority=5, rule=to_me(), block=True)

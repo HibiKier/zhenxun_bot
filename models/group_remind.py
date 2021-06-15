@@ -48,7 +48,7 @@ class GroupRemind(db.Model):
         try:
             group = await cls.query.where(
                 (cls.group_id == group_id)
-            ).gino.first()
+            ).with_for_update().gino.first()
             if not group:
                 group = await cls.create(
                     group_id=group_id,

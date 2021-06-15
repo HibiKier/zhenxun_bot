@@ -5,6 +5,8 @@ from util.init_result import image
 
 __plugin_name__ = '更新信息'
 
+__plugin_usage__ = '无'
+
 
 update_info = on_command("更新信息", priority=5, block=True)
 

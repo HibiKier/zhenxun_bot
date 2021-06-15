@@ -86,7 +86,7 @@ def _get_guardian_card(pool_name: str):
     if pool_name != 'arms':
         star = get_star([3, 2, 1], [GUARDIAN_THREE_CHAR_P, GUARDIAN_TWO_CHAR_P, GUARDIAN_ONE_CHAR_P])
         chars = [x for x in ALL_CHAR if x.star == star]
-        return random.choice(chars), 3- star
+        return random.choice(chars), 3 - star
     else:
         star = get_star([5, 4, 3, 2], [GUARDIAN_FIVE_ARMS_P, GUARDIAN_FOUR_ARMS_P,
                                        GUARDIAN_THREE_ARMS_P, GUARDIAN_TWO_ARMS_P])

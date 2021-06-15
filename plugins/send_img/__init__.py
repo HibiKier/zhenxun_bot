@@ -54,7 +54,7 @@ async def _(bot: Bot, event: Event, state: T_State):
         await send_img.finish(f"不想给你看Ov|")
 
 
-pa = on_keyword({"爬"}, priority=1, block=True)
+pa = on_keyword({"爬", "爪巴"}, priority=1, block=True)
 
 
 @pa.handle()

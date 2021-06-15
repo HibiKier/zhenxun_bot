@@ -12,10 +12,9 @@ from models.group_remind import GroupRemind
 from nonebot.adapters.cqhttp.exception import ActionFailed
 import time
 import aiohttp
-import bilibili_api
+from bilibili_api import settings
 if get_local_proxy():
-    proxy_ip_port = get_local_proxy().split("//", maxsplit=1)[1]
-    bilibili_api.request_settings["proxies"] = {'http': f'http://{proxy_ip_port}', 'https': f'https://{proxy_ip_port}'}
+    settings.proxy = get_local_proxy()
 
 
 parse_bilibili_json = on_message(priority=1, permission=GROUP, block=False)
@@ -30,9 +29,8 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 async with aiohttp.ClientSession(headers=get_user_agent()) as session:
                     async with session.get(data['meta']['detail_1']['qqdocurl'], proxy=get_local_proxy(), timeout=7) as response:
                         url = str(response.url).split("?")[0]
-                        print(url)
                         bvid = url.split('/')[-1]
-                    vd_info = video.get_video_info(bvid=bvid)
+                        vd_info = await video.Video(bvid=bvid).get_info()
                 aid = vd_info['aid']
                 title = vd_info['title']
                 author = vd_info['owner']['name']
@@ -54,10 +52,6 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 except ActionFailed:
                     logger.warning(f'{event.group_id} 发送bilibili解析失败')
                 logger.info(f'USER {event.user_id} GROUP {event.group_id} 解析bilibili转发 {url}')
-            else:
-                return
-        else:
-            return
 
 
 

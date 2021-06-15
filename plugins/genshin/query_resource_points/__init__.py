@@ -12,6 +12,15 @@ try:
 except ModuleNotFoundError:
     import json
 
+__plugin_name__ = '原神资源查询'
+
+__plugin_usage__ = '用法：\n' \
+            '\t原神资源查询 [消息]\n' \
+            '\t原神资源列表\n' \
+            '\t[消息]在哪\n' \
+            '\t哪有[消息]\n' \
+            '[消息] = 资源名称'
+
 qr = on_command("原神资源查询", priority=5, block=True)
 qr_lst = on_command("原神资源列表", priority=5, block=True)
 rex_qr = on_regex('.*?(在哪|在哪里|哪有|哪里有).*?', rule=to_me(), priority=5, block=True)

@@ -17,8 +17,6 @@ url = 'https://international.v1.hitokoto.cn/?c=a'
 
 @quotations.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if str(event.get_message()) in ['帮助']:
-        await quotations.finish(__plugin_usage__)
     async with aiohttp.ClientSession() as session:
         async with session.get(url, proxy=get_local_proxy(), timeout=5) as response:
             data = await response.json()

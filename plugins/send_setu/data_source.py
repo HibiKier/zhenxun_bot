@@ -24,19 +24,20 @@ path = 'setu/'
 async def get_setu_urls(keyword: str, num: int = 1, r18: int = 0):
     # print(keyword)
     if r18 == 1:
-        file_name = 'setu_r18_url.txt'
+        file_name = 'setu_r18_url.json'
     else:
-        file_name = 'setu_url.txt'
+        file_name = 'setu_url.json'
     try:
-        with open(TXT_PATH + file_name, 'r') as f:
-            txt_data = f.read()
-    except FileNotFoundError:
-        txt_data = ''
+        with open(TXT_PATH + file_name, 'r', encoding='utf8') as f:
+            txt_data = json.load(f)
+    except (FileNotFoundError, ValueError):
+        txt_data = {}
+    txt_urls = [txt_data[x]['img_url'] for x in txt_data.keys()]
     params = {
         "apikey": LOLICON_KEY,  # 添加apikey
         'r18': r18,  # 添加r18参数 0为否，1为是，2为混合
         'keyword': keyword,  # 若指定关键字，将会返回从插画标题、作者、标签中模糊搜索的结果
-        'num': num,  # 一次返回的结果数量，范围为1到10，不提供 APIKEY 时固定为1
+        'num': 100,  # 一次返回的结果数量，范围为1到10，不提供 APIKEY 时固定为1
         'size1200': 1,  # 是否使用 master_1200 缩略图，以节省流量或提升加载速度
     }
     urls = []
@@ -53,7 +54,6 @@ async def get_setu_urls(keyword: str, num: int = 1, r18: int = 0):
                     if response.status == 200:
                         data = await response.json()
                         if data['code'] == 0:
-                            # print(len(data['data']))
                             for i in range(len(data['data'])):
                                 img_url = data['data'][i]['url']
                                 title = data['data'][i]['title']
@@ -61,12 +61,29 @@ async def get_setu_urls(keyword: str, num: int = 1, r18: int = 0):
                                 pid = data['data'][i]['pid']
                                 urls.append(img_url)
                                 text_list.append(f'title：{title}\nauthor：{author}\nPID：{pid}')
-                                img_url = str(img_url).replace('img-master', 'img-original').replace('_master1200', '')
-                                txt_data += img_url + ','
+                                tags = []
+                                for j in range(len(data['data'][i]['tags'])):
+                                    tags.append(data['data'][i]['tags'][j])
+                                if img_url not in txt_urls:
+                                    save_setu_dict = {
+                                        'title': title,
+                                        'author': author,
+                                        'pid': pid,
+                                        'img_url': img_url,
+                                        'tags': tags
+                                    }
+                                if str(pid) not in txt_data.keys():
+                                    txt_data[pid] = save_setu_dict
                             if DOWNLOAD_SETU:
-                                with open(TXT_PATH + file_name, 'w') as f:
-                                    f.write(txt_data)
-                            return urls, text_list, 200
+                                with open(TXT_PATH + file_name, 'w', encoding='utf8') as f:
+                                    json.dump(txt_data, f, ensure_ascii=False, indent=4)
+                            random_idx = random.sample(range(len(data['data'])), num)
+                            x_urls = []
+                            x_text_lst = []
+                            for x in random_idx:
+                                x_urls.append(urls[x])
+                                x_text_lst.append(text_list[x])
+                            return x_urls, x_text_lst, 200
                         else:
                             return "没找到符合条件的色图...", '', 401
             except TimeoutError:
@@ -145,17 +162,20 @@ async def check_r18_and_keyword(msg: str, user_id) -> 'str, int, int':
 
 async def find_img_index(img_url, user_id):
     try:
-        setu_hash_dict = json.load(open(TXT_PATH + 'setu_img_hash.json'))
+        setu_data = json.load(open(TXT_PATH + 'setu_data.json', encoding='utf8'))
     except (FileNotFoundError, ValueError):
-        setu_hash_dict = {}
+        setu_data = {}
     async with aiohttp.ClientSession() as session:
         async with session.get(img_url, proxy=get_local_proxy(), timeout=5) as res:
             async with aiofiles.open(IMAGE_PATH + f"temp/{user_id}_find_setu_index.jpg", 'wb') as f:
                 await f.write(await res.read())
     img_hash = str(get_img_hash(IMAGE_PATH + f"temp/{user_id}_find_setu_index.jpg"))
     try:
-        tp = list(setu_hash_dict.keys())[list(setu_hash_dict.values()).index(img_hash)]
-        return "id --> " + str(tp)
+        index = str([setu_data[x]['img_hash'] for x in setu_data.keys()].index(img_hash))
+        return f"id：{index}\n" \
+               f"title：{setu_data[index]['title']}\n" \
+               f"author：{setu_data[index]['author']}\n" \
+               f"PID：{setu_data[index]['pid']}"
     except ValueError:
         return "该图不在色图库中！"
 
@@ -167,10 +187,10 @@ def delete_img(_id: int):
     try:
         os.remove(IMAGE_PATH + path + f'{_id}.jpg')
         if _id != lens:
-            setu_hash_dict = json.load(open(TXT_PATH + 'setu_img_hash.json'))
+            setu_hash_dict = json.load(open(TXT_PATH + 'setu_data.json', encoding='utf8'))
             setu_hash_dict[str(_id)] = setu_hash_dict[str(lens)]
             os.rename(IMAGE_PATH + path + f'{lens}.jpg', IMAGE_PATH + path + f'{_id}.jpg')
-            with open(TXT_PATH + 'setu_img_hash.json', 'w') as f:
+            with open(TXT_PATH + 'setu_data.json', 'w', encoding='utf8') as f:
                 json.dump(setu_hash_dict, f, ensure_ascii=False, indent=4)
         return True, ''
     except Exception as e:
@@ -183,7 +203,7 @@ async def add_img(imgs: list):
     index = 0
     lens = len(os.listdir(IMAGE_PATH + path))
     add_count = 0
-    setu_hash_dict = json.load(open(TXT_PATH + 'setu_img_hash.json'))
+    setu_data_dict = json.load(open(TXT_PATH + 'setu_data.json', encoding='utf8'))
     async with aiohttp.ClientSession() as session:
         for img in imgs:
             async with session.get(img, proxy=get_local_proxy(), timeout=5) as res:
@@ -193,16 +213,20 @@ async def add_img(imgs: list):
     index -= 1
     for i in range(index, -1, -1):
         img_hash = str(get_img_hash(IMAGE_PATH + f"temp/add_setu_check_{index}.jpg"))
-        print(f'img_hash: {img_hash}')
-        if img_hash not in setu_hash_dict.values():
+        if img_hash not in [setu_data_dict[x]['img_hash'] for x in setu_data_dict.keys()]:
             os.rename(IMAGE_PATH + f"temp/add_setu_check_{index}.jpg", IMAGE_PATH + path + f'/{lens}.jpg')
-            print(f'{lens}: {img_hash}')
-            setu_hash_dict[lens] = img_hash
+            setu_data_dict[lens] = {
+                'title': 'not title',
+                'author': 'not author',
+                'pid': 'not pid',
+                'img_hash': img_hash,
+                'img_url': 'not url',
+            }
             lens += 1
             add_count += 1
     if add_count:
-        with open(TXT_PATH + 'setu_img_hash.json', 'w') as f:
-            json.dump(setu_hash_dict, f, ensure_ascii=False, indent=4)
+        with open(TXT_PATH + 'setu_data.json', 'w', encoding='utf8') as f:
+            json.dump(setu_data_dict, f, ensure_ascii=False, indent=4)
     return lens, add_count
 
 

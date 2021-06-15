@@ -1,5 +1,5 @@
 from util.utils import scheduler
-from models.bag_user import UserBag
+from models.bag_user import BagUser
 from services.log import logger
 
 
@@ -20,13 +20,12 @@ from services.log import logger
 )
 async def _():
     try:
-        user_list = await UserBag.get_user_all()
-        if user_list:
-            for user in user_list:
-                await user.update(
-                    get_today_gold=0,
-                    spend_today_gold=0,
-                ).apply()
+        user_list = await BagUser.get_user_all()
+        for user in user_list:
+            await user.update(
+                get_today_gold=0,
+                spend_today_gold=0,
+            ).apply()
     except Exception as e:
         logger.error(f'重置每日金币错误 e:{e}')
 

@@ -1,6 +1,6 @@
 from .group_user_checkin import group_user_check_in, group_user_check, group_impression_rank
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, Event, GroupMessageEvent
+from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from nonebot.adapters.cqhttp.permission import GROUP
 from util.utils import get_message_text
 from nonebot.plugin import MatcherGroup
@@ -24,8 +24,6 @@ sign = sign_match_group.on_command("签到")
 
 @sign.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    if get_message_text(event.json()) in ['帮助']:
-        await sign.finish(__plugin_usage__)
     await sign.send(
         await group_user_check_in(event.user_id, event.group_id),
         at_sender=True,

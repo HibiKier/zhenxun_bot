@@ -29,8 +29,6 @@ async def _(bot: Bot, event: Event, state: T_State):
 
 @search_anime.handle()
 async def _(bot: Bot, event: Event, state: T_State):
-    if get_message_text(event.json()) in ['帮助'] or get_message_text(event.json()) == '':
-        await search_anime.finish(__plugin_usage__)
     if _ulmt.check(event.user_id):
         await search_anime.finish('您有动漫正在搜索，请稍等...', at_sender=True)
     _ulmt.set_True(event.user_id)

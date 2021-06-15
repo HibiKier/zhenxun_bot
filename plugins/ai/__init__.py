@@ -8,7 +8,7 @@ from util.utils import get_message_text, get_message_imgs
 from models.friend_user import FriendUser
 from models.group_member_info import GroupInfoUser
 
-__plugin_name__ = 'AI'
+__plugin_name__ = 'AI [Hidden]'
 
 
 ai = on_message(rule=to_me(), priority=8)
@@ -21,7 +21,7 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
     if str(event.get_message()).find('CQ:xml') != -1:
         return
     # 打招呼
-    if not msg and not imgs:
+    if (not msg and not imgs) or msg in ['你好啊', '你好', '在吗', '在不在', '您好', '您好啊', '你好', '在']:
         await ai.finish(hello())
     img = imgs[0] if imgs else ''
     nickname = await FriendUser.get_friend_nickname(event.user_id)

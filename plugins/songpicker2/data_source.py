@@ -98,8 +98,7 @@ class dataGet(dataApi):
         r = await self.api.getSongInfo(songId)
         if r is None:
             raise WrongDataError
-        print(r)
-        if r['code'] == '-460':
+        if r['code'] == -460:
             return '网易云网络繁忙！'
         songInfo["songName"] = r["songs"][0]["name"]
 

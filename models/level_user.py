@@ -43,12 +43,11 @@ class LevelUser(db.Model):
             return False
 
     @classmethod
-    async def delete_level(cls, user_qq: int, group_id: int, for_update: bool = False) -> 'bool':
+    async def delete_level(cls, user_qq: int, group_id: int) -> 'bool':
         query = cls.query.where(
             (cls.user_qq == user_qq) & (cls.group_id == group_id)
         )
-        if for_update:
-            query = query.with_for_update()
+        query = query.with_for_update()
         user = await query.gino.first()
         if user is None:
             return False

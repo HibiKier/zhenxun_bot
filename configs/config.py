@@ -11,21 +11,21 @@ USE_CONFIG_FILE = False
 
 
 # API KEY（必要）
-LOLICON_KEY: str = ""  # lolicon
+LOLICON_KEY: str = "336595836015174952daa2"  # lolicon
 RSSHUBAPP: str = "https://docs.rsshub.app/"  # rsshub
 # 图灵
-TL_KEY: List[str] = []
+TL_KEY: List[str] = ["4474710fabbf4540bfaa569c192bb457", "6f4c0920d2ff4962b5cbd8148aef771b",
+                     "f5595738894042fb9fad88ecdc4acf41", "c24400595fed48f9a5c5bc3ff03a3267", "efab135b75d84b02a59115f5b571f277"]
 
 # 数据库（必要）
 # 如果填写了bind就不需要再填写后面的字段了#）
-# bind示例："bind": "postgresql://user:password@127.0.0.1:5432/database"
-bind: str = ''      # 数据库连接url
-sql_name: str = 'postgresql'
-user: str = ''      # 数据库用户名
-password: str = ''  # 数据库密码
-address: str = ''   # 数据库地址
-port: str = ''      # 数据库端口
-database: str = ''  # 数据库名称
+bind: str = 'postgresql://hibiki:Dimension130123@hibiki0v0.cn:6666/hibikibot'
+sql_name: str = ''
+user: str = ''
+password: str = ''
+address: str = ''
+port: str = ''
+database: str = ''
 
 
 # 公开图库列表
@@ -33,19 +33,6 @@ IMAGE_DIR_LIST: List[str] = ["色图", "美图", "萝莉", "壁纸"]
 
 # 对被ban用户发送的消息
 BAN_RESULT: str = "才不会给你发消息."
-    
-
-# 各种抽卡卡池的开关
-PRTS_FLAG: bool = True       # 明日方舟
-GENSHIN_FLAG: bool = True    # 原神
-PRETTY_FLAG: bool = True      # 赛马娘
-GUARDIAN_FLAG: bool = True   # 坎公骑冠剑
-PCR_FLAG: bool = True        # 公主连结
-AZUR_FLAG: bool = True       # 碧蓝航线
-FGO_FLAG: bool = True        # 命运-冠位指定（FGO）
-ONMYOJI_FLAG: bool = True    # 阴阳师
-
-PCR_TAI: bool = True         # pcr是否开启台服卡池
 
 
 # 插件配置
@@ -55,7 +42,19 @@ MAXINFO_BT: int = 10        # bt功能单次查找最大数
 MAXINFO_PRIVATE_ANIME: int = 20     # 私聊搜索动漫返回的最大数量
 MAXINFO_GROUP_ANIME: int = 5       # 群搜索动漫返回的最大数量
 MAX_FIND_IMG_COUNT: int = 3      # 识图最大返回数
-MAX_SETU_R_COUNT: int = 5       # 每日色图r次数限制 
+MAX_SETU_R_COUNT: int = 5       # 每日色图r次数限制
+
+# 各种卡池的开关
+PRTS_FLAG = True       # 明日方舟
+GENSHIN_FLAG = True    # 原神
+PRETTY_FLAG = True      # 赛马娘
+GUARDIAN_FLAG = True   # 坎公骑冠剑
+PCR_FLAG = True        # 公主连结
+AZUR_FLAG = True       # 碧蓝航线
+FGO_FLAG = True        # 命运-冠位指定（FGO）
+ONMYOJI_FLAG = True    # 阴阳师
+
+PCR_TAI = True         # pcr是否开启台服卡池
 
 ADMIN_DEFAULT_AUTH: int = 5  # 默认群管理员权限
 
@@ -85,11 +84,11 @@ MUTE_LEVEL: int = 5                 # 更改禁言设置权限
 
 # 需要为哪些群更新最新版gocq吗？（上传最新版gocq）
 # 示例：[434995955, 239483248]
-UPDATE_GOCQ_GROUP: List[int] = []
+UPDATE_GOCQ_GROUP: List[int] = [774261838]
 
 # 代理
-system_proxy: str = ''      # 系统代理 示例：'http:127.0.0.1:9999'
-buff_proxy: str = ''        # buff代理
+system_proxy: str = 'http://127.0.0.1:7890'
+buff_proxy: str = ''
 
 # 是否存储色图
 DOWNLOAD_SETU: bool = True
@@ -114,7 +113,7 @@ plugins2name_dict = {
     'buy': ['购买', '购买道具'],
     'my_gold': ['我的金币'],
     'my_props': ['我的道具'],
-    'shop_help': ['商店'],
+    'shop_handle': ['商店'],
     'nonebot_plugin_cocdicer': ['骰子娘'],
     'update_pic': ['图片', '操作图片', '修改图片'],
     'search_buff_skin_price': ['查询皮肤'],
@@ -125,8 +124,8 @@ plugins2name_dict = {
     'songpicker2': ['点歌'],
     'epic': ['epic'],
     'pixiv': ['pixiv', 'p站排行', '搜图'],
-    'poke': ['戳一戳'],
-    'draw_card': ['游戏抽卡', '原神一井', '原神来一井', '方舟一井', '方舟来一井'],
+    'poke': ['戳一戳', '拍一拍'],
+    'draw_card': ['抽卡', '游戏抽卡', '原神抽卡', '方舟抽卡', '坎公骑冠剑抽卡', 'pcr抽卡', 'fgo抽卡', '碧蓝抽卡', '碧蓝航线抽卡', '阴阳师抽卡'],
     'ai': ['ai', 'Ai', 'AI', 'aI'],
     'one_friend': ['我有一个朋友', '我有一个朋友想问问'],
     'translate': ['翻译', '英翻', '翻英', '日翻', '翻日', '韩翻', '翻韩'],
@@ -135,6 +134,8 @@ plugins2name_dict = {
     'material_remind': ['今日素材', '天赋材料'],
     'qiu_qiu_translation': ['丘丘翻译', '丘丘一下', '丘丘语翻译'],
     'query_resource_points': ['原神资源查询', '原神资源列表'],
+    'russian': ['俄罗斯轮盘', '俄罗斯转盘', '装弹'],
+    'gold_redbag': ['塞红包', '红包', '抢红包']
 }
 
 # 群管理员功能 与 对应权限

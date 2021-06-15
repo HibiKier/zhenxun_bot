@@ -12,6 +12,14 @@ msg_ids = {}
 max_size = withdraw_config.withdraw_max_size
 
 
+__plugin_name__ = '撤回'
+
+__plugin_usage__ = '用法：撤回 [消息位置](默认0)\n' \
+            '示例：\n' \
+            '\t撤回0  -> 撤回倒数第一条消息(即最新发送的消息)' \
+            '\t撤回1  -> 撤回倒数第2条消息'
+
+
 def get_key(msg_type, id):
     return f'{msg_type}_{id}'
 

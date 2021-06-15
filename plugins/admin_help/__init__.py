@@ -29,15 +29,15 @@ passive_help = '''【被动技能开关(2)：
     开启/关闭b站转发解析
     开启/关闭丢人爬
     开启/关闭epic通知    
-    开启/关闭全部通知
-    开启/关闭原神黄历提醒】
+    开启/关闭原神黄历提醒
+    开启/关闭全部通知】
 '''
 
 admin_help = on_command("管理员帮助", aliases={"管理帮助"}, priority=5, block=True)
 
 admin_help_img = CreateImg(1000, 600, font_size=24)
 admin_help_img.text((10, 10), __plugin_usage__)
-admin_help_img.paste(CreateImg(400, 600, font_size=24).text((0, 0), passive_help), (600, 50))
+admin_help_img.paste(CreateImg(450, 600, font_size=24).text((0, 0), passive_help), (650, 50))
 admin_help_img.save(IMAGE_PATH + 'admin_help_img.png')
 
 

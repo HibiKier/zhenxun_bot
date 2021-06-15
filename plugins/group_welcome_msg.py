@@ -11,6 +11,10 @@ try:
 except ModuleNotFoundError:
     import json
 
+__plugin_name__ = '查看群欢迎消息'
+
+__plugin_usage__ = '无'
+
 view_custom_welcome = on_command('群欢迎消息', aliases={'查看群欢迎消息', '查看当前群欢迎消息'}, permission=GROUP, priority=5, block=True)
 
 

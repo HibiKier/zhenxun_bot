@@ -2,7 +2,7 @@ from nonebot import on_command
 from services.log import logger
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from nonebot.typing import T_State
-from models.bag_user import UserBag
+from models.bag_user import BagUser
 from nonebot.adapters.cqhttp.permission import GROUP
 
 
@@ -14,7 +14,7 @@ my_props = on_command("我的道具", priority=5, block=True, permission=GROUP)
 
 @my_props.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    props = await UserBag.get_props(event.user_id, event.group_id)
+    props = await BagUser.get_props(event.user_id, event.group_id)
     if props:
         pname_list = []
         pnum_list = []

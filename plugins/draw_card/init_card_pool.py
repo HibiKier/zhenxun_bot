@@ -10,11 +10,13 @@ def init_game_pool(game: str, data: dict, Operator: Any):
             event_only = False
             if '限定寻访' in data[key]['获取途径']:
                 limited = True
-            if len(data[key]['获取途径']) == 1 and data[key]['获取途径'][0] == '公开招募':
+            if '干员寻访' not in data[key]['获取途径'] and '公开招募' in data[key]['获取途径']:
                 recruit_only = True
             if '活动获取' in data[key]['获取途径']:
                 event_only = True
-            if len(data[key]['获取途径']) == 1 and '凭证交易所' == data[key]['获取途径'][0]:
+            if '干员寻访' not in data[key]['获取途径'] and '凭证交易所' == data[key]['获取途径'][0]:
+                limited = True
+            if '干员寻访' not in data[key]['获取途径'] and '信用累计奖励' == data[key]['获取途径'][0]:
                 limited = True
             if key.find('阿米娅') != -1:
                 continue

@@ -1,4 +1,4 @@
-import json
+
 import os
 import aiohttp
 from util.user_agent import get_user_agent
@@ -13,6 +13,10 @@ from util.img_utils import pic2b64
 from configs.path_config import TTF_PATH
 import re
 from nonebot.adapters.cqhttp import MessageSegment
+
+__plugin_name__ = '我有一个朋友'
+
+__plugin_usage__ = '用法：我有一个朋友说/问 [消息] [at](不艾特则群员随机)'
 
 one_friend = on_regex('^我.*?朋友.*?(想问问|说|让我问问|想问|让我问|想知道|让我帮他问问|让我'
                       '帮他问|让我帮忙问|让我帮忙问问|问).*', priority=5, block=True)

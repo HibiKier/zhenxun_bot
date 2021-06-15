@@ -13,21 +13,28 @@ from util.init_result import *
 from nonebot.adapters.cqhttp.message import MessageSegment
 import requests
 import aiohttp
-from models.bag_user import UserBag
+from models.bag_user import BagUser
 from nonebot.adapters.cqhttp.message import Message
 import asyncio
 from models.group_member_info import GroupInfoUser
 
 # erm = on_command('异世相遇，尽享美味', aliases={'异世相遇 尽享美味', '异世相遇,尽享美味'}, priority=5, block=True)
 
-matcher = on_keyword({"test"})
-
-
-@matcher.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    for i in range(1001, len(os.listdir(IMAGE_PATH + 'setu/'))):
-        await matcher.send(f"id：{i}" + image(f'{i}.jpg', 'setu'))
-        await asyncio.sleep(0.5)
+# matcher = on_keyword({"test"})
+#
+#
+# @matcher.handle()
+# async def _(bot: Bot, event: MessageEvent, state: T_State):
+#     await matcher.send(json(
+#         {"app": "com.tencent.gxhServiceIntelligentTip", "desc": "", "view": "gxhServiceIntelligentTip",
+#          "ver": "", "prompt": "[QQ红包]", "appID": "", "sourceName": "", "actionData": "", "actionData_A": "",
+#          "sourceUrl": "", "meta": {"gxhServiceIntelligentTip": {
+#             "bgImg": "http:\/\/ptlogin2.qq.com\/ho_cross_domain?tourl=https:\/\/gxh.vip.qq.com\/\/qqshow"
+#                      "\/admindata\/comdata\/vipActTpl_mobile_zbltyxn\/dddb247a4a9c6d34757c160f9e0b6669.gif",
+#             "appid": "gxhServiceIntelligentTip", "reportParams": 'null', "action": ""}},
+#          "config": {"forward": 1, "height": 240, "type": "normal", "autoSize": 0, "width": 180}, "text": "",
+#          "sourceAd": ""}
+#     ))
 
 
 # @erm.handle()

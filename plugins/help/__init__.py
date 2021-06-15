@@ -5,8 +5,10 @@ from nonebot.rule import to_me
 from configs.path_config import DATA_PATH
 from util.init_result import image
 import os
-from .data_source import create_help_img, create_group_help_img
+from .data_source import create_help_img, create_group_help_img, get_plugin_help
 from nonebot import require
+from util.utils import get_message_text
+
 
 export = require("nonebot_plugin_manager")
 
@@ -19,17 +21,25 @@ create_help_img()
 for file in os.listdir(DATA_PATH + 'group_help/'):
     os.remove(DATA_PATH + 'group_help/' + file)
 
-_help = on_command("功能", rule=to_me(), aliases={"帮助", 'help'}, priority=1, block=True)
+_help = on_command("功能", rule=to_me(), aliases={'help', '帮助'}, priority=1, block=True)
 
 
 @_help.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    if not os.path.exists(DATA_PATH + f'group_help/{event.group_id}.png'):
-        create_group_help_img(event.group_id)
-    await _help.finish(image(abspath=DATA_PATH + f'group_help/{event.group_id}.png'))
+    msg = get_message_text(event.json())
+    if not msg:
+        if not os.path.exists(DATA_PATH + f'group_help/{event.group_id}.png'):
+            create_group_help_img(event.group_id)
+        await _help.finish(image(abspath=DATA_PATH + f'group_help/{event.group_id}.png'))
+    else:
+        await _help.finish(get_plugin_help(msg))
 
 
 @_help.handle()
 async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
-    await _help.finish(image('help.png'))
+    msg = get_message_text(event.json())
+    if not msg:
+        await _help.finish(image('help.png'))
+    else:
+        await _help.finish(get_plugin_help(msg))
 

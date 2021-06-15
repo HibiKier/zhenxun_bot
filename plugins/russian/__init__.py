@@ -1,0 +1,348 @@
+from nonebot import on_command
+import random
+import asyncio
+from nonebot.adapters.cqhttp import GROUP, Bot, GroupMessageEvent, Message
+from nonebot.typing import T_State
+from util.utils import get_message_text, is_number, get_message_at
+from models.group_member_info import GroupInfoUser
+from util.init_result import at
+from models.russian_user import RussianUser
+from models.bag_user import BagUser
+from services.log import logger
+import time
+from .data_source import rank
+
+__plugin_name__ = '俄罗斯轮盘'
+
+__plugin_usage__ = '''俄罗斯轮盘帮助：
+    开启游戏：装弹 [子弹数] [金额](默认200金币) [at](指定决斗对象，为空则所有群友都可接受决斗)
+        示例：装弹 1 10
+    接受对决：接受对决/拒绝决斗
+    开始对决：开枪（轮流开枪，30秒未开枪另一方可使用‘结算’命令结束对决并胜利）
+    结算：结算（当某一方30秒未开枪，可使用该命令强行结束对决并胜利）
+    我的战绩：我的战绩
+    排行榜：胜场排行/败场排行/欧洲人排行/慈善家排行
+    【注：同一时间群内只能有一场对决】
+'''
+
+rs_player = {}
+
+rssian = on_command('俄罗斯轮盘', aliases={'装弹', '俄罗斯转盘'}, permission=GROUP, priority=5, block=True)
+
+accept = on_command('接受对决', aliases={'接受决斗', '接受挑战'}, permission=GROUP, priority=5, block=True)
+
+refuse = on_command('拒绝对决', aliases={'拒绝决斗', '拒绝挑战'}, permission=GROUP, priority=5, block=True)
+
+shot = on_command('开枪', aliases={'咔', '嘭', '嘣'}, permission=GROUP, priority=5, block=True)
+
+settlement = on_command('结算', permission=GROUP, priority=5, block=True)
+
+record = on_command('我的战绩', permission=GROUP, priority=5, block=True)
+
+rssian_rank = on_command('胜场排行', aliases={'胜利排行', '败场排行', '失败排行',
+                                          '欧洲人排行', '慈善家排行'}, permission=GROUP, priority=5, block=True)
+
+
+@accept.handle()
+async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+    global rs_player
+    try:
+        if rs_player[event.group_id][1] == 0:
+            await accept.finish('目前没有发起对决，你接受个啥？速速装弹！', at_sender=True)
+    except KeyError:
+        await accept.finish('目前没有进行的决斗，请发送 装弹 开启决斗吧！', at_sender=True)
+    if rs_player[event.group_id][2] != 0:
+        if rs_player[event.group_id][1] == event.user_id or rs_player[event.group_id][2] == event.user_id:
+            await accept.finish(f'你已经身处决斗之中了啊，给我认真一点啊！', at_sender=True)
+        else:
+            await accept.finish('已经有人接受对决了，你还是乖乖等待下一场吧！', at_sender=True)
+    if rs_player[event.group_id][1] == event.user_id:
+        await accept.finish('请不要自己枪毙自己！换人来接受对决...', at_sender=True)
+    if rs_player[event.group_id]['at'] != 0 and rs_player[event.group_id]['at'] != event.user_id:
+        await accept.finish(Message(f'这场对决是邀请 {at(rs_player[event.group_id]["at"])}的，不要捣乱！'), at_sender=True)
+    if time.time() - rs_player[event.group_id]['time'] > 30:
+        rs_player[event.group_id] = {}
+        await accept.finish('这场对决邀请已经过时了，请重新发起决斗...', at_sender=True)
+
+    user_money = await BagUser.get_gold(event.user_id, event.group_id)
+    if user_money < rs_player[event.group_id]['money']:
+        if rs_player[event.group_id]['at'] != 0 and rs_player[event.group_id]['at'] == event.user_id:
+            rs_player[event.group_id] = {}
+            await accept.finish('你的金币不足以接受这场对决！对决还未开始便结束了，请重新装弹！', at_sender=True)
+        else:
+            await accept.finish('你的金币不足以接受这场对决！', at_sender=True)
+
+    player2_name = (await GroupInfoUser.select_member_info(event.user_id, event.group_id)).user_name
+
+    rs_player[event.group_id][2] = event.user_id
+    rs_player[event.group_id]['player2'] = player2_name
+    rs_player[event.group_id]['time'] = time.time()
+
+    await accept.send(Message(f'{player2_name}接受了对决！\n'
+                              f'请{at(rs_player[event.group_id][1])}先开枪！'))
+
+
+@refuse.handle()
+async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+    global rs_player
+    try:
+        if rs_player[event.group_id][1] == 0:
+            await accept.finish('你要拒绝啥？明明都没有人发起对决的说！', at_sender=True)
+    except KeyError:
+        await refuse.finish('目前没有进行的决斗，请发送 装弹 开启决斗吧！', at_sender=True)
+    if rs_player[event.group_id]['at'] != 0 and event.user_id != rs_player[event.group_id]['at']:
+        await accept.finish('又不是找你决斗，你拒绝什么啊！气！', at_sender=True)
+    if rs_player[event.group_id]['at'] == event.user_id:
+        at_player_name = (await GroupInfoUser.select_member_info(event.user_id, event.group_id)).user_name
+        await accept.send(Message(f'{at(rs_player[event.group_id][1])}\n'
+                                  f'{at_player_name}拒绝了你的对决！'))
+        rs_player[event.group_id] = {}
+
+
+@settlement.handle()
+async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+    global rs_player
+    if not rs_player.get(event.group_id) or rs_player[event.group_id][1] == 0 or rs_player[event.group_id][2] == 0:
+        await settlement.finish('比赛并没有开始...无法结算...', at_sender=True)
+    if event.user_id != rs_player[event.group_id][1] and event.user_id != rs_player[event.group_id][2]:
+        await settlement.finish('吃瓜群众不要捣乱！黄牌警告！', at_sender=True)
+    if time.time() - rs_player[event.group_id]['time'] <= 30:
+        await settlement.finish(f'{rs_player[event.group_id]["player1"]} 和'
+                                f' {rs_player[event.group_id]["player2"]} 比赛并未超时，请继续比赛...')
+    win_name = rs_player[event.group_id]["player1"] if \
+        rs_player[event.group_id][2] == rs_player[event.group_id]['next'] else \
+        rs_player[event.group_id]["player2"]
+    await settlement.send(f'这场对决是 {win_name} 胜利了')
+    await end_game(bot, event)
+
+
+@rssian.args_parser
+async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+    msg = get_message_text(event.json())
+    if msg in ['取消', '算了']:
+        await rssian.finish('已取消操作...')
+    try:
+        if rs_player[event.group_id][1] != 0:
+            await rssian.finish('决斗已开始...', at_sender=True)
+    except KeyError:
+        pass
+    if not is_number(msg):
+        await rssian.reject('输入子弹数量必须是数字啊喂！')
+    if int(msg) < 1 or int(msg) > 6:
+        await rssian.reject('子弹数量必须大于0小于7！')
+    state['bullet_num'] = int(msg)
+
+
+@rssian.handle()
+async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+    global rs_player
+    msg = get_message_text(event.json())
+    if msg == '帮助':
+        await rssian.finish(__plugin_usage__)
+    try:
+        if rs_player[event.group_id][1] and not rs_player[event.group_id][2] and \
+                time.time() - rs_player[event.group_id]['time'] <= 30:
+            await rssian.finish(f'现在是 {rs_player[event.group_id]["player1"]} 发起的对决\n请等待比赛结束后再开始下一轮...')
+        if rs_player[event.group_id][1] and rs_player[event.group_id][2] and\
+                time.time() - rs_player[event.group_id]['time'] <= 30:
+            await rssian.finish(f'{rs_player[event.group_id]["player1"]} 和'
+                                f' {rs_player[event.group_id]["player2"]}的对决还未结束！')
+        if rs_player[event.group_id][1] and rs_player[event.group_id][2] and\
+                time.time() - rs_player[event.group_id]['time'] > 30:
+            await shot.send('决斗已过时，强行结算...')
+            await end_game(bot, event)
+            return
+        if not rs_player[event.group_id][2] and time.time() - rs_player[event.group_id]['time'] > 30:
+            rs_player[event.group_id][1] = 0
+            rs_player[event.group_id][2] = 0
+            rs_player[event.group_id]['at'] = 0
+    except KeyError:
+        pass
+    if msg:
+        msg = msg.split(' ')
+        if len(msg) == 1:
+            msg = msg[0]
+            if is_number(msg) and not (int(msg) < 1 or int(msg) > 6):
+                state['bullet_num'] = int(msg)
+        else:
+            money = msg[1].strip()
+            msg = msg[0].strip()
+            if is_number(msg) and not (int(msg) < 1 or int(msg) > 6):
+                state['bullet_num'] = int(msg)
+            if is_number(money) and 0 < int(money) <= 1000:
+                state['money'] = int(money)
+    state['at'] = get_message_at(event.json())
+
+
+@rssian.got("bullet_num", prompt='请输入装填子弹的数量！(最多6颗)')
+async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+    global rs_player
+    bullet_num = state['bullet_num']
+    at_ = state['at']
+    money = state['money'] if state.get('money') else 200
+    user_money = await BagUser.get_gold(event.user_id, event.group_id)
+    if bullet_num < 0 or bullet_num > 6:
+        await rssian.reject('子弹数量必须大于0小于7！速速重新装弹！')
+    if money > 1000:
+        await rssian.finish('太多了！单次金额不能超过1000！', at_sender=True)
+    if money > user_money:
+        await rssian.finish('你没有足够的钱支撑起这场挑战', at_sender=True)
+
+    player1_name = (await GroupInfoUser.select_member_info(event.user_id, event.group_id)).user_name
+
+    if at_:
+        at_ = at_[0]
+        at_player_name = (await GroupInfoUser.select_member_info(at_, event.group_id)).user_name
+        msg = f'{player1_name} 向 {at(at_)} 发起了决斗！请 {at_player_name} 在30秒内回复‘接受对决’ or ‘拒绝对决’，超时此次决斗作废！'
+    else:
+        at_ = 0
+        msg = '若30秒内无人接受挑战则此次对决作废【首次游玩请发送 ’俄罗斯轮盘帮助‘ 来查看命令】'
+
+    rs_player[event.group_id] = {1: event.user_id,
+                                 'player1': player1_name,
+                                 2: 0,
+                                 'player2': '',
+                                 'at': at_,
+                                 'next': event.user_id,
+                                 'money': money,
+                                 'bullet': random_bullet(bullet_num),
+                                 'bullet_num': bullet_num,
+                                 'null_bullet_num': 7 - bullet_num,
+                                 'index': 0,
+                                 'time': time.time()}
+
+    await rssian.send(Message(('咔 ' * bullet_num)[:-1] + f'，装填完毕\n挑战金额：{money}\n'
+                                                         f'第一枪的概率为：{str(float(bullet_num) / 7.0 * 100)[:5]}%\n'
+                                                         f'{msg}'))
+
+
+@shot.handle()
+async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+    global rs_player
+    try:
+        if time.time() - rs_player[event.group_id]['time'] > 30:
+            if rs_player[event.group_id][2] == 0:
+                rs_player[event.group_id][1] = 0
+                await shot.finish('这场对决已经过时了，请重新装弹吧！', at_sender=True)
+            else:
+                await shot.send('决斗已过时，强行结算...')
+                await end_game(bot, event)
+                return
+    except KeyError:
+        await shot.finish('目前没有进行的决斗，请发送 装弹 开启决斗吧！', at_sender=True)
+    if rs_player[event.group_id][1] == 0:
+        await shot.finish('没有对决，也还没装弹呢，请先输入 装弹 吧！', at_sender=True)
+    if rs_player[event.group_id][1] == event.user_id and rs_player[event.group_id][2] == 0:
+        await shot.finish('baka，你是要枪毙自己嘛笨蛋！', at_sender=True)
+    if rs_player[event.group_id][2] == 0:
+        await shot.finish('请这位勇士先发送 接受对决 来站上擂台...', at_sender=True)
+    player1_name = rs_player[event.group_id]['player1']
+    player2_name = rs_player[event.group_id]['player2']
+    if rs_player[event.group_id]['next'] != event.user_id:
+        if event.user_id != rs_player[event.group_id][1] and event.user_id != rs_player[event.group_id][2]:
+            await shot.finish(random.choice([
+                f'不要打扰 {player1_name} 和 {player2_name} 的决斗啊！',
+                '给我好好做好一个观众！不然小真寻就要生气了',
+                f'不要捣乱啊baka{(await GroupInfoUser.select_member_info(event.user_id, event.group_id)).user_name}！'
+            ]), at_sender=True)
+        await shot.finish(f'你的左轮不是连发的！该 '
+                          f'{(await GroupInfoUser.select_member_info(int(rs_player[event.group_id]["next"]), event.group_id)).user_name} 开枪了')
+    if rs_player[event.group_id]['bullet'][rs_player[event.group_id]['index']] != 1:
+        await shot.send(Message(random.choice([
+            '呼呼，没有爆裂的声响，你活了下来',
+            '虽然黑洞洞的枪口很恐怖，但好在没有子弹射出来，你活下来了',
+            '\"咔\"，你没死，看来运气不错',
+        ]) + f'\n下一枪中弹的概率'
+             f'：{str(float((rs_player[event.group_id]["bullet_num"])) / float(rs_player[event.group_id]["null_bullet_num"] - 1 + rs_player[event.group_id]["bullet_num"]) * 100)[:5]}%\n'
+             f'轮到 {at(rs_player[event.group_id][1] if event.user_id == rs_player[event.group_id][2] else rs_player[event.group_id][2])}了'))
+        rs_player[event.group_id]["null_bullet_num"] -= 1
+        rs_player[event.group_id]['next'] = rs_player[event.group_id][1] if \
+            event.user_id == rs_player[event.group_id][2] else rs_player[event.group_id][2]
+        rs_player[event.group_id]['time'] = time.time()
+        rs_player[event.group_id]['index'] += 1
+    else:
+        await shot.send(random.choice([
+            '\"嘭！\"，你直接去世了',
+            '眼前一黑，你直接穿越到了异世界...(死亡)',
+            '终究还是你先走一步...',
+        ]) + f'\n第 {rs_player[event.group_id]["index"] + 1} 发子弹送走了你...', at_sender=True)
+        win_name = player1_name if event.user_id == rs_player[event.group_id][2] else player2_name
+        await asyncio.sleep(0.5)
+        await shot.send(f'这场对决是 {win_name} 胜利了')
+        await end_game(bot, event)
+
+
+async def end_game(bot: Bot, event: GroupMessageEvent):
+    global rs_player
+    player1_name = rs_player[event.group_id]['player1']
+    player2_name = rs_player[event.group_id]['player2']
+    if rs_player[event.group_id]['next'] == rs_player[event.group_id][1]:
+        win_user_id = rs_player[event.group_id][2]
+        lose_user_id = rs_player[event.group_id][1]
+        win_name = player2_name
+        lose_name = player1_name
+    else:
+        win_user_id = rs_player[event.group_id][1]
+        lose_user_id = rs_player[event.group_id][2]
+        win_name = player1_name
+        lose_name = player2_name
+    rand = random.randint(0, 5)
+    money = rs_player[event.group_id]['money']
+    fee = int(money * float(rand) / 100)
+    fee = 1 if fee < 1 and rand != 0 else fee
+    await RussianUser.add_count(win_user_id, event.group_id, 'win')
+    await RussianUser.add_count(lose_user_id, event.group_id, 'lose')
+    await RussianUser.money(win_user_id, event.group_id, 'win', money - fee)
+    await RussianUser.money(lose_user_id, event.group_id, 'lose', money)
+    await BagUser.add_gold(win_user_id, event.group_id, money - fee)
+    await BagUser.spend_gold(lose_user_id, event.group_id, money)
+    win_user = await RussianUser.ensure(win_user_id, event.group_id)
+    lose_user = await RussianUser.ensure(lose_user_id, event.group_id)
+    bullet_str = ''
+    for x in rs_player[event.group_id]['bullet']:
+        bullet_str += '__ ' if x == 0 else '| '
+    logger.info(f'俄罗斯轮盘：胜者：{win_name} - 败者：{lose_name} - 金币：{money}')
+    await bot.send(event, message=f'结算：\n'
+                                  f'\t胜者：{win_name}\n'
+                                  f'\t赢取金币：{money - fee}\n'
+                                  f'\t累计胜场：{win_user.win_count}\n'
+                                  f'\t累计赚取金币：{win_user.make_money}\n'
+                                  f'-------------------\n'
+                                  f'\t败者：{lose_name}\n'
+                                  f'\t输掉金币：{money}\n'
+                                  f'\t累计败场：{lose_user.fail_count}\n'
+                                  f'\t累计输掉金币：{lose_user.lose_money}\n'
+                                  f'-------------------\n'
+                                  f'哼哼，真寻从中收取了 {float(rand)}%({fee}金币) 作为手续费！\n'
+                                  f'子弹排列：{bullet_str[:-1]}')
+    rs_player[event.group_id] = {}
+
+
+@record.handle()
+async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+    user = await RussianUser.ensure(event.user_id, event.group_id)
+    await record.send(f'俄罗斯轮盘\n'
+                      f'胜利场次：{user.win_count}\n'
+                      f'失败场次：{user.fail_count}\n'
+                      f'赚取金币：{user.make_money}\n'
+                      f'输掉金币：{user.lose_money}', at_sender=True)
+
+
+@rssian_rank.handle()
+async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+    if state["_prefix"]["raw_command"] in ['胜场排行', '胜利排行']:
+        await rssian_rank.finish(await rank(event.group_id, 'win_rank'))
+    if state["_prefix"]["raw_command"] in ['败场排行', '失败排行']:
+        await rssian_rank.finish(await rank(event.group_id, 'lose_rank'))
+    if state["_prefix"]["raw_command"] == '欧洲人排行':
+        await rssian_rank.finish(await rank(event.group_id, 'make_money'))
+    if state["_prefix"]["raw_command"] == '慈善家排行':
+        await rssian_rank.finish(await rank(event.group_id, 'spend_money'))
+
+
+# 随机子弹排列
+def random_bullet(num: int) -> list:
+    bullet_lst = [0, 0, 0, 0, 0, 0, 0]
+    for i in random.sample([0, 1, 2, 3, 4, 5, 6], num):
+        bullet_lst[i] = 1
+    return bullet_lst

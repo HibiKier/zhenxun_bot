@@ -8,7 +8,7 @@ from util.init_result import at
 
 
 __plugin_name__ = '联系管理员'
-__plugin_usage__ = '滴滴滴- 后接内容 联系管理员'
+__plugin_usage__ = '用法：滴滴滴- [消息]'
 
 
 dialogue = on_command("[滴滴滴]", aliases={"滴滴滴-"}, priority=1, block=True)

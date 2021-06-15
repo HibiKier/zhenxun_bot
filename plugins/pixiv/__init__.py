@@ -7,7 +7,10 @@ import time
 from services.log import logger
 from nonebot.adapters.cqhttp.exception import NetworkError
 
-__plugin_usage__1 = '''P站排行榜帮助：
+
+__plugin_name__ = 'P站'
+
+__plugin_usage__ = '''P站排行榜帮助：
 可选参数：
 类型：
     1. 日排行
@@ -20,27 +23,26 @@ __plugin_usage__1 = '''P站排行榜帮助：
     8. R18受男性欢迎排行
     9. R18重口排行【慎重！】
 【使用时选择参数序号即可，R18仅可私聊】
-p站排行榜 类型 数量(可选) 日期(可选)
+p站排行榜 [参数] [数量](可选) [日期](可选)
 示例：
     p站排行榜   （无参数默认为日榜）
     p站排行榜 1
     p站排行榜 1 5
     p站排行榜 1 5 2018-4-25
 【注意空格！！】【在线搜索会较慢】
-'''
-
-__plugin_usage__2 = '''P站搜图帮助：
-可选参数：
-    1.热度排序
-    2.时间排序
-【使用时选择参数序号即可，R18仅可私聊】 
-搜图 关键词 数量(可选) 排序方式(可选) r18(可选)
-示例：
-    搜图 樱岛麻衣
-    搜图 樱岛麻衣 5 1
-    搜图 樱岛麻衣 5 2 r18
-【默认为 热度排序】
-【注意空格！！】【在线搜索会较慢】【数量可能不符】
+---------------------------------
+'P站搜图帮助：
+    可选参数：
+        1.热度排序
+        2.时间排序
+    【使用时选择参数序号即可，R18仅可私聊】 
+    搜图 [关键词] [数量](可选) [排序方式](可选) [r18](可选)
+    示例：
+        搜图 樱岛麻衣
+        搜图 樱岛麻衣 5 1
+        搜图 樱岛麻衣 5 2 r18
+    【默认为 热度排序】
+    【注意空格！！】【在线搜索会较慢】【数量可能不符】
 '''
 
 rank_dict = {
@@ -64,8 +66,6 @@ pixiv_keyword = on_command('搜图', priority=5, block=True)
 @pixiv_rank.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json()).strip()
-    if msg in ['帮助']:
-        await pixiv_rank.finish(__plugin_usage__1)
     msg = msg.split(' ')
     msg = [m for m in msg if m]
     if not msg:
@@ -111,8 +111,6 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @pixiv_keyword.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json()).strip()
-    if msg in ['帮助'] or not msg:
-        await pixiv_keyword.finish(__plugin_usage__2)
     if event.message_type == 'group':
         if msg.find('r18') != -1:
             await pixiv_keyword.finish('(脸红#) 你不会害羞的 八嘎！', at_sender=True)

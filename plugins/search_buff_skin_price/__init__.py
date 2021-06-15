@@ -10,8 +10,8 @@ from util.utils import UserExistLimiter, get_message_text
 
 __plugin_name__ = '查询皮肤'
 __plugin_usage__ = '查询皮肤帮助:\n\t' \
-                   '对我说 "查询皮肤 xxx yyyy"，我会回复xxx的底价哦\n\t' \
-                   '示例: 查询皮肤 awp 二西莫夫'
+            '查询皮肤 [枪械名] [皮肤]\n\t' \
+            '示例: 查询皮肤 awp 二西莫夫'
 
 
 _ulmt = UserExistLimiter()

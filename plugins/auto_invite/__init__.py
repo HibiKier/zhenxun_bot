@@ -5,7 +5,7 @@ from datetime import datetime
 from configs.config import AUTO_ADD_FRIEND
 from nonebot.adapters.cqhttp.exception import ActionFailed
 
-__plugin_name__ = '处理请求'
+__plugin_name__ = '好友群聊处理请求 [Hidden]'
 
 friend_req = on_request(priority=5)
 

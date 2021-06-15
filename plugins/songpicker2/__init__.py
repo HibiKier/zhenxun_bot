@@ -3,6 +3,9 @@ from nonebot.adapters import Bot, Event
 from nonebot.typing import T_State
 from nonebot import on_command
 
+__plugin_name__ = '点歌'
+
+__plugin_usage__ = '用法：点歌 [歌名]'
 
 dataget = dataGet()
 

@@ -9,6 +9,10 @@ from util.utils import scheduler, get_bot, UserExistLimiter
 from configs.config import UPDATE_GOCQ_GROUP
 from pathlib import Path
 
+__plugin_name__ = '更新gocq'
+
+__plugin_usage__ = '用法：发送’更新gocq‘，指定群 自动检测最新版gocq下载并上传'
+
 path = str((Path() / "resources" / "gocqhttp_file").absolute()) + '/'
 
 lasted_gocqhttp = on_command("更新gocq", permission=GROUP, priority=5, block=True)

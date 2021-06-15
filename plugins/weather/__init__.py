@@ -1,4 +1,4 @@
-from nonebot import on_keyword, on_regex
+from nonebot import on_regex
 from .data_source import get_weather_of_city
 from nonebot.adapters.cqhttp import Bot, Event
 from jieba import posseg
@@ -17,8 +17,6 @@ weather = on_regex(r".*?(.*)市?的?天气.*?", priority=5, block=True)
 
 @weather.handle()
 async def _(bot: Bot, event: Event, state: T_State):
-    if str(event.get_message()) in ['帮助']:
-        await weather.finish(__plugin_usage__)
     msg = get_message_text(event.json())
     msg = re.search(r'.*?(.*)市?的?天气.*?', msg)
     msg = msg.group(1)
@@ -28,10 +26,14 @@ async def _(bot: Bot, event: Event, state: T_State):
         msg += '市'
     city = ''
     if msg:
+        citys = []
+        for x in city_list.keys():
+            for city in city_list[x]:
+                citys.append(city)
         for word in posseg.lcut(msg):
             if word.word in city_list.keys():
                 await weather.finish("不要查一个省的天气啊，这么大查起来很累人的..", at_sender=True)
-            if word.flag == 'ns':
+            if word.flag == 'ns' or word.word[:-1] in citys:
                 city = str(word.word).strip()
                 break
             if word.word == '火星':

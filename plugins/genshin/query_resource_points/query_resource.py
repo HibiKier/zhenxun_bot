@@ -7,6 +7,10 @@ import time
 import base64
 from configs.path_config import IMAGE_PATH
 from util.init_result import image
+import asyncio
+import nonebot
+
+driver: nonebot.Driver = nonebot.get_driver()
 
 LABEL_URL = 'https://api-static.mihoyo.com/common/blackboard/ys_obc/v1/map/label/tree?app_sn=ys_obc'
 POINT_LIST_URL = 'https://api-static.mihoyo.com/common/blackboard/ys_obc/v1/map/point/list?map_id=2&app_sn=ys_obc'
@@ -16,15 +20,25 @@ header = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, l
 
 FILE_PATH = os.path.dirname(__file__)
 
-MAP_PATH = os.path.join(IMAGE_PATH, "genshin", "seek_god_eye", "icon", "map_icon.jpg")
-MAP_IMAGE = Image.open(MAP_PATH)
-MAP_SIZE = MAP_IMAGE.size
+MAP_PATH = None
+MAP_IMAGE = None
+MAP_SIZE = None
 
 # resource_point里记录的坐标是相对坐标，是以蒙德城的大雕像为中心的，所以图片合成时需要转换坐标
 CENTER = (3505, 1907)
 
 zoom = 0.75
 resource_icon_offset = (-int(150 * 0.5 * zoom), -int(150 * zoom))
+
+
+@driver.on_startup
+async def init():
+    global MAP_SIZE, MAP_PATH, MAP_IMAGE
+    MAP_PATH = os.path.join(IMAGE_PATH, "genshin", "seek_god_eye", "icon", "map_icon.jpg")
+    MAP_IMAGE = await asyncio.get_event_loop().run_in_executor(None, Image.open, MAP_PATH)
+    MAP_SIZE = MAP_IMAGE.size
+    await asyncio.get_event_loop().run_in_executor(None, up_label_and_point_list)
+
 
 data = {
     "all_resource_type": {
@@ -142,7 +156,6 @@ def up_label_and_point_list():
 
 # 初始化
 # load_resource_type_id()
-up_label_and_point_list()
 
 
 class Resource_map(object):

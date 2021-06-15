@@ -9,9 +9,10 @@ from services.log import logger
 from configs.config import plugins2name_dict
 from nonebot.plugin import export
 
-__plugin_usage__ = '''自定义进群欢迎消息：
-    自定义进群欢迎消息 xxxx（图片）
-    示例：自定义进群欢迎消息 欢迎新人！（后面可以跟一张图片噢）'''
+__plugin_name__ = '自定义进群欢迎消息'
+
+__plugin_usage__ = '''自定义进群欢迎消息 [消息] [图片](可省略)
+    \t示例：自定义进群欢迎消息 欢迎新人！[图片]'''
 
 export = export()
 export.update_member_info = update_member_info
@@ -55,8 +56,6 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 @custom_welcome.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    if str(event.get_message()) in ['帮助'] or str(event.get_message()) == '':
-        await custom_welcome.finish(__plugin_usage__)
     msg = get_message_text(event.json())
     imgs = get_message_imgs(event.json())
     await custom_welcome.finish(await custom_group_welcome(msg, imgs, event.user_id, event.group_id), at_sender=True)

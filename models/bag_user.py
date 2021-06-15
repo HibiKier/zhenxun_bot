@@ -2,7 +2,7 @@
 from services.db_context import db
 
 
-class UserBag(db.Model):
+class BagUser(db.Model):
     __tablename__ = 'bag_users'
 
     id = db.Column(db.Integer(), primary_key=True)
@@ -63,7 +63,7 @@ class UserBag(db.Model):
             return ''
 
     @classmethod
-    async def add_glod(cls, user_qq: int, belonging_group: int, num: int) -> bool:
+    async def add_gold(cls, user_qq: int, belonging_group: int, num: int) -> bool:
         query = cls.query.where(
             (cls.user_qq == user_qq) & (cls.belonging_group == belonging_group)
         )
@@ -89,7 +89,7 @@ class UserBag(db.Model):
             return False
 
     @classmethod
-    async def spend_glod(cls, user_qq: int, belonging_group: int, num: int) -> bool:
+    async def spend_gold(cls, user_qq: int, belonging_group: int, num: int) -> bool:
         query = cls.query.where(
             (cls.user_qq == user_qq) & (cls.belonging_group == belonging_group)
         )
@@ -170,16 +170,13 @@ class UserBag(db.Model):
 
     @classmethod
     async def get_user_all(cls, group_id: int = None) -> list:
-        user_list = []
         if not group_id:
             query = await cls.query.gino.all()
         else:
             query = await cls.query.where(
                 (cls.belonging_group == group_id)
             ).gino.all()
-        for user in query:
-            user_list.append(user)
-        return user_list
+        return query
 
 
 

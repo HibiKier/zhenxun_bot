@@ -9,6 +9,7 @@ from util.init_result import image
 from services.log import logger
 from models.group_remind import GroupRemind
 
+
 FILE_PATH = os.path.dirname(__file__)
 
 almanac = on_command('原神黄历', priority=5, block=True)

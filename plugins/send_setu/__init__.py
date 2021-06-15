@@ -20,7 +20,7 @@ __plugin_usage__ = f'''示例：
     2. 色图r   （随机在线十张r18涩图）
     3. 色图 666 （本地色图id）
     4. 色图 xx （在线搜索xx色图）
-    5. 色图r xx   （搜索十张xx的r18涩图，注意空格）（仅私聊）
+    5. 色图r xx   （搜索十张xx的r18涩图，注意空格）（仅私聊，每日限制5次）
     6. 来n张涩图  （本地涩图连发）（1<=n<=9）
     7. 来n张xx的涩图   （在线搜索xx涩图）（较慢，看网速）
 注：【色图r每日提供{MAX_SETU_R_COUNT}次
@@ -84,6 +84,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         try:
             urls, text_list, code = await get_setu_urls(keyword, num, r18=r18)
         except ClientConnectorError:
+            _ulmt.set_False(event.user_id)
             await setu.finish('网络失败了..别担心！正在靠运气上网！', at_sender=True)
         else:
             if code == 200:
@@ -128,6 +129,8 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
             if await UserCount.check_count(event.user_id, 'setu_r18', MAX_SETU_R_COUNT):
                 _ulmt.set_False(event.user_id)
                 await setu.finish('要节制啊，请明天再来...\n【每日提供5次】', at_sender=True)
+            else:
+                await UserCount.add_count(event.user_id, 'setu_r18', count=1)
         try:
             urls, text_list, code = await get_setu_urls(keyword, num, r18=r18)
         except ClientConnectorError:

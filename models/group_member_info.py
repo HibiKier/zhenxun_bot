@@ -73,7 +73,7 @@ class GroupInfoUser(db.Model):
         query = cls.query.where(
             (cls.user_qq == user_qq) & (cls.belonging_group == belonging_group)
         )
-        user = await query.gino.first()
+        user = await query.with_for_update().gino.first()
         if user:
             await user.update(
                 nickname=nickname

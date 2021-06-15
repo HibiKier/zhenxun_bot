@@ -8,6 +8,11 @@ from .data_source import translate_msg
 
 __plugin_name__ = '翻译'
 
+__plugin_usage__ = '用法：\n' \
+            '英翻 [英文] 翻英 [中文]\n' \
+            '日翻 [日文] 翻日 [中文]\n' \
+            '韩翻 [韩文] 翻韩 [中文]'
+
 
 translate = on_command("translate", aliases={'英翻', '翻英',
                                              '日翻', '翻日',

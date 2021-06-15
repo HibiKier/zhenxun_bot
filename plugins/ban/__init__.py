@@ -11,11 +11,13 @@ from models.group_member_info import GroupInfoUser
 
 
 __plugin_name__ = 'Ban/unBan'
-__plugin_usage__ = f'用法： 封禁/解封用户（不是禁言！是针对bot是否处理封禁用户消息）\n' \
-                   '示例：.ban @djdsk\n' \
-                   '示例：.ban @djdsk 0(小时) 30(分钟)\n' \
-                   '示例：.ban @sdasf 4(小时)\n' \
-                   '示例：.unban @sdasf'
+__plugin_usage__ = '用法：\n' \
+                    '（不是禁言！是针对真寻是否处理封禁用户消息）\n' \
+                    '封禁/解封用户 [小时] [分钟]\n' \
+                    '示例：.ban @djdsk\n' \
+                    '示例：.ban @djdsk 0 30\n' \
+                    '示例：.ban @sdasf 4\n' \
+                    '示例：.unban @sdasf'
 
 
 ban = on_command(".ban", aliases={'.unban', '/ban', '/unban'}, priority=5, permission=GROUP, block=True)
@@ -23,8 +25,6 @@ ban = on_command(".ban", aliases={'.unban', '/ban', '/unban'}, priority=5, permi
 
 @ban.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    if get_message_text(event.json()) in ['帮助'] or str(event.get_message()) == '':
-        await ban.finish(__plugin_usage__)
     # try:
     result = ''
     qq = int(get_message_at(event.json())[0])

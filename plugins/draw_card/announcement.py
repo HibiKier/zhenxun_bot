@@ -26,7 +26,7 @@ def is_expired(data: dict):
     start_date = datetime.strptime(times[0], '%Y-%m-%d').date()
     end_date = datetime.strptime(times[1], '%Y-%m-%d').date()
     now = datetime.now().date()
-    return start_date < now < end_date
+    return start_date <= now <= end_date
 
 
 # 检查写入

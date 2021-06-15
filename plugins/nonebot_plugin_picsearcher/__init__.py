@@ -19,6 +19,14 @@ from .trace import get_des as get_des_trace
 from .yandex import get_des as get_des_yandex
 
 
+__plugin_name__ = '识图'
+
+__plugin_usage__ = '用法：识图 [参数](默认nao) [图片]\n' \
+            '参数列表：\n' \
+            '\t1.nao\n' \
+            '\t2.asc'
+
+
 async def get_des(url: str, mode: str, user_id: int):
     """
     :param url: 图片链接

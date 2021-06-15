@@ -4,7 +4,7 @@ import nonebot
 import random
 from .config import PRTS_FIVE_P, PRTS_FOUR_P, PRTS_SIX_P, PRTS_THREE_P, DRAW_PATH, PRTS_FLAG
 from .update_game_info import update_info
-from .util import generate_img, init_star_rst, max_card, BaseData, UpEvent, set_list, get_star, format_card_information
+from .util import generate_img, init_star_rst, max_card, BaseData, UpEvent, set_list, get_star
 from .init_card_pool import init_game_pool
 from pathlib import Path
 from .announcement import PrtsAnnouncement
@@ -36,8 +36,7 @@ class Operator(BaseData):
 async def prts_draw(count: int = 300):
     cnlist = ['★★★★★★', '★★★★★', '★★★★', '★★★']
     star_list = [0, 0, 0, 0]
-    operator_list, operator_dict, six_list, star_list, six_index_list = format_card_information(count, star_list,
-                                                                                                _get_operator_card)
+    operator_list, operator_dict, six_list, star_list, six_index_list = format_card_information(count, star_list)
     up_list = []
     if _CURRENT_POOL_TITLE:
         for x in UP_OPERATOR:
@@ -73,8 +72,8 @@ async def init_prts_data():
 
 
 # 抽取干员
-def _get_operator_card():
-    star = get_star([6, 5, 4, 3], [PRTS_SIX_P, PRTS_FIVE_P, PRTS_FOUR_P, PRTS_THREE_P])
+def _get_operator_card(add: float):
+    star = get_star([6, 5, 4, 3], [PRTS_SIX_P + add, PRTS_FIVE_P, PRTS_FOUR_P, PRTS_THREE_P])
     if _CURRENT_POOL_TITLE:
         zooms = [x.zoom for x in UP_OPERATOR if x.star == star]
         zoom = 0
@@ -105,6 +104,33 @@ def _get_operator_card():
         acquire_operator = random.choice([x for x in ALL_OPERATOR if x.star == star
                                           and not any([x.limited, x.event_only, x.recruit_only])])
     return acquire_operator, 6 - star
+
+
+# 整理数据
+def format_card_information(count: int, star_list: list):
+    max_star_lst = []       # 获取的最高星级角色列表
+    max_index_lst = []      # 获取最高星级角色的次数
+    obj_list = []           # 获取所有角色
+    obj_dict = {}           # 获取角色次数字典
+    add = 0.0
+    count_idx = 0
+    for i in range(count):
+        count_idx += 1
+        obj, code = _get_operator_card(add)
+        star_list[code] += 1
+        if code == 0:
+            max_star_lst.append(obj.name)
+            max_index_lst.append(i)
+            add = 0.0
+            count_idx = 0
+        elif count_idx > 50:
+            add += 0.02
+        try:
+            obj_dict[obj.name] += 1
+        except KeyError:
+            obj_dict[obj.name] = 1
+        obj_list.append(obj)
+    return obj_list, obj_dict, max_star_lst, star_list, max_index_lst
 
 
 # 获取up干员和概率

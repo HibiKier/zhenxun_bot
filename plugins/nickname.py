@@ -9,6 +9,13 @@ import random
 from models.ban_user import BanUser
 from services.log import logger
 
+
+__plugin_name__ = '昵称系统'
+
+__plugin_usage__ = '用法：\n' \
+            '以后叫我 [名称]\n' \
+            '真寻我是谁'
+
 nickname = on_command('nickname',
                       aliases={'以后叫我', '以后请叫我', '称呼我', '以后请称呼我', '以后称呼我', '叫我', '请叫我'},
                       rule=to_me(), priority=5, block=True)

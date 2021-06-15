@@ -7,7 +7,9 @@ from nonebot.rule import to_me
 from nonebot.permission import SUPERUSER
 
 
-__plugin_name__ = '自我检查'
+__plugin_name__ = '自我检查 [Hidden]'
+
+__plugin_usage__ = '用法：自检'
 
 check = Check()
 

@@ -9,7 +9,7 @@ except ModuleNotFoundError:
 
 base_config = Path() / 'config.json'
 plugins_cmd_config = Path() / 'configs' / 'plugins2cmd_config.json'
-other_config = Path() / 'configs' / 'other_config.json'
+plugins_setting = Path() / 'configs' / 'plugins_setting.json'
 
 
 def init_config():
@@ -50,6 +50,18 @@ def init_config():
                 'OC_LEVEL': 2,
                 'MUTE_LEVEL': 5,
             },
+            'auth': {
+                'ADMIN_DEFAULT_AUTH': 5,
+                'admin_plugins_auth': {
+                    "admin_bot_manage": 2,
+                    "ban": 5,
+                    "delete_img": 7,
+                    "move_img": 7,
+                    "upload_img": 6,
+                    "admin_help": 1,
+                    "mute": 5
+                }
+            }
         }
         with open(base_config, 'w', encoding='utf8') as f:
             json.dump(config_dict, f, indent=4, ensure_ascii=False)
@@ -71,7 +83,7 @@ def init_config():
                 'buy': ['购买', '购买道具'],
                 'my_gold': ['我的金币'],
                 'my_props': ['我的道具'],
-                'shop_help': ['商店'],
+                'shop_handle': ['商店'],
                 'nonebot_plugin_cocdicer': ['骰子娘'],
                 'update_pic': ['图片', '操作图片', '修改图片'],
                 'search_buff_skin_price': ['查询皮肤'],
@@ -96,30 +108,49 @@ def init_config():
         }
         with open(plugins_cmd_config, 'w', encoding='utf8') as f:
             json.dump(config_dict, f, indent=4, ensure_ascii=False)
-    if not other_config.exists():
-        other_config.parent.mkdir(parents=True, exist_ok=True)
+    if not plugins_setting.exists():
+        plugins_setting.parent.mkdir(parents=True, exist_ok=True)
         config_dict = {
             'base': {
                 'IMAGE_DIR_LIST': ["色图", "美图", "萝莉", "壁纸"],
                 'BAN_RESULT': "才不会给你发消息.",
             },
-            'bool': {
-                'AUTO_ADD_FRIEND': True,
-                'DOWNLOAD_SETU': True,
+            'draw_card': {
+                'PRTS_FLAG': True,      # 明日方舟
+                'GENSHIN_FLAG': True,   # 原神
+                'PRETTY_FLAG': True,     # 赛马娘
+                'GUARDIAN_FLAG': True,  # 坎公骑冠剑
+                'PCR_FLAG': True,        # 公主连结
+                'AZUR_FLAG': True,       # 碧蓝航线
+                'FGO_FLAG': True,        # 命运-冠位指定（FGO）
+                'ONMYOJI_FLAG': True,    # 阴阳师
+
+                'PCR_TAI': False         # pcr是否开启台服卡池
             },
-            'probability': {
-                'INITIAL_SETU_PROBABILITY': 0.7,
+            'fudu': {
                 'FUDU_PROBABILITY': 0.7,
             },
-            'max_count': {
+            'reimu': {
                 'MAXINFO_REIMU': 7,
                 'COUNT_PER_DAY_REIMU': 5,
+            },
+            'bt': {
                 'MAXINFO_BT': 10,
+            },
+            'search_anime': {
                 'MAXINFO_PRIVATE_ANIME': 20,
                 'MAXINFO_GROUP_ANIME': 5,
+            },
+            'picsearcher': {
                 'MAX_FIND_IMG_COUNT': 3,
+            },
+            'sign': {
                 'MAX_SIGN_GOLD': 200,
+            },
+            'send_setu': {
+                'INITIAL_SETU_PROBABILITY': 0.7,
                 'MAX_SETU_R_COUNT': 5,
+                'DOWNLOAD_SETU': True,
             },
             'malicious_ban': {
                 'MALICIOUS_BAN_TIME': 30,
@@ -134,23 +165,11 @@ def init_config():
                 'MUTE_DEFAULT_TIME': 7,
                 'MUTE_DEFAULT_DURATION': 10,
             },
-            'other': {
+            'update_gocq': {
                 'UPDATE_GOCQ_GROUP': [],
-                'ADMIN_DEFAULT_AUTH': 5,
-            },
-            'auth': {
-                'admin_plugins_auth': {
-                    "admin_bot_manage": 2,
-                    "ban": 5,
-                    "delete_img": 7,
-                    "move_img": 7,
-                    "upload_img": 6,
-                    "admin_help": 1,
-                    "mute": 5
-                }
             },
         }
-        with open(other_config, 'w', encoding='utf8') as f:
+        with open(plugins_setting, 'w', encoding='utf8') as f:
             json.dump(config_dict, f, indent=4, ensure_ascii=False)
 
 

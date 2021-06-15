@@ -11,8 +11,8 @@ from util.utils import is_number, cn2py
 
 __plugin_name__ = '删除图片'
 __plugin_usage__ = '删除图片帮助：\n\t' \
-                   '1.查看列表 --> 指令: 删除图片 列表/目录\n\t' \
-                   '2.删除图片 图库 id, 即在相应目录下删除图片\n\t\t示例: 删除图片 色图 1 '
+            '1.查看列表 --> 指令: 删除图片 列表/目录\n\t' \
+            '2.删除图片 图库 id, 即在相应目录下删除图片\n\t\t示例: 删除图片 色图 1 '
 
 
 delete_img = on_command("删除图片", priority=5, rule=to_me(), block=True)

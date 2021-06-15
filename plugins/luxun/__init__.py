@@ -9,6 +9,10 @@ from services.log import logger
 from util.utils import UserExistLimiter, get_message_text
 from util.img_utils import pic2b64
 
+__plugin_name__ = '鲁迅说'
+
+__plugin_usage__ = '用法：鲁迅说 [消息]'
+
 _ulmt = UserExistLimiter()
 
 

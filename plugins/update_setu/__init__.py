@@ -8,7 +8,9 @@ from .data_source import update_setu_img
 from configs.config import DOWNLOAD_SETU
 
 
-__name__ = "更新色图 [Hidden]"
+__plugin_name__ = "更新色图 [Hidden]"
+
+__plugin_usage__ = '无'
 
 
 update_setu = on_command("更新色图", rule=to_me(), permission=SUPERUSER, priority=1, block=True)

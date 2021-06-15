@@ -60,7 +60,7 @@ class FriendUser(db.Model):
         query = cls.query.where(
             cls.user_id == user_id
         )
-        user = await query.with_for_update().gino.first()
+        user = await query.gino.first()
         if user:
             if user.nickname:
                 return user.nickname

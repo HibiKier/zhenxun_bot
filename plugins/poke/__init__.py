@@ -9,7 +9,9 @@ import random
 from util.utils import CountLimiter
 from models.ban_user import BanUser
 
-# 戳 一 戳
+__plugin_name__ = '戳一戳 [Hidden]'
+
+__plugin_usage__ = '用法：无'
 
 poke__reply = [
     "lsp你再戳？", "连个可爱美少女都要戳的肥宅真恶心啊。",
@@ -21,12 +23,12 @@ poke__reply = [
 
 _clmt = CountLimiter(3)
 
-poke_ = on_notice(priority=5)
+poke_ = on_notice(priority=5, block=False)
 
 
 @poke_.handle()
-async def _poke_(bot: Bot, event: PokeNotifyEvent, state: T_State) -> None:
-    if event.notice_type == 'notify' and event.sub_type == 'poke' and event.self_id == event.target_id:
+async def _poke_(bot: Bot, event: PokeNotifyEvent, state: T_State):
+    if event.self_id == event.target_id:
         _clmt.add(event.user_id)
         if _clmt.check(event.user_id) or random.random() < 0.3:
             rst = ''
@@ -36,7 +38,7 @@ async def _poke_(bot: Bot, event: PokeNotifyEvent, state: T_State) -> None:
             await poke_.finish(rst + random.choice(poke__reply), at_sender=True)
         rand = random.random()
         if rand <= 0.3:
-            path = random.choice(['loli/', 'meitu/'])
+            path = random.choice(['luoli/', 'meitu/'])
             index = random.randint(0, len(os.listdir(IMAGE_PATH + path)))
             result = f'id：{index}' + image(f'{index}.jpg', path)
             await poke_.send(result)

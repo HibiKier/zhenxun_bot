@@ -7,6 +7,11 @@ from models.group_member_info import GroupInfoUser
 from configs.config import ADMIN_DEFAULT_AUTH
 
 
+__plugin_name__ = '群管理员监测'
+
+__plugin_usage__ = '无'
+
+
 admin_notice = on_notice(priority=5)
 
 

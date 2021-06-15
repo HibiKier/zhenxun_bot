@@ -5,6 +5,9 @@ from nonebot import on_command
 from util.utils import get_message_text
 from services.log import logger
 
+__plugin_name__ = '丘丘语翻译'
+
+__plugin_usage__ = '用法：丘丘翻译 [消息]'
 
 qiuqiu = on_command("丘丘语翻译", aliases={"丘丘一下", "丘丘翻译"}, priority=5, block=True)
 

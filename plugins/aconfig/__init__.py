@@ -12,7 +12,7 @@ from util.utils import FreqLimiter
 
 
 __plugin_name__ = '基本设置 [Hidden]'
-__plugin_usage__ = '用法： 基本'
+__plugin_usage__ = '用法： 无'
 
 
 _flmt = FreqLimiter(300)
