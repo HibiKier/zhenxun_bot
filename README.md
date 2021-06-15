@@ -305,6 +305,17 @@
 ### 我的信息/我的权限
 
 ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/info.png)
+  
+### 金币红包
+  
+  ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/redbag0.png)
+  ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/redbag1.png)
+  ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/redbag2.png)
+
+### 俄罗斯轮盘
+  ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/russian0.png)
+  ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/russian1.png)
+  ![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/russian2.png)
 
 <br>
 
