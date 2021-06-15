@@ -11,15 +11,14 @@ USE_CONFIG_FILE = False
 
 
 # API KEY（必要）
-LOLICON_KEY: str = "336595836015174952daa2"  # lolicon
-RSSHUBAPP: str = "https://docs.rsshub.app/"  # rsshub
+LOLICON_KEY: str = ""  # lolicon
+RSSHUBAPP: str = ""  # rsshub
 # 图灵
-TL_KEY: List[str] = ["4474710fabbf4540bfaa569c192bb457", "6f4c0920d2ff4962b5cbd8148aef771b",
-                     "f5595738894042fb9fad88ecdc4acf41", "c24400595fed48f9a5c5bc3ff03a3267", "efab135b75d84b02a59115f5b571f277"]
+TL_KEY: List[str] = []
 
 # 数据库（必要）
 # 如果填写了bind就不需要再填写后面的字段了#）
-bind: str = 'postgresql://hibiki:Dimension130123@hibiki0v0.cn:6666/hibikibot'
+bind: str = ''
 sql_name: str = ''
 user: str = ''
 password: str = ''
