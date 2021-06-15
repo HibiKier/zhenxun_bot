@@ -53,7 +53,7 @@ class RussianUser(db.Model):
         try:
             user = await cls.query.where(
                 (cls.user_qq == user_qq) & (cls.group_id == group_id)
-            ).gino.first()
+            ).with_for_update().gino.first()
             if not user:
                 user = await cls.create(
                     user_qq=user_qq,
@@ -66,7 +66,7 @@ class RussianUser(db.Model):
             elif itype == 'lose':
                 await user.update(
                     lose_money=user.lose_money + count,
-                ).with_for_update().apply()
+                ).apply()
             return True
         except Exception:
             return False
