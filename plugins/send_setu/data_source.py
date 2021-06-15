@@ -18,7 +18,7 @@ except ModuleNotFoundError:
 
 
 url = "https://api.lolicon.app/setu/"
-path = 'setu/'
+path = '_setu/'
 
 
 async def get_setu_urls(keyword: str, num: int = 1, r18: int = 0):
