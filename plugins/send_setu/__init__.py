@@ -34,7 +34,7 @@ __plugin_usage__ = f'''示例：
 url = "https://api.lolicon.app/setu/"
 _flmt = FreqLimiter(5)
 _ulmt = UserExistLimiter()
-path = "setu/"
+path = "_setu/"
 
 
 setu = on_command("色图", aliases={"涩图", "不够色", "来一发", "再来点"}, priority=5, block=True)
