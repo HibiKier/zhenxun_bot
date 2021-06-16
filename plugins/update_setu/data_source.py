@@ -108,7 +108,7 @@ async def update_setu_img():
                 f'{str(datetime.now()).split(".")[0]} 更新 {file_name.split(".")[0]}完成，预计更新 {total} 张，'
                 f'实际更新 {_success} 张，相似 {_similar} 张，实际存入 {_success - _similar} 张')
             await get_bot().send_private_msg(
-                user_id=list(get_bot().config.superusers)[0],
+                user_id=int(list(get_bot().config.superusers)[0]),
                 message=f'{str(datetime.now()).split(".")[0]} 更新{file_name.split(".")[0]}完成，预计更新 {total} 张，'
                         f'实际更新 {_success} 张，相似 {_similar} 张，实际存入 {_success - _similar} 张'
             )
