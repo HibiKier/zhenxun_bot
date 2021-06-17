@@ -21,7 +21,7 @@ __plugin_usage__ = '金币红包帮助：\n' \
                    '\t塞红包 [金币数] [红包个数](默认5)\n' \
                    '示例:\n' \
                    '\t塞红包 500 5\n' \
-                   '抢红包 --> 戳一戳，开' \
+                   '抢红包 --> 戳一戳，开\n' \
                    '退还剩余红包 --> 退还'
 
 gold_redbag = on_command('塞红包', aliases={'金币红包'}, priority=5, block=True, permission=GROUP)

@@ -17,7 +17,6 @@ RSSHUBAPP: str = "https://docs.rsshub.app/"  # rsshub
 TL_KEY: List[str] = []
 
 # 数据库（必要）
-# 如果填写了bind就不需要再填写后面的字段了#）
 # 示例："bind": "postgresql://user:password@127.0.0.1:5432/database"
 bind: str = ''          # 数据库连接url
 sql_name: str = 'postgresql'      
@@ -55,6 +54,7 @@ FGO_FLAG = True        # 命运-冠位指定（FGO）
 ONMYOJI_FLAG = True    # 阴阳师
 
 PCR_TAI = True         # pcr是否开启台服卡池
+SEMAPHORE = 5       # 限制更新碧蓝航线和FGO数据并发数
 
 ADMIN_DEFAULT_AUTH: int = 5  # 默认群管理员权限
 
@@ -84,10 +84,10 @@ MUTE_LEVEL: int = 5                 # 更改禁言设置权限
 
 # 需要为哪些群更新最新版gocq吗？（上传最新版gocq）
 # 示例：[434995955, 239483248]
-UPDATE_GOCQ_GROUP: List[int] = []
+UPDATE_GOCQ_GROUP: List[int] = [774261838]
 
 # 代理
-system_proxy: str = ''
+system_proxy: str = 'http://127.0.0.1:7890'
 buff_proxy: str = ''
 
 # 是否存储色图

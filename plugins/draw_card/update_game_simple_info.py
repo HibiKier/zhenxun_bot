@@ -1,5 +1,5 @@
 import aiohttp
-from .config import DRAW_PATH
+from .config import DRAW_PATH, SEMAPHORE
 from asyncio.exceptions import TimeoutError
 from bs4 import BeautifulSoup
 from .util import download_img
@@ -87,8 +87,9 @@ async def _last_check(data: dict, game_name: str, session: aiohttp.ClientSession
             await download_img(url, 'azur', f'{idx}_star')
             idx += 1
         tasks = []
+        semaphore = asyncio.Semaphore(SEMAPHORE)
         for key in data.keys():
-            tasks.append(asyncio.ensure_future(_async_update_azur_extra_info(key, session)))
+            tasks.append(asyncio.ensure_future(_async_update_azur_extra_info(key, session, semaphore)))
         asyResult = await asyncio.gather(*tasks)
         for x in asyResult:
             for key in x.keys():
@@ -150,24 +151,25 @@ async def retrieve_char_data(char: bs4.element.Tag, game_name: str, data: dict, 
     return data
 
 
-async def _async_update_azur_extra_info(key: str, session: aiohttp.ClientSession):
+async def _async_update_azur_extra_info(key: str, session: aiohttp.ClientSession, semaphore):
     if key[-1] == '改':
         return {key: {'获取途径': ['无法建造']}}
-    for i in range(20):
-        try:
-            async with session.get(f'https://wiki.biligame.com/blhx/{key}', timeout=7) as res:
-                soup = BeautifulSoup(await res.text(), 'lxml')
-                construction_time = str(soup.find('table', {'class': 'wikitable sv-general'}).find('tbody'))
-                x = {key: {'获取途径': []}}
-                if construction_time.find('无法建造') != -1:
-                    x[key]['获取途径'].append('无法建造')
-                elif construction_time.find('活动已关闭') != -1:
-                    x[key]['获取途径'].append('活动限定')
-                else:
-                    x[key]['获取途径'].append('可以建造')
-                logger.info(f'碧蓝航线获取额外信息 {key}...{x[key]["获取途径"]}')
-                return x
-        except TimeoutError:
-            logger.warning(f'访问 https://wiki.biligame.com/blhx/{key} 第 {i}次 超时...已再次访问')
+    async with semaphore:
+        for i in range(20):
+            try:
+                async with session.get(f'https://wiki.biligame.com/blhx/{key}', timeout=7) as res:
+                    soup = BeautifulSoup(await res.text(), 'lxml')
+                    construction_time = str(soup.find('table', {'class': 'wikitable sv-general'}).find('tbody'))
+                    x = {key: {'获取途径': []}}
+                    if construction_time.find('无法建造') != -1:
+                        x[key]['获取途径'].append('无法建造')
+                    elif construction_time.find('活动已关闭') != -1:
+                        x[key]['获取途径'].append('活动限定')
+                    else:
+                        x[key]['获取途径'].append('可以建造')
+                    logger.info(f'碧蓝航线获取额外信息 {key}...{x[key]["获取途径"]}')
+                    return x
+            except TimeoutError:
+                logger.warning(f'访问 https://wiki.biligame.com/blhx/{key} 第 {i}次 超时...已再次访问')
     return {}
 

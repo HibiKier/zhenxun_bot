@@ -1,5 +1,5 @@
 import aiohttp
-from .config import DRAW_PATH
+from .config import DRAW_PATH, SEMAPHORE
 from asyncio.exceptions import TimeoutError
 from .util import download_img
 from bs4 import BeautifulSoup
@@ -101,8 +101,9 @@ async def _last_check(data: dict, game_name: str, session: aiohttp.ClientSession
     if game_name == 'fgo':
         url = 'http://fgo.vgtime.com/servant/'
         tasks = []
+        semaphore = asyncio.Semaphore(SEMAPHORE)
         for key in data.keys():
-            tasks.append(asyncio.ensure_future(_async_update_fgo_extra_info(url, key, data[key]['id'], session)))
+            tasks.append(asyncio.ensure_future(_async_update_fgo_extra_info(url, key, data[key]['id'], session, semaphore)))
         asyResult = await asyncio.gather(*tasks)
         for x in asyResult:
             for key in x.keys():
@@ -117,28 +118,29 @@ async def _last_check(data: dict, game_name: str, session: aiohttp.ClientSession
     return data
 
 
-async def _async_update_fgo_extra_info(url: str, key: str, _id: str, session: aiohttp.ClientSession):
+async def _async_update_fgo_extra_info(url: str, key: str, _id: str, session: aiohttp.ClientSession, semaphore):
     # 防止访问超时
-    for i in range(10):
-        try:
-            async with session.get(f'{url}{_id}', timeout=7) as response:
-                soup = BeautifulSoup(await response.text(), 'lxml')
-                obtain = soup.find('table', {'class': 'uk-table uk-codex-table'}).find_all('td')[-1].text
-                if obtain.find('限时活动免费获取 活动结束后无法获得') != -1:
-                    obtain = ['活动获取']
-                elif obtain.find('非限时UP无法获得') != -1:
-                    obtain = ['限时召唤']
-                else:
-                    if obtain.find('&') != -1:
-                        obtain = obtain.strip().split('&')
+    async with semaphore:
+        for i in range(10):
+            try:
+                async with session.get(f'{url}{_id}', timeout=7) as response:
+                    soup = BeautifulSoup(await response.text(), 'lxml')
+                    obtain = soup.find('table', {'class': 'uk-table uk-codex-table'}).find_all('td')[-1].text
+                    if obtain.find('限时活动免费获取 活动结束后无法获得') != -1:
+                        obtain = ['活动获取']
+                    elif obtain.find('非限时UP无法获得') != -1:
+                        obtain = ['限时召唤']
                     else:
-                        obtain = obtain.strip().split(' ')
-                logger.info(f'Fgo获取额外信息 {key}....{obtain}')
-                x = {key: {}}
-                x[key]['入手方式'] = obtain
-                return x
-        except TimeoutError:
-            logger.warning(f'访问{url}{_id} 第 {i}次 超时...已再次访问')
+                        if obtain.find('&') != -1:
+                            obtain = obtain.strip().split('&')
+                        else:
+                            obtain = obtain.strip().split(' ')
+                    logger.info(f'Fgo获取额外信息 {key}....{obtain}')
+                    x = {key: {}}
+                    x[key]['入手方式'] = obtain
+                    return x
+            except TimeoutError:
+                logger.warning(f'访问{url}{_id} 第 {i}次 超时...已再次访问')
     return {}
 
 

@@ -2,7 +2,7 @@ import nonebot
 from pathlib import Path
 from configs.path_config import DATA_PATH
 from configs.config import FGO_FLAG, PCR_FLAG, AZUR_FLAG, PRTS_FLAG,\
-    PRETTY_FLAG, GUARDIAN_FLAG, GENSHIN_FLAG, ONMYOJI_FLAG, PCR_TAI
+    PRETTY_FLAG, GUARDIAN_FLAG, GENSHIN_FLAG, ONMYOJI_FLAG, PCR_TAI, SEMAPHORE
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -25,6 +25,7 @@ FGO_FLAG = FGO_FLAG
 ONMYOJI_FLAG = ONMYOJI_FLAG
 
 PCR_TAI = PCR_TAI
+SEMAPHORE = SEMAPHORE
 
 # 方舟概率
 PRTS_SIX_P = 0.02

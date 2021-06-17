@@ -4,6 +4,8 @@ import re
 from datetime import datetime
 from .config import DRAW_PATH
 from pathlib import Path
+from asyncio.exceptions import TimeoutError
+from services.log import logger
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -13,9 +15,11 @@ headers = {'User-Agent': '"Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; Te
 
 prts_up_char = Path(DRAW_PATH + "/draw_card_up/prts_up_char.json")
 genshin_up_char = Path(DRAW_PATH + "/draw_card_up/genshin_up_char.json")
+pretty_up_char = Path(DRAW_PATH + "/draw_card_up/pretty_up_char.json")
 
 prts_url = "https://wiki.biligame.com/arknights/%E6%96%B0%E9%97%BB%E5%85%AC%E5%91%8A"
 genshin_url = "https://wiki.biligame.com/ys/%E7%A5%88%E6%84%BF"
+pretty_url = "https://wiki.biligame.com/umamusume/%E5%85%AC%E5%91%8A"
 
 
 # 是否过时
@@ -89,47 +93,52 @@ class PrtsAnnouncement:
     async def update_up_char():
         prts_up_char.parent.mkdir(parents=True, exist_ok=True)
         data = {'up_char': {'6': {}, '5': {}, '4': {}}, 'title': '', 'time': '', 'pool_img': ''}
-        text, title = await PrtsAnnouncement.get_announcement_text()
-        soup = BeautifulSoup(text, 'lxml')
-        data['title'] = title
-        context = soup.find('div', {'id': 'mw-content-text'}).find('div')
-        data['pool_img'] = str(context.find('div', {'class': 'center'}).find('div').find('a').
-                               find('img').get('srcset')).split(' ')[-2]
-        # print(context.find_all('p'))
-        for p in context.find_all('p')[1:]:
-            if p.text.find('活动时间') != -1:
-                pr = re.search(r'.*?活动时间：(.*)', p.text)
-                data['time'] = pr.group(1)
-            elif p.text.find('★★★★★★') != -1:
-                chars, probability = _get_up_char(r'.*?★★★★★★：(.*?)（.*?出率的?(.*?)%.*?）.*?', p.text)
-                slt = '/'
-                if chars.find('\\') != -1:
-                    slt = '\\'
-                for char in chars.split(slt):
-                    data['up_char']['6'][char.strip()] = probability.strip()
-            elif p.text.find('★★★★★') != -1:
-                chars, probability = _get_up_char(r'.*?★★★★★：(.*?)（.*?出率的?(.*?)%.*?）.*?', p.text)
-                slt = '/'
-                if chars.find('\\') != -1:
-                    slt = '\\'
-                for char in chars.split(slt):
-                    data['up_char']['5'][char.strip()] = probability.strip()
-            elif p.text.find('★★★★') != -1:
-                chars, probability = _get_up_char(r'.*?★★★★：(.*?)（.*?出率的?(.*?)%.*?）.*?', p.text)
-                slt = '/'
-                if chars.find('\\') != -1:
-                    slt = '\\'
-                for char in chars.split(slt):
-                    data['up_char']['4'][char.strip()] = probability.strip()
-                break
-            pr = re.search(r'.*?★：(.*?)（在(.*?)★.*?以(.*?)倍权值.*?）.*?', p.text)
-            if pr:
-                char = pr.group(1)
-                star = pr.group(2)
-                weight = pr.group(3)
-                char = char.replace('[限定]', '').replace('[', '').replace(']', '')
-                data['up_char'][star][char.strip()] = f'权{weight}'
-        # data['time'] = '03月09日16:00 - 05月23日03:59'
+        try:
+            text, title = await PrtsAnnouncement.get_announcement_text()
+            soup = BeautifulSoup(text, 'lxml')
+            data['title'] = title
+            context = soup.find('div', {'id': 'mw-content-text'}).find('div')
+            data['pool_img'] = str(context.find('div', {'class': 'center'}).find('div').find('a').
+                                   find('img').get('srcset')).split(' ')[-2]
+            # print(context.find_all('p'))
+            for p in context.find_all('p')[1:]:
+                if p.text.find('活动时间') != -1:
+                    pr = re.search(r'.*?活动时间：(.*)', p.text)
+                    data['time'] = pr.group(1)
+                elif p.text.find('★★★★★★') != -1:
+                    chars, probability = _get_up_char(r'.*?★★★★★★：(.*?)（.*?出率的?(.*?)%.*?）.*?', p.text)
+                    slt = '/'
+                    if chars.find('\\') != -1:
+                        slt = '\\'
+                    for char in chars.split(slt):
+                        data['up_char']['6'][char.strip()] = probability.strip()
+                elif p.text.find('★★★★★') != -1:
+                    chars, probability = _get_up_char(r'.*?★★★★★：(.*?)（.*?出率的?(.*?)%.*?）.*?', p.text)
+                    slt = '/'
+                    if chars.find('\\') != -1:
+                        slt = '\\'
+                    for char in chars.split(slt):
+                        data['up_char']['5'][char.strip()] = probability.strip()
+                elif p.text.find('★★★★') != -1:
+                    chars, probability = _get_up_char(r'.*?★★★★：(.*?)（.*?出率的?(.*?)%.*?）.*?', p.text)
+                    slt = '/'
+                    if chars.find('\\') != -1:
+                        slt = '\\'
+                    for char in chars.split(slt):
+                        data['up_char']['4'][char.strip()] = probability.strip()
+                    break
+                pr = re.search(r'.*?★：(.*?)（在(.*?)★.*?以(.*?)倍权值.*?）.*?', p.text)
+                if pr:
+                    char = pr.group(1)
+                    star = pr.group(2)
+                    weight = pr.group(3)
+                    char = char.replace('[限定]', '').replace('[', '').replace(']', '')
+                    data['up_char'][star][char.strip()] = f'权{weight}'
+            # data['time'] = '03月09日16:00 - 05月23日03:5
+        except TimeoutError:
+            print(f'更新明日方舟UP池信息超时...')
+            with open(prts_up_char, 'r', encoding='utf8') as f:
+                data = json.load(f)
         return check_write(data, prts_up_char)
 
 
@@ -180,6 +189,10 @@ class GenshinAnnouncement:
                 for a in trs[3].find('td').find_all('a'):
                     char_name = a['title']
                     data[itype]['up_char']['4'][char_name] = "50"
+        except TimeoutError as e:
+            logger.warning(f'更新原神UP池信息超时...')
+            with open(genshin_up_char, 'r', encoding='utf8') as f:
+                data = json.load(f)
         except Exception as e:
             print(f'更新原神UP失败，疑似UP池已结束， e：{e}')
             with open(genshin_up_char, 'r', encoding='utf8') as f:
@@ -192,4 +205,91 @@ class GenshinAnnouncement:
         return check_write(data, genshin_up_char, 'genshin')
 
 
+class PrettyAnnouncement:
+    @staticmethod
+    async def get_announcement_text():
+        async with aiohttp.ClientSession(headers=headers) as session:
+            async with session.get(pretty_url, timeout=7) as res:
+                soup = BeautifulSoup(await res.text(), 'lxml')
+                divs = soup.find('div', {'id': 'mw-content-text'}).find('div').find_all('div')
+                for div in divs:
+                    a = div.find('a')
+                    try:
+                        title = a['title']
+                    except (KeyError, TypeError):
+                        continue
+                    if title.find('新角色追加') != -1:
+                        url = a['href']
+                        break
+            async with session.get(f'https://wiki.biligame.com/{url}', timeout=7) as res:
+                return await res.text(), title[:-2]
 
+    @staticmethod
+    async def update_up_char():
+        data = {
+            'char': {'up_char': {'3': {}, '2': {}, '1': {}}, 'title': '', 'time': '', 'pool_img': ''},
+            'card': {'up_char': {'3': {}, '2': {}, '1': {}}, 'title': '', 'time': '', 'pool_img': ''}
+        }
+        try:
+            text, title = await PrettyAnnouncement.get_announcement_text()
+            soup = BeautifulSoup(text, 'lxml')
+            context = soup.find('div', {'class': 'toc-sticky'})
+            if not context:
+                context = soup.find('div', {'class': 'mw-parser-output'})
+            data['char']['title'] = title
+            data['card']['title'] = title
+            time = str(context.find_all('big')[1].text)
+            time = time.replace('～', '-').replace('/', '月').split(' ')
+            time = time[0] + '日 ' + time[1] + ' - ' + time[3] + '日 ' + time[4]
+            data['char']['time'] = time
+            data['card']['time'] = time
+            for p in context.find_all('p'):
+                if str(p).find('当期UP赛马娘') != -1:
+                    data['char']['pool_img'] = p.find('img')['src']
+                    r = re.findall(r'.*?当期UP赛马娘([\s\S]*)＜奖励内容＞.*?', str(p))
+                    if r:
+                        for x in r:
+                            x = str(x).split('\n')
+                            for msg in x:
+                                if msg.find('★') != -1:
+                                    msg = msg.replace('<br/>', '')
+                                    msg = msg.split(' ')
+                                    if (star := len(msg[0].strip())) == 3:
+                                        data['char']['up_char']['3'][msg[1]] = '70'
+                                    elif star == 2:
+                                        data['char']['up_char']['2'][msg[1]] = '70'
+                                    elif star == 1:
+                                        data['char']['up_char']['1'][msg[1]] = '70'
+                if str(p).find('（当期UP对象）') != -1 and str(p).find('赛马娘') == -1:
+                    data['card']['pool_img'] = p.find('img')['src']
+                    r = re.search(r'■全?新?支援卡（当期UP对象）([\s\S]*)</p>', str(p))
+                    if r:
+                        rmsg = r.group(1)
+                        rmsg = rmsg.split('<br/>')
+                        for x in rmsg[1:]:
+                            x = x.replace('\n', '').replace('・', '')
+                            x = x.split(' ')
+                            if x[0] == 'SSR':
+                                data['card']['up_char']['3'][x[1]] = '70'
+                            if x[0] == 'SR':
+                                data['card']['up_char']['2'][x[1]] = '70'
+                            if x[0] == 'R':
+                                data['card']['up_char']['1'][x[1]] = '70'
+            # 日文->中文
+            with open(DRAW_PATH + 'pretty_card.json', 'r', encoding='utf8') as f:
+                all_data = json.load(f)
+            for star in data['card']['up_char'].keys():
+                for name in list(data['card']['up_char'][star].keys()):
+                    char_name = name.split(']')[1].strip()
+                    tp_name = name[name.find('['): name.find(']') + 1].strip().replace('[', '【').replace(']', '】')
+                    for x in all_data.keys():
+                        if all_data[x]['名称'].find(tp_name) != -1 and all_data[x]['关联角色'] == char_name:
+                            data['card']['up_char'][star].pop(name)
+                            data['card']['up_char'][star][all_data[x]['中文名']] = '70'
+        except TimeoutError:
+            logger.warning(f'更新赛马娘UP池信息超时...')
+            with open(pretty_up_char, 'r', encoding='utf8') as f:
+                data = json.load(f)
+        except Exception as e:
+            logger.error(f'赛马娘up更新失败 {type(e)}：{e}')
+        return check_write(data, pretty_up_char, 'pretty')

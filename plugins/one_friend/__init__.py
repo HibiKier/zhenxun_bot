@@ -28,7 +28,6 @@ async def get_pic(qq):
 
 @one_friend.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    arr = []
     msg = get_message_text(event.json())
     qq = get_message_at(event.json())
     if not qq:

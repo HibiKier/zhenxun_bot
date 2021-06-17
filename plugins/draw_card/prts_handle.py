@@ -54,7 +54,7 @@ async def prts_draw(count: int = 300):
 async def update_prts_info():
     global prts_dict, ALL_OPERATOR
     url = 'https://wiki.biligame.com/arknights/干员数据表'
-    data, code = await update_info(url, 'prts', ['头像', '名称', '阵营', '星级', '性别', '是否感染', '初始生命', '初始防御',
+    data, code = await update_info(url, 'prts', ['头像', '名称', '阵营', '星级', '性别', '是否感染', '获取途径', '初始生命', '初始防御',
                                                  '初始法抗', '再部署', '部署费用', '阻挡数', '攻击速度', '标签'])
     if code == 200:
         prts_dict = data

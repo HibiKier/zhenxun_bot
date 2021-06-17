@@ -16,6 +16,7 @@ import random
 from dataclasses import dataclass
 import os
 import asyncio
+from PIL import UnidentifiedImageError
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -130,9 +131,15 @@ def _pst(h: int, img_list: list, game_name: str, background_list: list):
                 bk.paste(b, (1, 5))
                 b = bk
             else:
-                b = CreateImg(100, 100, background=img)
+                try:
+                    b = CreateImg(100, 100, background=img)
+                except UnidentifiedImageError as e:
+                    logger.warning(f'无法识别图片 已删除图片，下次更新重新下载... e：{e}')
+                    if os.path.exists(img):
+                        os.remove(img)
+                    b = CreateImg(100, 100, color='black')
         except FileNotFoundError:
-            print(f'{img} not exists')
+            logger.warning(f'{img} not exists')
             b = CreateImg(100, 100, color='black')
         card_img.paste(b)
         idx += 1
