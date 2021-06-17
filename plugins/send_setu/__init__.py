@@ -13,6 +13,11 @@ import re
 from models.count_user import UserCount
 from aiohttp.client_exceptions import ClientConnectorError
 from configs.config import MAX_SETU_R_COUNT
+from configs.path_config import TXT_PATH
+try:
+    import ujson as json
+except ModuleNotFoundError:
+    import json
 
 __plugin_name__ = '色图'
 __plugin_usage__ = f'''示例：
@@ -59,7 +64,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if _ulmt.check(event.user_id):
         await setu.finish(f"您有色图正在处理，请稍等")
     _ulmt.set_True(event.user_id)
-    setu_img, index = get_setu(img_id)
+    try:
+        setu_data = json.load(open(f'{TXT_PATH}/setu_data.json', 'r', encoding='utf8'))
+    except Exception:
+        setu_data = {}
+    setu_img, index = get_setu(img_id, setu_data)
     if setu_img:
         try:
             await setu.send(setu_img)
@@ -114,7 +123,11 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
     if _ulmt.check(event.user_id):
         await setu.finish(f"您有色图正在处理，请稍等")
     _ulmt.set_True(event.user_id)
-    setu_img, index = get_setu(img_id)
+    try:
+        setu_data = json.load(open(f'{TXT_PATH}/setu_data.json', 'r', encoding='utf8'))
+    except Exception:
+        setu_data = {}
+    setu_img, index = get_setu(img_id, setu_data)
     if setu_img:
         await setu.send(setu_img)
         logger.info(
@@ -221,10 +234,14 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     else:
         return
     # try:
+    try:
+        setu_data = json.load(open(f'{TXT_PATH}/setu_data.json', 'r', encoding='utf8'))
+    except Exception:
+        setu_data = {}
     if not keyword:
         for _ in range(num):
             try:
-                img, index = get_setu('')
+                img, index = get_setu('', setu_data)
                 if not img:
                     break
                 await setu_reg.send(img)

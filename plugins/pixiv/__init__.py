@@ -6,6 +6,8 @@ from .data_source import get_pixiv_urls, download_pixiv_imgs, search_pixiv_urls
 import time
 from services.log import logger
 from nonebot.adapters.cqhttp.exception import NetworkError
+from asyncio.exceptions import TimeoutError
+from aiohttp.client_exceptions import ClientConnectorError
 
 
 __plugin_name__ = 'P站'
@@ -81,26 +83,30 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         text_list, urls, code = await get_pixiv_urls(rank_dict.get('1'))
     elif len(msg) == 1:
         if msg[0] not in ['1', '2', '3', '4', '5', '6', '7', '8', '9']:
+            _ulmt.set_False(event.user_id)
             await pixiv_rank.finish("要好好输入要看什么类型的排行榜呀！", at_sender=True)
         text_list, urls, code = await get_pixiv_urls(rank_dict.get(msg[0]))
     elif len(msg) == 2:
         text_list, urls, code = await get_pixiv_urls(rank_dict.get(msg[0]), int(msg[1]))
     elif len(msg) == 3:
         if not check_date(msg[2]):
+            _ulmt.set_False(event.user_id)
             await pixiv_rank.finish('日期格式错误了', at_sender=True)
         text_list, urls, code = await get_pixiv_urls(rank_dict.get(msg[0]), int(msg[1]), msg[2])
     else:
         _ulmt.set_False(event.user_id)
         await pixiv_rank.finish('格式错了噢，看看帮助？', at_sender=True)
     if code != 200:
+        _ulmt.set_False(event.user_id)
         await pixiv_keyword.finish(text_list[0])
     else:
         if not text_list or not urls:
+            _ulmt.set_False(event.user_id)
             await pixiv_rank.finish('没有找到啊，等等再试试吧~V', at_sender=True)
         for i in range(len(text_list)):
             try:
                 await pixiv_rank.send(text_list[i] + await download_pixiv_imgs(urls[i], event.user_id))
-            except NetworkError:
+            except (NetworkError, TimeoutError, ClientConnectorError):
                 await pixiv_keyword.send('这张图网络炸了！', at_sender=True)
         logger.info(
             f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'})"
@@ -159,7 +165,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         for i in range(len(text_list)):
             try:
                 await pixiv_keyword.send(text_list[i] + await download_pixiv_imgs(urls[i], event.user_id))
-            except NetworkError:
+            except (NetworkError, TimeoutError, ClientConnectorError):
                 await pixiv_keyword.send('这张图网络炸了！', at_sender=True)
         logger.info(
             f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'})"

@@ -7,6 +7,8 @@ from bs4 import BeautifulSoup
 import feedparser
 from util.init_result import image
 from asyncio.exceptions import TimeoutError
+from configs.config import RSSHUBAPP
+from aiohttp.client_exceptions import ClientConnectorError
 import platform
 if platform.system() == 'Windows':
     import asyncio
@@ -14,11 +16,13 @@ if platform.system() == 'Windows':
 
 
 async def get_pixiv_urls(mode: str, num: int = 5, date: str = '') -> 'list, list, int':
-    url = 'https://rsshub.app/pixiv/ranking/{}'
-    iurl = url.format(mode)
+    url = f'{RSSHUBAPP}pixiv/ranking/{mode}'
     if date:
-        iurl += f'/{date}'
-    return await parser_data(iurl, num)
+        url += f'/{date}'
+    try:
+        return await parser_data(url, num)
+    except ClientConnectorError:
+        return get_pixiv_urls(mode, num, date)
 
 
 async def download_pixiv_imgs(urls: list, user_id: int) -> str:

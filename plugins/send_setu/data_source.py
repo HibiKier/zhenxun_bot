@@ -115,7 +115,7 @@ async def search_online_setu(url: str):
         return '\n图片被小怪兽恰掉啦..!QAQ', -1
 
 
-def get_setu(index: str):
+def get_setu(index: str, setu_data: dict):
     length = len(os.listdir(IMAGE_PATH + path))
     if length == 0:
         return None, None
@@ -125,7 +125,14 @@ def get_setu(index: str):
         if int(index) > length or int(index) < 0:
             return f"超过当前上下限！({length - 1})", 999
         else:
-            return f'id：{index}' + image(f'{index}.jpg', 'setu'), index
+            if setu_data:
+                index = str(index)
+                return f'id：{index}\n' \
+                       f'title：{setu_data[index]["title"]}\n' \
+                       f'author：{setu_data[index]["author"]}\n' \
+                       f'PID：{setu_data[index]["pid"]}' + image(f'{index}.jpg', path), index
+            else:
+                return f'id：{index}' + image(f'{index}.jpg', path), index
     return None, None
 
 

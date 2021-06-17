@@ -12,7 +12,7 @@ USE_CONFIG_FILE = False
 
 # API KEY（必要）
 LOLICON_KEY: str = ""  # lolicon(可不填，lolicon已放开api限制)
-RSSHUBAPP: str = "https://docs.rsshub.app/"  # rsshub
+RSSHUBAPP: str = "https://rsshub.app/"  # rsshub
 # 图灵
 TL_KEY: List[str] = []
 
