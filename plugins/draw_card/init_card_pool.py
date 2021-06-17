@@ -8,7 +8,6 @@ def init_game_pool(game: str, data: dict, Operator: Any):
             limited = False
             recruit_only = False
             event_only = False
-            print(key)
             if '限定寻访' in data[key]['获取途径']:
                 limited = True
             if '干员寻访' not in data[key]['获取途径'] and '公开招募' in data[key]['获取途径']:
