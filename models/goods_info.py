@@ -79,7 +79,13 @@ class GoodsInfo(db.Model):
     @classmethod
     async def get_all_goods(cls) -> list:
         query = await cls.query.gino.all()
-        return query
+        id_lst = [x.id for x in query]
+        goods_lst = []
+        for _ in range(len(query)):
+            min_id = min(id_lst)
+            goods_lst.append([x for x in query if x.id == min_id][0])
+            id_lst.remove(min_id)
+        return goods_lst
 
 
 
