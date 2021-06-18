@@ -39,7 +39,10 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
 async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
     if _ulmt.check(event.user_id):
         await bt.finish('您有bt任务正在进行，请等待结束.', at_sender=True)
-    mp = get_message_text(event.json()).split(" ")
+    mp = get_message_text(event.json())
+    if not mp:
+        return
+    mp = mp.split(' ')
     if len(mp) == 2:
         state['keyword'] = mp[0]
         state['page'] = mp[1]
