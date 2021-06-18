@@ -47,7 +47,10 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json())
     if msg in ['帮助']:
-        await reply.finish(f'/t [qq] [group] [text]')
+        await reply.finish(f'/t [qq] [group] [text] -> 回复指定用户\n'
+                           f'/t [qq] [text] -> 私聊用户\n'
+                           f'/t -1 [group] -> 在某群发送消息\n'
+                           f'/t [id] [text] -> 回复指定id的对话')
     if not msg:
         result = ''
         for key in dialogue_data.keys():
@@ -66,6 +69,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 user_id = dialogue_data[id_]["user_id"]
                 group_id = dialogue_data[id_]["group_id"]
                 text = msg[1]
+                dialogue_data.pop(id_)
             else:
                 user_id = 0
                 if is_number(msg[1]):
