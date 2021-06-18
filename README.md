@@ -646,6 +646,7 @@ USE_CONFIG_FILE = True
 - [ ] 提供更多对插件的控制
 - [ ] 明日方舟卡片式的签到..(大概)
 - [ ] 更多的群管理功能
+- [ ] docker容器
 
 ## 感谢
 [Onebot](https://github.com/howmanybots/onebot)  
