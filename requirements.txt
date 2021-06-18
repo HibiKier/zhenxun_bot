@@ -44,7 +44,6 @@ packaging==20.9
 pandas==1.2.3
 Pillow==8.2.0
 pkginfo==1.7.0
-playwright==1.10.0
 psutil==5.8.0
 pydantic==1.8.1
 pyee==8.1.0
