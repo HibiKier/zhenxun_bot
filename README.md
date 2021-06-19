@@ -442,7 +442,7 @@ python bot.py
   1. API KEY
   2.数据库配置
   
-在./configs/config.py中配置基本配置（除API ，数据库和代理外都含有默认值）
+在./configs/config.py中配置基本配置（除API KEY ，数据库和代理外都含有默认值）
 在./configs/path_config.py配置路径（含有默认配置）
 
 ##############################（暂时不更新 json 配置，请将USE_CONFIG_FILE设置为False，直接进入./configs/config.py进行配置）
