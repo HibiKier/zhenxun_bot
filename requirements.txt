@@ -34,9 +34,6 @@ multidict==5.1.0
 nest-asyncio==1.5.1
 nonebot-adapter-cqhttp==2.0.0a12
 nonebot-plugin-apscheduler==0.1.2
-nonebot-plugin-gamedraw==0.1.6.6.6
-nonebot-plugin-picsearcher==0.1.4
-nonebot-plugin-wordbank==1.0.1
 nonebot2==2.0.0a13.post1
 numpy==1.20.2
 opencv-python==4.5.1.48
