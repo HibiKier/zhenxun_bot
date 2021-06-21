@@ -288,8 +288,11 @@ async def end_game(bot: Bot, event: GroupMessageEvent):
         lose_name = player2_name
     rand = random.randint(0, 5)
     money = rs_player[event.group_id]['money']
-    fee = int(money * float(rand) / 100)
-    fee = 1 if fee < 1 and rand != 0 else fee
+    if money > 10:
+        fee = int(money * float(rand) / 100)
+        fee = 1 if fee < 1 and rand != 0 else fee
+    else:
+        fee = 0
     await RussianUser.add_count(win_user_id, event.group_id, 'win')
     await RussianUser.add_count(lose_user_id, event.group_id, 'lose')
     await RussianUser.money(win_user_id, event.group_id, 'win', money - fee)

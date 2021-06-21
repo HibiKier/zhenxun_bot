@@ -2,13 +2,14 @@ from nonebot import on_command
 from nonebot.permission import SUPERUSER
 from models.level_user import LevelUser
 from nonebot.typing import T_State
-from nonebot.adapters import Bot, Event
+from nonebot.adapters.cqhttp import Bot, Event, MessageEvent, Message
 from nonebot.rule import to_me
 from util.utils import get_message_at, get_message_text, is_number, get_bot
 from services.log import logger
 from .data_source import open_remind, close_remind
 from models.group_info import GroupInfo
 from models.friend_user import FriendUser
+from util.init_result import at
 
 
 __plugin_name__ = '超级用户指令 [Hidden]'
@@ -26,13 +27,33 @@ update_friend_info = on_command('更新好友信息', rule=to_me(), permission=S
 
 
 @super_cmd.handle()
-async def _(bot: Bot, event: Event, state: T_State):
+async def _(bot: Bot, event: MessageEvent, state: T_State):
     try:
         args = get_message_text(event.json()).strip().split(" ")
-        qq = int(get_message_at(event.json())[0])
+        qq = get_message_at(event.json())
+        flag = -1
+        if not qq:
+            if len(args) > 2:
+                if is_number(args[0]) and is_number(args[1]) and is_number(args[2]):
+                    qq = int(args[0])
+                    group_id = int(args[1])
+                    level = int(args[2])
+                    flag = 1
+                else:
+                    await super_cmd.finish('所有参数必须是数字！', at_sender=True)
+            else:
+                await super_cmd.finish('权限参数不完全\n\t格式：添加/删除权限 [at] [level]'
+                                       '\n\t格式：添加/删除权限 [qq] [group] [level]', at_sender=True)
+        else:
+            qq = int(qq[0])
+            group_id = event.group_id
+            flag = 2
+            if is_number(args[0]):
+                level = int(args[0])
+            else:
+                await super_cmd.finish('权限等级必须是数字！', at_sender=True)
         if state["_prefix"]["raw_command"][:2] == "添加":
-            level = int(args[0])
-            if await LevelUser.set_level(qq, event.group_id, level, 1):
+            if await LevelUser.set_level(qq, group_id, level, 1):
                 result = "添加管理成功, 权限: " + str(level)
             else:
                 result = "管理已存在, 更新权限: " + str(level)
@@ -41,7 +62,11 @@ async def _(bot: Bot, event: Event, state: T_State):
                 result = "删除管理成功!"
             else:
                 result = "该账号无管理权限!"
-        await super_cmd.send(result)
+        if flag == 2:
+            await super_cmd.send(result)
+        elif flag == 1:
+            await bot.send_group_msg(group_id=group_id, message=Message(f'{at(qq)}管理员已为你修改'
+                                                                        f'权限\n--------\n你当前的权限等级：{level}'))
     except Exception as e:
         await super_cmd.send("执行指令失败!")
         logger.error(f'执行指令失败 e{e}')

@@ -1,6 +1,7 @@
 import asyncio
 import nonebot
 import os
+from services.log import logger
 from .pcr_handle import update_pcr_info, init_pcr_data
 from .azur_handle import update_azur_info, init_azur_data
 from .prts_handle import update_prts_info, init_prts_data
@@ -55,9 +56,13 @@ async def async_update_game():
         tasks.append(asyncio.ensure_future(update_onmyoji_info()))
         init_lst.remove(init_onmyoji_data)
 
-    await asyncio.gather(*tasks)
-    for func in init_lst:
-        await func()
+    try:
+        await asyncio.gather(*tasks)
+        for func in init_lst:
+            await func()
+    except asyncio.exceptions.CancelledError:
+        logger.info('更新异常：CancelledError，再次更新...')
+        await async_update_game()
 
 
 

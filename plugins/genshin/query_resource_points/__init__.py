@@ -36,7 +36,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     if resource_name == "" or resource_name not in in_list:
         return
 
-    await qr.send(get_resource_map_mes(resource_name), at_sender=True)
+    await qr.send(await get_resource_map_mes(resource_name), at_sender=True)
     logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'})"
         f" 查询原神材料:" + resource_name)
@@ -52,7 +52,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         rs = re.search('.*?(哪有|哪里有)(.*)', msg)
         resource_name = rs.group(2) if rs else ''
     if resource_name:
-        msg = get_resource_map_mes(resource_name)
+        msg = await get_resource_map_mes(resource_name)
         if msg == '发送 原神资源列表 查看所有资源名称':
             return
         await rex_qr.send(msg, at_sender=True)
@@ -100,7 +100,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 )
 async def _():
     try:
-        up_label_and_point_list()
+        await up_label_and_point_list()
         logger.info(f'每日更新原神材料信息成功！')
     except Exception as e:
         logger.error(f'每日更新原神材料信息错误：{e}')

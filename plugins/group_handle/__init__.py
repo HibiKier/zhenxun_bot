@@ -25,17 +25,18 @@ __usage__ = '用法：无'
 export = require("admin_bot_manage")
 
 # 群员增加处理
-group_increase_handle = on_notice(priority=5)
+group_increase_handle = on_notice(priority=1, block=False)
 # 群员减少处理
-group_decrease_handle = on_notice(priority=5)
+group_decrease_handle = on_notice(priority=1, block=False)
 # （群管理）加群同意请求
-add_group = on_request(priority=5)
+add_group = on_request(priority=1, block=False)
 
 
 @group_increase_handle.handle()
 async def _(bot: Bot, event: GroupIncreaseNoticeEvent, state: dict):
     if event.user_id == int(bot.self_id):
         await export.update_member_info(event.group_id)
+        logger.info('被邀请入群，自动更新群成员列表...')
     else:
         join_time = datetime.now()
         user_info = await bot.get_group_member_info(group_id=event.group_id, user_id=event.user_id)

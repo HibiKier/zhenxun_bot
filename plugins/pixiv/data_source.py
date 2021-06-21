@@ -47,7 +47,7 @@ async def download_pixiv_imgs(urls: list, user_id: int) -> str:
 
 
 async def search_pixiv_urls(keyword: str, num: int, order: str, r18: int) -> 'list, list':
-    url = 'https://rsshub.app/pixiv/search/{}/{}/{}'.format(keyword, order, r18)
+    url = f'{RSSHUBAPP}pixiv/search/{keyword}/{order}/{r18}'
     return await parser_data(url, num)
 
 

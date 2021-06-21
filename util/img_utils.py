@@ -304,6 +304,10 @@ class CreateImg:
                     pimb[i - (r - r3), j - (r - r3)] = pima[i, j]
         self.markImg = imb
 
+    #
+    def getchannel(self, itype):
+        self.markImg = self.markImg.getchannel(itype)
+
 
 
 if __name__ == '__main__':

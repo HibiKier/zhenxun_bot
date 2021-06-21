@@ -64,17 +64,6 @@ async def _(matcher: Matcher, bot: Bot, event: PokeNotifyEvent, state: T_State):
             else:
                 if matcher.module == 'gold_redbag':
                     raise IgnoredException('目前没有红包...')
-            # for data in [festive_redbag_data, redbag_data]:
-            #     if data.get(event.group_id):
-            #         if data[event.group_id].get('user_id') != 0:
-            #             if event.user_id not in data[event.group_id]['open_user']:
-            #                 if matcher.module == 'poke':
-            #                     raise IgnoredException('目前正在抢红包...')
-            #             else:
-            #                 open_flag = True
-            # if open_flag:
-            #     if matcher.module == 'gold_redbag':
-            #         raise IgnoredException('目前没有红包...')
     except AttributeError:
         pass
 
@@ -122,6 +111,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 @open_.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     global redbag_data, festive_redbag_data
+    msg = get_message_text(event.json())
+    msg = msg.replace('!', '').replace('！', '').replace(',', '').replace('，', '').replace('.', '').replace('。', '')
+    if msg:
+        if msg.find('红包') == -1:
+            return
     flag1 = True
     flag2 = True
     open_flag1 = True

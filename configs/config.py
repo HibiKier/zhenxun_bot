@@ -84,10 +84,10 @@ MUTE_LEVEL: int = 5                 # 更改禁言设置权限
 
 # 需要为哪些群更新最新版gocq吗？（上传最新版gocq）
 # 示例：[434995955, 239483248]
-UPDATE_GOCQ_GROUP: List[int] = [774261838]
+UPDATE_GOCQ_GROUP: List[int] = []
 
 # 代理
-system_proxy: str = 'http://127.0.0.1:7890'
+system_proxy: str = ''
 buff_proxy: str = ''
 
 # 是否存储色图

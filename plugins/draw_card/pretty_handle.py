@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from .init_card_pool import init_game_pool
 from util.init_result import image
 from configs.path_config import IMAGE_PATH
+from services.log import logger
 
 try:
     import ujson as json
@@ -89,6 +90,7 @@ async def update_pretty_info():
     data, code = await update_info(url, 'pretty_card')
     if code == 200:
         ALL_CARD = init_game_pool('pretty_card', data, PrettyChar)
+    await _init_up_char()
 
 
 async def init_pretty_data():
@@ -100,6 +102,7 @@ async def init_pretty_data():
             pretty_card_dict = json.load(f)
         ALL_CHAR = init_game_pool('pretty', pretty_char_dict, PrettyChar)
         ALL_CARD = init_game_pool('pretty_card', pretty_card_dict, PrettyChar)
+        await _init_up_char()
 
 
 # 抽取卡池
@@ -149,7 +152,7 @@ async def _init_up_char():
             os.remove(IMAGE_PATH + '/draw_card/pretty/up_char_pool_img.png')
         if os.path.exists(IMAGE_PATH + '/draw_card/genshin/up_arms_pool_img.png'):
             os.remove(IMAGE_PATH + '/draw_card/pretty/up_card_pool_img.png')
-    print(f'成功获取赛马娘当前up信息...当前up池: {_CURRENT_CHAR_POOL_TITLE} & {_CURRENT_CARD_POOL_TITLE}')
+    logger.info(f'成功获取赛马娘当前up信息...当前up池: {_CURRENT_CHAR_POOL_TITLE} & {_CURRENT_CARD_POOL_TITLE}')
     for key in up_char_dict.keys():
         for star in up_char_dict[key]['up_char'].keys():
             up_lst = []

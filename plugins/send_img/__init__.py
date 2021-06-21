@@ -28,8 +28,6 @@ send_img = on_command("img", aliases=cmd, priority=5, block=True)
 @send_img.handle()
 async def _(bot: Bot, event: Event, state: T_State):
     img_id = str(event.get_message())
-    if img_id in ['帮助']:
-        await send_img.finish(__plugin_usage__)
     path = cn2py(state["_prefix"]["raw_command"]) + '/'
     if not os.path.exists(IMAGE_PATH + path):
         logger.warning(f'未找到 {path} 文件夹，调用取消!')

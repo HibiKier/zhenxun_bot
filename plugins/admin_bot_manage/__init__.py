@@ -58,6 +58,8 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     msg = get_message_text(event.json())
     imgs = get_message_imgs(event.json())
+    if not msg and not imgs:
+        await custom_welcome.finish('格式：自定义群欢迎消息 [文本] [图片]\n\t示例：自定义群欢迎消息 我们都是萝莉控，你呢？ [图片]')
     await custom_welcome.finish(await custom_group_welcome(msg, imgs, event.user_id, event.group_id), at_sender=True)
 
 

@@ -120,7 +120,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     if msg.find('1井') != -1 or msg.find('一井') != -1:
         num = 200
         if msg.find("卡") == -1:
-            pool_name = 'horse'
+            pool_name = 'char'
         else:
             pool_name = 'card'
     else:
@@ -131,7 +131,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 num = num[1:]
                 pool_name = 'card'
             else:
-                pool_name = 'horse'
+                pool_name = 'char'
             num, flag = check_num(num, 200)
             if not flag:
                 await pretty.finish(num, at_sender=True)

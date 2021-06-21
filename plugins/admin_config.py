@@ -24,7 +24,7 @@ async def _(bot: Bot, event: GroupAdminNoticeEvent, state: T_State):
     if event.sub_type == 'set':
         await LevelUser.set_level(event.user_id, event.group_id, ADMIN_DEFAULT_AUTH)
         logger.info(f'为新晋管理员 {nickname}({event.user_id}) 添加权限等级：{ADMIN_DEFAULT_AUTH}')
-    if event.sub_type == 'unset':
+    elif event.sub_type == 'unset':
         await LevelUser.delete_level(event.user_id, event.group_id)
         logger.info(f'将非管理员 {nickname}({event.user_id}) 取消权限等级')
 

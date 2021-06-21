@@ -14,7 +14,7 @@ from configs.config import IMAGE_DIR_LIST
 __plugin_name__ = '上传图片'
 __plugin_usage__ = '上传图片帮助：\n\t' \
             '1.查看列表 --> 指令: 上传图片 列表/目录\n\t' \
-            '2.上传图片 序号 图片(在文字后跟图片即可), 即在相应目录下添加图片\n\t\t示例: 上传图片 1 图片(在文字后跟图片即可)'
+            '2.上传图片 [序号] [图片], 即在相应目录下添加图片\n\t\t示例: 上传图片 1 [图片]'
 
 
 upload_img = on_command("上传图片", rule=to_me(), priority=5, block=True)

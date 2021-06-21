@@ -7,6 +7,7 @@ import time
 import base64
 from configs.path_config import IMAGE_PATH
 from util.init_result import image
+from services.log import logger
 import asyncio
 import nonebot
 
@@ -18,7 +19,9 @@ POINT_LIST_URL = 'https://api-static.mihoyo.com/common/blackboard/ys_obc/v1/map/
 header = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
          'Chrome/84.0.4147.105 Safari/537.36'
 
-FILE_PATH = os.path.dirname(__file__)
+FILE_PATH = IMAGE_PATH + 'genshin/'
+if not os.path.exists(IMAGE_PATH + 'genshin/genshin_icon/'):
+    os.mkdir(IMAGE_PATH + 'genshin/genshin_icon/')
 
 MAP_PATH = None
 MAP_IMAGE = None
@@ -37,7 +40,7 @@ async def init():
     MAP_PATH = os.path.join(IMAGE_PATH, "genshin", "seek_god_eye", "icon", "map_icon.jpg")
     MAP_IMAGE = await asyncio.get_event_loop().run_in_executor(None, Image.open, MAP_PATH)
     MAP_SIZE = MAP_IMAGE.size
-    await asyncio.get_event_loop().run_in_executor(None, up_label_and_point_list)
+    await up_label_and_point_list()
 
 
 data = {
@@ -84,7 +87,7 @@ def up_icon_image(sublist):
     id = sublist["id"]
     icon_url = sublist["icon"]
 
-    icon_path = os.path.join(FILE_PATH, "icon", f"{id}.png")
+    icon_path = os.path.join(FILE_PATH, "genshin_icon", f"{id}.png")
 
     if not os.path.exists(icon_path):
         schedule = request.Request(icon_url)
@@ -93,8 +96,9 @@ def up_icon_image(sublist):
             icon = Image.open(f)
             icon = icon.resize((150, 150))
 
-            box_alpha = Image.open(os.path.join(FILE_PATH, "icon", "box_alpha.png")).getchannel("A")
-            box = Image.open(os.path.join(FILE_PATH, "icon", "box.png"))
+            box_alpha = Image.open(os.path.join(FILE_PATH, "genshin_icon", "box_alpha.png")).getchannel("A")
+            box = Image.open(os.path.join(FILE_PATH, "genshin_icon", "box.png"))
+            logger.info(f'原神资源更新 --> {sublist}')
 
             try:
                 icon_alpha = icon.getchannel("A")
@@ -114,8 +118,18 @@ def up_icon_image(sublist):
                 bg.save(icon_file)
 
 
-def up_label_and_point_list():
+async def up_label_and_point_list():
     # 更新label列表和资源点列表
+    try:
+        if os.path.exists(os.path.dirname(__file__) + '/icon/box_alpha.png'):
+            os.rename(os.path.dirname(__file__) + '/icon/box_alpha.png', IMAGE_PATH + 'genshin/genshin_icon/box_alpha.png')
+    except:
+        pass
+    try:
+        if os.path.exists(os.path.dirname(__file__) + '/icon/box.png'):
+            os.rename(os.path.dirname(__file__) + '/icon/box.png', IMAGE_PATH + 'genshin/genshin_icon/box.png')
+    except:
+        pass
 
     schedule = request.Request(LABEL_URL)
     schedule.add_header('User-Agent', header)
@@ -123,16 +137,18 @@ def up_label_and_point_list():
         if f.code != 200:  # 检查返回的状态码是否是200
             raise ValueError(f"资源标签列表初始化失败，错误代码{f.code}")
         label_data = json.loads(f.read().decode('utf-8'))
-
+        tasks = []
         for label in label_data["data"]["tree"]:
             data["all_resource_type"][str(label["id"])] = label
 
             for sublist in label["children"]:
                 data["all_resource_type"][str(sublist["id"])] = sublist
                 data["can_query_type_list"][sublist["name"]] = str(sublist["id"])
-                up_icon_image(sublist)
+                tasks.append(asyncio.get_event_loop().run_in_executor(None, up_icon_image, sublist))
+            # logger.info(f'原神资源更新 --> {sublist}')
 
             label["children"] = []
+        await asyncio.gather(*tasks)
 
     schedule = request.Request(POINT_LIST_URL)
     schedule.add_header('User-Agent', header)
@@ -179,12 +195,12 @@ class Resource_map(object):
 
     def get_icon_path(self):
         # 检查有没有图标，有返回正确图标，没有返回默认图标
-        icon_path = os.path.join(FILE_PATH, "icon", f"{self.resource_id}.png")
+        icon_path = os.path.join(FILE_PATH, "genshin_icon", f"{self.resource_id}.png")
 
         if os.path.exists(icon_path):
             return icon_path
         else:
-            return os.path.join(FILE_PATH, "icon", "0.png")
+            return os.path.join(FILE_PATH, "genshin_icon", "0.png")
 
     def get_resource_point_list(self):
         temp_list = []
@@ -247,9 +263,9 @@ class Resource_map(object):
         return len(self.resource_xy_list)
 
 
-def get_resource_map_mes(name):
+async def get_resource_map_mes(name):
     if data["date"] != time.strftime("%d"):
-        up_label_and_point_list()
+        await up_label_and_point_list()
 
     if not (name in data["can_query_type_list"]):
         return f"没有 {name} 这种资源。\n发送 原神资源列表 查看所有资源名称"

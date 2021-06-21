@@ -36,12 +36,15 @@ def is_expired(data: dict):
 # 检查写入
 def check_write(data: dict, up_char_file, game_name: str = ''):
     tmp = data
-    if game_name == 'genshin':
+    if game_name in ['genshin', 'pretty']:
         tmp = data['char']
     if not is_expired(tmp):
-        if game_name == 'genshin':
+        if game_name in ['genshin']:
             data['char']['title'] = ''
             data['arms']['title'] = ''
+        elif game_name in ['pretty']:
+            data['char']['title'] = ''
+            data['card']['title'] = ''
         else:
             data['title'] = ''
     else:
@@ -54,7 +57,7 @@ def check_write(data: dict, up_char_file, game_name: str = ''):
         with open(up_char_file, 'r', encoding='utf8') as f:
             old_data = json.load(f)
             tmp = old_data
-            if game_name == 'genshin':
+            if game_name in ['genshin', 'pretty']:
                 tmp = old_data['char']
         if is_expired(tmp):
             return old_data

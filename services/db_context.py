@@ -3,6 +3,7 @@
 from gino import Gino
 from .log import logger
 from configs.config import bind, sql_name, user, password, address, port, database
+from .service_config import DATABASE_URI
 
 
 # 全局数据库连接对象
@@ -10,7 +11,7 @@ db = Gino()
 
 
 async def init():
-    i_bind = bind
+    i_bind = DATABASE_URI if DATABASE_URI else bind
     if not bind:
         i_bind = f"{sql_name}://{user}:{password}@{address}:{port}/{database}"
     # print(i_bind)
