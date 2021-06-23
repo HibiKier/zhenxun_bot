@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from configs.path_config import LOG_PATH
-
+import sys
 # CRITICAL    50
 # ERROR      40
 # WARNING   30
@@ -17,8 +17,8 @@ logger = logging.getLogger('hibiki')
 logger.setLevel(level=logging.DEBUG)
 
 formatter = logging.Formatter('[%(asctime)s] - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
-# print(LOG_PATH)
-file_handler = logging.FileHandler(LOG_PATH + str((datetime.now()).date()) + '.log', mode='a', encoding='utf-8')
+
+file_handler = logging.FileHandler(LOG_PATH + str(datetime.now().date()) + '.log', mode='a', encoding='utf-8')
 file_handler.setLevel(level=logging.INFO)
 file_handler.setFormatter(formatter)
 

@@ -29,11 +29,12 @@ send_img = on_command("img", aliases=cmd, priority=5, block=True)
 async def _(bot: Bot, event: Event, state: T_State):
     img_id = str(event.get_message())
     path = cn2py(state["_prefix"]["raw_command"]) + '/'
-    if not os.path.exists(IMAGE_PATH + path):
-        logger.warning(f'未找到 {path} 文件夹，调用取消!')
-        return
+    if path in IMAGE_DIR_LIST:
+        if not os.path.exists(f'{IMAGE_PATH}/{path}/'):
+            os.mkdir(f'{IMAGE_PATH}/{path}/')
     length = len(os.listdir(IMAGE_PATH + path)) - 1
-    if length == 0:
+    if length < 1:
+        await send_img.finish('该图库中没有图片噢')
         logger.warning(f'图库 {path} 为空，调用取消！')
         return
     index = img_id if img_id else str(random.randint(0, length))

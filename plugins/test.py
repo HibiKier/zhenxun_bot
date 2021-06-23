@@ -1,7 +1,7 @@
 from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent
-from nonebot import on_command, on_keyword
+from nonebot import on_command, on_keyword, on_metaevent
 from nonebot.plugin import MatcherGroup
 from nonebot.adapters.cqhttp.event import GroupRequestEvent
 import nonebot
@@ -20,7 +20,7 @@ from models.group_member_info import GroupInfoUser
 
 # erm = on_command('异世相遇，尽享美味', aliases={'异世相遇 尽享美味', '异世相遇,尽享美味'}, priority=5, block=True)
 
-# matcher = on_keyword({"test"})
+matcher = on_keyword({"test"})
 #
 #
 # @matcher.handle()
@@ -41,3 +41,12 @@ from models.group_member_info import GroupInfoUser
 # async def first_receive(bot: Bot, event: Event, state: T_State):
 #     print(record('erm'))
 #     await matcher.send(record('erm'))
+
+
+@matcher.args_parser
+async def _(bot: Bot, event: MessageEvent, state: T_State):
+    msg = str(event.get_message())
+    if len(msg) > 5:
+        return
+    await matcher.reject()
+

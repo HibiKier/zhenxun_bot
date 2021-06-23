@@ -39,7 +39,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
     msg = get_message_text(event.json())
     if not msg:
-        await _help.finish(image(abspath=''))
+        await _help.finish(image('help.png'))
     else:
         await _help.finish(get_plugin_help(msg))
 

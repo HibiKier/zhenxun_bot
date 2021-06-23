@@ -15,7 +15,7 @@ url = 'https://rsshub.app/epicgames/freegames'
 
 
 async def get_epic_game() -> str:
-    result = ''
+    result = '今天没有游戏可以白嫖了！'
     async with aiohttp.ClientSession(headers=get_user_agent()) as session:
         async with session.get(url, proxy=get_local_proxy(), timeout=7) as response:
             data = feedparser.parse(await response.text())['entries']
@@ -35,7 +35,6 @@ async def get_epic_game() -> str:
         result = 'epic限免游戏（速速白嫖）：\n' + result
     else:
         result = '今天没有游戏可以白嫖了！'
-    print(result)
     return result
 
 

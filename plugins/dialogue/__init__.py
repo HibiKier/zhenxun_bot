@@ -92,6 +92,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     if group_id:
         if user_id:
             await bot.send_group_msg(group_id=group_id, message=at(user_id) + "\n管理员回复\n=======\n" + text)
+            await reply.finish("发送成功", at_sender=True)
         else:
             await bot.send_group_msg(group_id=group_id, message=text)
             await reply.finish("发送成功", at_sender=True)

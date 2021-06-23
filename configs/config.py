@@ -1,5 +1,6 @@
 from .utils.util import get_config_data
 from typing import List
+from services.service_config import TL_M_KEY, SYSTEM_PROXY
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -11,20 +12,20 @@ USE_CONFIG_FILE = False
 
 
 # API KEY（必要）
-LOLICON_KEY: str = ""  # lolicon(可不填，lolicon已放开api限制)
+LOLICON_KEY: str = ""  # lolicon
 RSSHUBAPP: str = "https://rsshub.app/"  # rsshub
 # 图灵
 TL_KEY: List[str] = []
 
 # 数据库（必要）
-# 示例："bind": "postgresql://user:password@127.0.0.1:5432/database"
-bind: str = ''          # 数据库连接url
-sql_name: str = 'postgresql'      
-user: str = ''          # 数据库用户名
-password: str = ''      # 数据库密码
-address: str = ''       # 数据库地址
-port: str = ''          # 数据库端口
-database: str = ''      # 数据库名称
+# 如果填写了bind就不需要再填写后面的字段了#）
+bind: str = ''
+sql_name: str = ''
+user: str = ''
+password: str = ''
+address: str = ''
+port: str = ''
+database: str = ''
 
 
 # 公开图库列表
@@ -54,7 +55,7 @@ FGO_FLAG = True        # 命运-冠位指定（FGO）
 ONMYOJI_FLAG = True    # 阴阳师
 
 PCR_TAI = True         # pcr是否开启台服卡池
-SEMAPHORE = 5       # 限制更新碧蓝航线和FGO数据并发数
+SEMAPHORE = 5          # 限制碧蓝航线和FGO并发数
 
 ADMIN_DEFAULT_AUTH: int = 5  # 默认群管理员权限
 
@@ -114,7 +115,6 @@ plugins2name_dict = {
     'my_gold': ['我的金币'],
     'my_props': ['我的道具'],
     'shop_handle': ['商店'],
-    'nonebot_plugin_cocdicer': ['骰子娘'],
     'update_pic': ['图片', '操作图片', '修改图片'],
     'search_buff_skin_price': ['查询皮肤'],
     'weather': ['天气', '查询天气', '天气查询'],
@@ -138,6 +138,46 @@ plugins2name_dict = {
     'gold_redbag': ['塞红包', '红包', '抢红包']
 }
 
+# 功能所需的群权限
+plugins2level_dict = {
+    'sign_in': 5,
+    'send_img': 5,
+    'send_setu': 9,
+    'white2black': 5,
+    'coser': 9,
+    'quotations': 5,
+    'jitang': 5,
+    'send_dinggong_voice': 5,
+    'open_cases': 5,
+    'luxun': 5,
+    'fake_msg': 5,
+    'buy': 5,
+    'my_gold': 5,
+    'my_props': 5,
+    'shop_handle': 5,
+    'update_pic': 5,
+    'search_buff_skin_price': 5,
+    'weather': 5,
+    'yiqing': 5,
+    'what_anime': 5,
+    'search_anime': 5,
+    'songpicker2': 5,
+    'epic': 5,
+    'pixiv': 9,
+    'poke': 5,
+    'draw_card': 5,
+    'ai': 5,
+    'one_friend': 5,
+    'translate': 5,
+    'nonebot_plugin_picsearcher': 5,
+    'almanac': 5,
+    'material_remind': 5,
+    'qiu_qiu_translation': 5,
+    'query_resource_points': 5,
+    'russian': 5,
+    'gold_redbag': 5
+}
+
 # 群管理员功能 与 对应权限
 admin_plugins_auth = {
     'admin_bot_manage': OC_LEVEL,
@@ -148,6 +188,12 @@ admin_plugins_auth = {
     'admin_help': 1,
     'mute': MUTE_LEVEL,
 }
+
+if TL_M_KEY:
+    TL_KEY = TL_M_KEY
+if SYSTEM_PROXY:
+    system_proxy = SYSTEM_PROXY
+
 
 # 配置文件应用
 if USE_CONFIG_FILE:
