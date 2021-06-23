@@ -45,7 +45,7 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
             raise IgnoredException('用户处于黑名单中')
 
 
-_blmt = BanCheckLimiter(MALICIOUS_BAN_TIME, MALICIOUS_BAN_COUNT)
+_blmt = BanCheckLimiter(MALICIOUS_CHECK_TIME, MALICIOUS_BAN_COUNT)
 
 
 # 恶意触发命令检测
@@ -108,45 +108,5 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
             raise IgnoredException('有命令就别说话了')
 
 
-# _ulmt = UserExistLimiter()
-#
-#
-# # 是否有命令正在处理
-# @run_preprocessor
-# async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
-#     if matcher.module == 'admin_bot_manage':
-#         return
-#     if event.user_id == bot.self_id:
-#         raise IgnoredException('自己和自己聊天？')
-#     print(state["_prefix"]["raw_command"])
-#     print(matcher.type)
-#     if (event.is_tome() and (state["_prefix"]["raw_command"] and matcher.type == 'message')
-#     and matcher.module == 'ai') or not static_group_dict[event.group_id]['总开关']:
-#         raise IgnoredException('Ai给爷爬？')
-#     # if matcher.module in ['ai']:
-#     #     raise IgnoredException('Ai给爷爬？')
-#     if matcher.type == 'message' and matcher.priority not in [1, 8, 9]:
-#         if _ulmt.check(event.user_id):
-#             if event.message_type == 'group':
-#                 await bot.send_group_msg(group_id=event.group_id, message=at(event.user_id) + '您有命令正在处理，等一哈！')
-#             else:
-#                 await bot.send_private_msg(user_id=event.user_id, message='您有命令正在处理，等一哈！')
-#             raise IgnoredException('有命令正在处理')
-#         _ulmt.set_True(event.user_id)
-#
-#
-# # 结束正在处理的命令
-# @run_postprocessor
-# async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
-#     _ulmt.set_False(event.user_id)
-#
-#
-# # 结束正在处理的命令
-# @event_preprocessor
-# async def _(bot: Bot, event: Event, state: T_State):
-#     try:
-#         _ulmt.set_False(event.user_id)
-#     except AttributeError:
-#         pass
 
 
