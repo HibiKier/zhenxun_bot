@@ -117,6 +117,10 @@ async def _():
         for key in _prefix_count_dict['day_statistics'][group_id].keys():
             _prefix_count_dict['day_statistics'][group_id][key] = 0
     _prefix_count_dict['day_index'] += 1
+    if _prefix_count_dict['day_index'] % 7 == 0:
+        _prefix_count_dict['week_statistics']['total'] = {}
+    if _prefix_count_dict['day_index'] % 30 == 0:
+        _prefix_count_dict['month_statistics']['total'] = {}
     with open(DATA_PATH + '_prefix_count.json', 'w', encoding='utf8') as f:
         json.dump(_prefix_count_dict, f, indent=4, ensure_ascii=False)
 
