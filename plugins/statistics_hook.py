@@ -41,7 +41,7 @@ if not _prefix_count_dict.get('day_index'):
         'total': {},
     }, 'month_statistics': {
         'total': {},
-    }, 'start_time': str(datetime.now().date()), 'day_index': 0}
+    }, 'start_time': tmp['start_time'], 'day_index': 0}
 
 
 # 添加命令次数
