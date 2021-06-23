@@ -32,7 +32,10 @@ async def _(matcher: Matcher, bot: Bot, event: GroupMessageEvent, state: T_State
                 group_data[str(event.group_id)] = 5
             if plugins2level_dict.get(matcher.module):
                 if plugins2level_dict[matcher.module] > group_data[str(event.group_id)]:
-                    await bot.send_group_msg(group_id=event.group_id, message='群权限不足...')
+                    try:
+                        await bot.send_group_msg(group_id=event.group_id, message='群权限不足...')
+                    except:
+                        pass
                     raise IgnoredException('群权限不足')
 
 
