@@ -86,33 +86,27 @@ def check_exists_key(group_id: str, plugin_name: str):
         _prefix_count_dict['week_statistics']['total'][plugin_name] = 0
     if not _prefix_count_dict['month_statistics']['total'].get(plugin_name):
         _prefix_count_dict['month_statistics']['total'][plugin_name] = 0
+
     if not _prefix_count_dict['total_statistics'].get(group_id):
-        _prefix_count_dict['total_statistics'][group_id] = {
-            plugin_name: 0,
-        }
-    elif not _prefix_count_dict['total_statistics'][group_id].get(plugin_name):
+        _prefix_count_dict['total_statistics'][group_id] = {}
+    if not _prefix_count_dict['total_statistics'][group_id].get(plugin_name):
         _prefix_count_dict['total_statistics'][group_id][plugin_name] = 0
     if not _prefix_count_dict['day_statistics'].get(group_id):
         _prefix_count_dict['day_statistics'][group_id] = {}
+    if not _prefix_count_dict['day_statistics'][group_id].get(plugin_name):
         _prefix_count_dict['day_statistics'][group_id][plugin_name] = 0
-    elif not _prefix_count_dict['day_statistics'][group_id].get(plugin_name):
-        _prefix_count_dict['day_statistics'][group_id][plugin_name] = 0
+
     if not _prefix_count_dict['week_statistics'].get(group_id):
         _prefix_count_dict['week_statistics'][group_id] = {}
-        for i in range(7):
-            _prefix_count_dict['week_statistics'][group_id][str(i)] = {}
-            _prefix_count_dict['week_statistics'][group_id][str(i)][plugin_name] = 0
     if not _prefix_count_dict['week_statistics'][group_id].get('0'):
         for i in range(7):
             _prefix_count_dict['week_statistics'][group_id][str(i)] = {}
     if not _prefix_count_dict['week_statistics'][group_id]['0'].get(plugin_name):
         for i in range(7):
             _prefix_count_dict['week_statistics'][group_id][str(i)][plugin_name] = 0
+
     if not _prefix_count_dict['month_statistics'].get(group_id):
         _prefix_count_dict['month_statistics'][group_id] = {}
-        for i in range(30):
-            _prefix_count_dict['month_statistics'][group_id][str(i)] = {}
-            _prefix_count_dict['month_statistics'][group_id][str(i)][plugin_name] = 0
     if not _prefix_count_dict['month_statistics'][group_id].get('0'):
         for i in range(30):
             _prefix_count_dict['month_statistics'][group_id][str(i)] = {}
