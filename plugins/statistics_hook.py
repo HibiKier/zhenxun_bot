@@ -33,6 +33,15 @@ except (FileNotFoundError, ValueError):
         'start_time': str(datetime.now().date()),
         'day_index': 0
     }
+if not _prefix_count_dict.get('day_index'):
+    tmp = _prefix_count_dict.copy()
+    _prefix_count_dict = {'total_statistics': tmp['total_statistics'], 'day_statistics': {
+        'total': {},
+    }, 'week_statistics': {
+        'total': {},
+    }, 'month_statistics': {
+        'total': {},
+    }, 'start_time': str(datetime.now().date()), 'day_index': 0}
 
 
 # 添加命令次数
