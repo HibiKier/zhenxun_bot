@@ -102,7 +102,10 @@ def check_exists_key(group_id: str, plugin_name: str):
         for i in range(7):
             _prefix_count_dict['week_statistics'][group_id][str(i)] = {}
             _prefix_count_dict['week_statistics'][group_id][str(i)][plugin_name] = 0
-    elif not _prefix_count_dict['week_statistics'][group_id]['0'].get(plugin_name):
+    if not _prefix_count_dict['week_statistics'][group_id].get('0'):
+        for i in range(7):
+            _prefix_count_dict['week_statistics'][group_id][str(i)] = {}
+    if not _prefix_count_dict['week_statistics'][group_id]['0'].get(plugin_name):
         for i in range(7):
             _prefix_count_dict['week_statistics'][group_id][str(i)][plugin_name] = 0
     if not _prefix_count_dict['month_statistics'].get(group_id):
@@ -110,7 +113,10 @@ def check_exists_key(group_id: str, plugin_name: str):
         for i in range(30):
             _prefix_count_dict['month_statistics'][group_id][str(i)] = {}
             _prefix_count_dict['month_statistics'][group_id][str(i)][plugin_name] = 0
-    elif not _prefix_count_dict['month_statistics'][group_id]['0'].get(plugin_name):
+    if not _prefix_count_dict['month_statistics'][group_id].get('0'):
+        for i in range(30):
+            _prefix_count_dict['month_statistics'][group_id][str(i)] = {}
+    if not _prefix_count_dict['month_statistics'][group_id]['0'].get(plugin_name):
         for i in range(30):
             _prefix_count_dict['month_statistics'][group_id][str(i)][plugin_name] = 0
 
