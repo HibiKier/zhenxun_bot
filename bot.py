@@ -12,6 +12,7 @@ nonebot.load_builtin_plugins()
 nonebot.load_plugins("plugins")
 nonebot.load_plugins("plugins/shop")
 nonebot.load_plugins("plugins/genshin")
+nonebot.load_plugins("plugins/alapi")
 
 
 if __name__ == "__main__":

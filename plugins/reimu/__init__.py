@@ -64,7 +64,7 @@ async def _(bot: Bot, event: Event, state: T_State):
         page = state['page']
         print(keyword, page)
         await UserCount.add_count(event.user_id, 'reimu')
-        await reimu.send('已经帮你关好车门了', at_sender=True)
+        await reimu.send('已经帮你关好车门了，请等待发车（不加真寻好友的话是欣赏不到旅途的风景的）', at_sender=True)
         reimu_report = await from_reimu_get_info(keyword, page)
         if reimu_report:
             await reimu.send(reimu_report)

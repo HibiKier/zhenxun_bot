@@ -46,7 +46,7 @@ async def get_setu_urls(keyword: str, num: int = 1, r18: int = 0):
         print(f'get_setu_url: count --> {count}')
         async with aiohttp.ClientSession() as session:
             try:
-                async with session.get(url, proxy=get_local_proxy(), timeout=5, params=params) as response:
+                async with session.get(url, proxy=get_local_proxy(), timeout=2, params=params) as response:
                     if response.status == 429:
                         return '调用达到上限，明日赶早呀~', '', 429
                     if response.status == 404:
@@ -96,7 +96,7 @@ async def search_online_setu(url: str):
         for i in range(3):
             print(f'search_online_setu --> {i}')
             try:
-                async with session.get(url, proxy=get_local_proxy(), timeout=7) as res:
+                async with session.get(url, proxy=get_local_proxy(), timeout=2) as res:
                     if res.status == 200:
                         index = str(random.randint(1, 100000))
                         async with aiofiles.open(IMAGE_PATH + 'temp/' + index + "_temp_setu.jpg", 'wb') as f:
@@ -115,12 +115,17 @@ async def search_online_setu(url: str):
         return '\n图片被小怪兽恰掉啦..!QAQ', -1
 
 
-def get_setu(index: str, setu_data: dict):
+def get_setu(index: str, setu_data: dict, tag: str = None):
     length = len(os.listdir(IMAGE_PATH + path))
     if length == 0:
         return None, None
     if not index:
         index = random.randint(0, length - 1)
+    if tag:
+        all_tag_setu = [x for x in setu_data.keys() if tag in setu_data[x]['tags']]
+        print(all_tag_setu)
+        if all_tag_setu:
+            index = random.choice(all_tag_setu)
     if is_number(index):
         if int(index) > length or int(index) < 0:
             return f"超过当前上下限！({length - 1})", 999

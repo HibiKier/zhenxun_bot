@@ -20,21 +20,24 @@ from models.group_member_info import GroupInfoUser
 
 # erm = on_command('异世相遇，尽享美味', aliases={'异世相遇 尽享美味', '异世相遇,尽享美味'}, priority=5, block=True)
 
-matcher = on_keyword({"test"})
+# matcher = on_keyword({"test"})
 #
 #
 # @matcher.handle()
 # async def _(bot: Bot, event: MessageEvent, state: T_State):
-#     await matcher.send(json(
-#         {"app": "com.tencent.gxhServiceIntelligentTip", "desc": "", "view": "gxhServiceIntelligentTip",
-#          "ver": "", "prompt": "[QQ红包]", "appID": "", "sourceName": "", "actionData": "", "actionData_A": "",
-#          "sourceUrl": "", "meta": {"gxhServiceIntelligentTip": {
-#             "bgImg": "http:\/\/ptlogin2.qq.com\/ho_cross_domain?tourl=https:\/\/gxh.vip.qq.com\/\/qqshow"
-#                      "\/admindata\/comdata\/vipActTpl_mobile_zbltyxn\/dddb247a4a9c6d34757c160f9e0b6669.gif",
-#             "appid": "gxhServiceIntelligentTip", "reportParams": 'null', "action": ""}},
-#          "config": {"forward": 1, "height": 240, "type": "normal", "autoSize": 0, "width": 180}, "text": "",
-#          "sourceAd": ""}
-#     ))
+#     songContent = [
+#         {
+#             "type": "music",
+#             "data": {
+#                 "type": "custom",
+#                 "subtype": "kugou",
+#                 "url": "https://webfs.yun.kugou.com/",
+#                 "audio": "https://webfs.yun.kugou.com/202106231924/77ad13a9c9c091f74aa10098281433ab/G128/M02/02/00/wA0DAFplVJ6AIcIiADK1ZUYugV4043.mp3",
+#                 "title": "音乐标题"
+#             }
+#         }
+#     ]
+#     await matcher.send(songContent)
 
 
 # @erm.handle()
@@ -43,10 +46,5 @@ matcher = on_keyword({"test"})
 #     await matcher.send(record('erm'))
 
 
-@matcher.args_parser
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = str(event.get_message())
-    if len(msg) > 5:
-        return
-    await matcher.reject()
+
 

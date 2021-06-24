@@ -79,7 +79,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             f"USER {event.user_id} GROUP {event.group_id} 发送色图 {index}.jpg 成功")
     else:
         msg = img_id
-        if list(bot.config.nickname)[0].find(msg) != -1:
+        if msg.find('真寻') != -1:
             _ulmt.set_False(event.user_id)
             await setu.finish('咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀')
         keyword, r18, num = await check_r18_and_keyword(msg, event.user_id)
@@ -100,13 +100,19 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 for i in range(num):
                     try:
                         setu_img, index = await search_online_setu(urls[i])
-                        await setu.send(text_list[i] + setu_img)
+                        if index == -1:
+                            setu_img, index = get_setu('', setu_data, keyword)
+                            await setu.send(setu_img)
+                            logger.error(f'色图下载失败 本地发送 {index}.jpg')
+                        else:
+                            await setu.send(text_list[i] + setu_img)
                         logger.info(
                             f"USER {event.user_id} GROUP {event.group_id}"
                             f" 发送在线色图 {keyword}.jpg 成功")
                     except Exception as e:
-                        logger.error(f'色图发送错误 e：{e}')
-                        await setu.send('图片下载惜败！', at_sender=True)
+                        setu_img, index = get_setu('', setu_data, keyword)
+                        await setu.send(setu_img)
+                        logger.error(f'色图发送错误 本地发送 {index}.jpg e：{e}')
             else:
                 await setu.send(urls)
     _ulmt.set_False(event.user_id)
@@ -155,13 +161,21 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
                 for i in range(num):
                     try:
                         setu_img, index = await search_online_setu(urls[i])
-                        await setu.send(text_list[i] + setu_img)
+                        if index == -1 and img_id != 'r':
+                            setu_img, index = get_setu('', setu_data, keyword)
+                            await setu.send(setu_img)
+                            logger.error(f'色图下载失败 本地发送 {index}.jpg')
+                        else:
+                            await setu.send(text_list[i] + setu_img)
                         logger.info(
                             f"USER {event.user_id} GROUP private"
                             f" 发送{'r18' if img_id == 'r' else ''}色图 {index}.jpg 成功")
                     except Exception as e:
-                        logger.error(f'色图发送错误 e：{e}')
-                        await setu.send('图片下载惜败！', at_sender=True)
+                        if img_id != 'r':
+                            img_setu, index = get_setu('', setu_data, keyword)
+                            logger.error(f'色图发送错误 本地发送 {index}.jpg e：{e}')
+                        else:
+                            await setu.send('图片下载惜败！', at_sender=True)
                         count += 1
                     if count > 6:
                         await setu.send('检测到下载惜败的图片过多，这次就不算数了，果咩..', at_sender=True)
@@ -255,16 +269,25 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         else:
             _ulmt.set_False(event.user_id)
             return
-    if list(bot.config.nickname)[0].find(keyword) != -1:
+    if keyword.find('真寻') != -1:
         await setu.finish('咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀')
     urls, text_list, code = await get_setu_urls(keyword, num)
     if code == 200:
         for i in range(len(urls)):
             try:
                 setu_img, index = await search_online_setu(urls[i])
-                await setu_reg.send(text_list[i] + '\n' + setu_img)
+                if index == -1:
+                    setu_img, index = get_setu('', setu_data, keyword)
+                    await setu_reg.send(setu_img)
+                    logger.error(f'色图下载失败 本地发送 {index}.jpg')
+                else:
+                    await setu_reg.send(text_list[i] + '\n' + setu_img)
             except ActionFailed as e:
                 await setu_reg.send('这图太色了，会教坏小孩子的，不给看..')
+            except Exception as e:
+                setu_img, index = get_setu('', setu_data, keyword)
+                await setu_reg.send(setu_img)
+                logger.error(f'色图发送错误 e：{e}')
             else:
                 logger.info(
                     f"USER {event.user_id} GROUP {event.group_id if event.message_type != 'private' else 'private'}"

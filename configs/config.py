@@ -1,6 +1,6 @@
 from .utils.util import get_config_data
 from typing import List
-from services.service_config import TL_M_KEY, SYSTEM_PROXY
+from services.service_config import TL_M_KEY, SYSTEM_PROXY, ALAPI_TOKEN
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -14,14 +14,15 @@ USE_CONFIG_FILE = False
 # API KEY（必要）
 LOLICON_KEY: str = ""  # lolicon
 RSSHUBAPP: str = "https://rsshub.app/"  # rsshub
+ALAPI_TOKEN: str = ""   # ALAPI
 # 图灵
 TL_KEY: List[str] = []
 
 # 数据库（必要）
 # 如果填写了bind就不需要再填写后面的字段了#）
-# bind示例：postgresql://user:password@127.0.0.1:5432/databases
+# 示例："bind": "postgresql://user:password@127.0.0.1:5432/database"
 bind: str = ''
-sql_name: str = 'postgresql'
+sql_name: str = ''
 user: str = ''
 password: str = ''
 address: str = ''
@@ -194,6 +195,8 @@ if TL_M_KEY:
     TL_KEY = TL_M_KEY
 if SYSTEM_PROXY:
     system_proxy = SYSTEM_PROXY
+if ALAPI_TOKEN:
+    ALAPI_TOKEN = ALAPI_TOKEN
 
 
 # 配置文件应用

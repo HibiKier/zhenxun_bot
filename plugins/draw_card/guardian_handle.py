@@ -1,12 +1,11 @@
 
 import os
 import nonebot
-from nonebot.adapters.cqhttp import MessageSegment
+from nonebot.adapters.cqhttp import MessageSegment, Message
 from .update_game_info import update_info
-from services.log import logger
 from .announcement import GuardianAnnouncement
 from .util import init_star_rst, generate_img, max_card, BaseData,\
-    set_list, get_star, format_card_information, UpEvent
+    set_list, get_star, format_card_information, init_up_char
 import random
 from .config import DRAW_PATH, GUARDIAN_ONE_CHAR_P, GUARDIAN_TWO_CHAR_P, GUARDIAN_THREE_CHAR_P, \
     GUARDIAN_THREE_CHAR_UP_P, GUARDIAN_TWO_ARMS_P, GUARDIAN_FIVE_ARMS_P, GUARDIAN_THREE_CHAR_OTHER_P, \
@@ -20,6 +19,8 @@ except ModuleNotFoundError:
     import json
 
 driver: nonebot.Driver = nonebot.get_driver()
+
+announcement = GuardianAnnouncement()
 
 ALL_CHAR = []
 ALL_ARMS = []
@@ -92,6 +93,7 @@ async def update_guardian_info():
     if code_1 == 200 and code_2 == 200:
         data.update(tmp)
         ALL_ARMS = init_game_pool('guardian_arms', data, GuardianArms)
+    await _guardian_init_up_char()
 
 
 async def init_guardian_data():
@@ -106,21 +108,27 @@ async def init_guardian_data():
                 guardian_arms_dict = json.load(f)
             ALL_CHAR = init_game_pool('guardian', guardian_char_dict, GuardianChar)
             ALL_ARMS = init_game_pool('guardian_arms', guardian_arms_dict, GuardianArms)
-        await _init_up_char()
+        await _guardian_init_up_char()
 
 
 # 抽取卡池
-def _get_guardian_card(pool_name: str):
+def _get_guardian_card(pool_name: str = '', mode: int = 1):
     global ALL_ARMS, ALL_CHAR, UP_ARMS, UP_CHAR, _CURRENT_ARMS_POOL_TITLE, _CURRENT_CHAR_POOL_TITLE
     if pool_name == 'char':
-        star = get_star([3, 2, 1], [GUARDIAN_THREE_CHAR_P, GUARDIAN_TWO_CHAR_P, GUARDIAN_ONE_CHAR_P])
+        if mode == 1:
+            star = get_star([3, 2, 1], [GUARDIAN_THREE_CHAR_P, GUARDIAN_TWO_CHAR_P, GUARDIAN_ONE_CHAR_P])
+        else:
+            star = get_star([3, 2], [GUARDIAN_THREE_CHAR_P, GUARDIAN_TWO_CHAR_P])
         up_lst = UP_CHAR
         flag = _CURRENT_CHAR_POOL_TITLE
         _max_star = 3
         all_data = ALL_CHAR
     else:
-        star = get_star([5, 4, 3, 2], [GUARDIAN_FIVE_ARMS_P, GUARDIAN_FOUR_ARMS_P,
-                                       GUARDIAN_THREE_ARMS_P, GUARDIAN_TWO_ARMS_P])
+        if mode == 1:
+            star = get_star([5, 4, 3, 2], [GUARDIAN_FIVE_ARMS_P, GUARDIAN_FOUR_ARMS_P,
+                                           GUARDIAN_THREE_ARMS_P, GUARDIAN_TWO_ARMS_P])
+        else:
+            star = get_star([5, 4], [GUARDIAN_FIVE_ARMS_P, GUARDIAN_FOUR_ARMS_P])
         up_lst = UP_ARMS
         flag = _CURRENT_ARMS_POOL_TITLE
         _max_star = 5
@@ -144,28 +152,11 @@ def _get_guardian_card(pool_name: str):
 
 
 # 获取up和概率
-async def _init_up_char():
+async def _guardian_init_up_char():
     global _CURRENT_CHAR_POOL_TITLE, _CURRENT_ARMS_POOL_TITLE, UP_CHAR, UP_ARMS, POOL_IMG
-    UP_CHAR = []
-    UP_ARMS = []
-    up_char_dict = await GuardianAnnouncement.update_up_char()
-    _CURRENT_CHAR_POOL_TITLE = up_char_dict['char']['title']
-    _CURRENT_ARMS_POOL_TITLE = up_char_dict['arms']['title']
-    if _CURRENT_CHAR_POOL_TITLE and _CURRENT_ARMS_POOL_TITLE:
-        POOL_IMG = MessageSegment.image(up_char_dict['char']['pool_img']) + \
-                   MessageSegment.image(up_char_dict['arms']['pool_img'])
-    logger.info(f'成功获取坎公骑冠剑当前up信息...当前up池: {_CURRENT_CHAR_POOL_TITLE} & {_CURRENT_ARMS_POOL_TITLE}')
-    for key in up_char_dict.keys():
-        for star in up_char_dict[key]['up_char'].keys():
-            up_char_lst = []
-            for char in up_char_dict[key]['up_char'][star].keys():
-                up_char_lst.append(char)
-            if key == 'char':
-                UP_CHAR.append(UpEvent(star=int(star), operators=up_char_lst, zoom=0))
-            else:
-                UP_ARMS.append(UpEvent(star=int(star), operators=up_char_lst, zoom=0))
+    _CURRENT_CHAR_POOL_TITLE, _CURRENT_ARMS_POOL_TITLE, POOL_IMG, UP_CHAR, UP_ARMS = await init_up_char(announcement)
 
 
 async def reload_guardian_pool():
-    await _init_up_char()
-    return f'当前UP池子：{_CURRENT_CHAR_POOL_TITLE} & {_CURRENT_ARMS_POOL_TITLE} {POOL_IMG}'
+    await _guardian_init_up_char()
+    return Message(f'当前UP池子：{_CURRENT_CHAR_POOL_TITLE} & {_CURRENT_ARMS_POOL_TITLE}')

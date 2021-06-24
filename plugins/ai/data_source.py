@@ -1,8 +1,9 @@
-from configs.config import TL_KEY
+from configs.config import TL_KEY, ALAPI_TOKEN
 import aiohttp
 import random
 import os
 from configs.path_config import IMAGE_PATH, DATA_PATH
+from services.log import logger
 from util.init_result import image
 from util.utils import get_bot
 
@@ -12,6 +13,8 @@ except ModuleNotFoundError:
     import json
 
 url = "http://openapi.tuling123.com/openapi/api/v2"
+
+check_url = "https://v2.alapi.cn/api/censor/text"
 
 index = 0
 
@@ -97,6 +100,7 @@ async def get_qqbot_chat_result(text: str, img_url: str, user_id: int, user_name
                                 content = content.replace('{br}', '\n')
                             if content.find('提示') != -1:
                                 content = content[:content.find('提示')]
+
                             return content
             if resp_payload['results']:
                 for result in resp_payload['results']:
@@ -140,3 +144,22 @@ def no_result() -> str:
     ]) + image(
         random.choice(os.listdir(IMAGE_PATH + "noresult/")
                       ), "noresult")
+
+
+async def check_text(text: str):
+    if not ALAPI_TOKEN:
+        return text
+    params = {
+        'token': ALAPI_TOKEN,
+        'text': text
+    }
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get(url, timeout=2, params=params) as response:
+                data = await response.json()
+                if data['code'] == 200:
+                    if data['conclusion_type'] == 2:
+                        return no_result()
+        except Exception as e:
+            logger.error(f'检测违规文本错误...e：{e}')
+        return text

@@ -24,7 +24,7 @@ async def azur_draw(count: int, pool_name: str):
     cnlist = ['金', '紫', '蓝', '白']
     star_list = [0, 0, 0, 0]
     char_list, char_dict, max_star_list, star_list, max_star_index_list = \
-        format_card_information(count, star_list, _get_azur_card, pool_name)
+        format_card_information(count, star_list, _get_azur_card, pool_name, guaranteed=False)
     rst = init_star_rst(star_list, cnlist, max_star_list, max_star_index_list)
     if count > 90:
         char_list = set_list(char_list)

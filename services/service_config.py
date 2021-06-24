@@ -6,4 +6,6 @@ TL_M_KEY = os.environ.get('TL_KEY')
 
 SYSTEM_PROXY = os.environ.get('SYSTEM_PROXY')
 
+ALAPI_TOKEN = os.environ.get('ALAPI_TOKEN')
+
 

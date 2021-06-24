@@ -18,7 +18,7 @@ genshin_up_char = Path(DRAW_PATH + "/draw_card_up/genshin_up_char.json")
 pretty_up_char = Path(DRAW_PATH + "/draw_card_up/pretty_up_char.json")
 guardian_up_char = Path(DRAW_PATH + "/draw_card_up/guardian_up_char.json")
 
-prts_url = "https://wiki.biligame.com/arknights/%E6%96%B0%E9%97%BB%E5%85%AC%E5%91%8A"
+prts_url = "https://ak.hypergryph.com/news.html"
 genshin_url = "https://wiki.biligame.com/ys/%E7%A5%88%E6%84%BF"
 pretty_url = "https://wiki.biligame.com/umamusume/%E5%85%AC%E5%91%8A"
 guardian_url = "https://wiki.biligame.com/gt/%E9%A6%96%E9%A1%B5"
@@ -36,19 +36,10 @@ def is_expired(data: dict):
 
 
 # 检查写入
-def check_write(data: dict, up_char_file, game_name: str = ''):
-    tmp = data
-    if game_name in ['genshin', 'pretty', 'guardian']:
-        tmp = data['char']
-    if not is_expired(tmp):
-        if game_name in ['genshin', 'guardian']:
-            data['char']['title'] = ''
-            data['arms']['title'] = ''
-        elif game_name in ['pretty']:
-            data['char']['title'] = ''
-            data['card']['title'] = ''
-        else:
-            data['title'] = ''
+def check_write(data: dict, up_char_file):
+    if not is_expired(data['char']):
+        for x in list(data.keys()):
+            data[x]['title'] = ''
     else:
         with open(up_char_file, 'w', encoding='utf8') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
@@ -58,10 +49,7 @@ def check_write(data: dict, up_char_file, game_name: str = ''):
     else:
         with open(up_char_file, 'r', encoding='utf8') as f:
             old_data = json.load(f)
-            tmp = old_data
-            if game_name in ['genshin', 'pretty', 'guardian']:
-                tmp = old_data['char']
-        if is_expired(tmp):
+        if is_expired(data['char']):
             return old_data
         else:
             with open(up_char_file, 'w', encoding='utf8') as f:
@@ -69,100 +57,104 @@ def check_write(data: dict, up_char_file, game_name: str = ''):
     return data
 
 
-def _get_up_char(r: str, text: str):
-    pr = re.search(r, text)
-    chars = pr.group(1)
-    probability = pr.group(2)
-    chars = chars.replace('[限定]', '').replace('[', '').replace(']', '')
-    probability = probability.replace('【', '')
-    return chars, probability
-
-
 class PrtsAnnouncement:
 
-    @staticmethod
-    async def get_announcement_text():
+    def __init__(self):
+        self.game_name = '明日方舟'
+
+    async def _get_announcement_text(self):
         async with aiohttp.ClientSession(headers=headers) as session:
             async with session.get(prts_url, timeout=7) as res:
                 soup = BeautifulSoup(await res.text(), 'lxml')
-                trs = soup.find('table').find('tbody').find_all('tr')
-                for tr in trs:
-                    a = tr.find_all('td')[-1].find('a')
-                    if a.text.find('寻访') != -1:
-                        url = a.get('href')
-                        break
-            async with session.get(f'https://wiki.biligame.com/{url}', timeout=7) as res:
-                return await res.text(), a.text[:-4]
+                ol = soup.find('ol', {'class': 'articleList active', 'data-category-key': 'LATEST'})
+                for li in ol:
+                    itype = li.find('span', {'class': 'articleItemCate'}).text
+                    if itype == '活动':
+                        a = li.find('a')['href']
+                        async with session.get(f'https://ak.hypergryph.com{a}', headers=headers, timeout=7) as res:
+                            return await res.text()
 
-    @staticmethod
-    async def update_up_char():
+    async def update_up_char(self):
         prts_up_char.parent.mkdir(parents=True, exist_ok=True)
-        data = {'up_char': {'6': {}, '5': {}, '4': {}}, 'title': '', 'time': '', 'pool_img': ''}
         try:
-            text, title = await PrtsAnnouncement.get_announcement_text()
+            data = {'char': {'up_char': {'6': {}, '5': {}, '4': {}}, 'title': '', 'time': '', 'pool_img': ''}}
+            text = await self._get_announcement_text()
             soup = BeautifulSoup(text, 'lxml')
-            data['title'] = title
-            context = soup.find('div', {'id': 'mw-content-text'}).find('div')
-            data['pool_img'] = str(context.find('div', {'class': 'center'}).find('div').find('a').
-                                   find('img').get('srcset')).split(' ')[-2]
-            # print(context.find_all('p'))
-            for p in context.find_all('p')[1:]:
-                if p.text.find('活动时间') != -1:
-                    pr = re.search(r'.*?活动时间：(.*)', p.text)
-                    data['time'] = pr.group(1)
-                elif p.text.find('★★★★★★') != -1:
-                    chars, probability = _get_up_char(r'.*?★★★★★★：(.*?)（.*?出率的?(.*?)%.*?）.*?', p.text)
-                    slt = '/'
-                    if chars.find('\\') != -1:
-                        slt = '\\'
-                    for char in chars.split(slt):
-                        data['up_char']['6'][char.strip()] = probability.strip()
-                elif p.text.find('★★★★★') != -1:
-                    chars, probability = _get_up_char(r'.*?★★★★★：(.*?)（.*?出率的?(.*?)%.*?）.*?', p.text)
-                    slt = '/'
-                    if chars.find('\\') != -1:
-                        slt = '\\'
-                    for char in chars.split(slt):
-                        data['up_char']['5'][char.strip()] = probability.strip()
-                elif p.text.find('★★★★') != -1:
-                    chars, probability = _get_up_char(r'.*?★★★★：(.*?)（.*?出率的?(.*?)%.*?）.*?', p.text)
-                    slt = '/'
-                    if chars.find('\\') != -1:
-                        slt = '\\'
-                    for char in chars.split(slt):
-                        data['up_char']['4'][char.strip()] = probability.strip()
-                    break
-                pr = re.search(r'.*?★：(.*?)（在(.*?)★.*?以(.*?)倍权值.*?）.*?', p.text)
-                if pr:
-                    char = pr.group(1)
-                    star = pr.group(2)
-                    weight = pr.group(3)
-                    char = char.replace('[限定]', '').replace('[', '').replace(']', '')
-                    data['up_char'][star][char.strip()] = f'权{weight}'
-            # data['time'] = '03月09日16:00 - 05月23日03:5
+            content = soup.find('div', {'class': 'article-content'})
+            contents = [x for x in content.contents if x.text or str(x).find('img') != -1]
+            start_index = -1
+            end_index = -1
+            for i in range(len(contents)):
+                if str(contents[i]).startswith('<p>'):
+                    r = re.search('(.*)(寻访|复刻).*?开启', contents[i].text)
+                    if r:
+                        if str(contents[i+3].text).find('★') != -1:
+                            img = contents[i-1].find('img')
+                            if img:
+                                data['char']['pool_img'] = img['src']
+                            start_index = i
+                            for j in range(i, len(contents)):
+                                if str(contents[j]).find('注意') != -1:
+                                    end_index = j
+                                    break
+                            break
+            contents = contents[start_index: end_index]
+            title = contents[0].text
+            data['char']['title'] = title[title.find('【'): title.find('】') + 1]
+            data['char']['time'] = str(contents[1].text).split('：', maxsplit=1)[1]
+            for p in contents[2:]:
+                p = str(p.text)
+                r = None
+                if p.find('★') != -1:
+                    if p.find('权值') == -1:
+                        r = re.search(r'.*?：(.*)（占(.*)★.*?的(.*)%）', p)
+                    else:
+                        r = re.search(r'.*?：(.*)（在(.*)★.*?以(.*)倍权值.*?）', p)
+                    star = r.group(2)
+                if r:
+                    chars = r.group(1)
+                    if chars.find('/') != -1:
+                        chars = chars.strip().split('/')
+                    elif chars.find('\\') != -1:
+                        chars = chars.strip().split('\\')
+                    else:
+                        chars = chars.split('\n')
+                    chars = [x.replace('[限定]', '').strip() for x in chars]
+                    probability = r.group(3)
+                    probability = probability if int(probability) > 10 else f'权{probability}'
+                    for char in chars:
+                        if char.strip():
+                            data['char']['up_char'][star][char.strip()] = probability
         except TimeoutError:
-            print(f'更新明日方舟UP池信息超时...')
-            with open(prts_up_char, 'r', encoding='utf8') as f:
-                data = json.load(f)
+            logger.warning(f'更新明日方舟UP池信息超时...')
+            if prts_up_char.exists():
+                with open(prts_up_char, 'r', encoding='utf8') as f:
+                    data = json.load(f)
+        except Exception as e:
+            logger.error(f'更新明日方舟未知错误 e：{e}')
+            if prts_up_char.exists():
+                with open(prts_up_char, 'r', encoding='utf8') as f:
+                    data = json.load(f)
         return check_write(data, prts_up_char)
 
 
 class GenshinAnnouncement:
 
-    @staticmethod
-    async def get_announcement_text():
+    def __init__(self):
+        self.game_name = '原神'
+
+    async def _get_announcement_text(self):
         async with aiohttp.ClientSession(headers=headers) as session:
             async with session.get(genshin_url, timeout=7) as res:
                 return await res.text()
 
-    @staticmethod
-    async def update_up_char():
+    async def update_up_char(self):
         genshin_up_char.parent.mkdir(exist_ok=True, parents=True)
         data = {
             'char': {'up_char': {'5': {}, '4': {}}, 'title': '', 'time': '', 'pool_img': ''},
             'arms': {'up_char': {'5': {}, '4': {}}, 'title': '', 'time': '', 'pool_img': ''}
         }
-        text = await GenshinAnnouncement.get_announcement_text()
+        text = await self._get_announcement_text()
         soup = BeautifulSoup(text, 'lxml')
         try:
             div = soup.find_all('div', {'class': 'row'})[1]
@@ -194,25 +186,30 @@ class GenshinAnnouncement:
                 for a in trs[3].find('td').find_all('a'):
                     char_name = a['title']
                     data[itype]['up_char']['4'][char_name] = "50"
-        except TimeoutError as e:
+        except TimeoutError:
             logger.warning(f'更新原神UP池信息超时...')
-            with open(genshin_up_char, 'r', encoding='utf8') as f:
-                data = json.load(f)
+            if genshin_up_char.exists():
+                with open(genshin_up_char, 'r', encoding='utf8') as f:
+                    data = json.load(f)
         except Exception as e:
-            print(f'更新原神UP失败，疑似UP池已结束， e：{e}')
-            with open(genshin_up_char, 'r', encoding='utf8') as f:
-                data = json.load(f)
-                data['char']['title'] = ''
-                data['arms']['title'] = ''
-            with open(genshin_up_char, 'w', encoding='utf8') as wf:
-                json.dump(data, wf, ensure_ascii=False, indent=4)
-            return data
-        return check_write(data, genshin_up_char, 'genshin')
+            logger.error(f'更新原神UP失败，疑似UP池已结束， e：{e}')
+            if genshin_up_char.exists():
+                with open(genshin_up_char, 'r', encoding='utf8') as f:
+                    data = json.load(f)
+                    data['char']['title'] = ''
+                    data['arms']['title'] = ''
+                with open(genshin_up_char, 'w', encoding='utf8') as wf:
+                    json.dump(data, wf, ensure_ascii=False, indent=4)
+                return data
+        return check_write(data, genshin_up_char)
 
 
 class PrettyAnnouncement:
-    @staticmethod
-    async def get_announcement_text():
+
+    def __init__(self):
+        self.game_name = '赛马娘'
+
+    async def _get_announcement_text(self):
         async with aiohttp.ClientSession(headers=headers) as session:
             async with session.get(pretty_url, timeout=7) as res:
                 soup = BeautifulSoup(await res.text(), 'lxml')
@@ -229,14 +226,13 @@ class PrettyAnnouncement:
             async with session.get(f'https://wiki.biligame.com/{url}', timeout=7) as res:
                 return await res.text(), title[:-2]
 
-    @staticmethod
-    async def update_up_char():
+    async def update_up_char(self):
         data = {
             'char': {'up_char': {'3': {}, '2': {}, '1': {}}, 'title': '', 'time': '', 'pool_img': ''},
             'card': {'up_char': {'3': {}, '2': {}, '1': {}}, 'title': '', 'time': '', 'pool_img': ''}
         }
         try:
-            text, title = await PrettyAnnouncement.get_announcement_text()
+            text, title = await self._get_announcement_text()
             soup = BeautifulSoup(text, 'lxml')
             context = soup.find('div', {'class': 'toc-sticky'})
             if not context:
@@ -299,26 +295,30 @@ class PrettyAnnouncement:
                 with open(pretty_up_char, 'r', encoding='utf8') as f:
                     data = json.load(f)
         except Exception as e:
-            logger.error(f'赛马娘up更新失败 {type(e)}：{e}')
-        return check_write(data, pretty_up_char, 'pretty')
+            logger.error(f'赛马娘up更新未知错误 {type(e)}：{e}')
+            if pretty_up_char.exists():
+                with open(pretty_up_char, 'r', encoding='utf8') as f:
+                    data = json.load(f)
+        return check_write(data, pretty_up_char)
 
 
 class GuardianAnnouncement:
 
-    @staticmethod
-    async def get_announcement_text():
+    def __init__(self):
+        self.game_name = '坎公骑冠剑'
+
+    async def _get_announcement_text(self):
         async with aiohttp.ClientSession(headers=headers) as session:
             async with session.get(guardian_url, timeout=7) as res:
                 return await res.text()
 
-    @staticmethod
-    async def update_up_char():
+    async def update_up_char(self):
         data = {
             'char': {'up_char': {'3': {}}, 'title': '', 'time': '', 'pool_img': ''},
             'arms': {'up_char': {'5': {}}, 'title': '', 'time': '', 'pool_img': ''}
         }
         try:
-            text = await GuardianAnnouncement.get_announcement_text()
+            text = await self._get_announcement_text()
             soup = BeautifulSoup(text, 'lxml')
             context = soup.select('div.col-sm-3:nth-child(3) > div:nth-child(2) > div:nth-child(1) '
                                   '> div:nth-child(2) > div:nth-child(3) > font:nth-child(1)')[0]
@@ -346,16 +346,17 @@ class GuardianAnnouncement:
                     end_idx = index
                     break
                 index += 1
-            for x in divs[start_idx+1: end_idx]:
+            for x in divs[start_idx + 1: end_idx]:
                 name = x.find('p').find_all('a')[-1].text
                 data['char']['up_char']['3'][name] = '0'
-            for x in divs[end_idx+1:]:
+            for x in divs[end_idx + 1:]:
                 name = x.find('p').find_all('a')[-1].text
                 data['arms']['up_char']['5'][name] = '0'
         except TimeoutError:
-            print(f'更新坎公骑冠剑UP池信息超时...')
-            with open(pretty_up_char, 'r', encoding='utf8') as f:
-                data = json.load(f)
+            logger.warning(f'更新坎公骑冠剑UP池信息超时...')
+            if guardian_up_char.exists():
+                with open(guardian_up_char, 'r', encoding='utf8') as f:
+                    data = json.load(f)
         except Exception as e:
-            print(f'坎公骑冠剑up更新失败 {type(e)}：{e}')
-        return check_write(data, guardian_up_char, 'guardian')
+            logger.error(f'坎公骑冠剑up更新未知错误 {type(e)}：{e}')
+        return check_write(data, guardian_up_char)

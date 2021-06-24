@@ -1,4 +1,4 @@
-from .data_source import dataGet, dataProcess
+from .music_163 import dataGet, dataProcess, get_music_id
 from nonebot.adapters import Bot, Event
 from nonebot.typing import T_State
 from nonebot import on_command
@@ -15,9 +15,6 @@ songpicker = on_command("点歌", priority=5, block=True)
 @songpicker.handle()
 async def handle_first_receive(bot: Bot, event: Event, state: T_State):
     args = str(event.get_message()).strip()
-    # if args.isdigit():
-    #     if "songName" in state:
-    #         state["songNum"] = int(args)
     if args:
         state["songName"] = args
 
@@ -27,34 +24,20 @@ async def handle_songName(bot: Bot, event: Event, state: T_State):
     songName = state["songName"]
     songIdList = await dataget.songIds(songName=songName)
     if not songIdList:
-        await songpicker.reject("没有找到这首歌，请发送其它歌名！")
-    songInfoList = list()
-    for songId in songIdList:
-        songInfoDict = await dataget.songInfo(songId)
-        if songInfoDict == '网易云网络繁忙！':
-            await songpicker.finish('网易云网络繁忙！')
-        songInfoList.append(songInfoDict)
-    # songInfoMessage = await dataProcess.mergeSongInfo(songInfoList)
-    # await songpicker.send(songInfoMessage)
+        await songpicker.finish("没有找到这首歌！", at_sender=True)
+    for _ in range(3):
+        songInfoDict = await dataget.songInfo(songIdList[0])
+        if songInfoDict != '网易云网络繁忙！':
+            break
+    else:
+        await songpicker.finish("网易云繁忙...")
     state["songIdList"] = songIdList
 
 
 @songpicker.got("songName")
 async def handle_songNum(bot: Bot, event: Event, state: T_State):
     songIdList = state["songIdList"]
-    # songNum = state["songNum"]
-    songNum = 0
-    # 处理重选
-    # if not songNum.isdigit():
-    #     await songpicker.finish()
-    # else:
-    #     songNum = int(songNum)
-    #
-    # if songNum >= len(songIdList) or songNum < 0:
-    #     await songpicker.reject("数字序号错误")
-
-    selectedSongId = songIdList[int(songNum)]
-
+    selectedSongId = songIdList[0]
     songContent = [
         {
             "type": "music",
@@ -66,21 +49,3 @@ async def handle_songNum(bot: Bot, event: Event, state: T_State):
     ]
     await songpicker.send(songContent)
 
-    # songCommentsDict = await dataget.songComments(songId=selectedSongId)
-    # songCommentsMessage = await dataProcess.mergeSongComments(songCommentsDict)
-    # commentContent = [
-    #     {
-    #         "type": "text",
-    #         "data": {
-    #             "text": "下面为您播送热评：\n"
-    #         }
-    #     },
-    #     {
-    #         "type": "text",
-    #         "data": {
-    #             "text": songCommentsMessage
-    #         }
-    #     }
-    # ]
-    #
-    # await songpicker.send(commentContent)
