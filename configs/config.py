@@ -1,6 +1,6 @@
 from .utils.util import get_config_data
-from typing import List
-from services.service_config import TL_M_KEY, SYSTEM_PROXY, ALAPI_TOKEN
+from typing import List, Union
+from services.service_config import TL_M_KEY, SYSTEM_PROXY, ALAPI_M_TOKEN
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -90,8 +90,8 @@ MUTE_LEVEL: int = 5                 # 更改禁言设置权限
 UPDATE_GOCQ_GROUP: List[int] = []
 
 # 代理
-system_proxy: str = ''
-buff_proxy: str = ''
+system_proxy: Union[str, None] = None
+buff_proxy: Union[str, None] = None
 
 # 是否存储色图
 DOWNLOAD_SETU: bool = True
@@ -201,8 +201,8 @@ if TL_M_KEY:
     TL_KEY = TL_M_KEY
 if SYSTEM_PROXY:
     system_proxy = SYSTEM_PROXY
-if ALAPI_TOKEN:
-    ALAPI_TOKEN = ALAPI_TOKEN
+if ALAPI_M_TOKEN:
+    ALAPI_TOKEN = ALAPI_M_TOKEN
 
 
 # 配置文件应用
