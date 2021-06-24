@@ -137,7 +137,10 @@ plugins2name_dict = {
     'qiu_qiu_translation': ['丘丘翻译', '丘丘一下', '丘丘语翻译'],
     'query_resource_points': ['原神资源查询', '原神资源列表'],
     'russian': ['俄罗斯轮盘', '俄罗斯转盘', '装弹'],
-    'gold_redbag': ['塞红包', '红包', '抢红包']
+    'gold_redbag': ['塞红包', '红包', '抢红包'],
+    'poetry': ['念诗', '来首诗', '念首诗'],
+    'comments_163': ['到点了', '12点了', '网易云热评', '网易云评论'],
+    'cover': ['b封面'],
 }
 
 # 功能所需的群权限
@@ -177,7 +180,10 @@ plugins2level_dict = {
     'qiu_qiu_translation': 5,
     'query_resource_points': 5,
     'russian': 5,
-    'gold_redbag': 5
+    'gold_redbag': 5,
+    'poetry': 5,
+    'comments_163': 5,
+    'cover': 5,
 }
 
 # 群管理员功能 与 对应权限
