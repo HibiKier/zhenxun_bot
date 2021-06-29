@@ -17,7 +17,7 @@
 此项目仅用于学习交流，请勿用于非法用途
 
 ## 真寻的帮助
-请对真寻说: '真寻帮助' or '管理员帮助' or '超级用户帮助' or '对应指令 帮助'
+请对真寻说: '真寻帮助' or '管理员帮助' or '超级用户帮助' or '真寻帮助 指令'
 
 
 ## 功能列表
@@ -39,7 +39,7 @@
 - [x] 鲁迅说过
 - [x] 构造假消息（自定义的分享链接）
 - [x] 商店/我的金币/购买道具/使用道具
-- [x] 8种手游抽卡
+- [x] 8种手游抽卡 (查看 [nonebot_plugin_gamedraw](https://github.com/HibiKier/nonebot_plugin_gamedraw))
 - [x] 我有一个朋友想问问..（pcrbot插件..重构）
 - [x] 原神黄历  (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
 - [x] 原神今日素材/天赋材料 (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
