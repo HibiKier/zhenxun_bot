@@ -5,7 +5,7 @@ from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 from configs.config import IMAGE_DIR_LIST
-from util.utils import is_number, cn2py
+from utils.utils import is_number, cn2py
 from configs.path_config import IMAGE_PATH
 
 

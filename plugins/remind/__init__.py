@@ -1,5 +1,5 @@
-from util.init_result import image
-from util.utils import scheduler, get_bot
+from utils.init_result import image
+from utils.utils import scheduler, get_bot
 from services.log import logger
 from models.group_remind import GroupRemind
 from models.group_info import GroupInfo

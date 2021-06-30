@@ -5,8 +5,8 @@ from .data_source import check_gold, generate_send_redbag_pic, open_redbag, gene
 from nonebot.adapters.cqhttp.permission import GROUP
 from nonebot.message import run_preprocessor, IgnoredException
 from nonebot.matcher import Matcher
-from util.utils import get_message_text, is_number, scheduler
-from util.init_result import image
+from utils.utils import get_message_text, is_number, scheduler
+from utils.init_result import image
 from services.log import logger
 from nonebot.permission import SUPERUSER
 from nonebot.rule import to_me

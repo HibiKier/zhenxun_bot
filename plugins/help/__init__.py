@@ -3,11 +3,11 @@ from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, PrivateMessageEvent
 from nonebot.typing import T_State
 from nonebot.rule import to_me
 from configs.path_config import DATA_PATH
-from util.init_result import image
+from utils.init_result import image
 import os
 from .data_source import create_help_img, create_group_help_img, get_plugin_help
 from nonebot import require
-from util.utils import get_message_text
+from utils.utils import get_message_text
 
 
 export = require("nonebot_plugin_manager")

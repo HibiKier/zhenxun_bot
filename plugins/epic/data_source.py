@@ -1,11 +1,11 @@
 import aiohttp
 import aiofiles
-from util.utils import get_local_proxy
+from utils.utils import get_local_proxy
 import feedparser
 import platform
-from util.init_result import image
+from utils.init_result import image
 from configs.path_config import IMAGE_PATH
-from util.user_agent import get_user_agent
+from utils.user_agent import get_user_agent
 if platform.system() == 'Windows':
     import asyncio
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())

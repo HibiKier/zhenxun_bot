@@ -3,9 +3,9 @@ from .data_source import get_anime
 from nonebot import on_command
 from nonebot.typing import T_State
 from nonebot.adapters import Bot, Event
-from util.utils import get_message_imgs
+from utils.utils import get_message_imgs
 from services.log import logger
-from util.utils import UserExistLimiter
+from utils.utils import UserExistLimiter
 
 
 __plugin_name__ = '识番'

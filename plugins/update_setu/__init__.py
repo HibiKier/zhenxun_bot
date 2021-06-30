@@ -1,4 +1,4 @@
-from util.utils import scheduler
+from utils.utils import scheduler
 from nonebot import on_command
 from nonebot.permission import SUPERUSER
 from nonebot.typing import T_State

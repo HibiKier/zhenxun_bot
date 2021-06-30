@@ -4,7 +4,7 @@ from services.log import logger
 from nonebot.adapters.cqhttp import Bot, Event
 from nonebot.typing import T_State
 from configs.config import MAXINFO_GROUP_ANIME, MAXINFO_PRIVATE_ANIME
-from util.utils import get_message_text, get_message_type, UserExistLimiter
+from utils.utils import get_message_text, get_message_type, UserExistLimiter
 
 
 __plugin_name__ = '搜番'

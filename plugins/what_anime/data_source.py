@@ -1,9 +1,9 @@
 
 import time
 from services.log import logger
-from util.langconv import *
+from utils.langconv import *
 import aiohttp
-from util.user_agent import get_user_agent
+from utils.user_agent import get_user_agent
 
 
 async def get_anime(anime: str) -> str:

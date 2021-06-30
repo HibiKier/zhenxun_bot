@@ -1,13 +1,13 @@
 from configs.path_config import IMAGE_PATH, TEMP_PATH
 import os
-from util.init_result import image
+from utils.init_result import image
 from services.log import logger
 from nonebot import on_command
 from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot.adapters import Bot, Event
 from configs.config import IMAGE_DIR_LIST
-from util.utils import is_number, cn2py
+from utils.utils import is_number, cn2py
 
 __plugin_name__ = '删除图片'
 __plugin_usage__ = '删除图片帮助：\n\t' \

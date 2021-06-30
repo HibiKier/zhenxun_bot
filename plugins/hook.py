@@ -4,8 +4,8 @@ from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, PrivateMessageEvent, GroupMessageEvent
 from configs.config import BAN_RESULT, admin_plugins_auth, MALICIOUS_BAN_TIME, MALICIOUS_CHECK_TIME, MALICIOUS_BAN_COUNT
 from models.ban_user import BanUser
-from util.utils import is_number, static_flmt, BanCheckLimiter
-from util.init_result import at
+from utils.utils import is_number, static_flmt, BanCheckLimiter
+from utils.init_result import at
 from services.log import logger
 from models.level_user import LevelUser
 try:
@@ -17,6 +17,8 @@ except ModuleNotFoundError:
 # 检查是否被ban
 @run_preprocessor
 async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
+    if not isinstance(event, MessageEvent):
+        return
     if matcher.type == 'message' and matcher.priority not in [1, 9]:
         if await BanUser.isban(event.user_id) and str(event.user_id) not in bot.config.superusers:
             time = await BanUser.check_ban_time(event.user_id)
@@ -51,6 +53,8 @@ _blmt = BanCheckLimiter(MALICIOUS_CHECK_TIME, MALICIOUS_BAN_COUNT)
 # 恶意触发命令检测
 @run_preprocessor
 async def _(matcher: Matcher, bot: Bot, event: GroupMessageEvent, state: T_State):
+    if not isinstance(event, MessageEvent):
+        return
     if matcher.type == 'message' and matcher.priority not in [1, 9]:
         if state["_prefix"]["raw_command"]:
             # print(state["_prefix"]["raw_command"])
@@ -77,6 +81,8 @@ async def _(matcher: Matcher, bot: Bot, event: GroupMessageEvent, state: T_State
 # 权限检测
 @run_preprocessor
 async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
+    if not isinstance(event, MessageEvent):
+        return
     if await BanUser.isban(event.user_id):
         return
     if matcher.module in admin_plugins_auth.keys() and matcher.priority not in [1, 9]:

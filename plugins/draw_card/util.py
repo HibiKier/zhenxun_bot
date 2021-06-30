@@ -10,7 +10,7 @@ from .config import path_dict
 from configs.path_config import IMAGE_PATH
 import nonebot
 import pypinyin
-from util.img_utils import CreateImg
+from utils.img_utils import CreateImg
 import platform
 from services.log import logger
 import random

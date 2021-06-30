@@ -1,10 +1,10 @@
 from datetime import datetime
 import aiohttp
-from util.user_agent import get_user_agent
+from utils.user_agent import get_user_agent
 import json
 import os
 from configs.path_config import TXT_PATH
-from util.utils import get_local_proxy
+from utils.utils import get_local_proxy
 
 
 url = "https://api.yimian.xyz/coro/"

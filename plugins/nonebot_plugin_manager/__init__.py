@@ -3,8 +3,9 @@ from nonebot.matcher import Matcher
 from nonebot.typing import T_State
 from nonebot.exception import IgnoredException
 from nonebot.message import run_preprocessor
-from nonebot.adapters.cqhttp import Event, Bot, GroupMessageEvent, PrivateMessageEvent
-from configs.config import plugins2name_dict
+from nonebot.adapters.cqhttp import Event, Bot, GroupMessageEvent, PrivateMessageEvent, MessageEvent
+from configs.config import plugins2info_dict
+from utils.utils import FreqLimiter
 from models.ban_user import BanUser
 from .data import (
     block_plugin,
@@ -24,17 +25,21 @@ export.get_group_plugin_list = get_group_plugin_list
 # 注册 shell_like 事件响应器
 plugin_manager = on_shell_command("npm", parser=npm_parser, priority=1)
 
+flmt = FreqLimiter(60)
+
 
 # 在 Matcher 运行前检测其是否启用
 @run_preprocessor
 async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
+    if not isinstance(event, MessageEvent):
+        return
     plugin = matcher.module
     group_id = _get_group_id(event)
     loaded_plugin_list = _get_loaded_plugin_list()
     plugin_list = auto_update_plugin_list(loaded_plugin_list)
 
     # 无视本插件的 Matcher
-    if plugin not in plugins2name_dict or matcher.priority in [1, 9] or await BanUser.isban(event.user_id):
+    if plugin not in plugins2info_dict or matcher.priority in [1, 9] or await BanUser.isban(event.user_id):
         return
     try:
         if isinstance(event, PrivateMessageEvent) and plugin_list[plugin]["default"]:
@@ -47,8 +52,12 @@ async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
     # print(f'{matcher.module} -> this is hook')
     if not plugin_list[plugin]["default"]:
         if event.message_type == 'group':
-            await bot.send_group_msg(group_id=event.group_id, message='此功能正在维护...')
+            if flmt.check(event.group):
+                flmt.start_cd(event.group)
+                await bot.send_group_msg(group_id=event.group_id, message='此功能正在维护...')
         else:
+            if flmt.check(event.user_id):
+                flmt.start_cd(event.user_id)
             await bot.send_private_msg(user_id=event.user_id, message='此功能正在维护...')
         raise IgnoredException(f"Nonebot Plugin Manager has blocked {plugin} !")
     # print(plugin_list[plugin])
@@ -58,7 +67,9 @@ async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
     if group_id in plugin_list[plugin]:
         if not plugin_list[plugin][group_id]:
             if plugin != 'ai' and matcher.type == 'message':
-                await bot.send_group_msg(group_id=event.group_id, message='该群未开启此功能..')
+                if flmt.check(event.group):
+                    flmt.start_cd(event.group)
+                    await bot.send_group_msg(group_id=event.group_id, message='该群未开启此功能..')
             raise IgnoredException(f"Nonebot Plugin Manager has blocked {plugin} !")
 
 

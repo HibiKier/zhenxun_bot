@@ -17,7 +17,7 @@ from .config import PRTS_FLAG, PRETTY_FLAG, GUARDIAN_FLAG, GENSHIN_FLAG, PCR_FLA
 from .async_update_game_info import async_update_game
 import re
 import asyncio
-from util.utils import scheduler
+from utils.utils import scheduler
 from services.log import logger
 
 __plugin_name__ = '游戏抽卡'

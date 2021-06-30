@@ -4,9 +4,9 @@ from services.log import logger
 from nonebot.typing import T_State
 from nonebot.adapters import Bot
 from nonebot.adapters.cqhttp import PrivateMessageEvent
-from util.utils import get_message_text
+from utils.utils import get_message_text
 from nonebot.adapters.cqhttp.permission import PRIVATE
-from util.utils import UserExistLimiter
+from utils.utils import UserExistLimiter
 from asyncio.exceptions import TimeoutError
 from aiohttp.client_exceptions import ServerDisconnectedError
 

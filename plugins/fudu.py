@@ -1,10 +1,10 @@
 from nonebot.adapters.cqhttp.permission import GROUP
 from configs.path_config import IMAGE_PATH
-from util.img_utils import get_img_hash
+from utils.img_utils import get_img_hash
 import random
-from util.init_result import image
+from utils.init_result import image
 from nonebot import on_message
-from util.utils import get_message_text, get_message_imgs, get_local_proxy
+from utils.utils import get_message_text, get_message_imgs, get_local_proxy
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 import aiohttp

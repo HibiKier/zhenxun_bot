@@ -3,7 +3,7 @@ from nonebot import on_command, on_regex
 from nonebot.permission import SUPERUSER
 from services.log import logger
 from models.sigin_group_user import SignGroupUser
-from util.utils import FreqLimiter, UserExistLimiter, is_number, get_message_text, get_message_imgs
+from utils.utils import FreqLimiter, UserExistLimiter, is_number, get_message_text, get_message_imgs
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent, PrivateMessageEvent
 from .data_source import get_setu, get_luoxiang, search_online_setu, get_setu_urls, \
@@ -154,6 +154,7 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
             urls, text_list, code = await get_setu_urls(keyword, num, r18=r18)
         except ClientConnectorError:
             await UserCount.add_count(event.user_id, 'setu_r18', count=-1)
+            _ulmt.set_False(event.user_id)
             await setu.finish('网络失败了..别担心！这次搜索不算数喔', at_sender=True)
         else:
             count = 0

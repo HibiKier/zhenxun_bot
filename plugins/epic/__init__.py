@@ -2,7 +2,7 @@ from nonebot import on_command
 from services.log import logger
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 from nonebot.typing import T_State
-from util.utils import scheduler, get_bot
+from utils.utils import scheduler, get_bot
 from .data_source import get_epic_game
 from models.group_remind import GroupRemind
 from nonebot.adapters.cqhttp.exception import ActionFailed

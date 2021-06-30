@@ -2,11 +2,11 @@
 import io
 from typing import List, Tuple, Union
 import aiofiles
-from util.utils import get_local_proxy
-from util.user_agent import get_user_agent
+from utils.utils import get_local_proxy
+from utils.user_agent import get_user_agent
 from configs.path_config import IMAGE_PATH
 from asyncio.exceptions import TimeoutError
-from util.init_result import image
+from utils.init_result import image
 
 import aiohttp
 from lxml.html import fromstring

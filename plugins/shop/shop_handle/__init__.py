@@ -2,10 +2,10 @@ from nonebot import on_command
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent
 from nonebot.typing import T_State
 from configs.path_config import IMAGE_PATH
-from util.init_result import image
+from utils.init_result import image
 from .data_source import create_shop_help, add_goods, del_goods, update_goods
 from nonebot.permission import SUPERUSER
-from util.utils import get_message_text, is_number
+from utils.utils import get_message_text, is_number
 from services.log import logger
 import os
 import time

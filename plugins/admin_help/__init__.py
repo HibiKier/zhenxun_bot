@@ -2,9 +2,9 @@ from nonebot import on_command
 from nonebot.typing import T_State
 from nonebot.adapters import Bot
 from nonebot.adapters.cqhttp import GroupMessageEvent
-from util.img_utils import CreateImg
+from utils.img_utils import CreateImg
 from configs.path_config import IMAGE_PATH
-from util.init_result import image
+from utils.init_result import image
 
 
 __plugin_name__ = '管理帮助 [Hidden]'
@@ -16,10 +16,14 @@ __plugin_usage__ = '''管理帮助(权限等级)：
     5.将用户拉入真寻黑名单 --> .ban/.unban(5)
     6.刷屏禁言相关 --> 指令:刷屏检测设置/设置检测时间
                         \t\t/设置检测次数/设置禁言时长(5)
-    7.上传图片(6) 
-    8.移动图片(7)
-    9.删除图片(7)
-对我说 “指令名 帮助” 获取对应详细帮助
+    7.群员活跃度相关 --> 指令:群员活跃检测设置
+                           设置群员活跃检测时长(天)
+                           添加群员活跃检测白名单[at]...
+                           查看群员活跃检测白名单(5)
+    8.上传图片(6) 
+    9.移动图片(7)
+    10.删除图片(7)
+对我说 “真寻帮助 指令” 获取对应详细帮助
 群主与管理员默认 5 级权限
 '''
 

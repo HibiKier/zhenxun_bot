@@ -2,10 +2,10 @@ from nonebot import on_command
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, Message
 from nonebot.permission import SUPERUSER
-from util.utils import get_message_text, is_number, get_message_imgs
-from util.init_result import image
+from utils.utils import get_message_text, is_number, get_message_imgs
+from utils.init_result import image
 from services.log import logger
-from util.init_result import at
+from utils.init_result import at
 
 
 __plugin_name__ = '联系管理员'

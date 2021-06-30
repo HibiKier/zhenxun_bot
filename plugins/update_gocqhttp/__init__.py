@@ -5,7 +5,7 @@ from .data_source import download_gocq_lasted, upload_gocq_lasted
 import os
 from nonebot.adapters.cqhttp.permission import GROUP
 from services.log import logger
-from util.utils import scheduler, get_bot, UserExistLimiter
+from utils.utils import scheduler, get_bot, UserExistLimiter
 from configs.config import UPDATE_GOCQ_GROUP
 from pathlib import Path
 

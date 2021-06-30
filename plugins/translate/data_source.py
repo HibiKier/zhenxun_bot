@@ -1,6 +1,6 @@
 import aiohttp
-from util.utils import get_local_proxy
-from util.user_agent import get_user_agent
+from utils.utils import get_local_proxy
+from utils.user_agent import get_user_agent
 
 url = f'http://fanyi.youdao.com/translate?smartresult=dict&smartresult=rule&smartresult=ugc&sessionFrom=null'
 

@@ -1,4 +1,4 @@
-from util.utils import scheduler
+from utils.utils import scheduler
 from models.bag_user import BagUser
 from services.log import logger
 

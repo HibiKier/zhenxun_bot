@@ -49,7 +49,7 @@ def check_write(data: dict, up_char_file):
     else:
         with open(up_char_file, 'r', encoding='utf8') as f:
             old_data = json.load(f)
-        if is_expired(data['char']):
+        if is_expired(old_data['char']):
             return old_data
         else:
             with open(up_char_file, 'w', encoding='utf8') as f:
@@ -239,14 +239,32 @@ class PrettyAnnouncement:
                 context = soup.find('div', {'class': 'mw-parser-output'})
             data['char']['title'] = title
             data['card']['title'] = title
-            time = str(context.find_all('big')[1].text)
+            for big in context.find_all('big'):
+                r = re.search(r'\d{1,2}/\d{1,2} \d{1,2}:\d{1,2}', str(big.text))
+                if r:
+                    time = str(big.text)
+                    break
+            else:
+                logger.error('赛马娘UP无法找到活动日期....取消更新UP池子...')
+                return
+                # raise Exception('赛马娘UP无法找到活动日期....')
             time = time.replace('～', '-').replace('/', '月').split(' ')
             time = time[0] + '日 ' + time[1] + ' - ' + time[3] + '日 ' + time[4]
             data['char']['time'] = time
             data['card']['time'] = time
             for p in context.find_all('p'):
-                if str(p).find('当期UP赛马娘') != -1:
-                    data['char']['pool_img'] = p.find('img')['src']
+                if str(p).find('当期UP赛马娘') != -1 and str(p).find('■') != -1:
+                    if not data['char']['pool_img']:
+                        try:
+                            data['char']['pool_img'] = p.find('img')['src']
+                        except TypeError:
+                            for center in context.find_all('center'):
+                                try:
+                                    img = center.find('img')
+                                    if img and str(img['alt']).find('新马娘') != -1 and str(img['alt']).find('总览') == 1:
+                                        data['char']['pool_img'] = img['src']
+                                except (TypeError, KeyError):
+                                    pass
                     r = re.findall(r'.*?当期UP赛马娘([\s\S]*)＜奖励内容＞.*?', str(p))
                     if r:
                         for x in r:
@@ -261,8 +279,19 @@ class PrettyAnnouncement:
                                         data['char']['up_char']['2'][char_name] = '70'
                                     elif star == 1:
                                         data['char']['up_char']['1'][char_name] = '70'
-                if str(p).find('（当期UP对象）') != -1 and str(p).find('赛马娘') == -1:
-                    data['card']['pool_img'] = p.find('img')['src']
+                if str(p).find('（当期UP对象）') != -1 and str(p).find('赛马娘') == -1 and str(p).find('■') != -1:
+                    # data['card']['pool_img'] = p.find('img')['src']
+                    if not data['char']['pool_img']:
+                        try:
+                            data['char']['pool_img'] = p.find('img')['src']
+                        except TypeError:
+                            for center in context.find_all('center'):
+                                try:
+                                    img = center.find('img')
+                                    if img and str(img['alt']).find('新卡') != -1 and str(img['alt']).find('总览') == 1:
+                                        data['card']['pool_img'] = img['src']
+                                except (TypeError, KeyError):
+                                    pass
                     r = re.search(r'■全?新?支援卡（当期UP对象）([\s\S]*)</p>', str(p))
                     if r:
                         rmsg = r.group(1).strip()

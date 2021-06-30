@@ -2,7 +2,7 @@ from .qiu_translation import qiu_qiu_word_translation, qiu_qiu_phrase_translatio
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 from nonebot.typing import T_State
 from nonebot import on_command
-from util.utils import get_message_text
+from utils.utils import get_message_text
 from services.log import logger
 
 __plugin_name__ = '丘丘语翻译'

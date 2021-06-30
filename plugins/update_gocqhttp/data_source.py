@@ -1,6 +1,6 @@
 import aiohttp
-from util.utils import get_local_proxy, get_bot
-from util.user_agent import get_user_agent
+from utils.utils import get_local_proxy, get_bot
+from utils.user_agent import get_user_agent
 import asyncio
 import platform
 import aiofiles

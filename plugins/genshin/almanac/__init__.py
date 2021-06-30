@@ -1,11 +1,11 @@
 from .alc import get_almanac_base64_str, load_data
 import os
-from util.utils import get_bot, scheduler
+from utils.utils import get_bot, scheduler
 from nonebot import on_command
 from models.level_user import LevelUser
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from util.init_result import image
+from utils.init_result import image
 from services.log import logger
 from models.group_remind import GroupRemind
 

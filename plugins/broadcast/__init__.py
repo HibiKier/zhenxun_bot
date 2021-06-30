@@ -3,10 +3,10 @@ from nonebot.typing import T_State
 from nonebot.adapters import Bot, Event
 from nonebot.permission import SUPERUSER
 import asyncio
-from util.utils import get_message_text, get_message_imgs
+from utils.utils import get_message_text, get_message_imgs
 from services.log import logger
 from models.group_remind import GroupRemind
-from util.init_result import image
+from utils.init_result import image
 
 __plugin_name__ = "广播 [Hidden]"
 

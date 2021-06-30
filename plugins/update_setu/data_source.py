@@ -1,10 +1,10 @@
 from configs.path_config import IMAGE_PATH, TXT_PATH
 import os
-from util.user_agent import get_user_agent
+from utils.user_agent import get_user_agent
 from services.log import logger
 from datetime import datetime
-from util.img_utils import rar_imgs, get_img_hash
-from util.utils import get_bot, get_local_proxy
+from utils.img_utils import rar_imgs, get_img_hash
+from utils.utils import get_bot, get_local_proxy
 from asyncio.exceptions import TimeoutError
 import aiofiles
 import aiohttp

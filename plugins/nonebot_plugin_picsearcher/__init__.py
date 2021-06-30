@@ -7,7 +7,7 @@ from nonebot.plugin import on_command, on_message
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from services.log import logger
-from util.utils import get_message_text, get_message_imgs
+from utils.utils import get_message_text, get_message_imgs
 from configs.config import MAX_FIND_IMG_COUNT
 from nonebot.rule import to_me
 

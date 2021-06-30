@@ -4,12 +4,12 @@ from models.level_user import LevelUser
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, Event, MessageEvent, Message
 from nonebot.rule import to_me
-from util.utils import get_message_at, get_message_text, is_number, get_bot
+from utils.utils import get_message_at, get_message_text, is_number, get_bot
 from services.log import logger
 from .data_source import open_remind, close_remind
 from models.group_info import GroupInfo
 from models.friend_user import FriendUser
-from util.init_result import at
+from utils.init_result import at
 
 
 __plugin_name__ = '超级用户指令 [Hidden]'
@@ -65,8 +65,9 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         if flag == 2:
             await super_cmd.send(result)
         elif flag == 1:
-            await bot.send_group_msg(group_id=group_id, message=Message(f'{at(qq)}管理员已为你修改'
+            await bot.send_group_msg(group_id=group_id, message=Message(f'{at(qq)}管理员修改了你的权限'
                                                                         f'权限\n--------\n你当前的权限等级：{level}'))
+            await super_cmd.send('修改成功')
     except Exception as e:
         await super_cmd.send("执行指令失败!")
         logger.error(f'执行指令失败 e{e}')

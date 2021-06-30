@@ -4,7 +4,7 @@ from .data_source import from_reimu_get_info
 from services.log import logger
 from nonebot.adapters.cqhttp import Bot, Event
 from nonebot.typing import T_State
-from util.utils import is_number, get_message_text, UserExistLimiter, scheduler
+from utils.utils import is_number, get_message_text, UserExistLimiter, scheduler
 from models.count_user import UserCount
 from configs.config import COUNT_PER_DAY_REIMU
 

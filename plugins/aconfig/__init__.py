@@ -1,14 +1,14 @@
 import random
 from nonebot import on_keyword
 import os
-from util.init_result import image
+from utils.init_result import image
 from configs.path_config import IMAGE_PATH
 from nonebot import on_command
 from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent
 from nonebot.adapters.cqhttp.permission import GROUP
-from util.utils import FreqLimiter
+from utils.utils import FreqLimiter
 
 
 __plugin_name__ = '基本设置 [Hidden]'

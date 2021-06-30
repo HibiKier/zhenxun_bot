@@ -1,5 +1,5 @@
 from configs.path_config import DATA_PATH
-from util.utils import get_bot
+from utils.utils import get_bot
 from models.group_remind import GroupRemind
 from datetime import datetime
 import time

@@ -1,8 +1,8 @@
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 from nonebot import on_command
-from util.utils import get_message_imgs, get_message_text
-from util.init_result import share
+from utils.utils import get_message_imgs, get_message_text
+from utils.init_result import share
 from services.log import logger
 
 

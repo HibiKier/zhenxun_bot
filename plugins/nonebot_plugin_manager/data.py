@@ -1,7 +1,7 @@
 import json
 import httpx
 from pathlib import Path
-from configs.config import plugins2name_dict
+from configs.config import plugins2info_dict
 
 _DATA_PATH = Path() / "data" / "manager" / "plugin_list.json"
 
@@ -80,9 +80,9 @@ def _update_plugin_list(group_id: str, block: bool, *plugins: str) -> str:
     message = "结果如下："
     operate = "屏蔽" if block else "启用"
     for plugin in plugins:
-        for values in plugins2name_dict.values():
-            if plugin in values:
-                plugin = list(plugins2name_dict.keys())[list(plugins2name_dict.values()).index(values)]
+        for values in plugins2info_dict.values():
+            if plugin in values['cmd']:
+                plugin = list(plugins2info_dict.keys())[list(plugins2info_dict.values()).index(values)]
                 # print(plugin)
                 break
         message += "\n"

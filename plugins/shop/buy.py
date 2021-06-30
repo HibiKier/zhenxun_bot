@@ -2,7 +2,7 @@ from nonebot import on_command
 from services.log import logger
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from nonebot.typing import T_State
-from util.utils import get_message_text, is_number
+from utils.utils import get_message_text, is_number
 from models.bag_user import BagUser
 from services.db_context import db
 from nonebot.adapters.cqhttp.permission import GROUP

@@ -3,8 +3,8 @@ from services.log import logger
 from nonebot import on_message
 from nonebot.rule import to_me
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, PrivateMessageEvent
-from util.utils import get_message_text, get_message_imgs
+from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, PrivateMessageEvent, Message
+from utils.utils import get_message_text, get_message_imgs
 from models.friend_user import FriendUser
 from models.group_member_info import GroupInfoUser
 
@@ -32,7 +32,7 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
     result = await get_qqbot_chat_result(msg, img, event.user_id, nickname)
     logger.info(f"USER {event.user_id} 问题：{msg}\n回答：{result}")
     if result:
-        await ai.finish(result)
+        await ai.finish(Message(result))
     else:
         await ai.finish(no_result())
 
@@ -55,7 +55,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     result = await get_qqbot_chat_result(msg, img, event.user_id, nickname)
     logger.info(f"问题：{msg}\n回答：{result}")
     if result:
-        await ai.finish(result)
+        await ai.finish(Message(result))
     else:
         await ai.finish(no_result())
 

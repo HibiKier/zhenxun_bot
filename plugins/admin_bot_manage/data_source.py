@@ -4,11 +4,11 @@ from configs.path_config import DATA_PATH
 import os
 import aiofiles
 import aiohttp
-from util.init_result import image
-from util.utils import get_local_proxy, get_bot
+from utils.init_result import image
+from utils.utils import get_local_proxy, get_bot
 from pathlib import Path
 from nonebot import require
-from configs.config import plugins2name_dict
+from configs.config import plugins2info_dict
 from models.group_member_info import GroupInfoUser
 import time
 from datetime import datetime
@@ -136,8 +136,8 @@ async def change_group_switch(cmd: str, group_id: int):
         pass
     except FileNotFoundError:
         pass
-    for plugin_cmd in plugins2name_dict.keys():
-        if cmd in plugins2name_dict[plugin_cmd]:
+    for plugin_cmd in plugins2info_dict.keys():
+        if cmd in plugins2info_dict[plugin_cmd]['cmd']:
             # print(plugin_list[plugin_cmd])
             if status == '开启':
                 # if group_id in plugin_list[plugin_cmd]:

@@ -1,72 +1,80 @@
-from nonebot import on_command
+from nonebot import on_command, Driver
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent
-from util.init_result import image
+from nonebot.adapters.cqhttp import Bot, MessageEvent, Message
+from utils.init_result import image
+from utils.browser import get_browser
+from configs.path_config import IMAGE_PATH
+import nonebot
+from services.log import logger
+from utils.utils import scheduler
+from nonebot.permission import SUPERUSER
+import os
 
 import time
 
+driver: Driver = nonebot.get_driver()
+
 material = on_command('今日素材', aliases={'今日材料', '今天素材', '今天材料'}, priority=5, block=True)
-role_material = on_command('天赋材料', priority=5, block=True)
 
+super_cmd = on_command('更新原神今日素材', permission=SUPERUSER, priority=1, block=True)
 
-def get_today_material(name: str):
-    # 返回今天的材料图片CQ码
-    if name == '天赋材料':
-        return image('天赋材料.png', "genshin/material/")
-    week = time.strftime("%w")
-    png_name = ''
-    if week == "0":
-        return "今天是周日，所有材料副本都开放了。"
-    elif week in ["1", "4"]:
-        png_name = f"{name}_周一周四.png"
-    elif week in ["2", "5"]:
-        png_name = f"{name}_周二周五.png"
-    elif week in ["3", "6"]:
-        png_name = f"{name}_周三周六.png"
-
-    return image(png_name, "genshin/material/")
-
-
-# @sv.on_fullmatch('开启原神每日素材提醒')
-# async def open_remind(bot , ev):
-#     gid = str(ev.group_id)
-#     if not (gid in group_list):
-#         group_list.append(gid)
-#         save_group_list()
-#     await bot.send(ev, "每日提醒已开启，每天8点会发送今日素材")
-#
-#
-# @sv.on_fullmatch('关闭原神每日素材提醒')
-# async def off_remind(bot , ev):
-#     gid = str(ev.group_id)
-#     if gid in group_list:
-#         group_list.remove(gid)
-#         save_group_list()
-#     await bot.send(ev, "每日提醒已关闭")
 
 @material.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     if time.strftime("%w") == "0":
         await material.send("今天是周日，所有材料副本都开放了。")
         return
-    arms_material_CQ = get_today_material("武器突破材料")
-    roles_material_CQ = get_today_material("角色天赋材料")
-    await material.send(arms_material_CQ + roles_material_CQ)
+    await material.send(Message(image('daily_material.png', 'genshin') + '\n※ 黄历数据来源于 genshin.pub'))
+    logger.info(
+        f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'})"
+        f" 发送查看今日素材")
 
 
-@role_material.handle()
+@super_cmd.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    await material.send(get_today_material("天赋材料"))
+    try:
+        await update_image()
+        await super_cmd.send('更新成功...')
+        logger.info(f'更新每日天赋素材成功...')
+    except Exception as e:
+        await super_cmd.send(f'更新出错e：{e}')
+        logger.error(f'更新每日天赋素材出错 e：{e}')
 
-# @sv.scheduled_job('cron', hour='8')
-# async def material_remind():
-#     # 每日提醒
-#     if time.strftime("%w") == "0":
-#         # 如果今天是周日就不发了
-#         return
-#     bot = get_bot()
-#     arms_material_CQ = get_today_material("武器突破材料")
-#     roles_material_CQ = get_today_material("角色天赋材料")
-#     for gid in group_list:
-#         await bot.send_group_msg(group_id=int(gid), message=arms_material_CQ)
-#         await bot.send_group_msg(group_id=int(gid), message=roles_material_CQ)
+
+@driver.on_startup
+async def update_image():
+    try:
+        if os.path.exists(f'{IMAGE_PATH}/genshin/daily_material.png'):
+            os.remove(f'{IMAGE_PATH}/genshin/daily_material.png')
+        browser = await get_browser()
+        url = 'https://genshin.pub/daily'
+        page = await browser.new_page()
+        await page.goto(url, wait_until='networkidle', timeout=10000)
+        await page.set_viewport_size({"width": 2560, "height": 1080})
+        await page.click("button")
+        card = await page.query_selector(".GSContainer_inner_border_box__21_vs")
+        card = await card.bounding_box()
+        await page.screenshot(path=f'{IMAGE_PATH}/genshin/daily_material.png', clip=card, timeout=100000)
+        await page.close()
+    except Exception:
+        logger.warning('win环境下 使用playwright失败....请替换环境至linux')
+        pass
+
+
+@scheduler.scheduled_job(
+    'cron',
+    hour=0,
+    minute=1,
+)
+async def _():
+    for _ in range(5):
+        try:
+            await update_image()
+            logger.info(f'更新每日天赋素材成功...')
+            break
+        except Exception as e:
+            logger.error(f'更新每日天赋素材出错 e：{e}')
+
+
+
+

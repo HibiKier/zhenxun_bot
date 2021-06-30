@@ -4,7 +4,7 @@ from urllib import parse
 from services.log import logger
 import aiohttp
 import time
-from util.utils import get_local_proxy
+from utils.utils import get_local_proxy
 
 
 async def from_anime_get_info(key_word: str, max: int) -> str:

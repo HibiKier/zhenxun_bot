@@ -6,7 +6,7 @@ import os
 import time
 import base64
 from configs.path_config import IMAGE_PATH
-from util.init_result import image
+from utils.init_result import image
 from services.log import logger
 import asyncio
 import nonebot

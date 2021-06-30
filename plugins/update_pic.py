@@ -1,16 +1,16 @@
 from nonebot import on_command
 from PIL import Image, ImageFilter
-from util.init_result import image
+from utils.init_result import image
 from configs.path_config import IMAGE_PATH
 from services.log import logger
 from nonebot.rule import to_me
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 from nonebot.typing import T_State
-from util.utils import get_message_imgs
+from utils.utils import get_message_imgs
 import aiofiles
 import aiohttp
-from util.utils import is_number, get_message_text
-from util.img_utils import CreateImg, pic2b64
+from utils.utils import is_number, get_message_text
+from utils.img_utils import CreateImg, pic2b64
 import cv2
 import numpy as np
 

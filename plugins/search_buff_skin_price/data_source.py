@@ -1,6 +1,6 @@
-from util.user_agent import get_user_agent
+from utils.user_agent import get_user_agent
 import aiohttp
-from util.utils import get_cookie_text
+from utils.utils import get_cookie_text
 from configs.path_config import TXT_PATH
 from asyncio.exceptions import TimeoutError
 from configs.config import buff_proxy

@@ -1,9 +1,9 @@
 from nonebot import on_command
-from util.utils import get_message_text
+from utils.utils import get_message_text
 from nonebot.typing import T_State
 from nonebot.adapters import Bot, Event
 from services.log import logger
-from util.init_result import image
+from utils.init_result import image
 import requests
 
 __plugin_name__ = 'coser'
@@ -11,7 +11,7 @@ __plugin_name__ = 'coser'
 __plugin_usage__ = '用法：发送‘coser’'
 
 
-coser = on_command('cos', aliases={'coser', '括丝'}, priority=5, block=True)
+coser = on_command('cos', aliases={'coser', '括丝', 'COS', 'Cos', 'cOS', 'coS'}, priority=5, block=True)
 
 
 url_2 = 'http://api.rosysun.cn/cos'

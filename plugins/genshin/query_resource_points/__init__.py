@@ -1,7 +1,7 @@
 from nonebot import on_command, on_regex
 from nonebot.rule import to_me
 from .query_resource import get_resource_map_mes, get_resource_list_mes, up_label_and_point_list
-from util.utils import get_message_text, scheduler
+from utils.utils import get_message_text, scheduler
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 from nonebot.typing import T_State
 import os

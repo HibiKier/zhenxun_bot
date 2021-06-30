@@ -1,11 +1,11 @@
 import aiohttp
 import aiofiles
 from configs.path_config import IMAGE_PATH
-from util.utils import get_local_proxy
-from util.user_agent import get_user_agent
+from utils.utils import get_local_proxy
+from utils.user_agent import get_user_agent
 from bs4 import BeautifulSoup
 import feedparser
-from util.init_result import image
+from utils.init_result import image
 from asyncio.exceptions import TimeoutError
 from configs.config import RSSHUBAPP
 from aiohttp.client_exceptions import ClientConnectorError

@@ -2,7 +2,7 @@ from nonebot import on_command
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, PrivateMessageEvent
 from nonebot.rule import to_me
-from util.utils import get_message_text
+from utils.utils import get_message_text
 from models.group_member_info import GroupInfoUser
 from models.friend_user import FriendUser
 import random

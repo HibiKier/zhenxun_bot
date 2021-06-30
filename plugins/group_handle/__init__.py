@@ -1,6 +1,6 @@
 from nonebot import on_notice, on_request
 from configs.path_config import IMAGE_PATH, DATA_PATH
-from util.init_result import image
+from utils.init_result import image
 import os
 import random
 from models.group_member_info import GroupInfoUser

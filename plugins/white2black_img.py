@@ -1,13 +1,13 @@
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 from nonebot import on_command
-from util.utils import get_message_imgs, get_local_proxy, get_message_text, is_Chinese
-from util.init_result import image
+from utils.utils import get_message_imgs, get_local_proxy, get_message_text, is_Chinese
+from utils.init_result import image
 import aiohttp
 import aiofiles
 from configs.path_config import IMAGE_PATH
-from util.img_utils import CreateImg
-from util.user_agent import get_user_agent
+from utils.img_utils import CreateImg
+from utils.user_agent import get_user_agent
 from services.log import logger
 
 # ZH_CN2EN 中文　»　英语

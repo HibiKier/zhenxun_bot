@@ -6,7 +6,7 @@ from services.log import logger
 from nonebot.typing import T_State
 from .config import city_list
 import re
-from util.utils import get_message_text
+from utils.utils import get_message_text
 
 __plugin_name__ = '天气查询'
 __plugin_usage__ = "普普通通的查天气吧\n示例：北京天气"

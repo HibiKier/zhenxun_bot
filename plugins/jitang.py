@@ -1,9 +1,7 @@
 from nonebot import on_command
-from util.user_agent import get_user_agent
+from utils.user_agent import get_user_agent
 from services.log import logger
 from nonebot.adapters.cqhttp import Bot, Event
-from nonebot.matcher import Matcher
-from nonebot.message import run_preprocessor, IgnoredException
 from nonebot.typing import T_State
 import aiohttp
 from asyncio.exceptions import TimeoutError

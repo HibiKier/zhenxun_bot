@@ -2,10 +2,10 @@ import psutil
 import aiohttp
 import time
 from datetime import datetime
-from util.user_agent import get_user_agent
+from utils.user_agent import get_user_agent
 from asyncio.exceptions import TimeoutError
 from aiohttp.client_exceptions import ClientConnectorError
-from util.utils import get_local_proxy
+from utils.utils import get_local_proxy
 import asyncio
 from services.log import logger
 

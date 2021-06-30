@@ -1,15 +1,15 @@
 
 import aiohttp
-from util.user_agent import get_user_agent
+from utils.user_agent import get_user_agent
 from io import BytesIO
 from random import choice
 from nonebot import on_regex
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from util.utils import get_message_text, get_local_proxy, get_message_at
-from util.init_result import image
+from utils.utils import get_message_text, get_local_proxy, get_message_at
+from utils.init_result import image
 import re
-from util.img_utils import CreateImg
+from utils.img_utils import CreateImg
 
 __plugin_name__ = '我有一个朋友'
 
@@ -53,3 +53,5 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     A.text((150, 85), msg, (125, 125, 125))
 
     await one_friend.send(image(b64=A.pic2bs4()))
+
+

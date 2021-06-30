@@ -38,22 +38,16 @@ class SignGroupUser(db.Model):
     async def query_impression_all(cls, belonging_group: int) -> 'list,list':
         impression_list = []
         user_qq_list = []
-        query = cls.query.where(
-            (cls.belonging_group == belonging_group)
-        )
+        user_group = []
+        if belonging_group:
+            query = cls.query.where(
+                (cls.belonging_group == belonging_group)
+            )
+        else:
+            query = cls.query
         for user in await query.gino.all():
             impression_list.append(user.impression)
             user_qq_list.append(user.user_qq)
-        return user_qq_list, impression_list
+            user_group.append(user.belonging_group)
+        return user_qq_list, impression_list, user_group
 
-    @classmethod
-    async def query_glod_all(cls, belonging_group: int) -> 'list,list':
-        glod_list = []
-        user_qq_list = []
-        query = cls.query.where(
-            (cls.belonging_group == belonging_group)
-        )
-        for user in await query.gino.all():
-            glod_list.append(user.glod)
-            user_qq_list.append(user.user_qq)
-        return user_qq_list, glod_list

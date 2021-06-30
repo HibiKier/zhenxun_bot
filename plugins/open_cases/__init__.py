@@ -1,5 +1,5 @@
 from nonebot import on_command
-from util.utils import FreqLimiter, scheduler, get_message_text, is_number
+from utils.utils import FreqLimiter, scheduler, get_message_text, is_number
 from nonebot.adapters.cqhttp.permission import GROUP
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent

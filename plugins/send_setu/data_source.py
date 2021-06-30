@@ -1,13 +1,13 @@
 from configs.path_config import IMAGE_PATH, TXT_PATH
 import os
 import random
-from util.init_result import image
+from utils.init_result import image
 from configs.config import LOLICON_KEY
 import aiohttp
 import aiofiles
 from services.log import logger
-from util.img_utils import get_img_hash
-from util.utils import get_local_proxy, is_number
+from utils.img_utils import get_img_hash
+from utils.utils import get_local_proxy, is_number
 from asyncio.exceptions import TimeoutError
 from models.count_user import UserCount
 from configs.config import DOWNLOAD_SETU
@@ -54,7 +54,8 @@ async def get_setu_urls(keyword: str, num: int = 1, r18: int = 0):
                     if response.status == 200:
                         data = await response.json()
                         if data['code'] == 0:
-                            for i in range(len(data['data'])):
+                            lens = len(data['data'])
+                            for i in range(lens):
                                 img_url = data['data'][i]['url']
                                 title = data['data'][i]['title']
                                 author = data['data'][i]['author']
@@ -77,6 +78,7 @@ async def get_setu_urls(keyword: str, num: int = 1, r18: int = 0):
                             if DOWNLOAD_SETU:
                                 with open(TXT_PATH + file_name, 'w', encoding='utf8') as f:
                                     json.dump(txt_data, f, ensure_ascii=False, indent=4)
+                            num = lens if num > lens else num
                             random_idx = random.sample(range(len(data['data'])), num)
                             x_urls = []
                             x_text_lst = []
@@ -123,7 +125,6 @@ def get_setu(index: str, setu_data: dict, tag: str = None):
         index = random.randint(0, length - 1)
     if tag:
         all_tag_setu = [x for x in setu_data.keys() if tag in setu_data[x]['tags']]
-        print(all_tag_setu)
         if all_tag_setu:
             index = random.choice(all_tag_setu)
     if is_number(index):

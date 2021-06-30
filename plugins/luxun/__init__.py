@@ -4,10 +4,10 @@ from configs.path_config import IMAGE_PATH, TTF_PATH
 from nonebot import on_command
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent
-from util.init_result import image
+from utils.init_result import image
 from services.log import logger
-from util.utils import UserExistLimiter, get_message_text
-from util.img_utils import pic2b64
+from utils.utils import UserExistLimiter, get_message_text
+from utils.img_utils import pic2b64
 
 __plugin_name__ = '鲁迅说'
 
@@ -16,7 +16,7 @@ __plugin_usage__ = '用法：鲁迅说 [消息]'
 _ulmt = UserExistLimiter()
 
 
-luxun = on_command("鲁迅说过", aliases={"鲁迅说"})
+luxun = on_command("鲁迅说过", aliases={"鲁迅说"}, priority=5, block=True)
 
 
 @luxun.handle()

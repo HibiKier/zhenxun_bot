@@ -1,6 +1,6 @@
 from models.goods_info import GoodsInfo
-from util.img_utils import CreateImg
-from util.utils import is_number
+from utils.img_utils import CreateImg
+from utils.utils import is_number
 from configs.path_config import IMAGE_PATH
 import time
 

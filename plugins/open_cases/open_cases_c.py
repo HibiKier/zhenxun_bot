@@ -4,16 +4,16 @@ from services.log import logger
 from services.db_context import db
 from models.open_cases_user import OpenCasesUser
 from models.sigin_group_user import SignGroupUser
-from util.init_result import image
+from utils.init_result import image
 import pypinyin
 import random
 from .utils import get_price
 from models.buff_price import BuffPrice
 from PIL import Image
-from util.img_utils import alphabg2white_PIL, CreateImg
+from utils.img_utils import alphabg2white_PIL, CreateImg
 from configs.path_config import IMAGE_PATH
 import asyncio
-from util.utils import cn2py
+from utils.utils import cn2py
 from configs.config import INITIAL_OPEN_CASE_COUNT
 
 
@@ -146,6 +146,11 @@ async def open_shilian_case(user_qq: int, group: int, case_name: str, num: int =
     if int(MAX_COUNT + int(impression) / 3) - user.today_open_total < num:
         return f"今天开箱次数不足{num}次噢，请单抽试试看（也许单抽运气更好？）" \
                f"\n剩余开箱次数：{int(MAX_COUNT + int(impression) / 3) - user.today_open_total}"
+    await user.update(
+        total_count=user.total_count + num,
+        spend_money=user.spend_money + 17 * num,
+        today_open_total=user.today_open_total + num,
+    ).apply()
     if num < 5:
         h = 270
     elif num % 5 == 0:
@@ -158,7 +163,7 @@ async def open_shilian_case(user_qq: int, group: int, case_name: str, num: int =
     #          lan   zi   fen   hong   jin  price
     uplist = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0]
     img_list = []
-    name_list = ['蓝', '蓝（暗金）', '紫', '紫（暗金）', '粉', '粉（暗金）', '红', '红（暗金）', '金', '金（暗金）']
+    name_list = ['蓝', '蓝(暗金)', '紫', '紫(暗金)', '粉', '粉(暗金)', '红', '红(暗金)', '金', '金(暗金)']
     async with db.transaction():
         for _ in range(num):
             knifes_flag = False
@@ -222,7 +227,7 @@ async def open_shilian_case(user_qq: int, group: int, case_name: str, num: int =
             wImg.text((5, 240), f'价格：{price_result}')
             img_list.append(wImg)
             logger.info(f"USER {user_qq} GROUP {group} 开启{case_name}武器箱 获得 {skin} 磨损：{mosun}， 价格：{uplist[10]}")
-        if await update_user_total(user, uplist, num):
+        if await update_user_total(user, uplist, 0):
             logger.info(f"USER {user_qq} GROUP {group} 开启{case_name}武器箱 {num} 次， 数据更新成功")
         else:
             logger.warning(f"USER {user_qq} GROUP {group} 开启{case_name}武器箱 {num} 次， 价格：{uplist[10]}， 数据更新失败")
@@ -251,22 +256,22 @@ def _handle_is_MAX_COUNT() -> str:
     return f"今天已达开箱上限了喔，明天再来吧\n(提升好感度可以增加每日开箱数 #疯狂暗示)"
 
 
-async def update_user_total(user: OpenCasesUser, uplist: list, num: int = 1) -> bool:
+async def update_user_total(user: OpenCasesUser, up_list: list, num: int = 1) -> bool:
     try:
         await user.update(
             total_count=user.total_count + num,
-            blue_count=user.blue_count + uplist[0],
-            blue_st_count=user.blue_st_count + uplist[1],
-            purple_count=user.purple_count + uplist[2],
-            purple_st_count=user.purple_st_count + uplist[3],
-            pink_count=user.pink_count + uplist[4],
-            pink_st_count=user.pink_st_count + uplist[5],
-            red_count=user.red_count + uplist[6],
-            red_st_count=user.red_st_count + uplist[7],
-            knife_count=user.knife_count + uplist[8],
-            knife_st_count=user.knife_st_count + uplist[9],
+            blue_count=user.blue_count + up_list[0],
+            blue_st_count=user.blue_st_count + up_list[1],
+            purple_count=user.purple_count + up_list[2],
+            purple_st_count=user.purple_st_count + up_list[3],
+            pink_count=user.pink_count + up_list[4],
+            pink_st_count=user.pink_st_count + up_list[5],
+            red_count=user.red_count + up_list[6],
+            red_st_count=user.red_st_count + up_list[7],
+            knife_count=user.knife_count + up_list[8],
+            knife_st_count=user.knife_st_count + up_list[9],
             spend_money=user.spend_money + 17 * num,
-            make_money=user.make_money + uplist[10],
+            make_money=user.make_money + up_list[10],
             today_open_total=user.today_open_total + num,
             open_cases_time_last=datetime.now()
         ).apply()

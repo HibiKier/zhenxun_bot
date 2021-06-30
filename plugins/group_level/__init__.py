@@ -1,5 +1,5 @@
 from nonebot import on_command, on_regex
-from util.utils import get_message_text, is_number
+from utils.utils import get_message_text, is_number, FreqLimiter
 from nonebot.rule import to_me
 from services.log import logger
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent, GROUP
@@ -7,7 +7,7 @@ from nonebot.typing import T_State
 from nonebot.matcher import Matcher
 from nonebot.permission import SUPERUSER
 from pathlib import Path
-from configs.config import plugins2level_dict, plugins2name_dict
+from configs.config import plugins2info_dict
 from nonebot.message import run_preprocessor, IgnoredException
 try:
     import ujson as json
@@ -16,6 +16,8 @@ except ModuleNotFoundError:
 
 __plugin_name__ = '群权限'
 __plugin_usage__ = '区分权限功能'
+
+flmt = FreqLimiter(60)
 
 group_level_data = Path() / 'data'/ 'manager' / 'group_level.json'
 group_level_data.parent.mkdir(exist_ok=True, parents=True)
@@ -26,15 +28,19 @@ if group_level_data.exists():
 
 @run_preprocessor
 async def _(matcher: Matcher, bot: Bot, event: GroupMessageEvent, state: T_State):
+    if not isinstance(event, MessageEvent):
+        return
     if matcher.type == 'message' and matcher.priority not in [1, 9]:
         if isinstance(event, GroupMessageEvent):
             if not group_data.get(str(event.group_id)):
                 group_data[str(event.group_id)] = 5
-            if plugins2level_dict.get(matcher.module):
-                if plugins2level_dict[matcher.module] > group_data[str(event.group_id)]:
+            if plugins2info_dict.get(matcher.module):
+                if plugins2info_dict[matcher.module]['level'] > group_data[str(event.group_id)]:
                     try:
-                        await bot.send_group_msg(group_id=event.group_id, message='群权限不足...')
-                    except:
+                        if flmt.check(event.group_id):
+                            flmt.start_cd(event.group_id)
+                            await bot.send_group_msg(group_id=event.group_id, message='群权限不足...')
+                    except Exception:
                         pass
                     raise IgnoredException('群权限不足')
 
@@ -72,9 +78,9 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if group_data.get(str(event.group_id)):
         level = group_data[str(event.group_id)]
         tmp = ''
-        for plugin in plugins2level_dict:
-            if plugins2level_dict[plugin] > level:
-                plugin_name = plugins2name_dict[plugin][0]
+        for plugin in plugins2info_dict:
+            if plugins2info_dict[plugin]['level'] > level:
+                plugin_name = plugins2info_dict[plugin]['cmd'][0]
                 if plugin_name == 'pixiv':
                     plugin_name = '搜图 p站排行'
                 tmp += f'{plugin_name}\n'

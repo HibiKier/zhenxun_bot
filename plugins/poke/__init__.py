@@ -3,10 +3,10 @@ from nonebot.adapters.cqhttp import Bot, PokeNotifyEvent
 from nonebot.typing import T_State
 from configs.path_config import VOICE_PATH, IMAGE_PATH
 import os
-from util.init_result import record, image, poke
+from utils.init_result import record, image, poke
 from services.log import logger
 import random
-from util.utils import CountLimiter
+from utils.utils import CountLimiter
 from models.ban_user import BanUser
 
 __plugin_name__ = '戳一戳 [Hidden]'

@@ -1,5 +1,5 @@
 import requests
-from util.init_result import image
+from utils.init_result import image
 
 
 async def get_weather_of_city(city) -> str:

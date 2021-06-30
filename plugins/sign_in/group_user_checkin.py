@@ -1,12 +1,17 @@
 import random
 from datetime import datetime, timedelta
-
+from io import BytesIO
 from services.log import logger
 from services.db_context import db
 from models.sigin_group_user import SignGroupUser
 from models.group_member_info import GroupInfoUser
 from models.bag_user import BagUser
 from configs.config import MAX_SIGN_GOLD
+from utils.img_utils import CreateImg
+import aiohttp
+from asyncio.exceptions import TimeoutError
+import math
+import asyncio
 
 
 async def group_user_check_in(user_qq: int, group: int) -> str:
@@ -82,7 +87,7 @@ async def group_user_check(user_qq: int, group: int) -> str:
 
 async def group_impression_rank(group: int) -> str:
     result = "\t好感度排行榜\t\n"
-    user_qq_list, impression_list = await SignGroupUser.query_impression_all(group)
+    user_qq_list, impression_list, _ = await SignGroupUser.query_impression_all(group)
     _count = 11
     if user_qq_list and impression_list:
         for i in range(1, len(user_qq_list)):
@@ -115,4 +120,84 @@ async def random_gold(user_id, group_id, impression):
         return 0
 
 
+async def impression_rank(group_id: int, data: dict):
+    user_qq_list, impression_list, group_list = await SignGroupUser.query_impression_all(group_id)
+    users, impressions, groups = [], [], []
+    num = 0
+    for i in range(105 if len(user_qq_list) > 105 else len(user_qq_list)):
+        impression = max(impression_list)
+        index = impression_list.index(impression)
+        user = user_qq_list[index]
+        group = group_list[index]
+        user_qq_list.pop(index)
+        impression_list.pop(index)
+        group_list.pop(index)
+        if user not in users and impression < 100000:
+            if user not in data['0']:
+                users.append(user)
+                impressions.append(impression)
+                groups.append(group)
+            else:
+                num += 1
+    for i in range(num):
+        impression = max(impression_list)
+        index = impression_list.index(impression)
+        user = user_qq_list[index]
+        group = group_list[index]
+        user_qq_list.pop(index)
+        impression_list.pop(index)
+        group_list.pop(index)
+        if user not in users and impression < 100000:
+            users.append(user)
+            impressions.append(impression)
+            groups.append(group)
+    return (await asyncio.gather(*[_pst(users, impressions, groups)]))[0]
 
+
+async def _pst(users: list, impressions: list, groups: list):
+    lens = len(users)
+    count = math.ceil(lens / 33)
+    width = 10
+    idx = 0
+    A = CreateImg(1740, 3300, color='#FFE4C4')
+    async with aiohttp.ClientSession() as session:
+        for _ in range(count):
+            col_img = CreateImg(550, 3300, 550, 100, color='#FFE4C4')
+            for _ in range(33 if int(lens / 33) >= 1 else lens % 33 - 1):
+                idx += 1
+                if idx > 100:
+                    break
+                impression = max(impressions)
+                index = impressions.index(impression)
+                user = users[index]
+                group = groups[index]
+                impressions.pop(index)
+                users.pop(index)
+                groups.pop(index)
+                try:
+                    user_name = (await GroupInfoUser.select_member_info(user, group)).user_name
+                except AttributeError:
+                    user_name = f'我名字呢？'
+                user_name = user_name if len(user_name) < 11 else user_name[:10] + '...'
+                impression = str(impression)[:4] if len(str(impression)) > 4 else impression
+                try:
+                    async with session.get(f'http://q1.qlogo.cn/g?b=qq&nk={user}&s=160', timeout=5) as response:
+                        ava = CreateImg(50, 50, background=BytesIO(await response.read()))
+                except TimeoutError:
+                    ava = CreateImg(50, 50, color='white')
+                ava.circle()
+                bk = CreateImg(550, 100, color='#FFE4C4', font_size=30)
+                font_w, font_h = bk.getsize(f'{idx}')
+                bk.text((5, int((100-font_h)/2)), f'{idx}.')
+                bk.paste(ava, (55, int((100-50)/2)), True)
+                bk.text((120, int((100-font_h)/2)), f'{user_name}')
+                bk.text((460, int((100-font_h)/2)), f'[{impression}]')
+                col_img.paste(bk)
+            A.paste(col_img, (width, 0))
+            lens -= 33
+            width += 580
+    W = CreateImg(1740, 3700, color='#FFE4C4', font_size=130)
+    W.paste(A, (0, 260))
+    font_w, font_h = W.getsize('真寻的好感度总榜')
+    W.text((int((1740-font_w)/2), int((260-font_h)/2)), '真寻的好感度总榜')
+    return W.pic2bs4()

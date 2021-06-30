@@ -1,6 +1,6 @@
 import aiohttp
 import json
-from util.utils import get_local_proxy
+from utils.utils import get_local_proxy
 from configs.config import ALAPI_TOKEN
 from asyncio.exceptions import TimeoutError
 

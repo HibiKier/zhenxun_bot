@@ -5,7 +5,7 @@ from nonebot.typing import T_State
 from nonebot.adapters import Bot
 from nonebot.adapters.cqhttp import GroupMessageEvent
 from nonebot.adapters.cqhttp.permission import GROUP
-from util.utils import get_message_at, get_message_text, is_number
+from utils.utils import get_message_at, get_message_text, is_number
 from services.log import logger
 from models.group_member_info import GroupInfoUser
 

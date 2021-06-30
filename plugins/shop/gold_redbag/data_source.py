@@ -1,7 +1,7 @@
 from models.bag_user import BagUser
-from util.utils import is_number, get_local_proxy
-from util.img_utils import CreateImg
-from util.user_agent import get_user_agent
+from utils.utils import is_number, get_local_proxy
+from utils.img_utils import CreateImg
+from utils.user_agent import get_user_agent
 from configs.path_config import IMAGE_PATH
 from models.redbag_user import RedbagUser
 import random

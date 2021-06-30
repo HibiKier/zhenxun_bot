@@ -1,12 +1,12 @@
 from nonebot import on_command
-from util.utils import get_message_text, get_message_imgs, scheduler, get_bot
+from utils.utils import get_message_text, get_message_imgs, scheduler, get_bot
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from .data_source import set_group_status, custom_group_welcome, change_group_switch, \
     update_member_info, group_current_status
 from nonebot.adapters.cqhttp.permission import GROUP
 from services.log import logger
-from configs.config import plugins2name_dict
+from configs.config import plugins2info_dict
 from nonebot.plugin import export
 
 __plugin_name__ = '自定义进群欢迎消息'
@@ -18,8 +18,8 @@ export = export()
 export.update_member_info = update_member_info
 
 cmds = []
-for cmd_list in plugins2name_dict.values():
-    for cmd in cmd_list:
+for cmd_list in plugins2info_dict.values():
+    for cmd in cmd_list['cmd']:
         cmds.append(f'开启{cmd}')
         cmds.append(f'关闭{cmd}')
 cmds = set(cmds)
@@ -35,7 +35,7 @@ group_status = on_command('oc_reminds', aliases={'开启早晚安', '关闭早�
                                                  '群通知状态'}, permission=GROUP, priority=1, block=True)
 
 switch_rule = on_command('switch_rule', aliases=cmds, permission=GROUP, priority=4, block=True)
-custom_welcome = on_command('自定义进群欢迎消息', aliases={'自定义欢迎消息', '自定义群欢迎消息'}, permission=GROUP, priority=5, block=True)
+custom_welcome = on_command('自定义进群欢迎消息', aliases={'自定义欢迎消息', '自定义群欢迎消息', '设置群欢迎消息'}, permission=GROUP, priority=5, block=True)
 refresh_member_group = on_command("更新群组成员列表", aliases={"更新群组成员信息"}, permission=GROUP, priority=5, block=True)
 
 

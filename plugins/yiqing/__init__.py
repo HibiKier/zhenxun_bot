@@ -4,7 +4,7 @@ from services.log import logger
 from nonebot.adapters.cqhttp import Bot, Event
 from nonebot.typing import T_State
 from .config import city_list
-from util.utils import scheduler
+from utils.utils import scheduler
 
 __plugin_name__ = '疫情查询'
 __plugin_usage__ = '查询疫情帮助:\n\t对我说 查询疫情 省份/城市，我会回复疫情的实时数据\n\t示例: 查询疫情 温州'

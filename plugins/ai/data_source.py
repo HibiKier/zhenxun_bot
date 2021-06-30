@@ -4,8 +4,9 @@ import random
 import os
 from configs.path_config import IMAGE_PATH, DATA_PATH
 from services.log import logger
-from util.init_result import image
-from util.utils import get_bot
+from utils.init_result import image, face
+from utils.utils import get_bot
+import re
 
 try:
     import ujson as json
@@ -100,7 +101,13 @@ async def get_qqbot_chat_result(text: str, img_url: str, user_id: int, user_name
                                 content = content.replace('{br}', '\n')
                             if content.find('提示') != -1:
                                 content = content[:content.find('提示')]
-
+                            while True:
+                                r = re.search('{face:(.*)}', content)
+                                if r:
+                                    id_ = r.group(1)
+                                    content = content.replace('{' + f'face:{id_}' + '}', str(face(id_)))
+                                else:
+                                    break
                             return content
             if resp_payload['results']:
                 for result in resp_payload['results']:
@@ -111,7 +118,7 @@ async def get_qqbot_chat_result(text: str, img_url: str, user_id: int, user_name
                             if len(user_name) < 5:
                                 if random.random() < 0.5:
                                     user_name = "~".join(user_name) + '~'
-                                    if random.random() < 0.5:
+                                    if random.random() < 0.2:
                                         if user_name.find('大人') == -1:
                                             user_name += '大~人~'
                             text = text.replace('小主人', user_name)

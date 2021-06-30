@@ -1,7 +1,7 @@
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 from nonebot import on_command
-from util.utils import get_message_text, UserExistLimiter, is_number
+from utils.utils import get_message_text, UserExistLimiter, is_number
 from .data_source import get_pixiv_urls, download_pixiv_imgs, search_pixiv_urls
 import time
 from services.log import logger

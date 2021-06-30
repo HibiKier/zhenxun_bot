@@ -2,12 +2,12 @@ from nonebot import on_message
 from services.log import logger
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from nonebot.typing import T_State
-from util.utils import get_message_json, get_local_proxy
+from utils.utils import get_message_json, get_local_proxy
 import json
-from util.user_agent import get_user_agent
+from utils.user_agent import get_user_agent
 from nonebot.adapters.cqhttp.permission import GROUP
 from bilibili_api import video
-from util.init_result import image
+from utils.init_result import image
 from models.group_remind import GroupRemind
 from nonebot.adapters.cqhttp.exception import ActionFailed
 import time

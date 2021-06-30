@@ -1,9 +1,9 @@
 from nonebot import on_keyword
-from util.init_result import record
+from utils.init_result import record
 from configs.path_config import VOICE_PATH
 import random
 from services.log import logger
-from util.utils import FreqLimiter
+from utils.utils import FreqLimiter
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 from nonebot.rule import to_me

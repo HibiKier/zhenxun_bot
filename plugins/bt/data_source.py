@@ -1,8 +1,8 @@
-from util.user_agent import get_user_agent
+from utils.user_agent import get_user_agent
 import aiohttp
 from configs.config import MAXINFO_BT
 from bs4 import BeautifulSoup
-from util.utils import get_local_proxy
+from utils.utils import get_local_proxy
 import platform
 if platform.system() == 'Windows':
     import asyncio

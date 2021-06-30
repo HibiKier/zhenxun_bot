@@ -3,9 +3,9 @@ import random
 import asyncio
 from nonebot.adapters.cqhttp import GROUP, Bot, GroupMessageEvent, Message
 from nonebot.typing import T_State
-from util.utils import get_message_text, is_number, get_message_at
+from utils.utils import get_message_text, is_number, get_message_at
 from models.group_member_info import GroupInfoUser
-from util.init_result import at
+from utils.init_result import at
 from models.russian_user import RussianUser
 from models.bag_user import BagUser
 from services.log import logger
@@ -72,7 +72,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         else:
             await accept.finish('你的金币不足以接受这场对决！', at_sender=True)
 
-    player2_name = (await GroupInfoUser.select_member_info(event.user_id, event.group_id)).user_name
+    player2_name = event.sender.card if event.sender.card else event.sender.nickname
 
     rs_player[event.group_id][2] = event.user_id
     rs_player[event.group_id]['player2'] = player2_name
@@ -151,7 +151,6 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 time.time() - rs_player[event.group_id]['time'] > 30:
             await shot.send('决斗已过时，强行结算...')
             await end_game(bot, event)
-            return
         if not rs_player[event.group_id][2] and time.time() - rs_player[event.group_id]['time'] > 30:
             rs_player[event.group_id][1] = 0
             rs_player[event.group_id][2] = 0
@@ -178,7 +177,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     global rs_player
     bullet_num = state['bullet_num']
-    at_ = state['at']
+    at_ = state['at'] if state.get('at') else []
     money = state['money'] if state.get('money') else 200
     user_money = await BagUser.get_gold(event.user_id, event.group_id)
     if bullet_num < 0 or bullet_num > 6:
@@ -188,11 +187,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if money > user_money:
         await rssian.finish('你没有足够的钱支撑起这场挑战', at_sender=True)
 
-    player1_name = (await GroupInfoUser.select_member_info(event.user_id, event.group_id)).user_name
+    player1_name = event.sender.card if event.sender.card else event.sender.nickname
 
     if at_:
         at_ = at_[0]
-        at_player_name = (await GroupInfoUser.select_member_info(at_, event.group_id)).user_name
+        at_player_name = event.sender.card if event.sender.card else event.sender.nickname
         msg = f'{player1_name} 向 {at(at_)} 发起了决斗！请 {at_player_name} 在30秒内回复‘接受对决’ or ‘拒绝对决’，超时此次决斗作废！'
     else:
         at_ = 0

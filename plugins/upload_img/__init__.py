@@ -5,10 +5,10 @@ import os
 from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot.adapters import Bot, Event
-from util.utils import get_message_imgs, get_message_text
+from utils.utils import get_message_imgs, get_message_text
 import aiohttp
 import aiofiles
-from util.utils import cn2py
+from utils.utils import cn2py
 from configs.config import IMAGE_DIR_LIST
 
 __plugin_name__ = '上传图片'

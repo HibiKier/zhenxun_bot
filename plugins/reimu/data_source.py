@@ -3,8 +3,8 @@ import time
 import aiohttp
 from services.log import logger
 from configs.config import MAXINFO_REIMU
-from util.user_agent import get_user_agent
-from util.utils import get_local_proxy
+from utils.user_agent import get_user_agent
+from utils.utils import get_local_proxy
 from asyncio.exceptions import TimeoutError
 
 

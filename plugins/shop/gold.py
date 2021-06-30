@@ -2,7 +2,7 @@ from nonebot import on_command
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp.permission import GROUP
-from util.data_utils import init_rank
+from utils.data_utils import init_rank
 from models.bag_user import BagUser
 
 

@@ -1,5 +1,5 @@
 import aiohttp
-from util.utils import get_local_proxy
+from utils.utils import get_local_proxy
 
 
 async def get_data(url: str, params: dict):

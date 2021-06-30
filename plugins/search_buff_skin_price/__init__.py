@@ -5,7 +5,7 @@ from nonebot.typing import T_State
 from nonebot.adapters import Bot, Event
 from nonebot.rule import to_me
 from nonebot.permission import SUPERUSER
-from util.utils import UserExistLimiter, get_message_text
+from utils.utils import UserExistLimiter, get_message_text
 
 
 __plugin_name__ = '查询皮肤'

@@ -1,5 +1,5 @@
 from models.russian_user import RussianUser
-from util.data_utils import init_rank
+from utils.data_utils import init_rank
 
 
 async def rank(group_id: int, itype) -> str:

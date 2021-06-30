@@ -3,7 +3,7 @@ from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from nonebot.adapters.cqhttp.permission import GROUP
 from configs.path_config import DATA_PATH
-from util.init_result import image
+from utils.init_result import image
 import os
 from pathlib import Path
 try:

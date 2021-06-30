@@ -3,7 +3,7 @@ from services.log import logger
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 from nonebot.typing import T_State
 import aiohttp
-from util.utils import get_local_proxy
+from utils.utils import get_local_proxy
 
 
 __plugin_name__ = '语录'
