@@ -4,8 +4,8 @@ from nonebot.message import run_postprocessor
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from datetime import datetime
-from configs.config import plugins2name_dict
-from util.utils import scheduler
+from configs.config import plugins2info_dict
+from utils.utils import scheduler
 from nonebot.typing import Optional
 try:
     import ujson as json
@@ -33,6 +33,9 @@ except (FileNotFoundError, ValueError):
         'start_time': str(datetime.now().date()),
         'day_index': 0
     }
+
+
+# 以前版本转换
 if not _prefix_count_dict.get('day_index'):
     tmp = _prefix_count_dict.copy()
     _prefix_count_dict = {'total_statistics': tmp['total_statistics'], 'day_statistics': {
@@ -52,14 +55,14 @@ async def _(matcher: Matcher, exception: Optional[Exception], bot: Bot, event: G
         model = matcher.module
         day_index = _prefix_count_dict['day_index']
         # print(f'model --> {model}')
-        for plugin in plugins2name_dict:
+        for plugin in plugins2info_dict:
             if plugin == model:
                 # print(f'plugin --> {plugin}')
                 try:
                     group_id = str(event.group_id)
                 except AttributeError:
                     group_id = 'total'
-                plugin_name = plugins2name_dict[plugin][0]
+                plugin_name = plugins2info_dict[plugin]['cmd'][0]
                 check_exists_key(group_id, plugin_name)
                 _prefix_count_dict['total_statistics']['total'][plugin_name] += 1
                 _prefix_count_dict['day_statistics']['total'][plugin_name] += 1
@@ -98,19 +101,19 @@ def check_exists_key(group_id: str, plugin_name: str):
 
     if not _prefix_count_dict['week_statistics'].get(group_id):
         _prefix_count_dict['week_statistics'][group_id] = {}
-    if not _prefix_count_dict['week_statistics'][group_id].get('0'):
+    if _prefix_count_dict['week_statistics'][group_id].get('0') is None:
         for i in range(7):
             _prefix_count_dict['week_statistics'][group_id][str(i)] = {}
-    if not _prefix_count_dict['week_statistics'][group_id]['0'].get(plugin_name):
+    if _prefix_count_dict['week_statistics'][group_id]['0'].get(plugin_name) is None:
         for i in range(7):
             _prefix_count_dict['week_statistics'][group_id][str(i)][plugin_name] = 0
 
     if not _prefix_count_dict['month_statistics'].get(group_id):
         _prefix_count_dict['month_statistics'][group_id] = {}
-    if not _prefix_count_dict['month_statistics'][group_id].get('0'):
+    if _prefix_count_dict['month_statistics'][group_id].get('0') is None:
         for i in range(30):
             _prefix_count_dict['month_statistics'][group_id][str(i)] = {}
-    if not _prefix_count_dict['month_statistics'][group_id]['0'].get(plugin_name):
+    if _prefix_count_dict['month_statistics'][group_id]['0'].get(plugin_name) is None:
         for i in range(30):
             _prefix_count_dict['month_statistics'][group_id][str(i)][plugin_name] = 0
 
