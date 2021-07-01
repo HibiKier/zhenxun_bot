@@ -118,6 +118,8 @@ async def search_online_setu(url: str):
 
 
 def get_setu(index: str, setu_data: dict, tag: str = None):
+    if not os.path.exists(IMAGE_PATH + path):
+        os.mkdir(IMAGE_PATH + path)
     length = len(os.listdir(IMAGE_PATH + path))
     if length == 0:
         return None, None
