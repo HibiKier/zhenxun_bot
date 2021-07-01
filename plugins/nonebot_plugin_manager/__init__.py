@@ -67,8 +67,8 @@ async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
     if group_id in plugin_list[plugin]:
         if not plugin_list[plugin][group_id]:
             if plugin != 'ai' and matcher.type == 'message':
-                if flmt.check(event.group):
-                    flmt.start_cd(event.group)
+                if flmt.check(event.group_id):
+                    flmt.start_cd(event.group_id)
                     await bot.send_group_msg(group_id=event.group_id, message='该群未开启此功能..')
             raise IgnoredException(f"Nonebot Plugin Manager has blocked {plugin} !")
 
