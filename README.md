@@ -41,10 +41,11 @@
 - [x] 构造假消息（自定义的分享链接）
 - [x] 商店/我的金币/购买道具/使用道具
 - [x] 8种手游抽卡 (查看 [nonebot_plugin_gamedraw](https://github.com/HibiKier/nonebot_plugin_gamedraw))
-- [x] 我有一个朋友想问问..（pcrbot插件..重构）
+- [x] 我有一个朋友想问问..（pcrbot插件..完全重构）
 - [x] 原神黄历  (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
-- [x] 原神今日素材/天赋材料 (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
-- [x] 原神资源查询  (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
+- [x] 原神今日素材/天赋材料 (原[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件，完全重构)
+- [x] 原神资源查询  (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件，资源下载优化为异步下载)
+- [x] 金币红包
 
 - [x] pil对图片的一些操作
 - [x] BUFF饰品底价查询（需要session）
