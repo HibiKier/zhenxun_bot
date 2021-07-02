@@ -1,4 +1,10 @@
 from typing import Any
+from .config import DATA_PATH
+from pathlib import Path
+try:
+    import ujson as json
+except ModuleNotFoundError:
+    import json
 
 
 def init_game_pool(game: str, data: dict, Operator: Any):
@@ -81,5 +87,21 @@ def init_game_pool(game: str, data: dict, Operator: Any):
                 limited = True
             tmp_lst.append(Operator(name=data[key]['名称'], star=data[key]['星级'], limited=limited))
     # print(tmp_lst)
+    char_name_lst = [x.name for x in tmp_lst]
+    up_char_file = Path(f'{DATA_PATH}/draw_card/draw_card_up/{game.split("_")[0]}_up_char.json')
+    if up_char_file.exists():
+        data = json.load(open(up_char_file, 'r', encoding='utf8'))
+        if len(game.split('_')) == 1:
+            key = 'char'
+        else:
+            key = list(data.keys())[1]
+        for x in data[key]['up_char']:
+            for char in data[key]['up_char'][x]:
+                if char not in char_name_lst:
+                    if game.find('prts') != -1:
+                        tmp_lst.append(Operator(name=char, star=int(x),
+                                                recruit_only=False, event_only=False, limited=False))
+                    else:
+                        tmp_lst.append(Operator(name=char, star=int(x), limited=False))
     return tmp_lst
 
