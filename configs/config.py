@@ -113,7 +113,7 @@ admin_plugins_auth = {
 
 
 # 模块与对应命令和对应群权限
-# 用于生成帮助图片 和 开关功能
+# 用于生成帮助图片 和 开关功能 以及 群权限
 plugins2info_dict = {
     'sign_in': {
         'level': 5,
