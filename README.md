@@ -51,7 +51,7 @@
 - [x] BUFF饰品底价查询（需要session）
 - [x] 天气查询
 - [x] 疫情查询
-- [x] bt搜索
+- [x] bt磁力搜索（咳咳，这功能我想dddd）
 - [x] reimu搜索（上车） (使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件)
 - [x] 靠图识番  (使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件)
 - [x] 以图搜图 (使用[nonebot_plugin_picsearcher](https://github.com/synodriver/nonebot_plugin_picsearcher)插件)
