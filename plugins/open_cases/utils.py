@@ -12,7 +12,7 @@ from utils.utils import get_bot
 from models.group_remind import GroupRemind
 from utils.utils import get_cookie_text
 from asyncio.exceptions import TimeoutError
-import pypinyin
+from .config import *
 from nonebot.adapters.cqhttp.exception import ActionFailed
 from configs.config import buff_proxy
 
