@@ -627,6 +627,10 @@ USE_CONFIG_FILE = True
 
 ## 更新
 
+### 2021/7/6
+
+* 识番功能 trace.moe 替换为新API（旧API已失效）
+
 ### 2021/6/30
 
 * 将plugin2name和plugin2level合并为plugin2info
