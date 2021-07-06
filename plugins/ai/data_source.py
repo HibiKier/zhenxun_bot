@@ -32,54 +32,58 @@ async def get_qqbot_chat_result(text: str, img_url: str, user_id: int, user_name
         for key in keys:
             if text.find(key) != -1:
                 return random.choice(anime_data[key]).replace('你', user_name)
-    if text:
-        req = {
-            "perception":
-                {
-                    "inputText":
-                        {
-                            "text": text
-                        },
-                    "selfInfo":
-                        {
-                            "location":
-                                {
-                                    "city": "陨石坑",
-                                    "province": "火星",
-                                    "street": "第5坑位"
-                                }
-                        }
-                },
-            "userInfo":
-                {
-                    "apiKey": TL_KEY[index],
-                    "userId": str(user_id)
-                }
-        }
-    elif img_url:
-        req = {
-            "reqType": 1,
-            "perception":
-                {
-                    "inputImage": {
-                        "url": img_url
+    try:
+        if text:
+            req = {
+                "perception":
+                    {
+                        "inputText":
+                            {
+                                "text": text
+                            },
+                        "selfInfo":
+                            {
+                                "location":
+                                    {
+                                        "city": "陨石坑",
+                                        "province": "火星",
+                                        "street": "第5坑位"
+                                    }
+                            }
                     },
-                    "selfInfo":
-                        {
-                            "location":
-                                {
-                                    "city": "陨石坑",
-                                    "province": "火星",
-                                    "street": "第5坑位"
-                                }
-                        }
-                },
-            "userInfo":
-                {
-                    "apiKey": TL_KEY[index],
-                    "userId": str(user_id)
-                }
-        }
+                "userInfo":
+                    {
+                        "apiKey": TL_KEY[index],
+                        "userId": str(user_id)
+                    }
+            }
+        elif img_url:
+            req = {
+                "reqType": 1,
+                "perception":
+                    {
+                        "inputImage": {
+                            "url": img_url
+                        },
+                        "selfInfo":
+                            {
+                                "location":
+                                    {
+                                        "city": "陨石坑",
+                                        "province": "火星",
+                                        "street": "第5坑位"
+                                    }
+                            }
+                    },
+                "userInfo":
+                    {
+                        "apiKey": TL_KEY[index],
+                        "userId": str(user_id)
+                    }
+            }
+    except IndexError:
+        index = 0
+        return no_result()
     async with aiohttp.ClientSession() as sess:
         async with sess.post(url, json=req) as response:
             if response.status != 200:
