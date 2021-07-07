@@ -438,7 +438,13 @@
 </details>
 
 ## 部署
+
 ```
+
+# 配置gocq
+
+在 https://github.com/Mrs4s/go-cqhttp 下载Releases最新版本，运行后选择反向代理，后将gocq的配置文件config.yml中的universal改为universal: ws://127.0.0.1:8080/cqhttp/ws
+
 # 获取代码
 git clone https://github.com/HibiKier/zhenxun_bot.git
 
