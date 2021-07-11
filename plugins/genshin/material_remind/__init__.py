@@ -32,13 +32,11 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 @super_cmd.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    try:
-        await update_image()
+    if await update_image():
         await super_cmd.send('更新成功...')
         logger.info(f'更新每日天赋素材成功...')
-    except Exception as e:
-        await super_cmd.send(f'更新出错e：{e}')
-        logger.error(f'更新每日天赋素材出错 e：{e}')
+    else:
+        await super_cmd.send(f'更新失败...')
 
 
 @driver.on_startup
@@ -56,9 +54,10 @@ async def update_image():
         card = await card.bounding_box()
         await page.screenshot(path=f'{IMAGE_PATH}/genshin/daily_material.png', clip=card, timeout=100000)
         await page.close()
-    except Exception:
-        logger.warning('win环境下 使用playwright失败....请替换环境至linux')
-        pass
+        return True
+    except Exception as e:
+        logger.error(f'原神每日素材更新出错... {type(e)}: {e}')
+        return False
 
 
 @scheduler.scheduled_job(
