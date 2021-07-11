@@ -45,6 +45,9 @@ async def update_image():
         if os.path.exists(f'{IMAGE_PATH}/genshin/daily_material.png'):
             os.remove(f'{IMAGE_PATH}/genshin/daily_material.png')
         browser = await get_browser()
+        if not browser:
+            logger.warning('获取 browser 失败，请部署至 linux 环境....')
+            return False
         url = 'https://genshin.pub/daily'
         page = await browser.new_page()
         await page.goto(url, wait_until='networkidle', timeout=10000)
