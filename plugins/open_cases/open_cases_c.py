@@ -114,7 +114,7 @@ async def open_case(user_qq: int, group: int, case_name: str = "狂牙大行动"
         # cskin_word = sp[1][:sp[1].find("(") - 1].strip()
         if knifes_flag:
             await user.update(
-                knifes_name=user.knifes_name + f"{skin.split(':')[1].strip()} 磨损：{str(mosun)[:11]}， 价格：{uplist[10]},"
+                knifes_name=user.knifes_name + f"{case}||{skin.split(':')[1].strip()} 磨损：{str(mosun)[:11]}， 价格：{uplist[10]},"
             ).apply()
         cskin_word = skin.split(':')[1].replace('|', '-').replace('（StatTrak™）', '')
         cskin_word = cskin_word[: cskin_word.rfind('(')].strip()
