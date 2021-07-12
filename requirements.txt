@@ -1,3 +1,4 @@
+appdirs==1.4.4
 aiofiles==0.6.0
 aiohttp==3.7.4.post0
 APScheduler==3.7.0
