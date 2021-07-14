@@ -66,7 +66,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             await super_cmd.send(result)
         elif flag == 1:
             await bot.send_group_msg(group_id=group_id, message=Message(f'{at(qq)}管理员修改了你的权限'
-                                                                        f'权限\n--------\n你当前的权限等级：{level}'))
+                                                                        f'\n--------\n你当前的权限等级：{level}'))
             await super_cmd.send('修改成功')
     except Exception as e:
         await super_cmd.send("执行指令失败!")
