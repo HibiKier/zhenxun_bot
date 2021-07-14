@@ -636,7 +636,7 @@ USE_CONFIG_FILE = True
 
 ### 2021/7/14
 
-* 原神今日素材自动更新时间由 00:01 -> 04:01
+* 原神今日素材自动更新时间由 00:01 -> 04:01 [#issues7](https://github.com/HibiKier/zhenxun_bot/issues/7)
 
 ### 2021/7/12
 
