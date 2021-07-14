@@ -65,7 +65,7 @@ async def update_image():
 
 @scheduler.scheduled_job(
     'cron',
-    hour=0,
+    hour=4,
     minute=1,
 )
 async def _():
