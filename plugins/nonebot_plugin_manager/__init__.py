@@ -52,8 +52,8 @@ async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
     # print(f'{matcher.module} -> this is hook')
     if not plugin_list[plugin]["default"]:
         if event.message_type == 'group':
-            if flmt.check(event.group):
-                flmt.start_cd(event.group)
+            if flmt.check(event.group_id):
+                flmt.start_cd(event.group_id)
                 await bot.send_group_msg(group_id=event.group_id, message='此功能正在维护...')
         else:
             if flmt.check(event.user_id):
