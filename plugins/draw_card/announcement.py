@@ -230,6 +230,7 @@ class PrettyAnnouncement:
                 return await res.text(), title[:-2]
 
     async def update_up_char(self):
+        pretty_up_char.parent.mkdir(exist_ok=True, parents=True)
         data = {
             'char': {'up_char': {'3': {}, '2': {}, '1': {}}, 'title': '', 'time': '', 'pool_img': ''},
             'card': {'up_char': {'3': {}, '2': {}, '1': {}}, 'title': '', 'time': '', 'pool_img': ''}
