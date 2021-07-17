@@ -463,27 +463,32 @@ python bot.py
 ```
 
 ## 配置（暂时不更新 json 配置，请将USE_CONFIG_FILE设置为False）
-在 ./configs/config.py 中的 USE_CONFIG_FILE，默认为False
+在 configs/config.py 中的 USE_CONFIG_FILE，默认为False
 
 ```
-必填：
-  1. API KEY
-  2.数据库配置
-  
-在./configs/config.py中配置基本配置（除API KEY ，数据库和代理外都含有默认值）
-在./configs/path_config.py配置路径（含有默认配置）
+1.在.env.dev文件中
 
-########（暂时不更新 json 配置，请将USE_CONFIG_FILE设置为False，直接进入./configs/config.py进行配置）
-# 是否使用配置文件（为True时这将会生成三份配置文件
-                 ./config.json：主要配置
-                 ./configs/plugins2cmd_config.json: 功能模块与对应命令配置
-                 ./configs/other_config.json: 一些插件配置）
-                 
-USE_CONFIG_FILE = True
+  SUPERUSERS = [""]   # 填写你的QQ
 
-# 如果不使用配置文件，将USE_CONFIG_FILE设置为False
-#可在./configs/config.py文件中修改配置，在./configs/path_config.py修改资源路径
-# 已在./configs/config.py和./configs/path_config.py中为各个配置提供注解！
+2.在configs/config.py文件中
+  必填：
+    1. API KEY
+    2.数据库配置
+
+  在./configs/config.py中配置基本配置（除API KEY ，数据库和代理外都含有默认值）
+  在./configs/path_config.py配置路径（含有默认配置）
+
+  ########（暂时不更新 json 配置，请将USE_CONFIG_FILE设置为False，直接进入./configs/config.py进行配置）
+  # 是否使用配置文件（为True时这将会生成三份配置文件
+                   ./config.json：主要配置
+                   ./configs/plugins2cmd_config.json: 功能模块与对应命令配置
+                   ./configs/other_config.json: 一些插件配置）
+
+  USE_CONFIG_FILE = True
+
+  # 如果不使用配置文件，将USE_CONFIG_FILE设置为False
+  #可在./configs/config.py文件中修改配置，在./configs/path_config.py修改资源路径
+  # 已在./configs/config.py和./configs/path_config.py中为各个配置提供注解！
 ```
 
 ## 配置文件注解（如果使用配置文件的话）
