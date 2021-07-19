@@ -117,10 +117,15 @@ async def search_online_setu(url: str):
         return '\n图片被小怪兽恰掉啦..!QAQ', -1
 
 
-def get_setu(index: str, setu_data: dict, tag: str = None):
-    if not os.path.exists(IMAGE_PATH + path):
-        os.mkdir(IMAGE_PATH + path)
-    length = len(os.listdir(IMAGE_PATH + path))
+def get_setu(index: str, setu_data: dict, num: int = 1, tag: str = None, r18: bool = False):
+    if r18:
+        if not os.path.exists(IMAGE_PATH + '_r18'):
+            os.mkdir(IMAGE_PATH + '_r18')
+        length = len(os.listdir(IMAGE_PATH + '_r18'))
+    else:
+        if not os.path.exists(IMAGE_PATH + path):
+            os.mkdir(IMAGE_PATH + path)
+        length = len(os.listdir(IMAGE_PATH + path))
     if length == 0:
         return None, None
     if not index:
