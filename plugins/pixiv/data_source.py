@@ -22,7 +22,7 @@ async def get_pixiv_urls(mode: str, num: int = 5, date: str = '') -> 'list, list
     try:
         return await parser_data(url, num)
     except ClientConnectorError:
-        return get_pixiv_urls(mode, num, date)
+        return await get_pixiv_urls(mode, num, date)
 
 
 async def download_pixiv_imgs(urls: list, user_id: int) -> str:
