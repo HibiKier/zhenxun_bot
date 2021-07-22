@@ -43,7 +43,7 @@
 - [x] 8种手游抽卡 (查看 [nonebot_plugin_gamedraw](https://github.com/HibiKier/nonebot_plugin_gamedraw))
 - [x] 我有一个朋友想问问..（pcrbot插件..彻底重写）
 - [x] 原神黄历  (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
-- [x] 原神今日素材 (原[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件，彻底重写)
+- [x] 原神今日素材 (原[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件，彻底重写，实现方法改为网页截图)
 - [x] 原神资源查询  (使用[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件，资源下载优化为异步下载)
 - [x] 金币红包
 
