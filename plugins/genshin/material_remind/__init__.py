@@ -52,8 +52,15 @@ async def update_image():
         page = await browser.new_page()
         await page.goto(url, wait_until='networkidle', timeout=10000)
         await page.set_viewport_size({"width": 2560, "height": 1080})
+
+        await page.evaluate("""
+            document.getElementsByClassName('GSTitleBar_gs_titlebar__2IJqy')[0].remove();
+            e = document.getElementsByClassName('GSContainer_gs_container__2FbUz')[0];
+            e.setAttribute("style", "height:880px");
+        """)
+
         await page.click("button")
-        card = await page.query_selector(".GSContainer_inner_border_box__21_vs")
+        card = await page.query_selector(".GSContainer_content_box__1sIXz")
         card = await card.bounding_box()
         await page.screenshot(path=f'{IMAGE_PATH}/genshin/daily_material.png', clip=card, timeout=100000)
         await page.close()
