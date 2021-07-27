@@ -2,6 +2,7 @@ import os
 from configs.path_config import IMAGE_PATH, TXT_PATH, TTF_PATH
 from PIL import Image, ImageFile, ImageDraw, ImageFont
 import cv2
+from typing import Tuple
 import imagehash
 import base64
 from io import BytesIO
@@ -222,6 +223,18 @@ class CreateImg:
             self.markImg.paste(img, pos)
         self.current_w += self.img_w
         return self.markImg
+
+    def crop(self, box: Tuple[int, int, int, int]):
+        """
+        说明：
+            裁剪图片
+        参数：
+            :param box: 左上角坐标，右下角坐标 (left, upper, right, lower)
+        """
+        self.markImg = self.markImg.crop(box)
+        self.w, self.h = self.markImg.size
+        self.size = self.w, self.h
+        self.draw = ImageDraw.Draw(self.markImg)
 
     # 获取文字大小
     def getsize(self, msg):
