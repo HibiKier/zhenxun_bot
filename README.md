@@ -639,6 +639,10 @@ python bot.py
 
 ## 更新
 
+### 2021/7/27
+
+* 原神今日素材改为单张截图+拼图，更新文件utils/img_utils.py及plugins/genshin/material_remind/__init__.py
+
 ### 2021/7/26
 
 * 修复原神今日素材稻妻城开放后截图不完整的问题
