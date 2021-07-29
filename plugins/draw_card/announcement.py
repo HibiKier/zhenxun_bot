@@ -243,11 +243,9 @@ class PrettyAnnouncement:
                 context = soup.find('div', {'class': 'mw-parser-output'})
             data['char']['title'] = title
             data['card']['title'] = title
-            for big in context.find_all('big'):
-                r = re.search(r'\d{1,2}/\d{1,2} \d{1,2}:\d{1,2}', str(big.text))
-                if r:
-                    time = str(big.text)
-                    break
+            r = re.search(r'(\d{1,2}/\d{1,2} \d{1,2}:\d{1,2} ～ \d{1,2}/\d{1,2} \d{1,2}:\d{1,2})', str(context.text))
+            if r:
+                time = str(r.group(1))
             else:
                 logger.error('赛马娘UP无法找到活动日期....取消更新UP池子...')
                 return check_write(data, pretty_up_char)
