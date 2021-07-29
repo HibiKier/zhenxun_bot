@@ -250,8 +250,7 @@ class PrettyAnnouncement:
                     break
             else:
                 logger.error('赛马娘UP无法找到活动日期....取消更新UP池子...')
-                return
-                # raise Exception('赛马娘UP无法找到活动日期....')
+                return check_write(data, pretty_up_char)
             time = time.replace('～', '-').replace('/', '月').split(' ')
             time = time[0] + '日 ' + time[1] + ' - ' + time[3] + '日 ' + time[4]
             data['char']['time'] = time
