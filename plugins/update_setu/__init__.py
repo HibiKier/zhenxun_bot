@@ -28,17 +28,8 @@ async def _(bot: Bot, event: Event, state: T_State):
 # 更新色图
 @scheduler.scheduled_job(
     'cron',
-    # year=None,
-    # month=None,
-    # day=None,
-    # week=None,
-    # day_of_week="mon,tue,wed,thu,fri",
     hour=4,
     minute=30,
-    # second=None,
-    # start_date=None,
-    # end_date=None,
-    # timezone=None,
 )
 async def _():
     if DOWNLOAD_SETU:

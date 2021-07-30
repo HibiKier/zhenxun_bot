@@ -3,9 +3,9 @@ from nonebot.adapters import Bot, Event
 from nonebot.typing import T_State
 from nonebot import on_command
 
-__plugin_name__ = '点歌'
+__plugin_name__ = "点歌"
 
-__plugin_usage__ = '用法：点歌 [歌名]'
+__plugin_usage__ = "用法：点歌 [歌名]"
 
 dataget = dataGet()
 
@@ -27,7 +27,7 @@ async def handle_songName(bot: Bot, event: Event, state: T_State):
         await songpicker.finish("没有找到这首歌！", at_sender=True)
     for _ in range(3):
         songInfoDict = await dataget.songInfo(songIdList[0])
-        if songInfoDict != '网易云网络繁忙！':
+        if songInfoDict != "网易云网络繁忙！":
             break
     else:
         await songpicker.finish("网易云繁忙...")
@@ -38,14 +38,5 @@ async def handle_songName(bot: Bot, event: Event, state: T_State):
 async def handle_songNum(bot: Bot, event: Event, state: T_State):
     songIdList = state["songIdList"]
     selectedSongId = songIdList[0]
-    songContent = [
-        {
-            "type": "music",
-            "data": {
-                "type": 163,
-                "id": selectedSongId
-            }
-        }
-    ]
+    songContent = [{"type": "music", "data": {"type": 163, "id": selectedSongId}}]
     await songpicker.send(songContent)
-

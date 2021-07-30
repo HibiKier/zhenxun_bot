@@ -6,7 +6,7 @@ from utils.utils import get_local_proxy
 from utils.user_agent import get_user_agent
 from configs.path_config import IMAGE_PATH
 from asyncio.exceptions import TimeoutError
-from utils.init_result import image
+from utils.message_builder import image
 
 from lxml.html import fromstring
 import aiohttp

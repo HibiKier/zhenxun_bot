@@ -4,13 +4,13 @@ from services.log import logger
 from services.db_context import db
 from models.open_cases_user import OpenCasesUser
 from models.sigin_group_user import SignGroupUser
-from utils.init_result import image
+from utils.message_builder import image
 import pypinyin
 import random
 from .utils import get_price
 from models.buff_price import BuffPrice
 from PIL import Image
-from utils.img_utils import alphabg2white_PIL, CreateImg
+from utils.image_utils import alpha2white_PIL, CreateImg
 from configs.path_config import IMAGE_PATH
 import asyncio
 from utils.utils import cn2py
@@ -221,7 +221,7 @@ async def open_shilian_case(user_qq: int, group: int, case_name: str, num: int =
                 skin_name += ''.join(i)
             # img = image(skin_name, "cases/" + case, "png")
             wImg = CreateImg(200, 270, 200, 200)
-            wImg.paste(alphabg2white_PIL(Image.open(IMAGE_PATH + f'cases/{case}/{skin_name}.png').resize((200, 200), Image.ANTIALIAS)), (0, 0))
+            wImg.paste(alpha2white_PIL(Image.open(IMAGE_PATH + f'cases/{case}/{skin_name}.png').resize((200, 200), Image.ANTIALIAS)), (0, 0))
             wImg.text((5, 200), skin)
             wImg.text((5, 220), f'磨损：{str(mosun)[:9]}')
             wImg.text((5, 240), f'价格：{price_result}')
@@ -370,7 +370,7 @@ def _pst_my_knife(w, h, knifes_list):
                                  style=pypinyin.NORMAL):
             skin_name += ''.join(i)
         knife_img = CreateImg(470, 600, 470, 470, font_size=20)
-        knife_img.paste(alphabg2white_PIL(
+        knife_img.paste(alpha2white_PIL(
             Image.open(IMAGE_PATH + f'cases/{case}/{skin_name}.png').resize((470, 470), Image.ANTIALIAS)), (0, 0))
         knife_img.text((5, 500), f'\t{name}({itype})')
         knife_img.text((5, 530), f'\t磨损：{mosun}')

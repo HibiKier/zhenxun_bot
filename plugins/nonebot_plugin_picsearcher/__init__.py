@@ -19,12 +19,9 @@ from .trace import get_des as get_des_trace
 from .yandex import get_des as get_des_yandex
 
 
-__plugin_name__ = '识图'
+__plugin_name__ = "识图"
 
-__plugin_usage__ = '用法：识图 [参数](默认nao) [图片]\n' \
-            '参数列表：\n' \
-            '\t1.nao\n' \
-            '\t2.asc'
+__plugin_usage__ = "用法：识图 [参数](默认nao) [图片]\n" "参数列表：\n" "\t1.nao\n" "\t2.asc"
 
 
 async def get_des(url: str, mode: str, user_id: int):
@@ -60,8 +57,8 @@ setu = on_command("识图", aliases={"search"}, block=True, priority=5)
 async def handle_first_receive(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json())
     imgs = get_message_imgs(event.json())
-    if msg in ['帮助']:
-        await setu.finish('示例：\n\t识图 (图片)\n\t识图asc (图片)')
+    if msg in ["帮助"]:
+        await setu.finish("示例：\n\t识图 (图片)\n\t识图asc (图片)")
     if imgs:
         state["setu"] = imgs[0]
     if msg:
@@ -73,6 +70,7 @@ async def handle_first_receive(bot: Bot, event: MessageEvent, state: T_State):
 # async def get_func(bot: Bot, event: MessageEvent, state: dict):
 #     pass
 
+
 @setu.args_parser
 async def get_setu(bot: Bot, event: MessageEvent, state: T_State):
     imgs = get_message_imgs(event.json())
@@ -80,7 +78,7 @@ async def get_setu(bot: Bot, event: MessageEvent, state: T_State):
     if not imgs:
         await setu.reject()
     if msg:
-        state['mod'] = msg
+        state["mod"] = msg
     state["setu"] = imgs[0]
 
 
@@ -100,8 +98,10 @@ async def get_setu(bot: Bot, event: MessageEvent, state: T_State):
             if idx == MAX_FIND_IMG_COUNT:
                 break
             idx += 1
-        logger.info(f"(USER {event.user_id}, GROUP "
-                    f"{event.group_id if event.message_type != 'private' else 'private'}) 识图:{url}")
+        logger.info(
+            f"(USER {event.user_id}, GROUP "
+            f"{event.group_id if event.message_type != 'private' else 'private'}) 识图:{url}"
+        )
         # image_data: List[Tuple] = await get_pic_from_url(url)
         # await setu.finish("hso")
     except IndexError:

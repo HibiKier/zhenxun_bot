@@ -6,7 +6,9 @@ FILE_PATH = os.path.dirname(__file__)
 QIU_QIU_WORD = {}
 QIU_QIU_PHRASE = {}
 
-with open(os.path.join(FILE_PATH, 'qiu_qiu_dictionary.json'), 'r', encoding='UTF-8') as f:
+with open(
+    os.path.join(FILE_PATH, "qiu_qiu_dictionary.json"), "r", encoding="UTF-8"
+) as f:
     data = json.load(f)
     QIU_QIU_WORD = data["word"]
     QIU_QIU_PHRASE = data["phrase"]

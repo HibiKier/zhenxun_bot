@@ -1,8 +1,8 @@
 from nonebot import on_command, Driver
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, Message
-from utils.img_utils import CreateImg
-from utils.init_result import image
+from utils.message_builder import image
+from utils.image_utils import CreateImg
 from utils.browser import get_browser
 from configs.path_config import IMAGE_PATH
 import nonebot
@@ -109,7 +109,6 @@ def get_background_height(weapons_imgs: List[str]) -> int:
         height += CreateImg(0, 0, background=weapons).size[1]
     last_weapon = CreateImg(0, 0, background=weapons_imgs[-1])
     w, h = last_weapon.size
-    print(w, h)
     last_weapon.crop((0, 0, w, h - 10))
     last_weapon.save(weapons_imgs[-1])
 

@@ -2,26 +2,27 @@ import aiohttp
 from utils.utils import get_local_proxy
 from utils.user_agent import get_user_agent
 
-url = f'http://fanyi.youdao.com/translate?smartresult=dict&smartresult=rule&smartresult=ugc&sessionFrom=null'
+url = f"http://fanyi.youdao.com/translate?smartresult=dict&smartresult=rule&smartresult=ugc&sessionFrom=null"
 
 
 async def translate_msg(language_type, msg):
     data = {
-        'type': parse_language(language_type),
-        'i': msg,
+        "type": parse_language(language_type),
+        "i": msg,
         "doctype": "json",
         "version": "2.1",
         "keyfrom": "fanyi.web",
         "ue": "UTF-8",
         "action": "FY_BY_CLICKBUTTON",
-        "typoResult": "true"
+        "typoResult": "true",
     }
     async with aiohttp.ClientSession(headers=get_user_agent()) as session:
         async with session.post(url, data=data, proxy=get_local_proxy()) as res:
             data = await res.json()
-            if data['errorCode'] == 0:
-                return data['translateResult'][0][0]['tgt']
-    return '翻译惜败..'
+            if data["errorCode"] == 0:
+                return data["translateResult"][0][0]["tgt"]
+    return "翻译惜败.."
+
 
 # ZH_CN2EN 中文　»　英语
 # ZH_CN2JA 中文　»　日语
@@ -38,32 +39,23 @@ async def translate_msg(language_type, msg):
 
 
 def parse_language(language_type):
-    if language_type == '英翻':
-        return 'EN2ZH_CN'
-    if language_type == '日翻':
-        return 'JA2ZH_CN'
-    if language_type == '韩翻':
-        return 'KR2ZH_CN'
+    if language_type == "英翻":
+        return "EN2ZH_CN"
+    if language_type == "日翻":
+        return "JA2ZH_CN"
+    if language_type == "韩翻":
+        return "KR2ZH_CN"
     # if language_type == '法翻':
     #     return 'FR2ZH_CN'
     # if language_type == '俄翻':
     #     return 'RU2ZH_CN'
-    if language_type == '翻英':
-        return 'ZH_CN2EN'
-    if language_type == '翻日':
-        return 'ZH_CN2JA'
-    if language_type == '翻韩':
-        return 'ZH_CN2KR'
+    if language_type == "翻英":
+        return "ZH_CN2EN"
+    if language_type == "翻日":
+        return "ZH_CN2JA"
+    if language_type == "翻韩":
+        return "ZH_CN2KR"
     # if language_type == '翻法':
     #     return 'ZH_CN2FR'
     # if language_type == '翻俄':
     #     return 'ZH_CN2RU'
-
-
-
-
-
-
-
-
-

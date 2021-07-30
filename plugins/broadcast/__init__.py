@@ -6,7 +6,7 @@ import asyncio
 from utils.utils import get_message_text, get_message_imgs
 from services.log import logger
 from models.group_remind import GroupRemind
-from utils.init_result import image
+from utils.message_builder import image
 
 __plugin_name__ = "广播 [Hidden]"
 

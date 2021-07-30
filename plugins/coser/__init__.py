@@ -1,39 +1,27 @@
 from nonebot import on_command
-from utils.utils import get_message_text
 from nonebot.typing import T_State
-from nonebot.adapters import Bot, Event
+from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from services.log import logger
-from utils.init_result import image
+from utils.message_builder import image
 import requests
 
-__plugin_name__ = 'coser'
+__plugin_name__ = "coser"
 
-__plugin_usage__ = '用法：发送‘coser’'
-
-
-coser = on_command('cos', aliases={'coser', '括丝', 'COS', 'Cos', 'cOS', 'coS'}, priority=5, block=True)
+__plugin_usage__ = "用法：发送‘coser’"
 
 
-url_2 = 'http://api.rosysun.cn/cos'
+coser = on_command(
+    "cos", aliases={"coser", "括丝", "COS", "Cos", "cOS", "coS"}, priority=5, block=True
+)
+
+
+url_2 = "http://api.rosysun.cn/cos"
 
 
 @coser.handle()
-async def _(bot: Bot, event: Event, state: T_State):
+async def _(bot: Bot, event: MessageEvent, state: T_State):
     img_url = requests.get(url_2).text
     await coser.send(image(img_url))
     logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'}) 发送COSER")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送COSER"
+    )

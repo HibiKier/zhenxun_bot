@@ -10,7 +10,7 @@ from .config import path_dict
 from configs.path_config import IMAGE_PATH
 import nonebot
 import pypinyin
-from utils.img_utils import CreateImg
+from utils.image_utils import CreateImg
 import platform
 from services.log import logger
 import random
@@ -321,5 +321,5 @@ def remove_prohibited_str(name: str):
                 tmp += i
         name = tmp
     else:
-        name = name.replace('/', '')
+        name = name.replace('/', '\\')
     return name

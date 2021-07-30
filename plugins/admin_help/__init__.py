@@ -2,9 +2,9 @@ from nonebot import on_command
 from nonebot.typing import T_State
 from nonebot.adapters import Bot
 from nonebot.adapters.cqhttp import GroupMessageEvent
-from utils.img_utils import CreateImg
+from utils.image_utils import CreateImg
 from configs.path_config import IMAGE_PATH
-from utils.init_result import image
+from utils.message_builder import image
 
 
 __plugin_name__ = '管理帮助 [Hidden]'
@@ -28,6 +28,7 @@ __plugin_usage__ = '''管理帮助(权限等级)：
 '''
 
 passive_help = '''【被动技能开关(2)：
+    开启/关闭早晚安
     开启/关闭进群欢迎
     开启/关闭每日开箱重置提醒
     开启/关闭b站转发解析
@@ -41,7 +42,9 @@ admin_help = on_command("管理员帮助", aliases={"管理帮助"}, priority=5,
 
 admin_help_img = CreateImg(1000, 600, font_size=24)
 admin_help_img.text((10, 10), __plugin_usage__)
-admin_help_img.paste(CreateImg(450, 600, font_size=24).text((0, 0), passive_help), (650, 50))
+text_img = CreateImg(450, 600, font_size=24)
+text_img.text((0, 0), passive_help)
+admin_help_img.paste(text_img, (650, 50))
 admin_help_img.save(IMAGE_PATH + 'admin_help_img.png')
 
 

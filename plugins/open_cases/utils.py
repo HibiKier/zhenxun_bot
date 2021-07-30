@@ -12,9 +12,9 @@ from utils.utils import get_bot
 from models.group_remind import GroupRemind
 from utils.utils import get_cookie_text
 from asyncio.exceptions import TimeoutError
-from .config import *
+import pypinyin
 from nonebot.adapters.cqhttp.exception import ActionFailed
-from configs.config import buff_proxy
+from configs.config import BUFF_PROXY
 
 url = "https://buff.163.com/api/market/goods"
 # proxies = 'http://49.75.59.242:3128'
@@ -60,7 +60,7 @@ async def util_get_buff_price(case_name: str = "狂牙大行动") -> str:
                         "search": skin
                     }
                     try:
-                        async with session.get(url, proxy=buff_proxy, params=parameter, timeout=20) as response:
+                        async with session.get(url, proxy=BUFF_PROXY, params=parameter, timeout=20) as response:
                             if response.status == 200:
                                 data = (await response.json())["data"]
                                 total_page = data["total_page"]
@@ -168,7 +168,7 @@ async def util_get_buff_img(case_name: str = "狂牙大行动") -> str:
                 print(skin)
                 skin_name = ''
                 # try:
-                async with session.get(url, proxy=buff_proxy, params=parameter, timeout=20) as response:
+                async with session.get(url, proxy=BUFF_PROXY, params=parameter, timeout=20) as response:
                     if response.status == 200:
                         data = (await response.json())["data"]
                         total_page = data["total_page"]

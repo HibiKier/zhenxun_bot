@@ -1,5 +1,4 @@
 
-
 from gino import Gino
 from .log import logger
 from configs.config import bind, sql_name, user, password, address, port, database
@@ -14,7 +13,6 @@ async def init():
     i_bind = DATABASE_URI if DATABASE_URI else bind
     if not i_bind:
         i_bind = f"{sql_name}://{user}:{password}@{address}:{port}/{database}"
-    # print(i_bind)
     try:
         await db.set_bind(i_bind)
         await db.gino.create_all()

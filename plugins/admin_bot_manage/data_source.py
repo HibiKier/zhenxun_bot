@@ -4,7 +4,7 @@ from configs.path_config import DATA_PATH
 import os
 import aiofiles
 import aiohttp
-from utils.init_result import image
+from utils.message_builder import image
 from utils.utils import get_local_proxy, get_bot
 from pathlib import Path
 from nonebot import require
@@ -173,7 +173,7 @@ async def update_member_info(group_id: int) -> bool:
                 await LevelUser.set_level(user_info['user_id'], user_info['group_id'], ADMIN_DEFAULT_AUTH)
             if str(user_info['user_id']) in bot.config.superusers:
                 await LevelUser.set_level(user_info['user_id'], user_info['group_id'], 9)
-            user = await GroupInfoUser.select_member_info(user_info['user_id'], user_info['group_id'])
+            user = await GroupInfoUser.get_member_info(user_info['user_id'], user_info['group_id'])
             if user:
                 if user.user_name != nickname:
                     await user.update(user_name=nickname).apply()
@@ -182,7 +182,7 @@ async def update_member_info(group_id: int) -> bool:
                 continue
             join_time = datetime.strptime(
                 time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(user_info['join_time'])), "%Y-%m-%d %H:%M:%S")
-            if await GroupInfoUser.insert(
+            if await GroupInfoUser.add_member_info(
                     user_info['user_id'],
                     user_info['group_id'],
                     nickname,
@@ -191,7 +191,7 @@ async def update_member_info(group_id: int) -> bool:
                 logger.info(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新成功")
             else:
                 _error_member_list.append(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新失败\n")
-    _del_member_list = list(set(_exist_member_list).difference(set(await GroupInfoUser.query_group_member_list(group_id))))
+    _del_member_list = list(set(_exist_member_list).difference(set(await GroupInfoUser.get_group_member_id_list(group_id))))
     if _del_member_list:
         for del_user in _del_member_list:
             if await GroupInfoUser.delete_member_info(del_user, group_id):

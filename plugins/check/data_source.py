@@ -33,35 +33,40 @@ class Check:
     async def check_network(self):
         async with aiohttp.ClientSession(headers=get_user_agent()) as session:
             try:
-                async with session.get('https://www.baidu.com/', proxy=get_local_proxy(), timeout=3) as response:
+                async with session.get(
+                    "https://www.baidu.com/", proxy=get_local_proxy(), timeout=3
+                ) as response:
                     pass
             except (TimeoutError, ClientConnectorError) as e:
-                logger.warning(f'访问BaiDu失败... e: {e}')
+                logger.warning(f"访问BaiDu失败... e: {e}")
                 self.baidu = 404
             try:
-                async with session.get('https://www.google.com/', proxy=get_local_proxy(), timeout=3) as response:
+                async with session.get(
+                    "https://www.google.com/", proxy=get_local_proxy(), timeout=3
+                ) as response:
                     pass
             except (TimeoutError, ClientConnectorError) as e:
-                logger.warning(f'访问Google失败... e: {e}')
+                logger.warning(f"访问Google失败... e: {e}")
                 self.google = 404
 
     def check_user(self):
-        rst = ''
+        rst = ""
         for user in psutil.users():
             rst += f'[{user.name}] {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(user.started))}\n'
         self.user = rst[:-1]
 
     async def show(self):
         await self.check_all()
-        rst = f'[Time] {str(datetime.now()).split(".")[0]}\n' \
-              f'-----System-----\n' \
-              f'[CPU] {self.cpu}%\n' \
-              f'[Memory] {self.memory}%\n' \
-              f'[Disk] {self.disk}%\n' \
-              f'-----Network-----\n' \
-              f'[BaiDu] {self.baidu}\n' \
-              f'[Google] {self.google}\n'
+        rst = (
+            f'[Time] {str(datetime.now()).split(".")[0]}\n'
+            f"-----System-----\n"
+            f"[CPU] {self.cpu}%\n"
+            f"[Memory] {self.memory}%\n"
+            f"[Disk] {self.disk}%\n"
+            f"-----Network-----\n"
+            f"[BaiDu] {self.baidu}\n"
+            f"[Google] {self.google}\n"
+        )
         if self.user:
-            rst += '-----User-----\n' + self.user
+            rst += "-----User-----\n" + self.user
         return rst
-

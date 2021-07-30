@@ -1,12 +1,12 @@
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent
+from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot import on_command
 from utils.utils import get_message_imgs, get_local_proxy, get_message_text, is_Chinese
-from utils.init_result import image
+from utils.message_builder import image
 import aiohttp
 import aiofiles
 from configs.path_config import IMAGE_PATH
-from utils.img_utils import CreateImg
+from utils.image_utils import CreateImg
 from utils.user_agent import get_user_agent
 from services.log import logger
 
@@ -23,11 +23,11 @@ from services.log import logger
 # RU2ZH_CN 俄语　»　中文
 # SP2ZH_CN 西语　»　中文
 
-__plugin_name__ = '黑白草图'
+__plugin_name__ = "黑白草图"
 
-__plugin_usage__ = '用法： \n\t黑白图 [文字] [图片]\n示例：黑白草图 没有人不喜欢萝莉 [图片]'
+__plugin_usage__ = "用法： \n\t黑白图 [文字] [图片]\n示例：黑白草图 没有人不喜欢萝莉 [图片]"
 
-w2b_img = on_command('黑白草图', aliases={'黑白图'}, priority=5, block=True)
+w2b_img = on_command("黑白草图", aliases={"黑白图"}, priority=5, block=True)
 
 
 @w2b_img.handle()
@@ -40,22 +40,24 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     img = img[0]
     async with aiohttp.ClientSession(headers=get_user_agent()) as session:
         async with session.get(img, proxy=get_local_proxy()) as response:
-            async with aiofiles.open(IMAGE_PATH + f'temp/{event.user_id}_w2b.png', 'wb') as f:
+            async with aiofiles.open(
+                IMAGE_PATH + f"temp/{event.user_id}_w2b.png", "wb"
+            ) as f:
                 await f.write(await response.read())
     msg = await get_translate(msg)
-    w2b = CreateImg(0, 0, background=IMAGE_PATH + f'temp/{event.user_id}_w2b.png')
-    w2b.convert('L')
-    msg_sp = msg.split('<|>')
+    w2b = CreateImg(0, 0, background=IMAGE_PATH + f"temp/{event.user_id}_w2b.png")
+    w2b.convert("L")
+    msg_sp = msg.split("<|>")
     w, h = w2b.size
     add_h, font_size = init_h_font_size(h)
-    bg = CreateImg(w, h + add_h, color='black', font_size=font_size)
+    bg = CreateImg(w, h + add_h, color="black", font_size=font_size)
     bg.paste(w2b)
     chinese_msg = formalization_msg(msg)
     if not bg.check_font_size(chinese_msg):
         if len(msg_sp) == 1:
             centered_text(bg, chinese_msg, add_h)
         else:
-            centered_text(bg, chinese_msg + '<|>' + msg_sp[1], add_h)
+            centered_text(bg, chinese_msg + "<|>" + msg_sp[1], add_h)
     elif not bg.check_font_size(msg_sp[0]):
         centered_text(bg, msg, add_h)
     else:
@@ -65,14 +67,15 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         centered_text(bg, msg, add_h)
     await w2b_img.send(image(b64=bg.pic2bs4()))
     logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'})"
-        f" 制作黑白草图 {msg}")
+        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+        f" 制作黑白草图 {msg}"
+    )
 
 
 def centered_text(img: CreateImg, text: str, add_h: int):
     top_h = img.h - add_h + (img.h / 100)
     bottom_h = img.h - (img.h / 100)
-    text_sp = text.split('<|>')
+    text_sp = text.split("<|>")
     w, h = img.getsize(text_sp[0])
     if len(text_sp) == 1:
         w = (img.w - w) / 2
@@ -90,38 +93,38 @@ def centered_text(img: CreateImg, text: str, add_h: int):
 
 
 async def get_translate(msg: str) -> str:
-    url = f'http://fanyi.youdao.com/translate?smartresult=dict&smartresult=rule&smartresult=ugc&sessionFrom=null'
+    url = f"http://fanyi.youdao.com/translate?smartresult=dict&smartresult=rule&smartresult=ugc&sessionFrom=null"
     data = {
-        'type': "ZH_CN2JA",
-        'i': msg,
+        "type": "ZH_CN2JA",
+        "i": msg,
         "doctype": "json",
         "version": "2.1",
         "keyfrom": "fanyi.web",
         "ue": "UTF-8",
         "action": "FY_BY_CLICKBUTTON",
-        "typoResult": "true"
+        "typoResult": "true",
     }
     async with aiohttp.ClientSession(headers=get_user_agent()) as session:
         try:
             async with session.post(url, data=data, proxy=get_local_proxy()) as res:
                 data = await res.json()
-                if data['errorCode'] == 0:
-                    translate = data['translateResult'][0][0]['tgt']
-                    msg += '<|>' + translate
+                if data["errorCode"] == 0:
+                    translate = data["translateResult"][0][0]["tgt"]
+                    msg += "<|>" + translate
         except Exception as e:
-            logger.warning(f'黑白草图翻译出错 e:{e}')
+            logger.warning(f"黑白草图翻译出错 e:{e}")
     return msg
 
 
 def formalization_msg(msg: str) -> str:
-    rst = ''
+    rst = ""
     for i in range(len(msg)):
         if is_Chinese(msg[i]):
-            rst += msg[i] + ' '
+            rst += msg[i] + " "
         else:
             rst += msg[i]
         if i + 1 < len(msg) and is_Chinese(msg[i + 1]) and msg[i].isalpha():
-            rst += ' '
+            rst += " "
     return rst
 
 
@@ -132,4 +135,3 @@ def init_h_font_size(h):
     elif 400 < h < 800:
         return init_h_font_size(800)
     return h * 0.2, h * 0.05
-

@@ -3,7 +3,7 @@ import aiohttp
 from utils.utils import get_cookie_text
 from configs.path_config import TXT_PATH
 from asyncio.exceptions import TimeoutError
-from configs.config import buff_proxy
+from configs.config import BUFF_PROXY
 from pathlib import Path
 from services.log import logger
 
@@ -12,17 +12,17 @@ url = "https://buff.163.com/api/market/goods"
 
 
 async def get_price(dname):
-    cookie = {'session': get_cookie_text('buff')}
+    cookie = {"session": get_cookie_text("buff")}
     name_list = []
     price_list = []
-    parameter = {
-        "game": "csgo",
-        "page_num": "1",
-        "search": dname
-    }
+    parameter = {"game": "csgo", "page_num": "1", "search": dname}
     try:
-        async with aiohttp.ClientSession(cookies=cookie, headers=get_user_agent()) as session:
-            async with session.get(url, proxy=buff_proxy, params=parameter, timeout=5) as response:
+        async with aiohttp.ClientSession(
+            cookies=cookie, headers=get_user_agent()
+        ) as session:
+            async with session.get(
+                url, proxy=BUFF_PROXY, params=parameter, timeout=5
+            ) as response:
                 if response.status == 200:
                     try:
                         if str(await response.text()).find("Login Required") != -1:
@@ -53,14 +53,13 @@ def update_buff_cookie(cookie: str):
     _cookie = Path(TXT_PATH + "cookie/buff.txt")
     try:
         _cookie.parent.mkdir(parents=True, exist_ok=True)
-        with open(_cookie, 'w') as f:
+        with open(_cookie, "w") as f:
             f.write(cookie)
         return "更新cookie成功"
     except Exception as e:
-        logger.error(f'更新cookie失败 e:{e}')
+        logger.error(f"更新cookie失败 e:{e}")
         return "更新cookie失败"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(get_price("awp 二西莫夫"))
-

@@ -1,4 +1,4 @@
-from utils.init_result import image
+from utils.message_builder import image
 from utils.utils import scheduler, get_bot
 from services.log import logger
 from models.group_remind import GroupRemind
@@ -11,7 +11,7 @@ __name__ = "早晚安 [Hidden]"
 
 # 早上好
 @scheduler.scheduled_job(
-    'cron',
+    "cron",
     # year=None,
     # month=None,
     # day=None,
@@ -28,22 +28,21 @@ async def _():
     try:
         bot = get_bot()
         gl = await bot.get_group_list(self_id=bot.self_id)
-        gl = [g['group_id'] for g in gl]
+        gl = [g["group_id"] for g in gl]
         for g in gl:
-            if await GroupRemind.get_status(g, 'zwa'):
+            if await GroupRemind.get_status(g, "zwa"):
                 result = image("zao.jpg", "zhenxun")
                 try:
-                    await bot.send_group_msg(group_id=g,
-                                             message="早上好" + result)
+                    await bot.send_group_msg(group_id=g, message="早上好" + result)
                 except ActionFailed:
-                    logger.warning(f'{g} 群被禁言中，无法发送早安')
+                    logger.warning(f"{g} 群被禁言中，无法发送早安")
     except Exception as e:
-        logger.error(f'早晚安错误 e:{e}')
+        logger.error(f"早晚安错误 e:{e}")
 
 
 # 睡觉了
 @scheduler.scheduled_job(
-    'cron',
+    "cron",
     hour=23,
     minute=59,
 )
@@ -51,22 +50,23 @@ async def _():
     try:
         bot = get_bot()
         gl = await bot.get_group_list(self_id=bot.self_id)
-        gl = [g['group_id'] for g in gl]
+        gl = [g["group_id"] for g in gl]
         for g in gl:
-            if await GroupRemind.get_status(g, 'zwa'):
+            if await GroupRemind.get_status(g, "zwa"):
                 result = image("sleep.jpg", "zhenxun")
                 try:
-                    await bot.send_group_msg(group_id=g,
-                                             message="小真寻要睡觉了，你们也要早点睡呀" + result)
+                    await bot.send_group_msg(
+                        group_id=g, message="小真寻要睡觉了，你们也要早点睡呀" + result
+                    )
                 except ActionFailed:
-                    logger.warning(f'{g} 群被禁言中，无法发送晚安')
+                    logger.warning(f"{g} 群被禁言中，无法发送晚安")
     except Exception as e:
-        logger.error(f'早晚安错误 e:{e}')
+        logger.error(f"早晚安错误 e:{e}")
 
 
 # 自动更新群组信息
 @scheduler.scheduled_job(
-    'cron',
+    "cron",
     hour=3,
     minute=1,
 )
@@ -74,19 +74,23 @@ async def _():
     try:
         bot = get_bot()
         gl = await bot.get_group_list(self_id=bot.self_id)
-        gl = [g['group_id'] for g in gl]
+        gl = [g["group_id"] for g in gl]
         for g in gl:
             group_info = await bot.get_group_info(group_id=g)
-            await GroupInfo.add_group_info(group_info['group_id'], group_info['group_name'],
-                                           group_info['max_member_count'], group_info['member_count'])
-            logger.info(f'自动更新群组 {g} 信息成功')
+            await GroupInfo.add_group_info(
+                group_info["group_id"],
+                group_info["group_name"],
+                group_info["max_member_count"],
+                group_info["member_count"],
+            )
+            logger.info(f"自动更新群组 {g} 信息成功")
     except Exception as e:
-        logger.error(f'自动更新群组信息错误 e:{e}')
+        logger.error(f"自动更新群组信息错误 e:{e}")
 
 
 # 自动更新好友信息
 @scheduler.scheduled_job(
-    'cron',
+    "cron",
     hour=3,
     minute=1,
 )
@@ -95,12 +99,13 @@ async def _():
         bot = get_bot()
         fl = await bot.get_friend_list(self_id=bot.self_id)
         for f in fl:
-            if await FriendUser.add_friend_info(f['user_id'], f['nickname']):
+            if await FriendUser.add_friend_info(f["user_id"], f["nickname"]):
                 logger.info(f'自动更新好友 {f["user_id"]} 信息成功')
             else:
                 logger.warning(f'自动更新好友 {f["user_id"]} 信息失败')
     except Exception as e:
-        logger.error(f'自动更新群组信息错误 e:{e}')
+        logger.error(f"自动更新群组信息错误 e:{e}")
+
 
 #  一次性任务
 # 固定时间触发，仅触发一次：
@@ -189,6 +194,3 @@ async def _():
 #         misfire_grace_time=60,  # 允许的误差时间，建议不要省略
 #         # jobstore='default',  # 任务储存库，在下一小节中说明
 #     )
-
-
-

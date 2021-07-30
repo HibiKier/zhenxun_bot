@@ -5,7 +5,7 @@ from nonebot.adapters.cqhttp import GROUP, Bot, GroupMessageEvent, Message
 from nonebot.typing import T_State
 from utils.utils import get_message_text, is_number, get_message_at
 from models.group_member_info import GroupInfoUser
-from utils.init_result import at
+from utils.message_builder import at
 from models.russian_user import RussianUser
 from models.bag_user import BagUser
 from services.log import logger
@@ -93,7 +93,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if rs_player[event.group_id]['at'] != 0 and event.user_id != rs_player[event.group_id]['at']:
         await accept.finish('又不是找你决斗，你拒绝什么啊！气！', at_sender=True)
     if rs_player[event.group_id]['at'] == event.user_id:
-        at_player_name = (await GroupInfoUser.select_member_info(event.user_id, event.group_id)).user_name
+        at_player_name = (await GroupInfoUser.get_member_info(event.user_id, event.group_id)).user_name
         await accept.send(Message(f'{at(rs_player[event.group_id][1])}\n'
                                   f'{at_player_name}拒绝了你的对决！'))
         rs_player[event.group_id] = {}
@@ -191,7 +191,10 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
     if at_:
         at_ = at_[0]
-        at_player_name = event.sender.card if event.sender.card else event.sender.nickname
+        try:
+            at_player_name = (await GroupInfoUser.get_member_info(at_, event.group_id)).user_name
+        except AttributeError:
+            at_player_name = at(at_)
         msg = f'{player1_name} 向 {at(at_)} 发起了决斗！请 {at_player_name} 在30秒内回复‘接受对决’ or ‘拒绝对决’，超时此次决斗作废！'
     else:
         at_ = 0
@@ -242,10 +245,10 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             await shot.finish(random.choice([
                 f'不要打扰 {player1_name} 和 {player2_name} 的决斗啊！',
                 '给我好好做好一个观众！不然小真寻就要生气了',
-                f'不要捣乱啊baka{(await GroupInfoUser.select_member_info(event.user_id, event.group_id)).user_name}！'
+                f'不要捣乱啊baka{(await GroupInfoUser.get_member_info(event.user_id, event.group_id)).user_name}！'
             ]), at_sender=True)
         await shot.finish(f'你的左轮不是连发的！该 '
-                          f'{(await GroupInfoUser.select_member_info(int(rs_player[event.group_id]["next"]), event.group_id)).user_name} 开枪了')
+                          f'{(await GroupInfoUser.get_member_info(int(rs_player[event.group_id]["next"]), event.group_id)).user_name} 开枪了')
     if rs_player[event.group_id]['bullet'][rs_player[event.group_id]['index']] != 1:
         await shot.send(Message(random.choice([
             '呼呼，没有爆裂的声响，你活了下来',

@@ -1,0 +1,115 @@
+from nonebot import on_command
+from utils.utils import get_message_text, is_number
+from services.log import logger
+from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.typing import T_State
+from .data_source import uid_pid_exists
+from models.pixiv_keyword_user import PixivKeywordUser
+from models.pixiv import Pixiv
+from nonebot.permission import SUPERUSER
+
+__plugin_name__ = "添加PIX关键词/UID/PID | 添加PIX黑名单"
+
+__plugin_usage__ = """
+    关键词：添加搜图的关键词（效果拉胯）
+    UID：搜集该画师的图片，可指定收藏数
+    PID：收录单张图片
+    PIX黑名单：可以是当个pid，也可以是pid_p0等
+"""
+
+
+add_keyword = on_command("添加pix关键词", aliases={"添加pix关键字"}, priority=1, block=True)
+
+add_black_pid = on_command("添加pix黑名单", permission=SUPERUSER, priority=1, block=True)
+
+# 超级用户可以通过字符 -f 来强制收录不检查是否存在
+add_uid_pid = on_command(
+    "添加pixuid",
+    aliases={
+        "添加pixpid",
+    },
+    priority=1,
+    block=True,
+)
+
+
+@add_keyword.handle()
+async def _(bot: Bot, event: MessageEvent, state: T_State):
+    msg = get_message_text(event.json())
+    group_id = -1
+    if isinstance(event, GroupMessageEvent):
+        group_id = event.group_id
+    if msg:
+        if await PixivKeywordUser.add_keyword(
+            event.user_id, group_id, msg, bot.config.superusers
+        ):
+            await add_keyword.send(
+                f"已成功添加pixiv搜图关键词：{msg}，请等待管理员通过该关键词！", at_sender=True
+            )
+            logger.info(
+                f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+                f" 添加了pixiv搜图关键词:" + msg
+            )
+        else:
+            await add_keyword.finish(f"该关键词 {msg} 已存在...")
+    else:
+        await add_keyword.finish(f"虚空关键词？.？.？.？")
+
+
+@add_uid_pid.handle()
+async def _(bot: Bot, event: MessageEvent, state: T_State):
+    msg = get_message_text(event.json())
+    exists_flag = True
+    if msg.find("-f") != -1 and str(event.user_id) in bot.config.superusers:
+        exists_flag = False
+        msg = msg.replace("-f", "").strip()
+    if msg:
+        for msg in msg.split():
+            if not is_number(msg):
+                await add_uid_pid.finish("UID只能是数字的说...", at_sender=True)
+            if state["_prefix"]["raw_command"].lower().endswith("uid"):
+                msg = f"uid:{msg}"
+            else:
+                msg = f"pid:{msg}"
+                if await Pixiv.check_exists(int(msg[4:]), "p0"):
+                    await add_uid_pid.finish(f"该PID：{msg[4:]}已存在...", at_sender=True)
+            if not await uid_pid_exists(msg) and exists_flag:
+                await add_uid_pid.finish("画师或作品不存在或搜索正在CD，请稍等...", at_sender=True)
+            group_id = -1
+            if isinstance(event, GroupMessageEvent):
+                group_id = event.group_id
+            if await PixivKeywordUser.add_keyword(
+                event.user_id, group_id, msg, bot.config.superusers
+            ):
+                await add_uid_pid.send(
+                    f"已成功添加pixiv搜图UID/PID：{msg[4:]}，请等待管理员通过！", at_sender=True
+                )
+            else:
+                await add_uid_pid.finish(f"该UID/PID：{msg[4:]} 已存在...")
+    else:
+        await add_uid_pid.finish("湮灭吧！虚空的UID！")
+
+
+@add_black_pid.handle()
+async def _(bot: Bot, event: MessageEvent, state: T_State):
+    pid = get_message_text(event.json())
+    img_p = ""
+    if "p" in pid:
+        img_p = pid.split("p")[-1]
+        pid = pid.replace("_", "")
+        pid = pid[: pid.find("p")]
+    if not is_number(pid):
+        await add_black_pid.finish("PID必须全部是数字！", at_sender=True)
+    if await PixivKeywordUser.add_keyword(
+        114514,
+        114514,
+        f"black:{pid}{f'_p{img_p}' if img_p else ''}",
+        bot.config.superusers,
+    ):
+        await add_black_pid.send(f"已添加PID：{pid} 至黑名单中...")
+        logger.info(
+            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+            f" 添加了pixiv搜图黑名单 PID:{pid}"
+        )
+    else:
+        await add_black_pid.send(f"PID：{pid} 已添加黑名单中，添加失败...")

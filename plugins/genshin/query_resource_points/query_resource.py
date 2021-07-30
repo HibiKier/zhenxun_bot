@@ -1,312 +1,240 @@
-from urllib import request
-from PIL import Image, ImageMath
-from io import BytesIO
-import json
-import os
-import time
-import base64
-from configs.path_config import IMAGE_PATH
-from utils.init_result import image
+from typing import Tuple, Optional, List
+from configs.path_config import IMAGE_PATH, TXT_PATH
+from PIL.Image import UnidentifiedImageError
+from utils.message_builder import image
 from services.log import logger
+from .map import Map
+from utils.image_utils import CreateImg
 import asyncio
+from pathlib import Path
+from asyncio.exceptions import TimeoutError
+from asyncio import Semaphore
+from aiohttp.client import ClientSession
+from utils.user_agent import get_user_agent
+from utils.image_utils import is_valid
 import nonebot
+import aiohttp
+import aiofiles
+import os
+try:
+    import ujson as json
+except ModuleNotFoundError:
+    import json
 
 driver: nonebot.Driver = nonebot.get_driver()
 
-LABEL_URL = 'https://api-static.mihoyo.com/common/blackboard/ys_obc/v1/map/label/tree?app_sn=ys_obc'
-POINT_LIST_URL = 'https://api-static.mihoyo.com/common/blackboard/ys_obc/v1/map/point/list?map_id=2&app_sn=ys_obc'
+LABEL_URL = "https://api-static.mihoyo.com/common/blackboard/ys_obc/v1/map/label/tree?app_sn=ys_obc"
+POINT_LIST_URL = "https://api-static.mihoyo.com/common/blackboard/ys_obc/v1/map/point/list?map_id=2&app_sn=ys_obc"
+MAP_URL = "https://api-static.mihoyo.com/common/map_user/ys_obc/v1/map/info?map_id=2&app_sn=ys_obc&lang=zh-cn"
 
-header = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ' \
-         'Chrome/84.0.4147.105 Safari/537.36'
+icon_path = Path(IMAGE_PATH) / "genshin" / "genshin_icon"
+map_path = Path(IMAGE_PATH) / "genshin" / "map"
+resource_label_file = Path(TXT_PATH) / "genshin" / "resource_label_file.json"
+resource_point_file = Path(TXT_PATH) / "genshin" / "resource_point_file.json"
+resource_type_file = Path(TXT_PATH) / "genshin" / "resource_type_file.json"
 
-FILE_PATH = IMAGE_PATH + 'genshin/'
-if not os.path.exists(IMAGE_PATH + 'genshin/genshin_icon/'):
-    os.mkdir(IMAGE_PATH + 'genshin/genshin_icon/')
+# 地图中心坐标
+CENTER_POINT: Optional[Tuple[int, int]] = None
 
-MAP_PATH = None
-MAP_IMAGE = None
-MAP_SIZE = None
-
-# resource_point里记录的坐标是相对坐标，是以蒙德城的大雕像为中心的，所以图片合成时需要转换坐标
-CENTER = (3505, 1907)
-
-zoom = 0.75
-resource_icon_offset = (-int(150 * 0.5 * zoom), -int(150 * zoom))
+resource_name_list: List[str] = []
 
 
-@driver.on_startup
-async def init():
-    global MAP_SIZE, MAP_PATH, MAP_IMAGE
-    MAP_PATH = os.path.join(IMAGE_PATH, "genshin", "seek_god_eye", "icon", "map_icon.jpg")
-    MAP_IMAGE = await asyncio.get_event_loop().run_in_executor(None, Image.open, MAP_PATH)
-    MAP_SIZE = MAP_IMAGE.size
-    await up_label_and_point_list()
+# 查找资源
+async def query_resource(resource_name: str) -> str:
+    planning_route: bool = False
+    if resource_name and resource_name[-2:] == "路径":
+        resource_name = resource_name[:-2].strip()
+        planning_route = True
+    if not resource_name or resource_name not in resource_name_list:
+        return f"未查找到 {resource_name} 资源，可通过 “原神资源列表” 获取全部资源名称.."
+    map_ = Map(resource_name, CENTER_POINT, planning_route=planning_route)
+    count = map_.get_resource_count()
+    rand = await asyncio.get_event_loop().run_in_executor(None, map_.generate_resource_icon_in_map)
+    return f"{image(f'genshin_map_{rand}.png', 'temp')}" \
+           f"\n\n※ {resource_name} 一共找到 {count} 个位置点\n※ 数据来源于米游社wiki"
 
 
-data = {
-    "all_resource_type": {
-        # 这个字典保存所有资源类型，
-        # "1": {
-        #         "id": 1,
-        #         "name": "传送点",
-        #         "icon": "",
-        #         "parent_id": 0,
-        #         "depth": 1,
-        #         "node_type": 1,
-        #         "jump_type": 0,
-        #         "jump_target_id": 0,
-        #         "display_priority": 0,
-        #         "children": []
-        #     },
-    },
-    "can_query_type_list": {
-        # 这个字典保存所有可以查询的资源类型名称和ID，这个字典只有名称和ID
-        # 上边字典里"depth": 2的类型才可以查询，"depth": 1的是1级目录，不能查询
-        # "七天神像":"2"
-        # "风神瞳":"5"
-
-    },
-    "all_resource_point_list": [
-        # 这个列表保存所有资源点的数据
-        # {
-        #     "id": 2740,
-        #     "label_id": 68,
-        #     "x_pos": -1789,
-        #     "y_pos": 2628,
-        #     "author_name": "✟紫灵心✟",
-        #     "ctime": "2020-10-29 10:41:21",
-        #     "display_state": 1
-        # },
-    ],
-    "date": ""  # 记录上次更新"all_resource_point_list"的日期
-}
-
-
-def up_icon_image(sublist):
-    # 检查是否有图标，没有图标下载保存到本地
-    id = sublist["id"]
-    icon_url = sublist["icon"]
-
-    icon_path = os.path.join(FILE_PATH, "genshin_icon", f"{id}.png")
-
-    if not os.path.exists(icon_path):
-        schedule = request.Request(icon_url)
-        schedule.add_header('User-Agent', header)
-        with request.urlopen(schedule) as f:
-            icon = Image.open(f)
-            icon = icon.resize((150, 150))
-
-            box_alpha = Image.open(os.path.join(FILE_PATH, "genshin_icon", "box_alpha.png")).getchannel("A")
-            box = Image.open(os.path.join(FILE_PATH, "genshin_icon", "box.png"))
-            logger.info(f'原神资源更新 --> {sublist}')
-
-            try:
-                icon_alpha = icon.getchannel("A")
-                icon_alpha = ImageMath.eval("convert(a*b/256, 'L')", a=icon_alpha, b=box_alpha)
-            except ValueError:
-                # 米游社的图有时候会没有alpha导致报错，这时候直接使用box_alpha当做alpha就行
-                icon_alpha = box_alpha
-
-            icon2 = Image.new("RGBA", (150, 150), "#00000000")
-            icon2.paste(icon, (0, -10))
-
-            bg = Image.new("RGBA", (150, 150), "#00000000")
-            bg.paste(icon2, mask=icon_alpha)
-            bg.paste(box, mask=box)
-
-            with open(icon_path, "wb") as icon_file:
-                bg.save(icon_file)
-
-
-async def up_label_and_point_list():
-    # 更新label列表和资源点列表
-    try:
-        if os.path.exists(os.path.dirname(__file__) + '/icon/box_alpha.png'):
-            os.rename(os.path.dirname(__file__) + '/icon/box_alpha.png', IMAGE_PATH + 'genshin/genshin_icon/box_alpha.png')
-    except:
-        pass
-    try:
-        if os.path.exists(os.path.dirname(__file__) + '/icon/box.png'):
-            os.rename(os.path.dirname(__file__) + '/icon/box.png', IMAGE_PATH + 'genshin/genshin_icon/box.png')
-    except:
-        pass
-
-    schedule = request.Request(LABEL_URL)
-    schedule.add_header('User-Agent', header)
-    with request.urlopen(schedule, timeout=5) as f:
-        if f.code != 200:  # 检查返回的状态码是否是200
-            raise ValueError(f"资源标签列表初始化失败，错误代码{f.code}")
-        label_data = json.loads(f.read().decode('utf-8'))
-        tasks = []
-        for label in label_data["data"]["tree"]:
-            data["all_resource_type"][str(label["id"])] = label
-
-            for sublist in label["children"]:
-                data["all_resource_type"][str(sublist["id"])] = sublist
-                data["can_query_type_list"][sublist["name"]] = str(sublist["id"])
-                tasks.append(asyncio.get_event_loop().run_in_executor(None, up_icon_image, sublist))
-            # logger.info(f'原神资源更新 --> {sublist}')
-
-            label["children"] = []
-        await asyncio.gather(*tasks)
-
-    schedule = request.Request(POINT_LIST_URL)
-    schedule.add_header('User-Agent', header)
-    with request.urlopen(schedule) as f:
-        if f.code != 200:  # 检查返回的状态码是否是200
-            raise ValueError(f"资源点列表初始化失败，错误代码{f.code}")
-        test = json.loads(f.read().decode('utf-8'))
-        data["all_resource_point_list"] = test["data"]["point_list"]
-
-    data["date"] = time.strftime("%d")
-
-
-# def load_resource_type_id():
-#     with open(os.path.join(FILE_PATH,'resource_type_id.json'), 'r', encoding='UTF-8') as f:
-#         json_data = json.load(f)
-#         for id in json_data.keys():
-#             data["all_resource_type"][id] = json_data[id]
-#             if json_data[id]["depth"] != 1:
-#                 data["can_query_type_list"][json_data[id]["name"]] = id
-
-
-# 初始化
-# load_resource_type_id()
-
-
-class Resource_map(object):
-
-    def __init__(self, resource_name):
-        self.resource_id = str(data["can_query_type_list"][resource_name])
-
-        # 地图要要裁切的左上角和右下角坐标
-        # 这里初始化为地图的大小
-        self.x_start = MAP_SIZE[0]
-        self.y_start = MAP_SIZE[1]
-        self.x_end = 0
-        self.y_end = 0
-
-        self.map_image = MAP_IMAGE.copy()
-
-        self.resource_icon = Image.open(self.get_icon_path())
-        self.resource_icon = self.resource_icon.resize((int(150 * zoom), int(150 * zoom)))
-
-        self.resource_xy_list = self.get_resource_point_list()
-
-    def get_icon_path(self):
-        # 检查有没有图标，有返回正确图标，没有返回默认图标
-        icon_path = os.path.join(FILE_PATH, "genshin_icon", f"{self.resource_id}.png")
-
-        if os.path.exists(icon_path):
-            return icon_path
-        else:
-            return os.path.join(FILE_PATH, "genshin_icon", "0.png")
-
-    def get_resource_point_list(self):
-        temp_list = []
-        for resource_point in data["all_resource_point_list"]:
-            if str(resource_point["label_id"]) == self.resource_id:
-                # 获取xy坐标，然后加上中心点的坐标完成坐标转换
-                x = resource_point["x_pos"] + CENTER[0]
-                y = resource_point["y_pos"] + CENTER[1]
-                temp_list.append((int(x), int(y)))
-        return temp_list
-
-    def paste(self):
-        for x, y in self.resource_xy_list:
-            # 把资源图片贴到地图上
-            self.map_image.paste(self.resource_icon, (x + resource_icon_offset[0], y + resource_icon_offset[1]),
-                                 self.resource_icon)
-
-            # 找出4个方向最远的坐标，用于后边裁切
-            self.x_start = min(x, self.x_start)
-            self.y_start = min(y, self.y_start)
-            self.x_end = max(x, self.x_end)
-            self.y_end = max(y, self.y_end)
-
-    def crop(self):
-
-        # 先把4个方向扩展150像素防止把资源图标裁掉
-        self.x_start -= 150
-        self.y_start -= 150
-        self.x_end += 150
-        self.y_end += 150
-
-        # 如果图片裁切的太小会看不出资源的位置在哪，检查图片裁切的长和宽看够不够1000，不到1000的按1000裁切
-        if (self.x_end - self.x_start) < 1000:
-            center = int((self.x_end + self.x_start) / 2)
-            self.x_start = center - 500
-            self.x_end = center + 500
-        if (self.y_end - self.y_start) < 1000:
-            center = int((self.y_end + self.y_start) / 2)
-            self.y_start = center - 500
-            self.y_end = center + 500
-
-        self.map_image = self.map_image.crop((self.x_start, self.y_start, self.x_end, self.y_end))
-
-    def get_cq_cod(self):
-
-        if not self.resource_xy_list:
-            return "没有这个资源的信息"
-
-        self.paste()
-
-        self.crop()
-
-        bio = BytesIO()
-        self.map_image.save(bio, format='JPEG')
-        base64_str = 'base64://' + base64.b64encode(bio.getvalue()).decode()
-
-        return image(b64=base64_str)
-
-    def get_resource_count(self):
-        return len(self.resource_xy_list)
-
-
-async def get_resource_map_mes(name):
-    if data["date"] != time.strftime("%d"):
-        await up_label_and_point_list()
-
-    if not (name in data["can_query_type_list"]):
-        return f"没有 {name} 这种资源。\n发送 原神资源列表 查看所有资源名称"
-
-    map = Resource_map(name)
-    count = map.get_resource_count()
-
-    if not count:
-        return f"没有找到 {name} 资源的位置，可能米游社wiki还没更新。"
-
-    mes = f"资源 {name} 的位置如下\n"
-    mes += map.get_cq_cod()
-
-    mes += f"\n\n※ {name} 一共找到 {count} 个位置点\n※ 数据来源于米游社wiki"
-    return mes
-
-
-def get_resource_list_mes():
+# 原神资源列表
+def get_resource_type_list():
+    with open(resource_type_file, "r", encoding="utf8") as f:
+        data = json.load(f)
     temp = {}
-
-    for id in data["all_resource_type"].keys():
-        # 先找1级目录
-        if data["all_resource_type"][id]["depth"] == 1:
-            temp[id] = []
-
-    for id in data["all_resource_type"].keys():
-        # 再找2级目录
-        if data["all_resource_type"][id]["depth"] == 2:
-            temp[str(data["all_resource_type"][id]["parent_id"])].append(id)
+    for id_ in data.keys():
+        temp[data[id_]["name"]] = []
+        for x in data[id_]["children"]:
+            temp[data[id_]["name"]].append(x["name"])
 
     mes = "当前资源列表如下：\n"
 
-    for resource_type_id in temp.keys():
-
-        if resource_type_id in ["1", "12", "50", "51", "95", "131"]:
-            # 在游戏里能查到的数据这里就不列举了，不然消息太长了
-            continue
-
-        mes += f"{data['all_resource_type'][resource_type_id]['name']}："
-        for resource_id in temp[resource_type_id]:
-            mes += f"{data['all_resource_type'][resource_id]['name']}，"
-        mes += "\n"
-
+    for resource_type in temp.keys():
+        mes += f"{resource_type}：{'，'.join(temp[resource_type])}\n"
     return mes
+
+
+@driver.on_startup
+async def init(flag: bool = False):
+    global CENTER_POINT, resource_name_list
+    semaphore = asyncio.Semaphore(10)
+    async with aiohttp.ClientSession(headers=get_user_agent()) as session:
+        await download_map_init(session, semaphore, flag)
+        await download_resource_data(session, semaphore)
+        await download_resource_type(session)
+        if not CENTER_POINT:
+            CENTER_POINT = json.load(open(resource_label_file, "r", encoding="utf8"))[
+                "CENTER_POINT"
+            ]
+        with open(resource_type_file, "r", encoding="utf8") as f:
+            data = json.load(f)
+        for id_ in data:
+            for x in data[id_]["children"]:
+                resource_name_list.append(x["name"])
+
+
+# 图标及位置资源
+async def download_resource_data(session: ClientSession, semaphore: Semaphore):
+    icon_path.mkdir(parents=True, exist_ok=True)
+    resource_label_file.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        async with session.get(POINT_LIST_URL, timeout=5) as response:
+            if response.status == 200:
+                data = await response.json()
+                if data["message"] == "OK":
+                    data = data["data"]
+                    for lst in ["label_list", "point_list"]:
+                        resource_data = {"CENTER_POINT": CENTER_POINT}
+                        tasks = []
+                        file = (
+                            resource_label_file
+                            if lst == "label_list"
+                            else resource_point_file
+                        )
+                        for x in data[lst]:
+                            id_ = x["id"]
+                            if lst == "label_list":
+                                img_url = x["icon"]
+                                tasks.append(
+                                    asyncio.ensure_future(
+                                        download_image(
+                                            img_url,
+                                            f"{icon_path}/{id_}.png",
+                                            session,
+                                            semaphore,
+                                            True,
+                                        )
+                                    )
+                                )
+                            resource_data[id_] = x
+                        await asyncio.gather(*tasks)
+                        with open(file, "w", encoding="utf8") as f:
+                            json.dump(resource_data, f, ensure_ascii=False, indent=4)
+                else:
+                    logger.warning(f'获取原神资源失败 msg: {data["message"]}')
+            else:
+                logger.warning(f"获取原神资源失败 code：{response.status}")
+    except TimeoutError:
+        logger.warning("获取原神资源数据超时...已再次尝试...")
+        await download_resource_data(session, semaphore)
+
+
+# 下载原神地图并拼图
+async def download_map_init(session: ClientSession, semaphore: Semaphore, flag: bool = False):
+    global CENTER_POINT
+    map_path.mkdir(exist_ok=True, parents=True)
+    async with session.get(MAP_URL, timeout=5) as response:
+        if response.status == 200:
+            data = await response.json()
+            if data["message"] == "OK":
+                data = json.loads(data["data"]["info"]["detail"])
+                CENTER_POINT = (data["origin"][0], data["origin"][1])
+                # padding_w, padding_h = data['padding']
+                data = data["slices"]
+                idx = 0
+                for x in data:
+                    idj = 0
+                    for j in x:
+                        await download_image(
+                            j["url"],
+                            f"{map_path}/{idx}_{idj}.png",
+                            session,
+                            semaphore,
+                            force_flag=flag
+                        )
+                        idj += 1
+                    idx += 1
+                map_width, map_height = CreateImg(
+                    0, 0, background=f"{map_path}/0_0.png"
+                ).size
+                lens = len([x for x in os.listdir(f"{map_path}") if x.startswith("0")])
+                background_image = CreateImg(
+                    map_width * lens, map_height * lens, map_width, map_height
+                )
+                for i in range(idx):
+                    for j in range(idj):
+                        x = CreateImg(0, 0, background=f"{map_path}/{i}_{j}.png")
+                        background_image.paste(x)
+                background_image.save(f"{map_path}/map.png")
+            else:
+                logger.warning(f'获取原神地图失败 msg: {data["message"]}')
+        else:
+            logger.warning(f"获取原神地图失败 code：{response.status}")
+
+
+# 下载资源类型数据
+async def download_resource_type(session: ClientSession):
+    resource_type_file.parent.mkdir(parents=True, exist_ok=True)
+    async with session.get(LABEL_URL, timeout=5) as response:
+        if response.status == 200:
+            data = await response.json()
+            if data["message"] == "OK":
+                data = data["data"]["tree"]
+                resource_data = {}
+                for x in data:
+                    id_ = x["id"]
+                    resource_data[id_] = x
+                with open(resource_type_file, "w", encoding="utf8") as f:
+                    json.dump(resource_data, f, ensure_ascii=False, indent=4)
+                logger.info(f"更新原神资源类型成功...")
+            else:
+                logger.warning(f'获取原神资源类型失败 msg: {data["message"]}')
+        else:
+            logger.warning(f"获取原神资源类型失败 code：{response.status}")
+
+
+# 初始化资源图标
+def gen_icon(icon: str):
+    A = CreateImg(0, 0, background=f"{icon_path}/box.png")
+    B = CreateImg(0, 0, background=f"{icon_path}/box_alpha.png")
+    icon_ = icon_path / f"{icon}"
+    icon_img = CreateImg(115, 115, background=icon_)
+    icon_img.circle()
+    B.paste(icon_img, (17, 10), True)
+    B.paste(A, alpha=True)
+    B.save(icon)
+    logger.info(f"生成图片成功 file：{str(icon)}")
+
+
+# 下载图片
+async def download_image(
+    img_url: str,
+    path: str,
+    session: ClientSession,
+    semaphore: Semaphore,
+    gen_flag: bool = False,
+    force_flag: bool = False,
+):
+    async with semaphore:
+        try:
+            if not os.path.exists(path) or not is_valid or force_flag:
+                async with session.get(img_url, timeout=5) as response:
+                    async with aiofiles.open(path, "wb") as f:
+                        await f.write(await response.read())
+                        logger.info(f"下载原神资源图标：{img_url}")
+                        if gen_flag:
+                            gen_icon(path)
+        except TimeoutError:
+            logger.warning("下载原神资源图片超时...已再次尝试...")
+            await download_image(img_url, path, session, semaphore, gen_flag)
+        except UnidentifiedImageError:
+            logger.warning(f"原神图片打开错误..已删除，等待下次更新... file: {path}")
+            if os.path.exists(path):
+                os.remove(path)

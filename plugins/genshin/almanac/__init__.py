@@ -4,26 +4,27 @@ from utils.utils import get_bot, scheduler
 from nonebot import on_command
 from models.level_user import LevelUser
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from utils.init_result import image
+from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent
+from utils.message_builder import image
 from services.log import logger
 from models.group_remind import GroupRemind
 
 
 FILE_PATH = os.path.dirname(__file__)
 
-almanac = on_command('原神黄历', priority=5, block=True)
-reload = on_command('重载原神黄历数据', priority=5, block=True)
+almanac = on_command("原神黄历", priority=5, block=True)
+reload = on_command("重载原神黄历数据", priority=5, block=True)
 
 
 @almanac.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(bot: Bot, event: MessageEvent, state: T_State):
     almanac_base64 = get_almanac_base64_str()
     mes = image(b64=almanac_base64) + "\n ※ 黄历数据来源于 genshin.pub"
     await almanac.send(mes)
     logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'})"
-        f" 发送查看原神黄历")
+        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+        f" 发送查看原神黄历"
+    )
 
 
 @reload.handle()
@@ -34,7 +35,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 
 @scheduler.scheduled_job(
-    'cron',
+    "cron",
     hour=10,
     minute=25,
 )
@@ -42,9 +43,9 @@ async def _():
     # 每日提醒
     bot = get_bot()
     gl = await bot.get_group_list(self_id=bot.self_id)
-    gl = [g['group_id'] for g in gl]
+    gl = [g["group_id"] for g in gl]
     almanac_base64 = get_almanac_base64_str()
     mes = image(b64=almanac_base64) + "\n ※ 黄历数据来源于 genshin.pub"
     for gid in gl:
-        if await GroupRemind.get_status(gid, 'almanac'):
+        if await GroupRemind.get_status(gid, "almanac"):
             await bot.send_group_msg(group_id=int(gid), message=mes)
