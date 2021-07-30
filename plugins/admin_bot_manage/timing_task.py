@@ -28,11 +28,14 @@ async def _():
     minutes=5,
 )
 async def _():
-    bot = get_bot()
-    gl = await bot.get_group_list(self_id=bot.self_id)
-    gl = [g["group_id"] for g in gl]
-    all_group = [x.group_id for x in await GroupInfo.get_all_group()]
-    for g in gl:
-        if g not in all_group:
-            await update_member_info(g)
-            logger.info(f"快速更新群信息以及权限：{g}")
+    try:
+        bot = get_bot()
+        gl = await bot.get_group_list(self_id=bot.self_id)
+        gl = [g["group_id"] for g in gl]
+        all_group = [x.group_id for x in await GroupInfo.get_all_group()]
+        for g in gl:
+            if g not in all_group:
+                await update_member_info(g)
+                logger.info(f"快速更新群信息以及权限：{g}")
+    except IndexError:
+        pass
