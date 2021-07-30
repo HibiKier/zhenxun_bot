@@ -217,7 +217,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 num = 1
     else:
         return
-    await send_setu_handle(setu_reg, event, tags, num, 0)
+    await send_setu_handle(setu_reg, event, '色图', tags, num, 0)
 
 
 @find_setu.args_parser
