@@ -680,6 +680,7 @@ python bot.py
   * 删除configs，plugins，services，utils，models文件夹重新clone
   * 删除多余文件夹，resources/img/genshin/seek_god_eye
   * 清空resources/img/genshin/genshin_icon文件夹，仅保留box.png和box_alpha.png
+  * 替换bot.py
 
 ### 2021/7/27
 
