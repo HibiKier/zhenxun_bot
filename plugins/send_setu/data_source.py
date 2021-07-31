@@ -79,6 +79,7 @@ async def get_setu_urls(
                                         ",".join(tags),
                                     )
                                 )
+                            num = num if num < len(data) else len(data)
                             random_idx = random.sample(range(len(data)), num)
                             x_urls = []
                             x_text_lst = []
