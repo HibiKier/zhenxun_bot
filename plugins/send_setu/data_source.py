@@ -101,7 +101,7 @@ headers = {
 }
 
 
-async def search_online_setu(url_: str) -> "MessageSegment, int":
+async def search_online_setu(url_: str, id_: int = None, path_: str = None) -> "MessageSegment, int":
     if "i.pixiv.cat" in url_:
         url_ = url_.replace("i.pixiv.cat", "i.pximg.net")
     async with aiohttp.ClientSession(headers=headers) as session:
@@ -110,17 +110,20 @@ async def search_online_setu(url_: str) -> "MessageSegment, int":
             try:
                 async with session.get(url_, proxy=get_local_proxy(), timeout=3) as res:
                     if res.status == 200:
-                        index = str(random.randint(1, 100000))
-                        async with aiofiles.open(
-                            IMAGE_PATH + "temp/" + index + "_temp_setu.jpg", "wb"
-                        ) as f:
+                        index = str(random.randint(1, 100000)) if id_ is None else id_
+                        path_ = 'temp' if path_ is None else path_
+                        if id_:
+                            file = f'{index}.jpg'
+                        else:
+                            file = f'{index}_temp_setu.jpg'
+                        async with aiofiles.open(f'{IMAGE_PATH}/{path_}/{file}', "wb") as f:
                             try:
                                 await f.write(await res.read())
                             except TimeoutError:
                                 # return '\n这图没下载过来~（网太差？）', -1, False
                                 continue
                         logger.info(f"下载 lolicon图片 {url_} 成功， id：{index}")
-                        return image(f"{index}_temp_setu.jpg", "temp"), index
+                        return image(file, path_), index
                     else:
                         logger.warning(f"访问 lolicon图片 {url_} 失败 status：{res.status}")
                         # return '\n这图好难下载啊！QAQ', -1, False
@@ -137,7 +140,7 @@ async def check_local_exists_or_download(setu_image: Setu) -> "MessageSegment, i
         path_ = path
     if os.path.exists(f"{IMAGE_PATH}/{path_}/{setu_image.local_id}.jpg"):
         return image(f"{setu_image.local_id}.jpg", path_), 200
-    return await search_online_setu(setu_image.img_url)
+    return await search_online_setu(setu_image.img_url, setu_image.local_id, path_)
 
 
 # 添加涩图数据到数据库
@@ -225,4 +228,4 @@ async def find_img_index(img_url, user_id):
             f"author：{setu_img.author}\n"
             f"PID：{setu_img.pid}"
         )
-    return "该图不在色图库中或色图库未更新！."
+    return "该图不在色图库中或色图库未更新！"
