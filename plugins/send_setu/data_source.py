@@ -225,4 +225,4 @@ async def find_img_index(img_url, user_id):
             f"author：{setu_img.author}\n"
             f"PID：{setu_img.pid}"
         )
-    return "该图不在色图库中或色图库未更新！"
+    return "该图不在色图库中或色图库未更新！."
