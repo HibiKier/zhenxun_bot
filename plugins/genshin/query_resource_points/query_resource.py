@@ -153,7 +153,7 @@ async def download_map_init(
     global CENTER_POINT, MAP_RATIO
     map_path.mkdir(exist_ok=True, parents=True)
     _map = map_path / "map.png"
-    if os.path.getsize(_map) > 1024 * 1024 * 30:
+    if _map.exists() and os.path.getsize(_map) > 1024 * 1024 * 30:
         _map.unlink()
     async with session.get(MAP_URL, timeout=5) as response:
         if response.status == 200:
