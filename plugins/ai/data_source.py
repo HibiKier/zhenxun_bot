@@ -150,7 +150,7 @@ def no_result() -> str:
         random.choice(
             [
                 "你在说啥子？",
-                f"纯洁的{list(get_bot().config.nickname)[0]}没听懂",
+                f"纯洁的小真寻没听懂",
                 "下次再告诉你(下次一定)",
                 "你觉得我听懂了吗？嗯？",
                 "我！不！知！道！",

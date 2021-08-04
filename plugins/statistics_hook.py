@@ -92,7 +92,7 @@ async def _(
         # print(f'model --> {model}')
         for plugin in plugins2info_dict:
             if plugin == model:
-                print(f'plugin --> {plugin}')
+                # print(f'plugin --> {plugin}')
                 try:
                     group_id = str(event.group_id)
                 except AttributeError:

@@ -3,6 +3,7 @@ from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from nonebot.adapters.cqhttp.permission import GROUP
 from utils.utils import get_message_text, is_number, get_message_imgs, get_local_proxy
 from nonebot.typing import T_State
+from asyncio.exceptions import TimeoutError
 import time
 from nonebot.adapters.cqhttp.exception import ActionFailed
 from configs.path_config import DATA_PATH, IMAGE_PATH
@@ -47,13 +48,16 @@ def save_data():
 
 
 async def download_img_and_hash(url, group_id):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, proxy=get_local_proxy(), timeout=10) as response:
-            async with aiofiles.open(
-                IMAGE_PATH + f"temp/mute_{group_id}_img.jpg", "wb"
-            ) as f:
-                await f.write(await response.read())
-    return str(get_img_hash(IMAGE_PATH + f"temp/mute_{group_id}_img.jpg"))
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, proxy=get_local_proxy(), timeout=10) as response:
+                async with aiofiles.open(
+                    IMAGE_PATH + f"temp/mute_{group_id}_img.jpg", "wb"
+                ) as f:
+                    await f.write(await response.read())
+        return str(get_img_hash(IMAGE_PATH + f"temp/mute_{group_id}_img.jpg"))
+    except TimeoutError:
+        return ''
 
 
 mute_dict = {}

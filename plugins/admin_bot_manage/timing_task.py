@@ -2,6 +2,7 @@ from utils.utils import scheduler, get_bot
 from .data_source import update_member_info
 from services.log import logger
 from models.group_info import GroupInfo
+from asyncpg.exceptions import ConnectionDoesNotExistError
 
 
 # 自动更新群员信息
@@ -37,5 +38,5 @@ async def _():
             if g not in all_group:
                 await update_member_info(g)
                 logger.info(f"快速更新群信息以及权限：{g}")
-    except IndexError:
+    except (IndexError, ConnectionDoesNotExistError):
         pass

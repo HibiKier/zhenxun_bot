@@ -2,7 +2,7 @@ from configs.path_config import IMAGE_PATH
 from utils.message_builder import image
 from services.log import logger
 from aiohttp.client_exceptions import ClientConnectorError
-from utils.image_utils import get_img_hash
+from utils.image_utils import get_img_hash, compressed_image
 from asyncpg.exceptions import UniqueViolationError
 from utils.utils import get_local_proxy
 from asyncio.exceptions import TimeoutError
@@ -10,6 +10,7 @@ from typing import List, Optional
 from models.setu import Setu
 import aiohttp
 import aiofiles
+import asyncio
 import os
 import random
 
@@ -26,18 +27,15 @@ r18_path = "_r18/"
 
 # 获取url
 async def get_setu_urls(
-    tags: List[str], num: int = 1, r18: int = 0, command: str = ''
+    tags: List[str], num: int = 1, r18: int = 0, command: str = ""
 ) -> "List[str], List[str], List[tuple], int":
     tags = tags[:20] if len(tags) > 20 else tags
     params = {
         "r18": r18,  # 添加r18参数 0为否，1为是，2为混合
         "tag": "|".join(tags),  # 若指定tag
         "num": 100,  # 一次返回的结果数量，范围为1到10，不提供 APIKEY 时固定为1
-        "size1200": "original",  # 是否使用 master_1200 缩略图，以节省流量或提升加载速度
+        "size": ["original"],  # 是否使用 master_1200 缩略图，以节省流量或提升加载速度
     }
-    urls = []
-    text_list = []
-    add_databases_list = []
     async with aiohttp.ClientSession() as session:
         for count in range(3):
             logger.info(f"get_setu_url: count --> {count}")
@@ -49,36 +47,13 @@ async def get_setu_urls(
                         data = await response.json()
                         if not data["error"]:
                             data = data["data"]
-                            for i in range(len(data)):
-                                img_url = data[i]["urls"]["original"]
-                                img_url = (
-                                    img_url.replace("i.pixiv.cat", "i.pximg.net")
-                                    if "i.pixiv.cat" in img_url
-                                    else img_url
-                                )
-                                title = data[i]["title"]
-                                author = data[i]["author"]
-                                pid = data[i]["pid"]
-                                urls.append(img_url)
-                                text_list.append(
-                                    f"title：{title}\nauthor：{author}\nPID：{pid}"
-                                )
-                                tags = []
-                                for j in range(len(data[i]["tags"])):
-                                    tags.append(data[i]["tags"][j])
-                                if command != '色图r':
-                                    if 'R-18' in tags:
-                                        tags.remove('R-18')
-                                add_databases_list.append(
-                                    (
-                                        title,
-                                        author,
-                                        pid,
-                                        "",
-                                        img_url,
-                                        ",".join(tags),
-                                    )
-                                )
+                            (
+                                urls,
+                                text_list,
+                                add_databases_list,
+                            ) = await asyncio.get_event_loop().run_in_executor(
+                                None, _setu_data_process, data, command
+                            )
                             num = num if num < len(data) else len(data)
                             random_idx = random.sample(range(len(data)), num)
                             x_urls = []
@@ -101,7 +76,9 @@ headers = {
 }
 
 
-async def search_online_setu(url_: str, id_: int = None, path_: str = None) -> "MessageSegment, int":
+async def search_online_setu(
+    url_: str, id_: int = None, path_: str = None
+) -> "MessageSegment, int":
     if "i.pixiv.cat" in url_:
         url_ = url_.replace("i.pixiv.cat", "i.pximg.net")
     async with aiohttp.ClientSession(headers=headers) as session:
@@ -110,18 +87,25 @@ async def search_online_setu(url_: str, id_: int = None, path_: str = None) -> "
             try:
                 async with session.get(url_, proxy=get_local_proxy(), timeout=3) as res:
                     if res.status == 200:
-                        index = str(random.randint(1, 100000)) if id_ is None else id_
-                        path_ = 'temp' if path_ is None else path_
-                        if id_:
-                            file = f'{index}.jpg'
-                        else:
-                            file = f'{index}_temp_setu.jpg'
-                        async with aiofiles.open(f'{IMAGE_PATH}/{path_}/{file}', "wb") as f:
+                        index = random.randint(1, 100000) if id_ is None else id_
+                        path_ = "temp" if not path_ else path_
+                        file = f"{index}_temp_setu.jpg" if not path_ else f"{index}.jpg"
+                        async with aiofiles.open(
+                            f"{IMAGE_PATH}/{path_}/{file}", "wb"
+                        ) as f:
                             try:
                                 await f.write(await res.read())
                             except TimeoutError:
-                                # return '\n这图没下载过来~（网太差？）', -1, False
                                 continue
+                        if id_ is not None:
+                            if (
+                                os.path.getsize(f"{IMAGE_PATH}/{path_}/{index}.jpg")
+                                > 1024 * 1024 * 1.5
+                            ):
+                                compressed_image(
+                                    os.path.join(path_, f"{index}.jpg"),
+                                    os.path.join(path_, f"{index}.jpg"),
+                                )
                         logger.info(f"下载 lolicon图片 {url_} 成功， id：{index}")
                         return image(file, path_), index
                     else:
@@ -152,7 +136,7 @@ async def add_data_to_database(lst: List[tuple]):
     if tmp:
         for x in tmp:
             try:
-                r18 = 1 if 'R-18' in x[5] else 0
+                r18 = 1 if "R-18" in x[5] else 0
                 idx = await Setu.get_image_count(r18)
                 await Setu.add_setu_data(
                     idx,
@@ -229,3 +213,39 @@ async def find_img_index(img_url, user_id):
             f"PID：{setu_img.pid}"
         )
     return "该图不在色图库中或色图库未更新！"
+
+
+# 处理色图数据
+def _setu_data_process(data: dict, command: str) -> "list, list, list":
+    urls = []
+    text_list = []
+    add_databases_list = []
+    for i in range(len(data)):
+        img_url = data[i]["urls"]["original"]
+        img_url = (
+            img_url.replace("i.pixiv.cat", "i.pximg.net")
+            if "i.pixiv.cat" in img_url
+            else img_url
+        )
+        title = data[i]["title"]
+        author = data[i]["author"]
+        pid = data[i]["pid"]
+        urls.append(img_url)
+        text_list.append(f"title：{title}\nauthor：{author}\nPID：{pid}")
+        tags = []
+        for j in range(len(data[i]["tags"])):
+            tags.append(data[i]["tags"][j])
+        if command != "色图r":
+            if "R-18" in tags:
+                tags.remove("R-18")
+        add_databases_list.append(
+            (
+                title,
+                author,
+                pid,
+                "",
+                img_url,
+                ",".join(tags),
+            )
+        )
+    return urls, text_list, add_databases_list

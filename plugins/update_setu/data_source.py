@@ -25,53 +25,54 @@ async def update_old_setu_data():
     path = Path(TXT_PATH)
     setu_data_file = path / "setu_data.json"
     r18_data_file = path / "r18_setu_data.json"
-    index = 0
-    r18_index = 0
-    count = 0
-    fail_count = 0
-    for file in [setu_data_file, r18_data_file]:
-        if file.exists():
-            data = json.load(open(file, "r", encoding="utf8"))
-            for x in data:
-                if file == setu_data_file:
-                    idx = index
-                    if 'R-18' in data[x]["tags"]:
-                        data[x]["tags"].remove('R-18')
-                else:
-                    idx = r18_index
-                img_url = (
-                    data[x]["img_url"].replace("i.pixiv.cat", "i.pximg.net")
-                    if "i.pixiv.cat" in data[x]["img_url"]
-                    else data[x]["img_url"]
-                )
-                # idx = r18_index if 'R-18' in data[x]["tags"] else index
-                try:
-                    await Setu.add_setu_data(
-                        idx,
-                        data[x]["title"],
-                        data[x]["author"],
-                        data[x]["pid"],
-                        data[x]["img_hash"],
-                        img_url,
-                        ",".join(data[x]["tags"]),
-                    )
-                    count += 1
-                    if 'R-18' in data[x]["tags"]:
-                        r18_index += 1
+    if setu_data_file.exists() or r18_data_file.exists():
+        index = 0
+        r18_index = 0
+        count = 0
+        fail_count = 0
+        for file in [setu_data_file, r18_data_file]:
+            if file.exists():
+                data = json.load(open(file, "r", encoding="utf8"))
+                for x in data:
+                    if file == setu_data_file:
+                        idx = index
+                        if 'R-18' in data[x]["tags"]:
+                            data[x]["tags"].remove('R-18')
                     else:
-                        index += 1
-                    logger.info(f'添加旧色图数据成功 PID：{data[x]["pid"]} index：{idx}....')
-                except UniqueViolationError:
-                    fail_count += 1
-                    logger.info(f'添加旧色图数据失败，色图重复 PID：{data[x]["pid"]} index：{idx}....')
-            file.unlink()
-    setu_url_path = path / "setu_url.json"
-    setu_r18_url_path = path / "setu_r18_url.json"
-    if setu_url_path.exists():
-        setu_url_path.unlink()
-    if setu_r18_url_path.exists():
-        setu_r18_url_path.unlink()
-    logger.info(f"更新旧色图数据完成，成功更新数据：{count} 条，累计失败：{fail_count} 条")
+                        idx = r18_index
+                    img_url = (
+                        data[x]["img_url"].replace("i.pixiv.cat", "i.pximg.net")
+                        if "i.pixiv.cat" in data[x]["img_url"]
+                        else data[x]["img_url"]
+                    )
+                    # idx = r18_index if 'R-18' in data[x]["tags"] else index
+                    try:
+                        await Setu.add_setu_data(
+                            idx,
+                            data[x]["title"],
+                            data[x]["author"],
+                            data[x]["pid"],
+                            data[x]["img_hash"],
+                            img_url,
+                            ",".join(data[x]["tags"]),
+                        )
+                        count += 1
+                        if 'R-18' in data[x]["tags"]:
+                            r18_index += 1
+                        else:
+                            index += 1
+                        logger.info(f'添加旧色图数据成功 PID：{data[x]["pid"]} index：{idx}....')
+                    except UniqueViolationError:
+                        fail_count += 1
+                        logger.info(f'添加旧色图数据失败，色图重复 PID：{data[x]["pid"]} index：{idx}....')
+                file.unlink()
+        setu_url_path = path / "setu_url.json"
+        setu_r18_url_path = path / "setu_r18_url.json"
+        if setu_url_path.exists():
+            setu_url_path.unlink()
+        if setu_r18_url_path.exists():
+            setu_r18_url_path.unlink()
+        logger.info(f"更新旧色图数据完成，成功更新数据：{count} 条，累计失败：{fail_count} 条")
 
 
 headers = {
@@ -142,7 +143,6 @@ async def update_setu_img():
                                 break
                     except (TimeoutError, ClientConnectorError) as e:
                         logger.warning(f"{image.local_id}.jpg 更新失败 ..{type(e)}：{e}")
-                        pass
                     except Exception as e:
                         _success -= 1
                         logger.error(f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}")
@@ -151,6 +151,8 @@ async def update_setu_img():
                             error_info.append(
                                 f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}"
                             )
+            else:
+                logger.info(f'更新色图 {image.local_id}.jpg 已存在')
     await get_bot().send_private_msg(
         user_id=int(list(get_bot().config.superusers)[0]),
         message=f'{str(datetime.now()).split(".")[0]} 更新 色图 完成，实际更新 {_success} 张，以下为更新时未知错误：\n'

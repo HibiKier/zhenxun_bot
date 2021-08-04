@@ -16,6 +16,7 @@ import nonebot
 import aiohttp
 import aiofiles
 import os
+
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -38,20 +39,29 @@ CENTER_POINT: Optional[Tuple[int, int]] = None
 
 resource_name_list: List[str] = []
 
+MAP_RATIO = 0.5
+
 
 # 查找资源
 async def query_resource(resource_name: str) -> str:
+    global CENTER_POINT
     planning_route: bool = False
     if resource_name and resource_name[-2:] == "路径":
         resource_name = resource_name[:-2].strip()
         planning_route = True
     if not resource_name or resource_name not in resource_name_list:
         return f"未查找到 {resource_name} 资源，可通过 “原神资源列表” 获取全部资源名称.."
-    map_ = Map(resource_name, CENTER_POINT, planning_route=planning_route)
+    map_ = Map(
+        resource_name, CENTER_POINT, planning_route=planning_route, ratio=MAP_RATIO
+    )
     count = map_.get_resource_count()
-    rand = await asyncio.get_event_loop().run_in_executor(None, map_.generate_resource_icon_in_map)
-    return f"{image(f'genshin_map_{rand}.png', 'temp')}" \
-           f"\n\n※ {resource_name} 一共找到 {count} 个位置点\n※ 数据来源于米游社wiki"
+    rand = await asyncio.get_event_loop().run_in_executor(
+        None, map_.generate_resource_icon_in_map
+    )
+    return (
+        f"{image(f'genshin_map_{rand}.png', 'temp')}"
+        f"\n\n※ {resource_name} 一共找到 {count} 个位置点\n※ 数据来源于米游社wiki"
+    )
 
 
 # 原神资源列表
@@ -76,7 +86,7 @@ async def init(flag: bool = False):
     global CENTER_POINT, resource_name_list
     semaphore = asyncio.Semaphore(10)
     async with aiohttp.ClientSession(headers=get_user_agent()) as session:
-        await download_map_init(session, semaphore, flag)
+        await download_map_init(session, semaphore, MAP_RATIO, flag)
         await download_resource_data(session, semaphore)
         await download_resource_type(session)
         if not CENTER_POINT:
@@ -137,42 +147,57 @@ async def download_resource_data(session: ClientSession, semaphore: Semaphore):
 
 
 # 下载原神地图并拼图
-async def download_map_init(session: ClientSession, semaphore: Semaphore, flag: bool = False):
-    global CENTER_POINT
+async def download_map_init(
+    session: ClientSession, semaphore: Semaphore, ratio: float = 1, flag: bool = False
+):
+    global CENTER_POINT, MAP_RATIO
     map_path.mkdir(exist_ok=True, parents=True)
+    _map = map_path / "map.png"
+    if os.path.getsize(_map) > 1024 * 1024 * 30:
+        _map.unlink()
     async with session.get(MAP_URL, timeout=5) as response:
         if response.status == 200:
             data = await response.json()
             if data["message"] == "OK":
                 data = json.loads(data["data"]["info"]["detail"])
                 CENTER_POINT = (data["origin"][0], data["origin"][1])
-                # padding_w, padding_h = data['padding']
-                data = data["slices"]
-                idx = 0
-                for x in data:
-                    idj = 0
-                    for j in x:
-                        await download_image(
-                            j["url"],
-                            f"{map_path}/{idx}_{idj}.png",
-                            session,
-                            semaphore,
-                            force_flag=flag
-                        )
-                        idj += 1
-                    idx += 1
-                map_width, map_height = CreateImg(
-                    0, 0, background=f"{map_path}/0_0.png"
-                ).size
-                lens = len([x for x in os.listdir(f"{map_path}") if x.startswith("0")])
-                background_image = CreateImg(
-                    map_width * lens, map_height * lens, map_width, map_height
-                )
-                for i in range(idx):
-                    for j in range(idj):
-                        x = CreateImg(0, 0, background=f"{map_path}/{i}_{j}.png")
-                        background_image.paste(x)
-                background_image.save(f"{map_path}/map.png")
+                if not _map.exists():
+                    # padding_w, padding_h = data['padding']
+                    data = data["slices"]
+                    idx = 0
+                    for x in data:
+                        idj = 0
+                        for j in x:
+                            await download_image(
+                                j["url"],
+                                f"{map_path}/{idx}_{idj}.png",
+                                session,
+                                semaphore,
+                                force_flag=flag,
+                            )
+                            idj += 1
+                        idx += 1
+                    map_width, map_height = CreateImg(
+                        0, 0, background=f"{map_path}/0_0.png"
+                    ).size
+                    map_width = map_width * MAP_RATIO
+                    map_height = map_height * MAP_RATIO
+                    lens = len(
+                        [x for x in os.listdir(f"{map_path}") if x.startswith("0")]
+                    )
+                    background_image = CreateImg(
+                        map_width * lens, map_height * lens, map_width, map_height
+                    )
+                    for i in range(idx):
+                        for j in range(idj):
+                            x = CreateImg(
+                                0,
+                                0,
+                                background=f"{map_path}/{i}_{j}.png",
+                                ratio=MAP_RATIO,
+                            )
+                            background_image.paste(x)
+                    background_image.save(f"{map_path}/map.png")
             else:
                 logger.warning(f'获取原神地图失败 msg: {data["message"]}')
         else:
@@ -238,3 +263,8 @@ async def download_image(
             logger.warning(f"原神图片打开错误..已删除，等待下次更新... file: {path}")
             if os.path.exists(path):
                 os.remove(path)
+
+
+#
+# def _get_point_ratio():
+#

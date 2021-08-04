@@ -36,7 +36,7 @@ flmt = FreqLimiter(60)
 # 在 Matcher 运行前检测其是否启用
 @run_preprocessor
 async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
-    if not isinstance(event, MessageEvent):
+    if not isinstance(event, MessageEvent) and matcher.module != 'poke':
         return
     plugin = matcher.module
     group_id = _get_group_id(event)

@@ -19,7 +19,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 @gold_rank.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     all_users = await BagUser.get_all_users(event.group_id)
-    all_user_id = [user.qq for user in all_users]
+    all_user_id = [user.user_qq for user in all_users]
     all_user_data = [user.gold for user in all_users]
     await gold_rank.finish(
         "金币排行：\n" + await init_rank(all_user_id, all_user_data, event.group_id)

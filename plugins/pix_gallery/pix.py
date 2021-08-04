@@ -11,7 +11,7 @@ from models.pixiv import Pixiv
 import random
 
 
-pix = on_command("pix", aliases={'PIX'}, priority=5, block=True)
+pix = on_command("pix", aliases={"PIX"}, priority=5, block=True)
 
 
 @pix.handle()

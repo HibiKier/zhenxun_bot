@@ -285,7 +285,8 @@ class CreateImg:
         """
         说明：
             检查文本所需宽度是否大于图片宽度
-        :param word: 文本内容
+        参数：
+            :param word: 文本内容
         """
         return self.ttfont.getsize(word)[0] > self.w
 

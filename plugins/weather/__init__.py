@@ -1,10 +1,9 @@
 from nonebot import on_regex
-from .data_source import get_weather_of_city
+from .data_source import get_weather_of_city, update_city, get_city_list
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from jieba import posseg
 from services.log import logger
 from nonebot.typing import T_State
-from .config import city_list
 import re
 from utils.utils import get_message_text
 
@@ -26,14 +25,9 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         msg += "市"
     city = ""
     if msg:
-        citys = []
-        for x in city_list.keys():
-            for city in city_list[x]:
-                citys.append(city)
+        city_list = get_city_list()
         for word in posseg.lcut(msg):
-            if word.word in city_list.keys():
-                await weather.finish("不要查一个省的天气啊，这么大查起来很累人的..", at_sender=True)
-            if word.flag == "ns" or word.word[:-1] in citys:
+            if word.flag == "ns" or word.word[:-1] in city_list:
                 city = str(word.word).strip()
                 break
             if word.word == "火星":

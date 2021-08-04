@@ -4,7 +4,7 @@ from models.level_user import LevelUser
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, Message
 from nonebot.rule import to_me
-from utils.utils import get_message_at, get_message_text, is_number, get_bot
+from utils.utils import get_message_at, get_message_text, is_number, get_bot, scheduler
 from services.log import logger
 from .data_source import open_remind, close_remind
 from models.group_info import GroupInfo
@@ -234,3 +234,17 @@ def _clear_data() -> float:
                 file_size = 0
             size += file_size
     return float(size)
+
+
+# 早上好
+@scheduler.scheduled_job(
+    "cron",
+    hour=1,
+    minute=1,
+)
+async def _():
+    size = await asyncio.get_event_loop().run_in_executor(
+        None, _clear_data
+    )
+    logger.info('自动清理临时数据完成，' + "共清理了 {:.2f}MB 的数据...".format(size / 1024 / 1024))
+

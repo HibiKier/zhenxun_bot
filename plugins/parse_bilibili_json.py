@@ -1,4 +1,4 @@
-from nonebot import on_message, on_command
+from nonebot import on_message
 from services.log import logger
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from nonebot.typing import T_State
@@ -26,6 +26,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         event.json()
     ):
         data = json.loads(get_message_json(event.json())[0]["data"])
+        print(data)
         if data:
             if data.get("desc") == "哔哩哔哩":
                 async with aiohttp.ClientSession(headers=get_user_agent()) as session:
