@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+import re
 import traceback
+import aiohttp
 from typing import Dict
 
 from aiohttp.client_exceptions import ClientError
@@ -17,11 +19,21 @@ from .saucenao import get_des as get_des_sau
 from .ascii2d import get_des as get_des_asc
 from .trace import get_des as get_des_trace
 from .yandex import get_des as get_des_yandex
-
+from .google import Google
+from nonebot.adapters.cqhttp import MessageSegment
 
 __plugin_name__ = "识图"
 
-__plugin_usage__ = "用法：识图 [参数](默认nao) [图片]\n" "参数列表：\n" "\t1.nao\n" "\t2.asc"
+__plugin_usage__ = f"""用法：识图 [参数](默认1) [图片]
+    参数列表：
+    1. google
+    2. baidu(计划中)
+    3. iqdb
+    4. ex
+    5. trace
+    6. yandex
+    7. asc
+    8. sau"""
 
 
 async def get_des(url: str, mode: str, user_id: int):
@@ -30,25 +42,63 @@ async def get_des(url: str, mode: str, user_id: int):
     :param mode: 图源
     :return:
     """
-    if mode == "iqdb":
+    if mode == "3":
         async for msg in get_des_iqdb(url):
             yield msg
-    elif mode == "ex":
+    elif mode == "4":
         async for msg in get_des_ex(url):
             yield msg
-    elif mode == "trace":
+    elif mode == "5":
         async for msg in get_des_trace(url):
             yield msg
-    elif mode == "yandex":
+    elif mode == "6":
         async for msg in get_des_yandex(url):
             yield msg
-    elif mode.startswith("asc"):
+    elif mode.startswith("7"):
         async for msg in get_des_asc(url, user_id):
             yield msg
-    else:
+    elif mode.startswith("8"):
         async for msg in get_des_sau(url, user_id):
             yield msg
+    else:
+        google = Google()
+        res = google.search(url)
+        a = 0
+        for i in range(len(res.raw)):
+            if res.raw[i].thumbnail != 'No directable url' and res.raw[i].thumbnail != '':
+                if 'google.com' in res.raw[i].thumbnail:
+                    temp_url = re.search(r'(imgurl)[\=](.*)(&imgrefurl)', res.raw[i].thumbnail).group()
+                    img_url = re.search(r'(http).*[^&imgrefurl]', temp_url).group()
+                    msg = f"{res.raw[i].title}\n" + MessageSegment.image(img_url) + f"\n来源:{res.raw[i].url}"
+                    logger.info(f"原图：{img_url}  谷歌图片：{res.raw[i].thumbnail}")
+                    if not await check_status(img_url):
+                        continue
+                    else:
+                        yield msg
+                    a += 1
+                else:
+                    msg = f"{res.raw[i].title}\n" + MessageSegment.image(res.raw[i].thumbnail) + f"\n来源:{res.raw[i].url}"
+                    logger.info(f"{res.raw[i].thumbnail}")
+                    if not await check_status(res.raw[i].thumbnail):
+                        continue
+                    else:
+                        yield msg
+                    a += 1
+            else:
+                continue
+            if a == 3:
+                break
+        if a == 0:
+            await setu.finish('该图暂无法识别..')
 
+
+async def check_status(url) -> str:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, timeout=3) as r:
+            if r.status != 200:
+                return False
+            else:
+                return True
 
 setu = on_command("识图", aliases={"search"}, block=True, priority=5)
 
@@ -58,7 +108,7 @@ async def handle_first_receive(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json())
     imgs = get_message_imgs(event.json())
     if msg in ["帮助"]:
-        await setu.finish("示例：\n\t识图 (图片)\n\t识图asc (图片)")
+        await setu.finish("示例：\n\t识图 (图片)\n\t识图 2 (图片)")
     if imgs:
         state["setu"] = imgs[0]
     if msg:
@@ -89,7 +139,7 @@ async def get_setu(bot: Bot, event: MessageEvent, state: T_State):
     :return:
     """
     url: str = state["setu"]
-    mod: str = state["mod"] if state.get("mod") else "nao"  # 模式
+    mod: str = state["mod"] if state.get("mod") else ""  # 模式
     try:
         await bot.send(event=event, message="正在处理图片")
         idx = 1
