@@ -25,8 +25,10 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if await GroupRemind.get_status(event.group_id, "blpar") and get_message_json(
         event.json()
     ):
-        data = json.loads(get_message_json(event.json())[0]["data"])
-        print(data)
+        try:
+            data = json.loads(get_message_json(event.json())[0]["data"])
+        except (IndexError, KeyError):
+            return
         if data:
             if data.get("desc") == "哔哩哔哩":
                 async with aiohttp.ClientSession(headers=get_user_agent()) as session:

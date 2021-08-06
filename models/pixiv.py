@@ -1,5 +1,6 @@
 from typing import Optional, List
 from services.db_context import db
+import asyncio
 
 
 class Pixiv(db.Model):
@@ -158,8 +159,33 @@ class Pixiv(db.Model):
             :param keyword: 关键词/Tag
         """
         query = await cls.query.gino.all()
-        query = [x for x in query if set(x.tags.split(',')) > set(keyword)]
-        r18_count = len([x for x in query if x.is_r18])
-        return len(query) - r18_count, r18_count
+        i = int(len(query) / 200)
+        mod = len(query) % 200
+        tasks = []
+        start = 0
+        end = 200
+        count = 0
+        r18_count = 0
+        for _ in range(i):
+            tasks.append(asyncio.ensure_future(split_query_list(query[start: end], keyword)))
+            start += 200
+            end += 200
+        if mod:
+            tasks.append(asyncio.ensure_future(split_query_list(query[end:], keyword)))
+        result = await asyncio.gather(*tasks)
+        for x, j in result:
+            count += x
+            r18_count += j
+        # query = [x for x in query if set(x.tags.split(',')) > set(keyword)]
+        # r18_count = len([x for x in query if x.is_r18])
+        return count, r18_count
 
 
+async def split_query_list(query: List['Pixiv'], keyword: List[str]) -> 'int, int':
+    return await asyncio.get_event_loop().run_in_executor(None, _split_query_list, query, keyword)
+
+
+def _split_query_list(query: List['Pixiv'], keyword: List[str]) -> 'int, int':
+    query = [x for x in query if set(x.tags.split(',')) > set(keyword)]
+    r18_count = len([x for x in query if x.is_r18])
+    return len(query) - r18_count, r18_count

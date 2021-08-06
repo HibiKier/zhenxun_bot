@@ -1,5 +1,5 @@
 {
-    "update_file": ["plugins/ai", "plugins/bt", "configs/config.py"],
-    "add_file": [],
+    "update_file": ["plugins/parse_bilibili_json.py", "plugins/super_help", "plugins/weather", "models/pixiv.py"],
+    "add_file": ["services/__init__.py"],
     "delete_file": []
 }

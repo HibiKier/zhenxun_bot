@@ -7,22 +7,28 @@ try:
 except ModuleNotFoundError:
     import json
 
-    
+
 # 是否使用配置文件
 USE_CONFIG_FILE: bool = False
 
 
 # API KEY（必要）
 RSSHUBAPP: str = "https://rsshub.app"  # rsshub
-ALAPI_TOKEN: str = ""  # ALAPI  https://admin.alapi.cn/user/login
+ALAPI_TOKEN: str = "h0KuF6qNniMHGUtA"  # ALAPI  https://admin.alapi.cn/user/login
 HIBIAPI: str = "https://api.obfs.dev"
 # 图灵
-TL_KEY: List[str] = []
+TL_KEY: List[str] = [
+    "4474710fabbf4540bfaa569c192bb457",
+    "6f4c0920d2ff4962b5cbd8148aef771b",
+    "f5595738894042fb9fad88ecdc4acf41",
+    "c24400595fed48f9a5c5bc3ff03a3267",
+    "efab135b75d84b02a59115f5b571f277",
+]
 
 # 数据库（必要）
 # 如果填写了bind就不需要再填写后面的字段了#）
 # 示例："bind": "postgresql://user:password@127.0.0.1:5432/database"
-bind: str = ""  # 数据库连接链接
+bind: str = "postgresql://hibiki:Dimension130123@hibiki0v0.cn:6666/hibikibot"  # 数据库连接链接
 sql_name: str = "postgresql"
 user: str = ""  # 数据用户名
 password: str = ""  # 数据库密码
@@ -31,7 +37,7 @@ port: str = ""  # 数据库端口
 database: str = ""  # 数据库名称
 
 # 代理
-SYSTEM_PROXY: Optional[str] = None  # 全局代理
+SYSTEM_PROXY: Optional[str] = "http://127.0.0.1:7890"  # 全局代理
 BUFF_PROXY: Optional[str] = None  # Buff代理
 
 # 公开图库列表
@@ -97,7 +103,7 @@ HIBIAPI_BOOKMARKS: int = 5000
 
 # 需要为哪些群更新最新版gocq吗？（上传最新版gocq）
 # 示例：[434995955, 239483248]
-UPDATE_GOCQ_GROUP: List[int] = []
+UPDATE_GOCQ_GROUP: List[int] = [774261838]
 
 # 是否存储色图
 DOWNLOAD_SETU: bool = True

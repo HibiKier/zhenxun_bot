@@ -81,12 +81,12 @@ async def update_city():
 def _check_exists_city(city: str) -> int:
     city = city if city[-1] != "市" else city[:-1]
     for province in data.keys():
-        # 查询省份了
-        if city == province and len(data[province]) != 1:
-            return 999
         for city_ in data[province]:
             if city_ == city:
                 return 200
+    for province in data.keys():
+        if city == province:
+            return 999
     return 998
 
 
