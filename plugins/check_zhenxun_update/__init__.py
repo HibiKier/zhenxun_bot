@@ -30,7 +30,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 @scheduler.scheduled_job(
     "interval",
-    hour=24,
+    hours=24,
 )
 async def _():
     _version = "v0.0.0"
