@@ -8,7 +8,6 @@ from services.log import logger
 from bs4 import BeautifulSoup
 from pathlib import Path
 import ujson as json
-import nonebot
 import asyncio
 import aiofiles
 import aiohttp
@@ -21,7 +20,6 @@ if str(platform.system()).lower() == 'windows':
     policy = asyncio.WindowsSelectorEventLoopPolicy()
     asyncio.set_event_loop_policy(policy)
 
-driver = nonebot.get_driver()
 
 version_url = "https://github.com/HibiKier/zhenxun_bot/releases"
 main_url = "https://github.com/HibiKier/zhenxun_bot"
@@ -32,7 +30,6 @@ temp_dir = Path() / "temp"
 backup_dir = Path() / "backup"
 
 
-@driver.on_startup
 async def check_update(bot: Bot):
     logger.info("开始检查更新真寻酱....")
     _version = "v0.0.0"
