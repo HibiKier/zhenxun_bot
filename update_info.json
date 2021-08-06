@@ -1,5 +1,5 @@
 {
-    "update_file": [],
+    "update_file": ["plugins/ai", "plugins/bt"],
     "add_file": [],
-    "delete_file": ["plugins/ai", "plugins/bt"]
+    "delete_file": []
 }
