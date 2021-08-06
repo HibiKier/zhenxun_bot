@@ -1,0 +1,5 @@
+{
+    "update_file": ["plugins/ai", "plugins/bt", "configs/config.py"],
+    "add_file": [],
+    "delete_file": []
+}

@@ -7,7 +7,7 @@ try:
 except ModuleNotFoundError:
     import json
 
-
+    
 # 是否使用配置文件
 USE_CONFIG_FILE: bool = False
 
