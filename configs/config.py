@@ -7,9 +7,9 @@ try:
 except ModuleNotFoundError:
     import json
 
-
-
-SDD: str = "sad"
+    
+# 是否使用配置文件
+USE_CONFIG_FILE: bool = False
 
 
 # API KEY（必要）
