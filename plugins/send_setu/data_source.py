@@ -90,8 +90,8 @@ async def search_online_setu(
                         index = random.randint(1, 100000) if id_ is None else id_
                         path_ = "temp" if not path_ else path_
                         file = f"{index}_temp_setu.jpg" if not path_ else f"{index}.jpg"
-                        if not os.path.exists(f'{IMAGE_PATH}/path_'):
-                            os.mkdir(f'{IMAGE_PATH}/path_')
+                        if not os.path.exists(f'{IMAGE_PATH}/{path_}'):
+                            os.mkdir(f'{IMAGE_PATH}/{path_}')
                         async with aiofiles.open(
                             f"{IMAGE_PATH}/{path_}/{file}", "wb"
                         ) as f:
