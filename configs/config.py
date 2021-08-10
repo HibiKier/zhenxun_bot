@@ -67,6 +67,7 @@ SEMAPHORE = 5  # 限制碧蓝航线和FGO并发数
 ADMIN_DEFAULT_AUTH: int = 5  # 默认群管理员权限
 
 MAX_SIGN_GOLD: int = 200  # 签到好感度加成额外获得的最大金币数
+MAX_RUSSIAN_BET_GOLD: int = 1000    # 俄罗斯轮盘最大赌注金额
 
 INITIAL_SETU_PROBABILITY: float = 0.7  # 色图概率
 FUDU_PROBABILITY: float = 0.7  # 复读概率
@@ -97,7 +98,7 @@ HIBIAPI_BOOKMARKS: int = 5000
 
 # 需要为哪些群更新最新版gocq吗？（上传最新版gocq）
 # 示例：[434995955, 239483248]
-UPDATE_GOCQ_GROUP: List[int] = [774261838]
+UPDATE_GOCQ_GROUP: List[int] = []
 
 # 是否存储色图
 DOWNLOAD_SETU: bool = True
@@ -109,6 +110,8 @@ AUTO_ADD_FRIEND: bool = True
 ALAPI_AI_CHECK: bool = True
 # 导入商店自带的三个商品
 IMPORT_DEFAULT_SHOP_GOODS: bool = True
+# 真寻是否自动更新
+AUTO_UPDATE_ZHENXUN: bool = True
 
 # 群管理员功能 与 对应权限
 admin_plugins_auth = {

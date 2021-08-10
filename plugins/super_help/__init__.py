@@ -18,7 +18,7 @@ async def _(bot: Bot, event: Event, state: T_State):
     3.广播 --> 指令:广播- [msg]
     4.更新色图
     5.回复 --> 指令:/t命令帮助
-    6.更新cookie --> 指令:更新cookie [cookie]
+    6.更新/设置cookie --> 指令:更新/设置cookie [cookie]
     7.开启广播通知 --> 指令:开启广播通知 [群号]
     8.退群 --> 指令:退群 [群号]
     9.自检
@@ -39,5 +39,6 @@ async def _(bot: Bot, event: Event, state: T_State):
     24.删除pix图片 *[pid] [-b](同时加入黑名单)?
     25.查看pix图库 [keyword]
     26.pix检测更新 [update]
-    27.检查更新真寻"""
+    27.检查更新真寻
+    28.真寻重启"""
     await super_help.finish(result, at_sender=True)

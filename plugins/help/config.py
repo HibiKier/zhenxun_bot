@@ -50,6 +50,8 @@ entertainment_help = {
     "poetry": "突然文艺的真寻是否搞错了什么 --> 指令:念诗/来首诗/念首诗",
     "comments_163": "生了个人，我很抱歉 --> 指令:到点了/12点了/网易云热评/网易云评论",
     "pix_gallery": "偶尔也想看看美图？ --> 指令:PIX [关键词/uid/pid:pid] [num]/查看pix图库 [关键词]/显示pix关键词",
+    'nbnhhsh': "会说话就多说点！ --> 指令:nbnhhsh/能不能好好说话 [文本](空格划分)",
+    "roll": "让真寻来帮你决定吧！ --> 指令:roll/ roll [文本](空格划分)"
 }
 # 其他
 other_help = [

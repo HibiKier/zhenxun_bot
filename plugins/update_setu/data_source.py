@@ -88,12 +88,14 @@ async def update_setu_img():
     _success = 0
     error_info = []
     error_type = []
+    count = 0
     async with aiohttp.ClientSession(headers=headers) as session:
         for image in image_list:
+            count += 1
             path = _path / "_r18" if image.is_r18 else _path / "_setu"
             rar_path = "r18_rar" if image.is_r18 else "rar"
             local_image = path / f"{image.local_id}.jpg"
-            if not local_image.exists():
+            if not local_image.exists() or not image.img_hash:
                 for _ in range(3):
                     try:
                         async with session.get(
@@ -153,9 +155,10 @@ async def update_setu_img():
                             )
             else:
                 logger.info(f'更新色图 {image.local_id}.jpg 已存在')
+    error_info = ['无报错..'] if not error_info else error_info
     await get_bot().send_private_msg(
         user_id=int(list(get_bot().config.superusers)[0]),
-        message=f'{str(datetime.now()).split(".")[0]} 更新 色图 完成，实际更新 {_success} 张，以下为更新时未知错误：\n'
+        message=f'{str(datetime.now()).split(".")[0]} 更新 色图 完成，本地群在 {count} 张，实际更新 {_success} 张，以下为更新时未知错误：\n'
         + "\n".join(error_info),
     )
 

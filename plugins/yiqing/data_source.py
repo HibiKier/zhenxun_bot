@@ -25,16 +25,16 @@ async def get_yiqing_data(area: str):
     if area == '中国':
         province = area
         province_type = ""
-    elif area in data.keys():
-        province = area
-        if len(data[area]) == 1:
-            province_type = "市"
-        city = ""
-    else:
+    elif area[-1] != '省':
         for p in data.keys():
             if area in data[p]:
                 province = p
                 city = area
+    elif area in data.keys() or area[:-1] in data.keys():
+        province = area if area[-1] != '省' else area[:-1]
+        if len(data[province]) == 1:
+            province_type = "市"
+        city = ""
     if not province and not city:
         return "小真寻只支持国内的疫情查询喔..."
     async with aiohttp.ClientSession(headers=get_user_agent()) as session:

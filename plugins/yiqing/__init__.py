@@ -3,6 +3,7 @@ from .data_source import get_yiqing_data
 from services.log import logger
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
+from utils.utils import get_message_text
 
 __plugin_name__ = "疫情查询"
 __plugin_usage__ = "查询疫情帮助:\n\t对我说 查询疫情 省份/城市，我会回复疫情的实时数据\n\t示例: 查询疫情 温州"
@@ -13,7 +14,7 @@ yiqing = on_command("疫情", aliases={"查询疫情", "疫情查询"}, priority
 
 @yiqing.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = str(event.get_message()).strip()
+    msg = get_message_text(event.json())
     result = await get_yiqing_data(msg)
     if result:
         await yiqing.send(result)

@@ -11,6 +11,7 @@ from models.bag_user import BagUser
 from services.log import logger
 import time
 from .data_source import rank
+from configs.config import MAX_RUSSIAN_BET_GOLD
 
 __plugin_name__ = '俄罗斯轮盘'
 
@@ -158,7 +159,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     except KeyError:
         pass
     if msg:
-        msg = msg.split(' ')
+        msg = msg.split()
         if len(msg) == 1:
             msg = msg[0]
             if is_number(msg) and not (int(msg) < 1 or int(msg) > 6):
@@ -168,8 +169,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             msg = msg[0].strip()
             if is_number(msg) and not (int(msg) < 1 or int(msg) > 6):
                 state['bullet_num'] = int(msg)
-            if is_number(money) and 0 < int(money) <= 1000:
+            if is_number(money) and 0 < int(money) <= MAX_RUSSIAN_BET_GOLD:
                 state['money'] = int(money)
+            else:
+                state['money'] = 200
+                await rssian.send(f'赌注金额超过限制（MAX_RUSSIAN_BET_GOLD），已改为200（默认）')
     state['at'] = get_message_at(event.json())
 
 
@@ -182,8 +186,8 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     user_money = await BagUser.get_gold(event.user_id, event.group_id)
     if bullet_num < 0 or bullet_num > 6:
         await rssian.reject('子弹数量必须大于0小于7！速速重新装弹！')
-    if money > 1000:
-        await rssian.finish('太多了！单次金额不能超过1000！', at_sender=True)
+    if money > MAX_RUSSIAN_BET_GOLD:
+        await rssian.finish(f'太多了！单次金额不能超过{MAX_RUSSIAN_BET_GOLD}！', at_sender=True)
     if money > user_money:
         await rssian.finish('你没有足够的钱支撑起这场挑战', at_sender=True)
 

@@ -1,5 +1,18 @@
 {
-    "update_file": ["plugins/parse_bilibili_json.py", "plugins/super_help", "plugins/weather", "models/pixiv.py"],
-    "add_file": ["services/__init__.py"],
+    "update_file": [
+        "configs/config.py",
+        "plugins/auto_invite",
+        "plugins/ban",
+        "plugins/check_zhenxun_update",
+        "plugins/genshin/material_remind",
+        "plugins/genshin/query_resource_points",
+        "plugins/help",
+        "plugins/russian",
+        "plugins/search_buff_skin_price",
+        "plugins/super_help",
+        "plugins/update_setu",
+        "plugins/yiqing"
+    ],
+    "add_file": ["plugins/nbnhhsh.py", "plugins/roll.py"],
     "delete_file": []
 }

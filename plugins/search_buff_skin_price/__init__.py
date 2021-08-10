@@ -73,7 +73,7 @@ async def arg_handle(bot: Bot, event: MessageEvent, state: T_State):
 
 
 update_buff_session = on_command(
-    "更新cookie", rule=to_me(), permission=SUPERUSER, priority=1
+    "更新cookie", aliases={'设置cookie'}, rule=to_me(), permission=SUPERUSER, priority=1
 )
 
 

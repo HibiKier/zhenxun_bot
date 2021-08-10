@@ -6,15 +6,21 @@ from .data_source import check_update, get_latest_version
 from services.log import logger
 from utils.utils import scheduler, get_bot
 from pathlib import Path
+from configs.config import AUTO_UPDATE_ZHENXUN
+from nonebot.rule import to_me
+import platform
+import os
 
 
 update_zhenxun = on_command('检查更新真寻', permission=SUPERUSER, priority=1, block=True)
+
+restart = on_command('重启', aliases={'restart'}, permission=SUPERUSER, rule=to_me(), priority=1, block=True)
 
 
 @update_zhenxun.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     try:
-        await check_update(bot)
+        code = await check_update(bot)
     except Exception as e:
         logger.error(f'更新真寻未知错误 {type(e)}：{e}')
         await bot.send_private_msg(
@@ -22,41 +28,67 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             message=f'更新真寻未知错误 {type(e)}：{e}'
         )
     else:
-        await bot.send_private_msg(
-            user_id=int(list(bot.config.superusers)[0]),
-            message=f'更新完毕，请重启真寻....'
-        )
+        if code == 200:
+            await bot.send_private_msg(
+                user_id=int(list(bot.config.superusers)[0]),
+                message=f'更新完毕，请重启真寻....'
+            )
+
+
+@restart.handle()
+async def _(bot: Bot, event: MessageEvent, state: T_State):
+    if str(platform.system()).lower() == 'windows':
+        await restart.finish('暂无windows重启脚本...')
+
+
+@restart.got('flag', prompt='确定是否重启真寻？（重启失败咱们将失去联系，请谨慎！）')
+async def _(bot: Bot, event: MessageEvent, state: T_State):
+    flag = state['flag']
+    if flag.lower() in ['true', '是', '好']:
+        await restart.send('开始重启真寻..请稍等...')
+        open('is_restart', 'w')
+        os.system('./restart.sh')
+    else:
+        await restart.send('已取消操作...')
 
 
 @scheduler.scheduled_job(
-    "interval",
-    hours=24,
+    "cron",
+    hour=12,
+    minute=0,
 )
 async def _():
-    _version = "v0.0.0"
-    _version_file = Path() / "__version__"
-    if _version_file.exists():
-        _version = (
-            open(_version_file, "r", encoding="utf8").readline().split(":")[-1].strip()
-        )
-    latest_version, tar_gz_url = await get_latest_version()
-    if latest_version and tar_gz_url:
-        if _version != latest_version:
-            bot = get_bot()
-            await bot.send_private_msg(
-                user_id=int(list(bot.config.superusers)[0]),
-                message=f'检测到真寻版本更新\n'
-                        f'当前版本：{_version}，最新版本：{latest_version}\n'
-                        f'尝试自动更新...'
+    if AUTO_UPDATE_ZHENXUN:
+        _version = "v0.0.0"
+        _version_file = Path() / "__version__"
+        if _version_file.exists():
+            _version = (
+                open(_version_file, "r", encoding="utf8").readline().split(":")[-1].strip()
             )
-            try:
-                await check_update(bot)
-            except Exception as e:
-                logger.error(f'更新真寻未知错误 {type(e)}：{e}')
+        latest_version, tar_gz_url = await get_latest_version()
+        if latest_version and tar_gz_url:
+            if _version != latest_version:
+                bot = get_bot()
                 await bot.send_private_msg(
                     user_id=int(list(bot.config.superusers)[0]),
-                    message=f'更新真寻未知错误 {type(e)}：{e}\n'
+                    message=f'检测到真寻版本更新\n'
+                            f'当前版本：{_version}，最新版本：{latest_version}\n'
+                            f'尝试自动更新...'
                 )
+                try:
+                    code = await check_update(bot)
+                except Exception as e:
+                    logger.error(f'更新真寻未知错误 {type(e)}：{e}')
+                    await bot.send_private_msg(
+                        user_id=int(list(bot.config.superusers)[0]),
+                        message=f'更新真寻未知错误 {type(e)}：{e}\n'
+                    )
+                else:
+                    if code == 200:
+                        await bot.send_private_msg(
+                            user_id=int(list(bot.config.superusers)[0]),
+                            message=f'更新完毕，请重启真寻....'
+                        )
 
 
 

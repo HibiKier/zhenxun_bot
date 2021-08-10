@@ -146,41 +146,81 @@ class Map:
 
     # 生成最优路线（说是最优其实就是直线最短）
     def _generate_best_route(self):
-        resources_route = []
-        # 先连上最近的资源路径
-        for res in self.resource_point:
-            # 拿到最近的资源
-            current_res, _ = res.get_resource_distance(
-                self.resource_point
-                + self.teleport_anchor_point
-                + self.teleport_god_point
-            )
-            self.map.line(
-                (current_res.x, current_res.y, res.x, res.y), (255, 0, 0), width=1
-            )
-            resources_route.append((current_res, res))
+        line_points = []
         teleport_list = self.teleport_anchor_point + self.teleport_god_point
-        for res1, res2 in resources_route:
-            point_list = [x for x in resources_route if res1 in x or res2 in x]
-            if not list(set(point_list).intersection(set(teleport_list))):
-                if res1 not in teleport_list and res2 not in teleport_list:
-                    # while True:
-                    #     tmp = [x for x in point_list]
-                    #     break
-                    teleport1, distance1 = res1.get_resource_distance(teleport_list)
-                    teleport2, distance2 = res2.get_resource_distance(teleport_list)
-                    if distance1 > distance2:
-                        self.map.line(
-                            (teleport1.x, teleport1.y, res1.x, res1.y),
-                            (255, 0, 0),
-                            width=1,
-                        )
-                    else:
-                        self.map.line(
-                            (teleport2.x, teleport2.y, res2.x, res2.y),
-                            (255, 0, 0),
-                            width=1,
-                        )
+        for teleport in teleport_list:
+            current_res, res_min_distance = teleport.get_resource_distance(self.resource_point)
+            current_teleport, teleport_min_distance = current_res.get_resource_distance(teleport_list)
+            if current_teleport == teleport:
+                self.map.line(
+                    (current_teleport.x, current_teleport.y, current_res.x, current_res.y), (255, 0, 0), width=1
+                )
+        is_used_res_points = []
+        for res in self.resource_point:
+            if res in is_used_res_points:
+                continue
+            current_teleport, teleport_min_distance = res.get_resource_distance(teleport_list)
+            current_res, res_min_distance = res.get_resource_distance(self.resource_point)
+            if teleport_min_distance < res_min_distance:
+                self.map.line(
+                    (current_teleport.x, current_teleport.y, res.x, res.y), (255, 0, 0), width=1
+                )
+            else:
+                is_used_res_points.append(current_res)
+                self.map.line(
+                    (current_res.x, current_res.y, res.x, res.y), (255, 0, 0), width=1
+                )
+                res_cp = self.resource_point[:]
+                res_cp.remove(current_res)
+                # for _ in res_cp:
+                current_teleport_, teleport_min_distance = res.get_resource_distance(teleport_list)
+                current_res, res_min_distance = res.get_resource_distance(res_cp)
+                if teleport_min_distance < res_min_distance:
+                    self.map.line(
+                        (current_teleport.x, current_teleport.y, res.x, res.y), (255, 0, 0), width=1
+                    )
+                else:
+                    self.map.line(
+                        (current_res.x, current_res.y, res.x, res.y), (255, 0, 0), width=1
+                    )
+                    is_used_res_points.append(current_res)
+            is_used_res_points.append(res)
+
+        # resources_route = []
+        # # 先连上最近的资源路径
+        # for res in self.resource_point:
+        #     # 拿到最近的资源
+        #     current_res, _ = res.get_resource_distance(
+        #         self.resource_point
+        #         + self.teleport_anchor_point
+        #         + self.teleport_god_point
+        #     )
+        #     self.map.line(
+        #         (current_res.x, current_res.y, res.x, res.y), (255, 0, 0), width=1
+        #     )
+            # resources_route.append((current_res, res))
+        # teleport_list = self.teleport_anchor_point + self.teleport_god_point
+        # for res1, res2 in resources_route:
+        #     point_list = [x for x in resources_route if res1 in x or res2 in x]
+        #     if not list(set(point_list).intersection(set(teleport_list))):
+        #         if res1 not in teleport_list and res2 not in teleport_list:
+        #             # while True:
+        #             #     tmp = [x for x in point_list]
+        #             #     break
+        #             teleport1, distance1 = res1.get_resource_distance(teleport_list)
+        #             teleport2, distance2 = res2.get_resource_distance(teleport_list)
+        #             if distance1 > distance2:
+        #                 self.map.line(
+        #                     (teleport1.x, teleport1.y, res1.x, res1.y),
+        #                     (255, 0, 0),
+        #                     width=1,
+        #                 )
+        #             else:
+        #                 self.map.line(
+        #                     (teleport2.x, teleport2.y, res2.x, res2.y),
+        #                     (255, 0, 0),
+        #                     width=1,
+        #                 )
 
         # self.map.line(xy, (255, 0, 0), width=3)
 

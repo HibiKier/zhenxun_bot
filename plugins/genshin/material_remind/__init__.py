@@ -27,7 +27,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     if time.strftime("%w") == "0":
         await material.send("今天是周日，所有材料副本都开放了。")
         return
-    await material.send(Message(image('daily_material.png', 'genshin/material') + '\n※ 黄历数据来源于 genshin.pub'))
+    await material.send(Message(image('daily_material.png', 'genshin/material') + '\n※ 每日素材数据来源于 genshin.pub'))
     logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'})"
         f" 发送查看今日素材")
