@@ -201,15 +201,15 @@ HIBIAPI = HIBIAPI[:-1] if HIBIAPI[-1] == "/" else HIBIAPI
 RSSHUBAPP = RSSHUBAPP[:-1] if RSSHUBAPP[-1] == "/" else RSSHUBAPP
 
 # 配置文件应用
-if USE_CONFIG_FILE:
-    config = get_config_data()
-    if config:
-        for key in config.keys():
-            if isinstance(config[key], str):
-                config[key] = config[key].strip()
-            if key.find("proxy") != -1:
-                if not config[key]:
-                    config[key] = None
-            # if not configs[key] and key.find("PATH") == -1:
-            #     configs[key] = None
-        globals().update(config)
+# if USE_CONFIG_FILE:
+#     config = get_config_data()
+#     if config:
+#         for key in config.keys():
+#             if isinstance(config[key], str):
+#                 config[key] = config[key].strip()
+#             if key.find("proxy") != -1:
+#                 if not config[key]:
+#                     config[key] = None
+#             # if not configs[key] and key.find("PATH") == -1:
+#             #     configs[key] = None
+#         globals().update(config)
