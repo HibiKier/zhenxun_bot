@@ -25,12 +25,13 @@ async def get_yiqing_data(area: str):
     if area == '中国':
         province = area
         province_type = ""
-    elif area[-1] != '省':
+    elif area[-1] == '市' and area not in data.keys():
+        area = area[:-1] if area[-1] == '市' else area
         for p in data.keys():
             if area in data[p]:
                 province = p
                 city = area
-    elif area in data.keys() or area[:-1] in data.keys():
+    elif area in data.keys():
         province = area if area[-1] != '省' else area[:-1]
         if len(data[province]) == 1:
             province_type = "市"

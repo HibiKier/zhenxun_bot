@@ -158,7 +158,7 @@ async def update_setu_img():
     error_info = ['无报错..'] if not error_info else error_info
     await get_bot().send_private_msg(
         user_id=int(list(get_bot().config.superusers)[0]),
-        message=f'{str(datetime.now()).split(".")[0]} 更新 色图 完成，本地群在 {count} 张，实际更新 {_success} 张，以下为更新时未知错误：\n'
+        message=f'{str(datetime.now()).split(".")[0]} 更新 色图 完成，本地存在 {count} 张，实际更新 {_success} 张，以下为更新时未知错误：\n'
         + "\n".join(error_info),
     )
 
