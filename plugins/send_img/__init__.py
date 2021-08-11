@@ -77,10 +77,10 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             msg = get_message_text(event.json())
             if not msg or str(event.get_message()[:2]) in ["开启", "关闭"]:
                 return
-        if not _flmt.check(event.user_id):
-            return
-        _flmt.start_cd(event.user_id)
-    await pa.finish(image(random.choice(os.listdir(IMAGE_PATH + "pa")), "pa"))
+            if not _flmt.check(event.user_id):
+                return
+            _flmt.start_cd(event.user_id)
+            await pa.finish(image(random.choice(os.listdir(IMAGE_PATH + "pa")), "pa"))
 
 
 num_key = {
