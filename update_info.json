@@ -11,7 +11,8 @@
         "plugins/search_buff_skin_price",
         "plugins/super_help",
         "plugins/update_setu",
-        "plugins/yiqing"
+        "plugins/yiqing",
+        "bot.py"
     ],
     "add_file": ["plugins/nbnhhsh.py", "plugins/roll.py"],
     "delete_file": []

@@ -115,7 +115,10 @@ AUTO_UPDATE_ZHENXUN: bool = True
 
 # 群管理员功能 与 对应权限
 admin_plugins_auth = {
-    "admin_bot_manage": OC_LEVEL,
+    "custom_welcome_message": OC_LEVEL,
+    "group_notification_state": OC_LEVEL,
+    "switch_rule": OC_LEVEL,
+    "update_group_member_info": OC_LEVEL,
     "ban": BAN_LEVEL,
     "delete_img": DELETE_IMG_LEVEL,
     "move_img": MOVE_IMG_LEVEL,

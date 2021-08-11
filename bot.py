@@ -14,6 +14,7 @@ nonebot.load_plugins("plugins/shop")
 nonebot.load_plugins("plugins/genshin")
 nonebot.load_plugins("plugins/alapi")
 nonebot.load_plugins("plugins/pix_gallery")
+nonebot.load_plugins("plugins/admin_bot_manage")
 
 
 if __name__ == "__main__":
