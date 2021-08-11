@@ -12,8 +12,9 @@
         "plugins/super_help",
         "plugins/update_setu",
         "plugins/yiqing",
-        "bot.py"
+        "bot.py",
+        "plugins/admin_bot_manage/update_group_member_info.py"
     ],
     "add_file": ["plugins/nbnhhsh.py", "plugins/roll.py"],
-    "delete_file": []
+    "delete_file": [" plugins/admin_bot_manage/__init__.py"]
 }

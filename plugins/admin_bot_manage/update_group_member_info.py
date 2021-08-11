@@ -1,6 +1,6 @@
-from nonebot import on_command
+from nonebot import on_command, export
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
+from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, GROUP
 from .data_source import update_member_info
 
 __plugin_name__ = "更新群组成员列表"
@@ -12,7 +12,8 @@ __plugin_usage__ = """
         更新群组成员列表
 """
 
-from nonebot.adapters.cqhttp.permission import GROUP
+export = export()
+export.update_member_info = update_member_info
 
 refresh_member_group = on_command(
     "更新群组成员列表", aliases={"更新群组成员信息"}, permission=GROUP, priority=5, block=True
