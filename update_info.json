@@ -13,7 +13,8 @@
         "plugins/update_setu",
         "plugins/yiqing",
         "bot.py",
-        "plugins/admin_bot_manage/update_group_member_info.py"
+        "plugins/admin_bot_manage/update_group_member_info.py",
+        "plugins/send_img"
     ],
     "add_file": ["plugins/nbnhhsh.py", "plugins/roll.py"],
     "delete_file": [" plugins/admin_bot_manage/__init__.py"]
