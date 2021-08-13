@@ -52,7 +52,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @upload_img.got("path", prompt="要将图片上传至什么图库呢？")
 @upload_img.got("imgs", prompt="图呢图呢图呢图呢！GKD！")
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    path = IMAGE_PATH + cn2py(state["path"])
+    path = IMAGE_PATH + cn2py(state["path"]) + '/'
     img_list = state["imgs"]
     img_id = len(os.listdir(path))
     failed_list = []
