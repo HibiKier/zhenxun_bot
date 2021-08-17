@@ -53,9 +53,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 change_group_switch(_cmd, int(block_type), True)
                 group_name = (await bot.get_group_info(group_id=int(block_type)))['group_name']
                 await switch_rule.send(f'已禁用群聊 {group_name}({block_type}) 的 {_cmd[2:]} 功能')
-            else:
-                if block_type not in ['all', 'private', 'group', 'a', 'p', 'g']:
-                    block_type = 'all'
+            elif block_type in ['all', 'private', 'group', 'a', 'p', 'g']:
                 block_type = 'all' if block_type == 'a' else block_type
                 block_type = 'private' if block_type == 'p' else block_type
                 block_type = 'group' if block_type == 'g' else block_type
@@ -66,6 +64,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                     await switch_rule.send(f'已在私聊中{_cmd[:2]}功能：{_cmd[2:]}')
                 else:
                     await switch_rule.send(f'已在群聊中{_cmd[:2]}功能：{_cmd[2:]}')
+            else:
+                await switch_rule.finish('格式错误：关闭[功能] [group]/[p/g]')
             logger.info(
                 f'USER {event.user_id} 使用功能管理命令 {state["_prefix"]["raw_command"]} | {block_type}'
             )
