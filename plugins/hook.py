@@ -230,12 +230,12 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
                     pass
                 raise IgnoredException("该插件在私聊中已被禁用...")
         # 维护
-        if not group_manager.get_plugin_status(
-            module, block_type="all"
-        ) and not group_manager.check_group_is_white(event.group_id):
+        if not group_manager.get_plugin_status(module, block_type="all"):
+            if isinstance(event, GroupMessageEvent) and group_manager.check_group_is_white(event.group_id):
+                return
             try:
-                if _flmt_c.check(event.group_id):
-                    _flmt_c.start_cd(event.group_id)
+                if _flmt_c.check(event.user_id):
+                    _flmt_c.start_cd(event.user_id)
                     if isinstance(event, GroupMessageEvent):
                         await bot.send_group_msg(
                             group_id=event.group_id, message="此功能正在维护..."
