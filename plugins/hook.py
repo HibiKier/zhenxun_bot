@@ -7,6 +7,7 @@ from nonebot.adapters.cqhttp import (
     MessageEvent,
     PrivateMessageEvent,
     GroupMessageEvent,
+    PokeNotifyEvent
 )
 from configs.config import (
     BAN_RESULT,
@@ -132,10 +133,10 @@ _flmt_c = FreqLimiter(CHECK_NOTICE_INFO_CD)
 @run_preprocessor
 async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
     if (
-        not isinstance(event, MessageEvent)
+        (not isinstance(event, MessageEvent) and matcher.module != "poke")
         or await BanUser.is_ban(event.user_id)
         or str(event.user_id) in bot.config.superusers
-    ) and matcher.module != "poke":
+    ):
         return
     module = matcher.module
     if module in admin_plugins_auth.keys() and matcher.priority not in [1, 9]:
@@ -167,8 +168,9 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
                 except ActionFailed:
                     pass
                 raise IgnoredException("权限不足")
-    if module in plugins2info_dict.keys():
-        if isinstance(event, GroupMessageEvent):
+    if module in plugins2info_dict.keys() and matcher.priority not in [1, 9]:
+        # 戳一戳单独判断
+        if isinstance(event, GroupMessageEvent) or (isinstance(event, PokeNotifyEvent) and event.group_id):
             # 群权限
             if plugins2info_dict[module]["level"] > group_manager.get_group_level(
                 str(event.group_id)

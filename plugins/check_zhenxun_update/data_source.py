@@ -94,9 +94,9 @@ async def check_update(bot: Bot) -> int:
                 width = 0
                 height = len(update_info.split('\n')) * 24
                 for m in update_info.split('\n'):
-                    if len(m) * 24 > width:
-                        width = len(m) * 24
-                A = CreateImg(800, height, font_size=20)
+                    if len(m) * 20 > width:
+                        width = len(m) * 17
+                A = CreateImg(width, height, font_size=20)
                 A.text((10, 10), update_info)
                 A.save(f'{IMAGE_PATH}/update_info.png')
                 return 200
