@@ -95,7 +95,7 @@ async def check_update(bot: Bot) -> int:
                 height = len(update_info.split('\n')) * 24
                 for m in update_info.split('\n'):
                     if len(m) * 20 > width:
-                        width = len(m) * 17
+                        width = len(m) * 21
                 A = CreateImg(800, height, font_size=20)
                 A.text((10, 10), update_info)
                 A.save(f'{IMAGE_PATH}/update_info.png')
@@ -130,7 +130,7 @@ def _file_handle(latest_version: str):
     tf = tarfile.open(zhenxun_latest_tar_gz)
     tf.extractall(temp_dir)
     logger.info("解压真寻文件压缩包完成....")
-    zhenxun_latest_file = Path(temp_dir) / f"zhenxun_bot-{latest_version[1:]}"
+    zhenxun_latest_file = Path(temp_dir) / os.listdir(temp_dir)[0]
     update_info_file = Path(zhenxun_latest_file) / "update_info.json"
     update_info = json.load(open(update_info_file, "r", encoding="utf8"))
     update_file = update_info["update_file"]

@@ -1,6 +1,5 @@
 {
     "update_file": [
-        ".env.dev",
         "configs/config.py",
         "configs/path_config.py",
         "plugins/aconfig",
