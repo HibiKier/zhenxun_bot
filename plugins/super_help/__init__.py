@@ -39,7 +39,7 @@ result = """超级用户帮助：
     27.检查更新真寻
     28.真寻重启
     29.添加/删除群白名单 *[群号]
-    30.关闭[功能] ?[群号](有群号时禁用指定群)"""
+    30.关闭[功能] ?[群号/private/group](有群号时禁用指定群)"""
 
 height = len(result.split('\n')) * 24
 A = CreateImg(1000, height, font_size=20)
