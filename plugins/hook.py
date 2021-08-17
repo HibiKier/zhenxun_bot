@@ -135,7 +135,7 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
         not isinstance(event, MessageEvent)
         or await BanUser.is_ban(event.user_id)
         or str(event.user_id) in bot.config.superusers
-    ):
+    ) and matcher.module != "poke":
         return
     module = matcher.module
     if module in admin_plugins_auth.keys() and matcher.priority not in [1, 9]:
@@ -185,7 +185,7 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
             # 插件状态
             if not group_manager.get_plugin_status(module, str(event.group_id)):
                 try:
-                    if _flmt_s.check(event.group_id):
+                    if module != "poke" and _flmt_s.check(event.group_id):
                         _flmt_s.start_cd(event.group_id)
                         await bot.send_group_msg(
                             group_id=event.group_id, message="该群未开启此功能.."
@@ -231,7 +231,9 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
                 raise IgnoredException("该插件在私聊中已被禁用...")
         # 维护
         if not group_manager.get_plugin_status(module, block_type="all"):
-            if isinstance(event, GroupMessageEvent) and group_manager.check_group_is_white(event.group_id):
+            if isinstance(
+                event, GroupMessageEvent
+            ) and group_manager.check_group_is_white(event.group_id):
                 return
             try:
                 if _flmt_c.check(event.user_id):
