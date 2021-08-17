@@ -5,9 +5,10 @@ from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 import aiohttp
 from asyncio.exceptions import TimeoutError
+from configs.config import NICKNAME
 
 __plugin_name__ = "鸡汤"
-__plugin_usage__ = "用法： 发送’鸡汤‘，真寻亲自为你喝鸡汤"
+__plugin_usage__ = f"用法： 发送’鸡汤‘，{NICKNAME}亲自为你喝鸡汤"
 
 
 url = "https://v2.alapi.cn/api/soul"

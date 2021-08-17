@@ -7,6 +7,7 @@ from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from configs.config import IMAGE_DIR_LIST
 from utils.utils import is_number, cn2py
+from pathlib import Path
 import os
 
 __plugin_name__ = "删除图片"
@@ -51,28 +52,30 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 async def arg_handle(bot: Bot, event: MessageEvent, state: T_State):
     path = cn2py(state["path"])
     img_id = state["id"]
-    path = IMAGE_PATH + path
+    # path = IMAGE_PATH + path
+    path = Path(IMAGE_PATH) / path
+    temp = Path(IMAGE_PATH) / 'temp'
     max_id = len(os.listdir(path)) - 1
     if int(img_id) > max_id or int(img_id) < 0:
         await delete_img.finish(f"Id超过上下限，上限：{max_id}", at_sender=True)
     try:
-        if os.path.exists(IMAGE_PATH + TEMP_PATH + "delete.jpg"):
-            os.remove(IMAGE_PATH + TEMP_PATH + "delete.jpg")
+        if os.path.exists(temp / "delete.jpg"):
+            os.remove(temp / "delete.jpg")
         logger.info("删除图片 delete.jpg 成功")
     except Exception as e:
         logger.warning(f"删除图片 delete.jpg 失败 e{e}")
     try:
-        os.rename(path + img_id + ".jpg", IMAGE_PATH + TEMP_PATH + "delete.jpg")
-        logger.info(f"移动 {path}{img_id}.jpg 移动成功")
+        os.rename(path / f"{img_id}.jpg", temp / "delete.jpg")
+        logger.info(f"移动 {path}/{img_id}.jpg 移动成功")
     except Exception as e:
-        logger.warning(f"{path}{img_id}.jpg --> 移动失败 e:{e}")
-    if not os.path.exists(path + img_id + ".jpg"):
+        logger.warning(f"{path}/{img_id}.jpg --> 移动失败 e:{e}")
+    if not os.path.exists(path / f"{img_id}.jpg"):
         try:
             if int(img_id) != max_id:
-                os.rename(path + str(max_id) + ".jpg", path + img_id + ".jpg")
-        except FileExistsError:
-            logger.error(f"{path}{max_id}.jpg 替换 {path}{img_id}.jpg 失败 e:{e}")
-        logger.info(f"{path}{max_id}.jpg 替换 {path}{img_id}.jpg 成功")
+                os.rename(path / f"{max_id}.jpg", path / f"{img_id}.jpg")
+        except FileExistsError as e:
+            logger.error(f"{path}/{max_id}.jpg 替换 {path}/{img_id}.jpg 失败 e:{e}")
+        logger.info(f"{path}/{max_id}.jpg 替换 {path}/{img_id}.jpg 成功")
         logger.info(
             f"USER {event.user_id} GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}"
             f" -> id: {img_id} 删除成功"

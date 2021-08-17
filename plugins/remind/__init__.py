@@ -5,6 +5,7 @@ from models.group_remind import GroupRemind
 from models.group_info import GroupInfo
 from models.friend_user import FriendUser
 from nonebot.adapters.cqhttp.exception import ActionFailed
+from configs.config import NICKNAME
 
 __name__ = "早晚安 [Hidden]"
 
@@ -56,7 +57,7 @@ async def _():
                 result = image("sleep.jpg", "zhenxun")
                 try:
                     await bot.send_group_msg(
-                        group_id=g, message="小真寻要睡觉了，你们也要早点睡呀" + result
+                        group_id=g, message=f"{NICKNAME}要睡觉了，你们也要早点睡呀" + result
                     )
                 except ActionFailed:
                     logger.warning(f"{g} 群被禁言中，无法发送晚安")

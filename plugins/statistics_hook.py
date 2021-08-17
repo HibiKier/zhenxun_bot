@@ -86,7 +86,7 @@ async def _(
     state: T_State,
 ):
     global _prefix_count_dict
-    if matcher.type == "message" and matcher.priority not in [1, 9]:
+    if matcher.type == "message" and matcher.priority not in [1, 9] and matcher.module not in ['update_info']:
         model = matcher.module
         day_index = _prefix_count_dict["day_index"]
         # print(f'model --> {model}')

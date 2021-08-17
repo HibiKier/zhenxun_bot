@@ -15,7 +15,7 @@ __plugin_name__ = "我有一个朋友"
 __plugin_usage__ = "用法：我有一个朋友说/问 [消息] [at](不艾特则群员随机)"
 
 one_friend = on_regex(
-    "^我.*?朋友.*?(想问问|说|让我问问|想问|让我问|想知道|让我帮他问问|让我" "帮他问|让我帮忙问|让我帮忙问问|问).*",
+    "^我.*?朋友.*?(想问问|说|让我问问|想问|让我问|想知道|让我帮他问问|让我帮他问|让我帮忙问|让我帮忙问问|问).*",
     priority=5,
     block=True,
 )
@@ -41,10 +41,13 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 )
             ]
         )
+        user_name = '朋友'
     else:
         qq = qq[0]
+        at_user = await bot.get_group_member_info(group_id=event.group_id, user_id=qq)
+        user_name = at_user['card'] if at_user['card'] else at_user['nickname']
     msg = re.search(
-        r"^我.*?朋友.*?" r"(想问问|说|让我问问|想问|让我问|想知道|让我帮他问问|让我帮他问|让我帮忙问|让我帮忙问问|问)(.*)", msg
+        r"^我.*?朋友.*?(想问问|说|让我问问|想问|让我问|想知道|让我帮他问问|让我帮他问|让我帮忙问|让我帮忙问问|问)(.*)", msg
     )
     msg = msg.group(2)
     if not msg:
@@ -52,9 +55,8 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     msg = msg.replace("他", "我").replace("她", "我").replace("它", "我")
     ava = CreateImg(100, 100, background=BytesIO(await get_pic(qq)))
     ava.circle()
-    text = CreateImg(60, 30, font_size=30)
-    text.text((0, 0), "朋友")
-    # text.show()
+    text = CreateImg(300, 30, font_size=30)
+    text.text((0, 0), user_name)
     A = CreateImg(700, 150, font_size=25, color="white")
     A.paste(ava, (30, 25), True)
     A.paste(text, (150, 40))

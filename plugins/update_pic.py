@@ -11,33 +11,34 @@ import aiofiles
 import aiohttp
 from utils.utils import is_number, get_message_text
 from utils.image_utils import CreateImg, pic2b64
+from configs.config import NICKNAME
 import cv2
 import numpy as np
 
 
 __plugin_name__ = "图片"
-__plugin_usage__ = """图片用法(目前):
+__plugin_usage__ = f"""图片用法(目前):
 可以输入 指定操作 或 序号 来进行选择
     1.修改尺寸 宽(x) 高(y) 图片(在文字后跟图片即可) 
-        示例：小真寻修改图片 修改尺寸 200 300 图片(在文字后跟图片即可)
+        示例：{NICKNAME}修改图片 修改尺寸 200 300 图片(在文字后跟图片即可)
     2.等比压缩 比例(x) 图片(在文字后跟图片即可) 
-        示例：小真寻修改图片 等比压缩 2 图片(在文字后跟图片即可)
+        示例：{NICKNAME}修改图片 等比压缩 2 图片(在文字后跟图片即可)
     3.旋转图片 角度(x) 图片(在文字后跟图片即可)
-        示例：小真寻修改图片 旋转图片 45 图片(在文字后跟图片即可)
+        示例：{NICKNAME}修改图片 旋转图片 45 图片(在文字后跟图片即可)
     4.水平翻转
-        示例：小真寻修改图片 水平翻转 图片
+        示例：{NICKNAME}修改图片 水平翻转 图片
     5.铅笔滤镜
-        示例：小真寻修改图片 铅笔滤镜 图片
+        示例：{NICKNAME}修改图片 铅笔滤镜 图片
     6.模糊效果
-        示例：小真寻修改图片 模糊效果 图片
+        示例：{NICKNAME}修改图片 模糊效果 图片
     7.锐化效果
-        示例：小真寻修改图片 锐化效果 图片
+        示例：{NICKNAME}修改图片 锐化效果 图片
     8.高斯模糊
-        示例：小真寻修改图片 高斯模糊 图片
+        示例：{NICKNAME}修改图片 高斯模糊 图片
     9.边缘检测
-        示例：小真寻修改图片 边缘检测 图片
+        示例：{NICKNAME}修改图片 边缘检测 图片
     10.底色替换 颜色 颜色 图片 （不专业）支持：（红，蓝）->（红，蓝，白，绿，黄）
-        示例：小真寻修改图片 底色替换 蓝色 红色 图片"""
+        示例：{NICKNAME}修改图片 底色替换 蓝色 红色 图片"""
 
 # IMAGE_LOCAL = IMAGE_PATH + "temp/{}_update.png"
 method_flag = ""
@@ -219,7 +220,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 img = img.resize((int(x * width), int(x * height)))
                 result += image(b64=pic2b64(img))
             else:
-                await update_img.finish("小真寻不支持图片压缩后宽或高大于8000的存在！！")
+                await update_img.finish(f"{NICKNAME}不支持图片压缩后宽或高大于8000的存在！！")
     if method in ["旋转图片", "3"]:
         for i in range(index):
             img = Image.open(IMAGE_PATH + f"temp/{event.user_id}_{i}_update.png")

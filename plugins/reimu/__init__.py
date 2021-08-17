@@ -2,11 +2,11 @@ from nonebot import on_command
 from nonebot.adapters.cqhttp.permission import PRIVATE
 from .data_source import from_reimu_get_info
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, Event, PrivateMessageEvent
+from nonebot.adapters.cqhttp import Bot, PrivateMessageEvent
 from nonebot.typing import T_State
 from utils.utils import is_number, get_message_text, UserExistLimiter, scheduler
 from models.count_user import UserCount
-from configs.config import COUNT_PER_DAY_REIMU
+from configs.config import COUNT_PER_DAY_REIMU, NICKNAME
 
 __plugin_name__ = "上车"
 __plugin_usage__ = r"""
@@ -63,7 +63,7 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
         keyword = state["keyword"]
         page = state["page"]
         await UserCount.add_count(event.user_id, "reimu")
-        await reimu.send("已经帮你关好车门了，请等待发车（不加真寻好友的话是欣赏不到旅途的风景的）", at_sender=True)
+        await reimu.send(f"已经帮你关好车门了，请等待发车（不加{NICKNAME}好友的话是欣赏不到旅途的风景的）", at_sender=True)
         reimu_report = await from_reimu_get_info(keyword, page)
         if reimu_report:
             await reimu.send(reimu_report)

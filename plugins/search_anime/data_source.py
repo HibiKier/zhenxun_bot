@@ -1,4 +1,5 @@
 from lxml import etree
+from lxml import etree
 import feedparser
 from urllib import parse
 from services.log import logger

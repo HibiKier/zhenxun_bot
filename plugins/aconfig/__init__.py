@@ -9,6 +9,7 @@ from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent
 from nonebot.adapters.cqhttp.permission import GROUP
 from utils.utils import FreqLimiter
+from configs.config import NICKNAME
 
 
 __plugin_name__ = "基本设置 [Hidden]"
@@ -38,15 +39,16 @@ self_introduction = on_command(
 
 @self_introduction.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    result = (
-        "我叫绪山真寻\n"
-        "你们可以叫我真寻，小真寻，哪怕你们叫我小寻子我也能接受！\n"
-        "年龄的话我还是个**岁初中生(至少现在是)\n"
-        "身高保密！！！(也就比美波里(姐姐..(妹妹))矮一点)\n"
-        "我生日是在3月6号, 能记住的话我会很高兴的\n现在是自宅警备系的现役JC\n"
-        "最好的朋友是椛！\n" + image("zhenxun")
-    )
-    await self_introduction.finish(result)
+    if NICKNAME.find('真寻') != -1:
+        result = (
+            "我叫绪山真寻\n"
+            "你们可以叫我真寻，小真寻，哪怕你们叫我小寻子我也能接受！\n"
+            "年龄的话我还是个**岁初中生(至少现在是)\n"
+            "身高保密！！！(也就比美波里(姐姐..(妹妹))矮一点)\n"
+            "我生日是在3月6号, 能记住的话我会很高兴的\n现在是自宅警备系的现役JC\n"
+            "最好的朋友是椛！\n" + image("zhenxun")
+        )
+        await self_introduction.finish(result)
 
 
 my_wife = on_keyword({"老婆"}, rule=to_me(), priority=5, block=True)

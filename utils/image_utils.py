@@ -3,7 +3,7 @@ from PIL import Image, ImageFile, ImageDraw, ImageFont
 from imagehash import ImageHash
 from io import BytesIO
 from matplotlib import pyplot as plt
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Union
 from pathlib import Path
 import cv2
 import base64
@@ -45,7 +45,7 @@ def get_img_hash(image_file: str) -> ImageHash:
     return hash_value
 
 
-def compressed_image(in_file: str, out_file: str = None, ratio: float = 0.9):
+def compressed_image(in_file: Union[str, Path], out_file: Union[str, Path] = None, ratio: float = 0.9):
     """
     说明：
         压缩图片
@@ -54,8 +54,11 @@ def compressed_image(in_file: str, out_file: str = None, ratio: float = 0.9):
         :param out_file: 压缩后输出的文件路径
         :param ratio: 压缩率，宽高 * 压缩率
     """
-    in_file = Path(IMAGE_PATH) / in_file
-    out_file = Path(IMAGE_PATH) / out_file if out_file else in_file
+    in_file = Path(IMAGE_PATH) / in_file if isinstance(in_file, str) else in_file
+    if out_file:
+        out_file = Path(IMAGE_PATH) / out_file if isinstance(out_file, str) else out_file
+    else:
+        out_file = in_file
     h, w, d = cv2.imread(str(in_file.absolute())).shape
     img = cv2.resize(cv2.imread(str(in_file.absolute())), (int(w * ratio), int(h * ratio)))
     cv2.imwrite(str(out_file.absolute()), img)

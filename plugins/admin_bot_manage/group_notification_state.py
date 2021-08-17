@@ -39,7 +39,7 @@ group_status = on_command(
         "群通知状态",
     },
     permission=GROUP,
-    priority=1,
+    priority=5,
     block=True,
 )
 

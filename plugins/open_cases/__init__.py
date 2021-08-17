@@ -15,6 +15,7 @@ from .open_cases_c import (
     open_shilian_case,
 )
 from .utils import util_get_buff_price, util_get_buff_img, update_count_daily
+from configs.config import NICKNAME
 
 __plugin_name__ = "开箱"
 __plugin_usage__ = (
@@ -26,7 +27,7 @@ __plugin_usage__ = (
     "3.命悬一线武器箱\n\t"
     "4.裂空武器箱\n\t"
     "5.光谱武器箱\n"
-    "示例：小真寻开箱 突围大行动（不输入指定武器箱则随机）\n"
+    f"示例：{NICKNAME}开箱 突围大行动（不输入指定武器箱则随机）\n"
     "示例：我的开箱(开箱统计)\n"
     "示例：群开箱统计\n"
     "示例：我的金色"

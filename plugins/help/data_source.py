@@ -1,18 +1,16 @@
 from utils.image_utils import CreateImg
 from configs.path_config import IMAGE_PATH, DATA_PATH
-import ujson as json
-import os
+from pathlib import Path
 from .config import *
-from nonebot import require
 from configs.config import (
     INITIAL_OPEN_CASE_COUNT,
     INITIAL_SETU_PROBABILITY,
     ADMIN_DEFAULT_AUTH,
 )
-from configs.config import plugins2info_dict
+from configs.config import plugins2info_dict, NICKNAME
+from utils.static_data import group_manager
 import nonebot
 
-export = require("nonebot_plugin_manager")
 
 width = 1600
 e_height = 0
@@ -22,8 +20,9 @@ o_height = 1500
 
 
 def create_help_img():
-    if os.path.exists(IMAGE_PATH + "help.png"):
-        os.remove(IMAGE_PATH + "help.png")
+    help_img_file = Path(IMAGE_PATH) / 'help.png'
+    if help_img_file.exists():
+        help_img_file.unlink()
     h = (
         100
         + len(utility_help) * 24
@@ -60,10 +59,10 @@ def create_help_img():
     A.paste(o, (0, o_height))
     A.text(
         (10, h * 0.68),
-        "大部分交互功能可以通过输入‘取消’，‘算了’来取消当前交互\n对真寻说 “真寻帮助 指令名” 获取对应详细帮助\n"
+        f"大部分交互功能可以通过输入‘取消’，‘算了’来取消当前交互\n对{NICKNAME}说 “{NICKNAME}帮助 指令名” 获取对应详细帮助\n"
         "可以通过 “滴滴滴- [消息]” 联系管理员（有趣的想法尽管来吧！<还有Bug和建议>）"
         "\n[群管理员请看 管理员帮助（群主与管理员自带 5 级权限）]\n\n"
-        "\t「如果真寻回复了一些不符合人设的话，那是因为每日白嫖的图灵次数已用完，使用的是备用接口【QAQ】」",
+        f"\t「如果{NICKNAME}回复了一些不符合人设的话，那是因为每日白嫖的图灵次数已用完，使用的是备用接口【QAQ】」",
     )
 
     A.save(IMAGE_PATH + "help.png")
@@ -71,11 +70,6 @@ def create_help_img():
 
 def create_group_help_img(group_id: int):
     group_id = str(group_id)
-    try:
-        with open(DATA_PATH + "manager/plugin_list.json", "r", encoding="utf8") as f:
-            plugin_list = json.load(f)
-    except (ValueError, FileNotFoundError):
-        pass
     h = (
         100
         + len(utility_help) * 24
@@ -89,7 +83,7 @@ def create_group_help_img(group_id: int):
     rst = ""
     i = 1
     for cmd in entertainment_help.keys():
-        flag, dfg = parse_cmd(cmd, group_id, plugin_list)
+        flag, dfg = parse_cmd(cmd, group_id)
         if dfg:
             cmd = rcmd(dfg)
         rst += f"【{flag}】{i}.{entertainment_help[cmd]}\n"
@@ -100,7 +94,7 @@ def create_group_help_img(group_id: int):
     rst = ""
     i = 1
     for cmd in utility_help.keys():
-        flag, dfg = parse_cmd(cmd, group_id, plugin_list)
+        flag, dfg = parse_cmd(cmd, group_id)
         rst += f"【{flag}】{i}.{utility_help[cmd]}\n"
         i += 1
     u.text((10, 10), "实用功能：", fill=(255, 255, 255))
@@ -118,7 +112,7 @@ def create_group_help_img(group_id: int):
     # A.text((width, 10), f'总开关【{"√" if data["总开关"] else "×"}】')
     A.text(
         (10, h * 0.68),
-        "大部分交互功能可以通过输入‘取消’，‘算了’来取消当前交互\n对真寻说 “真寻帮助 指令名” 获取对应详细帮助\n"
+        f"大部分交互功能可以通过输入‘取消’，‘算了’来取消当前交互\n对{NICKNAME}说 “{NICKNAME}帮助 指令名” 获取对应详细帮助\n"
         "可以通过 “滴滴滴- [消息]” 联系管理员（有趣的想法尽管来吧！<还有Bug和建议>）"
         f"\n[群管理员请看 管理员帮助（群主与管理员自带 {ADMIN_DEFAULT_AUTH} 级权限）]",
     )
@@ -130,12 +124,12 @@ def create_group_help_img(group_id: int):
         f"\t\t示例：开启签到\n"
         f"\t\t可以通过管理员开关自动发送消息(早晚安等)\n"
         f"\t\t^请查看管理员帮助^\n\n"
-        f"\t「如果真寻回复了一些不符合人设的话，那是因为每日白嫖的图灵次数已用完，使用的是备用接口【QAQ】」",
+        f"\t「如果{NICKNAME}回复了一些不符合人设的话，那是因为每日白嫖的图灵次数已用完，使用的是备用接口【QAQ】」",
     )
     A.save(DATA_PATH + f"group_help/{group_id}.png")
 
 
-def parse_cmd(cmd, group_id, plugin_list):
+def parse_cmd(cmd, group_id):
     flag = "√"
     dfg = None
     if cmd.find("draw_card") != -1:
@@ -148,9 +142,8 @@ def parse_cmd(cmd, group_id, plugin_list):
     elif cmd == "pixiv_s":
         cmd = "pixiv"
         dfg = "s"
-    if group_id in plugin_list[cmd]:
-        if not plugin_list[cmd][group_id]:
-            flag = "×"
+    if not group_manager.get_plugin_status(cmd, group_id):
+        flag = "×"
     if cmd in ["bt", "reimu", "nickname"]:
         flag = "- "
     return flag, dfg

@@ -2,6 +2,7 @@ from services.log import logger
 from utils.message_builder import image
 from utils.user_agent import get_user_agent
 from configs.path_config import TXT_PATH
+from configs.config import NICKNAME
 from asyncio.exceptions import TimeoutError
 from typing import List
 from nonebot import Driver
@@ -26,7 +27,7 @@ async def get_weather_of_city(city: str) -> str:
     if code == 999:
         return "不要查一个省份的天气啊，很累人的！"
     elif code == 998:
-        return "真寻只可以查询国内的天气喔..."
+        return f"{NICKNAME}只可以查询国内城市的天气喔..."
     else:
         async with aiohttp.ClientSession(headers=get_user_agent()) as session:
             async with session.get(
@@ -35,7 +36,7 @@ async def get_weather_of_city(city: str) -> str:
                 data_json = json.loads(await res.text(encoding="utf8"))
                 if "desc" in data_json:
                     if data_json["desc"] == "invilad-citykey":
-                        return "你为啥不查火星的天气呢？小真寻只支持国内天气查询!!" + image(
+                        return f"你为啥不查火星的天气呢？{NICKNAME}只支持国内天气查询!!" + image(
                             "shengqi", "zhenxun"
                         )
                     elif data_json["desc"] == "OK":

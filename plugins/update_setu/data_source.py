@@ -93,8 +93,10 @@ async def update_setu_img():
         for image in image_list:
             count += 1
             path = _path / "_r18" if image.is_r18 else _path / "_setu"
-            rar_path = "r18_rar" if image.is_r18 else "rar"
+            rar_path = _path / "r18_rar" if image.is_r18 else _path / "rar"
             local_image = path / f"{image.local_id}.jpg"
+            path.mkdir(exist_ok=True, parents=True)
+            rar_path.mkdir(exist_ok=True, parents=True)
             if not local_image.exists() or not image.img_hash:
                 for _ in range(3):
                     try:
@@ -103,7 +105,7 @@ async def update_setu_img():
                         ) as response:
                             if response.status == 200:
                                 async with aiofiles.open(
-                                    f"{IMAGE_PATH}/{rar_path}/{image.local_id}.jpg",
+                                    rar_path / f'{image.local_id}.jpg',
                                     "wb",
                                 ) as f:
                                     await f.write(await response.read())
@@ -111,28 +113,25 @@ async def update_setu_img():
                                 try:
                                     if (
                                         os.path.getsize(
-                                            f"{IMAGE_PATH}/{rar_path}/{image.local_id}.jpg"
+                                            rar_path / f'{image.local_id}.jpg',
                                         )
                                         > 1024 * 1024 * 1.5
                                     ):
                                         compressed_image(
-                                            os.path.join(
-                                                rar_path, f"{image.local_id}.jpg"
-                                            ),
-                                            os.path.join(path, f"{image.local_id}.jpg"),
+                                            rar_path / f"{image.local_id}.jpg",
+                                            path / f"{image.local_id}.jpg"
                                         )
                                     else:
                                         logger.info(
-                                            f"不需要压缩，移动图片 {IMAGE_PATH}/{rar_path}/{image.local_id}.jpg "
+                                            f"不需要压缩，移动图片{rar_path}/{image.local_id}.jpg "
                                             f"--> /{path}/{image.local_id}.jpg"
                                         )
                                         os.rename(
-                                            f"{IMAGE_PATH}/{rar_path}/{image.local_id}.jpg",
+                                            f"{rar_path}/{image.local_id}.jpg",
                                             f"{path}/{image.local_id}.jpg",
                                         )
                                 except FileNotFoundError:
                                     logger.warning(f"文件 {image.local_id}.jpg 不存在，跳过...")
-                                    _success -= 1
                                     continue
                                 img_hash = str(
                                     get_img_hash(
@@ -146,7 +145,6 @@ async def update_setu_img():
                     except (TimeoutError, ClientConnectorError) as e:
                         logger.warning(f"{image.local_id}.jpg 更新失败 ..{type(e)}：{e}")
                     except Exception as e:
-                        _success -= 1
                         logger.error(f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}")
                         if type(e) not in error_type:
                             error_type.append(type(e))

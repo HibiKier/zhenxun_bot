@@ -81,7 +81,6 @@ async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
                         user_id=event.user_id, message=f"P站排行榜或搜图正在搜索噢，不要重复触发命令呀"
                     )
                 raise IgnoredException("pixiv插件正在访问！")
-            _ulmt.set_True(event.user_id)
 
 
 @run_postprocessor
@@ -106,6 +105,7 @@ pixiv_keyword = on_command("搜图", priority=5, block=True)
 @pixiv_rank.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json()).strip()
+    _ulmt.set_True(event.user_id)
     msg = msg.split(" ")
     msg = [m for m in msg if m]
     if not msg:
@@ -150,6 +150,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @pixiv_keyword.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json()).strip()
+    _ulmt.set_True(event.user_id)
     if event.message_type == "group":
         if msg.find("r18") != -1:
             await pixiv_keyword.finish("(脸红#) 你不会害羞的 八嘎！", at_sender=True)

@@ -1,6 +1,6 @@
 from .utils.util import get_config_data
 from pathlib import Path
-from configs.config import USE_CONFIG_FILE
+# from configs.config import USE_CONFIG_FILE
 
 # 图片路径
 IMAGE_PATH = Path("resources/img/")
@@ -20,24 +20,24 @@ TEMP_PATH = Path("resources/img/temp/")
 
 def init_path():
     global IMAGE_PATH, VOICE_PATH, TXT_PATH, LOG_PATH, TTF_PATH, DATA_PATH, TEMP_PATH
-    if USE_CONFIG_FILE:
-        data = get_config_data()
-        if data.get('IMAGE_PATH'):
-            IMAGE_PATH = Path(data['IMAGE_PATH'])
-        if data.get('VOICE_PATH'):
-            VOICE_PATH = Path(data['VOICE_PATH'])
-        if data.get('TXT_PATH'):
-            TXT_PATH = Path(data['TXT_PATH'])
-        if data.get('LOG_PATH'):
-            LOG_PATH = Path(data['LOG_PATH'])
-        if data.get('TTF_PATH'):
-            TTF_PATH = Path(data['TTF_PATH'])
-        if data.get('DATA_PATH'):
-            DATA_PATH = Path(data['DATA_PATH'])
-        if data.get('DRAW_PATH'):
-            DRAW_PATH = Path(data['DRAW_PATH'])
-        if data.get('TEMP_PATH'):
-            TEMP_PATH = Path(data['TEMP_PATH'])
+    # if USE_CONFIG_FILE:
+    #     data = get_config_data()
+    #     if data.get('IMAGE_PATH'):
+    #         IMAGE_PATH = Path(data['IMAGE_PATH'])
+    #     if data.get('VOICE_PATH'):
+    #         VOICE_PATH = Path(data['VOICE_PATH'])
+    #     if data.get('TXT_PATH'):
+    #         TXT_PATH = Path(data['TXT_PATH'])
+    #     if data.get('LOG_PATH'):
+    #         LOG_PATH = Path(data['LOG_PATH'])
+    #     if data.get('TTF_PATH'):
+    #         TTF_PATH = Path(data['TTF_PATH'])
+    #     if data.get('DATA_PATH'):
+    #         DATA_PATH = Path(data['DATA_PATH'])
+    #     if data.get('DRAW_PATH'):
+    #         DRAW_PATH = Path(data['DRAW_PATH'])
+    #     if data.get('TEMP_PATH'):
+    #         TEMP_PATH = Path(data['TEMP_PATH'])
     IMAGE_PATH.mkdir(parents=True, exist_ok=True)
     VOICE_PATH.mkdir(parents=True, exist_ok=True)
     TXT_PATH.mkdir(parents=True, exist_ok=True)

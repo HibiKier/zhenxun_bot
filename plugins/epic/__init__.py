@@ -1,6 +1,6 @@
 from nonebot import on_command
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, MessageEvent
+from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from utils.utils import scheduler, get_bot
 from .data_source import get_epic_game
@@ -20,7 +20,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     result, code = await get_epic_game()
     await epic.send(result)
     logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'})"
+        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
         f" 获取epic免费游戏"
     )
 

@@ -2,7 +2,7 @@ from nonebot import on_request
 from nonebot.adapters.cqhttp import Bot, FriendRequestEvent, GroupRequestEvent
 from models.friend_user import FriendUser
 from datetime import datetime
-from configs.config import AUTO_ADD_FRIEND
+from configs.config import AUTO_ADD_FRIEND, NICKNAME
 from nonebot.adapters.cqhttp.exception import ActionFailed
 from utils.utils import scheduler
 import time
@@ -70,7 +70,9 @@ async def _(bot: Bot, event: GroupRequestEvent, state: dict):
             )
             await bot.send_private_msg(
                 user_id=event.user_id,
-                message="想要邀请我偷偷入群嘛~已经提醒真寻的管理员大人了\n" "请确保已经群主或群管理沟通过！\n" "等待管理员处理吧！",
+                message=f"想要邀请我偷偷入群嘛~已经提醒{NICKNAME}的管理员大人了\n"
+                "请确保已经群主或群管理沟通过！\n"
+                "等待管理员处理吧！",
             )
 
 

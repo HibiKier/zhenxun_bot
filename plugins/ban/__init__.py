@@ -3,16 +3,17 @@ from models.ban_user import BanUser
 from models.level_user import LevelUser
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot
-from nonebot.adapters.cqhttp import GroupMessageEvent
+from nonebot.adapters.cqhttp import GroupMessageEvent, PrivateMessageEvent
 from nonebot.adapters.cqhttp.permission import GROUP
 from utils.utils import get_message_at, get_message_text, is_number
+from configs.config import NICKNAME
 from services.log import logger
 
 
 __plugin_name__ = "Ban/unBan"
 __plugin_usage__ = (
     "用法：\n"
-    "（不是禁言！是针对真寻是否处理封禁用户消息）\n"
+    f"（不是禁言！是针对{NICKNAME}是否处理封禁用户消息）\n"
     "封禁/解封用户 [小时] [分钟]\n"
     "示例：.ban @djdsk\n"
     "示例：.ban @djdsk 0 30\n"
@@ -25,7 +26,6 @@ ban = on_command(
     ".ban",
     aliases={".unban", "/ban", "/unban"},
     priority=5,
-    permission=GROUP,
     block=True,
 )
 
@@ -58,7 +58,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                     and str(event.user_id) not in bot.config.superusers
             ):
                 await ban.finish(
-                    f"您的权限等级比对方低或相等, {list(bot.config.nickname)[0]}不能为您使用此功能!",
+                    f"您的权限等级比对方低或相等, {NICKNAME}不能为您使用此功能!",
                     at_sender=True,
                 )
             if await BanUser.ban(
@@ -67,7 +67,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 logger.info(
                     f"USER {event.user_id} GROUP {event.group_id} 将 USER {qq} 封禁 时长 {time/60} 分钟"
                 )
-                result = f"已经将 {user_name} 加入{list(bot.config.nickname)[0]}的黑名单了！"
+                result = f"已经将 {user_name} 加入{NICKNAME}的黑名单了！"
                 if time != -1:
                     result += f"将在 {time/60} 分钟后解封"
             else:
@@ -102,6 +102,58 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         await ban.finish("艾特人了吗？？", at_sender=True)
     await ban.finish(result, at_sender=True)
 
-        
+
+@ban.handle()
+async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
+    if str(event.user_id) in bot.config.superusers:
+        msg = get_message_text(event.json())
+        msg = msg.split()
+        if is_number(msg[0]):
+            qq = int(msg[0])
+            if state["_prefix"]["raw_command"] in [".ban", "/ban"]:
+                hour = 0
+                minute = 0
+                if len(msg) > 1 and is_number(msg[1]):
+                    hour = int(msg[1])
+                if len(msg) > 2 and is_number(msg[2]):
+                    minute = int(msg[2])
+                time = hour * 60 * 60 + minute * 60
+                time = time if time else -1
+                if await BanUser.ban(
+                    qq, 9, time
+                ):
+                    logger.info(
+                        f"USER {event.user_id} 将 USER {qq} 封禁 时长 {time/60} 分钟"
+                    )
+                    result = f"已经将 {qq} 加入{NICKNAME}的黑名单了！"
+                    if time != -1:
+                        result += f"将在 {time/60} 分钟后解封"
+                    else:
+                        result += f"将在 ∞ 分钟后解封"
+                    await ban.send(result)
+                else:
+                    time = await BanUser.check_ban_time(qq)
+                    if is_number(time):
+                        time = abs(int(time))
+                        if time < 60:
+                            time = str(time) + " 秒"
+                        else:
+                            time = str(int(time / 60)) + " 分钟"
+                    else:
+                        time += " 分钟"
+                    await ban.send(f"{qq} 已在黑名单！预计 {time}后解封")
+            else:
+                if await BanUser.unban(qq):
+                    logger.info(
+                        f"USER {event.user_id} 将 USER {qq} 解禁"
+                    )
+                    result = f"已经把 {qq} 从黑名单中删除了！"
+                else:
+                    result = f"{qq} 不在黑名单！"
+                await ban.send(result)
+        else:
+            await ban.finish('qq号必须是数字！\n格式：.ban [qq] [hour]? [minute]?', at_sender=True)
+
+
 
 

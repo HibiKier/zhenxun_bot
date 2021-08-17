@@ -1,8 +1,8 @@
 from nonebot import on_command
-from nonebot.adapters.cqhttp import Bot, MessageEvent
+from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from configs.config import ALAPI_TOKEN
-from .util import get_data
+from .data_source import get_data
 from services.log import logger
 
 __plugin_name__ = '网易云热评'
@@ -27,7 +27,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     song_name = data['title']
     await comments_163.send(f'{comment}\n\t——《{song_name}》')
     logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'})"
+        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
         f" 发送网易云热评: {comment} \n\t\t————{song_name}")
 
 

@@ -46,7 +46,7 @@ MAP_RATIO = 0.5
 async def query_resource(resource_name: str) -> str:
     global CENTER_POINT
     planning_route: bool = False
-    if resource_name and resource_name[-2:] == "路径":
+    if resource_name and resource_name[-2:] in ["路径", "路线"]:
         resource_name = resource_name[:-2].strip()
         planning_route = True
     if not resource_name or resource_name not in resource_name_list:

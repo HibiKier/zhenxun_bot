@@ -1,4 +1,4 @@
-from configs.config import TL_KEY, ALAPI_TOKEN, ALAPI_AI_CHECK
+from configs.config import TL_KEY, ALAPI_TOKEN, ALAPI_AI_CHECK, NICKNAME
 from configs.path_config import IMAGE_PATH, DATA_PATH
 from aiohttp.client import ClientSession
 from services.log import logger
@@ -104,7 +104,7 @@ async def xie_ai(text: str, sess: ClientSession):
         if data["result"] == 0:
             content = data["content"]
             if "菲菲" in content:
-                content = content.replace("菲菲", "真寻")
+                content = content.replace("菲菲", f"{NICKNAME}")
             if "公众号" in content:
                 content = ""
             if "{br}" in content:
@@ -150,7 +150,7 @@ def no_result() -> str:
         random.choice(
             [
                 "你在说啥子？",
-                f"纯洁的小真寻没听懂",
+                f"纯洁的{NICKNAME}没听懂",
                 "下次再告诉你(下次一定)",
                 "你觉得我听懂了吗？嗯？",
                 "我！不！知！道！",

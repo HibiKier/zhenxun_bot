@@ -1,9 +1,9 @@
 from nonebot import on_command
-from nonebot.adapters.cqhttp import Bot, MessageEvent
+from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from configs.config import ALAPI_TOKEN
 from services.log import logger
-from .util import get_data
+from .data_source import get_data
 
 __plugin_name__ = '古诗'
 __plugin_usage__ = '用法： 无'
@@ -29,7 +29,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     author = data['author']
     await poetry.send(f'{content}\n\t——{author}《{title}》')
     logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'})"
+        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
         f" 发送古诗: f'{content}\n\t--{author}《{title}》'")
 
 

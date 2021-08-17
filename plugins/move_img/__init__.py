@@ -7,6 +7,7 @@ from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from configs.config import IMAGE_DIR_LIST
 from utils.utils import is_number, cn2py
 from configs.path_config import IMAGE_PATH
+from pathlib import Path
 
 
 __plugin_name__ = "移动图片"
@@ -59,31 +60,32 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @move_img.got("id", prompt="要移动的图片id是？")
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     img_id = state["id"]
-    source_path = IMAGE_PATH + cn2py(state["source_path"])
-    destination_path = IMAGE_PATH + cn2py(state["destination_path"])
+    source_path = Path(IMAGE_PATH) / cn2py(state["source_path"])
+    destination_path = Path(IMAGE_PATH) / cn2py(state["destination_path"])
+    destination_path.mkdir(parents=True, exist_ok=True)
     max_id = len(os.listdir(source_path)) - 1
     des_max_id = len(os.listdir(destination_path))
     if int(img_id) > max_id or int(img_id) < 0:
         await move_img.finish(f"Id超过上下限，上限：{max_id}", at_sender=True)
     try:
         os.rename(
-            source_path + img_id + ".jpg", destination_path + str(des_max_id) + ".jpg"
+            source_path / f"{img_id}.jpg", destination_path / f"{des_max_id}.jpg"
         )
         logger.info(
-            f"移动 {source_path}{img_id}.jpg ---> {destination_path}{des_max_id} 移动成功"
+            f"移动 {source_path}/{img_id}.jpg ---> {destination_path}/{des_max_id} 移动成功"
         )
     except Exception as e:
         logger.warning(
-            f"移动 {source_path}{img_id}.jpg ---> {destination_path}{des_max_id} 移动失败 e:{e}"
+            f"移动 {source_path}/{img_id}.jpg ---> {destination_path}/{des_max_id} 移动失败 e:{e}"
         )
         await move_img.finish(f"移动图片id：{img_id} 失败了...", at_sender=True)
     if max_id > 0:
         try:
-            os.rename(source_path + str(max_id) + ".jpg", source_path + img_id + ".jpg")
-            logger.info(f"{source_path}{max_id}.jpg 替换 {source_path}{img_id}.jpg 成功")
+            os.rename(source_path / f"{max_id}.jpg", source_path / f"{img_id}.jpg")
+            logger.info(f"{source_path}/{max_id}.jpg 替换 {source_path}/{img_id}.jpg 成功")
         except Exception as e:
             logger.warning(
-                f"{source_path}{max_id}.jpg 替换 {source_path}{img_id}.jpg 失败 e:{e}"
+                f"{source_path}/{max_id}.jpg 替换 {source_path}/{img_id}.jpg 失败 e:{e}"
             )
             await move_img.finish(f"替换图片id：{max_id} -> {img_id} 失败了...", at_sender=True)
     logger.info(

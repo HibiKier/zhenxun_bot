@@ -1,5 +1,6 @@
 from utils.user_agent import get_user_agent
 from configs.path_config import TXT_PATH
+from configs.config import NICKNAME
 from typing import List
 from pathlib import Path
 import ujson as json
@@ -37,7 +38,7 @@ async def get_yiqing_data(area: str):
                 province = p
                 city = area
     if not province and not city:
-        return "小真寻只支持国内的疫情查询喔..."
+        return f"{NICKNAME}只支持国内的疫情查询喔..."
     async with aiohttp.ClientSession(headers=get_user_agent()) as session:
         async with session.get(url, timeout=7) as response:
             epidemic_data = json.loads((await response.json())["data"])

@@ -17,8 +17,11 @@ weather = on_regex(r".*?(.*)市?的?天气.*?", priority=5, block=True)
 @weather.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json())
-    msg = re.search(r".*?(.*)市?的?天气.*?", msg)
-    msg = msg.group(1)
+    msg1 = re.search(r".*?(.*)市?的?天气.*?", msg)
+    msg2 = re.search(r".*?天气(.*).*?", msg)
+    msg1 = msg1.group(1)
+    msg2 = msg2.group(1)
+    msg = msg1 if msg1 else msg2
     if msg[-1] == "的":
         msg = msg[:-1]
     if msg[-1] != "市":

@@ -27,7 +27,6 @@ __plugin_usage__ = (
 
 _flmt = FreqLimiter(1)
 
-IMAGE_DIR_LIST.remove("色图")
 cmd = set(IMAGE_DIR_LIST)
 
 # print(cmd)

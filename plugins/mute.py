@@ -11,7 +11,7 @@ from utils.image_utils import get_img_hash
 from services.log import logger
 import aiohttp
 import aiofiles
-from configs.config import MUTE_DEFAULT_COUNT, MUTE_DEFAULT_TIME, MUTE_DEFAULT_DURATION
+from configs.config import MUTE_DEFAULT_COUNT, MUTE_DEFAULT_TIME, MUTE_DEFAULT_DURATION, NICKNAME
 
 try:
     import ujson as json
@@ -105,7 +105,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                         user_id=event.user_id,
                         duration=mute_data[group_id]["duration"],
                     )
-                    await mute.send("检测到恶意刷屏，真寻要把你关进小黑屋！", at_sender=True)
+                    await mute.send(f"检测到恶意刷屏，{NICKNAME}要把你关进小黑屋！", at_sender=True)
                     mute_dict[event.user_id]["count"] = 0
                     logger.info(
                         f"USER {event.user_id} GROUP {event.group_id} "

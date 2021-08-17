@@ -2,7 +2,7 @@ from nonebot.adapters.cqhttp import Bot, MessageEvent
 from nonebot.typing import T_State
 from nonebot.permission import SUPERUSER
 from nonebot import on_command
-from .data_source import check_update, get_latest_version
+from .data_source import check_update, get_latest_version_data
 from services.log import logger
 from utils.utils import scheduler, get_bot
 from pathlib import Path
@@ -65,8 +65,9 @@ async def _():
             _version = (
                 open(_version_file, "r", encoding="utf8").readline().split(":")[-1].strip()
             )
-        latest_version, tar_gz_url = await get_latest_version()
-        if latest_version and tar_gz_url:
+        data = await get_latest_version_data()
+        if data:
+            latest_version = data["name"]
             if _version != latest_version:
                 bot = get_bot()
                 await bot.send_private_msg(

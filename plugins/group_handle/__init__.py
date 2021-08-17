@@ -81,7 +81,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent, state: dict):
 
 @group_decrease_handle.handle()
 async def _(bot: Bot, event: GroupDecreaseNoticeEvent, state: dict):
-    # 真寻被踢出群
+    # 被踢出群
     if event.sub_type == "kick_me":
         group_id = event.group_id
         operator_id = event.operator_id

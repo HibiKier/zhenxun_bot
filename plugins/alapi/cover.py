@@ -1,10 +1,10 @@
 from nonebot import on_command
-from nonebot.adapters.cqhttp import Bot, MessageEvent, Message
+from nonebot.adapters.cqhttp import Bot, MessageEvent, Message, GroupMessageEvent
 from nonebot.typing import T_State
 from configs.config import ALAPI_TOKEN
 from utils.message_builder import image
 from utils.utils import get_message_text
-from .util import get_data
+from .data_source import get_data
 from services.log import logger
 
 __plugin_name__ = 'b封面'
@@ -33,7 +33,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     img = data['cover']
     await cover.send(Message(f'title：{title}\n{image(img)}'))
     logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'})"
+        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
         f" 获取b站封面: {title} url：{img}")
 
 

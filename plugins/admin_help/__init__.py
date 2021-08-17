@@ -5,25 +5,22 @@ from nonebot.adapters.cqhttp import GroupMessageEvent
 from utils.image_utils import CreateImg
 from configs.path_config import IMAGE_PATH
 from utils.message_builder import image
+from configs.config import NICKNAME
 
 
 __plugin_name__ = '管理帮助 [Hidden]'
-__plugin_usage__ = '''管理帮助(权限等级)：
+__plugin_usage__ = f'''管理帮助(权限等级)：
     1.更新群组成员列表(1)
     2.功能开关 --> 指令:开启/关闭xx功能(2)
     3.查看群被动技能 --> 指令:群通知状态(2)
     4.自定义群欢迎 --> 指令:自定义进群欢迎消息(2)
-    5.将用户拉入真寻黑名单 --> .ban/.unban(5)
+    5.将用户拉入{NICKNAME}黑名单 --> .ban/.unban(5)
     6.刷屏禁言相关 --> 指令:刷屏检测设置/设置检测时间
                         \t\t/设置检测次数/设置禁言时长(5)
-    7.群员活跃度相关 --> 指令:群员活跃检测设置
-                           设置群员活跃检测时长(天)
-                           添加群员活跃检测白名单[at]...
-                           查看群员活跃检测白名单(5)
-    8.上传图片(6) 
+    8.上传图片/连续上传图片(6) 
     9.移动图片(7)
     10.删除图片(7)
-对我说 “真寻帮助 指令” 获取对应详细帮助
+对我说 “{NICKNAME}帮助 指令” 获取对应详细帮助
 群主与管理员默认 5 级权限
 '''
 

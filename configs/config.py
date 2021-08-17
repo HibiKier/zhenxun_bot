@@ -1,4 +1,3 @@
-from .utils.util import get_config_data
 from typing import List, Optional, Tuple
 from services.service_config import TL_M_KEY, SYSTEM_M_PROXY, ALAPI_M_TOKEN
 
@@ -11,6 +10,8 @@ except ModuleNotFoundError:
 # 是否使用配置文件
 USE_CONFIG_FILE: bool = False
 
+# 回复消息名称
+NICKNAME: str = '小真寻'
 
 # API KEY（必要）
 RSSHUBAPP: str = "https://rsshub.app"  # rsshub
@@ -35,7 +36,7 @@ SYSTEM_PROXY: Optional[str] = None  # 全局代理
 BUFF_PROXY: Optional[str] = None  # Buff代理
 
 # 公开图库列表
-IMAGE_DIR_LIST: List[str] = ["色图", "美图", "萝莉", "壁纸"]
+IMAGE_DIR_LIST: List[str] = ["美图", "萝莉", "壁纸"]
 
 # 对被ban用户发送的消息
 BAN_RESULT: str = "才不会给你发消息."
@@ -76,6 +77,8 @@ INITIAL_OPEN_CASE_COUNT: int = 20  # 初始开箱次数
 MUTE_DEFAULT_COUNT: int = 10  # 刷屏禁言默认检测次数
 MUTE_DEFAULT_TIME: int = 7  # 刷屏检测默认规定时间
 MUTE_DEFAULT_DURATION: int = 10  # 刷屏检测默禁言时长（分钟）
+
+CHECK_NOTICE_INFO_CD = 300    # 群检测，个人权限检测等各种检测提示信息cd
 
 # 注：即在 MALICIOUS_CHECK_TIME 时间内触发相同命令 MALICIOUS_BAN_COUNT 将被ban MALICIOUS_BAN_TIME 分钟
 MALICIOUS_BAN_TIME: int = 30  # 恶意命令触发检测触发后ban的时长（分钟）
@@ -190,6 +193,14 @@ plugins2info_dict = {
         "level": 5,
         "cmd": ["pix", "PIX", "pIX", "Pix", "PIx"],
     },
+    "wbtop": {
+        "level": 5,
+        "cmd": ['微博热搜', "微博", "wbtop"]
+    },
+    "update_info": {
+        "level": 5,
+        "cmd": ['更新信息', '更新日志']
+    }
 }
 
 if TL_M_KEY:

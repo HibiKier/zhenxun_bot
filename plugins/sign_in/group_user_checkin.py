@@ -6,7 +6,7 @@ from services.db_context import db
 from models.sigin_group_user import SignGroupUser
 from models.group_member_info import GroupInfoUser
 from models.bag_user import BagUser
-from configs.config import MAX_SIGN_GOLD
+from configs.config import MAX_SIGN_GOLD, NICKNAME
 from utils.image_utils import CreateImg
 import aiohttp
 from asyncio.exceptions import TimeoutError
@@ -219,6 +219,6 @@ async def _pst(users: list, impressions: list, groups: list):
             width += 580
     W = CreateImg(1740, 3700, color="#FFE4C4", font_size=130)
     W.paste(A, (0, 260))
-    font_w, font_h = W.getsize("真寻的好感度总榜")
-    W.text((int((1740 - font_w) / 2), int((260 - font_h) / 2)), "真寻的好感度总榜")
+    font_w, font_h = W.getsize(f"{NICKNAME}的好感度总榜")
+    W.text((int((1740 - font_w) / 2), int((260 - font_h) / 2)), f"{NICKNAME}的好感度总榜")
     return W.pic2bs4()

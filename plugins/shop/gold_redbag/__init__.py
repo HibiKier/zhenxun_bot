@@ -22,6 +22,7 @@ from services.log import logger
 from nonebot.permission import SUPERUSER
 from nonebot.rule import to_me
 from datetime import datetime, timedelta
+from configs.config import NICKNAME
 import random
 import time
 
@@ -278,7 +279,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             gl = await bot.get_group_list(self_id=int(bot.self_id))
             gl = [g["group_id"] for g in gl]
         for g in gl:
-            init_redbag(int(bot.self_id), g, "可爱的小真寻", amount, num, int(bot.self_id), 1)
+            init_redbag(int(bot.self_id), g, f"{NICKNAME}", amount, num, int(bot.self_id), 1)
             scheduler.add_job(
                 end_festive_redbag,
                 "date",
@@ -289,7 +290,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             try:
                 await bot.send_group_msg(
                     group_id=g,
-                    message=f"可爱的小真寻发起了金币红包\n金额：{amount}\n数量：{num}\n"
+                    message=f"{NICKNAME}发起了金币红包\n金额：{amount}\n数量：{num}\n"
                     + image(
                         b64=await generate_send_redbag_pic(int(bot.self_id), greetings)
                     ),
@@ -380,7 +381,7 @@ async def get_redbag_img(user_id: int, group_id: int):
 async def end_festive_redbag(bot: Bot, group_id: int):
     global festive_redbag_data
     message = (
-        f"真寻的节日红包过时了，一共开启了 "
+        f"{NICKNAME}的节日红包过时了，一共开启了 "
         f"{festive_redbag_data[group_id]['num'] - len(festive_redbag_data[group_id]['redbag'])}"
         f" 个红包，共 {festive_redbag_data[group_id]['open_amount']} 金币"
     )

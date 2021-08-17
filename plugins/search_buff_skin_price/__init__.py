@@ -6,6 +6,7 @@ from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.rule import to_me
 from nonebot.permission import SUPERUSER
 from utils.utils import UserExistLimiter, get_message_text
+from configs.config import NICKNAME
 
 
 __plugin_name__ = "查询皮肤"
@@ -50,7 +51,7 @@ async def arg_handle(bot: Bot, event: MessageEvent, state: T_State):
     try:
         result, status_code = await get_price(name)
     except FileNotFoundError:
-        await search_skin.finish('请先对真寻说"设置cookie"来设置cookie！')
+        await search_skin.finish(F'请先对{NICKNAME}说"设置cookie"来设置cookie！')
     if status_code in [996, 997, 998]:
         _ulmt.set_False(event.user_id)
         await search_skin.finish(result)

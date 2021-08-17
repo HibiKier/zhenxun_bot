@@ -7,6 +7,7 @@ from asyncpg.exceptions import UniqueViolationError
 from utils.utils import get_local_proxy
 from asyncio.exceptions import TimeoutError
 from typing import List, Optional
+from configs.config import INITIAL_SETU_PROBABILITY, NICKNAME
 from models.setu import Setu
 import aiohttp
 import aiofiles
@@ -29,12 +30,12 @@ r18_path = "_r18/"
 async def get_setu_urls(
     tags: List[str], num: int = 1, r18: int = 0, command: str = ""
 ) -> "List[str], List[str], List[tuple], int":
-    tags = tags[:20] if len(tags) > 20 else tags
+    tags = tags[:3] if len(tags) > 3 else tags
     params = {
         "r18": r18,  # 添加r18参数 0为否，1为是，2为混合
-        "tag": "|".join(tags),  # 若指定tag
-        "num": 100,  # 一次返回的结果数量，范围为1到10，不提供 APIKEY 时固定为1
-        "size": ["original"],  # 是否使用 master_1200 缩略图，以节省流量或提升加载速度
+        "tag": tags,  # 若指定tag
+        "num": 100,  # 一次返回的结果数量
+        "size": ["original"],
     }
     async with aiohttp.ClientSession() as session:
         for count in range(3):
@@ -105,8 +106,7 @@ async def search_online_setu(
                                 > 1024 * 1024 * 1.5
                             ):
                                 compressed_image(
-                                    os.path.join(path_, f"{index}.jpg"),
-                                    os.path.join(path_, f"{index}.jpg"),
+                                    f"{IMAGE_PATH}/{path_}/{index}.jpg",
                                 )
                         logger.info(f"下载 lolicon图片 {url_} 成功， id：{index}")
                         return image(file, path_), index
@@ -188,12 +188,12 @@ def gen_message(setu_image: Setu, img_msg: bool = False):
 
 # 罗翔老师！
 def get_luoxiang(impression):
-    probability = impression + 70
+    probability = impression + INITIAL_SETU_PROBABILITY * 100
     if probability < random.randint(1, 101):
         return (
             "我为什么要给你发这个？"
             + image(random.choice(os.listdir(IMAGE_PATH + "luoxiang/")), "luoxiang")
-            + "\n(快向小真寻签到提升好感度吧！)"
+            + f"\n(快向{NICKNAME}签到提升好感度吧！)"
         )
     return None
 

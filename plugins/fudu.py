@@ -16,22 +16,40 @@ from configs.config import FUDU_PROBABILITY
 
 class Fudu:
     def __init__(self):
-        self.mlist = defaultdict(list)
+        self.data = {}
 
     def append(self, key, content):
-        self.mlist[key].append(content)
+        self._create(key)
+        self.data[key]['data'].append(content)
 
     def clear(self, key):
-        self.mlist[key] = []
+        self._create(key)
+        self.data[key]['data'] = []
+        self.data[key]['is_repeater'] = False
 
     def size(self, key) -> int:
-        return len(self.mlist[key])
+        self._create(key)
+        return len(self.data[key]['data'])
 
     def check(self, key, content) -> bool:
-        return self.mlist[key][0] == content
+        self._create(key)
+        return self.data[key]['data'][0] == content
 
     def get(self, key):
-        return self.mlist[key][0]
+        self._create(key)
+        return self.data[key]['data'][0]
+
+    def is_repeater(self, key):
+        self._create(key)
+        return self.data[key]['is_repeater']
+
+    def set_repeater(self, key):
+        self._create(key)
+        self.data[key]['is_repeater'] = True
+
+    def _create(self, key):
+        if self.data.get(key) is None:
+            self.data[key] = {'is_repeater': False, 'data': []}
 
 
 _fudulist = Fudu()
@@ -64,7 +82,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         _fudulist.clear(event.group_id)
         _fudulist.append(event.group_id, add_msg)
     if _fudulist.size(event.group_id) > 2:
-        if random.random() < FUDU_PROBABILITY:
+        if random.random() < FUDU_PROBABILITY and not _fudulist.is_repeater(event.group_id):
             if random.random() < 0.2:
                 await fudu.finish("打断施法！")
             if imgs and msg:
@@ -77,7 +95,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 rst = ""
             if rst:
                 await fudu.send(rst)
-            _fudulist.clear(event.group_id)
+            _fudulist.set_repeater(event.group_id)
 
 
 async def get_fudu_img_hash(url, group_id):

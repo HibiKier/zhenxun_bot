@@ -11,7 +11,7 @@ from models.bag_user import BagUser
 from services.log import logger
 import time
 from .data_source import rank
-from configs.config import MAX_RUSSIAN_BET_GOLD
+from configs.config import MAX_RUSSIAN_BET_GOLD, NICKNAME
 
 __plugin_name__ = '俄罗斯轮盘'
 
@@ -248,7 +248,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         if event.user_id != rs_player[event.group_id][1] and event.user_id != rs_player[event.group_id][2]:
             await shot.finish(random.choice([
                 f'不要打扰 {player1_name} 和 {player2_name} 的决斗啊！',
-                '给我好好做好一个观众！不然小真寻就要生气了',
+                f'给我好好做好一个观众！不然{NICKNAME}就要生气了',
                 f'不要捣乱啊baka{(await GroupInfoUser.get_member_info(event.user_id, event.group_id)).user_name}！'
             ]), at_sender=True)
         await shot.finish(f'你的左轮不是连发的！该 '
@@ -322,7 +322,7 @@ async def end_game(bot: Bot, event: GroupMessageEvent):
                                   f'\t累计败场：{lose_user.fail_count}\n'
                                   f'\t累计输掉金币：{lose_user.lose_money}\n'
                                   f'-------------------\n'
-                                  f'哼哼，真寻从中收取了 {float(rand)}%({fee}金币) 作为手续费！\n'
+                                  f'哼哼，{NICKNAME}从中收取了 {float(rand)}%({fee}金币) 作为手续费！\n'
                                   f'子弹排列：{bullet_str[:-1]}')
     rs_player[event.group_id] = {}
 

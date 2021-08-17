@@ -8,7 +8,7 @@ __plugin_name__ = '更新信息'
 __plugin_usage__ = '无'
 
 
-update_info = on_command("更新信息", priority=5, block=True)
+update_info = on_command("更新信息", aliases={'更新日志'}, priority=5, block=True)
 
 
 @update_info.handle()

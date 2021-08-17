@@ -5,6 +5,7 @@ from utils.utils import get_message_text, scheduler
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent, Message
 from nonebot.typing import T_State
 from services.log import logger
+from nonebot.permission import SUPERUSER
 import re
 
 try:
@@ -21,7 +22,7 @@ __plugin_usage__ = (
 qr = on_command("原神资源查询", priority=5, block=True)
 qr_lst = on_command("原神资源列表", priority=5, block=True)
 rex_qr = on_regex(".*?(在哪|在哪里|哪有|哪里有).*?", rule=to_me(), priority=5, block=True)
-update_info = on_command('更新原神资源信息', priority=1, block=True)
+update_info = on_command('更新原神资源信息', permission=SUPERUSER, priority=1, block=True)
 
 
 @qr.handle()

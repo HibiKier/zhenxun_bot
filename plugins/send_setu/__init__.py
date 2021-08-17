@@ -34,7 +34,7 @@ from .data_source import (
     add_data_to_database,
 )
 from nonebot.adapters.cqhttp.exception import ActionFailed
-from configs.config import ONLY_USE_LOCAL_SETU, WITHDRAW_SETU_TIME
+from configs.config import ONLY_USE_LOCAL_SETU, WITHDRAW_SETU_TIME, NICKNAME
 from utils.message_builder import at
 import re
 import asyncio
@@ -60,7 +60,10 @@ __plugin_usage__ = f"""示例：
     如果图片数量与数字不符，
     原因1：网络不好，网线被拔QAQ
     原因2：搜索到的总数小于数字
-    原因3：图太色或者小错误了】"""
+    原因3：图太色或者小错误了】
+示例：
+    色图 萝莉|少女 白丝|黑丝
+    色图 萝莉 猫娘"""
 
 _flmt = FreqLimiter(5)
 _ulmt = UserExistLimiter()
@@ -83,7 +86,6 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
                         user_id=event.user_id, message=f"您有色图正在处理，请稍等....."
                     )
                 raise IgnoredException("色图正在处理！")
-            _ulmt.set_True(event.user_id)
 
 
 @run_postprocessor
@@ -118,7 +120,7 @@ setu = on_command(
     "色图", aliases={"涩图", "不够色", "来一发", "再来点", "色图r"}, priority=5, block=True
 )
 
-setu_reg = on_regex("(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图", priority=5, block=True)
+setu_reg = on_regex("(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图$", priority=5, block=True)
 
 find_setu = on_command("查色图", priority=5, block=True)
 
@@ -134,6 +136,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         luox = get_luoxiang(impression)
         if luox:
             await setu.finish(luox)
+    _ulmt.set_True(event.user_id)
     if not _flmt.check(event.user_id):
         await setu.finish("您冲得太快了，请稍候再冲", at_sender=True)
     _flmt.start_cd(event.user_id)
@@ -253,7 +256,7 @@ async def send_setu_handle(
     # 非 id，在线搜索
     tags = msg.split()
     # 真寻的色图？怎么可能
-    if "真寻" in tags:
+    if f"{NICKNAME}" in tags:
         await matcher.finish("咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀")
     # 本地先拿图，下载失败补上去
     setu_list, code = await get_setu_list(tags=msg.split(), r18=r18)
@@ -301,6 +304,8 @@ async def send_setu_handle(
             return
     # 本地无图 或 超过上下限
     if code != 200 or (not setu_list and ONLY_USE_LOCAL_SETU):
+        if code == 999:
+            await matcher.finish('网络连接失败...', at_sender=True)
         await matcher.finish(setu_list[0], at_sender=True)
     elif not setu_list:
         await matcher.finish(error_info, at_sender=True)

@@ -6,11 +6,8 @@ from configs.path_config import DATA_PATH
 from utils.message_builder import image
 import os
 from .data_source import create_help_img, create_group_help_img, get_plugin_help
-from nonebot import require
 from utils.utils import get_message_text
 
-
-export = require("nonebot_plugin_manager")
 
 __plugin_name__ = "帮助"
 
