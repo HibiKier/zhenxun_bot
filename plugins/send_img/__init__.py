@@ -27,15 +27,16 @@ __plugin_usage__ = (
 
 _flmt = FreqLimiter(1)
 
-if '色图' in IMAGE_DIR_LIST:
-    IMAGE_DIR_LIST.remove('色图')
+if "色图" in IMAGE_DIR_LIST:
+    IMAGE_DIR_LIST.remove("色图")
 
 cmd = set(IMAGE_DIR_LIST)
 
 # print(cmd)
 
 send_img = on_command("img", aliases=cmd, priority=5, block=True)
-pa = on_keyword({"爬", "爪巴"}, priority=1, block=True)
+pa = on_keyword({"丢人爬", "爪巴"}, priority=5, block=True)
+pa_reg = on_regex("^爬$", priority=5, block=True)
 search_img = on_regex(".*[份|发|张|个|次|点]图.*?", priority=6, block=True)
 
 search_url = "https://api.fantasyzone.cc/tu/search.php"
@@ -74,15 +75,27 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 @pa.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if isinstance(event, GroupMessageEvent):
-        if await GroupRemind.get_status(event.group_id, "pa"):
-            msg = get_message_text(event.json())
-            if not msg or str(event.get_message()[:2]) in ["开启", "关闭"]:
-                return
-            if not _flmt.check(event.user_id):
-                return
-            _flmt.start_cd(event.user_id)
-            await pa.finish(image(random.choice(os.listdir(IMAGE_PATH + "pa")), "pa"))
+    if isinstance(event, GroupMessageEvent) and not await GroupRemind.get_status(
+        event.group_id, "pa"
+    ):
+        return
+    msg = get_message_text(event.json())
+    if not msg or str(event.get_message()[:2]) in ["开启", "关闭"]:
+        return
+    if _flmt.check(event.user_id):
+        _flmt.start_cd(event.user_id)
+        await pa.finish(image(random.choice(os.listdir(IMAGE_PATH + "pa")), "pa"))
+
+
+@pa_reg.handle()
+async def _(bot: Bot, event: MessageEvent, state: T_State):
+    if isinstance(event, GroupMessageEvent) and not await GroupRemind.get_status(
+        event.group_id, "pa"
+    ):
+        return
+    if _flmt.check(event.user_id):
+        _flmt.start_cd(event.user_id)
+        await pa.finish(image(random.choice(os.listdir(IMAGE_PATH + "pa")), "pa"))
 
 
 num_key = {
