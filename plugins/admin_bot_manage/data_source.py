@@ -53,7 +53,7 @@ async def remind_status(group: int, name: str, flag: bool) -> str:
     else:
         rst = "关闭"
         if not await GroupRemind.get_status(group, name):
-            return f"该群已经{rst}过 {_name}，请勿重复开启！"
+            return f"该群已经{rst}过 {_name}，请勿重复关闭！"
     if await GroupRemind.set_status(group, name, flag):
         info = command_info_dt[_name] if command_info_dt.get(_name) else ""
         if info:
