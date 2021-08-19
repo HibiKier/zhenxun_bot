@@ -2,6 +2,8 @@ from nonebot import on_command
 from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+
+from configs.config import IMAGE_DIR_LIST
 from utils.utils import get_message_imgs, get_message_text
 from .data_source import upload_image_to_local
 
