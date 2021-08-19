@@ -46,7 +46,7 @@ search_url = "https://api.fantasyzone.cc/tu/search.php"
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     img_id = get_message_text(event.json())
     path = cn2py(state["_prefix"]["raw_command"]) + "/"
-    if path in IMAGE_DIR_LIST:
+    if state["_prefix"]["raw_command"] in IMAGE_DIR_LIST:
         if not os.path.exists(f"{IMAGE_PATH}/{path}/"):
             os.mkdir(f"{IMAGE_PATH}/{path}/")
     length = len(os.listdir(IMAGE_PATH + path)) - 1
