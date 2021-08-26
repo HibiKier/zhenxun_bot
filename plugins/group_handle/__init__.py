@@ -74,7 +74,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent, state: dict):
             )
         else:
             await group_increase_handle.send(
-                "新人快跑啊！！本群现状↓（快使用自定义！）"
+                "新人快跑啊！！本群现状↓"
                 + image(random.choice(os.listdir(IMAGE_PATH + "qxz/")), "qxz")
             )
 
@@ -108,20 +108,22 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent, state: dict):
         ).user_name
     except AttributeError:
         user_name = str(event.user_id)
-    rst = ""
-    if event.sub_type == "leave":
-        rst = f"{user_name}离开了我们..."
-    if event.sub_type == "kick":
-        operator = await bot.get_group_member_info(
-            user_id=event.operator_id, group_id=event.group_id
-        )
-        operator_name = operator["card"] if operator["card"] else operator["nickname"]
-        rst = f"{user_name} 被 {operator_name} 送走了."
     if await GroupInfoUser.delete_member_info(event.user_id, event.group_id):
         logger.info(f"用户{user_name}, qq={event.user_id} 所属{event.group_id} 删除成功")
     else:
         logger.info(f"用户{user_name}, qq={event.user_id} 所属{event.group_id} 删除失败")
-    try:
-        await group_decrease_handle.send(f"{rst}")
-    except ActionFailed:
-        return
+
+    if await GroupRemind.get_status(event.group_id, "hy"):
+        rst = ""
+        if event.sub_type == "leave":
+            rst = f"{user_name}离开了我们..."
+        if event.sub_type == "kick":
+            operator = await bot.get_group_member_info(
+                user_id=event.operator_id, group_id=event.group_id
+            )
+            operator_name = operator["card"] if operator["card"] else operator["nickname"]
+            rst = f"{user_name} 被 {operator_name} 送走了."
+        try:
+            await group_decrease_handle.send(f"{rst}")
+        except ActionFailed:
+            return
