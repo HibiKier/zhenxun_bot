@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 from pathlib import Path
 import ujson as json
 
@@ -8,12 +8,13 @@ class StaticData:
     静态数据共享类
     """
 
-    def __init__(self, file: Path):
-        file.parent.mkdir(exist_ok=True, parents=True)
-        self.file = file
+    def __init__(self, file: Optional[Path]):
         self.data = {}
-        if file.exists():
-            self.data: dict = json.load(open(file, "r", encoding="utf8"))
+        if file:
+            file.parent.mkdir(exist_ok=True, parents=True)
+            self.file = file
+            if file.exists():
+                self.data: dict = json.load(open(file, "r", encoding="utf8"))
 
     def set(self, key, value):
         self.data[key] = value

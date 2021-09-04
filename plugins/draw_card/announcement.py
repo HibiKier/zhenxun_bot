@@ -1,7 +1,7 @@
 import aiohttp
 from bs4 import BeautifulSoup
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from .config import DRAW_PATH
 from pathlib import Path
 from asyncio.exceptions import TimeoutError
@@ -177,6 +177,11 @@ class GenshinAnnouncement:
                 data[itype]['time'] = trs[1].find('td').text
                 if data[itype]['time'][-1] == '\n':
                     data[itype]['time'] = data[itype]['time'][:-1]
+                if '版本更新后' in data[itype]['time']:
+                    sp = data[itype]['time'].split('~')
+                    end_time = datetime.strptime(sp[1].strip(), "%Y/%m/%d %H:%M:%S")
+                    start_time = end_time - timedelta(days=20)
+                    data[itype]['time'] = start_time.strftime('%Y/%m/%d') + ' ~ ' + end_time.strftime('%Y/%m/%d')
                 tmp = ''
                 for tm in data[itype]['time'].split('~'):
                     date_time_sp = tm.split('/')

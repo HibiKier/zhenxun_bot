@@ -29,7 +29,6 @@
 - [x] 图灵AI（会把'你'等关键字替换为你的昵称），且带有 [AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus)，够味
 - [x] 签到/我的签到/好感度排行/好感度总排行（影响色图概率和开箱次数，支持配置）
 - [x] 发送某文件夹下的随机图片（支持自定义，默认：美图，萝莉，壁纸）
-- [x] 尝试搜索不色的图片 ↑↑
 - [x] 色图（这不是基础功能嘛喂）
 - [x] coser
 - [x] 黑白草图生成器
@@ -47,6 +46,7 @@
 - [x] 原神资源查询  (借鉴[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
 - [x] 金币红包
 - [x] 微博热搜
+- [x] B站主播/UP/番剧订阅
 
 - [x] pil对图片的一些操作
 - [x] BUFF饰品底价查询（需要session）
@@ -69,7 +69,7 @@
 - [x] 我的信息（只是为了看看什么时候入群）
 - [x] 更新信息（如果继续更新的话）
 - [x] go-cqhttp最新版下载和上传（不需要请删除）
-- [x] 撤回 (使用[nonebot-plugin-withdraw](https://github.com/MeetWq/nonebot-plugin-withdraw)插件)
+- [x] 撤回
 - [x] 滴滴滴-（用户对超级用户发送消息）
 - [x] 金币红包/金币排行
 - [x] 俄罗斯轮盘/胜场排行/败场排行/欧洲人排行/慈善家排行
@@ -89,9 +89,10 @@
 - [x] 上传图片/连续上传图片 （上传图片至指定图库）
 - [x] 移动图片  （同上）
 - [x] 删除图片  （同上）
+- [x] 群内B站订阅
 
 ### 已实现的超级用户功能
-- [x] 添加/删除管理（是真寻的管理员权限，不是群管理员）
+- [x] 添加/删除权限（是真寻的管理员权限，不是群管理员）
 - [x] 开启/关闭指定群的广播通知
 - [x] 广播
 - [x] 自检（检查系统状态）
@@ -103,7 +104,6 @@
 - [x] 节日红包发送
 - [x] 修改群权限
 - [x] ban
-- [x] 添加/删除群白名单
 - [x] 更新色图
 - [x] 更新价格/更加图片（csgo开箱）
 - [x] 重载原神/方舟/赛马娘/坎公骑冠剑卡池
@@ -111,9 +111,10 @@
 - [x] PIX相关操作
 - [x] 检查更新真寻
 - [x] 重启
-- [x] 添加/删除群白名单
+- [x] 添加/删除/查看群白名单
 - [x] 功能开关(更多设置)
 - [x] 功能状态
+- [x] b了
 
 #### 超级用户的被动技能
 - [x] 邀请入群提醒(别人邀请真寻入群)
@@ -123,7 +124,7 @@
 - [x] 进群欢迎消息
 - [x] 群早晚安
 - [x] 每日开箱重置提醒
-- [x] b站转发解析（解析b站分享信息，支持bv，bilibili链接，b站手机端转发卡片，cv，b23.tv）
+- [x] b站转发解析（解析b站分享信息，支持bv，bilibili链接，b站手机端转发卡片，cv，b23.tv），且5分钟内不解析相同url
 - [x] 丢人爬（爬表情包）
 - [x] epic通知（每日发送epic免费游戏链接）
 - [x] 原神黄历提醒
@@ -201,6 +202,8 @@
 | 添加pix关键词/uid/pid |  添加pix关键词/uid/pid *[关键词/uid/pid]| 添加关键词或uid或pid用于下次搜索，关键词搜索相关tag，uid会收录作者下收藏符合标准的作品，pid收录单张作品<br>示例：添加pix关键词 原神<br> 添加pixuid 123441<br>添加pixpid 2748937|
 | 查看pix图库     |       查看pix图库 [tags]   |        查看已收录的tag相关图片数量<br>示例：查看pix图库 原神 莫娜
 |显示pix关键词    |       显示pix关键词         |       查看已收录的所有关键词/UID/PID
+|  b了           |       b了 [at]               |     使真寻完全忽略一个用户的所有信息
+| B站订阅      |     添加订阅 [主播/UP/番剧] [id/链接/番名] / 删除订阅 [id] / 查看订阅  |  可以通过直接间链接或主播间id添加订阅主播开播提醒，动态和投稿，可以通过番名，番剧的id，或者番剧链接添加番剧订阅(是番剧id，md开头，不是集数id,ep开头的)更新， 可以通过UP个人id或UP主页链接订阅UP动态和投稿
 
 ### 管理员功能
 
@@ -218,6 +221,7 @@
 | 上传图片        |  6   |        上传图片 \[图库] \[图片]...           | 上传图片至指定图库，虽然并不打算开放给群员，但还是写了，支持批量图片<br>示例：上传图片 美图 \[图片]..
 | 删除图片         | 6  |         删除图片 [图库] \[图片id]                    | 通过指定本地图片id来删除指定图库的图片<br>示例：删除图片 美图 1
 | 移动图片       |    6   |       移动图片 \[移出的图库] \[移入的图库] \[图片id]    | 移动指定图库中的图片到指定的新图库中，移入的图片id更改为移入图库的最后一位，移除的图库中原本图片的id又最后一位图片替代<br>示例：移动图片 美图 萝莉 22
+|B站订阅         |   5   | 功能同上，就是在群中有权限限制 | 略
 
 ### 超级用户功能
 
@@ -250,225 +254,12 @@
 |pix检测更新      |     pix检测更新 [update]?               |   检测从未更新过的pid或uid，-update参数将在检测后直接更新未更新过的pid或uid<br>示例：pix检测更新 update
 | 检查更新真寻    |     检查更新真寻                |     不再需要麻烦的clone第一步
 | 关闭功能       |      关闭[功能] [group/private]/*[群号]?    |   关闭色图：维护功能(关闭总开关)<br>关闭色图 g：在群内限制功能<br>关闭色图 p：在私聊限制功能<br>关闭色图 1234678：禁用12345678的色图功能
-| 群白名单        |   添加/删除群白名单 *[群号]     |         白名单内的群不会受到 维护 限制
+| 群白名单        |   添加/删除群白名单 *[群号] / 查看群白名单     |         白名单内的群不会受到 维护 限制
 | 功能状态        |   功能状态                  |     查看功能开关状态
+| pix           |   pix [-s/-r] [keyword]   | 可以通过pix -s 查看图库的涩图，pix -r查看图库的r18图，支持搜索，当然，pix图库只区分了r18和非r18，如果-s查询到不色的图也问题不大
 
 </details>
 
-## 部分功能展示
-<details>
-<summary>部分功能展示及说明</summary>
-
-### 帮助以及开关（功能控制）
-
-群帮助将会在功能左侧展示该功能的开关，带有√或×的功能代表可以开关<br>
-此插件使用 [nonebot_plugin_manager](https://github.com/Jigsaw111/nonebot_plugin_manager) 并魔改一点实现
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/help.PNG)
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/kg1.png)
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/kg3.png)
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/kg2.png)
-
-<br>
-如果你希望某功能暂时停用<br>
-私聊发送 npm block xx （xx=功能名）来锁定<br>
-使用npm unblock xx 进行解锁
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/ocgn.png)
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/ocgn2.png)
-
-### 签到
-普普通通的签到，设置影响开箱次数和涩图触发成功的概率（可配置）<br>
-开箱次数 = 初始开箱数量 + 好感度 / 3<br>
-金币 = random.randint(100) + random.randint(好感度)【好感度获取的金币不会超过200】
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/sign.png)
-
-### 黑白草图
-
-整活生成器（从未设想的道路）
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/w2b.png)
-
-### 发送文件夹下随机图片
-
-提供了 美图589（获取该图库下文件名589.jpg的图片）方法，图库内图片名称需要有序（如:0.jpg,1.jpg....）
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/send_img.png)
-
-### 色图
-
-略，send_setu/check_setu_hash.py文件用于记录涩图hash和检测文件名是否连贯（例如：0.jpg, 1.jpg....）
-
-### 开箱（csgo模拟开箱）
-
-我的开箱/群开箱统计/我的金色 功能是对开箱数据的统计展示 <br>
-
-目前支持的武器箱（数据已备好）：
-* 狂牙大行动武器箱
-* 突围大行动武器箱
-* 命悬一线武器箱
-* 裂空武器箱
-* 光谱武器箱
-  <br>
-  BUFF账号可能会因为短时间内访问api次数过多被禁止访问api！！
-  如果是第一次启动请先使用命令 “更新价格”， “更新图片” （需要配置cookie！！如果经常超时请设置代理，配置文件中的 buff_proxy!）<br>
-  如果需要配置新的箱子，请在.config.py中配置好该箱子中的皮肤，且列表名是箱子名称的大写拼音<br>
-  示例：光谱武器箱 GUANGPU_CASE_KNIFE,GUANGPU_CASE_RED...后面的颜色代表皮肤品质
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/kaixiang.png)
-
-
-### BUFF皮肤底价查询
-
-需要配置cookie！！！！！！！！<br>
-如果经常超时请设置代理，配置文件中的 buff_proxy!
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/buff.png)
-
-
-### coser
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/coser.png)
-
-### 鸡汤/语录
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/jitang.png)
-
-### 骂我
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/mawo.png)
-
-### 鲁迅说
-
-此插件使用 [nonebot2_luxun_says](https://github.com/NothAmor/nonebot2_luxun_says)
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/luxun.png)
-
-### 假消息
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/jiaxiaoxi.png)
-
-### 商店系统
-
-商店内的道具支持自定义，但需要写触发后的效果...整不出活，到头来也就增加好感度概率的商品
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/shop.png)
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/daoju.png)
-
-
-### 昵称系统
-
-养成方法第一步，让可爱的小真寻叫自己昵称！（替换ai中的'你'等等）
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/nicheng1.png)
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/nicheng2.png)
-
-### 抽卡（8种手游的抽卡）
-
-已单独分离并上传至nb2商店，不再放图片了，项目地址：[nonebot_plugin_gamedraw](https://github.com/HibiKier/nonebot_plugin_gamedraw)
-
-### 我有一个朋友...
-
-使用大佬的插件 [cappuccilo_plugins](https://github.com/pcrbot/cappuccilo_plugins#%E7%94%9F%E6%88%90%E5%99%A8%E6%8F%92%E4%BB%B6)
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/one_firend.png)
-
-
-### 原神黄历/今日素材/丘丘语翻译/地图资源查询
-
-使用大佬的插件 [Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)
-
-### 对图片的操作
-
-只是一些简单对图片操作（娱乐整活）
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/tupian.png)
-
-### 识番
-
-使用大佬的插件 [XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/shifan.png)
-
-
-### 识图
-
-使用nb2商店插件 [nonebot_plugin_picsearcher](https://github.com/synodriver/nonebot_plugin_picsearcher) （可配置图片返回的最大数量）
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/shitu.png)
-
-### epic免费游戏
-
-访问rsshub获取数据解析<br>可以不玩，不能没有
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/epic.png)
-
-
-### P站排行/搜图
-
-访问rsshub获取数据解析
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/p_rank.png)
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/p_sou.png)
-
-
-### 翻译
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/fanyi.png)
-
-### 自定义群欢迎消息
-
-关键字 [at] 判断是否艾特入群用户
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/qhyxx.png)
-
-### 查看当前群欢迎消息
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/qunhuanying.png)
-
-### 自检
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/check.png)
-
-### .ban/.unban
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/ban.png)
-
-### 查看被动技能（被动技能除复读外都提供了开关）
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/beidong.png)
-
-### 自我介绍
-
-只是一段简单自我介绍，但是，还是想放上来
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/jieshao.png)
-
-### 我的信息/我的权限
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/info.png)
-
-### 金币红包
-
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/redbag0.png)
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/redbag1.png)
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/redbag2.png)
-
-### 俄罗斯轮盘
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/russian0.png)
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/russian1.png)
-![](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs/russian2.png)
-
-<br>
-
-### 其他
-
-点歌：使用 [nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2) 插件<br>
-<br><br>
-## 其他功能请自己试一试 ）
-
-</details>
 
 ## 部署
 
@@ -672,6 +463,36 @@ python bot.py
 
 ## 更新
 
+### 2021/9/5
+* 添加配置PIX_IMAGE_SIZE，调整PIX下载图片大小，当设置的图片404时，改为原图
+* 新增配置DEFAULT_GROUP_LEVEL，默认群等级
+* 新增超级用户功能 super ban，将屏蔽被ban用户的所有消息，指令：b了
+* b站转发解析支持纯BV号解析，且五分钟内不会解析相同url
+* 俄罗斯轮盘新增 连胜/最高连胜/连败/最高连败 纪录，新增 最高连胜排行榜/最高连败排行榜
+* 增加扩展图库 OmegaPixivIllusts，不想自己找图的人福音（[Ailitonia](https://github.com/Ailitonia) 佬的高质量精品手筛图库）([传送门](https://github.com/Ailitonia/omega-miya/blob/master/archive_data/db_pixiv.7z) )，可以手动导入图库，也可以将解压文件放在bot.py同级目录重启bot
+* 增加配置PIX_OMEGA_PIXIV_RATIO，PIX功能发送PIX图库和扩展图库OmegaPixivIllusts图片的比例，如果没有使用扩展图库OmegaPixivIllusts，请设置为(10, 0)
+* 增加配置WITHDRAW_PIX_TIME，用于配置在开关PIX图片在群私聊的自动撤回
+* 上传图库cases， 开箱 也可以连抽（未更新过没有价格）
+* 新增命令 查看群白名单
+* plugins2info_dict新增键"default_status"，设置加入新群时功能的默认开关状态
+* 增加配置plugins2exists_dict，可自定义是否阻塞某命令同时触发多次
+* 增加配置plugins2cd_dict，可自定义为命令添加cd
+* 新增B站订阅（直播/番剧/UP）[测试]，提供命令：添加订阅 [主播/UP/番剧] [id/链接/番名]，删除订阅 [id]，查看订阅
+* 优化pix和色图的数据库查询
+* 触发已关闭的功能的正则时不再触发ai
+* 更换coser API
+* PIX搜索pid功能在群聊无法搜索PIX图库的r18和OmegaPixivIllusts的r15以及r18，超级用户除外
+* PIX单次搜索的图片张数超级用户限制为至多30张，普通用户10张
+* PIX超级用户新增-s，-r，可以通过pix -s 查看图库的涩图，pix -r查看图库的r18图，支持搜索，当然，pix图库只区分了r18和非r18，如果-s查询到不色的图也问题不大
+* 优化P站排行和搜图，现在需要艾特，改为使用HIBIAPI，在群内时将使用合并消息（群聊搜图会屏蔽R-18）
+* win10下playwright相关功能无法使用，但是不再需要删除文件
+* 签到大改，优化签到方式与逻辑，改为图片形式发送，有概率额外获得随机道具（好感度有加成）
+* 修改撤回功能，改为回复撤回，回复发送撤回
+* 更改logging为loguru
+* 删除了 发送图片 中的 [N]张图[keyword] 功能
+* 修复私聊 关闭[功能] 默认不为 全部 而要添加参数 ‘a’
+* 修复0权限用户可以修改禁言检测相关设置
+
 ### 2021/8/17
 
 * 新增配置CHECK_NOTICE_INFO_CD，修改群权限，个人权限检测各种检测的提示消息cd
@@ -859,3 +680,4 @@ python bot.py
 [Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)  
 [nonebot2_luxun_says](https://github.com/NothAmor/nonebot2_luxun_says)  
 [AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus)  
+[omega-miya](https://github.com/Ailitonia/omega-miya)

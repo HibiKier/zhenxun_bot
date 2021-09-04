@@ -52,7 +52,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     result = await get_chat_result(msg, img, event.user_id, nickname)
     logger.info(
         f"USER {event.user_id} GROUP {event.group_id if not isinstance(event, PrivateMessageEvent) else ''} "
-        f"问题：{msg}\n回答：{result}"
+        f"问题：{msg} ---- 回答：{result}"
     )
     if result:
         await ai.finish(Message(result))

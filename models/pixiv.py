@@ -1,6 +1,5 @@
 from typing import Optional, List
 from services.db_context import db
-import asyncio
 
 
 class Pixiv(db.Model):
@@ -24,18 +23,19 @@ class Pixiv(db.Model):
 
     @classmethod
     async def add_image_data(
-            cls,
-            pid: int,
-            title: str,
-            width: int,
-            height: int,
-            view: int,
-            bookmarks: int,
-            img_url: str,
-            img_p: str,
-            uid: int,
-            author: str,
-            tags: str,
+        cls,
+        pid: int,
+        title: str,
+        width: int,
+        height: int,
+        view: int,
+        bookmarks: int,
+        img_url: str,
+        img_p: str,
+        uid: int,
+        author: str,
+        tags: str,
+        nws
     ):
         """
         说明：
@@ -65,7 +65,7 @@ class Pixiv(db.Model):
                 img_p=img_p,
                 uid=uid,
                 author=author,
-                is_r18=True if 'R-18' in tags else False,
+                is_r18=True if "R-18" in tags else False,
                 tags=tags,
             )
             return True
@@ -97,44 +97,45 @@ class Pixiv(db.Model):
         说明：
             获取所有PID
         """
-        pid = []
-        query = await cls.query.gino.all()
-        for image in query:
-            if image.pid not in pid:
-                pid.append(image.pid)
-        return pid
+        query = await cls.query.select("pid").gino.first()
+        pid = [x[0] for x in query]
+        return list(set(pid))
 
     # 0：非r18  1：r18  2：混合
     @classmethod
     async def query_images(
         cls,
-        keyword: Optional[List[str]] = None,
+        keywords: Optional[List[str]] = None,
         uid: Optional[int] = None,
         pid: Optional[int] = None,
-        r18: int = 0,
+        r18: Optional[int] = 0,
+        num: int = 100
     ) -> List[Optional["Pixiv"]]:
         """
         说明：
             查找符合条件的图片
         参数：
-            :param keyword: 关键词
+            :param keywords: 关键词
             :param uid: 画师uid
             :param pid: 图片pid
             :param r18: 是否r18，0：非r18  1：r18  2：混合
+            :param num: 查找图片的数量
         """
         if r18 == 0:
-            query = await cls.query.where(cls.is_r18 == False).gino.all()
+            query = cls.query.where(cls.is_r18 == False)
         elif r18 == 1:
-            query = await cls.query.where(cls.is_r18 == True).gino.all()
+            query = cls.query.where(cls.is_r18 == True)
         else:
-            query = await cls.query.gino.all()
-        if keyword:
-            query = [x for x in query if set(x.tags.split(',')) > set(keyword)]
+            query = cls.query
+        if keywords:
+            for keyword in keywords:
+                query = query.where(cls.tags.contains(keyword))
         elif uid:
-            query = [x for x in query if x.uid == uid]
+            query = query.where(cls.uid == uid)
         elif pid:
-            query = [x for x in query if x.pid == pid]
-        return query
+            query = query.where(cls.uid == pid)
+        query = query.order_by(db.func.random()).limit(num)
+        return await query.gino.all()
 
     @classmethod
     async def check_exists(cls, pid: int, img_p: str) -> bool:
@@ -151,41 +152,18 @@ class Pixiv(db.Model):
         return bool(query)
 
     @classmethod
-    async def get_keyword_num(cls, keyword: List[str]) -> "int, int":
+    async def get_keyword_num(cls, tags: List[str] = None) -> "int, int":
         """
         说明：
             获取相关关键词(keyword, tag)在图库中的数量
         参数：
-            :param keyword: 关键词/Tag
+            :param tags: 关键词/Tag
         """
-        query = await cls.query.gino.all()
-        i = int(len(query) / 200)
-        mod = len(query) % 200
-        tasks = []
-        start = 0
-        end = 200
-        count = 0
-        r18_count = 0
-        for _ in range(i):
-            tasks.append(asyncio.ensure_future(split_query_list(query[start: end], keyword)))
-            start += 200
-            end += 200
-        if mod:
-            tasks.append(asyncio.ensure_future(split_query_list(query[end:], keyword)))
-        result = await asyncio.gather(*tasks)
-        for x, j in result:
-            count += x
-            r18_count += j
-        # query = [x for x in query if set(x.tags.split(',')) > set(keyword)]
-        # r18_count = len([x for x in query if x.is_r18])
+        query = cls.query
+        if tags:
+            for tag in tags:
+                query = cls.query.where(cls.tags.contains(tag))
+        count = len(await query.where(cls.is_r18 == False).gino.all())
+        r18_count = len(await query.where(cls.is_r18 == True).gino.all())
         return count, r18_count
 
-
-async def split_query_list(query: List['Pixiv'], keyword: List[str]) -> 'int, int':
-    return await asyncio.get_event_loop().run_in_executor(None, _split_query_list, query, keyword)
-
-
-def _split_query_list(query: List['Pixiv'], keyword: List[str]) -> 'int, int':
-    query = [x for x in query if set(x.tags.split(',')) > set(keyword)]
-    r18_count = len([x for x in query if x.is_r18])
-    return len(query) - r18_count, r18_count

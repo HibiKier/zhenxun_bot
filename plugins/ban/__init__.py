@@ -4,9 +4,9 @@ from models.level_user import LevelUser
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot
 from nonebot.adapters.cqhttp import GroupMessageEvent, PrivateMessageEvent
-from nonebot.adapters.cqhttp.permission import GROUP
 from utils.utils import get_message_at, get_message_text, is_number
 from configs.config import NICKNAME
+from nonebot.permission import SUPERUSER
 from services.log import logger
 
 
@@ -28,6 +28,8 @@ ban = on_command(
     priority=5,
     block=True,
 )
+
+super_ban = on_command('b了', permission=SUPERUSER, priority=5, block=True)
 
 
 @ban.handle()
@@ -155,5 +157,17 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
             await ban.finish('qq号必须是数字！\n格式：.ban [qq] [hour]? [minute]?', at_sender=True)
 
 
-
+@super_ban.handle()
+async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+    qq = get_message_at(event.json())
+    if qq:
+        qq = qq[0]
+        user = await bot.get_group_member_info(group_id=event.group_id, user_id=qq)
+        user_name = user['card'] if user['card'] else user['nickname']
+        if not await BanUser.ban(qq, 10, 99999999):
+            await BanUser.unban(qq)
+            await BanUser.ban(qq, 10, 99999999)
+        await ban.send(f"{user_name} 已在黑名单！预计不解封了..")
+    else:
+        await super_ban.send('需要艾特被super ban的对象..')
 

@@ -1,5 +1,5 @@
 from nonebot import on_command
-from utils.utils import FreqLimiter, scheduler, get_message_text, is_number
+from utils.utils import scheduler, get_message_text, is_number
 from nonebot.adapters.cqhttp.permission import GROUP
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent
@@ -33,8 +33,6 @@ __plugin_usage__ = (
     "示例：我的金色"
 )
 
-_flmt = FreqLimiter(3)
-
 cases_name = ["狂牙大行动", "突围大行动", "命悬一线", "裂空", "光谱"]
 
 cases_matcher_group = MatcherGroup(priority=5, permission=GROUP, block=True)
@@ -47,9 +45,9 @@ k_open_case = cases_matcher_group.on_command("开箱")
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if str(event.get_message()).strip() in ["帮助"]:
         await k_open_case.finish(__plugin_usage__)
-    if not _flmt.check(event.user_id):
-        await k_open_case.finish("着什么急啊，慢慢来！", at_sender=True)
-    _flmt.start_cd(event.user_id)
+    # if not _flmt.check(event.user_id):
+    #     await k_open_case.finish("着什么急啊，慢慢来！", at_sender=True)
+    # _flmt.start_cd(event.user_id)
     case_name = get_message_text(event.json())
     if case_name:
         result = await open_case(event.user_id, event.group_id, case_name)
@@ -98,7 +96,7 @@ open_shilian = cases_matcher_group.on_regex(".*连开箱")
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     # if not _flmt.check(event.user_id):
     #     await k_open_case.finish('着什么急啊，慢慢来！', at_sender=True)
-    _flmt.start_cd(event.user_id)
+    # _flmt.start_cd(event.user_id)
     msg = get_message_text(event.json())
     rs = re.search(r"(.*)连开箱(.*)", msg)
     if rs:

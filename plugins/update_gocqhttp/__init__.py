@@ -31,7 +31,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             await lasted_gocqhttp.finish("gocqhttp没有更新！")
         if _ulmt.check(event.group_id):
             await lasted_gocqhttp.finish("gocqhttp正在更新，请勿重复使用该命令", at_sender=True)
-        _ulmt.set_True(event.group_id)
+        _ulmt.set_true(event.group_id)
         try:
             for file in os.listdir(path):
                 await upload_gocq_lasted(path, file, event.group_id)
@@ -39,7 +39,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             await lasted_gocqhttp.send(f"gocqhttp更新了，已上传成功！\n更新内容：\n{info}")
         except Exception as e:
             logger.error(f"更新gocq错误 e：{e}")
-        _ulmt.set_False(event.group_id)
+        _ulmt.set_false(event.group_id)
 
 
 # 更新gocq

@@ -44,7 +44,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @search_skin.got("skin", prompt="要查询该武器的什么皮肤呢？")
 async def arg_handle(bot: Bot, event: MessageEvent, state: T_State):
     result = ""
-    _ulmt.set_True(event.user_id)
+    _ulmt.set_true(event.user_id)
     if state["name"] in ["ak", "ak47"]:
         state["name"] = "ak-47"
     name = state["name"] + " | " + state["skin"]
@@ -53,7 +53,7 @@ async def arg_handle(bot: Bot, event: MessageEvent, state: T_State):
     except FileNotFoundError:
         await search_skin.finish(F'请先对{NICKNAME}说"设置cookie"来设置cookie！')
     if status_code in [996, 997, 998]:
-        _ulmt.set_False(event.user_id)
+        _ulmt.set_false(event.user_id)
         await search_skin.finish(result)
     if result:
         logger.info(
@@ -61,7 +61,7 @@ async def arg_handle(bot: Bot, event: MessageEvent, state: T_State):
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 查询皮肤:"
             + name
         )
-        _ulmt.set_False(event.user_id)
+        _ulmt.set_false(event.user_id)
         await search_skin.finish(result)
     else:
         logger.info(
@@ -69,7 +69,7 @@ async def arg_handle(bot: Bot, event: MessageEvent, state: T_State):
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}"
             f" 查询皮肤：{name} 没有查询到"
         )
-        _ulmt.set_False(event.user_id)
+        _ulmt.set_false(event.user_id)
         await search_skin.finish("没有查询到哦，请检查格式吧")
 
 

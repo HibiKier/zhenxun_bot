@@ -23,6 +23,7 @@ from nonebot.permission import SUPERUSER
 from nonebot.rule import to_me
 from datetime import datetime, timedelta
 from configs.config import NICKNAME
+from apscheduler.jobstores.base import ConflictingIdError
 import random
 import time
 

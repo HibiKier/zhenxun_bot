@@ -46,6 +46,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     else:
         if str(event.user_id) in bot.config.superusers:
             block_type = get_message_text(event.json())
+            block_type = block_type if block_type else 'a'
             _cmd = state["_prefix"]["raw_command"].strip()
             if is_number(block_type):
                 if not int(block_type) in [g["group_id"] for g in await bot.get_group_list(self_id=int(bot.self_id))]:

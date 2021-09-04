@@ -5,6 +5,7 @@ from utils.utils import get_message_text, scheduler
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent, Message
 from nonebot.typing import T_State
 from services.log import logger
+from configs.config import NICKNAME
 from nonebot.permission import SUPERUSER
 import re
 
@@ -58,21 +59,20 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 @qr_lst.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    mes_list = []
     txt = get_resource_type_list()
     txt_list = txt.split("\n")
-    if event.message_type == "group":
+    if isinstance(event, GroupMessageEvent):
+        mes_list = []
         for txt in txt_list:
             data = {
                 "type": "node",
                 "data": {
-                    "name": f"这里是{list(bot.config.nickname)[0]}酱",
+                    "name": f"这里是{NICKNAME}酱",
                     "uin": f"{bot.self_id}",
                     "content": txt,
                 },
             }
             mes_list.append(data)
-    if isinstance(event, GroupMessageEvent):
         await bot.send_group_forward_msg(group_id=event.group_id, messages=mes_list)
     else:
         rst = ""

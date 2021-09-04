@@ -4,6 +4,7 @@ from playwright.async_api import Browser, async_playwright
 import nonebot
 from nonebot import Driver
 from services.log import logger
+import platform
 
 
 driver: Driver = nonebot.get_driver()
@@ -13,14 +14,16 @@ _browser: Optional[Browser] = None
 
 
 async def init(**kwargs) -> Optional[Browser]:
-    # try:
-    global _browser
-    browser = await async_playwright().start()
-    _browser = await browser.chromium.launch(**kwargs)
-    return _browser
-    # except NotImplementedError:
-    #     logger.warning("win环境下 初始化playwright失败....请替换环境至linux")
-    #     return None
+    if platform.system() == "Windows":
+        return None
+    try:
+        global _browser
+        browser = await async_playwright().start()
+        _browser = await browser.chromium.launch(**kwargs)
+        return _browser
+    except NotImplementedError:
+        logger.warning("win环境下 初始化playwright失败....请替换环境至linux")
+        return None
 
 
 async def get_browser(**kwargs) -> Browser:

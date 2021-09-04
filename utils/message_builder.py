@@ -1,14 +1,13 @@
 from configs.path_config import IMAGE_PATH, VOICE_PATH
 from nonebot.adapters.cqhttp.message import MessageSegment
 from services.log import logger
-from typing import Optional
+from typing import Union
 from pathlib import Path
 import os
-import ujson
 
 
 def image(
-    img_name: str = None, path: str = None, abspath: str = None, b64: str = None
+    img_name: Union[str, Path] = None, path: str = None, abspath: str = None, b64: str = None
 ) -> MessageSegment or str:
     """
     说明：
@@ -29,6 +28,8 @@ def image(
     elif b64:
         return MessageSegment.image(b64 if "base64://" in b64 else "base64://" + b64)
     else:
+        # if isinstance(img_name, Path):
+        #     return MessageSegment.image(img_name)
         if "http" in img_name:
             return MessageSegment.image(img_name)
         if len(img_name.split(".")) == 1:

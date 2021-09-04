@@ -54,7 +54,8 @@ entertainment_help = {
     "pix_gallery": "偶尔也想看看美图？ --> 指令:PIX [关键词/uid/pid:pid] [num]/查看pix图库 [关键词]/显示pix关键词",
     'nbnhhsh': "会说话就多说点！ --> 指令:nbnhhsh/能不能好好说话 [文本](空格划分)",
     "roll": f"让{NICKNAME}来帮你决定吧！ --> 指令:roll/ roll [文本](空格划分)",
-    "wbtop": f"刚买完瓜，在吃瓜现场 --> 指令:微博热搜/微博热搜 [数字]"
+    "wbtop": f"刚买完瓜，在吃瓜现场 --> 指令:微博热搜/微博热搜 [数字]",
+    "bilibili_sub": f"非常快捷的订阅播报 --> 指令:添加订阅 [主播/up/番剧] [id/番名/链接] / 删除订阅 [id]/ 查看订阅"
 }
 # 其他
 other_help = [

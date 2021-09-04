@@ -225,14 +225,15 @@ def _clear_data() -> float:
     size = 0
     for dir_name in ['temp', 'rar', 'r18_rar']:
         dir_name = f'{IMAGE_PATH}/{dir_name}'
-        for file in os.listdir(dir_name):
-            try:
-                file_size = os.path.getsize(os.path.join(dir_name, file))
-                os.remove(os.path.join(dir_name, file))
-            except Exception as e:
-                logger.error(f"清理临时数据错误...e：{e}")
-                file_size = 0
-            size += file_size
+        if os.path.exists(dir_name):
+            for file in os.listdir(dir_name):
+                try:
+                    file_size = os.path.getsize(os.path.join(dir_name, file))
+                    os.remove(os.path.join(dir_name, file))
+                except Exception as e:
+                    logger.error(f"清理临时数据错误...e：{e}")
+                    file_size = 0
+                size += file_size
     return float(size)
 
 

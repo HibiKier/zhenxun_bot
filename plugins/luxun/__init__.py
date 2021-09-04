@@ -34,9 +34,9 @@ async def handle_event(bot: Bot, event: MessageEvent, state: T_State):
     content = state["content"].strip()
     if content.startswith(",") or content.startswith("，"):
         content = content[1:]
-    _ulmt.set_True(event.user_id)
+    _ulmt.set_true(event.user_id)
     if len(content) > 20:
-        _ulmt.set_False(event.user_id)
+        _ulmt.set_false(event.user_id)
         await luxun.finish("太长了, 鲁迅说不完!", at_sender=True)
     else:
         if len(content) >= 12:
@@ -47,7 +47,7 @@ async def handle_event(bot: Bot, event: MessageEvent, state: T_State):
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'} 鲁迅说过 {content}"
         )
         await luxun.send(img)
-        _ulmt.set_False(event.user_id)
+        _ulmt.set_false(event.user_id)
 
 
 def process_pic(content, filename) -> str:

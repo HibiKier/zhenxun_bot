@@ -31,7 +31,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     if _ulmt.check(event.user_id):
         await search_anime.finish("您有动漫正在搜索，请稍等...", at_sender=True)
-    _ulmt.set_True(event.user_id)
+    _ulmt.set_true(event.user_id)
     if get_message_text(event.json()):
         state["anime"] = get_message_text(event.json())
 
@@ -55,4 +55,4 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     else:
         logger.warning(f"未找到番剧 {key_word}")
         await search_anime.send(f"未找到番剧 {key_word}（也有可能是超时，再尝试一下？）")
-    _ulmt.set_False(event.user_id)
+    _ulmt.set_false(event.user_id)

@@ -2,7 +2,7 @@ from nonebot import on_message
 from services.log import logger
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from nonebot.typing import T_State
-from utils.utils import get_message_json, get_local_proxy, get_message_text
+from utils.utils import get_message_json, get_local_proxy, get_message_text, is_number
 from utils.user_agent import get_user_agent
 from nonebot.adapters.cqhttp.permission import GROUP
 from bilibili_api import video
@@ -23,11 +23,14 @@ if get_local_proxy():
 
 parse_bilibili_json = on_message(priority=1, permission=GROUP, block=False)
 
+_tmp = {}
+
 
 @parse_bilibili_json.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if await GroupRemind.get_status(event.group_id, "blpar"):
         vd_info = None
+        url = None
         if get_message_json(event.json()):
             try:
                 data = json.loads(get_message_json(event.json())[0]["data"])
@@ -66,7 +69,6 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                         await page.goto(url, wait_until="networkidle", timeout=10000)
                         await page.set_viewport_size({"width": 2560, "height": 1080})
                         await page.click("#app > div")
-                        # await page.click("text=继续阅读全文", timeout=3000)
                         div = await page.query_selector("#app > div")
                         await div.screenshot(
                             path=f"{IMAGE_PATH}/temp/cv_{event.user_id}.png",
@@ -90,7 +92,20 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         # BV
         if get_message_text(event.json()):
             msg = get_message_text(event.json())
-            if "https://b23.tv" in msg:
+            if "BV" in msg:
+                index = msg.find('BV')
+                if len(msg[index + 2:]) >= 10:
+                    msg = msg[index: index + 12]
+                    url = f'https://www.bilibili.com/video/{msg}'
+                    vd_info = await video.Video(bvid=msg).get_info()
+            elif 'av' in msg:
+                index = msg.find('av')
+                if len(msg[index + 2:]) >= 9:
+                    msg = msg[index + 2: index + 11]
+                    if is_number(msg):
+                        url = f'https://www.bilibili.com/video/{msg}'
+                        vd_info = await video.Video(aid=int(msg)).get_info()
+            elif "https://b23.tv" in msg:
                 url = "https://" + msg[msg.find("b23.tv") : msg.find("b23.tv") + 13]
                 async with aiohttp.ClientSession(headers=get_user_agent()) as session:
                     async with session.get(
@@ -101,33 +116,32 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                         url = str(response.url).split("?")[0]
                         bvid = url.split("/")[-1]
                         vd_info = await video.Video(bvid=bvid).get_info()
-            if "https://www.bilibili.com/video" in msg:
-                url = msg.split("?")[0]
-                msg = url.split("/")[-1]
-                vd_info = await video.Video(bvid=msg).get_info()
         if vd_info:
-            aid = vd_info["aid"]
-            title = vd_info["title"]
-            author = vd_info["owner"]["name"]
-            reply = vd_info["stat"]["reply"]  # 回复
-            favorite = vd_info["stat"]["favorite"]  # 收藏
-            coin = vd_info["stat"]["coin"]  # 投币
-            # like = vd_info['stat']['like']      # 点赞
-            # danmu = vd_info['stat']['danmaku']  # 弹幕
-            date = time.strftime("%Y-%m-%d", time.localtime(vd_info["ctime"]))
-            try:
-                await parse_bilibili_json.send(
-                    image(vd_info["pic"]) + f"\nav{aid}\n标题：{title}\n"
-                    f"UP：{author}\n"
-                    f"上传日期：{date}\n"
-                    f"回复：{reply}，收藏：{favorite}，投币：{coin}\n"
-                    f"{url}"
-                )
-            except ActionFailed:
-                logger.warning(f"{event.group_id} 发送bilibili解析失败")
-            logger.info(
-                f"USER {event.user_id} GROUP {event.group_id} 解析bilibili转发 {url}"
-            )
+            if (url in _tmp.keys() and time.time() - _tmp[url] > 30) or url not in _tmp.keys():
+                _tmp[url] = time.time()
+                aid = vd_info["aid"]
+                title = vd_info["title"]
+                author = vd_info["owner"]["name"]
+                reply = vd_info["stat"]["reply"]  # 回复
+                favorite = vd_info["stat"]["favorite"]  # 收藏
+                coin = vd_info["stat"]["coin"]  # 投币
+                # like = vd_info['stat']['like']      # 点赞
+                # danmu = vd_info['stat']['danmaku']  # 弹幕
+                date = time.strftime("%Y-%m-%d", time.localtime(vd_info["ctime"]))
+                try:
+                    await parse_bilibili_json.send(
+                        image(vd_info["pic"]) + f"\nav{aid}\n标题：{title}\n"
+                        f"UP：{author}\n"
+                        f"上传日期：{date}\n"
+                        f"回复：{reply}，收藏：{favorite}，投币：{coin}\n"
+                        f"{url}"
+                    )
+                except ActionFailed:
+                    logger.warning(f"{event.group_id} 发送bilibili解析失败")
+                else:
+                    logger.info(
+                        f"USER {event.user_id} GROUP {event.group_id} 解析bilibili转发 {url}"
+                    )
 
 
 def resize(path: str):

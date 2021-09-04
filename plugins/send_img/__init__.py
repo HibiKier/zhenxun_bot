@@ -37,7 +37,6 @@ cmd = set(IMAGE_DIR_LIST)
 send_img = on_command("img", aliases=cmd, priority=5, block=True)
 pa = on_keyword({"丢人爬", "爪巴"}, priority=5, block=True)
 pa_reg = on_regex("^爬$", priority=5, block=True)
-search_img = on_regex(".*[份|发|张|个|次|点]图.*?", priority=6, block=True)
 
 search_url = "https://api.fantasyzone.cc/tu/search.php"
 
@@ -112,70 +111,3 @@ num_key = {
     "九": 9,
 }
 
-
-@search_img.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
-    r = re.search("[来要]?(.*)[份发张个次点]图(.*)", msg)
-    num = r.group(1)
-    if num in num_key.keys():
-        num = num_key[num]
-    elif is_number(num):
-        num = int(num)
-    else:
-        return
-    keyword = r.group(2)
-    params = {"search": keyword, "r18": 0}
-    async with aiohttp.ClientSession() as session:
-        exists_id = []
-        for _ in range(num):
-            for _ in range(10):
-                try:
-                    async with session.get(
-                        search_url, timeout=5, params=params
-                    ) as response:
-                        data = json.loads(await response.text())
-                except TimeoutError:
-                    pass
-                else:
-                    if data["id"] == "null":
-                        await send_img.finish(f"没有搜索到 {keyword} 的图片...", at_sender=True)
-                    if data["id"] in exists_id:
-                        continue
-                    title = data["title"]
-                    author = data["userName"]
-                    pid = data["id"]
-                    img_url = data["url"]
-                    exists_id.append(pid)
-                    for _ in range(5):
-                        try:
-                            await download_pic(img_url, event.user_id, session)
-                        except TimeoutError:
-                            pass
-                        else:
-                            break
-                    else:
-                        await search_img.finish("图片下载失败...", at_sender=True)
-                    await search_img.send(
-                        Message(
-                            f"title：{title}\n"
-                            f"pid：{pid}\n"
-                            f"author：{author}\n"
-                            f'{image(f"send_img_{event.user_id}.png", "temp")}'
-                        )
-                    )
-                    break
-            else:
-                await search_img.send("图片下载惜败了....", at_sender=True)
-    logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-        f" 发送搜索了 {num} 张 {keyword} 的图片"
-    )
-
-
-async def download_pic(img_url: str, user_id: int, session):
-    async with session.get(img_url, timeout=2) as res:
-        async with aiofiles.open(
-            f"{IMAGE_PATH}/temp/send_img_{user_id}.png", "wb"
-        ) as f:
-            await f.write(await res.read())

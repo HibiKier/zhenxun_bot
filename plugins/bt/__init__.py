@@ -54,7 +54,7 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
 
 @bt.got("keyword", prompt="虚空磁力？查什么GKD")
 async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
-    _ulmt.set_True(event.user_id)
+    _ulmt.set_true(event.user_id)
     keyword = state["keyword"]
     page = state["page"]
     await bt.send("开始搜索....", at_sender=True)
@@ -72,16 +72,16 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
             )
             send_flag = True
     except TimeoutError:
-        _ulmt.set_False(event.user_id)
+        _ulmt.set_false(event.user_id)
         await bt.finish(f"搜索 {keyword} 超时...")
     except ServerDisconnectedError:
-        _ulmt.set_False(event.user_id)
+        _ulmt.set_false(event.user_id)
         await bt.finish(f"搜索 {keyword} 连接失败")
     except Exception as e:
-        _ulmt.set_False(event.user_id)
+        _ulmt.set_false(event.user_id)
         await bt.finish(f"bt 其他未知错误..")
         logger.error(f"bt 错误 e：{e}")
     if not send_flag:
         await bt.send(f"{keyword} 未搜索到...")
     logger.info(f"USER {event.user_id} BT搜索 {keyword} 第 {page} 页")
-    _ulmt.set_False(event.user_id)
+    _ulmt.set_false(event.user_id)

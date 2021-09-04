@@ -183,7 +183,10 @@ async def _():
     for data in [_prefix_count_dict, _prefix_user_count_dict]:
         for x in _prefix_count_dict["day_statistics"].keys():
             for key in _prefix_count_dict["day_statistics"][x].keys():
-                data["day_statistics"][x][key] = 0
+                try:
+                    data["day_statistics"][x][key] = 0
+                except KeyError:
+                    pass
         data["day_index"] += 1
     with open(DATA_PATH + "_prefix_count.json", "w", encoding="utf8") as f:
         json.dump(_prefix_count_dict, f, indent=4, ensure_ascii=False)

@@ -44,7 +44,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @restart.got('flag', prompt='确定是否重启真寻？（重启失败咱们将失去联系，请谨慎！）')
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     flag = state['flag']
-    if flag.lower() in ['true', '是', '好']:
+    if flag.lower() in ['true', '是', '好', '确定', '确定是']:
         await restart.send('开始重启真寻..请稍等...')
         open('is_restart', 'w')
         os.system('./restart.sh')

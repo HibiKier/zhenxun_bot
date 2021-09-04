@@ -12,6 +12,10 @@ class RussianUser(db.Model):
     fail_count = db.Column(db.Integer(), default=0)
     make_money = db.Column(db.Integer(), default=0)
     lose_money = db.Column(db.Integer(), default=0)
+    winning_streak = db.Column(db.Integer(), default=0)
+    losing_streak = db.Column(db.Integer(), default=0)
+    max_winning_streak = db.Column(db.Integer(), default=0)
+    max_losing_streak = db.Column(db.Integer(), default=0)
 
     _idx1 = db.Index("russian_group_users_idx1", "user_qq", "group_id", unique=True)
 
@@ -52,12 +56,28 @@ class RussianUser(db.Model):
             if not user:
                 user = await cls.create(user_qq=user_qq, group_id=group_id)
             if itype == "win":
+                _max = (
+                    user.max_winning_streak
+                    if user.max_winning_streak > user.winning_streak + 1
+                    else user.winning_streak + 1
+                )
                 await user.update(
                     win_count=user.win_count + 1,
+                    winning_streak=user.winning_streak + 1,
+                    losing_streak=0,
+                    max_winning_streak=_max
                 ).apply()
             elif itype == "lose":
+                _max = (
+                    user.max_losing_streak
+                    if user.max_losing_streak > user.losing_streak + 1
+                    else user.losing_streak + 1
+                )
                 await user.update(
                     fail_count=user.fail_count + 1,
+                    losing_streak=user.losing_streak + 1,
+                    winning_streak=0,
+                    max_losing_streak=_max,
                 ).apply()
             return True
         except Exception:

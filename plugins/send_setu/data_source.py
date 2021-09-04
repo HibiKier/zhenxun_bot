@@ -62,6 +62,8 @@ async def get_setu_urls(
                             for x in random_idx:
                                 x_urls.append(urls[x])
                                 x_text_lst.append(text_list[x])
+                            if not x_urls:
+                                return ["没找到符合条件的色图..."], [], [], 401
                             return x_urls, x_text_lst, add_databases_list, 200
                         else:
                             return ["没找到符合条件的色图..."], [], [], 401

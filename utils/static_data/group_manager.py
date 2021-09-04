@@ -1,4 +1,5 @@
-from typing import Optional
+from configs.config import DEFAULT_GROUP_LEVEL
+from typing import Optional, List
 from pathlib import Path
 from .data_class import StaticData
 
@@ -132,6 +133,13 @@ class GroupManager(StaticData):
         if group_id in self.data['super']['white_group_list']:
             self.data['super']['white_group_list'].remove(group_id)
 
+    def get_group_white_list(self) -> List[str]:
+        """
+        说明：
+            获取所有群白名单
+        """
+        return self.data['super']['white_group_list']
+
     def _set_plugin_status(
         self,
         plugin_cmd: str,
@@ -183,4 +191,6 @@ class GroupManager(StaticData):
         参数：
             :param group_id: 群号
         """
-        self.data["group_manager"][group_id] = {"level": 5, "close_plugins": []}
+        self.data["group_manager"][group_id] = {"level": DEFAULT_GROUP_LEVEL, "close_plugins": []}
+
+

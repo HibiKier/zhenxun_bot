@@ -23,7 +23,6 @@ index = 0
 anime_data = json.load(open(DATA_PATH + "anime.json", "r", encoding="utf8"))
 
 
-# 图灵AI
 async def get_chat_result(text: str, img_url: str, user_id: int, nickname: str) -> str:
     global index
     if index == 5:
@@ -104,7 +103,9 @@ async def xie_ai(text: str, sess: ClientSession):
         if data["result"] == 0:
             content = data["content"]
             if "菲菲" in content:
-                content = content.replace("菲菲", f"{NICKNAME}")
+                content = content.replace("菲菲", NICKNAME)
+            if '艳儿' in content:
+                content = content.replace('艳儿', NICKNAME)
             if "公众号" in content:
                 content = ""
             if "{br}" in content:

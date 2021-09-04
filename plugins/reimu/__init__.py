@@ -43,7 +43,7 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
         await reimu.finish("今天已经没车了，请明天再来...", at_sender=True)
     if _ulmt.check(event.user_id):
         await reimu.finish("您还没下车呢，请稍等...", at_sender=True)
-    _ulmt.set_True(event.user_id)
+    _ulmt.set_true(event.user_id)
     msg = get_message_text(event.json())
     args = msg.split(" ")
     if msg in ["!", "！", "?", "？", ",", "，", ".", "。"]:
@@ -70,9 +70,9 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
         else:
             logger.error("Not found reimuInfo")
             await reimu.send("没找着")
-        _ulmt.set_False(event.user_id)
+        _ulmt.set_false(event.user_id)
     except:
-        _ulmt.set_False(event.user_id)
+        _ulmt.set_false(event.user_id)
 
 
 @scheduler.scheduled_job(

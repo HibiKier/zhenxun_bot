@@ -13,10 +13,6 @@ import nonebot
 
 
 width = 1600
-e_height = 0
-u_height = 950
-o_height = 1500
-# f_height =
 
 
 def create_help_img():
@@ -28,9 +24,9 @@ def create_help_img():
         + len(utility_help) * 24
         + len(entertainment_help) * 24
         + len(other_help) * 24
-    ) * 2
+    ) + 800
     A = CreateImg(width, h - 200, font_size=24)
-    e = CreateImg(width, len(entertainment_help) * 42, font_size=24)
+    e = CreateImg(width, len(entertainment_help) * 26 + 100, font_size=24)
     rst = ""
     i = 0
     for cmd in entertainment_help:
@@ -38,7 +34,7 @@ def create_help_img():
         i += 1
     e.text((10, 10), "娱乐功能：")
     e.text((40, 40), rst)
-    u = CreateImg(width, len(utility_help) * 40 + 50, font_size=24, color="black")
+    u = CreateImg(width, len(utility_help) * 26 + 100, font_size=24, color="black")
     rst = ""
     i = 0
     for cmd in utility_help:
@@ -46,19 +42,18 @@ def create_help_img():
         i += 1
     u.text((10, 10), "实用功能：", fill=(255, 255, 255))
     u.text((40, 40), rst, fill=(255, 255, 255))
-    o = CreateImg(width, len(other_help) * 40, font_size=24)
+    o = CreateImg(width, len(other_help) * 26 + 100, font_size=24)
     rst = ""
-    i = 0
     for i in range(len(other_help)):
         rst += f"{i + 1}.{other_help[i]}\n"
         i += 1
     o.text((10, 10), "其他功能：")
     o.text((40, 40), rst)
     A.paste(e, (0, 0))
-    A.paste(u, (0, u_height))
-    A.paste(o, (0, o_height))
+    A.paste(u, (0, e.h))
+    A.paste(o, (0, e.h + u.h))
     A.text(
-        (10, h * 0.68),
+        (10, e.h + u.h + o.h + 50),
         f"大部分交互功能可以通过输入‘取消’，‘算了’来取消当前交互\n对{NICKNAME}说 “{NICKNAME}帮助 指令名” 获取对应详细帮助\n"
         "可以通过 “滴滴滴- [消息]” 联系管理员（有趣的想法尽管来吧！<还有Bug和建议>）"
         "\n[群管理员请看 管理员帮助（群主与管理员自带 5 级权限）]\n\n"
@@ -75,11 +70,11 @@ def create_group_help_img(group_id: int):
         + len(utility_help) * 24
         + len(entertainment_help) * 24
         + len(other_help) * 24
-    ) * 2
-    A = CreateImg(width, h - 200, font_size=24)
-    u = CreateImg(width, len(utility_help) * 40, font_size=24, color="black")
-    o = CreateImg(width, len(other_help) * 40, font_size=24)
-    e = CreateImg(width, len(entertainment_help) * 42, font_size=24)
+    ) + 800
+    A = CreateImg(width, h, font_size=24)
+    u = CreateImg(width, len(utility_help) * 26 + 100, font_size=24, color="black")
+    o = CreateImg(width, len(other_help) * 26 + 100, font_size=24)
+    e = CreateImg(width, len(entertainment_help) * 26 + 100, font_size=24)
     rst = ""
     i = 1
     for cmd in entertainment_help.keys():
@@ -107,17 +102,17 @@ def create_group_help_img(group_id: int):
     o.text((40, 40), rst)
 
     A.paste(e, (0, 0))
-    A.paste(u, (0, u_height))
-    A.paste(o, (0, o_height))
+    A.paste(u, (0, e.h))
+    A.paste(o, (0, e.h + u.h))
     # A.text((width, 10), f'总开关【{"√" if data["总开关"] else "×"}】')
     A.text(
-        (10, h * 0.68),
+        (10, e.h + u.h + o.h + 50),
         f"大部分交互功能可以通过输入‘取消’，‘算了’来取消当前交互\n对{NICKNAME}说 “{NICKNAME}帮助 指令名” 获取对应详细帮助\n"
         "可以通过 “滴滴滴- [消息]” 联系管理员（有趣的想法尽管来吧！<还有Bug和建议>）"
         f"\n[群管理员请看 管理员帮助（群主与管理员自带 {ADMIN_DEFAULT_AUTH} 级权限）]",
     )
     A.text(
-        (10, h * 0.77),
+        (10, e.h + u.h + o.h + 250),
         f"【注】「色图概率：好感度 + {int(INITIAL_SETU_PROBABILITY*100)}%\n"
         f"\t\t每 3 点好感度 + 1次开箱，初始 {INITIAL_OPEN_CASE_COUNT} 次\n"
         f"\t\t开启/关闭功能只需输入‘开启/关闭 指令名’（每个功能的第一个指令）」\n"

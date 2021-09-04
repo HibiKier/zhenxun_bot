@@ -72,17 +72,19 @@ class Setu(db.Model):
                 (cls.local_id == local_id) & (cls.is_r18 == flag)
             ).gino.first()
         if r18 == 0:
-            query = await cls.query.where(cls.is_r18 == False).gino.all()
+            query = cls.query.where(cls.is_r18 == False)
         elif r18 == 1:
-            query = await cls.query.where(cls.is_r18 == True).gino.all()
+            query = cls.query.where(cls.is_r18 == True)
         else:
-            query = await cls.query.gino.all()
+            query = cls.query
         if tags:
-            query = [x for x in query if set(x.tags.split(",")) > set(tags)]
-        return query
+            for tag in tags:
+                query = query.where(cls.tags.contains(tag) | cls.title.contains(tag) | cls.author.contains(tag))
+        query = query.order_by(db.func.random()).limit(50)
+        return await query.gino.all()
 
     @classmethod
-    async def get_image_count(cls, r18: int = 0):
+    async def get_image_count(cls, r18: int = 0) -> int:
         """
         说明：
             查询图片数量

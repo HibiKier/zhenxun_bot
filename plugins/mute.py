@@ -29,6 +29,7 @@ mute_setting = on_command(
     aliases={"设置检测时间", "设置检测次数", "设置禁言时长", "刷屏检测设置"},
     permission=GROUP,
     block=True,
+    priority=5
 )
 
 

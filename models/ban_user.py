@@ -61,6 +61,20 @@ class BanUser(db.Model):
             return False
 
     @classmethod
+    async def is_super_ban(cls, user_qq: int) -> bool:
+        """
+        说明：
+            判断用户是否被ban
+        参数：
+            :param user_qq: qq号
+        """
+        user = await cls.query.where((cls.user_qq == user_qq)).gino.first()
+        if not user:
+            return False
+        if user.ban_level == 10:
+            return True
+
+    @classmethod
     async def ban(cls, user_qq: int, ban_level: int, duration: int) -> bool:
         """
         说明：

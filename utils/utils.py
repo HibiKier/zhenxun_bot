@@ -3,7 +3,7 @@ from collections import defaultdict
 from nonebot import require
 from configs.path_config import TXT_PATH
 from configs.config import SYSTEM_PROXY
-from typing import List, Union
+from typing import List, Union, Optional
 from nonebot.adapters import Bot
 import nonebot
 import pytz
@@ -48,16 +48,16 @@ class UserExistLimiter:
         self.flag_data = defaultdict(bool)
         self.time = time.time()
 
-    def set_True(self, key: Union[str, int, float]):
+    def set_true(self, key: Union[str, int, float]):
         self.time = time.time()
         self.flag_data[key] = True
 
-    def set_False(self, key: Union[str, int, float]):
+    def set_false(self, key: Union[str, int, float]):
         self.flag_data[key] = False
 
     def check(self, key: Union[str, int, float]) -> bool:
         if time.time() - self.time > 30:
-            self.set_False(key)
+            self.set_false(key)
             return False
         return self.flag_data[key]
 
@@ -169,12 +169,15 @@ def is_number(s: str) -> bool:
     return False
 
 
-def get_bot() -> Bot:
+def get_bot() -> Optional[Bot]:
     """
     说明：
         获取 bot 对象
     """
-    return list(nonebot.get_bots().values())[0]
+    try:
+        return list(nonebot.get_bots().values())[0]
+    except IndexError:
+        return None
 
 
 def get_message_at(data: str) -> List[int]:
@@ -322,3 +325,21 @@ def cn2py(word: str) -> str:
     for i in pypinyin.pinyin(word, style=pypinyin.NORMAL):
         temp += "".join(i)
     return temp
+
+
+def change_picture_links(url: str, mode: str):
+    """
+    说明：
+        根据配置改变图片大小
+    参数：
+        :param url: 图片原图链接
+        :param mode: 模式
+    """
+    if mode == 'master':
+        img_sp = url.rsplit('.', maxsplit=1)
+        url = img_sp[0]
+        img_type = img_sp[1]
+        url = url.replace('original', 'master') + f'_master1200.{img_type}'
+    return url
+
+

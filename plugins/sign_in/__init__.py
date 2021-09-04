@@ -9,9 +9,11 @@ from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from nonebot.adapters.cqhttp.permission import GROUP
 from utils.message_builder import image
 from nonebot import on_command
-from utils.utils import get_message_text
+from utils.utils import get_message_text, scheduler
 from pathlib import Path
 from configs.path_config import DATA_PATH
+from services.log import logger
+from .utils import clear_sign_data_pic
 
 try:
     import ujson as json
@@ -52,16 +54,18 @@ total_sign_rank = on_command(
 
 @sign.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+    nickname = event.sender.card if event.sender.card else event.sender.nickname
     await sign.send(
-        await group_user_check_in(event.user_id, event.group_id),
+        await group_user_check_in(nickname, event.user_id, event.group_id),
         at_sender=True,
     )
 
 
 @my_sign.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+    nickname = event.sender.card if event.sender.card else event.sender.nickname
     await my_sign.send(
-        await group_user_check(event.user_id, event.group_id),
+        await group_user_check(nickname, event.user_id, event.group_id),
         at_sender=True,
     )
 
@@ -89,3 +93,15 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         await total_sign_rank.send("设置成功，签到总榜将会显示您的头像名称以及好感度！", at_sender=True)
     with open(_file, "w", encoding="utf8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+
+
+@scheduler.scheduled_job(
+    'interval',
+    hours=1,
+)
+async def _():
+    try:
+        clear_sign_data_pic()
+        logger.info('清理日常签到图片数据数据完成....')
+    except Exception as e:
+        logger.error(f'清理日常签到图片数据数据失败..{type(e)}: {e}')

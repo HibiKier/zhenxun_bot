@@ -45,7 +45,9 @@ def get_img_hash(image_file: str) -> ImageHash:
     return hash_value
 
 
-def compressed_image(in_file: Union[str, Path], out_file: Union[str, Path] = None, ratio: float = 0.9):
+def compressed_image(
+    in_file: Union[str, Path], out_file: Union[str, Path] = None, ratio: float = 0.9
+):
     """
     说明：
         压缩图片
@@ -56,15 +58,19 @@ def compressed_image(in_file: Union[str, Path], out_file: Union[str, Path] = Non
     """
     in_file = Path(IMAGE_PATH) / in_file if isinstance(in_file, str) else in_file
     if out_file:
-        out_file = Path(IMAGE_PATH) / out_file if isinstance(out_file, str) else out_file
+        out_file = (
+            Path(IMAGE_PATH) / out_file if isinstance(out_file, str) else out_file
+        )
     else:
         out_file = in_file
     h, w, d = cv2.imread(str(in_file.absolute())).shape
-    img = cv2.resize(cv2.imread(str(in_file.absolute())), (int(w * ratio), int(h * ratio)))
+    img = cv2.resize(
+        cv2.imread(str(in_file.absolute())), (int(w * ratio), int(h * ratio))
+    )
     cv2.imwrite(str(out_file.absolute()), img)
 
 
-def alpha2white_PIL(pic: Image) -> Image:
+def alpha2white_pil(pic: Image) -> Image:
     """
     说明：
         将图片透明背景转化为白色
@@ -131,16 +137,19 @@ class CreateImg:
 
     def __init__(
         self,
-        w,
-        h,
-        paste_image_width=0,
-        paste_image_height=0,
-        color="white",
-        image_type="RGBA",
-        font_size=10,
-        background="",
-        ttf="yz.ttf",
-        ratio=1,
+        w: int,
+        h: int,
+        paste_image_width: int = 0,
+        paste_image_height: int = 0,
+        color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]] = "white",
+        image_mode: str = "RGBA",
+        font_size: int = 10,
+        background: Union[Optional[str], BytesIO] = None,
+        ttf: str = "yz.ttf",
+        ratio: float = 1,
+        is_alpha: bool = False,
+        plain_text: Optional[str] = None,
+        font_color: Optional[Tuple[int, int, int]] = None,
     ):
         """
         参数：
@@ -149,11 +158,13 @@ class CreateImg:
             :param paste_image_width: 当图片做为背景图时，设置贴图的宽度，用于贴图自动换行
             :param paste_image_height: 当图片做为背景图时，设置贴图的高度，用于贴图自动换行
             :param color: 生成图片的颜色
-            :param image_type: 图片的类型
+            :param image_mode: 图片的类型
             :param font_size: 文字大小
             :param background: 打开图片的路径
             :param ttf: 字体，默认在 resource/ttf/ 路径下
             :param ratio: 倍率压缩
+            :param is_alpha: 是否背景透明
+            :param plain_text: 纯文字文本
         """
         self.w = int(w)
         self.h = int(h)
@@ -161,9 +172,14 @@ class CreateImg:
         self.paste_image_height = int(paste_image_height)
         self.current_w = 0
         self.current_h = 0
-        self.ttfont = ImageFont.truetype(TTF_PATH + ttf, int(font_size))
+        self.font = ImageFont.truetype(TTF_PATH + ttf, int(font_size))
         if not background:
-            self.markImg = Image.new(image_type, (self.w, self.h), color)
+            if plain_text:
+                ttf_w, ttf_h = self.getsize(plain_text)
+                self.w = self.w if self.w > ttf_w else ttf_w
+                self.h = self.h if self.h > ttf_h else ttf_h
+            self.markImg = Image.new(image_mode, (self.w, self.h), color)
+            self.markImg.convert(image_mode)
         else:
             if not w and not h:
                 self.markImg = Image.open(background)
@@ -181,14 +197,26 @@ class CreateImg:
                 self.markImg = Image.open(background).resize(
                     (self.w, self.h), Image.ANTIALIAS
                 )
+        if is_alpha:
+            array = self.markImg.load()
+            for i in range(w):
+                for j in range(h):
+                    pos = array[i, j]
+                    is_edit = (sum([1 for x in pos[0:3] if x > 240]) == 3)
+                    if is_edit:
+                        array[i, j] = (255, 255, 255, 0)
         self.draw = ImageDraw.Draw(self.markImg)
         self.size = self.w, self.h
+        if plain_text:
+            fill = font_color if font_color else (0, 0, 0)
+            self.text((0, 0), plain_text, fill)
 
     def paste(
         self,
         img: "CreateImg" or Image,
         pos: Tuple[int, int] = None,
         alpha: bool = False,
+        center_type: Optional[str] = None,
     ):
         """
         说明：
@@ -197,7 +225,26 @@ class CreateImg:
             :param img: 已打开的图片文件，可以为 CreateImg 或 Image
             :param pos: 贴图位置（左上角）
             :param alpha: 图片背景是否为透明
+            :param center_type: 居中类型，可能的值 center: 完全居中，by_width: 水平居中，by_height: 垂直居中
         """
+        if center_type:
+            if center_type not in ["center", "by_height", "by_width"]:
+                raise ValueError(
+                    "center_type must be 'center', 'by_width' or 'by_height'"
+                )
+            width, height = 0, 0
+            if not pos:
+                pos = (0, 0)
+            if center_type == "center":
+                width = int((self.w - img.w) / 2)
+                height = int((self.h - img.h) / 2)
+            elif center_type == "by_width":
+                width = int((self.w - img.w) / 2)
+                height = pos[1]
+            elif center_type == "by_height":
+                width = pos[0]
+                height = int((self.h - img.h) / 2)
+            pos = (width, height)
         if isinstance(img, CreateImg):
             img = img.markImg
         if self.current_w == self.w:
@@ -222,10 +269,38 @@ class CreateImg:
         参数：
             :param msg: 文字内容
         """
-        return self.ttfont.getsize(msg)
+        return self.font.getsize(msg)
+
+    def point(self, pos: Tuple[int, int], fill: Optional[Tuple[int, int, int]] = None):
+        """
+        说明：
+            绘制多个或单独的像素
+        参数：
+            :param pos: 坐标
+            :param fill: 填错颜色
+        """
+        self.draw.point(pos, fill=fill)
+
+    def ellipse(
+        self,
+        pos: Tuple[int, int, int, int],
+        fill: Optional[Tuple[int, int, int]] = None,
+        outline: Optional[Tuple[int, int, int]] = None,
+        width: int = 1,
+    ):
+        """
+        说明：
+            绘制圆
+        参数：
+            :param pos: 坐标范围
+            :param fill: 填充颜色
+            :param outline: 描线颜色
+            :param width: 描线宽度
+        """
+        self.draw.ellipse(pos, fill, outline, width)
 
     def text(
-        self, pos: Tuple[int, int], text: str, fill: Tuple[int, int, int] = (0, 0, 0)
+        self, pos: Tuple[int, int], text: str, fill: Tuple[int, int, int] = (0, 0, 0), center_type: Optional[str] = None
     ):
         """
         说明：
@@ -234,8 +309,24 @@ class CreateImg:
             :param pos: 文字位置
             :param text: 文字内容
             :param fill: 文字颜色
+            :param center_type: 居中类型，可能的值 center: 完全居中，by_width: 水平居中，by_height: 垂直居中
         """
-        self.draw.text(pos, text, fill=fill, font=self.ttfont)
+        if center_type:
+            if center_type not in ["center", "by_height", "by_width"]:
+                raise ValueError(
+                    "center_type must be 'center', 'by_width' or 'by_height'"
+                )
+            w, h = self.w, self.h
+            ttf_w, ttf_h = self.getsize(text)
+            if center_type == 'center':
+                w = int((w - ttf_w) / 2)
+                h = int((h - ttf_h) / 2)
+            elif center_type == 'by_width':
+                w = int((w - ttf_w) / 2)
+            elif center_type == 'by_height':
+                h = int((h - ttf_h) / 2)
+            pos = (w, h)
+        self.draw.text(pos, text, fill=fill, font=self.font)
 
     def save(self, path: str):
         """
@@ -291,13 +382,14 @@ class CreateImg:
         参数：
             :param word: 文本内容
         """
-        return self.ttfont.getsize(word)[0] > self.w
+        return self.font.getsize(word)[0] > self.w
 
-    def transparent(self, n: int = 0):
+    def transparent(self, alpha_ratio: float = 1, n: int = 0):
         """
         说明：
             图片透明化
         参数：
+            :param alpha_ratio: 透明化程度
             :param n: 透明化大小内边距
         """
         self.markImg = self.markImg.convert("RGBA")
@@ -305,7 +397,7 @@ class CreateImg:
         for i in range(n, x - n):
             for k in range(n, y - n):
                 color = self.markImg.getpixel((i, k))
-                color = color[:-1] + (100,)
+                color = color[:-1] + (int(100 * alpha_ratio),)
                 self.markImg.putpixel((i, k), color)
 
     def pic2bs4(self) -> str:

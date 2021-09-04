@@ -9,7 +9,6 @@ from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 import aiohttp
 import aiofiles
-from collections import defaultdict
 from asyncio.exceptions import TimeoutError
 from configs.config import FUDU_PROBABILITY
 
@@ -20,39 +19,39 @@ class Fudu:
 
     def append(self, key, content):
         self._create(key)
-        self.data[key]['data'].append(content)
+        self.data[key]["data"].append(content)
 
     def clear(self, key):
         self._create(key)
-        self.data[key]['data'] = []
-        self.data[key]['is_repeater'] = False
+        self.data[key]["data"] = []
+        self.data[key]["is_repeater"] = False
 
     def size(self, key) -> int:
         self._create(key)
-        return len(self.data[key]['data'])
+        return len(self.data[key]["data"])
 
     def check(self, key, content) -> bool:
         self._create(key)
-        return self.data[key]['data'][0] == content
+        return self.data[key]["data"][0] == content
 
     def get(self, key):
         self._create(key)
-        return self.data[key]['data'][0]
+        return self.data[key]["data"][0]
 
     def is_repeater(self, key):
         self._create(key)
-        return self.data[key]['is_repeater']
+        return self.data[key]["is_repeater"]
 
     def set_repeater(self, key):
         self._create(key)
-        self.data[key]['is_repeater'] = True
+        self.data[key]["is_repeater"] = True
 
     def _create(self, key):
         if self.data.get(key) is None:
-            self.data[key] = {'is_repeater': False, 'data': []}
+            self.data[key] = {"is_repeater": False, "data": []}
 
 
-_fudulist = Fudu()
+_fudu_list = Fudu()
 
 
 fudu = on_message(permission=GROUP, priority=9)
@@ -74,17 +73,20 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     else:
         img_hash = ""
     add_msg = msg + "|-|" + img_hash
-    if _fudulist.size(event.group_id) == 0:
-        _fudulist.append(event.group_id, add_msg)
-    elif _fudulist.check(event.group_id, add_msg):
-        _fudulist.append(event.group_id, add_msg)
+    if _fudu_list.size(event.group_id) == 0:
+        _fudu_list.append(event.group_id, add_msg)
+    elif _fudu_list.check(event.group_id, add_msg):
+        _fudu_list.append(event.group_id, add_msg)
     else:
-        _fudulist.clear(event.group_id)
-        _fudulist.append(event.group_id, add_msg)
-    if _fudulist.size(event.group_id) > 2:
-        if random.random() < FUDU_PROBABILITY and not _fudulist.is_repeater(event.group_id):
+        _fudu_list.clear(event.group_id)
+        _fudu_list.append(event.group_id, add_msg)
+    if _fudu_list.size(event.group_id) > 2:
+        if random.random() < FUDU_PROBABILITY and not _fudu_list.is_repeater(
+            event.group_id
+        ):
             if random.random() < 0.2:
                 await fudu.finish("打断施法！")
+            _fudu_list.set_repeater(event.group_id)
             if imgs and msg:
                 rst = msg + image(f"compare_{event.group_id}_img.jpg", "temp")
             elif imgs:
@@ -95,7 +97,6 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 rst = ""
             if rst:
                 await fudu.send(rst)
-            _fudulist.set_repeater(event.group_id)
 
 
 async def get_fudu_img_hash(url, group_id):
@@ -109,4 +110,4 @@ async def get_fudu_img_hash(url, group_id):
         img_hash = get_img_hash(IMAGE_PATH + f"temp/compare_{group_id}_img.jpg")
         return str(img_hash)
     except TimeoutError:
-        return ''
+        return ""

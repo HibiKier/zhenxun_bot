@@ -41,7 +41,17 @@ class SignGroupUser(db.Model):
         )
 
     @classmethod
-    async def get_all_impression(cls, belonging_group: int) -> "list, list":
+    async def sign(cls, user: "SignGroupUser", impression: float, checkin_time_last: datetime):
+        await user.update(
+            checkin_count=user.checkin_count + 1,
+            checkin_time_last=checkin_time_last,
+            impression=user.impression + impression,
+            add_probability=0,
+            specify_probability=0,
+        ).apply()
+
+    @classmethod
+    async def get_all_impression(cls, belonging_group: int) -> "list, list, list":
         """
         说明：
             获取该群所有用户 id 及对应 好感度

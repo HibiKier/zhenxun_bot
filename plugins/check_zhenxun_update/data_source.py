@@ -1,9 +1,10 @@
 from aiohttp.client_exceptions import ClientConnectorError
-from nonebot.adapters.cqhttp import Bot
+from nonebot.adapters.cqhttp import Bot, Message
 from utils.user_agent import get_user_agent
 from utils.utils import get_local_proxy
 from utils.image_utils import CreateImg
 from configs.path_config import IMAGE_PATH
+from utils.message_builder import image
 from typing import List
 from services.log import logger
 from pathlib import Path
@@ -84,13 +85,6 @@ async def check_update(bot: Bot) -> int:
                 logger.info("真寻更新完毕，清理文件完成....")
                 logger.info("开始获取真寻更新日志.....")
                 update_info = data["body"]
-                await bot.send_private_msg(
-                    user_id=int(list(bot.config.superusers)[0]),
-                    message=f"真寻更新完成，版本：{_version} -> {latest_version}\n"
-                    f"更新日期：{data['created_at']}\n"
-                    f"更新日志：\n"
-                    f"{update_info}",
-                )
                 width = 0
                 height = len(update_info.split('\n')) * 24
                 for m in update_info.split('\n'):
@@ -99,6 +93,13 @@ async def check_update(bot: Bot) -> int:
                 A = CreateImg(width, height, font_size=20)
                 A.text((10, 10), update_info)
                 A.save(f'{IMAGE_PATH}/update_info.png')
+                await bot.send_private_msg(
+                    user_id=int(list(bot.config.superusers)[0]),
+                    message=Message(f"真寻更新完成，版本：{_version} -> {latest_version}\n"
+                    f"更新日期：{data['created_at']}\n"
+                    f"更新日志：\n"
+                    f"{image('update_info.png')}"),
+                )
                 return 200
             else:
                 logger.warning(f"下载真寻最新版本失败...版本号：{latest_version}")

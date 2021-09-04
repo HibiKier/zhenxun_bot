@@ -1,15 +1,12 @@
 import random
 from nonebot import on_command, on_regex
 from services.log import logger
-from models.sigin_group_user import SignGroupUser
-from nonebot.exception import IgnoredException
-from nonebot.message import run_preprocessor, run_postprocessor
+from models.sign_group_user import SignGroupUser
+from nonebot.message import run_postprocessor
 from nonebot.matcher import Matcher
 from typing import Optional, Type
 from gino.exceptions import UninitializedError
 from utils.utils import (
-    FreqLimiter,
-    UserExistLimiter,
     is_number,
     get_message_text,
     get_message_imgs,
@@ -35,9 +32,8 @@ from .data_source import (
 )
 from nonebot.adapters.cqhttp.exception import ActionFailed
 from configs.config import ONLY_USE_LOCAL_SETU, WITHDRAW_SETU_TIME, NICKNAME
-from utils.message_builder import at
+from utils.static_data import withdraw_message_id_manager
 import re
-import asyncio
 
 try:
     import ujson as json
@@ -65,27 +61,7 @@ __plugin_usage__ = f"""示例：
     色图 萝莉|少女 白丝|黑丝
     色图 萝莉 猫娘"""
 
-_flmt = FreqLimiter(5)
-_ulmt = UserExistLimiter()
 setu_data_list = []
-withdraw_message_id = []
-
-
-@run_preprocessor
-async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
-    if isinstance(event, MessageEvent):
-        if matcher.module == "send_setu":
-            if _ulmt.check(event.user_id):
-                if isinstance(event, GroupMessageEvent):
-                    await bot.send_group_msg(
-                        group_id=event.group_id,
-                        message=Message(f"{at(event.user_id)}您有色图正在处理，请稍等....."),
-                    )
-                else:
-                    await bot.send_private_msg(
-                        user_id=event.user_id, message=f"您有色图正在处理，请稍等....."
-                    )
-                raise IgnoredException("色图正在处理！")
 
 
 @run_postprocessor
@@ -96,17 +72,9 @@ async def do_something(
     event: Event,
     state: T_State,
 ):
-    global setu_data_list, withdraw_message_id
+    global setu_data_list
     if isinstance(event, MessageEvent):
         if matcher.module == "send_setu":
-            # 解除占用
-            _ulmt.set_False(event.user_id)
-            tasks = []
-            # 撤回色图
-            for id_ in withdraw_message_id[:]:
-                tasks.append(asyncio.ensure_future(withdraw_message(bot, event, id_)))
-                withdraw_message_id.remove(id_)
-            await asyncio.gather(*tasks)
             # 添加数据至数据库
             try:
                 await add_data_to_database(setu_data_list)
@@ -127,7 +95,6 @@ find_setu = on_command("查色图", priority=5, block=True)
 
 @setu.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    global withdraw_message_id
     msg = get_message_text(event.json())
     if isinstance(event, GroupMessageEvent):
         impression = (
@@ -136,10 +103,6 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         luox = get_luoxiang(impression)
         if luox:
             await setu.finish(luox)
-    _ulmt.set_True(event.user_id)
-    if not _flmt.check(event.user_id):
-        await setu.finish("您冲得太快了，请稍候再冲", at_sender=True)
-    _flmt.start_cd(event.user_id)
     r18 = 0
     num = 1
     # 是否看r18
@@ -166,7 +129,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
             f" 发送色图 {setu_list[0].local_id}.png"
         )
-        withdraw_message_id.append(msg_id["message_id"])
+        if msg_id:
+            withdraw_message(event, msg_id["message_id"])
         return
     await send_setu_handle(setu, event, state["_prefix"]["raw_command"], msg, num, r18)
 
@@ -195,9 +159,6 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         luox = get_luoxiang(impression)
         if luox:
             await setu.finish(luox, at_sender=True)
-    if not _flmt.check(event.user_id):
-        await setu.finish("您冲得太快了，请稍候再冲", at_sender=True)
-    _flmt.start_cd(event.user_id)
     msg = get_message_text(event.json())
     num = 1
     msg = re.search(r"(.*)[份发张个次点](.*)[瑟涩色]图", msg)
@@ -251,16 +212,16 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 async def send_setu_handle(
     matcher: Type[Matcher], event: MessageEvent, command: str, msg: str, num: int, r18: int
 ):
-    global setu_data_list, withdraw_message_id
-    error_info = ""
+    global setu_data_list
     # 非 id，在线搜索
     tags = msg.split()
     # 真寻的色图？怎么可能
     if f"{NICKNAME}" in tags:
         await matcher.finish("咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀")
     # 本地先拿图，下载失败补上去
-    setu_list, code = await get_setu_list(tags=msg.split(), r18=r18)
-    if not ONLY_USE_LOCAL_SETU and (tags or not setu_list or num > len(setu_list)):
+    setu_list, code = None, 200
+    msg_id = None
+    if not ONLY_USE_LOCAL_SETU and tags:
         # 先尝试获取在线图片
         urls, text_list, add_databases_list, code = await get_setu_urls(tags, num, r18, command)
         for x in add_databases_list:
@@ -280,8 +241,9 @@ async def send_setu_handle(
                             f" 发送色图 {index}.png"
                         )
                         msg_id = await matcher.send(Message(f"{text_list[i]}\n{setu_img}"))
-                        withdraw_message_id.append(msg_id["message_id"])
                     else:
+                        if setu_list is None:
+                            setu_list, _ = await get_setu_list(tags=tags, r18=r18)
                         if setu_list:
                             setu_image = random.choice(setu_list)
                             setu_list.remove(setu_image)
@@ -298,17 +260,18 @@ async def send_setu_handle(
                             )
                         else:
                             msg_id = await matcher.send(text_list[i] + "\n" + setu_img)
-                        withdraw_message_id.append(msg_id["message_id"])
+                    if msg_id:
+                        withdraw_message(event, msg_id["message_id"])
                 except ActionFailed:
                     await matcher.finish("坏了，这张图色过头了，我自己看看就行了！", at_sender=True)
             return
     # 本地无图 或 超过上下限
-    if code != 200 or (not setu_list and ONLY_USE_LOCAL_SETU):
-        if code == 999:
-            await matcher.finish('网络连接失败...', at_sender=True)
-        await matcher.finish(setu_list[0], at_sender=True)
-    elif not setu_list:
-        await matcher.finish(error_info, at_sender=True)
+    if code != 200:
+        await matcher.finish('网络连接失败...', at_sender=True)
+    if setu_list is None:
+        setu_list, code = await get_setu_list(tags=tags, r18=r18)
+        if code != 200:
+            await matcher.finish(setu_list[0], at_sender=True)
     # 开始发图
     for _ in range(num):
         if not setu_list:
@@ -322,7 +285,7 @@ async def send_setu_handle(
                     + (await check_local_exists_or_download(setu_image))[0]
                 )
             )
-            withdraw_message_id.append(msg_id["message_id"])
+            withdraw_message(event, msg_id["message_id"])
             logger.info(
                 f"(USER {event.user_id}, GROUP "
                 f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
@@ -333,13 +296,11 @@ async def send_setu_handle(
 
 
 # 撤回图片
-async def withdraw_message(bot: Bot, event: MessageEvent, id_: int):
+def withdraw_message(event: MessageEvent, id_: int):
     if WITHDRAW_SETU_TIME[0]:
         if (
             (WITHDRAW_SETU_TIME[1] == 0 and isinstance(event, PrivateMessageEvent))
             or (WITHDRAW_SETU_TIME[1] == 1 and isinstance(event, GroupMessageEvent))
             or WITHDRAW_SETU_TIME[1] == 2
         ):
-            await asyncio.sleep(WITHDRAW_SETU_TIME[0])
-            await bot.delete_msg(message_id=id_, self_id=int(bot.self_id))
-            logger.info(f"自动撤回色图 消息id：{id_}")
+            withdraw_message_id_manager['message_id'].append((id_, WITHDRAW_SETU_TIME[0]))

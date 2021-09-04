@@ -34,11 +34,12 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         if code != 200:
             await wbtop.finish(data, at_sender=True)
         wbtop_data = data['data']
-        img = await asyncio.get_event_loop().run_in_executor(None, gen_wbtop_pic, wbtop_data)
-        await wbtop.send(img)
-        logger.info(
-            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-            f" 查询微博热搜")
+        if not msg:
+            img = await asyncio.get_event_loop().run_in_executor(None, gen_wbtop_pic, wbtop_data)
+            await wbtop.send(img)
+            logger.info(
+                f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+                f" 查询微博热搜")
     if is_number(msg) and 0 < int(msg) <= 50:
         url = wbtop_data[int(msg) - 1]['url']
         browser = await get_browser()

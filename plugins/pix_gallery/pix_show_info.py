@@ -56,10 +56,16 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @show_pix.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     keyword = get_message_text(event.json())
-    count, r18_count = await get_keyword_num(keyword)
+    count, r18_count, count_, setu_count, r18_count_ = await get_keyword_num(keyword)
     await show_pix.send(
         f"PIX图库：{keyword}\n"
         f"总数：{count + r18_count}\n"
         f"美图：{count}\n"
-        f"r18：{r18_count}"
+        f"R18：{r18_count}\n"
+        f"---------------\n"
+        f"Omega图库：{keyword}\n"
+        f"总数：{count_ + setu_count + r18_count_}\n"
+        f"美图：{count_}\n"
+        f"色图：{setu_count}\n"
+        f"R18：{r18_count_}"
     )

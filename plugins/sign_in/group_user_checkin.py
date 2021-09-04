@@ -1,39 +1,47 @@
-import random
 from datetime import datetime, timedelta
-from io import BytesIO
-from services.log import logger
-from services.db_context import db
-from models.sigin_group_user import SignGroupUser
+from models.sign_group_user import SignGroupUser
 from models.group_member_info import GroupInfoUser
 from models.bag_user import BagUser
-from configs.config import MAX_SIGN_GOLD, NICKNAME
-from utils.image_utils import CreateImg
-import aiohttp
+from configs.config import NICKNAME
+from nonebot.adapters.cqhttp import MessageSegment
 from asyncio.exceptions import TimeoutError
+from utils.image_utils import CreateImg
+from services.db_context import db
+from .utils import get_card, SIGN_TODAY_CARD_PATH
+from services.log import logger
+from .random_event import random_event
+from io import BytesIO
+import random
+import aiohttp
 import math
 import asyncio
+import os
 
 
-async def group_user_check_in(user_qq: int, group: int) -> str:
+async def group_user_check_in(
+    nickname: str, user_qq: int, group: int
+) -> MessageSegment:
     "Returns string describing the result of checking in"
     present = datetime.now()
     async with db.transaction():
         # 取得相应用户
         user = await SignGroupUser.ensure(user_qq, group, for_update=True)
         # 如果同一天签到过，特殊处理
-        if user.checkin_time_last.date() == present.date():
-            return _handle_already_checked_in(user)
-        return await _handle_check_in(user_qq, group, present)  # ok
+        # if (
+        #     user.checkin_time_last + timedelta(hours=8)
+        # ).date() >= present.date() or f"{user}_{group}_sign_{datetime.now().date()}" in os.listdir(
+        #     SIGN_TODAY_CARD_PATH
+        # ):
+        #     gold = await BagUser.get_gold(user_qq, group)
+        #     return await get_card(user, nickname, -1, gold, "")
+        return await _handle_check_in(nickname, user_qq, group, present)  # ok
 
 
-def _handle_already_checked_in(user: SignGroupUser) -> str:
-    return f"已经签到过啦~ 好感度：{user.impression:.2f}"
-
-
-async def _handle_check_in(user_qq: int, group: int, present: datetime) -> str:
+async def _handle_check_in(
+    nickname: str, user_qq: int, group: int, present: datetime
+) -> MessageSegment:
     user = await SignGroupUser.ensure(user_qq, group, for_update=True)
     impression_added = random.random()
-    present = present + timedelta(hours=8)
     critx2 = random.random()
     add_probability = user.add_probability
     specify_probability = user.specify_probability
@@ -41,56 +49,36 @@ async def _handle_check_in(user_qq: int, group: int, present: datetime) -> str:
         impression_added *= 2
     elif critx2 < specify_probability:
         impression_added *= 2
-    new_impression = user.impression + impression_added
-    message = random.choice(
-        (
-            "谢谢，你是个好人！",
-            "对了，来喝杯茶吗？",
-        )
-    )
-    await user.update(
-        checkin_count=user.checkin_count + 1,
-        checkin_time_last=present,
-        impression=new_impression,
-        add_probability=0,
-        specify_probability=0,
-    ).apply()
-    # glod = await random_glod(user_qq, group, specify_probability)
-    if user.impression < 1:
-        impression = 1
-    else:
-        impression = user.impression
+    await SignGroupUser.sign(user, impression_added, present)
     gold = random.randint(1, 100)
-    imgold = random.randint(1, int(impression))
-    if imgold > MAX_SIGN_GOLD:
-        imgold = MAX_SIGN_GOLD
-    await BagUser.add_gold(user_qq, group, gold + imgold)
+    gift, gift_type = random_event(user.impression)
+    if gift_type == "gold":
+        await BagUser.add_gold(user_qq, group, gold + gift)
+        gift = f"额外金币 + {gift}"
+    else:
+        await BagUser.add_props(user_qq, group, gift)
+        gift += ' + 1'
     if critx2 + add_probability > 0.97 or critx2 < specify_probability:
         logger.info(
             f"(USER {user.user_qq}, GROUP {user.belonging_group})"
-            f" CHECKED IN successfully. score: {new_impression:.2f} (+{impression_added * 2:.2f}).获取金币：{gold+imgold}"
+            f" CHECKED IN successfully. score: {user.impression:.2f} "
+            f"(+{impression_added * 2:.2f}).获取金币：{gold + gift if gift == 'gold' else gold}"
         )
-        return f"{message} 好感度：{new_impression:.2f} (+{impression_added/2:.2f}×2)！！！\n获取金币：{gold} \n好感度额外获得金币：{imgold}"
+        return await get_card(user, nickname, impression_added, gold, gift, True)
     else:
         logger.info(
             f"(USER {user.user_qq}, GROUP {user.belonging_group})"
-            f" CHECKED IN successfully. score: {new_impression:.2f} (+{impression_added:.2f}).获取金币：{gold+imgold}"
+            f" CHECKED IN successfully. score: {user.impression:.2f} "
+            f"(+{impression_added:.2f}).获取金币：{gold + gift if gift == 'gold' else gold}"
         )
-        return f"{message} 好感度：{new_impression:.2f} (+{impression_added:.2f})\n获取金币：{gold} \n好感度额外获得金币：{imgold}"
+        return await get_card(user, nickname, impression_added, gold, gift)
 
 
-async def group_user_check(user_qq: int, group: int) -> str:
+async def group_user_check(nickname: str, user_qq: int, group: int) -> MessageSegment:
     # heuristic: if users find they have never checked in they are probable to check in
     user = await SignGroupUser.ensure(user_qq, group)
     gold = await BagUser.get_gold(user_qq, group)
-    return "好感度：{:.2f}\n金币：{}\n历史签到数：{}\n上次签到日期：{}".format(
-        user.impression,
-        gold,
-        user.checkin_count,
-        user.checkin_time_last.date()
-        if user.checkin_time_last != datetime.min
-        else "从未",
-    )
+    return await get_card(user, nickname, None, gold, "", is_card_view=True)
 
 
 async def group_impression_rank(group: int) -> str:
@@ -108,7 +96,7 @@ async def group_impression_rank(group: int) -> str:
                 user_name = (
                     await GroupInfoUser.get_member_info(user_qq, group)
                 ).user_name
-            except Exception as e:
+            except AttributeError:
                 logger.info(f"USER {user_qq}, GROUP {group} 不在群内")
                 _count += 1
                 impression_list.remove(impression)

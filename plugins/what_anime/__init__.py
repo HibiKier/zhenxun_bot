@@ -42,7 +42,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @what_anime.got("img_url", prompt="虚空识番？来图来图GKD")
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     img_url = state["img_url"][0]
-    _ulmt.set_True(event.user_id)
+    _ulmt.set_true(event.user_id)
     await what_anime.send("开始识别.....")
     anime_data_report = await get_anime(img_url)
     if anime_data_report:
@@ -58,4 +58,4 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'} 识番 {img_url} 未找到！！"
         )
         await what_anime.send(f"没有寻找到该番剧，果咩..", at_sender=True)
-    _ulmt.set_False(event.user_id)
+    _ulmt.set_false(event.user_id)

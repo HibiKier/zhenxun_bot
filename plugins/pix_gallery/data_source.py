@@ -4,16 +4,17 @@ from aiohttp.client_exceptions import (
     ClientConnectorError,
 )
 from asyncpg.exceptions import UniqueViolationError
+from models.omega_pixiv_illusts import OmegaPixivIllusts
 from asyncio.locks import Semaphore
 from aiohttp import ClientPayloadError
 from aiohttp.client import ClientSession
 from asyncio.exceptions import TimeoutError
 from models.pixiv import Pixiv
 from typing import List
-from utils.utils import get_local_proxy
+from utils.utils import get_local_proxy, change_picture_links
 from utils.image_utils import CreateImg
 from services.log import logger
-from configs.config import HIBIAPI_BOOKMARKS, HIBIAPI
+from configs.config import HIBIAPI_BOOKMARKS, HIBIAPI, PIX_IMAGE_SIZE
 from configs.path_config import TEMP_PATH
 import platform
 import aiohttp
@@ -215,19 +216,45 @@ async def download_image(img_url: str, session: ClientSession, _count: int = 1):
 
 
 async def get_image(img_url: str, user_id: int) -> str:
-    try:
-        async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(
-                img_url,
-                proxy=get_local_proxy(),
-            ) as response:
-                async with aiofiles.open(
-                    f"{TEMP_PATH}/pix_{user_id}_{img_url[-10:-4]}.jpg", "wb"
-                ) as f:
-                    await f.write(await response.read())
-                return f"pix_{user_id}_{img_url[-10:-4]}.jpg"
-    except (ClientConnectorError, TimeoutError):
-        return await get_image(img_url, user_id)
+    async with aiohttp.ClientSession(headers=headers) as session:
+        if 'https://www.pixiv.net/artworks' in img_url:
+            pid = img_url.rsplit('/', maxsplit=1)[-1]
+            params = {"id": pid}
+            for _ in range(3):
+                try:
+                    async with session.get(
+                        illust_url,
+                        params=params,
+                        proxy=get_local_proxy(),
+                    ) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            if data.get('illust'):
+                                if data['illust']['page_count'] == 1:
+                                    img_url = data['illust']['meta_single_page']['original_image_url']
+                                else:
+                                    img_url = data['illust']["meta_pages"][0]["image_urls"]["original"]
+                                break
+                except (ClientConnectorError, TimeoutError):
+                    pass
+        old_img_url = img_url
+        img_url = change_picture_links(img_url, PIX_IMAGE_SIZE)
+        for _ in range(3):
+            try:
+                async with session.get(
+                    img_url,
+                    proxy=get_local_proxy(),
+                ) as response:
+                    if response.status == 404:
+                        img_url = old_img_url
+                        continue
+                    async with aiofiles.open(
+                        f"{TEMP_PATH}/pix_{user_id}_{img_url[-10:-4]}.jpg", "wb"
+                    ) as f:
+                        await f.write(await response.read())
+                    return f"pix_{user_id}_{img_url[-10:-4]}.jpg"
+            except (ClientConnectorError, TimeoutError):
+                pass
 
 
 # 检测UID或PID是否有效
@@ -248,7 +275,9 @@ async def uid_pid_exists(id_: str) -> bool:
 
 
 async def get_keyword_num(keyword: str) -> "int , int":
-    return await Pixiv.get_keyword_num(keyword.split())
+    count, r18_count = await Pixiv.get_keyword_num(keyword.split())
+    count_, setu_count, r18_count_ = await OmegaPixivIllusts.get_keyword_num(keyword.split())
+    return count, r18_count, count_, setu_count, r18_count_
 
 
 async def remove_image(pid: int, img_p: str) -> bool:

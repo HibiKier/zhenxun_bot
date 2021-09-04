@@ -1,30 +1,26 @@
-import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from configs.path_config import LOG_PATH
-import sys
-# CRITICAL    50
-# ERROR      40
-# WARNING   30
-# INFO        20
-# DEBUG      10
-# NOTSET     0
+from loguru import logger as logger_
+from nonebot.log import default_format, default_filter
 
-# _handler = logging.StreamHandler(sys.stdout)
-# _handler.setFormatter(
-#     logging.Formatter('[%(asctime)s %(name)s] %(levelname)s: %(message)s')
-# )
-logger = logging.getLogger('hibiki')
-logger.setLevel(level=logging.DEBUG)
 
-formatter = logging.Formatter('[%(asctime)s] - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s')
+logger = logger_
 
-file_handler = logging.FileHandler(LOG_PATH + str(datetime.now().date()) + '.log', mode='a', encoding='utf-8')
-file_handler.setLevel(level=logging.INFO)
-file_handler.setFormatter(formatter)
 
-stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.INFO)
-stream_handler.setFormatter(formatter)
+logger.add(
+    f'{LOG_PATH}/{datetime.now().date()}.log',
+    level='INFO',
+    rotation='00:00',
+    format=default_format,
+    filter=default_filter,
+    retention=timedelta(days=30))
 
-logger.addHandler(file_handler)
-logger.addHandler(stream_handler)
+logger.add(
+    f'{LOG_PATH}/error_{datetime.now().date()}.log',
+    level='ERROR',
+    rotation='00:00',
+    format=default_format,
+    filter=default_filter,
+    retention=timedelta(days=30))
+
+

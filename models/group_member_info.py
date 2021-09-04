@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from services.db_context import db
-from typing import List
+from typing import List, Optional
 
 
 class GroupInfoUser(db.Model):
@@ -13,6 +13,7 @@ class GroupInfoUser(db.Model):
     belonging_group = db.Column(db.BigInteger(), nullable=False)
     user_join_time = db.Column(db.DateTime(), nullable=False)
     nickname = db.Column(db.Unicode())
+    uid = db.Column(db.BigInteger())
 
     _idx1 = db.Index("info_group_users_idx1", "user_qq", "belonging_group", unique=True)
 
@@ -141,3 +142,33 @@ class GroupInfoUser(db.Model):
             if user.nickname:
                 return user.nickname
         return ""
+
+    @classmethod
+    async def get_group_member_uid(cls, user_qq: int, belonging_group: int) -> Optional[str]:
+        query = cls.query.where(
+            (cls.user_qq == user_qq) & (cls.belonging_group == belonging_group)
+        )
+        user = await query.gino.first()
+        _max_uid = cls.query.where((cls.user_qq == 114514) & (cls.belonging_group == 114514)).with_for_update()
+        _max_uid_user = await _max_uid.gino.first()
+        _max_uid = _max_uid_user.uid
+        if not user or not user.uid:
+            all_user = await cls.query.where(cls.user_qq == user_qq).gino.all()
+            for x in all_user:
+                if x.uid:
+                    return x.uid
+            else:
+                if not user:
+                    await GroupInfoUser.add_member_info(user_qq, belonging_group, '', datetime.min)
+                    user = await cls.query.where(
+                        (cls.user_qq == user_qq) & (cls.belonging_group == belonging_group)
+                    ).gino.first()
+                await user.update(
+                    uid=_max_uid + 1,
+                ).apply()
+                await _max_uid_user.update(
+                    uid=_max_uid + 1,
+                ).apply()
+
+        return user.uid if user and user.uid else None
+

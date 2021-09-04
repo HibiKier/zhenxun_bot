@@ -33,6 +33,8 @@ manager_group_whitelist = on_command(
     "添加群白名单", aliases={"删除群白名单"}, priority=1, permission=SUPERUSER, block=True
 )
 
+show_group_whitelist = on_command('查看群白名单', priority=1, permission=SUPERUSER, block=True)
+
 
 @add_group_level.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
@@ -100,3 +102,13 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         )
     else:
         await manager_group_whitelist.send(f"添加失败，请检查{NICKNAME}是否已加入这些群聊或重复添加/删除群白单名")
+
+
+@show_group_whitelist.handle()
+async def _(bot: Bot, event: MessageEvent, state: T_State):
+    x = group_manager.get_group_white_list()
+    x = [str(g) for g in x]
+    if x:
+        await show_group_whitelist.send("目前的群白名单：\n" + '\n'.join(x))
+    else:
+        await show_group_whitelist.send('没有任何群在群白名单...')
