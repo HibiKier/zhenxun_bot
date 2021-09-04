@@ -153,6 +153,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     live_rst = '当前订阅的直播：\n' + live_rst if live_rst else live_rst
     up_rst = '当前订阅的UP：\n' if up_rst else up_rst
     season_rst = '当前订阅的番剧：\n' if season_rst else season_rst
+    if not live_rst and not up_rst and not season_rst:
+        live_rst = '您目前没有任何订阅...'
     await show_sub_info.send(live_rst + up_rst + season_rst)
 
 
