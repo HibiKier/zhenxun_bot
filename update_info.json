@@ -65,6 +65,24 @@
         "utils/static_data/group_manager.py",
         "utils/utils.py"
     ],
-    "add_file": [],
+    "add_file": [
+        "__version__",
+        "models/bilibili_sub.py",
+        "models/omega_pixiv_illusts.py",
+        "plugins/bilibili_sub/__init__.py",
+        "plugins/bilibili_sub/data_source.py",
+        "plugins/bilibili_sub/utils.py",
+        "plugins/database_scripts.py",
+        "plugins/sign_in/config.py",
+        "plugins/sign_in/random_event.py",
+        "plugins/sign_in/utils.py",
+        "plugins/withdraw.py",
+        "resources/img/sign/sign_res/background/background_01.jpg",
+        "resources/img/sign/sign_res/bar.png",
+        "resources/img/sign/sign_res/bar_white.png",
+        "resources/img/sign/sign_res/border/ava_border_01.png",
+        "resources/img/sign/sign_res/border/gift_border_02.png",
+        "resources/img/sign/sign_res/white.png"
+    ],
     "delete_file": ["plugins/nonebot_plugin_withdraw"]
 }
