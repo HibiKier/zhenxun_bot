@@ -486,9 +486,10 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
                 and _exists_msg.get(event.group_id) is True
             ):
                 _exists_msg[event.group_id] = False
+                raise IgnoredException("有命令就别说话了")
             elif (
                 isinstance(event, PrivateMessageEvent)
                 and _exists_msg.get(event.user_id) is True
             ):
                 _exists_msg[event.user_id] = False
-            raise IgnoredException("有命令就别说话了")
+                raise IgnoredException("有命令就别说话了")
