@@ -59,7 +59,7 @@ async def remind(bot: Bot):
         is_restart_file.unlink()
 
 
-async def check_update(bot: Bot) -> int:
+async def check_update(bot: Bot) -> 'int, str':
     logger.info("开始检查更新真寻酱....")
     _version = "v0.0.0"
     if _version_file.exists():
@@ -79,9 +79,11 @@ async def check_update(bot: Bot) -> int:
             logger.info(f"开始下载真寻最新版文件....")
             if await download_latest_file(tar_gz_url):
                 logger.info("下载真寻最新版文件完成....")
-                await asyncio.get_event_loop().run_in_executor(
+                error = await asyncio.get_event_loop().run_in_executor(
                     None, _file_handle, latest_version
                 )
+                if error:
+                    return 998, error
                 logger.info("真寻更新完毕，清理文件完成....")
                 logger.info("开始获取真寻更新日志.....")
                 update_info = data["body"]
@@ -96,11 +98,11 @@ async def check_update(bot: Bot) -> int:
                 await bot.send_private_msg(
                     user_id=int(list(bot.config.superusers)[0]),
                     message=Message(f"真寻更新完成，版本：{_version} -> {latest_version}\n"
-                    f"更新日期：{data['created_at']}\n"
-                    f"更新日志：\n"
-                    f"{image('update_info.png')}"),
+                                    f"更新日期：{data['created_at']}\n"
+                                    f"更新日志：\n"
+                                    f"{image('update_info.png')}"),
                 )
-                return 200
+                return 200, ''
             else:
                 logger.warning(f"下载真寻最新版本失败...版本号：{latest_version}")
                 await bot.send_private_msg(
@@ -118,57 +120,62 @@ async def check_update(bot: Bot) -> int:
         await bot.send_private_msg(
             user_id=int(list(bot.config.superusers)[0]), message=f"自动获取真寻版本失败...."
         )
-    return 999
+    return 999, ''
 
 
-def _file_handle(latest_version: str):
+def _file_handle(latest_version: str) -> str:
     if not temp_dir.exists():
         temp_dir.mkdir(exist_ok=True, parents=True)
     if backup_dir.exists():
         shutil.rmtree(backup_dir)
-    backup_dir.mkdir(exist_ok=True, parents=True)
-    logger.info("开始解压真寻文件压缩包....")
-    tf = tarfile.open(zhenxun_latest_tar_gz)
-    tf.extractall(temp_dir)
-    logger.info("解压真寻文件压缩包完成....")
-    zhenxun_latest_file = Path(temp_dir) / os.listdir(temp_dir)[0]
-    update_info_file = Path(zhenxun_latest_file) / "update_info.json"
-    update_info = json.load(open(update_info_file, "r", encoding="utf8"))
-    update_file = update_info["update_file"]
-    add_file = update_info["add_file"]
-    delete_file = update_info["delete_file"]
-    config_file = Path() / "configs" / "config.py"
-    config_path_file = Path() / "configs" / "config_path.py"
-    for file in delete_file + update_file:
-        file = Path() / file
-        backup_file = Path(backup_dir) / file
-        if file.exists():
-            backup_file.parent.mkdir(parents=True, exist_ok=True)
-            if backup_file.exists():
-                backup_file.unlink()
-            if file not in [config_file, config_path_file]:
-                os.rename(file.absolute(), backup_file.absolute())
+    tf = None
+    error = ''
+    try:
+        backup_dir.mkdir(exist_ok=True, parents=True)
+        logger.info("开始解压真寻文件压缩包....")
+        tf = tarfile.open(zhenxun_latest_tar_gz)
+        tf.extractall(temp_dir)
+        logger.info("解压真寻文件压缩包完成....")
+        zhenxun_latest_file = Path(temp_dir) / os.listdir(temp_dir)[0]
+        update_info_file = Path(zhenxun_latest_file) / "update_info.json"
+        update_info = json.load(open(update_info_file, "r", encoding="utf8"))
+        update_file = update_info["update_file"]
+        add_file = update_info["add_file"]
+        delete_file = update_info["delete_file"]
+        config_file = Path() / "configs" / "config.py"
+        config_path_file = Path() / "configs" / "config_path.py"
+        for file in delete_file + update_file:
+            file = Path() / file
+            backup_file = Path(backup_dir) / file
+            if file.exists():
+                backup_file.parent.mkdir(parents=True, exist_ok=True)
+                if backup_file.exists():
+                    backup_file.unlink()
+                if file not in [config_file, config_path_file]:
+                    os.rename(file.absolute(), backup_file.absolute())
+                else:
+                    with open(file, "r", encoding="utf8") as rf:
+                        data = rf.read()
+                    with open(backup_file, "w", encoding="utf8") as wf:
+                        wf.write(data)
+                logger.info(f"已备份文件：{file}")
+        for file in add_file + update_file:
+            new_file = Path(zhenxun_latest_file) / file
+            old_file = Path() / file
+            if old_file not in [config_file, config_path_file]:
+                if not old_file.exists() and new_file.exists():
+                    os.rename(new_file.absolute(), old_file.absolute())
+                    logger.info(f"已更新文件：{file}")
             else:
-                with open(file, "r", encoding="utf8") as rf:
-                    data = rf.read()
-                with open(backup_file, "w", encoding="utf8") as wf:
-                    wf.write(data)
-            logger.info(f"已备份文件：{file}")
-    for file in add_file + update_file:
-        new_file = Path(zhenxun_latest_file) / file
-        old_file = Path() / file
-        if old_file not in [config_file, config_path_file]:
-            if not old_file.exists() and new_file.exists():
-                os.rename(new_file.absolute(), old_file.absolute())
-                logger.info(f"已更新文件：{file}")
-        else:
-            tmp = ""
-            new_lines = open(new_file, "r", encoding="utf8").readlines()
-            old_lines = open(old_file, "r", encoding="utf8").readlines()
-            for nl in new_lines:
-                tmp += check_old_lines(old_lines, nl)
-            with open(file, "w", encoding="utf8") as f:
-                f.write(tmp)
+                tmp = ""
+                new_lines = open(new_file, "r", encoding="utf8").readlines()
+                old_lines = open(old_file, "r", encoding="utf8").readlines()
+                for nl in new_lines:
+                    tmp += check_old_lines(old_lines, nl)
+                with open(file, "w", encoding="utf8") as f:
+                    f.write(tmp)
+    except Exception as e:
+        error = f'{type(e)}：{e}'
     if tf:
         tf.close()
     if temp_dir.exists():
@@ -180,6 +187,7 @@ def _file_handle(latest_version: str):
         local_update_info_file.unlink()
     with open(_version_file, "w", encoding="utf8") as f:
         f.write(f"__version__: {latest_version}")
+    return error
 
 
 # 获取最新版本号
