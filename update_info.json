@@ -75,7 +75,7 @@
         "plugins/sign_in/random_event.py",
         "plugins/sign_in/utils.py",
         "plugins/withdraw.py",
-        "resources/img/sign/sign_res"
+        "resources/img/sign"
     ],
     "delete_file": ["plugins/nonebot_plugin_withdraw"]
 }
