@@ -20,7 +20,7 @@ restart = on_command('重启', aliases={'restart'}, permission=SUPERUSER, rule=t
 @update_zhenxun.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     try:
-        error, code = await check_update(bot)
+        code, error = await check_update(bot)
         if error:
             logger.error(f'更新真寻未知错误 {error}')
             await bot.send_private_msg(
