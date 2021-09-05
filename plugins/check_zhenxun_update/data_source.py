@@ -115,6 +115,7 @@ async def check_update(bot: Bot) -> 'int, str':
                 user_id=int(list(bot.config.superusers)[0]),
                 message=f"自动获取真寻版本成功：{latest_version}，当前版本为最新版，无需更新...",
             )
+            return 200, ''
     else:
         logger.warning("自动获取真寻版本失败....")
         await bot.send_private_msg(
