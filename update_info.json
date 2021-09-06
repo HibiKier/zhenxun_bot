@@ -70,6 +70,8 @@
     "add_file": [
         "models/omega_pixiv_illusts.py",
         "models/sign_group_user.py",
+        "plugins/bilibili_sub",
+        "models/bilibili_sub.py",
         "plugins/database_scripts.py",
         "plugins/sign_in/config.py",
         "plugins/sign_in/random_event.py",
