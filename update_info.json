@@ -55,6 +55,8 @@
         "plugins/super_help/__init__.py",
         "plugins/update_gocqhttp/__init__.py",
         "plugins/what_anime/__init__.py",
+        "plugins/bilibili_sub",
+        "models/bilibili_sub.py",
         "services/log.py",
         "update_info.json",
         "utils/browser.py",
@@ -66,11 +68,8 @@
         "utils/utils.py"
     ],
     "add_file": [
-        "__version__",
-        "models/bilibili_sub.py",
         "models/omega_pixiv_illusts.py",
         "models/sign_group_user.py",
-        "plugins/bilibili_sub",
         "plugins/database_scripts.py",
         "plugins/sign_in/config.py",
         "plugins/sign_in/random_event.py",
