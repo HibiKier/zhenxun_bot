@@ -80,7 +80,6 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         if sub_type in ["season", "动漫", "番剧"]:
             rst = "*以为您找到以下番剧，请输入Id选择：*\n"
             state["season_data"] = await get_media_id(id_)
-            print(state["season_data"])
             if len(state["season_data"]) == 0:
                 await add_sub.finish(f"未找到番剧：{msg}")
             for i, x in enumerate(state["season_data"]):
@@ -105,7 +104,6 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         await add_sub.send(await add_season_sub(id_, sub_user))
     else:
         await add_sub.finish("参数错误，第一参数必须为：主播/up/番剧！")
-    sub_manager.reload_flag = True
     logger.info(
         f"(USER {event.user_id}, GROUP "
         f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
@@ -151,8 +149,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                           f'\t当前集数：{x.season_current_episode}\n' \
                           f'------------------\n'
     live_rst = '当前订阅的直播：\n' + live_rst if live_rst else live_rst
-    up_rst = '当前订阅的UP：\n' if up_rst else up_rst
-    season_rst = '当前订阅的番剧：\n' if season_rst else season_rst
+    up_rst = '当前订阅的UP：\n' + up_rst if up_rst else up_rst
+    season_rst = '当前订阅的番剧：\n' + season_rst if season_rst else season_rst
     if not live_rst and not up_rst and not season_rst:
         live_rst = '您目前没有任何订阅...'
     await show_sub_info.send(live_rst + up_rst + season_rst)

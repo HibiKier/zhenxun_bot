@@ -132,7 +132,7 @@ def hello() -> str:
         (
             "哦豁？！",
             "你好！Ov<",
-            f"库库库，呼唤{list(get_bot().config.nickname)[0]}做什么呢",
+            f"库库库，呼唤{NICKNAME}做什么呢",
             "我在呢！",
             "呼呼，叫俺干嘛",
         )
@@ -170,8 +170,8 @@ async def check_text(text: str, sess: ClientSession) -> str:
         async with sess.get(check_url, timeout=2, params=params) as response:
             data = await response.json()
             if data["code"] == 200:
-                if data["conclusion_type"] == 2:
+                if data['data']["conclusion_type"] == 2:
                     return ''
     except Exception as e:
-        logger.error(f"检测违规文本错误...e：{e}")
+        logger.error(f"检测违规文本错误...{type(e)}：{e}")
     return text

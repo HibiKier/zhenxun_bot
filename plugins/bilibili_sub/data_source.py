@@ -335,45 +335,52 @@ async def get_user_dynamic(
 
 class SubManager:
     def __init__(self):
-        self.reload_flag = True
         self.live_data = []
         self.up_data = []
         self.season_data = []
-        self.sub_list = []
+        self.current_index = -1
 
     async def reload_sub_data(self):
         """
         重载数据
         """
-        if self.reload_flag or not self.sub_list:
+        if not self.live_data or not self.up_data or not self.season_data:
             (
-                self.live_data,
-                self.up_data,
-                self.season_data,
+                _live_data,
+                _up_data,
+                _season_data,
             ) = await BilibiliSub.get_all_sub_data()
-            for x, i, j in zip(self.live_data, self.up_data, self.season_data):
-                self.sub_list.append(x)
-                self.sub_list.append(i)
-                self.sub_list.append(j)
-            self.reload_flag = False
-
-    def append(self, data: BilibiliSub):
-        """
-        增加新数据
-        :param data: 数据
-        """
-        self.sub_list.append(data)
+            if not self.live_data:
+                self.live_data = _live_data
+            if not self.up_data:
+                self.up_data = _up_data
+            if not self.season_data:
+                self.season_data = _season_data
 
     async def random_sub_data(self) -> Optional[BilibiliSub]:
         """
         随机获取一条数据
         :return:
         """
-        if not self.sub_list:
-            await self.reload_sub_data()
-        if self.sub_list:
-            sub = random.choice(self.sub_list)
-            self.sub_list.remove(sub)
+        sub = None
+        self.current_index += 1
+        if self.current_index == 0:
+            if self.live_data:
+                sub = random.choice(self.live_data)
+                self.live_data.remove(sub)
+        elif self.current_index == 1:
+            if self.up_data:
+                sub = random.choice(self.up_data)
+                self.up_data.remove(sub)
+        elif self.current_index == 2:
+            if self.season_data:
+                sub = random.choice(self.season_data)
+                self.season_data.remove(sub)
+        else:
+            self.current_index = -1
+        if sub:
             return sub
-        return None
+        await self.reload_sub_data()
+        return await self.random_sub_data()
+
 
