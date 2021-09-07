@@ -131,6 +131,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         info_list, code = await search_pixiv_urls(keyword, num, page, r18)
         if code != 200:
             await pixiv_keyword.finish(info_list[0])
+    if not info_list:
+        await pixiv_keyword.finish("没有找到啊，等等再试试吧~V", at_sender=True)
     await send_image(info_list, pixiv_keyword, bot, event)
     logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
