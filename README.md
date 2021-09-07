@@ -463,6 +463,14 @@ python bot.py
 
 ## 更新
 
+### 2021/9/7
+
+* 修改 update_info.json
+* 修改 更新信息 图片大小
+* 修复 查看订阅 命令 UP和番剧无法正常显示
+* 修复订阅推送无法正确推送
+* 修复搜图返回列表为空时无法正确回复 @[pull/40](https://github.com/HibiKier/zhenxun_bot/pull/40)
+
 ### 2021/9/5
 * 添加配置PIX_IMAGE_SIZE，调整PIX下载图片大小，当设置的图片404时，改为原图
 * 新增配置DEFAULT_GROUP_LEVEL，默认群等级
