@@ -27,13 +27,13 @@ async def group_user_check_in(
         # 取得相应用户
         user = await SignGroupUser.ensure(user_qq, group, for_update=True)
         # 如果同一天签到过，特殊处理
-        # if (
-        #     user.checkin_time_last + timedelta(hours=8)
-        # ).date() >= present.date() or f"{user}_{group}_sign_{datetime.now().date()}" in os.listdir(
-        #     SIGN_TODAY_CARD_PATH
-        # ):
-        #     gold = await BagUser.get_gold(user_qq, group)
-        #     return await get_card(user, nickname, -1, gold, "")
+        if (
+            user.checkin_time_last + timedelta(hours=8)
+        ).date() >= present.date() or f"{user}_{group}_sign_{datetime.now().date()}" in os.listdir(
+            SIGN_TODAY_CARD_PATH
+        ):
+            gold = await BagUser.get_gold(user_qq, group)
+            return await get_card(user, nickname, -1, gold, "")
         return await _handle_check_in(nickname, user_qq, group, present)  # ok
 
 
