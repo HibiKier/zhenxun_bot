@@ -159,11 +159,12 @@ class Pixiv(db.Model):
         参数：
             :param tags: 关键词/Tag
         """
-        query = cls.query
+        setattr(Pixiv, 'count', db.func.count(cls.pid).label('count'))
+        query = cls.select('count')
         if tags:
             for tag in tags:
-                query = cls.query.where(cls.tags.contains(tag))
-        count = len(await query.where(cls.is_r18 == False).gino.all())
-        r18_count = len(await query.where(cls.is_r18 == True).gino.all())
-        return count, r18_count
+                query = query.where(cls.tags.contains(tag))
+        count = await query.where(cls.is_r18 == False).gino.first()
+        r18_count = await query.where(cls.is_r18 == True).gino.first()
+        return count[0], r18_count[0]
 
