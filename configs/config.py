@@ -1,7 +1,6 @@
 from typing import List, Optional, Tuple
 from services.service_config import TL_M_KEY, SYSTEM_M_PROXY, ALAPI_M_TOKEN
-from .path_config import DATA_PATH
-from pathlib import Path
+from .utils.init_config import init_config
 
 try:
     import ujson as json
@@ -315,37 +314,9 @@ RSSHUBAPP = RSSHUBAPP[:-1] if RSSHUBAPP[-1] == "/" else RSSHUBAPP
 
 if USE_CONFIG_FILE:
     # 读取配置文件
-    plugins2info_file = Path(DATA_PATH) / 'configs' / 'plugins2info.json'
-    plugins2info_file.parent.mkdir(exist_ok=True, parents=True)
-
-    if plugins2info_file.exists():
-        with open(plugins2info_file, 'r') as f:
-            _data = json.load(f)
-            for p in plugins2info_dict:
-                if not _data.get(p):
-                    _data[p] = plugins2info_dict[p]
-        with open(plugins2info_file, 'w') as wf:
-            json.dump(_data, wf, ensure_ascii=False, indent=4)
-        plugins2info_dict = _data
-    else:
-        with open(plugins2info_file, 'w', encoding='utf8') as wf:
-            json.dump(plugins2info_dict, wf, ensure_ascii=False, indent=4)
-
-    plugins2cd_file = Path(DATA_PATH) / 'configs' / 'plugins2cd.json'
-    if plugins2cd_file.exists():
-        with open(plugins2cd_file, 'r', encoding='utf8') as f:
-            plugins2cd_dict = json.load(f)
-    else:
-        with open(plugins2cd_file, 'w', encoding='utf8') as wf:
-            json.dump(plugins2cd_dict, wf, ensure_ascii=False, indent=4)
-
-    plugins2exists_file = Path(DATA_PATH) / 'configs' / 'plugins2exists.json'
-    if plugins2exists_file.exists():
-        with open(plugins2exists_file, 'r', encoding='utf8') as f:
-            plugins2exists_dict = json.load(f)
-    else:
-        with open(plugins2exists_file, 'w', encoding='utf8') as wf:
-            json.dump(plugins2exists_dict, wf, ensure_ascii=False, indent=4)
+    plugins2info_dict, plugins2cd_dict, plugins2exists_dict = init_config(
+        plugins2info_dict, plugins2cd_dict, plugins2exists_dict
+    )
 
 
 # 配置文件应用
