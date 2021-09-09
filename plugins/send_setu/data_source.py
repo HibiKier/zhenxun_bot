@@ -160,7 +160,7 @@ async def get_setu_list(
     index: Optional[int] = None, tags: Optional[List[str]] = None, r18: int = 0
 ) -> "list, int":
     if index:
-        image_count = await Setu.get_image_count(r18)
+        image_count = await Setu.get_image_count(r18) - 1
         if index < 0 or index > image_count:
             return [f"超过当前上下限！({image_count})"], 999
         image_list = [await Setu.query_image(index, r18=r18)]
