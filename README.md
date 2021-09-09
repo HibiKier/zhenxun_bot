@@ -324,6 +324,8 @@ python bot.py
 * 修复签到可能重复的问题
 * 修复无订阅时递归出错
 * 启用了plugins2info_dict, plugins2cd_dict, plugins2exists_dict配置文件，通过USE_CONFIG_FILE=True开启
+* 修复涩图local_id会被固定为50
+* 优化图库数量查询
 
 ### 2021/9/7
 
