@@ -326,6 +326,7 @@ python bot.py
 * 启用了plugins2info_dict, plugins2cd_dict, plugins2exists_dict配置文件，通过USE_CONFIG_FILE=True开启
 * 修复涩图local_id会被固定为50
 * 优化图库数量查询
+* 修复原神大地图过大无法打开报错
 
 ### 2021/9/7
 
