@@ -57,6 +57,7 @@ class Setu(db.Model):
         local_id: Optional[int] = None,
         tags: Optional[List[str]] = None,
         r18: int = 0,
+        limit: int = 50,
     ):
         """
         说明：
@@ -65,6 +66,7 @@ class Setu(db.Model):
             :param local_id: 本地色图 id
             :param tags: tags
             :param r18: 是否 r18，0：非r18  1：r18  2：混合
+            :param limit: 获取数量
         """
         if local_id:
             flag = True if r18 == 1 else False
@@ -80,7 +82,7 @@ class Setu(db.Model):
         if tags:
             for tag in tags:
                 query = query.where(cls.tags.contains(tag) | cls.title.contains(tag) | cls.author.contains(tag))
-        query = query.order_by(db.func.random()).limit(50)
+        query = query.order_by(db.func.random()).limit(limit)
         return await query.gino.all()
 
     @classmethod
@@ -89,8 +91,7 @@ class Setu(db.Model):
         说明：
             查询图片数量
         """
-        return len(await cls.query_image(r18=r18))
-        # return await db.func.count(cls.local_id).gino.scalar()
+        return len(await cls.query_image(r18=r18, limit=999999))
 
     @classmethod
     async def get_image_in_hash(cls, img_hash: str) -> "Setu":
