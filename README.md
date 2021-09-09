@@ -465,6 +465,14 @@ python bot.py
 
 ## 更新
 
+### 2021/9/9
+
+* 替换coser API
+* 修复签到uid可能不默认为0
+* 修复签到可能重复的问题
+* 修复无订阅时递归出错
+* 启用了plugins2info_dict, plugins2cd_dict, plugins2exists_dict配置文件，通过USE_CONFIG_FILE=True开启
+
 ### 2021/9/7
 
 * 修改 update_info.json
