@@ -91,7 +91,10 @@ class Setu(db.Model):
         说明：
             查询图片数量
         """
-        return len(await cls.query_image(r18=r18, limit=999999))
+        flag = False if r18 == 0 else True
+        setattr(Setu, 'count', db.func.count(cls.local_id).label('count'))
+        count = await cls.select('count').where(cls.is_r18 == flag).gino.first()
+        return count
 
     @classmethod
     async def get_image_in_hash(cls, img_hash: str) -> "Setu":
