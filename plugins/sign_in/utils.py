@@ -31,7 +31,10 @@ driver: Driver = nonebot.get_driver()
 @driver.on_startup
 async def init_image():
     SIGN_RESOURCE_PATH.mkdir(parents=True, exist_ok=True)
-    await GroupInfoUser.add_member_info(114514, 114514, "", datetime.min)
+    await GroupInfoUser.add_member_info(114514, 114514, "", datetime.min, 0)
+    _u = await GroupInfoUser.get_member_info(114514, 114514)
+    if _u.uid is None:
+        await _u.update(uid=0).apply()
     generate_progress_bar_pic()
     clear_sign_data_pic()
 

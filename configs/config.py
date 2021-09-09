@@ -10,6 +10,10 @@ except ModuleNotFoundError:
 
 
 # 是否使用配置文件
+# 使用配置文件在每次启动时 plugins2info_dict, plugins2cd_dict, plugins2exists_dict 将从本地读取
+# 除了 plugins2info_dict 新增内容键值会写入 plugins2info_file
+# 其他修改或新增在 configs.config.py中对 plugins2info_dict, plugins2cd_dict, plugins2exists_dict 的配置无效
+# 目录：data/configs/
 USE_CONFIG_FILE: bool = False
 
 # 回复消息名称
@@ -55,12 +59,12 @@ MAXINFO_PRIVATE_ANIME: int = 20  # 私聊搜索动漫返回的最大数量
 MAXINFO_GROUP_ANIME: int = 5  # 群搜索动漫返回的最大数量
 MAX_FIND_IMG_COUNT: int = 3  # 识图最大返回数
 # 参1：延迟撤回色图时间(秒)，0 为关闭 | 参2：监控聊天类型，0(私聊) 1(群聊) 2(群聊+私聊)
-WITHDRAW_SETU_TIME: Tuple[int, int] = (0, 1)
+WITHDRAW_SETU_TIME: Tuple[int, int] = (90, 1)
 # 参1：延迟撤回PIX图片时间(秒)，0 为关闭 | 参2：监控聊天类型，0(私聊) 1(群聊) 2(群聊+私聊)
 WITHDRAW_PIX_TIME: Tuple[int, int] = (0, 1)
 
 # PIX图库 与 额外图库OmegaPixivIllusts 混合搜索的比例 参1：PIX图库 参2：OmegaPixivIllusts扩展图库（没有此图库请设置为0）
-PIX_OMEGA_PIXIV_RATIO: Tuple[int, int] = (10, 0)
+PIX_OMEGA_PIXIV_RATIO: Tuple[int, int] = (2, 8)
 
 # 各种卡池的开关
 PRTS_FLAG = True  # 明日方舟
@@ -92,7 +96,7 @@ CHECK_NOTICE_INFO_CD = 300  # 群检测，个人权限检测等各种检测提�
 
 # 注：即在 MALICIOUS_CHECK_TIME 时间内触发相同命令 MALICIOUS_BAN_COUNT 将被ban MALICIOUS_BAN_TIME 分钟
 MALICIOUS_BAN_TIME: int = 30  # 恶意命令触发检测触发后ban的时长（分钟）
-MALICIOUS_BAN_COUNT: int = 8  # 恶意命令触发检测最大触发次数
+MALICIOUS_BAN_COUNT: int = 3  # 恶意命令触发检测最大触发次数
 MALICIOUS_CHECK_TIME: int = 5  # 恶意命令触发检测规定时间内（秒）
 
 # LEVEL
@@ -102,6 +106,7 @@ UPLOAD_LEVEL: int = 6  # 上传图片权限
 BAN_LEVEL: int = 5  # BAN权限
 OC_LEVEL: int = 2  # 开关群功能权限
 MUTE_LEVEL: int = 5  # 更改禁言设置权限
+MEMBER_ACTIVITY_LEVEL = 5  # 群员活跃检测设置权限
 GROUP_BILIBILI_SUB_LEVEL = 5  # 群内bilibili订阅需要的权限
 
 DEFAULT_GROUP_LEVEL = 5  # 默认群等级
@@ -140,6 +145,7 @@ admin_plugins_auth = {
     "upload_img": UPLOAD_LEVEL,
     "admin_help": 1,
     "mute": MUTE_LEVEL,
+    "member_activity_handle": MEMBER_ACTIVITY_LEVEL,
 }
 
 # 需要cd的功能（方便管理）[秒]
@@ -307,10 +313,40 @@ HIBIAPI = HIBIAPI[:-1] if HIBIAPI[-1] == "/" else HIBIAPI
 RSSHUBAPP = RSSHUBAPP[:-1] if RSSHUBAPP[-1] == "/" else RSSHUBAPP
 
 
-# plugins2info_file = Path(DATA_PATH) / 'configs' / 'plugins2info.json'
-# plugins2info_file.parent.mkdir(exist_ok=True, parents=True)
-#
-# with open(f'{DATA_PATH}/configs/')
+if USE_CONFIG_FILE:
+    # 读取配置文件
+    plugins2info_file = Path(DATA_PATH) / 'configs' / 'plugins2info.json'
+    plugins2info_file.parent.mkdir(exist_ok=True, parents=True)
+
+    if plugins2info_file.exists():
+        with open(plugins2info_file, 'r') as f:
+            _data = json.load(f)
+            for p in plugins2info_dict:
+                if not _data.get(p):
+                    _data[p] = plugins2info_dict[p]
+        with open(plugins2info_file, 'w') as wf:
+            json.dump(_data, wf, ensure_ascii=False, indent=4)
+        plugins2info_dict = _data
+    else:
+        with open(plugins2info_file, 'w', encoding='utf8') as wf:
+            json.dump(plugins2info_dict, wf, ensure_ascii=False, indent=4)
+
+    plugins2cd_file = Path(DATA_PATH) / 'configs' / 'plugins2cd.json'
+    if plugins2cd_file.exists():
+        with open(plugins2cd_file, 'r', encoding='utf8') as f:
+            plugins2cd_dict = json.load(f)
+    else:
+        with open(plugins2cd_file, 'w', encoding='utf8') as wf:
+            json.dump(plugins2cd_dict, wf, ensure_ascii=False, indent=4)
+
+    plugins2exists_file = Path(DATA_PATH) / 'configs' / 'plugins2exists.json'
+    if plugins2exists_file.exists():
+        with open(plugins2exists_file, 'r', encoding='utf8') as f:
+            plugins2exists_dict = json.load(f)
+    else:
+        with open(plugins2exists_file, 'w', encoding='utf8') as wf:
+            json.dump(plugins2exists_dict, wf, ensure_ascii=False, indent=4)
+
 
 # 配置文件应用
 # if USE_CONFIG_FILE:

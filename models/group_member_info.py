@@ -24,6 +24,7 @@ class GroupInfoUser(db.Model):
         belonging_group: int,
         user_name: str,
         user_join_time: datetime,
+        uid: Optional[int] = None,
     ) -> bool:
         """
         说明：
@@ -33,6 +34,7 @@ class GroupInfoUser(db.Model):
             :param belonging_group: 群号
             :param user_name: 用户名称
             :param user_join_time: 入群时间
+            :param uid: 用户唯一 id（自动生成）
         """
         query = cls.query.where(
             (cls.user_qq == user_qq) & (cls.belonging_group == belonging_group)
@@ -44,6 +46,7 @@ class GroupInfoUser(db.Model):
                     user_name=user_name,
                     belonging_group=belonging_group,
                     user_join_time=user_join_time,
+                    uid=uid
                 )
             return True
         except Exception:

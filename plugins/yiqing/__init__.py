@@ -15,16 +15,17 @@ yiqing = on_command("疫情", aliases={"查询疫情", "疫情查询"}, priority
 @yiqing.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json())
-    result = await get_yiqing_data(msg)
-    if result:
-        await yiqing.send(result)
-        logger.info(
-            f"(USER {event.user_id}, GROUP "
-            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 查询疫情: {msg}"
-        )
-    else:
-        await yiqing.send("查询失败!!!!", at_sender=True)
-        logger.info(
-            f"(USER {event.user_id}, GROUP "
-            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 查询疫情失败"
-        )
+    if msg:
+        result = await get_yiqing_data(msg)
+        if result:
+            await yiqing.send(result)
+            logger.info(
+                f"(USER {event.user_id}, GROUP "
+                f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 查询疫情: {msg}"
+            )
+        else:
+            await yiqing.send("查询失败!!!!", at_sender=True)
+            logger.info(
+                f"(USER {event.user_id}, GROUP "
+                f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 查询疫情失败"
+            )

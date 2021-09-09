@@ -279,9 +279,13 @@ async def _get_season_status(id_) -> Optional[str]:
     _idx = (await BilibiliSub.get_sub(id_)).season_current_episode
     new_ep = season_info["media"]["new_ep"]["index"]
     if new_ep != _idx:
-        await BilibiliSub.update_sub_info(id_, season_current_episode=new_ep, season_update_time=datetime.now())
+        await BilibiliSub.update_sub_info(
+            id_, season_current_episode=new_ep, season_update_time=datetime.now()
+        )
         return (
-            f'{image(season_info["media"]["cover"])}\n' f"[{title}]更新啦\n" f"最新集数：{new_ep}"
+            f'{image(season_info["media"]["cover"])}\n'
+            f"[{title}]更新啦\n"
+            f"最新集数：{new_ep}"
         )
     return None
 
@@ -363,6 +367,8 @@ class SubManager:
         :return:
         """
         sub = None
+        if not self.live_data and not self.up_data and not self.season_data:
+            return sub
         self.current_index += 1
         if self.current_index == 0:
             if self.live_data:
@@ -382,5 +388,3 @@ class SubManager:
             return sub
         await self.reload_sub_data()
         return await self.random_sub_data()
-
-

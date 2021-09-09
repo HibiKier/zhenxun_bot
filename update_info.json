@@ -7,8 +7,7 @@
         "models/pixiv.py",
         "models/russian_user.py",
         "models/setu.py",
-        "plugins/admin_bot_manage/data_source.py",
-        "plugins/admin_bot_manage/switch_rule.py",
+        "plugins/admin_bot_manage",
         "plugins/admin_help/__init__.py",
         "plugins/ai/__init__.py",
         "plugins/ai/data_source.py",
@@ -65,9 +64,7 @@
         "utils/static_data/__init__.py",
         "utils/static_data/data_class.py",
         "utils/static_data/group_manager.py",
-        "utils/utils.py"
-    ],
-    "add_file": [
+        "utils/utils.py",
         "models/omega_pixiv_illusts.py",
         "models/sign_group_user.py",
         "plugins/bilibili_sub",
@@ -79,5 +76,6 @@
         "plugins/withdraw.py",
         "resources/img/sign"
     ],
+    "add_file": [],
     "delete_file": ["plugins/nonebot_plugin_withdraw", "models/sigin_group_user.py"]
 }
