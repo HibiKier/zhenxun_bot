@@ -172,3 +172,4 @@ class Setu(db.Model):
             获取所有图片对象
         """
         return await cls.query.gino.all()
+
