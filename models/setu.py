@@ -94,7 +94,7 @@ class Setu(db.Model):
         flag = False if r18 == 0 else True
         setattr(Setu, 'count', db.func.count(cls.local_id).label('count'))
         count = await cls.select('count').where(cls.is_r18 == flag).gino.first()
-        return count
+        return count[0]
 
     @classmethod
     async def get_image_in_hash(cls, img_hash: str) -> "Setu":
