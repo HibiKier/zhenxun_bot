@@ -118,14 +118,15 @@ class OmegaPixivIllusts(db.Model):
         参数：
             :param tags: 关键词/Tag
         """
-        query = cls.query
+        setattr(OmegaPixivIllusts, 'count', db.func.count(cls.pid).label('count'))
+        query = cls.select('count')
         if tags:
             for tag in tags:
                 query = query.where(cls.tags.contains(tag))
-        count = len(await query.where(cls.nsfw_tag == 0).gino.all())
-        setu_count = len(await query.where(cls.nsfw_tag == 1).gino.all())
-        r18_count = len(await query.where(cls.nsfw_tag == 2).gino.all())
-        return count, setu_count, r18_count
+        count = await query.where(cls.nsfw_tag == 0).gino.first()
+        setu_count = await query.where(cls.nsfw_tag == 1).gino.first()
+        r18_count = await query.where(cls.nsfw_tag == 2).gino.first()
+        return count[0], setu_count[0], r18_count[0]
 
     @classmethod
     async def get_all_pid(cls) -> List[int]:
@@ -133,6 +134,6 @@ class OmegaPixivIllusts(db.Model):
         说明：
             获取所有图片PID
         """
-        data = await cls.query.gino.all()
-        return [x.pid for x in data]
+        data = await cls.select('pid').gino.all()
+        return [x[0] for x in data]
 
