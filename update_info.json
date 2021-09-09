@@ -2,6 +2,7 @@
     "update_file": [
         "README.md",
         "configs/config.py",
+        "configs/utils/init_config.py",
         "models/ban_user.py",
         "models/group_member_info.py",
         "models/pixiv.py",
