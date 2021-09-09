@@ -164,40 +164,18 @@ async def download_map_init(
                 if not _map.exists():
                     # padding_w, padding_h = data['padding']
                     data = data["slices"]
-                    idx = 0
-                    for x in data:
-                        idj = 0
-                        for j in x:
-                            await download_image(
-                                j["url"],
-                                f"{map_path}/{idx}_{idj}.png",
-                                session,
-                                semaphore,
-                                force_flag=flag,
-                            )
-                            idj += 1
-                        idx += 1
-                    map_width, map_height = CreateImg(
-                        0, 0, background=f"{map_path}/0_0.png"
-                    ).size
-                    map_width = map_width * MAP_RATIO
-                    map_height = map_height * MAP_RATIO
-                    lens = len(
-                        [x for x in os.listdir(f"{map_path}") if x.startswith("0")]
+                    map_url = data[0][0]['url']
+                    await download_image(
+                        map_url,
+                        f"{map_path}/map.png",
+                        session,
+                        semaphore,
+                        force_flag=flag,
                     )
-                    background_image = CreateImg(
-                        map_width * lens, map_height * lens, map_width, map_height
+                    map_file = CreateImg(
+                        0, 0, background=f"{map_path}/map.png", ratio=MAP_RATIO
                     )
-                    for i in range(idx):
-                        for j in range(idj):
-                            x = CreateImg(
-                                0,
-                                0,
-                                background=f"{map_path}/{i}_{j}.png",
-                                ratio=MAP_RATIO,
-                            )
-                            background_image.paste(x)
-                    background_image.save(f"{map_path}/map.png")
+                    map_file.save(f"{map_path}/map.png")
             else:
                 logger.warning(f'获取原神地图失败 msg: {data["message"]}')
         else:
