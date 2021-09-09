@@ -7,6 +7,7 @@
         "models/pixiv.py",
         "models/russian_user.py",
         "models/setu.py",
+        "models/omega_pixiv_illusts.py",
         "plugins/admin_bot_manage",
         "plugins/admin_help/__init__.py",
         "plugins/ai/__init__.py",
