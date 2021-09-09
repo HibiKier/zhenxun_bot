@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple
 from services.service_config import TL_M_KEY, SYSTEM_M_PROXY, ALAPI_M_TOKEN
 from .utils.init_config import init_config
-
+from configs.path_config import DATA_PATH
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -315,7 +315,7 @@ RSSHUBAPP = RSSHUBAPP[:-1] if RSSHUBAPP[-1] == "/" else RSSHUBAPP
 if USE_CONFIG_FILE:
     # 读取配置文件
     plugins2info_dict, plugins2cd_dict, plugins2exists_dict = init_config(
-        plugins2info_dict, plugins2cd_dict, plugins2exists_dict
+        plugins2info_dict, plugins2cd_dict, plugins2exists_dict, DATA_PATH
     )
 
 
