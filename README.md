@@ -288,7 +288,7 @@ pip install -r requirements.txt
 python bot.py
 ```
 
-## 配置（暂时不更新 json 配置，请将USE_CONFIG_FILE设置为False）
+## 配置
 在 configs/config.py 中的 USE_CONFIG_FILE，默认为False
 
 ```
@@ -304,163 +304,15 @@ python bot.py
   在./configs/config.py中配置基本配置（除API KEY ，数据库和代理外都含有默认值）
   在./configs/path_config.py配置路径（含有默认配置）
 
-  ########（暂时不更新 json 配置，请将USE_CONFIG_FILE设置为False，直接进入./configs/config.py进行配置）
-  # 是否使用配置文件（为True时这将会生成三份配置文件
-                   ./config.json：主要配置
-                   ./configs/plugins2cmd_config.json: 功能模块与对应命令配置
-                   ./configs/other_config.json: 一些插件配置）
 
-  USE_CONFIG_FILE = True
+  USE_CONFIG_FILE = False
 
   # 如果不使用配置文件，将USE_CONFIG_FILE设置为False
   #可在./configs/config.py文件中修改配置，在./configs/path_config.py修改资源路径
   # 已在./configs/config.py和./configs/path_config.py中为各个配置提供注解！
 ```
 
-## 配置文件注解（如果使用配置文件的话）
-<details>
-<summary>配置文件注解</summary>
-./config.json
 
-```
-{
-    # 必填（影响功能运行）
-    "apikey": {
-        "LOLICON_KEY": "",      # loliconAPI，缺失会导致色图功能异常
-        "TL_KEY": []            # 图灵Key（为什么要用列表？因为白嫖用户能拿5个apikey，每个apikey每日限制100条）
-    },
-    
-    # （必填！！！）
-    # 数据库配置（如果填写了bind，后面就不用再填了)只是帮你拼接好）
-    # 示例："bind": "postgresql://user:password@127.0.0.1:5432/database"
-    "sql": {
-        "bind": "",
-        "sql_name": "",
-        "user": "",
-        "password": "",
-        "address": "",
-        "port": "",
-        "database": ""
-    },
-    
-    # 路径设置（不填则使用默认）
-    "path": {
-        "IMAGE_PATH": "",   # 图片路径
-        "VOICE_PATH": "",   # 音频路径
-        "TXT_PATH": "",     # 文本路径
-        "LOG_PATH": "",     # 日志路径
-        "DATA_PATH": "",    # 数据路径
-        "DRAW_PATH": ""     # 抽卡数据路径
-        "TEMP_PATH": ""     # 临时图片路径
-    },
-    
-    # 代理设置
-    "proxy": {
-        "system_proxy": "",     # 系统代理
-        "buff_proxy": ""        # buff代理
-    },
-    
-    # RSSHUB地址
-    "rsshub": {
-        "RSSHUBAPP": "https:\/\/docs.rsshub.app\/"
-    },
-    
-    # 各个管理员功能 对应的 权限
-    "level": {
-        "DELETE_IMG_LEVEL": 7,
-        "MOVE_IMG_LEVEL": 7,
-        "UPLOAD_LEVEL": 6,
-        "BAN_LEVEL": 5,
-        "OC_LEVEL": 2,
-        "MUTE_LEVEL": 5
-    }
-}
-```
-
-./configs/plugins2cmd_config.json
-```
-# 单个例子注解
-"send_img": [
-            "发送图片",
-            "萝莉",
-            "美图",
-            "壁纸"
-        ]
-# 发送 关闭发送图片/关闭萝莉/关闭美图/关闭壁纸 都将触发命令 关闭send_img
-```
-
-./configs/other_config.json
-```
-{
-    "base": {
-        # 图库配置，会影响 上传/删除/移动/发送图片等功能
-        "IMAGE_DIR_LIST": [
-            "色图",
-            "美图",
-            "萝莉",
-            "壁纸"
-        ],
-        "BAN_RESULT": "才不会给你发消息."   # 当被ban用户触发命令后发送的消息
-    },
-    
-    "bool": {
-        "AUTO_ADD_FRIEND": true,    # 是否自动添加好友
-        "DOWNLOAD_SETU": true       # 是否下载bot发送过的色图（不会重复）
-    },
-    
-    "max_count": {
-        "MAXINFO_REIMU": 7,           # 上车(reimu)功能查找目的地的最大数
-        "COUNT_PER_DAY_REIMU": 5,     # 每日上车(reimu)次数限制
-        "MAXINFO_BT": 10,             # bt功能单次查找最大数
-        "MAXINFO_PRIVATE_ANIME": 20,  # 私聊搜索动漫返回的最大数量
-        "MAXINFO_GROUP_ANIME": 5,     # 群搜索动漫返回的最大数量
-        "MAX_FIND_IMG_COUNT": 3,      # 识图最大返回数
-        "MAX_SIGN_GOLD": 200,         # 签到好感度加成额外获得的最大金币数
-        "MAX_SETU_R_COUNT": 5,        # 每日色图r次数限制
-    },
-    
-    "probability": {
-        "INITIAL_SETU_PROBABILITY": 0.7,    # 涩图触发的基础概率（触发概率 = 基础概率 + 好感度）
-        "FUDU_PROBABILITY": 0.7             # 复读概率
-    },
-    
-    # 注：即在 MALICIOUS_CHECK_TIME 时间内触发相同命令 MALICIOUS_BAN_COUNT 将被ban MALICIOUS_BAN_TIME 分钟
-    "malicious_ban": {
-        "MALICIOUS_BAN_TIME": 30,       # 恶意触发命令被ban的时长（分钟）
-        "MALICIOUS_BAN_COUNT": 4,       # 恶意触发命令的规定次数
-        "MALICIOUS_CHECK_TIME": 5       # 恶意触发命令的规定时间（秒）
-    },
-    "open_case": {
-        "INITIAL_OPEN_CASE_COUNT": 20   # 每日开箱的基本数量（总数量=基本数量 + 好感度/3）
-    },
-    
-    # 注：即在 MUTE_DEFAULT_TIME 内发送相似（包含）消息超过 MUTE_DEFAULT_COUNT 将会被 MUTE_DEFAULT_DURATION 分钟
-    # 这只是默认配置，各个群可以自由设置群内刷屏检测配置
-    "mute": {
-        "MUTE_DEFAULT_COUNT": 10,       # 刷屏检测默认检测最大次数
-        "MUTE_DEFAULT_TIME": 7,         # 刷屏检测默认规定时间（秒）
-        "MUTE_DEFAULT_DURATION": 10     # 刷屏检测默认禁言时长（分钟）
-    },
-    "other": {
-        "UPDATE_GOCQ_GROUP": [],      # 是否需要为某些群上传最新版的gocq？
-        "ADMIN_DEFAULT_AUTH": 5       # 默认群管理员权限
-    },
-    
-    # 管理员功能 和 对应的 权限
-    "auth": {
-        "admin_plugins_auth": {
-            "admin_bot_manage": 2,
-            "ban": 5,
-            "delete_img": 7,
-            "move_img": 7,
-            "upload_img": 6,
-            "admin_help": 1,
-            "mute": 5
-        }
-    }
-}
-```
-</details>
 
 
 ## 更新
