@@ -8,6 +8,8 @@ from pathlib import Path
 import cv2
 import base64
 import imagehash
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+Image.MAX_IMAGE_PIXELS = None
 
 
 def compare_image_with_hash(
