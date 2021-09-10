@@ -21,7 +21,7 @@
         "plugins/coser/__init__.py",
         "plugins/draw_card/announcement.py",
         "plugins/fudu.py",
-        "plugins/genshin/query_resource_points/__init__.py",
+        "plugins/genshin/query_resource_points",
         "plugins/group_handle/__init__.py",
         "plugins/group_manager/__init__.py",
         "plugins/help/config.py",
