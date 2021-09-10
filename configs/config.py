@@ -58,12 +58,12 @@ MAXINFO_PRIVATE_ANIME: int = 20  # 私聊搜索动漫返回的最大数量
 MAXINFO_GROUP_ANIME: int = 5  # 群搜索动漫返回的最大数量
 MAX_FIND_IMG_COUNT: int = 3  # 识图最大返回数
 # 参1：延迟撤回色图时间(秒)，0 为关闭 | 参2：监控聊天类型，0(私聊) 1(群聊) 2(群聊+私聊)
-WITHDRAW_SETU_TIME: Tuple[int, int] = (90, 1)
+WITHDRAW_SETU_TIME: Tuple[int, int] = (0, 1)
 # 参1：延迟撤回PIX图片时间(秒)，0 为关闭 | 参2：监控聊天类型，0(私聊) 1(群聊) 2(群聊+私聊)
 WITHDRAW_PIX_TIME: Tuple[int, int] = (0, 1)
 
 # PIX图库 与 额外图库OmegaPixivIllusts 混合搜索的比例 参1：PIX图库 参2：OmegaPixivIllusts扩展图库（没有此图库请设置为0）
-PIX_OMEGA_PIXIV_RATIO: Tuple[int, int] = (2, 8)
+PIX_OMEGA_PIXIV_RATIO: Tuple[int, int] = (10, 0)
 
 # 各种卡池的开关
 PRTS_FLAG = True  # 明日方舟
@@ -190,7 +190,7 @@ plugins2cd_dict = {
 # 参数同上 plugin2cd_dict
 plugins2exists_dict = {
     "send_setu": {
-        "status": False,
+        "status": True,
         "check_type": "all",
         "limit_type": "user",
         "rst": "您有色图正在处理，请稍等.....",
@@ -318,17 +318,3 @@ if USE_CONFIG_FILE:
         plugins2info_dict, plugins2cd_dict, plugins2exists_dict, DATA_PATH
     )
 
-
-# 配置文件应用
-# if USE_CONFIG_FILE:
-#     config = get_config_data()
-#     if config:
-#         for key in config.keys():
-#             if isinstance(config[key], str):
-#                 config[key] = config[key].strip()
-#             if key.find("proxy") != -1:
-#                 if not config[key]:
-#                     config[key] = None
-#             # if not configs[key] and key.find("PATH") == -1:
-#             #     configs[key] = None
-#         globals().update(config)
