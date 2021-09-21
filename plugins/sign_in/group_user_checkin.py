@@ -41,7 +41,7 @@ async def _handle_check_in(
     nickname: str, user_qq: int, group: int, present: datetime
 ) -> MessageSegment:
     user = await SignGroupUser.ensure(user_qq, group, for_update=True)
-    impression_added = random.random()
+    impression_added = float(random.randint(10, 100))/100
     critx2 = random.random()
     add_probability = user.add_probability
     specify_probability = user.specify_probability
