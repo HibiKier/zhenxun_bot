@@ -5,6 +5,7 @@ from .withdraw_message_manager import WithdrawMessageManager
 from .plugins2cd_manager import Plugins2cdManager
 from .plugins2block_manager import Plugins2blockManager
 from .plugins2settings_manager import Plugins2settingsManager
+from .admin_manager import AdminManager
 from configs.path_config import DATA_PATH
 from nonebot import Driver
 import nonebot
@@ -32,4 +33,7 @@ plugins2cd_manager: Optional[Plugins2cdManager] = Plugins2cdManager(
 plugins2block_manager: Optional[Plugins2blockManager] = Plugins2blockManager(
     Path(DATA_PATH) / "configs" / "plugins2block.yaml"
 )
+
+# 管理员命令管理器
+admin_manager = AdminManager()
 
