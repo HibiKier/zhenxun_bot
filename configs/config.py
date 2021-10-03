@@ -108,7 +108,7 @@ HIBIAPI_BOOKMARKS: int = 5000
 
 # 需要为哪些群更新最新版gocq吗？（上传最新版gocq）
 # 示例：[434995955, 239483248]
-UPDATE_GOCQ_GROUP: List[int] = [774261838]
+UPDATE_GOCQ_GROUP: List[int] = []
 
 # 是否存储色图
 DOWNLOAD_SETU: bool = True
