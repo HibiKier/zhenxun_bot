@@ -38,7 +38,7 @@ async def handle(bot: Bot, event: Event, state: T_State):
         await bot.send_group_forward_msg(group_id=event.group_id, messages=msg_list)
     else:
         for msg in msg_list:
-            await epic.send(msg)
+            await bot.send_private_msg(user_id=event.user_id, message=msg)
     logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
         f" 获取epic免费游戏"
