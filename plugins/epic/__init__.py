@@ -1,9 +1,9 @@
 from nonebot import on_command
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, Event, MessageEvent, GroupMessageEvent
+from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from utils.utils import scheduler, get_bot
-from .data_source import get_Epicfree
+from .data_source import get_epic_free
 from utils.manager import group_manager
 
 __zx_plugin_name__ = "epic免费游戏"
@@ -29,9 +29,8 @@ epic = on_command("epic", priority=5, block=True)
 
 
 @epic.handle()
-async def handle(bot: Bot, event: Event, state: T_State):
-    msg_list = []
-    msg_list, code = await get_Epicfree(bot, event)
+async def handle(bot: Bot, event: MessageEvent, state: T_State):
+    msg_list, code = await get_epic_free(bot, event)
     if code == 404:
         await epic.send(msg_list)
     elif isinstance(event, GroupMessageEvent):
@@ -58,11 +57,10 @@ async def _():
     for g in gl:
         if await group_manager.check_group_task_status(g, "epic_free_game"):
             try:
-                msg_list = []
-                msg_list, code = await get_Epicfree(bot, GroupMessageEvent)
+                msg_list, code = await get_epic_free(bot, GroupMessageEvent)
                 if code == 200:
                     await bot.send_group_forward_msg(group_id=g, messages=msg_list)
                 else:
-                    await bot.send_group_msg(group_id=g, maessage=msg_list)
+                    await bot.send_group_msg(group_id=g, message=msg_list)
             except Exception as e:
                 logger.error(f"GROUP {g} epic免费游戏推送错误 {type(e)}: {e}")
