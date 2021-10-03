@@ -1,44 +1,43 @@
-from models.group_remind import GroupRemind
 
 
-async def open_remind(group: int, name: str) -> str:
-    _name = ""
-    if name == "zwa":
-        _name = "早晚安"
-    if name == "dz":
-        _name = "地震播报"
-    if name == "hy":
-        _name = "群欢迎"
-    if name == "kxcz":
-        _name = "开箱重置提醒"
-    if name == "gb":
-        _name = "广播"
-    if await GroupRemind.get_status(group, name):
-        return f"该群已经开启过 {_name} 通知，请勿重复开启！"
-    if await GroupRemind.set_status(group, name, True):
-        return f"成功开启 {_name} 通知！0v0"
-    else:
-        return f"开启 {_name} 通知失败了..."
-
-
-async def close_remind(group: int, name: str) -> str:
-    _name = ""
-    if name == "zwa":
-        _name = "早晚安"
-    if name == "dz":
-        _name = "地震播报"
-    if name == "hy":
-        _name = "群欢迎"
-    if name == "kxcz":
-        _name = "开箱重置提醒"
-    if name == "gb":
-        _name = "广播"
-    if not await GroupRemind.get_status(group, name):
-        return f"该群已经取消过 {_name} 通知，请勿重复取消！"
-    if await GroupRemind.set_status(group, name, False):
-        return f"成功关闭 {_name} 通知！0v0"
-    else:
-        return f"关闭 {_name} 通知失败了..."
+# async def open_remind(group: int, name: str) -> str:
+#     _name = ""
+#     if name == "zwa":
+#         _name = "早晚安"
+#     if name == "dz":
+#         _name = "地震播报"
+#     if name == "hy":
+#         _name = "群欢迎"
+#     if name == "kxcz":
+#         _name = "开箱重置提醒"
+#     if name == "gb":
+#         _name = "广播"
+#     if await GroupRemind.get_status(group, name):
+#         return f"该群已经开启过 {_name} 通知，请勿重复开启！"
+#     if await GroupRemind.set_status(group, name, True):
+#         return f"成功开启 {_name} 通知！0v0"
+#     else:
+#         return f"开启 {_name} 通知失败了..."
+#
+#
+# async def close_remind(group: int, name: str) -> str:
+#     _name = ""
+#     if name == "zwa":
+#         _name = "早晚安"
+#     if name == "dz":
+#         _name = "地震播报"
+#     if name == "hy":
+#         _name = "群欢迎"
+#     if name == "kxcz":
+#         _name = "开箱重置提醒"
+#     if name == "gb":
+#         _name = "广播"
+#     if not await GroupRemind.get_status(group, name):
+#         return f"该群已经取消过 {_name} 通知，请勿重复取消！"
+#     if await GroupRemind.set_status(group, name, False):
+#         return f"成功关闭 {_name} 通知！0v0"
+#     else:
+#         return f"关闭 {_name} 通知失败了..."
 
 
 # cmd_list = ['总开关', '签到', '发送图片', '色图', '黑白草图', 'coser', '鸡汤/语录', '骂我', '开箱', '鲁迅说', '假消息', '商店系统',

@@ -1,6 +1,5 @@
 from nonebot import on_command, on_regex
-from nonebot.rule import to_me
-from .query_resource import get_resource_type_list, query_resource, init
+from .query_resource import get_resource_type_list, query_resource, init, check_resource_exists
 from utils.utils import get_message_text, scheduler
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent, Message
 from nonebot.typing import T_State
@@ -14,28 +13,53 @@ try:
 except ModuleNotFoundError:
     import json
 
-__plugin_name__ = "原神资源查询"
+__zx_plugin_name__ = "原神资源查询"
+__plugin_usage__ = """
+usage：
+    不需要打开网页，就能帮你生成资源图片
+    指令：
+        原神资源查询 [资源名称]
+        原神资源列表
+        [资源名称]在哪
+        哪有[资源名称]
+""".strip()
+__plugin_superuser_usage__ = """
+usage：
+    更新原神资源信息
+    指令：
+        更新原神资源信息
+""".strip()
+__plugin_des__ = "原神大地图资源速速查看"
+__plugin_cmd__ = ["原神资源查询 [资源名称]", "原神资源列表", "[资源名称]在哪/哪有[资源名称]", "更新原神资源信息 [_superuser]"]
+__plugin_type__ = ("原神相关",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["原神资源查询", "原神资源列表"],
+}
 
-__plugin_usage__ = (
-    "用法：\n" "\t原神资源查询 [消息]\n" "\t原神资源列表\n" "\t[消息]在哪\n" "\t哪有[消息]\n" "[消息] = 资源名称"
-)
-
-qr = on_command("原神资源查询", priority=5, block=True)
+qr = on_command("原神资源查询", aliases={"原神资源查找"}, priority=5, block=True)
 qr_lst = on_command("原神资源列表", priority=5, block=True)
-rex_qr = on_regex(".*?(在哪|在哪里|哪有|哪里有).*?", rule=to_me(), priority=5, block=True)
-update_info = on_command('更新原神资源信息', permission=SUPERUSER, priority=1, block=True)
+rex_qr = on_regex(".*?(在哪|在哪里|哪有|哪里有).*?", priority=5, block=True)
+update_info = on_command("更新原神资源信息", permission=SUPERUSER, priority=1, block=True)
 
 
 @qr.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     resource_name = get_message_text(event.json())
-    await qr.send('正在生成位置....')
-    rst = await query_resource(resource_name)
-    await qr.send(Message(rst), at_sender=True)
-    logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-        f" 查询原神材料:" + resource_name
-    )
+    if check_resource_exists(resource_name):
+        await qr.send("正在生成位置....")
+        resource = await query_resource(resource_name)
+        await qr.send(Message(resource), at_sender=True)
+        logger.info(
+            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+            f" 查询原神材料:" + resource_name
+        )
+    else:
+        await qr.send(f"未查找到 {resource_name} 资源，可通过 “原神资源列表” 获取全部资源名称..")
 
 
 @rex_qr.handle()
@@ -47,14 +71,15 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     else:
         rs = re.search(".*?(哪有|哪里有)(.*)", msg)
         resource_name = rs.group(2) if rs else ""
-    if resource_name:
-        await qr.send('正在生成位置....')
-        msg = await query_resource(resource_name)
-        await rex_qr.send(Message(msg), at_sender=True)
-        logger.info(
-            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-            f" 查询原神材料:" + resource_name
-        )
+    if check_resource_exists(resource_name):
+        await qr.send("正在生成位置....")
+        resource = await query_resource(resource_name)
+        if resource:
+            await rex_qr.send(Message(resource), at_sender=True)
+            logger.info(
+                f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+                f" 查询原神材料:" + resource_name
+            )
 
 
 @qr_lst.handle()
@@ -87,17 +112,17 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @update_info.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     await init(True)
-    await update_info.send('更新原神资源信息完成...')
+    await update_info.send("更新原神资源信息完成...")
 
 
 @scheduler.scheduled_job(
-    'cron',
+    "cron",
     hour=5,
     minute=1,
 )
 async def _():
     try:
         await init()
-        logger.info(f'每日更新原神材料信息成功！')
+        logger.info(f"每日更新原神材料信息成功！")
     except Exception as e:
-        logger.error(f'每日更新原神材料信息错误：{e}')
+        logger.error(f"每日更新原神材料信息错误：{e}")

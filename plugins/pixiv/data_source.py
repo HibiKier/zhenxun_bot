@@ -84,6 +84,7 @@ async def download_pixiv_imgs(
     result = ""
     index = 0
     for url in urls:
+        url = url.replace('_webp', '')
         async with aiohttp.ClientSession(headers=headers) as session:
             for _ in range(3):
                 try:

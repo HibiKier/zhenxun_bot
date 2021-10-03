@@ -1,5 +1,4 @@
 from lxml import etree
-from lxml import etree
 import feedparser
 from urllib import parse
 from services.log import logger
@@ -13,7 +12,6 @@ async def from_anime_get_info(key_word: str, max_: int) -> str:
     repass = ""
     url = "https://share.dmhy.org/topics/rss/rss.xml?keyword=" + parse.quote(key_word)
     try:
-        logger.debug("Now starting get the {}".format(url))
         repass = await get_repass(url, max_)
     except Exception as e:
         logger.error("Timeout! {}".format(e))
@@ -28,7 +26,6 @@ async def get_repass(url: str, max_: int) -> str:
             d = feedparser.parse(await response.text())
             url_list = [e.link for e in d.entries][:max_]
             for u in url_list:
-                print(u)
                 try:
                     async with session.get(
                         u, proxy=get_local_proxy(), timeout=20
@@ -47,7 +44,6 @@ async def get_repass(url: str, max_: int) -> str:
                             .replace("\t", "")
                         )
                         size = item[3].xpath("string(.)")[5:].strip()
-
                         putline.append(
                             "【{}】| {}\n【{}】| {}".format(class_a, title, size, magent)
                         )

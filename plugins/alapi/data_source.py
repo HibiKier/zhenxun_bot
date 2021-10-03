@@ -2,10 +2,16 @@ from nonebot.adapters.cqhttp import MessageSegment
 from utils.image_utils import CreateImg
 from utils.message_builder import image
 from configs.path_config import IMAGE_PATH
+from typing import Union
 import aiohttp
 
 
-async def get_data(url: str, params: dict):
+async def get_data(url: str, params: dict) -> 'Union[dict, str], int':
+    """
+    获取ALAPI数据
+    :param url: 请求链接
+    :param params: 参数
+    """
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get(
@@ -22,7 +28,11 @@ async def get_data(url: str, params: dict):
             return "超时了....", 998
 
 
-def gen_wbtop_pic(data) -> MessageSegment:
+def gen_wbtop_pic(data: dict) -> MessageSegment:
+    """
+    生成微博热搜图片
+    :param data: 微博热搜数据
+    """
     bk = CreateImg(700, 32 * 50 + 280, 700, 32, color='#797979')
     wbtop_bk = CreateImg(700, 280, background=f'{IMAGE_PATH}/other/webtop.png')
     bk.paste(wbtop_bk)

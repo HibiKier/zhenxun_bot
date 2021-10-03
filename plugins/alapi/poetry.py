@@ -5,9 +5,21 @@ from configs.config import ALAPI_TOKEN
 from services.log import logger
 from .data_source import get_data
 
-__plugin_name__ = '古诗'
-__plugin_usage__ = '用法： 无'
-
+__zx_plugin_name__ = '古诗'
+__plugin_usage__ = """usage：
+    平白无故念首诗
+    示例：念诗/来首诗/念首诗
+"""
+__plugin_des__ = '为什么突然文艺起来了！'
+__plugin_cmd__ = ['念诗/来首诗/念首诗']
+__plugin_version__ = 0.1
+__plugin_author__ = 'HibiKier'
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ['念诗', '来首诗', '念首诗'],
+}
 
 poetry = on_command("念诗", aliases={'来首诗', '念首诗'}, priority=5, block=True)
 

@@ -10,12 +10,46 @@ from nonebot.adapters.cqhttp import (
     GroupMessageEvent,
     PrivateMessageEvent,
 )
-from utils.static_data import withdraw_message_id_manager
+from utils.manager import withdraw_message_manager
 from nonebot.typing import T_State
 from .data_source import get_image
 from models.pixiv import Pixiv
 from nonebot import on_command
 import random
+
+
+__zx_plugin_name__ = "PIX"
+__plugin_usage__ = """
+usage：
+    查看 pix 好康图库
+    指令：
+        pix ?*[tags]: 通过 tag 获取相似图片，不含tag时随机抽取
+        pix pid[pid]: 查看图库中指定pid图片
+""".strip()
+__plugin_superuser_usage__ = """
+usage：
+    超级用户额外的 pix 指令
+    指令：
+        pix -s ?*[tags]: 通过tag获取色图，不含tag时随机
+        pix -r ?*[tags]: 通过tag获取r18图，不含tag时随机
+""".strip()
+__plugin_des__ = "这里是PIX图库！"
+__plugin_cmd__ = [
+    "pix ?*[tags]",
+    "pix pid [pid]",
+    "pix -s ?*[tags] [_superuser]",
+    "pix -r ?*[tags] [_superuser]",
+]
+__plugin_type__ = ("来点好康的",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["pix", "Pix", "PIX", "pIx"],
+}
+__plugin_block_limit__ = {"rst": "您有PIX图片正在处理，请稍等..."}
 
 
 pix = on_command("pix", aliases={"PIX", "Pix"}, priority=5, block=True)
@@ -46,16 +80,16 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             )
     else:
         x = keyword.split()
-        if '-s' in x:
-            x.remove('-s')
+        if "-s" in x:
+            x.remove("-s")
             nsfw_tag = 1
-        elif '-r' in x:
-            x.remove('-r')
+        elif "-r" in x:
+            x.remove("-r")
             nsfw_tag = 2
         else:
             nsfw_tag = 0
         if nsfw_tag != 0 and str(event.user_id) not in bot.config.superusers:
-            await pix.finish('你不能看这些噢，这些都是是留给管理员看的...')
+            await pix.finish("你不能看这些噢，这些都是是留给管理员看的...")
         if len(x) > 1:
             if is_number(x[-1]):
                 num = int(x[-1])
@@ -128,6 +162,4 @@ def withdraw_message(event: MessageEvent, id_: int):
             or (WITHDRAW_PIX_TIME[1] == 1 and isinstance(event, GroupMessageEvent))
             or WITHDRAW_PIX_TIME[1] == 2
         ):
-            withdraw_message_id_manager["message_id"].append(
-                (id_, WITHDRAW_PIX_TIME[0])
-            )
+            withdraw_message_manager.append((id_, WITHDRAW_PIX_TIME[0]))

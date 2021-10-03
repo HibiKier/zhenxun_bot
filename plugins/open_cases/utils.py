@@ -9,12 +9,12 @@ from models.open_cases_user import OpenCasesUser
 import os
 from services.log import logger
 from utils.utils import get_bot
-from models.group_remind import GroupRemind
 from utils.utils import get_cookie_text
 from asyncio.exceptions import TimeoutError
 import pypinyin
 from nonebot.adapters.cqhttp.exception import ActionFailed
 from configs.config import BUFF_PROXY
+from utils.manager import group_manager
 
 url = "https://buff.163.com/api/market/goods"
 # proxies = 'http://49.75.59.242:3128'
@@ -264,10 +264,10 @@ async def update_count_daily():
                     today_open_total=0,
                     ).apply()
         bot = get_bot()
-        gl = await bot.get_group_list(self_id=bot.self_id)
+        gl = await bot.get_group_list()
         gl = [g['group_id'] for g in gl]
         for g in gl:
-            if await GroupRemind.get_status(g, 'kxcz'):
+            if await group_manager.check_group_task_status(g, 'open_case_reset_remind'):
                 try:
                     await bot.send_group_msg(group_id=g, message="今日开箱次数重置成功")
                 except ActionFailed:

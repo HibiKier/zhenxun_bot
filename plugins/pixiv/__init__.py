@@ -13,38 +13,55 @@ from typing import Type
 from nonebot.rule import to_me
 import time
 
-__plugin_name__ = "P站"
+__zx_plugin_name__ = "P站排行/搜图"
 
-__plugin_usage__ = """P站排行榜帮助：
-可选参数：
-类型：
-    1. 日排行
-    2. 周排行
-    3. 月排行
-    4. 原创排行
-    5. 新人排行
-    6. R18日排行
-    7. R18周排行
-    8. R18受男性欢迎排行
-    9. R18重口排行【慎重！】
-【使用时选择参数序号即可，R18仅可私聊】
-p站排行榜 [参数] [数量](可选) [日期](可选)
-示例：
-    p站排行榜   （无参数默认为日榜）
-    p站排行榜 1
-    p站排行榜 1 5
-    p站排行榜 1 5 2018-4-25
-【注意空格！！】【在线搜索会较慢】
----------------------------------
-'P站搜图帮助：
-    搜图 [关键词] [数量](可选) [页数](可选默认1) [r18](不屏蔽R-18，可选)
-    示例：
-        搜图 樱岛麻衣
-        搜图 樱岛麻衣 5
-        搜图 樱岛麻衣 5 r18
-    【默认为 热度排序】
-    【注意空格！！】【在线搜索会较慢】【数量可能不符？可能该页数量不够，也可能被R-18屏蔽】
-"""
+__plugin_usage__ = """
+usage：
+    P站排行：
+        可选参数：
+        类型：
+            1. 日排行
+            2. 周排行
+            3. 月排行
+            4. 原创排行
+            5. 新人排行
+            6. R18日排行
+            7. R18周排行
+            8. R18受男性欢迎排行
+            9. R18重口排行【慎重！】
+        【使用时选择参数序号即可，R18仅可私聊】
+        p站排行 ?[参数] ?[数量] ?[日期]
+        示例：
+            p站排行榜   [无参数默认为日榜]
+            p站排行榜 1
+            p站排行榜 1 5
+            p站排行榜 1 5 2018-4-25
+        【注意空格！！】【在线搜索会较慢】
+    ---------------------------------
+    P站搜图：
+        搜图 [关键词] ?[数量] ?[页数=1] ?[r18](不屏蔽R-18)
+        示例：
+            搜图 樱岛麻衣
+            搜图 樱岛麻衣 5
+            搜图 樱岛麻衣 5 r18
+        【默认为 热度排序】
+        【注意空格！！】【在线搜索会较慢】【数量可能不符？可能该页数量不够，也可能被R-18屏蔽】
+""".strip()
+__plugin_des__ = "P站排行榜直接冲，P站搜图跟着冲"
+__plugin_cmd__ = ["p站排行 ?[参数] ?[数量] ?[日期]", "搜图 [关键词] ?[数量] ?[页数=1] ?[r18](不屏蔽R-18)"]
+__plugin_type__ = ("来点好康的",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 9,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["pixiv", "p站排行", "搜图", "p站搜图", "P站搜图"],
+}
+__plugin_block_limit__ = {
+    "rst": "P站排行榜或搜图正在搜索，请不要重复触发命令..."
+}
+
 
 rank_dict = {
     "1": "day",
@@ -60,7 +77,11 @@ rank_dict = {
 
 
 pixiv_rank = on_command(
-    "p站排行", aliases={"P站排行榜", "p站排行榜", "P站排行榜", "P站排行"}, priority=5, block=True, rule=to_me()
+    "p站排行",
+    aliases={"P站排行榜", "p站排行榜", "P站排行榜", "P站排行"},
+    priority=5,
+    block=True,
+    rule=to_me(),
 )
 pixiv_keyword = on_command("搜图", priority=5, block=True, rule=to_me())
 
@@ -108,9 +129,9 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json())
     if isinstance(event, GroupMessageEvent):
-        if 'r18' in msg.lower():
+        if "r18" in msg.lower():
             await pixiv_keyword.finish("(脸红#) 你不会害羞的 八嘎！", at_sender=True)
-    r18 = 0 if 'r18' in msg else 1
+    r18 = 0 if "r18" in msg else 1
     msg = msg.replace("r18", "").strip().split()
     msg = [m.strip() for m in msg if m]
     keyword = None
@@ -148,13 +169,18 @@ def check_date(date):
         return False
 
 
-async def send_image(info_list: list, matcher: Type[Matcher], bot: Bot, event: MessageEvent):
+async def send_image(
+    info_list: list, matcher: Type[Matcher], bot: Bot, event: MessageEvent
+):
     if isinstance(event, GroupMessageEvent):
-        await pixiv_rank.send('开始下载整理数据...')
+        await pixiv_rank.send("开始下载整理数据...")
         idx = 0
         mes_list = []
         for title, author, urls in info_list:
-            _message = f'title: {title}\nauthor: {author}\n' + await download_pixiv_imgs(urls, event.user_id, idx)
+            _message = (
+                f"title: {title}\nauthor: {author}\n"
+                + await download_pixiv_imgs(urls, event.user_id, idx)
+            )
             data = {
                 "type": "node",
                 "data": {
@@ -169,7 +195,10 @@ async def send_image(info_list: list, matcher: Type[Matcher], bot: Bot, event: M
     else:
         for title, author, urls in info_list:
             try:
-                await matcher.send(f'title: {title}\n'
-                                   f'author: {author}\n' + await download_pixiv_imgs(urls, event.user_id))
+                await matcher.send(
+                    f"title: {title}\n"
+                    f"author: {author}\n"
+                    + await download_pixiv_imgs(urls, event.user_id)
+                )
             except (NetworkError, TimeoutError, ClientConnectorError):
                 await matcher.send("这张图网络直接炸掉了！", at_sender=True)

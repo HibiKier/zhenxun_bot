@@ -5,9 +5,24 @@ from nonebot import on_command
 from utils.utils import get_message_text
 from services.log import logger
 
-__plugin_name__ = "丘丘语翻译"
-
-__plugin_usage__ = "用法：丘丘翻译 [消息]"
+__zx_plugin_name__ = "丘丘语翻译"
+__plugin_usage__ = """
+usage：
+    异世界旅游小助手，仅支持丘丘语翻译至中文
+    指令：
+        丘丘语翻译/丘丘一下 [文本]
+""".strip()
+__plugin_des__ = "其实我听得懂丘丘人讲话"
+__plugin_cmd__ = ["丘丘语翻译/丘丘一下 [文本]"]
+__plugin_type__ = ("原神相关",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["丘丘语翻译", "丘丘一下"],
+}
 
 qiuqiu = on_command("丘丘语翻译", aliases={"丘丘一下", "丘丘翻译"}, priority=5, block=True)
 

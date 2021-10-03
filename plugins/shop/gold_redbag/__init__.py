@@ -23,21 +23,32 @@ from nonebot.permission import SUPERUSER
 from nonebot.rule import to_me
 from datetime import datetime, timedelta
 from configs.config import NICKNAME
-from apscheduler.jobstores.base import ConflictingIdError
+from apscheduler.jobstores.base import JobLookupError
 import random
 import time
 
 
-__plugin_name__ = "金币红包"
-
-__plugin_usage__ = (
-    "金币红包帮助：\n"
-    "\t塞红包 [金币数] [红包个数](默认5)\n"
-    "示例:\n"
-    "\t塞红包 500 5\n"
-    "抢红包 --> 戳一戳，开\n"
-    "退还剩余红包 --> 退还"
-)
+__zx_plugin_name__ = "金币红包"
+__plugin_usage__ = """
+usage：
+    在群内发送指定金额的红包，拼手气项目
+    指令：
+        塞红包 [金币数] ?[红包数=5]: 塞入红包
+        开/抢/*戳一戳*: 打开红包
+        退回: 退回未开完的红包，必须在一分钟后使用
+        示例：塞红包 1000
+        示例：塞红包 1000 10
+""".strip()
+__plugin_des__ = "运气项目又来了"
+__plugin_cmd__ = ["塞红包 [金币数] ?[红包数=5]", "开/抢", "退回"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["金币红包", "塞红包"],
+}
 
 gold_redbag = on_command(
     "塞红包", aliases={"金币红包"}, priority=5, block=True, permission=GROUP
@@ -112,7 +123,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     except KeyError:
         pass
     msg = get_message_text(event.json())
-    msg = msg.split(" ")
+    msg = msg.split()
     if len(msg) == 1:
         flag, amount = await check_gold(event.user_id, event.group_id, msg[0])
         if not flag:
@@ -124,9 +135,13 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         flag, amount = await check_gold(event.user_id, event.group_id, amount)
         if not flag:
             await gold_redbag.finish(amount, at_sender=True)
-        if not is_number(num):
+        if not is_number(num) or int(num) < 1:
             await gold_redbag.finish("红包个数给我输正确啊！", at_sender=True)
+        group_member_num = (await bot.get_group_info(group_id=event.group_id))['member_count']
         num = int(num)
+        if num > group_member_num:
+            await gold_redbag.send('你发的红包数量也太多了，已经为你修改成与本群人数相同的红包数量...')
+            num = group_member_num
     nickname = event.sender.card if event.sender.card else event.sender.nickname
     flag, result = init_redbag(
         event.user_id, event.group_id, nickname, amount, num, int(bot.self_id)
@@ -160,7 +175,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         .replace("。", "")
     )
     if msg:
-        if msg.find("红包") == -1:
+        if '红包' not in msg:
             return
     flag1 = True
     flag2 = True
@@ -280,6 +295,11 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             gl = await bot.get_group_list(self_id=int(bot.self_id))
             gl = [g["group_id"] for g in gl]
         for g in gl:
+            try:
+                scheduler.remove_job(f"festive_redbag_{g}")
+                await end_festive_redbag(bot, g)
+            except JobLookupError:
+                pass
             init_redbag(int(bot.self_id), g, f"{NICKNAME}", amount, num, int(bot.self_id), 1)
             scheduler.add_job(
                 end_festive_redbag,

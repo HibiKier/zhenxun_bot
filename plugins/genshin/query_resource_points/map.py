@@ -1,5 +1,5 @@
 from pathlib import Path
-from configs.path_config import IMAGE_PATH, TXT_PATH
+from configs.path_config import IMAGE_PATH, TEXT_PATH
 from utils.image_utils import CreateImg
 from typing import Tuple, List
 from math import sqrt, pow
@@ -12,8 +12,8 @@ except ModuleNotFoundError:
 
 icon_path = Path(IMAGE_PATH) / "genshin" / "genshin_icon"
 map_path = Path(IMAGE_PATH) / "genshin" / "map" / "map.png"
-resource_label_file = Path(TXT_PATH) / "genshin" / "resource_label_file.json"
-resource_point_file = Path(TXT_PATH) / "genshin" / "resource_point_file.json"
+resource_label_file = Path(TEXT_PATH) / "genshin" / "resource_label_file.json"
+resource_point_file = Path(TEXT_PATH) / "genshin" / "resource_point_file.json"
 
 
 class Map:

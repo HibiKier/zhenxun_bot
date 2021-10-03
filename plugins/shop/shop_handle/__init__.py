@@ -11,7 +11,41 @@ import os
 import time
 
 
-__plugin_name__ = "商店"
+__zx_plugin_name__ = "商店"
+__plugin_usage__ = """
+usage：
+    商店项目，这可不是奸商
+    指令：
+        商店
+""".strip()
+__plugin_superuser_usage__ = """
+usage：
+    商品操作
+    指令：
+        添加商品 [名称]-[价格]-[描述]-?[折扣](小数)-?[限时时间](分钟)
+        删除商品 [名称或序号]
+        修改商品 -name [名称或序号] -price [价格] -des [描述] -discount [折扣] -time [限时]
+        示例：添加商品-昏睡红茶-300-一杯上好的奇怪红茶-0.9-60
+        示例：删除商品 2
+        示例：修改商品 -name 1 -price 900: 修改序号为1的商品的价格为900
+    * 修改商品只需添加需要值即可 *
+""".strip()
+__plugin_des__ = "商店系统[金币回收计划]"
+__plugin_cmd__ = [
+    "商店",
+    "添加商品 [名称]-[价格]-[描述]-?[折扣](小数)-?[限时时间](分钟) [_superuser]",
+    "删除商品 [名称或序号] [_superuser]",
+    "修改商品 -name [名称或序号] -price [价格] -des [描述] -discount [折扣] -time [限时] [_superuser]",
+]
+__plugin_type__ = ('商店',)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["商店"],
+}
 
 
 shop_help = on_command("商店", priority=5, block=True)

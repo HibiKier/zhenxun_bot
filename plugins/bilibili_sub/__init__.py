@@ -19,12 +19,31 @@ from services.log import logger
 from nonebot import Driver
 import nonebot
 
-__plugin_name__ = "B站订阅"
-
-__plugin_usage__ = """B站订阅帮助：
-    添加订阅 [主播/UP/番剧] [id/链接/番名]
-    删除订阅 [id]
-    查看订阅"""
+__zx_plugin_name__ = "B站订阅"
+__plugin_usage__ = """
+usage：
+    B站直播，番剧，UP动态开播等提醒
+    主播订阅相当于 直播间订阅 + UP订阅
+    指令：[示例Id乱打的，仅做示例]
+        添加订阅 ['主播'/'UP'/'番剧'] [id/链接/番名]
+        删除订阅 [id]
+        查看订阅
+        示例：添加订阅主播 2345344 <-(直播房间id)
+        示例：添加订阅UP 2355543 <-(个人主页id)
+        示例：添加订阅番剧 史莱姆 <-(支持模糊搜索)
+        示例：添加订阅番剧 125344 <-(番剧id)
+        示例：删除订阅 2324344 <-(任意id，通过查看订阅获取)
+""".strip()
+__plugin_des__ = '非常便利的B站订阅通知'
+__plugin_cmd__ = ['添加订阅 [主播/UP/番剧] [id/链接/番名]', '删除订阅 [id]', '查看订阅']
+__plugin_version__ = 0.1
+__plugin_author__ = 'HibiKier'
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["B站订阅", 'b站订阅', '添加订阅', '删除订阅', '查看订阅'],
+}
 
 add_sub = on_command("添加订阅", priority=5, block=True)
 del_sub = on_command("删除订阅", priority=5, block=True)

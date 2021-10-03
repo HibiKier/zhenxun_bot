@@ -9,8 +9,26 @@ from nonebot.adapters.cqhttp.permission import GROUP
 from models.goods_info import GoodsInfo
 
 
-__plugin_name__ = "商店购买"
-__plugin_usage__ = "格式：购买 [名称或序号] [数量](默认1)\n\t示例：购买 好感双倍加持卡Ⅰ\n\t示例：购买 1 4"
+__zx_plugin_name__ = "商店 - 购买道具"
+__plugin_usage__ = """
+usage：
+    购买道具
+    指令：
+        购买 [序号或名称] ?[数量=1]
+        示例：购买 好感双倍加持卡Ⅰ
+        示例：购买 1 4
+""".strip()
+__plugin_des__ = "商店 - 购买道具"
+__plugin_cmd__ = ["购买 [序号或名称] ?[数量=1]"]
+__plugin_type__ = ('商店',)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["商店", "购买道具"],
+}
 
 
 buy = on_command("购买", aliases={"购买道具"}, priority=5, block=True, permission=GROUP)

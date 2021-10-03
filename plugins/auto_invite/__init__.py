@@ -7,7 +7,9 @@ from nonebot.adapters.cqhttp.exception import ActionFailed
 from utils.utils import scheduler
 import time
 
-__plugin_name__ = "好友群聊处理请求 [Hidden]"
+__zx_plugin_name__ = "好友群聊处理请求 [Hidden]"
+__plugin_version__ = 0.1
+__plugin_author__ = 'HibiKier'
 
 friend_req = on_request(priority=5)
 

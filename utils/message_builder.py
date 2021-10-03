@@ -8,7 +8,7 @@ import os
 
 def image(
     img_name: Union[str, Path] = None, path: str = None, abspath: str = None, b64: str = None
-) -> MessageSegment or str:
+) -> Union[MessageSegment, str]:
     """
     说明：
         生成一个 MessageSegment.image 消息
@@ -25,11 +25,14 @@ def image(
             if os.path.exists(abspath)
             else ""
         )
+    elif isinstance(img_name, Path):
+        if img_name.exists():
+            return MessageSegment.image(f"file:///{img_name.absolute()}")
+        logger.warning(f"图片 {img_name.absolute()}缺失...")
+        return ""
     elif b64:
         return MessageSegment.image(b64 if "base64://" in b64 else "base64://" + b64)
     else:
-        # if isinstance(img_name, Path):
-        #     return MessageSegment.image(img_name)
         if "http" in img_name:
             return MessageSegment.image(img_name)
         if len(img_name.split(".")) == 1:

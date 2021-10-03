@@ -8,9 +8,46 @@ from services.log import logger
 from utils.message_builder import at
 
 
-__plugin_name__ = "联系管理员"
-__plugin_usage__ = "用法：滴滴滴- [消息]"
-
+__zx_plugin_name__ = "联系管理员"
+__plugin_usage__ = """
+usage：
+    有什么话想对管理员说嘛？
+    指令：
+        [滴滴滴]/滴滴滴- ?[文本] ?[图片]
+        示例：滴滴滴- 我喜欢你
+""".strip()
+__plugin_superuser_usage__ = """
+superuser usage：
+    管理员对消息的回复
+    指令[以下qq与group均为乱打]：
+        /t: 查看当前存储的消息
+        /t [qq] [group] [文本]: 在group回复指定用户
+        /t [qq] [文本]: 私聊用户
+        /t -1 [group] [文本]: 在group内发送消息
+        /t [id] [文本]: 回复指定id的对话，id在 /t 中获取
+        示例：/t 73747222 32848432 你好啊
+        示例：/t 73747222 你好不好
+        示例：/t -1 32848432 我不太好
+        示例：/t 0 我收到你的话了
+"""
+__plugin_des__ = "跨越空间与时间跟管理员对话"
+__plugin_cmd__ = [
+    "滴滴滴-/[滴滴滴] ?[文本] ?[图片]",
+    "/t [_superuser]",
+    "t [qq] [group] [文本] [_superuser]",
+    "/t [qq] [文本] [_superuser]",
+    "/t -1 [group] [_superuser]",
+    "/t [id] [文本] [_superuser]",
+]
+__plugin_type__ = ("联系管理员",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["滴滴滴-", "滴滴滴"],
+}
 
 dialogue_data = {}
 
@@ -57,7 +94,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             "user_id": event.user_id,
             "group_id": group_id,
             "group_name": group_name,
-            "msg": f'{text} {img_msg}',
+            "msg": f"{text} {img_msg}",
         }
         # print(dialogue_data)
         logger.info(f"Q{uid}@群{group_id} 联系管理员：{coffee} text:{text}")
@@ -66,22 +103,15 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @reply.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json())
-    if msg in ["帮助"]:
-        await reply.finish(
-            f"/t [qq] [group] [text] -> 回复指定用户\n"
-            f"/t [qq] [text] -> 私聊用户\n"
-            f"/t -1 [group] -> 在某群发送消息\n"
-            f"/t [id] [text] -> 回复指定id的对话"
-        )
     if not msg:
         result = "*****待回复消息总览*****\n"
         for key in dialogue_data.keys():
             result += (
-                f'id：{key}\n'
+                f"id：{key}\n"
                 f'\t昵称：{dialogue_data[key]["nickname"]}({dialogue_data[key]["user_id"]})\n'
                 f'\t群群：{dialogue_data[key]["group_name"]}({dialogue_data[key]["group_id"]})\n'
                 f'\t消息：{dialogue_data[key]["msg"]}'
-                f'\n--------------------\n'
+                f"\n--------------------\n"
             )
         await reply.finish(Message(result[:-1]))
     msg = msg.split()

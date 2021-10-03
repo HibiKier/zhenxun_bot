@@ -7,7 +7,7 @@ from asyncpg.exceptions import UniqueViolationError
 from utils.utils import get_local_proxy
 from asyncio.exceptions import TimeoutError
 from typing import List, Optional
-from configs.config import INITIAL_SETU_PROBABILITY, NICKNAME
+from configs.config import INITIAL_SETU_PROBABILITY, NICKNAME, DOWNLOAD_SETU
 from models.setu import Setu
 import aiohttp
 import aiofiles
@@ -80,8 +80,14 @@ headers = {
 
 
 async def search_online_setu(
-    url_: str, id_: int = None, path_: str = None
+    url_: str, id_: Optional[int] = None, path_: Optional[str] = None
 ) -> "MessageSegment, int":
+    """
+    下载色图
+    :param url_: 色图url
+    :param id_: 本地id
+    :param path_: 存储路径
+    """
     if "i.pixiv.cat" in url_:
         url_ = url_.replace("i.pixiv.cat", "i.pximg.net")
     async with aiohttp.ClientSession(headers=headers) as session:
@@ -122,13 +128,17 @@ async def search_online_setu(
 
 # 检测本地是否有id涩图，无的话则下载
 async def check_local_exists_or_download(setu_image: Setu) -> "MessageSegment, int":
-    if setu_image.is_r18:
-        path_ = "_r18"
-    else:
-        path_ = path
-    if os.path.exists(f"{IMAGE_PATH}/{path_}/{setu_image.local_id}.jpg"):
-        return image(f"{setu_image.local_id}.jpg", path_), 200
-    return await search_online_setu(setu_image.img_url, setu_image.local_id, path_)
+    path_ = None
+    id_ = None
+    if DOWNLOAD_SETU:
+        id_ = setu_image.local_id
+        if setu_image.is_r18:
+            path_ = "_r18"
+        else:
+            path_ = path
+        if os.path.exists(f"{IMAGE_PATH}/{path_}/{setu_image.local_id}.jpg"):
+            return image(f"{setu_image.local_id}.jpg", path_), 200
+    return await search_online_setu(setu_image.img_url, id_, path_)
 
 
 # 添加涩图数据到数据库

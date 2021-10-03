@@ -117,7 +117,6 @@ async def check_update(bot: Bot) -> 'int, str':
                 user_id=int(list(bot.config.superusers)[0]),
                 message=f"自动获取真寻版本成功：{latest_version}，当前版本为最新版，无需更新...",
             )
-            return 200, ''
     else:
         logger.warning("自动获取真寻版本失败....")
         await bot.send_private_msg(
@@ -227,6 +226,6 @@ def check_old_lines(lines: List[str], line: str) -> str:
         return line
     for l in lines:
         if "=" in l and l.split("=")[0].strip() == line.split("=")[0].strip():
-            if len(l) > len(line):
+            if l.split("=")[1].strip() == 'None':
                 return l
     return line

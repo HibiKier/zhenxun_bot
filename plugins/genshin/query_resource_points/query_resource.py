@@ -1,5 +1,5 @@
 from typing import Tuple, Optional, List
-from configs.path_config import IMAGE_PATH, TXT_PATH
+from configs.path_config import IMAGE_PATH, TEXT_PATH
 from PIL.Image import UnidentifiedImageError
 from utils.message_builder import image
 from services.log import logger
@@ -30,9 +30,9 @@ MAP_URL = "https://api-static.mihoyo.com/common/map_user/ys_obc/v1/map/info?map_
 
 icon_path = Path(IMAGE_PATH) / "genshin" / "genshin_icon"
 map_path = Path(IMAGE_PATH) / "genshin" / "map"
-resource_label_file = Path(TXT_PATH) / "genshin" / "resource_label_file.json"
-resource_point_file = Path(TXT_PATH) / "genshin" / "resource_point_file.json"
-resource_type_file = Path(TXT_PATH) / "genshin" / "resource_type_file.json"
+resource_label_file = Path(TEXT_PATH) / "genshin" / "resource_label_file.json"
+resource_point_file = Path(TEXT_PATH) / "genshin" / "resource_point_file.json"
+resource_type_file = Path(TEXT_PATH) / "genshin" / "resource_type_file.json"
 
 # 地图中心坐标
 CENTER_POINT: Optional[Tuple[int, int]] = None
@@ -50,7 +50,8 @@ async def query_resource(resource_name: str) -> str:
         resource_name = resource_name[:-2].strip()
         planning_route = True
     if not resource_name or resource_name not in resource_name_list:
-        return f"未查找到 {resource_name} 资源，可通过 “原神资源列表” 获取全部资源名称.."
+        # return f"未查找到 {resource_name} 资源，可通过 “原神资源列表” 获取全部资源名称.."
+        return ''
     map_ = Map(
         resource_name, CENTER_POINT, planning_route=planning_route, ratio=MAP_RATIO
     )
@@ -81,23 +82,36 @@ def get_resource_type_list():
     return mes
 
 
+def check_resource_exists(resource: str) -> bool:
+    """
+    检查资源是否存在
+    :param resource: 资源名称
+    """
+    resource = resource.replace('路径', '').replace('路线', '')
+    return resource in resource_name_list
+
+
 @driver.on_startup
 async def init(flag: bool = False):
     global CENTER_POINT, resource_name_list
-    semaphore = asyncio.Semaphore(10)
-    async with aiohttp.ClientSession(headers=get_user_agent()) as session:
-        await download_map_init(session, semaphore, MAP_RATIO, flag)
-        await download_resource_data(session, semaphore)
-        await download_resource_type(session)
-        if not CENTER_POINT:
-            CENTER_POINT = json.load(open(resource_label_file, "r", encoding="utf8"))[
-                "CENTER_POINT"
-            ]
-        with open(resource_type_file, "r", encoding="utf8") as f:
-            data = json.load(f)
-        for id_ in data:
-            for x in data[id_]["children"]:
-                resource_name_list.append(x["name"])
+    try:
+        semaphore = asyncio.Semaphore(10)
+        async with aiohttp.ClientSession(headers=get_user_agent()) as session:
+            await download_map_init(session, semaphore, MAP_RATIO, flag)
+            await download_resource_data(session, semaphore)
+            await download_resource_type(session)
+            if not CENTER_POINT:
+                CENTER_POINT = json.load(open(resource_label_file, "r", encoding="utf8"))[
+                    "CENTER_POINT"
+                ]
+            with open(resource_type_file, "r", encoding="utf8") as f:
+                data = json.load(f)
+            for id_ in data:
+                for x in data[id_]["children"]:
+                    resource_name_list.append(x["name"])
+    except TimeoutError:
+        logger.warning('原神资源查询信息初始化超时....')
+        pass
 
 
 # 图标及位置资源

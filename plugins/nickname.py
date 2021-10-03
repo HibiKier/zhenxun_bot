@@ -11,9 +11,18 @@ from services.log import logger
 from configs.config import NICKNAME
 
 
-__plugin_name__ = "昵称系统"
-
-__plugin_usage__ = f"用法：\n以后叫我 [名称]\n{NICKNAME}我是谁"
+__zx_plugin_name__ = "昵称系统"
+__plugin_usage__ = f"""
+usage：
+    个人昵称系统，群聊 与 私聊 昵称相互独立
+    指令：
+        以后叫我 [昵称]
+        {NICKNAME}我是谁
+""".strip()
+__plugin_des__ = "区区昵称，才不想叫呢！"
+__plugin_cmd__ = ["以后叫我 [昵称]", f"{NICKNAME}我是谁"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
 
 nickname = on_command(
     "nickname",

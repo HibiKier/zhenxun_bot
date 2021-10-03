@@ -1,37 +1,49 @@
-from .alc import get_almanac_base64_str, load_data
-import os
 from utils.utils import get_bot, scheduler
 from nonebot import on_command
-from models.level_user import LevelUser
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent
-from utils.message_builder import image
 from services.log import logger
-from models.group_remind import GroupRemind
+from configs.path_config import IMAGE_PATH
+from .data_source import get_alc_image
+from utils.manager import group_manager
+from pathlib import Path
 
-
-FILE_PATH = os.path.dirname(__file__)
+__zx_plugin_name__ = "原神老黄历"
+__plugin_usage__ = """
+usage：
+    有时候也该迷信一回！特别是运气方面
+    指令：
+        原神黄历
+""".strip()
+__plugin_des__ = "有时候也该迷信一回！特别是运气方面"
+__plugin_cmd__ = ["原神黄历"]
+__plugin_type__ = ("原神相关",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["原神黄历", "原神老黄历"],
+}
+__plugin_task__ = {"genshin_alc": "原神黄历提醒"}
 
 almanac = on_command("原神黄历", priority=5, block=True)
-reload = on_command("重载原神黄历数据", priority=5, block=True)
+
+
+ALC_PATH = Path(IMAGE_PATH) / "genshin" / "alc"
+ALC_PATH.mkdir(parents=True, exist_ok=True)
 
 
 @almanac.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    almanac_base64 = get_almanac_base64_str()
-    mes = image(b64=almanac_base64) + "\n ※ 黄历数据来源于 genshin.pub"
+    alc_img = await get_alc_image(ALC_PATH)
+    mes = alc_img + "\n ※ 黄历数据来源于 genshin.pub"
     await almanac.send(mes)
     logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
         f" 发送查看原神黄历"
     )
-
-
-@reload.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    if await LevelUser.check_level(event.user_id, event.group_id, 5):
-        load_data()
-        await reload.send("重载成功")
 
 
 @scheduler.scheduled_job(
@@ -42,10 +54,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 async def _():
     # 每日提醒
     bot = get_bot()
-    gl = await bot.get_group_list(self_id=bot.self_id)
-    gl = [g["group_id"] for g in gl]
-    almanac_base64 = get_almanac_base64_str()
-    mes = image(b64=almanac_base64) + "\n ※ 黄历数据来源于 genshin.pub"
-    for gid in gl:
-        if await GroupRemind.get_status(gid, "almanac"):
-            await bot.send_group_msg(group_id=int(gid), message=mes)
+    if bot:
+        gl = await bot.get_group_list()
+        gl = [g["group_id"] for g in gl]
+        alc_img = await get_alc_image(ALC_PATH)
+        mes = alc_img + "\n ※ 黄历数据来源于 genshin.pub"
+        for gid in gl:
+            if await group_manager.check_group_task_status(gid, "genshin_alc"):
+                await bot.send_group_msg(group_id=int(gid), message=mes)

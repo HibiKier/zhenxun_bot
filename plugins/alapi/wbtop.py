@@ -10,9 +10,25 @@ from configs.path_config import IMAGE_PATH
 from utils.message_builder import image
 import asyncio
 
-__plugin_name__ = '微博热搜'
-__plugin_usage__ = '用法： 无'
-
+__zx_plugin_name__ = '微博热搜'
+__plugin_usage__ = """
+usage：
+    在QQ上吃个瓜
+    指令：
+        微博热搜：发送实时热搜
+        微博热搜 [id]：截图该热搜页面
+        示例：微博热搜 5
+""".strip()
+__plugin_des__ = '刚买完瓜，在吃瓜现场'
+__plugin_cmd__ = ['微博热搜', '微博热搜 [id]']
+__plugin_version__ = 0.1
+__plugin_author__ = 'HibiKier'
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ['微博热搜'],
+}
 
 wbtop = on_command("wbtop", aliases={'微博热搜'}, priority=5, block=True)
 
@@ -52,9 +68,9 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             await page.goto(url, wait_until='networkidle', timeout=10000)
             await page.set_viewport_size({"width": 2560, "height": 1080})
             div = await page.query_selector("#pl_feedlist_index")
-            await div.screenshot(path=f'{IMAGE_PATH}/temp/webtop_{event.user_id}.png', timeout=100000)
+            await div.screenshot(path=f'{IMAGE_PATH}/temp/wbtop_{event.user_id}.png', timeout=100000)
             await page.close()
-            await wbtop.send(image(f'webtop_{event.user_id}.png', 'temp'))
+            await wbtop.send(image(f'wbtop_{event.user_id}.png', 'temp'))
         except Exception as e:
             logger.error(f'微博热搜截图出错... {type(e)}: {e}')
             if page:

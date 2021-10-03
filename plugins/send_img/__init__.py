@@ -6,29 +6,42 @@ import os
 import random
 from services.log import logger
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, Message, GroupMessageEvent
+from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from utils.utils import FreqLimiter, cn2py
-from models.group_remind import GroupRemind
-from asyncio.exceptions import TimeoutError
 from configs.config import IMAGE_DIR_LIST
-import aiofiles
-import aiohttp
-import re
+from utils.manager import group_manager
 
 try:
     import ujson as json
 except ModuleNotFoundError:
     import json
 
-__plugin_name__ = "壁纸/萝莉/美图/在线搜图"
-__plugin_usage__ = (
-    "用法： \n" '\t1.发送"壁纸/萝莉/美图", 回复图片，后添加id获得指定图片 示例：萝莉 123\n' "\t2.在线搜图 示例：1张米浴的图"
-)
-
-_flmt = FreqLimiter(1)
-
 if "色图" in IMAGE_DIR_LIST:
     IMAGE_DIR_LIST.remove("色图")
+
+__zx_plugin_name__ = "发送本地图库图片"
+__plugin_usage__ = f"""
+usage：
+    发送指定图库下的随机或指定id图片
+    指令：
+        {IMAGE_DIR_LIST} ?[id]
+        示例：美图 
+        示例: 萝莉 2
+""".strip()
+__plugin_des__ = "让看看我的私藏，指[图片]"
+__plugin_cmd__ = IMAGE_DIR_LIST
+__plugin_type__ = ("来点好康的",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["发送图片"] + IMAGE_DIR_LIST,
+}
+__plugin_task__ = {"pa": "丢人爬"}
+
+_flmt = FreqLimiter(1)
 
 cmd = set(IMAGE_DIR_LIST)
 
@@ -61,21 +74,26 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     result = image(f"{index}.jpg", path)
     if result:
         logger.info(
-            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送{path}:"
+            f"(USER {event.user_id}, GROUP "
+            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送{path}:"
             + result
         )
         await send_img.finish(f"id：{index}" + result)
     else:
         logger.info(
-            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送 {path} 失败"
+            f"(USER {event.user_id}, GROUP "
+            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送 {path} 失败"
         )
         await send_img.finish(f"不想给你看Ov|")
 
 
 @pa.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if isinstance(event, GroupMessageEvent) and not await GroupRemind.get_status(
-        event.group_id, "pa"
+    if (
+        isinstance(event, GroupMessageEvent)
+        and not await group_manager.check_group_task_status(event.group_id, "pa")
+        or get_message_text(event.json()).startswith("开启")
+        or get_message_text(event.json()).startswith("关闭")
     ):
         return
     msg = get_message_text(event.json())
@@ -88,8 +106,13 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 @pa_reg.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if isinstance(event, GroupMessageEvent) and not await GroupRemind.get_status(
-        event.group_id, "pa"
+    if (
+        (
+            isinstance(event, GroupMessageEvent)
+            and not await group_manager.check_group_task_status(event.group_id, "pa")
+            or get_message_text(event.json()).startswith("开启")
+            or get_message_text(event.json()).startswith("关闭")
+        )
     ):
         return
     if _flmt.check(event.user_id):
@@ -110,4 +133,3 @@ num_key = {
     "八": 8,
     "九": 9,
 }
-

@@ -93,12 +93,13 @@ async def get_des(url: str, user_id: int):
         return
     for pic in image_data:
         # print(pic)
-        msg = await download_img(pic[0], user_id) \
-              + f"\n相似度:{pic[1]}" \
-                f"\n标题:{pic[2] if (str(pic[2]).strip() != 'Creator:' and len(str(pic[2]).split('-')) < 3) else '未知'}" \
-                f"\nPID:{pic[3]}" \
-                f"\nmember:{pic[4]}\n"
-        yield msg
+        if int(str(pic[1]).split('.')[0]) > 80:
+            msg = await download_img(pic[0], user_id) \
+                  + f"\n相似度:{pic[1]}" \
+                    f"\n标题:{pic[2] if (str(pic[2]).strip() != 'Creator:' and len(str(pic[2]).split('-')) < 3) else '未知'}" \
+                    f"\nPID:{pic[3]}" \
+                    f"\nmember:{pic[4]}\n"
+            yield msg
     pass
 
 

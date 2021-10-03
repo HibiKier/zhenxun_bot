@@ -1,18 +1,14 @@
 from utils.user_agent import get_user_agent
-from configs.path_config import TXT_PATH
+from configs.path_config import TEXT_PATH
 from configs.config import NICKNAME
 from typing import List
 from pathlib import Path
 import ujson as json
 import aiohttp
 
-china_city = Path(TXT_PATH) / "china_city.json"
+china_city = Path(TEXT_PATH) / "china_city.json"
 
-try:
-    with open(china_city, "r", encoding="utf8") as f:
-        data = json.load(f)
-except FileNotFoundError:
-    data = {}
+data = {}
 
 
 url = "https://view.inews.qq.com/g2/getOnsInfo?name=disease_h5"
@@ -23,16 +19,16 @@ async def get_yiqing_data(area: str):
     province = None
     city = None
     province_type = "省"
-    if area == '中国':
+    if area == "中国":
         province = area
         province_type = ""
-    elif area in data.keys() and area[-1] != '市':
-        province = area if area[-1] != '省' else area[:-1]
+    elif area in data.keys() and area[-1] != "市":
+        province = area if area[-1] != "省" else area[:-1]
         if len(data[province]) == 1:
             province_type = "市"
         city = ""
     else:
-        area = area[:-1] if area[-1] == '市' else area
+        area = area[:-1] if area[-1] == "市" else area
         for p in data.keys():
             if area in data[p]:
                 province = p
@@ -55,7 +51,7 @@ async def get_yiqing_data(area: str):
                     try:
                         data_ = [x for x in data_["children"] if x["name"] == city][0]
                     except IndexError:
-                        return '未查询到...'
+                        return "未查询到..."
             confirm = data_["total"]["confirm"]  # 累计确诊
             heal = data_["total"]["heal"]  # 累计治愈
             dead = data_["total"]["dead"]  # 累计死亡
@@ -64,7 +60,7 @@ async def get_yiqing_data(area: str):
             now_confirm = data_["total"]["nowConfirm"]  # 目前确诊
             suspect = data_["total"]["suspect"]  # 疑似
             add_confirm = data_["today"]["confirm"]  # 新增确诊
-    x = f"{city}市" if city else f'{province}{province_type}'
+    x = f"{city}市" if city else f"{province}{province_type}"
     return (
         f"{x} 疫情数据：\n"
         f"\t目前确诊：\n"
@@ -83,6 +79,12 @@ async def get_yiqing_data(area: str):
 
 def get_city_list() -> List[str]:
     global data
+    if not data:
+        try:
+            with open(china_city, "r", encoding="utf8") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            data = {}
     city_list = []
     for p in data.keys():
         for c in data[p]:

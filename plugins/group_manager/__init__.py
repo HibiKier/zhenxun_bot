@@ -5,16 +5,28 @@ from services.log import logger
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent, GROUP
 from nonebot.typing import T_State
 from nonebot.permission import SUPERUSER
-from configs.config import plugins2info_dict, NICKNAME
-from utils.static_data import group_manager
+from configs.config import NICKNAME
+from utils.manager import group_manager, plugins2settings_manager
 
 try:
     import ujson as json
 except ModuleNotFoundError:
     import json
 
-__plugin_name__ = "群权限操作"
-__plugin_usage__ = "区分权限功能"
+__zx_plugin_name__ = "群权限操作 [Superuser]"
+__plugin_usage__ = """
+usage：
+    对群权限 | 群白名单 的操作
+    指令：
+        修改群权限 [group] [等级]
+        添加群白名单 *[group]
+        删除群白名单 *[group]
+        查看群白名单
+""".strip()
+__plugin_des__ = "对群权限 | 群白名单 的操作"
+__plugin_cmd__ = ["修改群权限 [group] [等级]", "添加群白名单 *[group]", "删除群白名单 *[group]", "查看群白名单"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
 
 
 add_group_level = on_command("修改群权限", priority=1, permission=SUPERUSER, block=True)
@@ -33,12 +45,16 @@ manager_group_whitelist = on_command(
     "添加群白名单", aliases={"删除群白名单"}, priority=1, permission=SUPERUSER, block=True
 )
 
-show_group_whitelist = on_command('查看群白名单', priority=1, permission=SUPERUSER, block=True)
+show_group_whitelist = on_command(
+    "查看群白名单", priority=1, permission=SUPERUSER, block=True
+)
 
 
 @add_group_level.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json())
+    group_id = 0
+    level = 0
     if not msg:
         await add_group_level.finish("用法：修改群权限 [group] [level]")
     msg = msg.split(" ")
@@ -52,19 +68,21 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     old_level = group_manager.get_group_level(group_id)
     group_manager.set_group_level(group_id, level)
     await add_group_level.send("修改成功...", at_sender=True)
-    await bot.send_group_msg(
-        group_id=int(group_id), message=f"管理员修改了此群权限：{old_level} -> {level}"
-    )
+    if level > -1:
+        await bot.send_group_msg(
+            group_id=int(group_id), message=f"管理员修改了此群权限：{old_level} -> {level}"
+        )
     logger.info(f"{event.user_id} 修改了 {group_id} 的权限：{level}")
 
 
 @my_group_level.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    level = group_manager.get_group_level(str(event.group_id))
+    level = group_manager.get_group_level(event.group_id)
     tmp = ""
-    for plugin in plugins2info_dict:
-        if plugins2info_dict[plugin]["level"] > level:
-            plugin_name = plugins2info_dict[plugin]["cmd"][0]
+    data = plugins2settings_manager.get_data()
+    for module in data:
+        if data[module]["level"] > level:
+            plugin_name = data[module]["cmd"][0]
             if plugin_name == "pixiv":
                 plugin_name = "搜图 p站排行"
             tmp += f"{plugin_name}\n"
@@ -109,6 +127,6 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     x = group_manager.get_group_white_list()
     x = [str(g) for g in x]
     if x:
-        await show_group_whitelist.send("目前的群白名单：\n" + '\n'.join(x))
+        await show_group_whitelist.send("目前的群白名单：\n" + "\n".join(x))
     else:
-        await show_group_whitelist.send('没有任何群在群白名单...')
+        await show_group_whitelist.send("没有任何群在群白名单...")

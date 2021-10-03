@@ -5,21 +5,37 @@ from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot
 from nonebot.adapters.cqhttp import GroupMessageEvent, PrivateMessageEvent
 from utils.utils import get_message_at, get_message_text, is_number
-from configs.config import NICKNAME
+from configs.config import NICKNAME, BAN_LEVEL
 from nonebot.permission import SUPERUSER
 from services.log import logger
 
 
-__plugin_name__ = "Ban/unBan"
-__plugin_usage__ = (
-    "用法：\n"
-    f"（不是禁言！是针对{NICKNAME}是否处理封禁用户消息）\n"
-    "封禁/解封用户 [小时] [分钟]\n"
-    "示例：.ban @djdsk\n"
-    "示例：.ban @djdsk 0 30\n"
-    "示例：.ban @sdasf 4\n"
-    "示例：.unban @sdasf"
-)
+__zx_plugin_name__ = "封禁Ban用户 [Admin]"
+__plugin_usage__ = """
+usage：
+    将用户拉入或拉出黑名单
+    指令:
+        .ban [at] ?[小时] ?[分钟]
+        .unban 
+        示例：.ban @user
+        示例：.ban @user 6
+        示例：.ban @user 3 10
+        示例：.unban @user
+""".strip()
+__plugin_superuser_usage__ = """
+usage：
+    屏蔽用户消息，相当于最上级.ban
+    指令：
+        b了 [at]
+        示例：b了 @user
+""".strip()
+__plugin_des__ = '你被逮捕了！丢进小黑屋！'
+__plugin_cmd__ = ['.ban [at] ?[小时] ?[分钟]', '.unban [at]', 'b了 [at] [_superuser]']
+__plugin_version__ = 0.1
+__plugin_author__ = 'HibiKier'
+__plugin_settings__ = {
+    "admin_level": BAN_LEVEL,
+}
 
 
 ban = on_command(
@@ -167,7 +183,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         if not await BanUser.ban(qq, 10, 99999999):
             await BanUser.unban(qq)
             await BanUser.ban(qq, 10, 99999999)
-        await ban.send(f"{user_name} 已在黑名单！预计不解封了..")
+        await ban.send(f"已将 {user_name} 拉入黑名单！")
     else:
         await super_ban.send('需要艾特被super ban的对象..')
 

@@ -9,27 +9,47 @@ from nonebot.adapters.cqhttp.exception import ActionFailed
 from configs.path_config import DATA_PATH, IMAGE_PATH
 from utils.image_utils import get_img_hash
 from services.log import logger
+from configs.config import MUTE_LEVEL
 import aiohttp
 import aiofiles
-from configs.config import MUTE_DEFAULT_COUNT, MUTE_DEFAULT_TIME, MUTE_DEFAULT_DURATION, NICKNAME
+from configs.config import (
+    MUTE_DEFAULT_COUNT,
+    MUTE_DEFAULT_TIME,
+    MUTE_DEFAULT_DURATION,
+    NICKNAME,
+)
 
 try:
     import ujson as json
 except ModuleNotFoundError:
     import json
 
-__plugin_name__ = "刷屏禁言"
 
-__plugin_usage__ = "刷屏禁言检测"
+__zx_plugin_name__ = "刷屏禁言 [Admin]"
+__plugin_usage__ = f"""
+usage：
+    刷屏禁言相关操作，需要 {NICKNAME} 有群管理员权限
+    指令：
+        设置刷屏检测时间 [秒]
+        设置刷屏检测次数 [次数]
+        设置刷屏禁言时长 [分钟]
+        刷屏检测设置: 查看当前的刷屏检测设置
+        * 即 X 秒内发送同样消息 N 次，禁言 M 分钟 *
+""".strip()
+__plugin_des__ = "刷屏禁言相关操作"
+__plugin_cmd__ = ["设置刷屏检测时间 [秒]", "设置刷屏检测次数 [次数]", "设置刷屏禁言时长 [分钟]", "刷屏检测设置"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {"admin_level": MUTE_LEVEL}
 
 
 mute = on_message(priority=1, block=False)
 mute_setting = on_command(
     "mute_setting",
-    aliases={"设置检测时间", "设置检测次数", "设置禁言时长", "刷屏检测设置"},
+    aliases={"设置刷屏检测时间", "设置刷屏检测次数", "设置刷屏禁言时长", "刷屏检测设置"},
     permission=GROUP,
     block=True,
-    priority=5
+    priority=5,
 )
 
 
@@ -51,14 +71,16 @@ def save_data():
 async def download_img_and_hash(url, group_id):
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, proxy=get_local_proxy(), timeout=10) as response:
+            async with session.get(
+                url, proxy=get_local_proxy(), timeout=10
+            ) as response:
                 async with aiofiles.open(
                     IMAGE_PATH + f"temp/mute_{group_id}_img.jpg", "wb"
                 ) as f:
                     await f.write(await response.read())
         return str(get_img_hash(IMAGE_PATH + f"temp/mute_{group_id}_img.jpg"))
     except TimeoutError:
-        return ''
+        return ""
 
 
 mute_dict = {}

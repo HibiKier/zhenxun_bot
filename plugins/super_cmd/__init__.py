@@ -5,18 +5,46 @@ from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, Message
 from nonebot.rule import to_me
 from utils.utils import get_message_at, get_message_text, is_number, get_bot, scheduler
+from pathlib import Path
 from services.log import logger
-from .data_source import open_remind, close_remind
 from models.group_info import GroupInfo
 from models.friend_user import FriendUser
 from utils.message_builder import at
 from configs.path_config import IMAGE_PATH
+from utils.manager import plugins2cd_manager, plugins2settings_manager, plugins2block_manager, group_manager
 import asyncio
 import os
 
 
-__plugin_name__ = "超级用户指令 [Hidden]"
-__plugin_usage__ = "用法"
+__zx_plugin_name__ = "超级用户指令 [Superuser]"
+__plugin_usage__ = """
+usage：
+    超级用户集成指令
+    指令：
+        添加权限 [at] [权限]
+        删除权限 [at]
+        开启/关闭广播通知 [group]
+        查看所有好友/查看所有群组
+        退群 [group]
+        更新群信息
+        更新好友信息
+        清理临时数据
+        重载插件配置
+""".strip()
+__plugin_des__ = "超级用户集成指令"
+__plugin_cmd__ = [
+    "添加权限 [at] [权限]",
+    "删除权限 [at]",
+    "开启/关闭广播通知 [group]",
+    "查看所有好友/查看所有群组",
+    "退群 [group]",
+    "更新群信息",
+    "更新好友信息",
+    "清理临时数据",
+    "重载插件配置"
+]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
 
 
 super_cmd = on_command(
@@ -36,10 +64,10 @@ oc_gb = on_command(
     block=True,
 )
 cls_group = on_command(
-    "所有群组", rule=to_me(), permission=SUPERUSER, priority=1, block=True
+    "查看所有群组", rule=to_me(), permission=SUPERUSER, priority=1, block=True
 )
 cls_friend = on_command(
-    "所有好友", rule=to_me(), permission=SUPERUSER, priority=1, block=True
+    "查看所有好友", rule=to_me(), permission=SUPERUSER, priority=1, block=True
 )
 del_group = on_command("退群", rule=to_me(), permission=SUPERUSER, priority=1, block=True)
 update_group_info = on_command(
@@ -49,8 +77,9 @@ update_friend_info = on_command(
     "更新好友信息", rule=to_me(), permission=SUPERUSER, priority=1, block=True
 )
 clear_data = on_command(
-    "清理数据", rule=to_me(), permission=SUPERUSER, priority=1, block=True
+    "清理临时数据", rule=to_me(), permission=SUPERUSER, priority=1, block=True
 )
+reload_plugins_manager = on_command('重载插件配置', rule=to_me(), permission=SUPERUSER, priority=1, block=True)
 
 
 @super_cmd.handle()
@@ -119,10 +148,10 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             # try:
             if state["_prefix"]["raw_command"] == "开启广播通知":
                 logger.info(f"USER {event.user_id} 开启了 GROUP {group} 的广播")
-                await oc_gb.finish(await open_remind(group, "gb"), at_sender=True)
+                await oc_gb.finish(await group_manager.open_group_task(group, "broadcast",), at_sender=True)
             else:
                 logger.info(f"USER {event.user_id} 关闭了 GROUP {group} 的广播")
-                await oc_gb.finish(await close_remind(group, "gb"), at_sender=True)
+                await oc_gb.finish(await group_manager.close_group_task(group, "broadcast"), at_sender=True)
             # except Exception as e:
             #     await oc_gb.finish(f'关闭 {group} 的广播失败', at_sender=True)
         else:
@@ -177,7 +206,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @update_group_info.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     bot = get_bot()
-    gl = await bot.get_group_list(self_id=bot.self_id)
+    gl = await bot.get_group_list()
     gl = [g["group_id"] for g in gl]
     num = 0
     rst = ""
@@ -201,7 +230,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     num = 0
     rst = ""
-    fl = await get_bot().get_friend_list(self_id=bot.self_id)
+    fl = await get_bot().get_friend_list()
     for f in fl:
         if await FriendUser.add_friend_info(f["user_id"], f["nickname"]):
             logger.info(f'自动更新好友 {f["user_id"]} 信息成功')
@@ -215,16 +244,29 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @clear_data.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     await clear_data.send("开始清理临时数据....")
-    size = await asyncio.get_event_loop().run_in_executor(
-        None, _clear_data
-    )
+    size = await asyncio.get_event_loop().run_in_executor(None, _clear_data)
     await clear_data.send("共清理了 {:.2f}MB 的数据...".format(size / 1024 / 1024))
+
+
+@reload_plugins_manager.handle()
+async def _(bot: Bot, event: MessageEvent, state: T_State):
+    plugins2settings_manager.reload()
+    plugins2cd_manager.reload()
+    plugins2block_manager.reload()
+    try:
+        (Path(IMAGE_PATH) / "help.png").unlink()
+    except FileNotFoundError:
+        pass
+    await reload_plugins_manager.send(f'重载插件配置完成...\n'
+                                      f'已加载 {len(plugins2settings_manager.get_data())} 个非限制插件\n'
+                                      f'已加载 {len(plugins2cd_manager.get_data())} 个Cd限制\n'
+                                      f'已加载 {len(plugins2block_manager.get_data())} 个Block限制')
 
 
 def _clear_data() -> float:
     size = 0
-    for dir_name in ['temp', 'rar', 'r18_rar']:
-        dir_name = f'{IMAGE_PATH}/{dir_name}'
+    for dir_name in ["temp", "rar", "r18_rar"]:
+        dir_name = f"{IMAGE_PATH}/{dir_name}"
         if os.path.exists(dir_name):
             for file in os.listdir(dir_name):
                 try:
@@ -237,15 +279,11 @@ def _clear_data() -> float:
     return float(size)
 
 
-# 早上好
 @scheduler.scheduled_job(
     "cron",
     hour=1,
     minute=1,
 )
 async def _():
-    size = await asyncio.get_event_loop().run_in_executor(
-        None, _clear_data
-    )
-    logger.info('自动清理临时数据完成，' + "共清理了 {:.2f}MB 的数据...".format(size / 1024 / 1024))
-
+    size = await asyncio.get_event_loop().run_in_executor(None, _clear_data)
+    logger.info("自动清理临时数据完成，" + "共清理了 {:.2f}MB 的数据...".format(size / 1024 / 1024))

@@ -7,11 +7,24 @@ from .data_source import gen_keyword_pic, get_keyword_num
 from models.pixiv_keyword_user import PixivKeywordUser
 import asyncio
 
-__plugin_name__ = "查看pix图库"
 
+__zx_plugin_name__ = "查看pix图库"
 __plugin_usage__ = """
-    查看pix图库 [keyword]：当keyword为空时检查所有图片
-"""
+usage：
+    查看pix图库
+    指令：
+        查看pix图库 ?[tags]: 查看指定tag图片数量，为空时查看整个图库
+""".strip()
+__plugin_des__ = "让我看看管理员私藏了多少货"
+__plugin_cmd__ = ["查看pix图库 ?[tags]"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["查看pix图库"],
+}
 
 
 my_keyword = on_command("我的pix关键词", aliases={"我的pix关键字"}, priority=1, block=True)

@@ -7,8 +7,25 @@ from nonebot.typing import T_State
 import re
 from utils.utils import get_message_text
 
-__plugin_name__ = "天气查询"
-__plugin_usage__ = "普普通通的查天气吧\n示例：北京天气"
+
+__zx_plugin_name__ = "天气查询"
+__plugin_usage__ = """
+usage：
+    普普通通的查天气吧
+    指令：
+        [城市]天气/天气[城市]
+""".strip()
+__plugin_des__ = "出门要看看天气，不要忘了带伞"
+__plugin_cmd__ = ["[城市]天气/天气[城市]"]
+__plugin_type__ = ("一些工具",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["查询天气", "天气", "天气查询", "查天气"],
+}
 
 
 weather = on_regex(r".*?(.*)市?的?天气.*?", priority=5, block=True)

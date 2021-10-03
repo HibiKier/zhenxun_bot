@@ -9,8 +9,23 @@ from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.rule import to_me
 import os
 
-__plugin_name__ = "骂我"
-__plugin_usage__ = '对我说 "骂我"，我真的会骂你哦'
+__zx_plugin_name__ = "骂我"
+__plugin_usage__ = """
+usage：
+    多骂我一点，球球了
+    指令：
+        骂老子
+""".strip()
+__plugin_des__ = "请狠狠的骂我一次！"
+__plugin_cmd__ = ["骂老子/骂我"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["骂老子", "骂我"],
+}
 
 _flmt = FreqLimiter(3)
 

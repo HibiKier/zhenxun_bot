@@ -6,9 +6,29 @@ from nonebot.typing import T_State
 from .data_source import translate_msg
 
 
-__plugin_name__ = "翻译"
-
-__plugin_usage__ = "用法：\n" "英翻 [英文] 翻英 [中文]\n" "日翻 [日文] 翻日 [中文]\n" "韩翻 [韩文] 翻韩 [中文]"
+__zx_plugin_name__ = "翻译"
+__plugin_usage__ = """
+usage：
+    出国旅游小助手
+    指令：
+        英翻 [英文]
+        翻英 [中文]
+        日翻 [日文]
+        翻日 [中文]
+        韩翻 [韩文]
+        翻韩 [中文]
+""".strip()
+__plugin_des__ = "出国旅游好助手"
+__plugin_cmd__ = ["英翻 [英文]", "翻英 [中文]", "日翻 [日文]", "翻日 [中文]", "韩翻 [韩文]", "翻韩 [中文]"]
+__plugin_type__ = ("一些工具",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["翻译"],
+}
 
 
 translate = on_command(

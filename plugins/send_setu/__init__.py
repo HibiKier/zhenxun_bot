@@ -32,7 +32,7 @@ from .data_source import (
 )
 from nonebot.adapters.cqhttp.exception import ActionFailed
 from configs.config import ONLY_USE_LOCAL_SETU, WITHDRAW_SETU_TIME, NICKNAME
-from utils.static_data import withdraw_message_id_manager
+from utils.manager import withdraw_message_manager
 import re
 
 try:
@@ -40,26 +40,38 @@ try:
 except ModuleNotFoundError:
     import json
 
-__plugin_name__ = "色图"
-__plugin_usage__ = f"""示例：
-    1. 色图   （随机本地色图）
-    2. 色图r   （随机在线十张r18涩图）
-    3. 色图 666 （本地色图id）
-    4. 色图 xx xx （在线搜索xx xx色图）
-    5. 色图r xx   （搜索十张xx的r18涩图，注意空格）（仅私聊，每日限制5次）
-    6. 来n张涩图  （本地涩图连发）（1<=n<=9）
-    7. 来n张xx的涩图   （在线搜索xx涩图）（较慢，看网速）
-注：
-    xx 为 tag，多余20取前20 示例：原神 黑丝
-    本地涩图没有r18！
-    联网搜索会较慢！
-    如果图片数量与数字不符，
-    原因1：网络不好，网线被拔QAQ
-    原因2：搜索到的总数小于数字
-    原因3：图太色或者小错误了】
-示例：
-    色图 萝莉|少女 白丝|黑丝
-    色图 萝莉 猫娘"""
+__zx_plugin_name__ = "色图"
+__plugin_usage__ = f"""
+usage：
+    搜索 lolicon 图库，每日色图time...
+    指令：
+        色图: 随机本地色图
+        色图r: 随机在线十张r18涩图
+        色图 [id]: 本地指定id色图
+        色图 *[tags]: 在线搜索指定tag色图
+        色图r *[tags]: 同上
+        [1-9]张涩图: 本地随机色图连发
+        [1-9]张[tags]的涩图: 指定tag色图连发
+    示例：色图 萝莉|少女 白丝|黑丝
+    示例：色图 萝莉 猫娘
+    注：
+        tag至多取前20项，| 为或，萝莉|少女=萝莉或者少女
+""".strip()
+__plugin_des__ = "不要小看涩图啊混蛋！"
+__plugin_cmd__ = ["色图 ?[id]", "色图 ?[tags]", "色图r ?[tags]", "[1-9]张?[tags]色图"]
+__plugin_type__ = ("来点好康的",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 9,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["色图", "涩图", "瑟图"],
+}
+__plugin_block_limit__ = {}
+__plugin_cd_limit__ = {
+    'rst': '您冲的太快了，请稍后再冲.',
+}
 
 setu_data_list = []
 
@@ -181,7 +193,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 num = 1
     else:
         return
-    await send_setu_handle(setu_reg, event, '色图', tags, num, 0)
+    await send_setu_handle(setu_reg, event, "色图", tags, num, 0)
 
 
 @find_setu.args_parser
@@ -210,7 +222,12 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 async def send_setu_handle(
-    matcher: Type[Matcher], event: MessageEvent, command: str, msg: str, num: int, r18: int
+    matcher: Type[Matcher],
+    event: MessageEvent,
+    command: str,
+    msg: str,
+    num: int,
+    r18: int,
 ):
     global setu_data_list
     # 非 id，在线搜索
@@ -223,7 +240,9 @@ async def send_setu_handle(
     msg_id = None
     if not ONLY_USE_LOCAL_SETU and tags:
         # 先尝试获取在线图片
-        urls, text_list, add_databases_list, code = await get_setu_urls(tags, num, r18, command)
+        urls, text_list, add_databases_list, code = await get_setu_urls(
+            tags, num, r18, command
+        )
         for x in add_databases_list:
             setu_data_list.append(x)
         # 未找到符合的色图，想来本地应该也没有
@@ -240,7 +259,9 @@ async def send_setu_handle(
                             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
                             f" 发送色图 {index}.png"
                         )
-                        msg_id = await matcher.send(Message(f"{text_list[i]}\n{setu_img}"))
+                        msg_id = await matcher.send(
+                            Message(f"{text_list[i]}\n{setu_img}")
+                        )
                     else:
                         if setu_list is None:
                             setu_list, _ = await get_setu_list(tags=tags, r18=r18)
@@ -250,7 +271,9 @@ async def send_setu_handle(
                             msg_id = await matcher.send(
                                 Message(
                                     gen_message(setu_image)
-                                    + (await check_local_exists_or_download(setu_image))[0]
+                                    + (
+                                        await check_local_exists_or_download(setu_image)
+                                    )[0]
                                 )
                             )
                             logger.info(
@@ -267,7 +290,7 @@ async def send_setu_handle(
             return
     # 本地无图 或 超过上下限
     if code != 200:
-        await matcher.finish('网络连接失败...', at_sender=True)
+        await matcher.finish("网络连接失败...", at_sender=True)
     if setu_list is None:
         setu_list, code = await get_setu_list(tags=tags, r18=r18)
         if code != 200:
@@ -303,4 +326,4 @@ def withdraw_message(event: MessageEvent, id_: int):
             or (WITHDRAW_SETU_TIME[1] == 1 and isinstance(event, GroupMessageEvent))
             or WITHDRAW_SETU_TIME[1] == 2
         ):
-            withdraw_message_id_manager['message_id'].append((id_, WITHDRAW_SETU_TIME[0]))
+            withdraw_message_manager.append((id_, WITHDRAW_SETU_TIME[0]))

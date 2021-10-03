@@ -7,7 +7,6 @@ SIGN_TODAY_CARD_PATH = Path(IMAGE_PATH) / 'sign' / 'today_card'
 SIGN_BORDER_PATH = Path(SIGN_RESOURCE_PATH) / 'border'
 SIGN_BACKGROUND_PATH = Path(SIGN_RESOURCE_PATH) / 'background'
 
-SIGN_TODAY_CARD_PATH.mkdir(exist_ok=True, parents=True)
 SIGN_BORDER_PATH.mkdir(exist_ok=True, parents=True)
 SIGN_BACKGROUND_PATH.mkdir(exist_ok=True, parents=True)
 

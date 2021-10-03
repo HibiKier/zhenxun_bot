@@ -6,9 +6,18 @@ from nonebot.rule import to_me
 from nonebot.permission import SUPERUSER
 
 
-__plugin_name__ = "自我检查 [Hidden]"
+__zx_plugin_name__ = "服务器自我检查 [Superuser]"
+__plugin_usage__ = """
+usage：
+    查看服务器当前状态
+    指令：
+        自检
+"""
+__plugin_des__ = "查看服务器当前状态"
+__plugin_cmd__ = ["自检/check"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
 
-__plugin_usage__ = "用法：自检"
 
 check = Check()
 

@@ -3,14 +3,20 @@ from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, GROUP, GroupIncreaseNoticeEvent
 from .data_source import update_member_info
 
-__plugin_name__ = "更新群组成员列表"
-
+__zx_plugin_name__ = "更新群组成员列表 [Admin]"
 __plugin_usage__ = """
-    说明：
-        更新群组成员的基本信息
-    示例：
-        更新群组成员列表
-"""
+usage：
+    更新群组成员的基本信息
+    指令：
+        更新群组成员列表/更新群组成员信息
+""".strip()
+__plugin_des__ = '更新群组成员列表'
+__plugin_cmd__ = ['更新群组成员列表']
+__plugin_version__ = 0.1
+__plugin_author__ = 'HibiKier'
+__plugin_settings__ = {
+    "admin_level": 1,
+}
 
 
 refresh_member_group = on_command(

@@ -12,9 +12,23 @@ try:
 except ModuleNotFoundError:
     import json
 
-__plugin_name__ = "查看群欢迎消息"
-
-__plugin_usage__ = "无"
+__zx_plugin_name__ = "查看群欢迎消息"
+__plugin_usage__ = """
+usage：
+    查看当前的群欢迎消息
+    指令：
+        查看群欢迎消息
+""".strip()
+__plugin_des__ = "查看群欢迎消息"
+__plugin_cmd__ = ["查看群欢迎消息"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["查看群欢迎消息"],
+}
 
 view_custom_welcome = on_command(
     "群欢迎消息", aliases={"查看群欢迎消息", "查看当前群欢迎消息"}, permission=GROUP, priority=5, block=True

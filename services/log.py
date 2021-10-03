@@ -22,5 +22,3 @@ logger.add(
     format=default_format,
     filter=default_filter,
     retention=timedelta(days=30))
-
-

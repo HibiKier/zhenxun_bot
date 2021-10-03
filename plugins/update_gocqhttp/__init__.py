@@ -3,22 +3,28 @@ from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from .data_source import download_gocq_lasted, upload_gocq_lasted
 import os
-from nonebot.adapters.cqhttp.permission import GROUP
 from services.log import logger
-from utils.utils import scheduler, get_bot, UserExistLimiter
+from utils.utils import scheduler, get_bot
+from nonebot.permission import SUPERUSER
 from configs.config import UPDATE_GOCQ_GROUP
 from pathlib import Path
 
-__plugin_name__ = "更新gocq"
 
-__plugin_usage__ = "用法：发送’更新gocq‘，指定群 自动检测最新版gocq下载并上传"
+__zx_plugin_name__ = "更新gocq [Superuser]"
+__plugin_usage__ = """
+usage：
+    下载最新版gocq并上传至群文件
+    指令：
+        更新gocq
+""".strip()
+__plugin_cmd__ = ["更新gocq"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+
 
 path = str((Path() / "resources" / "gocqhttp_file").absolute()) + "/"
 
-lasted_gocqhttp = on_command("更新gocq", permission=GROUP, priority=5, block=True)
-
-
-_ulmt = UserExistLimiter()
+lasted_gocqhttp = on_command("更新gocq", permission=SUPERUSER, priority=5, block=True)
 
 
 @lasted_gocqhttp.handle()
@@ -29,9 +35,6 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         info = await download_gocq_lasted(path)
         if info == "gocqhttp没有更新！":
             await lasted_gocqhttp.finish("gocqhttp没有更新！")
-        if _ulmt.check(event.group_id):
-            await lasted_gocqhttp.finish("gocqhttp正在更新，请勿重复使用该命令", at_sender=True)
-        _ulmt.set_true(event.group_id)
         try:
             for file in os.listdir(path):
                 await upload_gocq_lasted(path, file, event.group_id)
@@ -39,7 +42,6 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             await lasted_gocqhttp.send(f"gocqhttp更新了，已上传成功！\n更新内容：\n{info}")
         except Exception as e:
             logger.error(f"更新gocq错误 e：{e}")
-        _ulmt.set_false(event.group_id)
 
 
 # 更新gocq

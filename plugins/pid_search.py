@@ -1,22 +1,40 @@
+from asyncio.exceptions import TimeoutError
+
+import aiofiles
+import aiohttp
 from nonebot import on_command
 from nonebot.adapters.cqhttp import Bot, MessageEvent, Message, GroupMessageEvent
 from nonebot.typing import T_State
-from utils.utils import get_message_text, is_number
-from utils.message_builder import image
-import aiohttp
-from services.log import logger
-from asyncio.exceptions import TimeoutError
-import asyncio
-import aiofiles
+
 from configs.path_config import IMAGE_PATH
+from services.log import logger
+from utils.message_builder import image
+from utils.utils import get_message_text, is_number
+from utils.manager import withdraw_message_manager
 
 try:
     import ujson as json
 except ModuleNotFoundError:
     import json
 
-__plugin_name__ = "p搜"
-__plugin_usage__ = "用法： 通过pid在Pixiv上搜索图片\n格式：p搜 [pid]\n\t示例：p搜 79520120"
+
+__zx_plugin_name__ = "pid搜索"
+__plugin_usage__ = """
+usage：
+    通过 pid 搜索图片
+    指令：
+        p搜 [pid]
+""".strip()
+__plugin_des__ = "通过 pid 搜索图片"
+__plugin_cmd__ = ["p搜 [pid]"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["p搜"],
+}
 
 pid_search = on_command("p搜", aliases={"pixiv搜", "P搜"}, priority=5, block=True)
 
@@ -90,10 +108,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                     f" 查询图片 PID：{pid}"
                 )
                 if isinstance(event, GroupMessageEvent):
-                    await asyncio.sleep(30)
-                    await bot.delete_msg(
-                        message_id=msg_id["message_id"], self_id=int(bot.self_id)
-                    )
+                    withdraw_message_manager.append((msg_id, 30))
                 break
         else:
             await pid_search.finish("图片下载失败了....", at_sender=True)
@@ -103,6 +118,6 @@ async def download_pic(img_url: str, user_id: int):
     async with aiohttp.ClientSession() as session:
         async with session.get(img_url, timeout=2) as res:
             async with aiofiles.open(
-                f"{IMAGE_PATH}/temp/pid_search_{user_id}.png", "wb"
+                    f"{IMAGE_PATH}/temp/pid_search_{user_id}.png", "wb"
             ) as f:
                 await f.write(await res.read())

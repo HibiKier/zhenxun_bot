@@ -13,22 +13,44 @@ import time
 from .data_source import rank
 from configs.config import MAX_RUSSIAN_BET_GOLD, NICKNAME
 
-__plugin_name__ = "俄罗斯轮盘"
-
-__plugin_usage__ = """俄罗斯轮盘帮助：
-    开启游戏：装弹 [子弹数] [金额](默认200金币) [at](指定决斗对象，为空则所有群友都可接受决斗)
-        示例：装弹 1 10
-    接受对决：接受对决/拒绝决斗
-    开始对决：开枪（轮流开枪，30秒未开枪另一方可使用‘结算’命令结束对决并胜利）
-    结算：结算（当某一方30秒未开枪，可使用该命令强行结束对决并胜利）
-    我的战绩：我的战绩
-    排行榜：胜场排行/败场排行/欧洲人排行/慈善家排行
-    【注：同一时间群内只能有一场对决】
-"""
+__zx_plugin_name__ = "俄罗斯轮盘"
+__plugin_usage__ = """
+usage：
+    又到了决斗时刻
+    指令：
+        装弹 [子弹数] ?[金额=200] ?[at]: 开启游戏，装填子弹，可选自定义金额，或邀请决斗对象
+        接受对决: 接受当前存在的对决
+        拒绝对决: 拒绝邀请的对决
+        开枪: 开出未知的一枪
+        结算: 强行结束当前比赛 (仅当一方未开枪超过30秒时可使用)
+        我的战绩: 对，你的战绩
+        胜场排行/败场排行/欧洲人排行/慈善家排行/最高连胜排行/最高连败排行: 各种排行榜
+        示例：装弹 3 100 @sdd
+        * 注：同一时间群内只能有一场对决 *
+""".strip()
+__plugin_des__ = "虽然是运气游戏，但这可是战场啊少年"
+__plugin_cmd__ = [
+    "装弹 [子弹数] ?[金额=200] ?[at]",
+    "接受对决",
+    "拒绝对决",
+    "开枪",
+    "结算",
+    "我的战绩",
+    "胜场排行/败场排行/欧洲人排行/慈善家排行/最高连胜排行/最高连败排行",
+]
+__plugin_type__ = ("群内小游戏", 1)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["俄罗斯轮盘", "装弹"],
+}
 
 rs_player = {}
 
-rssian = on_command(
+russian = on_command(
     "俄罗斯轮盘", aliases={"装弹", "俄罗斯转盘"}, permission=GROUP, priority=5, block=True
 )
 
@@ -48,7 +70,7 @@ settlement = on_command("结算", permission=GROUP, priority=5, block=True)
 
 record = on_command("我的战绩", permission=GROUP, priority=5, block=True)
 
-rssian_rank = on_command(
+russian_rank = on_command(
     "胜场排行",
     aliases={"胜利排行", "败场排行", "失败排行", "欧洲人排行", "慈善家排行", "最高连胜排行", "最高连败排行"},
     permission=GROUP,
@@ -160,36 +182,36 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     await end_game(bot, event)
 
 
-@rssian.args_parser
+@russian.args_parser
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     msg = get_message_text(event.json())
     if msg in ["取消", "算了"]:
-        await rssian.finish("已取消操作...")
+        await russian.finish("已取消操作...")
     try:
         if rs_player[event.group_id][1] != 0:
-            await rssian.finish("决斗已开始...", at_sender=True)
+            await russian.finish("决斗已开始...", at_sender=True)
     except KeyError:
         pass
     if not is_number(msg):
-        await rssian.reject("输入子弹数量必须是数字啊喂！")
+        await russian.reject("输入子弹数量必须是数字啊喂！")
     if int(msg) < 1 or int(msg) > 6:
-        await rssian.reject("子弹数量必须大于0小于7！")
+        await russian.reject("子弹数量必须大于0小于7！")
     state["bullet_num"] = int(msg)
 
 
-@rssian.handle()
+@russian.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     global rs_player
     msg = get_message_text(event.json())
     if msg == "帮助":
-        await rssian.finish(__plugin_usage__)
+        await russian.finish(__plugin_usage__)
     try:
         if (
             rs_player[event.group_id][1]
             and not rs_player[event.group_id][2]
             and time.time() - rs_player[event.group_id]["time"] <= 30
         ):
-            await rssian.finish(
+            await russian.finish(
                 f'现在是 {rs_player[event.group_id]["player1"]} 发起的对决\n请等待比赛结束后再开始下一轮...'
             )
         if (
@@ -197,7 +219,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             and rs_player[event.group_id][2]
             and time.time() - rs_player[event.group_id]["time"] <= 30
         ):
-            await rssian.finish(
+            await russian.finish(
                 f'{rs_player[event.group_id]["player1"]} 和'
                 f' {rs_player[event.group_id]["player2"]}的对决还未结束！'
             )
@@ -232,11 +254,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 state["money"] = int(money)
             else:
                 state["money"] = 200
-                await rssian.send(f"赌注金额超过限制（MAX_RUSSIAN_BET_GOLD），已改为200（默认）")
+                await russian.send(f"赌注金额超过限制（{MAX_RUSSIAN_BET_GOLD}），已改为200（默认）")
     state["at"] = get_message_at(event.json())
 
 
-@rssian.got("bullet_num", prompt="请输入装填子弹的数量！(最多6颗)")
+@russian.got("bullet_num", prompt="请输入装填子弹的数量！(最多6颗)")
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     global rs_player
     bullet_num = state["bullet_num"]
@@ -244,11 +266,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     money = state["money"] if state.get("money") else 200
     user_money = await BagUser.get_gold(event.user_id, event.group_id)
     if bullet_num < 0 or bullet_num > 6:
-        await rssian.reject("子弹数量必须大于0小于7！速速重新装弹！")
+        await russian.reject("子弹数量必须大于0小于7！速速重新装弹！")
     if money > MAX_RUSSIAN_BET_GOLD:
-        await rssian.finish(f"太多了！单次金额不能超过{MAX_RUSSIAN_BET_GOLD}！", at_sender=True)
+        await russian.finish(f"太多了！单次金额不能超过{MAX_RUSSIAN_BET_GOLD}！", at_sender=True)
     if money > user_money:
-        await rssian.finish("你没有足够的钱支撑起这场挑战", at_sender=True)
+        await russian.finish("你没有足够的钱支撑起这场挑战", at_sender=True)
 
     player1_name = event.sender.card if event.sender.card else event.sender.nickname
 
@@ -280,7 +302,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         "time": time.time(),
     }
 
-    await rssian.send(
+    await russian.send(
         Message(
             ("咔 " * bullet_num)[:-1] + f"，装填完毕\n挑战金额：{money}\n"
             f"第一枪的概率为：{str(float(bullet_num) / 7.0 * 100)[:5]}%\n"
@@ -447,20 +469,20 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     )
 
 
-@rssian_rank.handle()
+@russian_rank.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if state["_prefix"]["raw_command"] in ["胜场排行", "胜利排行"]:
-        await rssian_rank.finish(await rank(event.group_id, "win_rank"))
+        await russian_rank.finish(await rank(event.group_id, "win_rank"))
     if state["_prefix"]["raw_command"] in ["败场排行", "失败排行"]:
-        await rssian_rank.finish(await rank(event.group_id, "lose_rank"))
+        await russian_rank.finish(await rank(event.group_id, "lose_rank"))
     if state["_prefix"]["raw_command"] == "欧洲人排行":
-        await rssian_rank.finish(await rank(event.group_id, "make_money"))
+        await russian_rank.finish(await rank(event.group_id, "make_money"))
     if state["_prefix"]["raw_command"] == "慈善家排行":
-        await rssian_rank.finish(await rank(event.group_id, "spend_money"))
+        await russian_rank.finish(await rank(event.group_id, "spend_money"))
     if state["_prefix"]["raw_command"] == "最高连胜排行":
-        await rssian_rank.finish(await rank(event.group_id, "max_winning_streak"))
+        await russian_rank.finish(await rank(event.group_id, "max_winning_streak"))
     if state["_prefix"]["raw_command"] == "最高连败排行":
-        await rssian_rank.finish(await rank(event.group_id, "max_losing_streak"))
+        await russian_rank.finish(await rank(event.group_id, "max_losing_streak"))
 
 
 # 随机子弹排列

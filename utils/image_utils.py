@@ -1,13 +1,16 @@
-from configs.path_config import IMAGE_PATH, TTF_PATH
-from PIL import Image, ImageFile, ImageDraw, ImageFont
+from configs.path_config import IMAGE_PATH, FONT_PATH
+from PIL import Image, ImageFile, ImageDraw, ImageFont, ImageFilter
 from imagehash import ImageHash
 from io import BytesIO
 from matplotlib import pyplot as plt
-from typing import Tuple, Optional, Union
+from typing import Tuple, Optional, Union, List
 from pathlib import Path
+from math import ceil
+import random
 import cv2
 import base64
 import imagehash
+
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 Image.MAX_IMAGE_PIXELS = None
 
@@ -143,11 +146,11 @@ class CreateImg:
         h: int,
         paste_image_width: int = 0,
         paste_image_height: int = 0,
-        color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]] = "white",
+        color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]] = None,
         image_mode: str = "RGBA",
         font_size: int = 10,
-        background: Union[Optional[str], BytesIO] = None,
-        ttf: str = "yz.ttf",
+        background: Union[Optional[str], BytesIO, Path] = None,
+        font: str = "yz.ttf",
         ratio: float = 1,
         is_alpha: bool = False,
         plain_text: Optional[str] = None,
@@ -174,9 +177,13 @@ class CreateImg:
         self.paste_image_height = int(paste_image_height)
         self.current_w = 0
         self.current_h = 0
-        self.font = ImageFont.truetype(TTF_PATH + ttf, int(font_size))
+        self.font = ImageFont.truetype(FONT_PATH + font, int(font_size))
+        if not plain_text and not color:
+            color = (255, 255, 255)
         if not background:
             if plain_text:
+                if not color:
+                    color = (255, 255, 255, 0)
                 ttf_w, ttf_h = self.getsize(plain_text)
                 self.w = self.w if self.w > ttf_w else ttf_w
                 self.h = self.h if self.h > ttf_h else ttf_h
@@ -204,7 +211,7 @@ class CreateImg:
             for i in range(w):
                 for j in range(h):
                     pos = array[i, j]
-                    is_edit = (sum([1 for x in pos[0:3] if x > 240]) == 3)
+                    is_edit = sum([1 for x in pos[0:3] if x > 240]) == 3
                     if is_edit:
                         array[i, j] = (255, 255, 255, 0)
         self.draw = ImageDraw.Draw(self.markImg)
@@ -302,7 +309,11 @@ class CreateImg:
         self.draw.ellipse(pos, fill, outline, width)
 
     def text(
-        self, pos: Tuple[int, int], text: str, fill: Tuple[int, int, int] = (0, 0, 0), center_type: Optional[str] = None
+        self,
+        pos: Tuple[int, int],
+        text: str,
+        fill: Tuple[int, int, int] = (0, 0, 0),
+        center_type: Optional[str] = None,
     ):
         """
         说明：
@@ -320,23 +331,27 @@ class CreateImg:
                 )
             w, h = self.w, self.h
             ttf_w, ttf_h = self.getsize(text)
-            if center_type == 'center':
+            if center_type == "center":
                 w = int((w - ttf_w) / 2)
                 h = int((h - ttf_h) / 2)
-            elif center_type == 'by_width':
+            elif center_type == "by_width":
                 w = int((w - ttf_w) / 2)
-            elif center_type == 'by_height':
+                h = pos[1]
+            elif center_type == "by_height":
                 h = int((h - ttf_h) / 2)
+                w = pos[0]
             pos = (w, h)
         self.draw.text(pos, text, fill=fill, font=self.font)
 
-    def save(self, path: str):
+    def save(self, path: Union[str, Path]):
         """
         说明：
             保存图片
         参数：
             :param path: 图片路径
         """
+        if isinstance(path, Path):
+            path = path.absolute()
         self.markImg.save(path)
 
     def show(self):
@@ -478,9 +493,519 @@ class CreateImg:
                     pim_b[i - (r - r3), j - (r - r3)] = pim_a[i, j]
         self.markImg = imb
 
+    def circle_corner(self, radii: int = 30):
+        """
+        说明：
+            矩形四角变圆
+        参数：
+            :param radii: 半径
+        """
+        # 画圆（用于分离4个角）
+        circle = Image.new('L', (radii * 2, radii * 2), 0)
+        draw = ImageDraw.Draw(circle)
+        draw.ellipse((0, 0, radii * 2, radii * 2), fill=255)
+        self.markImg = self.markImg.convert("RGBA")
+        w, h = self.markImg.size
+        alpha = Image.new('L', self.markImg.size, 255)
+        alpha.paste(circle.crop((0, 0, radii, radii)), (0, 0))
+        alpha.paste(circle.crop((radii, 0, radii * 2, radii)), (w - radii, 0))
+        alpha.paste(circle.crop((radii, radii, radii * 2, radii * 2)), (w - radii, h - radii))
+        alpha.paste(circle.crop((0, radii, radii, radii * 2)), (0, h - radii))
+        self.markImg.putalpha(alpha)
+
+    def rotate(self, angle: int):
+        """
+        说明：
+            旋转图片
+        参数：
+            :param angle: 角度
+        """
+        self.markImg = self.markImg.rotate(angle)
+
+    def filter(self, filter_: str, aud: int = None):
+        """
+        图片变化
+        :param filter_: 变化效果
+        :param aud: 利率
+        """
+        _x = None
+        if filter_ == 'GaussianBlur':           # 高斯模糊
+            _x = ImageFilter.GaussianBlur
+        elif filter_ == 'EDGE_ENHANCE':         # 锐化效果
+            _x = ImageFilter.EDGE_ENHANCE
+        elif filter_ == 'BLUR':                 # 模糊效果
+            _x = ImageFilter.BLUR
+        elif filter_ == 'CONTOUR':              # 铅笔滤镜
+            _x = ImageFilter.CONTOUR
+        elif filter_ == 'FIND_EDGES':           # 边缘检测
+            _x = ImageFilter.FIND_EDGES
+        if _x:
+            if aud:
+                self.markImg = self.markImg.filter(_x(aud))
+            else:
+                self.markImg = self.markImg.filter(_x)
+
     #
-    def getchannel(self, itype):
-        self.markImg = self.markImg.getchannel(itype)
+    def getchannel(self, type_):
+        self.markImg = self.markImg.getchannel(type_)
+
+
+class CreateMat:
+    """
+    针对 折线图/柱状图，基于 CreateImg 编写的 非常难用的 自定义画图工具
+    目前仅支持 正整数
+    """
+
+    def __init__(
+        self,
+        y: List[int],
+        mat_type: str = "line",
+        *,
+        x_name: Optional[str] = None,
+        y_name: Optional[str] = None,
+        x_index: List[Union[str, int, float]] = None,
+        y_index: List[Union[str, int, float]] = None,
+        title: Optional[str] = None,
+        size: Tuple[int, int] = (1000, 1000),
+        font_size: int = 20,
+        display_num: bool = False,
+        is_grid: bool = False,
+        background: Optional[List[str]] = None,
+        background_filler_type: Optional[str] = "center",
+        bar_color: Optional[List[Union[str, Tuple[int, int, int]]]] = None,
+    ):
+        """
+        说明：
+            初始化 CreateMat
+        参数：
+            :param y: 坐标值
+            :param mat_type: 图像类型 可能的值：[line]: 折线图，[bar]: 柱状图，[barh]: 横向柱状图
+            :param x_name: 横坐标名称
+            :param y_name: 纵坐标名称
+            :param x_index: 横坐标值
+            :param y_index: 纵坐标值
+            :param title: 标题
+            :param size: 图像大小，建议默认
+            :param font_size: 字体大小，建议默认
+            :param display_num: 是否显示数值
+            :param is_grid: 是否添加栅格
+            :param background: 背景图片
+            :param background_filler_type: 图像填充类型
+            :param bar_color: 柱状图颜色，位 ['*'] 时替换位彩虹随机色
+        """
+        self.mat_type = mat_type
+        self.markImg = None
+        self._check_value(y, y_index)
+        self.w = size[0]
+        self.h = size[1]
+        self.y = y
+        self.x_name = x_name
+        self.y_name = y_name
+        self.x_index = x_index
+        self.y_index = y_index
+        self.title = title
+        self.font_size = font_size
+        self.display_num = display_num
+        self.is_grid = is_grid
+        self.background = background
+        self.background_filler_type = background_filler_type
+        self.bar_color = bar_color if bar_color else [(0, 0, 0)]
+        self.size = size
+        self.padding_w = 120
+        self.padding_h = 120
+        self.line_length = 760
+        self._deviation = 0.905
+        self._color = {}
+        if self.bar_color == ["*"]:
+            self.bar_color = [
+                "#FF0000",
+                "#FF7F00",
+                "#FFFF00",
+                "#00FF00",
+                "#00FFFF",
+                "#0000FF",
+                "#8B00FF",
+            ]
+        if not x_index:
+            raise ValueError("缺少 x_index [横坐标值]...")
+        self._x_interval = int((self.line_length - 70) / len(x_index))
+        self._bar_width = int(
+            (self.line_length - (len(x_index) * (10 if len(x_index) >= 18 else 25)))
+            / len(x_index)
+        )
+        # 没有 y_index 时自动生成
+        if not y_index:
+            _y_index = []
+            _max_value = max(y)
+            _max_value = ceil(
+                _max_value / eval("1" + "0" * (len(str(_max_value)) - 1))
+            ) * eval("1" + "0" * (len(str(_max_value)) - 1))
+            _step = int(_max_value / 10)
+            for i in range(_step, _max_value + _step, _step):
+                _y_index.append(i)
+            self.y_index = _y_index
+        self._p = self.line_length / max(self.y_index)
+        self._y_interval = int((self.line_length - 70) / len(self.y_index))
+
+    def gen_graph(self):
+        """
+        说明:
+            生成图像
+        """
+        self.markImg = self._init_graph(
+            x_name=self.x_name,
+            y_name=self.y_name,
+            x_index=self.x_index,
+            y_index=self.y_index,
+            font_size=self.font_size,
+            is_grid=self.is_grid,
+        )
+        if self.mat_type == "line":
+            self._gen_line_graph(y=self.y, display_num=self.display_num)
+        elif self.mat_type == "bar":
+            self._gen_bar_graph(y=self.y, display_num=self.display_num)
+        elif self.mat_type == "barh":
+            self._gen_bar_graph(y=self.y, display_num=self.display_num, is_barh=True)
+
+    def set_y(self, y: List[int]):
+        """
+        说明:
+            给坐标点设置新值
+        参数：
+            :param y: 坐标点
+        """
+        self._check_value(y, self.y_index)
+        self.y = y
+
+    def set_y_index(self, y_index: List[Union[str, int, float]]):
+        """
+        说明:
+            设置y轴坐标值
+        参数：
+            :param y_index: y轴坐标值
+        """
+        self._check_value(self.y, y_index)
+        self.y_index = y_index
+
+    def set_title(self, title: str, color: Optional[Union[str, Tuple[int, int, int]]]):
+        """
+        说明：
+            设置标题
+        参数：
+            :param title: 标题
+            :param color: 字体颜色
+        """
+        self.title = title
+        if color:
+            self._color["title"] = color
+
+    def set_background(
+        self, background: Optional[List[str]], type_: Optional[str] = None
+    ):
+        """
+        说明：
+            设置背景图片
+        参数：
+            :param background: 图片路径列表
+            :param type_: 填充类型
+        """
+        self.background = background
+        self.background_filler_type = type_ if type_ else self.background_filler_type
+
+    def show(self):
+        """
+        说明：
+            展示图像
+        """
+        self.markImg.show()
+
+    def pic2bs4(self) -> str:
+        """
+        说明：
+            转base64
+        """
+        return self.markImg.pic2bs4()
+
+    def resize(self, ratio: float = 0.9):
+        """
+        说明：
+            调整图像大小
+        参数：
+            :param ratio: 比例
+        """
+        self.markImg.resize(ratio)
+
+    def save(self, path: Union[str, Path]):
+        """
+        说明：
+            保存图片
+        参数：
+            :param path: 路径
+        """
+        self.markImg.save(path)
+
+    def _check_value(
+        self,
+        y: List[int],
+        y_index: List[Union[str, int, float]] = None,
+        x_index: List[Union[str, int, float]] = None,
+    ):
+        """
+        说明:
+            检查值合法性
+        参数：
+            :param y: 坐标值
+            :param y_index: y轴坐标值
+            :param x_index: x轴坐标值
+        """
+        if y_index:
+            _value = x_index if self.mat_type == "barh" else y_index
+            if max(y) > max(y_index):
+                raise ValueError("坐标点的值必须小于y轴坐标的最大值...")
+            i = -9999999999
+            for y in y_index:
+                if y > i:
+                    i = y
+                else:
+                    raise ValueError("y轴坐标值必须有序...")
+
+    def _gen_line_graph(
+        self,
+        y: List[Union[int, float]],
+        display_num: bool = False,
+    ):
+        """
+        说明:
+            生成折线图
+        参数：
+            :param y: 坐标点
+            :param display_num: 显示该点的值
+        """
+        _black_point = CreateImg(7, 7, color=random.choice(self.bar_color))
+        _black_point.circle()
+        x_interval = self._x_interval
+        current_w = self.padding_w + x_interval
+        current_h = self.padding_h + self.line_length
+        for i in range(len(y)):
+            if display_num:
+                w = int(self.markImg.getsize(str(y[i]))[0] / 2)
+                self.markImg.text(
+                    (
+                        current_w - w,
+                        current_h - int(y[i] * self._p * self._deviation) - 25,
+                    ),
+                    str(y[i]),
+                )
+            self.markImg.paste(
+                _black_point,
+                (
+                    current_w - 3,
+                    current_h - int(y[i] * self._p * self._deviation) - 3,
+                ),
+                True,
+            )
+            if i != len(y) - 1:
+                self.markImg.line(
+                    (
+                        current_w,
+                        current_h - int(y[i] * self._p * self._deviation),
+                        current_w + x_interval,
+                        current_h - int(y[i + 1] * self._p * self._deviation),
+                    ),
+                    fill=(0, 0, 0),
+                    width=2,
+                )
+            current_w += x_interval
+
+    def _gen_bar_graph(
+        self,
+        y: List[Union[int, float]],
+        display_num: bool = False,
+        is_barh: bool = False,
+    ):
+        """
+        说明：
+            生成柱状图
+        参数：
+            :param y: 坐标值
+            :param display_num: 是否显示数值
+            :param is_barh: 横柱状图
+        """
+        _interval = self._x_interval
+        if is_barh:
+            current_h = self.padding_h + self.line_length - _interval
+            current_w = self.padding_w
+        else:
+            current_w = self.padding_w + _interval
+            current_h = self.padding_h + self.line_length
+        for i in range(len(y)):
+            if display_num:
+                if is_barh:
+                    font_h = self.markImg.getsize(str(y[i]))[1]
+                    self.markImg.text(
+                        (
+                            self.padding_w + int(y[i] * self._p * self._deviation) + 2,
+                            current_h - int(font_h / 2),
+                        ),
+                        str(y[i]),
+                    )
+                else:
+                    w = int(self.markImg.getsize(str(y[i]))[0] / 2)
+                    self.markImg.text(
+                        (
+                            current_w - w,
+                            current_h - int(y[i] * self._p * self._deviation) - 25,
+                        ),
+                        str(y[i]),
+                    )
+            if i != len(y):
+                bar_color = random.choice(self.bar_color)
+                if is_barh:
+                    A = CreateImg(
+                        int(y[i] * self._p * self._deviation),
+                        self._bar_width,
+                        color=bar_color,
+                    )
+                    self.markImg.paste(
+                        A,
+                        (
+                            current_w + 2,
+                            current_h - int(self._bar_width / 2),
+                        ),
+                    )
+                else:
+                    A = CreateImg(
+                        self._bar_width,
+                        int(y[i] * self._p * self._deviation),
+                        color=bar_color,
+                    )
+                    self.markImg.paste(
+                        A,
+                        (
+                            current_w - int(self._bar_width / 2),
+                            current_h - int(y[i] * self._p * self._deviation),
+                        ),
+                    )
+            if is_barh:
+                current_h -= _interval
+            else:
+                current_w += _interval
+
+    def _init_graph(
+        self,
+        x_name: Optional[str] = None,
+        y_name: Optional[str] = None,
+        x_index: List[Union[str, int, float]] = None,
+        y_index: List[Union[str, int, float]] = None,
+        font_size: Optional[int] = None,
+        is_grid: bool = False,
+    ) -> CreateImg:
+        """
+        说明：
+            初始化图像，生成xy轴
+        参数：
+            :param x_name: x轴名称
+            :param y_name: y轴名称
+            :param x_index: x轴坐标值
+            :param y_index: y轴坐标值
+            :param is_grid: 添加栅格
+        """
+        padding_w = self.padding_w
+        padding_h = self.padding_h
+        line_length = self.line_length
+        background = random.choice(self.background) if self.background else None
+        A = CreateImg(self.w, self.h, font_size=font_size, background=background)
+        if background:
+            _tmp = CreateImg(self.w, self.h)
+            _tmp.transparent(2)
+            A.paste(_tmp, alpha=True)
+        if self.title:
+            title = CreateImg(
+                0,
+                0,
+                plain_text=self.title,
+                color=(255, 255, 255, 0),
+                font_size=35,
+                font_color=self._color.get("title"),
+            )
+            A.paste(title, (0, 25), True, "by_width")
+        A.line(
+            (
+                padding_w,
+                padding_h + line_length,
+                padding_w + line_length,
+                padding_h + line_length,
+            ),
+            (0, 0, 0),
+            2,
+        )
+        A.line(
+            (
+                padding_w,
+                padding_h,
+                padding_w,
+                padding_h + line_length,
+            ),
+            (0, 0, 0),
+            2,
+        )
+        _interval = self._x_interval
+        if self.mat_type == "barh":
+            tmp = x_index
+            x_index = y_index
+            y_index = tmp
+            _interval = self._y_interval
+        current_w = padding_w + _interval
+        _text_font = CreateImg(0, 0, font_size=self.font_size)
+        _grid = self.line_length if is_grid else 10
+        for _x in x_index:
+            _p = CreateImg(1, _grid, color="#a9a9a9")
+            A.paste(_p, (current_w, padding_h + line_length - _grid))
+            w = int(_text_font.getsize(f"{_x}")[0] / 2)
+            text = CreateImg(
+                0,
+                0,
+                plain_text=f"{_x}",
+                font_size=self.font_size,
+                color=(255, 255, 255, 0),
+            )
+            A.paste(text, (current_w - w, padding_h + line_length + 10), alpha=True)
+            current_w += _interval
+        _interval = self._x_interval if self.mat_type == "barh" else self._y_interval
+        current_h = padding_h + line_length - _interval
+        _text_font = CreateImg(0, 0, font_size=self.font_size)
+        for _y in y_index:
+            _p = CreateImg(_grid, 1, color="#a9a9a9")
+            A.paste(_p, (padding_w, current_h))
+            w, h = _text_font.getsize(f"{_y}")
+            h = int(h / 2)
+            text = CreateImg(
+                0,
+                0,
+                plain_text=f"{_y}",
+                font_size=self.font_size,
+                color=(255, 255, 255, 0),
+            )
+            while text.size[0] > self.padding_w - 10:
+                text = CreateImg(
+                    0,
+                    0,
+                    plain_text=f"{_y}",
+                    font_size=int(self.font_size * 0.9),
+                    color=(255, 255, 255, 0),
+                )
+                w, _ = text.getsize(f"{_y}")
+            A.paste(text, (padding_w - w - 10, current_h - h), alpha=True)
+            current_h -= _interval
+        if x_name:
+            A.text((int(padding_w / 2), int(padding_w / 2)), x_name)
+        if y_name:
+            A.text(
+                (int(padding_w + line_length + 50), int(padding_h + line_length + 50)),
+                y_name,
+            )
+        # A.show()
+        return A
 
 
 if __name__ == "__main__":

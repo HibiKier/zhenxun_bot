@@ -11,12 +11,29 @@ from models.pixiv_keyword_user import PixivKeywordUser
 from models.pixiv import Pixiv
 
 
-__plugin_name__ = "通过/取消/删除pix关键词 | 删除pix图片"
-
+__zx_plugin_name__ = "PIX关键词/UID/PID删除管理 [Superuser]"
 __plugin_usage__ = """
-    通过/取消/删除pix关键词 [关键词/pid/uid] 示例：通过pix关键词萝莉，通过pix关键词uid:123456，通过pix关键词pid:123456
-    删除pix图片 *[pid] 示例：删除pix图片4223442
-"""
+usage：
+    PIX关键词/UID/PID删除管理操作
+    指令：
+        通过pix关键词 [关键词/pid/uid]
+        取消pix关键词 [关键词/pid/uid]
+        删除pix关键词 [关键词/pid/uid]
+        删除pix图片 *[pid]
+        示例：通过pix关键词萝莉
+        示例：通过pix关键词uid:123456
+        示例：通过pix关键词pid:123456
+        示例：删除pix图片4223442
+""".strip()
+__plugin_des__ = "PIX关键词/UID/PID删除管理"
+__plugin_cmd__ = [
+    "通过pix关键词 [关键词/pid/uid]",
+    "取消pix关键词 [关键词/pid/uid]",
+    "删除pix关键词 [关键词/pid/uid]",
+    "删除pix图片 *[pid]",
+]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
 
 
 pass_keyword = on_command(
@@ -31,9 +48,7 @@ del_keyword = on_command(
     "删除pix关键词", aliases={"删除pix关键字"}, permission=SUPERUSER, priority=1, block=True
 )
 
-del_pic = on_command(
-    "删除pix图片", permission=SUPERUSER, priority=1, block=True
-)
+del_pic = on_command("删除pix图片", permission=SUPERUSER, priority=1, block=True)
 
 
 @del_keyword.handle()

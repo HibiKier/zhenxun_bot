@@ -9,9 +9,22 @@ import random
 from utils.utils import CountLimiter
 from models.ban_user import BanUser
 
-__plugin_name__ = "戳一戳 [Hidden]"
+__zx_plugin_name__ = "戳一戳"
 
-__plugin_usage__ = "用法：无"
+__plugin_usage__ = """
+usage：
+    戳一戳随机掉落语音或美图萝莉图
+""".strip()
+__plugin_des__ = "戳一戳发送语音美图萝莉图不美哉？"
+__plugin_type__ = ("被动相关",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["戳一戳"],
+}
 
 poke__reply = [
     "lsp你再戳？",

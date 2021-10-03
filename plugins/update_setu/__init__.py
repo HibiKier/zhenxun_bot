@@ -8,37 +8,41 @@ from .data_source import update_setu_img
 from configs.config import DOWNLOAD_SETU
 
 
-__plugin_name__ = "更新色图 [Hidden]"
+__zx_plugin_name__ = "更新色图 [Superuser]"
+__plugin_usage__ = """
+usage：
+    更新数据库内存在的色图
+    指令：
+        更新色图
+""".strip()
+__plugin_cmd__ = ["更新色图"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_block_limit__ = {
+    "rst": "色图正在更新..."
+}
 
-__plugin_usage__ = '无'
 
-exists_flag = False
-
-update_setu = on_command("更新色图", rule=to_me(), permission=SUPERUSER, priority=1, block=True)
+update_setu = on_command(
+    "更新色图", rule=to_me(), permission=SUPERUSER, priority=1, block=True
+)
 
 
 @update_setu.handle()
 async def _(bot: Bot, event: Event, state: T_State):
-    global exists_flag
     if DOWNLOAD_SETU:
-        if not exists_flag:
-            exists_flag = True
-            await update_setu.send("开始更新色图...", at_sender=True)
-            await update_setu.send(await update_setu_img(), at_sender=True)
-            exists_flag = False
-        else:
-            await update_setu.finish("色图正在更新....")
+        await update_setu.send("开始更新色图...", at_sender=True)
+        await update_setu.send(await update_setu_img(), at_sender=True)
     else:
-        await update_setu.finish('更新色图配置未开启')
+        await update_setu.finish("更新色图配置未开启")
 
 
 # 更新色图
 @scheduler.scheduled_job(
-    'cron',
+    "cron",
     hour=4,
     minute=30,
 )
 async def _():
-    global exists_flag
-    if DOWNLOAD_SETU and not exists_flag:
+    if DOWNLOAD_SETU:
         await update_setu_img()

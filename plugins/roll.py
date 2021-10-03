@@ -7,10 +7,26 @@ from configs.config import NICKNAME
 import random
 import asyncio
 
-__plugin_name__ = "roll"
-__plugin_usage__ = (
-    "用法：\n" "\troll -> 随机数字\n" "\troll *[文本] -> 决定事件\n" "示例：roll 吃饭 睡觉 打游戏"
-)
+
+__zx_plugin_name__ = "roll"
+__plugin_usage__ = """
+usage：
+    随机数字 或 随机选择事件
+    指令：
+        roll: 随机 0-100 的数字
+        roll *[文本]: 随机事件
+        示例：roll 吃饭 睡觉 打游戏
+""".strip()
+__plugin_des__ = "犹豫不决吗？那就让我帮你决定吧"
+__plugin_cmd__ = ["roll", "roll *[文本]"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["roll"],
+}
 
 
 roll = on_command("roll", priority=5, block=True)

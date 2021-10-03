@@ -6,8 +6,19 @@ from models.group_member_info import GroupInfoUser
 from datetime import timedelta
 from models.level_user import LevelUser
 
-__plugin_name__ = "更新群组成员列表 [Hidden]"
-__plugin_usage__ = "用法：\n" "更新群员的信息"
+
+__zx_plugin_name__ = "个人信息权限查看"
+__plugin_usage__ = """
+usage：
+    个人信息权限查看
+    指令：
+        我的信息
+        我的权限
+""".strip()
+__plugin_des__ = "我们还记得你和你的权利"
+__plugin_cmd__ = ["我的信息", "我的权限"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
 
 
 get_my_group_info = on_command("我的信息", permission=GROUP, priority=1, block=True)

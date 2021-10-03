@@ -83,6 +83,8 @@ async def _last_check(data: dict, game_name: str, session: aiohttp.ClientSession
             '-舰娘头像外框精锐.png',
             'https://patchwiki.biligame.com/images/blhx/thumb/a/a2/ptog1j220x5q02hytpwc8al7f229qk9.png/60px-'
             '舰娘头像外框超稀有.png'
+            'https://patchwiki.biligame.com/images/blhx/thumb/0/0f/n28p7p3opfn5mhgjyio55ljsllhknwz.png/60px-'
+            '舰娘头像外框精锐META.png'
         ]:
             await download_img(url, 'azur', f'{idx}_star')
             idx += 1
@@ -135,7 +137,7 @@ async def retrieve_char_data(char: bs4.element.Tag, game_name: str, data: dict, 
             member_dict['头像'] = unquote(str(avatar_img['src']).split(' ')[-2])
         except TypeError:
             member_dict['头像'] = "img link not find..."
-            logger(f'{member_dict["名称"]} 图片缺失....')
+            logger.warning(f'{member_dict["名称"]} 图片缺失....')
         star = char.find('div').find('img')['alt']
         if star == '舰娘头像外框普通.png':
             star = 1
@@ -147,7 +149,9 @@ async def retrieve_char_data(char: bs4.element.Tag, game_name: str, data: dict, 
             star = 4
         elif star == '舰娘头像外框海上传奇.png':
             star = 5
-        elif star in ['舰娘头像外框最高方案.png', '舰娘头像外框决战方案.png', '舰娘头像外框超稀有META.png']:
+        elif star in ['舰娘头像外框最高方案.png', '舰娘头像外框决战方案.png', '舰娘头像外框超稀有META.png', '舰娘头像外框精锐META.png']:
+            star = 6
+        else:
             star = 6
         member_dict['星级'] = star
         member_dict['类型'] = azur_type[str(index)]

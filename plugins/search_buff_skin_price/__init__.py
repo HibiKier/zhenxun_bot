@@ -5,15 +5,29 @@ from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.rule import to_me
 from nonebot.permission import SUPERUSER
-from utils.utils import UserExistLimiter, get_message_text
+from utils.utils import get_message_text
 from configs.config import NICKNAME
 
 
-__plugin_name__ = "查询皮肤"
-__plugin_usage__ = "查询皮肤帮助:\n\t" "查询皮肤 [枪械名] [皮肤]\n\t" "示例: 查询皮肤 awp 二西莫夫"
-
-
-_ulmt = UserExistLimiter()
+__zx_plugin_name__ = "BUFF查询皮肤"
+__plugin_usage__ = """
+usage：
+    在线实时获取BUFF指定皮肤所有磨损底价
+    指令：
+        查询皮肤 [枪械名] [皮肤名称]
+        示例：查询皮肤 ak47 二西莫夫
+""".strip()
+__plugin_des__ = "BUFF皮肤底价查询"
+__plugin_cmd__ = ["查询皮肤 [枪械名] [皮肤名称]"]
+__plugin_type__ = ("一些工具",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["查询皮肤"],
+}
 
 
 search_skin = on_command("查询皮肤", aliases={"皮肤查询"}, priority=5, block=True)
@@ -51,7 +65,7 @@ async def arg_handle(bot: Bot, event: MessageEvent, state: T_State):
     try:
         result, status_code = await get_price(name)
     except FileNotFoundError:
-        await search_skin.finish(F'请先对{NICKNAME}说"设置cookie"来设置cookie！')
+        await search_skin.finish(f'请先对{NICKNAME}说"设置cookie"来设置cookie！')
     if status_code in [996, 997, 998]:
         _ulmt.set_false(event.user_id)
         await search_skin.finish(result)
@@ -74,7 +88,7 @@ async def arg_handle(bot: Bot, event: MessageEvent, state: T_State):
 
 
 update_buff_session = on_command(
-    "更新cookie", aliases={'设置cookie'}, rule=to_me(), permission=SUPERUSER, priority=1
+    "更新cookie", aliases={"设置cookie"}, rule=to_me(), permission=SUPERUSER, priority=1
 )
 
 

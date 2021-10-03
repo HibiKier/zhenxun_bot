@@ -4,17 +4,32 @@ from services.log import logger
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from configs.config import MAXINFO_GROUP_ANIME, MAXINFO_PRIVATE_ANIME
-from utils.utils import get_message_text, UserExistLimiter
+from utils.utils import get_message_text
 
 
-__plugin_name__ = "搜番"
-__plugin_usage__ = r"""
-在群内使用此功能只返还5个结果，私聊返还 20 个结果（绝不能打扰老色批们看色图！）
-搜索动漫资源
-搜番  [番剧名称或者关键词]
-搜番 Aria
+__zx_plugin_name__ = "搜番"
+__plugin_usage__ = f"""
+usage：
+    搜索动漫资源
+    普通的搜番群内使用此功能只返还 {MAXINFO_GROUP_ANIME} 个结果，私聊返还 {MAXINFO_PRIVATE_ANIME} 个结果（绝不能打扰老色批们看色图！）
+    指令：
+        搜番  [番剧名称或者关键词]
+        示例：搜番 刀剑神域
 """.strip()
-_ulmt = UserExistLimiter()
+__plugin_des__ = "找不到想看的动漫吗？"
+__plugin_cmd__ = ["搜番  [番剧名称或者关键词]"]
+__plugin_type__ = ("一些工具",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["搜番"],
+}
+__plugin_block_limit__ = {
+    "rst": "搜索还未完成，不要重复触发！"
+}
 
 search_anime = on_command("搜番", aliases={"搜动漫"}, priority=5, block=True)
 
@@ -29,9 +44,6 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 @search_anime.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if _ulmt.check(event.user_id):
-        await search_anime.finish("您有动漫正在搜索，请稍等...", at_sender=True)
-    _ulmt.set_true(event.user_id)
     if get_message_text(event.json()):
         state["anime"] = get_message_text(event.json())
 
@@ -55,4 +67,3 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     else:
         logger.warning(f"未找到番剧 {key_word}")
         await search_anime.send(f"未找到番剧 {key_word}（也有可能是超时，再尝试一下？）")
-    _ulmt.set_false(event.user_id)

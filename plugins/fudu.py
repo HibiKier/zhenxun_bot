@@ -11,6 +11,19 @@ import aiohttp
 import aiofiles
 from asyncio.exceptions import TimeoutError
 from configs.config import FUDU_PROBABILITY
+from utils.manager import group_manager
+
+
+__zx_plugin_name__ = "复读"
+__plugin_usage__ = """
+usage：
+    重复3次相同的消息时会复读
+""".strip()
+__plugin_des__ = "群友的本质是什么？是复读机哒！"
+__plugin_type__ = ("被动相关",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_task__ = {"fudu": "复读"}
 
 
 class Fudu:
@@ -59,7 +72,11 @@ fudu = on_message(permission=GROUP, priority=9)
 
 @fudu.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    if event.is_tome() or state["_prefix"]["raw_command"]:
+    if (
+        event.is_tome()
+        or state["_prefix"]["raw_command"]
+        or not await group_manager.check_group_task_status(event.group_id, "fudu")
+    ):
         return
     if get_message_text(event.json()):
         if get_message_text(event.json()).find("@可爱的小真寻") != -1:

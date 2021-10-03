@@ -6,14 +6,17 @@ from configs.config import IMPORT_DEFAULT_SHOP_GOODS
 from nonebot import Driver
 import nonebot
 import time
+import os
 
 
 driver: Driver = nonebot.get_driver()
 
 
-# 导入内置商品
+# 导入内置商品 | 重新生成商店图片
 @driver.on_startup
 async def init_default_shop_goods():
+    if os.path.exists(f"{IMAGE_PATH}/shop_help.png"):
+        os.remove(f"{IMAGE_PATH}/shop_help.png")
     if IMPORT_DEFAULT_SHOP_GOODS:
         await add_goods(["好感度双倍加持卡Ⅰ", 30, "下次签到双倍好感度概率 + 10%（谁才是真命天子？）（同类商品将覆盖）"])
         await add_goods(["好感度双倍加持卡Ⅱ", 150, "下次签到双倍好感度概率 + 20%（平平庸庸）（同类商品将覆盖）"])

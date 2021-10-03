@@ -8,14 +8,19 @@ from models.pixiv_keyword_user import PixivKeywordUser
 from models.pixiv import Pixiv
 from nonebot.permission import SUPERUSER
 
-__plugin_name__ = "添加PIX关键词/UID/PID | 添加PIX黑名单"
-
+__zx_plugin_name__ = "PIX关键词/UID/PID添加管理 [Superuser]"
 __plugin_usage__ = """
-    关键词：添加搜图的关键词（效果拉胯）
-    UID：搜集该画师的图片，可指定收藏数
-    PID：收录单张图片
-    PIX黑名单：可以是当个pid，也可以是pid_p0等
-"""
+usage：
+    PIX关键词/UID/PID添加管理操作
+    指令：
+        添加pix关键词 [Tag]: 添加一个pix搜索收录Tag
+        添加pixuid [uid]: 添加一个pix搜索收录uid
+        添加pixpid [pid]: 添加一个pix收录pid
+""".strip()
+__plugin_des__ = "PIX关键词/UID/PID添加管理"
+__plugin_cmd__ = ["添加pix关键词 [Tag]", "添加pixuid [uid]", "添加pixpid [pid]"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
 
 
 add_keyword = on_command("添加pix关键词", aliases={"添加pix关键字"}, priority=1, block=True)

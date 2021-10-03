@@ -7,9 +7,22 @@ from utils.utils import get_message_text
 from .data_source import get_data
 from services.log import logger
 
-__plugin_name__ = 'b封面'
-__plugin_usage__ = '用法： b封面 (链接，av，bv，cv，直播id)\n\t' \
-                   '示例：b封面 av86863038'
+__zx_plugin_name__ = 'b封面'
+__plugin_usage__ = """usage：
+    b封面 [链接/av/bv/cv/直播id]
+    示例：b封面 av86863038
+"""
+__plugin_des__ = '快捷的b站视频封面获取方式'
+__plugin_cmd__ = ['b封面/B封面']
+__plugin_type__ = ('一些工具',)
+__plugin_version__ = 0.1
+__plugin_author__ = 'HibiKier'
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["b封面", 'B封面'],
+}
 
 
 cover = on_command('b封面', aliases={'B封面'}, priority=5, block=True)

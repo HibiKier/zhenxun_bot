@@ -9,8 +9,14 @@ import nonebot
 import asyncio
 import os
 
-driver: Driver = nonebot.get_driver()
 
+__zx_plugin_name__ = "更新扩展图库Omega [Hidden]"
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+
+nonebot.load_plugins("plugins/pix_gallery")
+
+driver: Driver = nonebot.get_driver()
 illust_url = f"{HIBIAPI}/api/pixiv/illust"
 
 
@@ -27,11 +33,13 @@ async def _init_omega_pixiv_illusts():
         length = len([x for x in lines if "INSERT INTO" in x.upper()])
         all_pid = await OmegaPixivIllusts.get_all_pid()
         index = 0
-        logger.info('检测到OmegaPixivIllusts数据库，准备开始更新....')
+        logger.info("检测到OmegaPixivIllusts数据库，准备开始更新....")
         for line in lines:
             if "INSERT INTO" in line.upper():
                 index += 1
-                tasks.append(asyncio.ensure_future(_tasks(line, all_pid, length, index)))
+                tasks.append(
+                    asyncio.ensure_future(_tasks(line, all_pid, length, index))
+                )
         await asyncio.gather(*tasks)
         omega_pixiv_illusts.unlink()
 
@@ -45,12 +53,12 @@ async def _tasks(line: str, all_pid: List[int], length: int, index: int):
     x = data.split(maxsplit=3)
     pid = int(x[1][:-1].strip())
     if pid in all_pid:
-        logger.info(f'添加OmegaPixivIllusts图库数据已存在 ---> pid：{pid}')
+        logger.info(f"添加OmegaPixivIllusts图库数据已存在 ---> pid：{pid}")
         return
     uid = int(x[2][:-1].strip())
     x = x[3].split(", '")
     title = x[0].strip()[1:-1]
-    tmp = x[1].split(', ')
+    tmp = x[1].split(", ")
     author = tmp[0].strip()[:-1]
     nsfw_tag = int(tmp[1])
     width = int(tmp[2])
@@ -68,9 +76,10 @@ async def _tasks(line: str, all_pid: List[int], length: int, index: int):
         nsfw_tag,
         tags,
         datetime.min,
-        datetime.min
+        datetime.min,
     ):
-        logger.info(f"成功添加OmegaPixivIllusts图库数据 pid：{pid} 本次预计存储 {length} 张，已更新第 {index} 张")
+        logger.info(
+            f"成功添加OmegaPixivIllusts图库数据 pid：{pid} 本次预计存储 {length} 张，已更新第 {index} 张"
+        )
     else:
         logger.info(f"添加OmegaPixivIllusts图库数据已存在 ---> pid：{pid}")
-

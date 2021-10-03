@@ -12,22 +12,24 @@ from utils.utils import FreqLimiter
 from configs.config import NICKNAME
 
 
-__plugin_name__ = "基本设置 [Hidden]"
+__zx_plugin_name__ = "基本设置 [Hidden]"
 __plugin_usage__ = "用法： 无"
+__plugin_version__ = 0.1
+__plugin_author__ = 'HibiKier'
 
 
 _flmt = FreqLimiter(300)
 
 
-config_playgame = on_keyword({"打游戏"}, permission=GROUP, priority=1, block=True)
+config_play_game = on_keyword({"打游戏"}, permission=GROUP, priority=1, block=True)
 
 
-@config_playgame.handle()
+@config_play_game.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if not _flmt.check(event.group_id):
         return
     _flmt.start_cd(event.group_id)
-    await config_playgame.finish(
+    await config_play_game.finish(
         image(random.choice(os.listdir(IMAGE_PATH + "dayouxi/")), "dayouxi")
     )
 

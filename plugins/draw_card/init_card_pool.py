@@ -1,5 +1,6 @@
 from typing import Any
 from .config import DATA_PATH
+from utils.utils import is_number
 from pathlib import Path
 try:
     import ujson as json
@@ -65,11 +66,12 @@ def init_game_pool(game: str, data: dict, Operator: Any):
             tmp_lst.append(Operator(name=data[key]['名称'], star=int(data[key]['星级']), limited=limited))
     if game == 'azur':
         for key in data.keys():
-            limited = False
-            if '可以建造' not in data[key]['获取途径']:
-                limited = True
-            tmp_lst.append(Operator(name=data[key]['名称'], star=int(data[key]['星级']),
-                                    limited=limited, itype=data[key]['类型']))
+            if is_number(data[key]['星级']):
+                limited = False
+                if '可以建造' not in data[key]['获取途径']:
+                    limited = True
+                tmp_lst.append(Operator(name=data[key]['名称'], star=int(data[key]['星级']),
+                                        limited=limited, itype=data[key]['类型']))
     if game in ['fgo', 'fgo_card']:
         for key in data.keys():
             limited = False

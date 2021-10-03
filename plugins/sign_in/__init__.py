@@ -6,6 +6,7 @@ from .group_user_checkin import (
 )
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
+from utils.manager import plugins2cd_manager
 from nonebot.adapters.cqhttp.permission import GROUP
 from utils.message_builder import image
 from nonebot import on_command
@@ -20,13 +21,30 @@ try:
 except ModuleNotFoundError:
     import json
 
-__plugin_name__ = "签到"
-__plugin_usage__ = (
-    "用法：\n"
-    "对我说 “签到” 来签到\n"
-    "“我的签到” 来获取历史签到信息\n"
-    "“好感度排行” 来查看当前好感度前十的伙伴\n"
-    "/ 签到时有 3% 概率 * 2 /"
+__zx_plugin_name__ = "签到"
+__plugin_usage__ = """
+usage：
+    每日签到
+    会影响色图概率和开箱次数，以及签到的随机道具获取
+    指令：
+        签到
+        我的签到
+        好感度排行
+        好感度总排行
+    * 签到时有 3% 概率 * 2 *
+""".strip()
+__plugin_des__ = "每日签到，证明你在这里"
+__plugin_cmd__ = ["签到", "我的签到", "好感度排行", "好感度总排行"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["签到"],
+}
+plugins2cd_manager.add_cd_limit(
+    'sign_in',
 )
 
 _file = Path(f"{DATA_PATH}/not_show_sign_rank_user.json")

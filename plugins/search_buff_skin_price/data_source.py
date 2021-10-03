@@ -1,7 +1,7 @@
 from utils.user_agent import get_user_agent
 import aiohttp
 from utils.utils import get_cookie_text
-from configs.path_config import TXT_PATH
+from configs.path_config import TEXT_PATH
 from asyncio.exceptions import TimeoutError
 from configs.config import BUFF_PROXY
 from pathlib import Path
@@ -50,7 +50,7 @@ async def get_price(dname):
 
 
 def update_buff_cookie(cookie: str):
-    _cookie = Path(TXT_PATH + "cookie/buff.txt")
+    _cookie = Path(TEXT_PATH + "cookie/buff.txt")
     try:
         _cookie.parent.mkdir(parents=True, exist_ok=True)
         with open(_cookie, "w") as f:

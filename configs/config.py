@@ -1,19 +1,10 @@
 from typing import List, Optional, Tuple
 from services.service_config import TL_M_KEY, SYSTEM_M_PROXY, ALAPI_M_TOKEN
-from .utils.init_config import init_config
-from configs.path_config import DATA_PATH
 try:
     import ujson as json
 except ModuleNotFoundError:
     import json
 
-
-# 是否使用配置文件
-# 使用配置文件在每次启动时 plugins2info_dict, plugins2cd_dict, plugins2exists_dict 将从本地读取
-# 除了 plugins2info_dict 新增内容键值会写入 plugins2info_file
-# 其他修改或新增在 configs.config.py中对 plugins2info_dict, plugins2cd_dict, plugins2exists_dict 的配置无效
-# 目录：data/configs/
-USE_CONFIG_FILE: bool = False
 
 # 回复消息名称
 NICKNAME: str = "小真寻"
@@ -95,13 +86,13 @@ CHECK_NOTICE_INFO_CD = 300  # 群检测，个人权限检测等各种检测提�
 
 # 注：即在 MALICIOUS_CHECK_TIME 时间内触发相同命令 MALICIOUS_BAN_COUNT 将被ban MALICIOUS_BAN_TIME 分钟
 MALICIOUS_BAN_TIME: int = 30  # 恶意命令触发检测触发后ban的时长（分钟）
-MALICIOUS_BAN_COUNT: int = 3  # 恶意命令触发检测最大触发次数
+MALICIOUS_BAN_COUNT: int = 6  # 恶意命令触发检测最大触发次数
 MALICIOUS_CHECK_TIME: int = 5  # 恶意命令触发检测规定时间内（秒）
 
 # LEVEL
 DELETE_IMG_LEVEL: int = 7  # 删除图片权限
 MOVE_IMG_LEVEL: int = 7  # 移动图片权限
-UPLOAD_LEVEL: int = 6  # 上传图片权限
+UPLOAD_IMG_LEVEL: int = 6  # 上传图片权限
 BAN_LEVEL: int = 5  # BAN权限
 OC_LEVEL: int = 2  # 开关群功能权限
 MUTE_LEVEL: int = 5  # 更改禁言设置权限
@@ -117,7 +108,7 @@ HIBIAPI_BOOKMARKS: int = 5000
 
 # 需要为哪些群更新最新版gocq吗？（上传最新版gocq）
 # 示例：[434995955, 239483248]
-UPDATE_GOCQ_GROUP: List[int] = []
+UPDATE_GOCQ_GROUP: List[int] = [774261838]
 
 # 是否存储色图
 DOWNLOAD_SETU: bool = True
@@ -132,173 +123,6 @@ IMPORT_DEFAULT_SHOP_GOODS: bool = True
 # 真寻是否自动更新
 AUTO_UPDATE_ZHENXUN: bool = True
 
-# 群管理员功能 与 对应权限
-admin_plugins_auth = {
-    "custom_welcome_message": OC_LEVEL,
-    "group_notification_state": OC_LEVEL,
-    "switch_rule": OC_LEVEL,
-    "update_group_member_info": OC_LEVEL,
-    "ban": BAN_LEVEL,
-    "delete_img": DELETE_IMG_LEVEL,
-    "move_img": MOVE_IMG_LEVEL,
-    "upload_img": UPLOAD_LEVEL,
-    "admin_help": 1,
-    "mute": MUTE_LEVEL,
-    "member_activity_handle": MEMBER_ACTIVITY_LEVEL,
-}
-
-# 需要cd的功能（方便管理）[秒]
-# 自定义的功能需要cd也可以在此配置
-# key：模块名称
-# cd：cd 时长（秒）
-# status：此限制的开关状态
-# check_type：'private'/'group'/'all'，限制私聊/群聊/全部
-# limit_type：监听对象，以user_id或group_id作为键来限制，'user'：用户id，'group'：群id
-#                                     示例：'user'：用户N秒内触发1次，'group'：群N秒内触发1次
-# rst：回复的话，可以添加[at]，[uname]，[nickname]来对应艾特，用户群名称，昵称系统昵称
-# rst 为 "" 或 None 时则不回复
-# rst示例："[uname]你冲的太快了，[nickname]先生，请稍后再冲[at]"
-# rst回复："老色批你冲的太快了，欧尼酱先生，请稍后再冲@老色批"
-#      用户昵称↑     昵称系统的昵称↑          艾特用户↑
-plugins2cd_dict = {
-    "open_cases": {
-        "cd": 5,
-        "status": True,
-        "check_type": "all",
-        "limit_type": "user",
-        "rst": "着什么急啊，慢慢来！",
-    },
-    "send_setu": {
-        "cd": 5,
-        "status": True,
-        "check_type": "all",
-        "limit_type": "user",
-        "rst": "您冲得太快了，请稍候再冲",
-    },
-    "sign_in": {
-        "cd": 5,
-        "status": True,
-        "check_type": "group",
-        "limit_type": "user",
-        "rst": None,
-    }
-}
-
-# 用户调用阻塞（方便管理）
-# 即 当用户调用此功能还未结束时
-# 用发送消息阻止用户重复调用此命令直到该命令结束
-# 参数同上 plugin2cd_dict
-plugins2exists_dict = {
-    "send_setu": {
-        "status": True,
-        "check_type": "all",
-        "limit_type": "user",
-        "rst": "您有色图正在处理，请稍等.....",
-    },
-    "pixiv": {
-        "status": True,
-        "check_type": "all",
-        "limit_type": "user",
-        "rst": "P站排行榜或搜图正在搜索，请不要重复触发命令...",
-    },
-    "pix": {
-        "status": True,
-        "check_type": "all",
-        "limit_type": "user",
-        "rst": "您有PIX图片正在处理，请稍等...",
-    }
-}
-
-# 模块与对应命令和对应群权限
-# 用于生成帮助图片 和 开关功能
-# key：模块名称
-# level：需要的群等级
-# default_status：加入群时功能的默认开关状态
-# cmd：关闭[cmd] 都会触发命令 关闭对应功能，cmd列表第一个词为统计的功能名称
-plugins2info_dict = {
-    "sign_in": {"level": 5, "default_status": True, "cmd": ["签到"]},
-    "send_img": {
-        "level": 5,
-        "default_status": True,
-        "cmd": ["发送图片", "发图", "萝莉", "美图", "壁纸"],
-    },
-    "send_setu": {"level": 9, "default_status": True, "cmd": ["色图", "涩图", "瑟图", "查色图"]},
-    "white2black": {"level": 5, "default_status": True, "cmd": ["黑白图", "黑白草图"]},
-    "coser": {"level": 9, "default_status": True, "cmd": ["coser", "cos"]},
-    "quotations": {"level": 5, "default_status": True, "cmd": ["语录"]},
-    "jitang": {"level": 5, "default_status": True, "cmd": ["鸡汤"]},
-    "send_dinggong_voice": {
-        "level": 5,
-        "default_status": True,
-        "cmd": ["骂我", "骂老子", "骂劳资"],
-    },
-    "open_cases": {
-        "level": 5,
-        "default_status": True,
-        "cmd": ["开箱", "我的开箱", "群开箱统计", "我的金色"],
-    },
-    "luxun": {"level": 5, "default_status": True, "cmd": ["鲁迅说", "鲁迅说过"]},
-    "fake_msg": {"level": 5, "default_status": True, "cmd": ["假消息"]},
-    "buy": {"level": 5, "default_status": True, "cmd": ["购买", "购买道具"]},
-    "my_gold": {"level": 5, "default_status": True, "cmd": ["我的金币"]},
-    "my_props": {"level": 5, "default_status": True, "cmd": ["我的道具"]},
-    "shop_handle": {"level": 5, "default_status": True, "cmd": ["商店"]},
-    "update_pic": {"level": 5, "default_status": True, "cmd": ["图片", "操作图片", "修改图片"]},
-    "search_buff_skin_price": {"level": 5, "default_status": True, "cmd": ["查询皮肤"]},
-    "weather": {"level": 5, "default_status": True, "cmd": ["天气", "查询天气", "天气查询"]},
-    "yiqing": {"level": 5, "default_status": True, "cmd": ["疫情", "疫情查询", "查询疫情"]},
-    "what_anime": {"level": 5, "default_status": True, "cmd": ["识番"]},
-    "search_anime": {"level": 5, "default_status": True, "cmd": ["搜番"]},
-    "songpicker2": {"level": 5, "default_status": True, "cmd": ["点歌"]},
-    "epic": {"level": 5, "default_status": True, "cmd": ["epic"]},
-    "pixiv": {"level": 9, "default_status": True, "cmd": ["pixiv", "p站排行", "搜图"]},
-    "poke": {"level": 5, "default_status": True, "cmd": ["戳一戳", "拍一拍"]},
-    "draw_card": {
-        "level": 5,
-        "default_status": True,
-        "cmd": [
-            "抽卡",
-            "游戏抽卡",
-        ],
-    },
-    "ai": {"level": 5, "default_status": True, "cmd": ["ai", "Ai", "AI", "aI"]},
-    "one_friend": {"level": 5, "default_status": True, "cmd": ["我有一个朋友", "我有一个朋友想问问"]},
-    "translate": {
-        "level": 5,
-        "default_status": True,
-        "cmd": ["翻译", "英翻", "翻英", "日翻", "翻日", "韩翻", "翻韩"],
-    },
-    "nonebot_plugin_picsearcher": {"level": 5, "default_status": True, "cmd": ["识图"]},
-    "almanac": {"level": 5, "default_status": True, "cmd": ["原神黄历", "黄历"]},
-    "material_remind": {"level": 5, "default_status": True, "cmd": ["今日素材", "天赋材料"]},
-    "qiu_qiu_translation": {
-        "level": 5,
-        "default_status": True,
-        "cmd": ["丘丘翻译", "丘丘一下", "丘丘语翻译"],
-    },
-    "query_resource_points": {
-        "level": 5,
-        "default_status": True,
-        "cmd": ["原神资源查询", "原神资源列表"],
-    },
-    "russian": {"level": 5, "default_status": True, "cmd": ["俄罗斯轮盘", "俄罗斯转盘", "装弹"]},
-    "gold_redbag": {"level": 5, "default_status": True, "cmd": ["塞红包", "红包", "抢红包"]},
-    "poetry": {"level": 5, "default_status": True, "cmd": ["念诗", "来首诗", "念首诗"]},
-    "comments_163": {
-        "level": 5,
-        "default_status": True,
-        "cmd": ["到点了", "12点了", "网易云热评", "网易云评论"],
-    },
-    "cover": {"level": 5, "default_status": True, "cmd": ["b封面", "B封面"]},
-    "pid_search": {"level": 9, "default_status": True, "cmd": ["p搜", "P搜"]},
-    "pix": {
-        "level": 5,
-        "default_status": True,
-        "cmd": ["pix", "PIX", "pIX", "Pix", "PIx"],
-    },
-    "wbtop": {"level": 5, "default_status": True, "cmd": ["微博热搜", "微博", "wbtop"]},
-    "update_info": {"level": 5, "default_status": True, "cmd": ["更新信息", "更新日志"]},
-}
 
 if TL_M_KEY:
     TL_KEY = TL_M_KEY
@@ -312,9 +136,4 @@ HIBIAPI = HIBIAPI[:-1] if HIBIAPI[-1] == "/" else HIBIAPI
 RSSHUBAPP = RSSHUBAPP[:-1] if RSSHUBAPP[-1] == "/" else RSSHUBAPP
 
 
-if USE_CONFIG_FILE:
-    # 读取配置文件
-    plugins2info_dict, plugins2cd_dict, plugins2exists_dict = init_config(
-        plugins2info_dict, plugins2cd_dict, plugins2exists_dict, DATA_PATH
-    )
 

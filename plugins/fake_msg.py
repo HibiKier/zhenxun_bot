@@ -6,12 +6,24 @@ from utils.message_builder import share
 from services.log import logger
 
 
-__plugin_name = "假消息"
-
-__plugin_usage__ = (
-    "用法：\n格式：假消息 [网址] [标题] [内容](可省) [图片](可省)\n"
-    "示例：假消息 www.4399.com 我喜欢萝莉 为什么我喜欢... [图片]"
-)
+__zx_plugin_name__ = "构造分享消息"
+__plugin_usage__ = """
+usage：
+    自定义的分享消息构造
+    指令：
+        假消息 [网址] [标题] ?[内容] ?[图片]
+        示例：假消息 www.4399.com 我喜欢萝莉 为什么我喜欢... [图片]
+""".strip()
+__plugin_des__ = "自定义的分享消息构造"
+__plugin_cmd__ = ["假消息 [网址] [标题] ?[内容] ?[图片]"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["假消息"],
+}
 
 
 fake_msg = on_command("假消息", priority=5, block=True)

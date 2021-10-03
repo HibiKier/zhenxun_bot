@@ -1,4 +1,6 @@
+from typing import Type
 from nonebot import on_command
+from nonebot.matcher import Matcher
 from utils.utils import scheduler, get_message_text, is_number
 from nonebot.adapters.cqhttp.permission import GROUP
 from nonebot.typing import T_State
@@ -15,23 +17,57 @@ from .open_cases_c import (
     open_shilian_case,
 )
 from .utils import util_get_buff_price, util_get_buff_img, update_count_daily
-from configs.config import NICKNAME
 
-__plugin_name__ = "开箱"
-__plugin_usage__ = (
-    "用法：\n"
-    "看看你的人品罢了\n"
-    "目前只支持\n\t"
-    "1.狂牙大行动武器箱\n\t"
-    "2.突围大行动武器箱\n\t"
-    "3.命悬一线武器箱\n\t"
-    "4.裂空武器箱\n\t"
-    "5.光谱武器箱\n"
-    f"示例：{NICKNAME}开箱 突围大行动（不输入指定武器箱则随机）\n"
-    "示例：我的开箱(开箱统计)\n"
-    "示例：群开箱统计\n"
-    "示例：我的金色"
-)
+__zx_plugin_name__ = "开箱"
+__plugin_usage__ = """
+usage：
+    看看你的人品罢了
+    模拟开箱，完美公布的真实概率，只想看看替你省了多少钱
+    指令：
+        开箱 ?[武器箱]
+        [1-30]连开箱 ?[武器箱]
+        我的开箱
+        我的金色
+        群开箱统计
+        * 不包含[武器箱]时随机开箱 *
+    目前支持的武器箱：
+        1.狂牙大行动武器箱
+        2.突围大行动武器箱
+        3.命悬一线武器箱
+        4.裂空武器箱
+        5.光谱武器箱
+    示例：开箱 命悬一线
+""".strip()
+__plugin_superuser_usage__ = """
+usage：
+    更新皮肤指令
+    指令：
+        更新开箱图片 ?[武器箱]
+        更新开箱价格 ?[武器箱]
+    * 不指定武器箱时则全部更新 *
+    * 过多的爬取会导致账号API被封 *
+""".strip()
+__plugin_des__ = "csgo模拟开箱[戒赌]"
+__plugin_cmd__ = [
+    "开箱 ?[武器箱]",
+    "[1-30]连开箱 ?[武器箱]",
+    "我的开箱",
+    "我的金色",
+    "群开箱统计",
+    "更新开箱图片 ?[武器箱] [_superuser]",
+    "更新开箱价格 ?[武器箱] [_superuser]",
+]
+__plugin_type__ = ("抽卡相关", 1)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["csgo开箱", "开箱"],
+}
+__plugin_task__ = {"open_case_reset_remind": "每日开箱重置提醒"}
+__plugin_cd_limit__ = {"rst": "着什么急啊，慢慢来！"}
 
 cases_name = ["狂牙大行动", "突围大行动", "命悬一线", "裂空", "光谱"]
 
@@ -43,12 +79,8 @@ k_open_case = cases_matcher_group.on_command("开箱")
 
 @k_open_case.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    if str(event.get_message()).strip() in ["帮助"]:
-        await k_open_case.finish(__plugin_usage__)
-    # if not _flmt.check(event.user_id):
-    #     await k_open_case.finish("着什么急啊，慢慢来！", at_sender=True)
-    # _flmt.start_cd(event.user_id)
     case_name = get_message_text(event.json())
+    case_name = case_name.replace("武器箱", "").strip()
     if case_name:
         result = await open_case(event.user_id, event.group_id, case_name)
     else:
@@ -89,7 +121,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     )
 
 
-open_shilian = cases_matcher_group.on_regex(".*连开箱")
+open_shilian: Type[Matcher] = cases_matcher_group.on_regex(".*连开箱")
 
 
 @open_shilian.handle()
@@ -108,11 +140,12 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 num = int(num)
             if num > 30:
                 await open_shilian.finish("开箱次数不要超过30啊笨蛋！", at_sender=True)
+            if num < 0:
+                await open_shilian.finish("再负开箱就扣你明天开箱数了！", at_sender=True)
         else:
             await open_shilian.finish("必须要是数字切不要超过30啊笨蛋！中文也可！", at_sender=True)
         case_name = rs.group(2).strip()
-        if case_name.find("武器箱") != -1:
-            case_name = case_name.replace("武器箱", "").strip()
+        case_name = case_name.replace("武器箱", "").strip()
         if not case_name:
             case_name = random.choice(cases_name)
         elif case_name not in cases_name:
@@ -157,7 +190,7 @@ num_dict = {
 }
 
 
-update_price = on_command("更新价格", priority=1, permission=SUPERUSER, block=True)
+update_price = on_command("更新开箱价格", priority=1, permission=SUPERUSER, block=True)
 
 
 @update_price.handle()
@@ -165,7 +198,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     await update_price.send(await util_get_buff_price(str(event.get_message())))
 
 
-update_img = on_command("更新图片", priority=1, permission=SUPERUSER, block=True)
+update_img = on_command("更新开箱图片", priority=1, permission=SUPERUSER, block=True)
 
 
 @update_img.handle()

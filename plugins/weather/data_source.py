@@ -1,7 +1,7 @@
 from services.log import logger
 from utils.message_builder import image
 from utils.user_agent import get_user_agent
-from configs.path_config import TXT_PATH
+from configs.path_config import TEXT_PATH
 from configs.config import NICKNAME
 from asyncio.exceptions import TimeoutError
 from typing import List
@@ -13,13 +13,9 @@ import nonebot
 
 driver: Driver = nonebot.get_driver()
 
-china_city = Path(TXT_PATH) / "china_city.json"
+china_city = Path(TEXT_PATH) / "china_city.json"
 
-try:
-    with open(china_city, "r", encoding="utf8") as f:
-        data = json.load(f)
-except FileNotFoundError:
-    data = {}
+data = {}
 
 
 async def get_weather_of_city(city: str) -> str:
@@ -93,6 +89,12 @@ def _check_exists_city(city: str) -> int:
 
 def get_city_list() -> List[str]:
     global data
+    if not data:
+        try:
+            with open(china_city, "r", encoding="utf8") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            data = {}
     city_list = []
     for p in data.keys():
         for c in data[p]:

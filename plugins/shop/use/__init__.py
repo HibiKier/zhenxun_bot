@@ -9,9 +9,25 @@ from services.db_context import db
 from .data_source import effect
 
 
-__plugin_name__ = "使用道具"
-__plugin_usage__ = "输入 “使用道具 xxx（序号 或 道具名称）“ 即可使用道具\n【注】序号以我的道具序号为准，更推荐使用道具名称使用道具（怕出错）"
-
+__zx_plugin_name__ = "商店 - 使用道具"
+__plugin_usage__ = """
+usage：
+    普通的使用道具
+    指令：
+        使用道具 [序号或道具名称]
+    * 序号以 ”我的道具“ 为准 *
+""".strip()
+__plugin_des__ = "商店 - 使用道具"
+__plugin_cmd__ = ["使用道具 [序号或道具名称]"]
+__plugin_type__ = ('商店',)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["商店", "使用道具"],
+}
 
 use_props = on_command("使用道具", priority=5, block=True, permission=GROUP)
 

@@ -23,9 +23,24 @@ from services.log import logger
 # RU2ZH_CN 俄语　»　中文
 # SP2ZH_CN 西语　»　中文
 
-__plugin_name__ = "黑白草图"
 
-__plugin_usage__ = "用法： \n\t黑白图 [文字] [图片]\n示例：黑白草图 没有人不喜欢萝莉 [图片]"
+__zx_plugin_name__ = "黑白草图"
+__plugin_usage__ = """
+usage：
+    将图片黑白化并配上中文与日语
+    指令：
+        黑白图 [文本] [图片]
+""".strip()
+__plugin_des__ = "为设想过得黑白草图"
+__plugin_cmd__ = ["黑白图"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["黑白图", "黑白草图"],
+}
 
 w2b_img = on_command("黑白草图", aliases={"黑白图"}, priority=5, block=True)
 

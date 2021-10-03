@@ -1,18 +1,20 @@
+import os
+import random
+import re
+
+import aiohttp
+from aiohttp.client import ClientSession
+
 from configs.config import TL_KEY, ALAPI_TOKEN, ALAPI_AI_CHECK, NICKNAME
 from configs.path_config import IMAGE_PATH, DATA_PATH
-from aiohttp.client import ClientSession
 from services.log import logger
 from utils.message_builder import image, face
-from utils.utils import get_bot
-import re
-import aiohttp
-import random
-import os
 
 try:
     import ujson as json
 except ModuleNotFoundError:
     import json
+
 
 url = "http://openapi.tuling123.com/openapi/api/v2"
 
@@ -24,6 +26,14 @@ anime_data = json.load(open(DATA_PATH + "anime.json", "r", encoding="utf8"))
 
 
 async def get_chat_result(text: str, img_url: str, user_id: int, nickname: str) -> str:
+    """
+    获取 AI 返回值，顺序：图灵 -> 青云客
+    :param text: 问题
+    :param img_url: 图片链接
+    :param user_id: 用户id
+    :param nickname: 用户昵称
+    :return: 回答
+    """
     global index
     if index == 5:
         index = 0
@@ -50,7 +60,15 @@ async def get_chat_result(text: str, img_url: str, user_id: int, nickname: str) 
 
 
 # 图灵接口
-async def tu_ling(text: str, img_url: str, user_id: int, sess: ClientSession):
+async def tu_ling(text: str, img_url: str, user_id: int, sess: ClientSession) -> str:
+    """
+    获取图灵接口的回复
+    :param text: 问题
+    :param img_url: 图片链接
+    :param user_id: 用户id
+    :param sess: AIOHTTP SESSION
+    :return: 图灵回复
+    """
     global index
     try:
         if text:
@@ -94,7 +112,13 @@ async def tu_ling(text: str, img_url: str, user_id: int, sess: ClientSession):
 
 
 # 屑 AI
-async def xie_ai(text: str, sess: ClientSession):
+async def xie_ai(text: str, sess: ClientSession) -> str:
+    """
+    获取青云客回复
+    :param text: 问题
+    :param sess: AIOHTTP SESSION
+    :return: 青云可回复
+    """
     async with sess.get(
         f"http://api.qingyunke.com/api.php?key=free&appid=0&msg={text}"
     ) as res:
@@ -104,8 +128,8 @@ async def xie_ai(text: str, sess: ClientSession):
             content = data["content"]
             if "菲菲" in content:
                 content = content.replace("菲菲", NICKNAME)
-            if '艳儿' in content:
-                content = content.replace('艳儿', NICKNAME)
+            if "艳儿" in content:
+                content = content.replace("艳儿", NICKNAME)
             if "公众号" in content:
                 content = ""
             if "{br}" in content:
@@ -123,11 +147,17 @@ async def xie_ai(text: str, sess: ClientSession):
                     )
                 else:
                     break
-        return content if not content and not ALAPI_AI_CHECK else await check_text(content, sess)
+        return (
+            content
+            if not content and not ALAPI_AI_CHECK
+            else await check_text(content, sess)
+        )
 
 
-# 打招呼内容
 def hello() -> str:
+    """
+    一些打招呼的内容
+    """
     result = random.choice(
         (
             "哦豁？！",
@@ -147,6 +177,9 @@ def hello() -> str:
 
 # 没有回答时回复内容
 def no_result() -> str:
+    """
+    没有回答时的回复
+    """
     return (
         random.choice(
             [
@@ -161,8 +194,12 @@ def no_result() -> str:
     )
 
 
-# 检测屑AI回复的文本是否是 *话
 async def check_text(text: str, sess: ClientSession) -> str:
+    """
+    ALAPI文本检测，主要针对青云客API，检测为恶俗文本改为无回复的回答
+    :param text: 回复
+    :param sess: AIOHTTP SESSION
+    """
     if not ALAPI_TOKEN:
         return text
     params = {"token": ALAPI_TOKEN, "text": text}
@@ -170,8 +207,8 @@ async def check_text(text: str, sess: ClientSession) -> str:
         async with sess.get(check_url, timeout=2, params=params) as response:
             data = await response.json()
             if data["code"] == 200:
-                if data['data']["conclusion_type"] == 2:
-                    return ''
+                if data["data"]["conclusion_type"] == 2:
+                    return ""
     except Exception as e:
         logger.error(f"检测违规文本错误...{type(e)}：{e}")
     return text

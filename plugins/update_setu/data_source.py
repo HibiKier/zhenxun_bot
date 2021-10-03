@@ -1,4 +1,4 @@
-from configs.path_config import IMAGE_PATH, TXT_PATH
+from configs.path_config import IMAGE_PATH, TEXT_PATH
 from services.log import logger
 from datetime import datetime
 from utils.image_utils import compressed_image, get_img_hash
@@ -20,9 +20,10 @@ driver: Driver = nonebot.get_driver()
 _path = Path(IMAGE_PATH)
 
 
+# 替换旧色图数据，修复local_id一直是50的问题
 @driver.on_startup
 async def update_old_setu_data():
-    path = Path(TXT_PATH)
+    path = Path(TEXT_PATH)
     setu_data_file = path / "setu_data.json"
     r18_data_file = path / "r18_setu_data.json"
     if setu_data_file.exists() or r18_data_file.exists():

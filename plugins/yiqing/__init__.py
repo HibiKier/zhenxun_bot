@@ -5,8 +5,29 @@ from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from utils.utils import get_message_text
 
-__plugin_name__ = "疫情查询"
-__plugin_usage__ = "查询疫情帮助:\n\t对我说 查询疫情 省份/城市，我会回复疫情的实时数据\n\t示例: 查询疫情 温州"
+
+__zx_plugin_name__ = "疫情查询"
+__plugin_usage__ = """
+usage：
+    全国疫情查询
+    指令：
+        疫情 中国
+        疫情 [省份/城市]
+    * 当省份与城市重名时，可在后添加 “市” *
+    示例：疫情 吉林   <- [省]
+    示例：疫情 吉林市  <- [市]
+""".strip()
+__plugin_des__ = "实时疫情数据查询"
+__plugin_cmd__ = ["疫情 [省份/城市]", "疫情 中国"]
+__plugin_type__ = ('一些工具',)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["查询疫情", "疫情", "疫情查询"],
+}
 
 
 yiqing = on_command("疫情", aliases={"查询疫情", "疫情查询"}, priority=5, block=True)

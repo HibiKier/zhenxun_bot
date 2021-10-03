@@ -3,6 +3,11 @@ from models.bag_user import BagUser
 from services.log import logger
 
 
+__zx_plugin_name__ = "每日金币重置 [Hidden]"
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+
+
 # 重置每日金币
 @scheduler.scheduled_job(
     "cron",

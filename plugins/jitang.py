@@ -5,11 +5,25 @@ from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 import aiohttp
 from asyncio.exceptions import TimeoutError
-from configs.config import NICKNAME
 
-__plugin_name__ = "鸡汤"
-__plugin_usage__ = f"用法： 发送’鸡汤‘，{NICKNAME}亲自为你喝鸡汤"
 
+__zx_plugin_name__ = "鸡汤"
+__plugin_usage__ = """
+usage：
+    不喝点什么感觉有点不舒服
+    指令：
+        鸡汤
+""".strip()
+__plugin_des__ = "喏，亲手为你煮的鸡汤"
+__plugin_cmd__ = ["鸡汤"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["鸡汤", "毒鸡汤"],
+}
 
 url = "https://v2.alapi.cn/api/soul"
 

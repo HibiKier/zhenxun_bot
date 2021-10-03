@@ -2,6 +2,12 @@ from nonebot.matcher import Matcher
 from nonebot.message import run_preprocessor, run_postprocessor, IgnoredException
 from nonebot.adapters.cqhttp.exception import ActionFailed
 from models.group_member_info import GroupInfoUser
+from utils.manager import (
+    plugins2cd_manager,
+    plugins2block_manager,
+    plugins2settings_manager,
+    admin_manager
+)
 from models.friend_user import FriendUser
 from typing import Optional
 from nonebot.typing import T_State
@@ -16,14 +22,10 @@ from nonebot.adapters.cqhttp import (
 )
 from configs.config import (
     BAN_RESULT,
-    admin_plugins_auth,
     MALICIOUS_BAN_TIME,
     MALICIOUS_CHECK_TIME,
     MALICIOUS_BAN_COUNT,
     CHECK_NOTICE_INFO_CD,
-    plugins2info_dict,
-    plugins2cd_dict,
-    plugins2exists_dict,
 )
 from models.ban_user import BanUser
 from utils.utils import (
@@ -31,21 +33,18 @@ from utils.utils import (
     static_flmt,
     BanCheckLimiter,
     FreqLimiter,
-    UserExistLimiter,
 )
-from utils.static_data import withdraw_message_id_manager
+from utils.manager import withdraw_message_manager
 from utils.message_builder import at
 from services.log import logger
 from models.level_user import LevelUser
-from utils.static_data import group_manager
+from utils.manager import group_manager
 import asyncio
 
 try:
     import ujson as json
 except ModuleNotFoundError:
     import json
-
-withdraw_message_id_manager["message_id"] = []
 
 
 # 检查是否被ban
@@ -153,18 +152,27 @@ ignore_rst_module = ["ai", "poke"]
 @run_preprocessor
 async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
     global _exists_msg
+    module = matcher.module
+    plugins2info_dict = plugins2settings_manager.get_data()
     if (
-        (not isinstance(event, MessageEvent) and matcher.module != "poke")
+        (not isinstance(event, MessageEvent) and module != "poke")
         or await BanUser.is_ban(event.user_id)
-        or str(event.user_id) in bot.config.superusers
+        and str(event.user_id) not in bot.config.superusers
+    ) or (
+        str(event.user_id) in bot.config.superusers
+        and plugins2info_dict.get(module)
+        and not plugins2info_dict[module]["limit_superuser"]
     ):
         return
-    module = matcher.module
-    if module in admin_plugins_auth.keys() and matcher.priority not in [1, 9]:
+    # 黑名单检测
+    if isinstance(event, GroupMessageEvent):
+        if group_manager.get_group_level(event.group_id) < 0:
+            raise IgnoredException("群黑名单")
+    if module in admin_manager.keys() and matcher.priority not in [1, 9]:
         if isinstance(event, GroupMessageEvent):
             # 个人权限
             if not await LevelUser.check_level(
-                event.user_id, event.group_id, admin_plugins_auth[module]
+                event.user_id, event.group_id, admin_manager.get_plugin_level(module)
             ):
                 try:
                     if _flmt.check(event.user_id):
@@ -172,19 +180,19 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
                         await bot.send_group_msg(
                             group_id=event.group_id,
                             message=f"{at(event.user_id)}你的权限不足喔，该功能需要的权限等级："
-                            f"{admin_plugins_auth[module]}",
+                            f"{admin_manager.get_plugin_level(module)}",
                         )
                 except ActionFailed:
                     pass
                 raise IgnoredException("权限不足")
         else:
             if not await LevelUser.check_level(
-                event.user_id, 0, admin_plugins_auth[module]
+                event.user_id, 0, admin_manager.get_plugin_level(module)
             ):
                 try:
                     await bot.send_private_msg(
                         user_id=event.user_id,
-                        message=f"你的权限不足喔，该功能需要的权限等级：{admin_plugins_auth[module]}",
+                        message=f"你的权限不足喔，该功能需要的权限等级：{admin_manager.get_plugin_level(module)}",
                     )
                 except ActionFailed:
                     pass
@@ -198,7 +206,7 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
                 _exists_msg[event.group_id] = False
             # 群权限
             if plugins2info_dict[module]["level"] > group_manager.get_group_level(
-                str(event.group_id)
+                event.group_id
             ):
                 try:
                     if _flmt_g.check(event.user_id) and module not in ignore_rst_module:
@@ -211,7 +219,7 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
                 _exists_msg[event.group_id] = True
                 raise IgnoredException("群权限不足")
             # 插件状态
-            if not group_manager.get_plugin_status(module, str(event.group_id)):
+            if not group_manager.get_plugin_status(module, event.group_id):
                 try:
                     if module not in ignore_rst_module and _flmt_s.check(
                         event.group_id
@@ -223,11 +231,10 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
                 except ActionFailed:
                     pass
                 _exists_msg[event.group_id] = True
+                print(123123)
                 raise IgnoredException("未开启此功能...")
             # 管理员禁用
-            if not group_manager.get_plugin_status(
-                f"{module}:super", str(event.group_id)
-            ):
+            if not group_manager.get_plugin_status(f"{module}:super", event.group_id):
                 try:
                     if (
                         _flmt_s.check(event.group_id)
@@ -295,18 +302,6 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
             raise IgnoredException("此功能正在维护...")
 
 
-check_flmt = {}
-for plugin in plugins2cd_dict.keys():
-    if plugins2cd_dict[plugin]["status"]:
-        check_flmt[plugin] = FreqLimiter(plugins2cd_dict[plugin]["cd"])
-
-
-check_elmt = {}
-for plugin in plugins2exists_dict.keys():
-    if plugins2exists_dict[plugin]["status"]:
-        check_elmt[plugin] = UserExistLimiter()
-
-
 # 命令cd 和 命令阻塞
 @run_preprocessor
 async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
@@ -316,56 +311,46 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
     module = matcher.module
     if isinstance(event, GroupMessageEvent) and _exists_msg.get(event.group_id) is None:
         _exists_msg[event.group_id] = False
-    if module in plugins2cd_dict.keys() and module in check_flmt.keys():
+    if plugins2cd_manager.check_plugin_cd_status(module):
+        plugin_cd_data = plugins2cd_manager.get_plugin_cd_data(module)
+        check_type = plugin_cd_data["check_type"]
+        limit_type = plugin_cd_data["limit_type"]
+        rst = plugin_cd_data["rst"]
         if (
-            (
-                isinstance(event, PrivateMessageEvent)
-                and plugins2cd_dict[module]["check_type"] == "private"
-            )
-            or (
-                isinstance(event, GroupMessageEvent)
-                and plugins2cd_dict[module]["check_type"] == "group"
-            )
-            or plugins2cd_dict[module]["check_type"] == "all"
-        ) and plugins2cd_dict[module]["cd"] > 0:
+            (isinstance(event, PrivateMessageEvent) and check_type == "private")
+            or (isinstance(event, GroupMessageEvent) and check_type == "group")
+            or plugins2cd_manager.get_plugin_data(module).get("check_type") == "all"
+        ):
             cd_type_ = event.user_id
-            if plugins2cd_dict[module]["limit_type"] == "group" and isinstance(
-                event, GroupMessageEvent
-            ):
+            if limit_type == "group" and isinstance(event, GroupMessageEvent):
                 cd_type_ = event.group_id
-            if not check_flmt[module].check(cd_type_):
-                rst = plugins2cd_dict[module]["rst"]
+            if not plugins2cd_manager.check(module, cd_type_):
                 if rst:
                     rst = await init_rst(rst, event)
                     await send_msg(rst, bot, event)
                 raise IgnoredException(f"{module} 正在cd中...")
             else:
-                check_flmt[module].start_cd(cd_type_)
-    if module in plugins2exists_dict.keys() and module in check_elmt.keys():
+                plugins2cd_manager.start_cd(module, cd_type_)
+    if plugins2block_manager.check_plugin_block_status(module):
+        plugin_block_data = plugins2block_manager.get_plugin_block_data(module)
+        check_type = plugin_block_data["check_type"]
+        limit_type = plugin_block_data["limit_type"]
+        rst = plugin_block_data["rst"]
         if (
-            (
-                isinstance(event, PrivateMessageEvent)
-                and plugins2exists_dict[module]["check_type"] == "private"
-            )
-            or (
-                isinstance(event, GroupMessageEvent)
-                and plugins2exists_dict[module]["check_type"] == "group"
-            )
-            or plugins2exists_dict[module]["check_type"] == "all"
+            (isinstance(event, PrivateMessageEvent) and check_type == "private")
+            or (isinstance(event, GroupMessageEvent) and check_type == "group")
+            or check_type == "all"
         ):
-            exists_type_ = event.user_id
-            if plugins2exists_dict[module]["limit_type"] == "group" and isinstance(
-                event, GroupMessageEvent
-            ):
-                exists_type_ = event.group_id
-            if check_elmt[module].check(exists_type_):
-                rst = plugins2exists_dict[module]["rst"]
+            block_type_ = event.user_id
+            if limit_type == "group" and isinstance(event, GroupMessageEvent):
+                block_type_ = event.group_id
+            if plugins2block_manager.check(block_type_, module):
                 if rst:
                     rst = await init_rst(rst, event)
                     await send_msg(rst, bot, event)
                 raise IgnoredException(f"{event.user_id}正在调用{module}....")
             else:
-                check_elmt[module].set_true(exists_type_)
+                plugins2block_manager.set_true(block_type_, module)
 
 
 async def send_msg(rst: str, bot: Bot, event: MessageEvent):
@@ -399,23 +384,18 @@ async def _(
     if not isinstance(event, MessageEvent) and matcher.module != "poke":
         return
     module = matcher.module
-    if module in plugins2exists_dict.keys() and module in check_elmt.keys():
+    if plugins2block_manager.check_plugin_block_status(module):
+        plugin_block_data = plugins2block_manager.get_plugin_block_data(module)
+        check_type = plugin_block_data["check_type"]
+        limit_type = plugin_block_data["limit_type"]
         if not (
-            (
-                isinstance(event, GroupMessageEvent)
-                and plugins2exists_dict[module]["check_type"] == "private"
-            )
-            or (
-                isinstance(event, PrivateMessageEvent)
-                and plugins2exists_dict[module]["check_type"] == "group"
-            )
+            (isinstance(event, GroupMessageEvent) and check_type == "private")
+            or (isinstance(event, PrivateMessageEvent) and check_type == "group")
         ):
-            exists_type_ = event.user_id
-            if plugins2exists_dict[module]["limit_type"] == "group" and isinstance(
-                event, GroupMessageEvent
-            ):
-                exists_type_ = event.group_id
-            check_elmt[module].set_false(exists_type_)
+            block_type_ = event.user_id
+            if limit_type == "group" and isinstance(event, GroupMessageEvent):
+                block_type_ = event.group_id
+            plugins2block_manager.set_false(block_type_, module)
 
 
 async def init_rst(rst: str, event: MessageEvent):
@@ -445,9 +425,9 @@ async def _(
     state: T_State,
 ):
     tasks = []
-    for id_, time in withdraw_message_id_manager["message_id"]:
+    for id_, time in withdraw_message_manager.data:
         tasks.append(asyncio.ensure_future(_withdraw_message(bot, id_, time)))
-        withdraw_message_id_manager["message_id"].remove((id_, time))
+        withdraw_message_manager.remove((id_, time))
     await asyncio.gather(*tasks)
 
 

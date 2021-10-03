@@ -7,7 +7,6 @@ from utils.user_agent import get_user_agent
 from nonebot.adapters.cqhttp.permission import GROUP
 from bilibili_api import video
 from utils.message_builder import image
-from models.group_remind import GroupRemind
 from nonebot.adapters.cqhttp.exception import ActionFailed
 from utils.image_utils import CreateImg
 from utils.browser import get_browser
@@ -16,7 +15,20 @@ import asyncio
 import time
 import aiohttp
 from bilibili_api import settings
+from utils.manager import group_manager
 import ujson as json
+
+
+__zx_plugin_name__ = "B站转发解析"
+__plugin_usage__ = """
+usage：
+    B站转发解析，解析b站分享信息，支持bv，bilibili链接，b站手机端转发卡片，cv，b23.tv，且5分钟内不解析相同url
+""".strip()
+__plugin_des__ = "B站转发解析"
+__plugin_type__ = ("被动相关",)
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_task__ = {"bilibili_parse": "b站转发解析"}
 
 if get_local_proxy():
     settings.proxy = get_local_proxy()
@@ -28,7 +40,7 @@ _tmp = {}
 
 @parse_bilibili_json.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    if await GroupRemind.get_status(event.group_id, "blpar"):
+    if await group_manager.check_group_task_status(event.group_id, "bilibili_parse"):
         vd_info = None
         url = None
         if get_message_json(event.json()):
@@ -93,17 +105,17 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         if get_message_text(event.json()):
             msg = get_message_text(event.json())
             if "BV" in msg:
-                index = msg.find('BV')
-                if len(msg[index + 2:]) >= 10:
-                    msg = msg[index: index + 12]
-                    url = f'https://www.bilibili.com/video/{msg}'
+                index = msg.find("BV")
+                if len(msg[index + 2 :]) >= 10:
+                    msg = msg[index : index + 12]
+                    url = f"https://www.bilibili.com/video/{msg}"
                     vd_info = await video.Video(bvid=msg).get_info()
-            elif 'av' in msg:
-                index = msg.find('av')
-                if len(msg[index + 2:]) >= 9:
-                    msg = msg[index + 2: index + 11]
+            elif "av" in msg:
+                index = msg.find("av")
+                if len(msg[index + 2 :]) >= 9:
+                    msg = msg[index + 2 : index + 11]
                     if is_number(msg):
-                        url = f'https://www.bilibili.com/video/{msg}'
+                        url = f"https://www.bilibili.com/video/{msg}"
                         vd_info = await video.Video(aid=int(msg)).get_info()
             elif "https://b23.tv" in msg:
                 url = "https://" + msg[msg.find("b23.tv") : msg.find("b23.tv") + 13]
@@ -117,7 +129,9 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                         bvid = url.split("/")[-1]
                         vd_info = await video.Video(bvid=bvid).get_info()
         if vd_info:
-            if (url in _tmp.keys() and time.time() - _tmp[url] > 30) or url not in _tmp.keys():
+            if (
+                url in _tmp.keys() and time.time() - _tmp[url] > 30
+            ) or url not in _tmp.keys():
                 _tmp[url] = time.time()
                 aid = vd_info["aid"]
                 title = vd_info["title"]

@@ -15,8 +15,8 @@ import random
 import aiohttp
 import math
 import asyncio
-import os
 import secrets
+import os
 
 
 async def group_user_check_in(
@@ -183,9 +183,6 @@ async def _pst(users: list, impressions: list, groups: list):
                 except AttributeError:
                     user_name = f"我名字呢？"
                 user_name = user_name if len(user_name) < 11 else user_name[:10] + "..."
-                impression = (
-                    str(impression)[:4] if len(str(impression)) > 4 else impression
-                )
                 try:
                     async with session.get(
                         f"http://q1.qlogo.cn/g?b=qq&nk={user}&s=160", timeout=5
@@ -201,7 +198,7 @@ async def _pst(users: list, impressions: list, groups: list):
                 bk.text((5, int((100 - font_h) / 2)), f"{idx}.")
                 bk.paste(ava, (55, int((100 - 50) / 2)), True)
                 bk.text((120, int((100 - font_h) / 2)), f"{user_name}")
-                bk.text((460, int((100 - font_h) / 2)), f"[{impression}]")
+                bk.text((460, int((100 - font_h) / 2)), f"[{impression:.2f}]")
                 col_img.paste(bk)
             A.paste(col_img, (width, 0))
             lens -= 33

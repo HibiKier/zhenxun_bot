@@ -6,9 +6,24 @@ from services.log import logger
 import ujson as json
 import aiohttp
 
-__plugin_name__ = "能不能好好说话"
-__plugin_usage__ = "用法：\n nbnhhsh [文本]"
 
+__zx_plugin_name__ = "能不能好好说话"
+__plugin_usage__ = """
+usage：
+    说人话
+    指令：
+        nbnhhsh [文本]
+""".strip()
+__plugin_des__ = "能不能好好说话，说人话"
+__plugin_cmd__ = ["nbnhhsh [文本]"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["能不能好好说话", "nbnhhsh"],
+}
 
 HHSH_GUESS_URL = "https://lab.magiconch.com/api/nbnhhsh/guess"
 
@@ -18,6 +33,8 @@ nbnhhsh = on_command("nbnhhsh", aliases={"能不能好好说话"}, priority=5, b
 @nbnhhsh.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json())
+    if not msg:
+        await nbnhhsh.finish('没话说就别说话！')
     async with aiohttp.ClientSession(
         headers={"content-type": "application/json"}
     ) as session:

@@ -12,9 +12,29 @@ import platform
 import os
 
 
-update_zhenxun = on_command('检查更新真寻', permission=SUPERUSER, priority=1, block=True)
+__zx_plugin_name__ = "自动更新 [Superuser]"
+__plugin_usage__ = """
+usage：
+    检查更新真寻最新版本，包括了自动更新
+    指令：
+        检查更新真寻
+        重启
+""".strip()
+__plugin_des__ = "就算是真寻也会成长的"
+__plugin_cmd__ = ["检查更新真寻", "重启"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
 
-restart = on_command('重启', aliases={'restart'}, permission=SUPERUSER, rule=to_me(), priority=1, block=True)
+update_zhenxun = on_command("检查更新真寻", permission=SUPERUSER, priority=1, block=True)
+
+restart = on_command(
+    "重启",
+    aliases={"restart"},
+    permission=SUPERUSER,
+    rule=to_me(),
+    priority=1,
+    block=True,
+)
 
 
 @update_zhenxun.handle()
@@ -22,40 +42,38 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     try:
         code, error = await check_update(bot)
         if error:
-            logger.error(f'更新真寻未知错误 {error}')
+            logger.error(f"更新真寻未知错误 {error}")
             await bot.send_private_msg(
-                user_id=int(list(bot.config.superusers)[0]),
-                message=f'更新真寻未知错误 {error}'
+                user_id=int(list(bot.config.superusers)[0]), message=f"更新真寻未知错误 {error}"
             )
     except Exception as e:
-        logger.error(f'更新真寻未知错误 {type(e)}：{e}')
+        logger.error(f"更新真寻未知错误 {type(e)}：{e}")
         await bot.send_private_msg(
             user_id=int(list(bot.config.superusers)[0]),
-            message=f'更新真寻未知错误 {type(e)}：{e}'
+            message=f"更新真寻未知错误 {type(e)}：{e}",
         )
     else:
         if code == 200:
             await bot.send_private_msg(
-                user_id=int(list(bot.config.superusers)[0]),
-                message=f'更新完毕，请重启真寻....'
+                user_id=int(list(bot.config.superusers)[0]), message=f"更新完毕，请重启真寻...."
             )
 
 
 @restart.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if str(platform.system()).lower() == 'windows':
-        await restart.finish('暂无windows重启脚本...')
+    if str(platform.system()).lower() == "windows":
+        await restart.finish("暂无windows重启脚本...")
 
 
-@restart.got('flag', prompt='确定是否重启真寻？（重启失败咱们将失去联系，请谨慎！）')
+@restart.got("flag", prompt="确定是否重启真寻？（重启失败咱们将失去联系，请谨慎！）")
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    flag = state['flag']
-    if flag.lower() in ['true', '是', '好', '确定', '确定是']:
-        await restart.send('开始重启真寻..请稍等...')
-        open('is_restart', 'w')
-        os.system('./restart.sh')
+    flag = state["flag"]
+    if flag.lower() in ["true", "是", "好", "确定", "确定是"]:
+        await restart.send("开始重启真寻..请稍等...")
+        open("is_restart", "w")
+        os.system("./restart.sh")
     else:
-        await restart.send('已取消操作...')
+        await restart.send("已取消操作...")
 
 
 @scheduler.scheduled_job(
@@ -69,7 +87,10 @@ async def _():
         _version_file = Path() / "__version__"
         if _version_file.exists():
             _version = (
-                open(_version_file, "r", encoding="utf8").readline().split(":")[-1].strip()
+                open(_version_file, "r", encoding="utf8")
+                .readline()
+                .split(":")[-1]
+                .strip()
             )
         data = await get_latest_version_data()
         if data:
@@ -78,24 +99,21 @@ async def _():
                 bot = get_bot()
                 await bot.send_private_msg(
                     user_id=int(list(bot.config.superusers)[0]),
-                    message=f'检测到真寻版本更新\n'
-                            f'当前版本：{_version}，最新版本：{latest_version}\n'
-                            f'尝试自动更新...'
+                    message=f"检测到真寻版本更新\n"
+                    f"当前版本：{_version}，最新版本：{latest_version}\n"
+                    f"尝试自动更新...",
                 )
                 try:
                     code = await check_update(bot)
                 except Exception as e:
-                    logger.error(f'更新真寻未知错误 {type(e)}：{e}')
+                    logger.error(f"更新真寻未知错误 {type(e)}：{e}")
                     await bot.send_private_msg(
                         user_id=int(list(bot.config.superusers)[0]),
-                        message=f'更新真寻未知错误 {type(e)}：{e}\n'
+                        message=f"更新真寻未知错误 {type(e)}：{e}\n",
                     )
                 else:
                     if code == 200:
                         await bot.send_private_msg(
                             user_id=int(list(bot.config.superusers)[0]),
-                            message=f'更新完毕，请重启真寻....'
+                            message=f"更新完毕，请重启真寻....",
                         )
-
-
-

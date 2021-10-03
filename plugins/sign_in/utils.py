@@ -20,6 +20,7 @@ from typing import Optional, List
 from nonebot import Driver
 from io import BytesIO
 import asyncio
+import random
 import nonebot
 import aiohttp
 import os
@@ -31,6 +32,7 @@ driver: Driver = nonebot.get_driver()
 @driver.on_startup
 async def init_image():
     SIGN_RESOURCE_PATH.mkdir(parents=True, exist_ok=True)
+    SIGN_TODAY_CARD_PATH.mkdir(exist_ok=True, parents=True)
     await GroupInfoUser.add_member_info(114514, 114514, "", datetime.min, 0)
     _u = await GroupInfoUser.get_member_info(114514, 114514)
     if _u.uid is None:
@@ -57,15 +59,26 @@ async def get_card(
 ) -> MessageSegment:
     user_id = user.user_qq
     date = datetime.now().date()
-    _type = 'view' if is_card_view else 'sign'
-    card_file = Path(SIGN_TODAY_CARD_PATH) / f"{user_id}_{user.belonging_group}_{_type}_{date}.png"
+    _type = "view" if is_card_view else "sign"
+    card_file = (
+        Path(SIGN_TODAY_CARD_PATH)
+        / f"{user_id}_{user.belonging_group}_{_type}_{date}.png"
+    )
     if card_file.exists():
-        return image(f"{user_id}_{user.belonging_group}_{_type}_{date}.png", "sign/today_card")
+        return image(
+            f"{user_id}_{user.belonging_group}_{_type}_{date}.png", "sign/today_card"
+        )
     else:
         if add_impression == -1:
-            card_file = Path(SIGN_TODAY_CARD_PATH) / f"{user_id}_{user.belonging_group}_view_{date}.png"
+            card_file = (
+                Path(SIGN_TODAY_CARD_PATH)
+                / f"{user_id}_{user.belonging_group}_view_{date}.png"
+            )
             if card_file.exists():
-                return image(f"{user_id}_{user.belonging_group}_view_{date}.png", "sign/today_card")
+                return image(
+                    f"{user_id}_{user.belonging_group}_view_{date}.png",
+                    "sign/today_card",
+                )
             is_card_view = True
         ava = BytesIO(await _get_pic(user_id))
         uid = await GroupInfoUser.get_group_member_uid(
@@ -110,7 +123,7 @@ def _generate_card(
     ava_border = CreateImg(
         140,
         140,
-        background=SIGN_BORDER_PATH / 'ava_border_01.png',
+        background=SIGN_BORDER_PATH / "ava_border_01.png",
     )
     ava = CreateImg(102, 102, background=ava_bytes)
     ava.circle()
@@ -142,15 +155,22 @@ def _generate_card(
         True,
     )
     font_size = 30
-    if '好感度双倍加持卡' in gift:
+    if "好感度双倍加持卡" in gift:
         font_size = 20
     gift_border = CreateImg(
-        270, 100, background=SIGN_BORDER_PATH / "gift_border_02.png", font_size=font_size
+        270,
+        100,
+        background=SIGN_BORDER_PATH / "gift_border_02.png",
+        font_size=font_size,
     )
     gift_border.text((0, 0), gift, center_type="center")
 
     bk = CreateImg(
-        876, 424, background=SIGN_BACKGROUND_PATH / "background_01.jpg", font_size=25
+        876,
+        424,
+        background=SIGN_BACKGROUND_PATH
+        / random.choice(os.listdir(SIGN_BACKGROUND_PATH)),
+        font_size=25,
     )
     A = CreateImg(876, 274, background=SIGN_RESOURCE_PATH / "white.png")
     line = CreateImg(2, 180, color="black")
@@ -226,8 +246,11 @@ def _generate_card(
             f"上次签到日期：{'从未' if user.checkin_time_last == datetime.min else user.checkin_time_last.date()}",
         )
         today_data.text((0, 25), f"总金币：{gold}")
-        today_data.text((0, 50), f'色图概率：{(70 + user.impression if user.impression < 100 else 100):.2f}%')
-        today_data.text((0, 75), f'开箱次数：{(20 + int(user.impression / 3))}')
+        today_data.text(
+            (0, 50),
+            f"色图概率：{(70 + user.impression if user.impression < 100 else 100):.2f}%",
+        )
+        today_data.text((0, 75), f"开箱次数：{(20 + int(user.impression / 3))}")
         _type = "view"
     else:
         A.paste(gift_border, (570, 140), True)
@@ -268,8 +291,12 @@ def _generate_card(
     bk.paste(today_sign_text_img, (550, 180), True)
     bk.paste(today_data, (580, 220), True)
     bk.paste(watermark, (15, 400), True)
-    bk.save(SIGN_TODAY_CARD_PATH / f"{user_id}_{user.belonging_group}_{_type}_{data}.png")
-    return image(f"{user_id}_{user.belonging_group}_{_type}_{data}.png", "sign/today_card")
+    bk.save(
+        SIGN_TODAY_CARD_PATH / f"{user_id}_{user.belonging_group}_{_type}_{data}.png"
+    )
+    return image(
+        f"{user_id}_{user.belonging_group}_{_type}_{data}.png", "sign/today_card"
+    )
 
 
 def generate_progress_bar_pic():
@@ -330,4 +357,3 @@ def clear_sign_data_pic():
     for file in os.listdir(SIGN_TODAY_CARD_PATH):
         if str(date) not in file:
             os.remove(SIGN_TODAY_CARD_PATH / file)
-

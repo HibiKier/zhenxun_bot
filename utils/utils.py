@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
 from collections import defaultdict
 from nonebot import require
-from configs.path_config import TXT_PATH
+from configs.path_config import TEXT_PATH
 from configs.config import SYSTEM_PROXY
-from typing import List, Union, Optional
-from nonebot.adapters import Bot
+from typing import List, Union, Optional, Type
+from nonebot.adapters.cqhttp import Bot
+from nonebot.matcher import matchers, Matcher
 import nonebot
 import pytz
 import pypinyin
@@ -39,7 +40,7 @@ class CountLimiter:
         return False
 
 
-class UserExistLimiter:
+class UserBlockLimiter:
     """
     检测用户是否正在调用命令
     """
@@ -180,6 +181,17 @@ def get_bot() -> Optional[Bot]:
         return None
 
 
+def get_matchers() -> List[Type[Matcher]]:
+    """
+    获取所有插件
+    """
+    _matchers = []
+    for i in matchers.keys():
+        for matcher in matchers[i]:
+            _matchers.append(matcher)
+    return _matchers
+
+
 def get_message_at(data: str) -> List[int]:
     """
     说明：
@@ -187,12 +199,15 @@ def get_message_at(data: str) -> List[int]:
     参数：
         :param data: event.json()
     """
-    qq_list = []
-    data = json.loads(data)
-    for msg in data["message"]:
-        if msg["type"] == "at":
-            qq_list.append(int(msg["data"]["qq"]))
-    return qq_list
+    try:
+        qq_list = []
+        data = json.loads(data)
+        for msg in data["message"]:
+            if msg["type"] == "at":
+                qq_list.append(int(msg["data"]["qq"]))
+        return qq_list
+    except KeyError:
+        return []
 
 
 def get_message_imgs(data: str) -> List[str]:
@@ -202,12 +217,15 @@ def get_message_imgs(data: str) -> List[str]:
     参数：
         :param data: event.json()
     """
-    img_list = []
-    data = json.loads(data)
-    for msg in data["message"]:
-        if msg["type"] == "image":
-            img_list.append(msg["data"]["url"])
-    return img_list
+    try:
+        img_list = []
+        data = json.loads(data)
+        for msg in data["message"]:
+            if msg["type"] == "image":
+                img_list.append(msg["data"]["url"])
+        return img_list
+    except KeyError:
+        return []
 
 
 def get_message_text(data: str) -> str:
@@ -217,12 +235,15 @@ def get_message_text(data: str) -> str:
     参数：
         :param data: event.json()
     """
-    data = json.loads(data)
-    result = ""
-    for msg in data["message"]:
-        if msg["type"] == "text":
-            result += msg["data"]["text"].strip() + " "
-    return result.strip()
+    try:
+        data = json.loads(data)
+        result = ""
+        for msg in data["message"]:
+            if msg["type"] == "text":
+                result += msg["data"]["text"].strip() + " "
+        return result.strip()
+    except KeyError:
+        return ""
 
 
 def get_message_record(data: str) -> List[str]:
@@ -232,12 +253,15 @@ def get_message_record(data: str) -> List[str]:
     参数：
         :param data: event.json()
     """
-    record_list = []
-    data = json.loads(data)
-    for msg in data["message"]:
-        if msg["type"] == "record":
-            record_list.append(msg["data"]["url"])
-    return record_list
+    try:
+        record_list = []
+        data = json.loads(data)
+        for msg in data["message"]:
+            if msg["type"] == "record":
+                record_list.append(msg["data"]["url"])
+        return record_list
+    except KeyError:
+        return []
 
 
 def get_message_json(data: str) -> List[dict]:
@@ -247,12 +271,15 @@ def get_message_json(data: str) -> List[dict]:
     参数：
         :param data: event.json()
     """
-    json_list = []
-    data = json.loads(data)
-    for msg in data["message"]:
-        if msg["type"] == "json":
-            json_list.append(msg["data"])
-    return json_list
+    try:
+        json_list = []
+        data = json.loads(data)
+        for msg in data["message"]:
+            if msg["type"] == "json":
+                json_list.append(msg["data"])
+        return json_list
+    except KeyError:
+        return []
 
 
 # 获取文本加密后的cookie
@@ -263,7 +290,7 @@ def get_cookie_text(cookie_name: str) -> str:
     参数：
         :param cookie_name: cookie文件名称
     """
-    with open(TXT_PATH + "cookie/" + cookie_name + ".txt", "r") as f:
+    with open(TEXT_PATH + "cookie/" + cookie_name + ".txt", "r") as f:
         return f.read()
 
 
@@ -335,11 +362,9 @@ def change_picture_links(url: str, mode: str):
         :param url: 图片原图链接
         :param mode: 模式
     """
-    if mode == 'master':
-        img_sp = url.rsplit('.', maxsplit=1)
+    if mode == "master":
+        img_sp = url.rsplit(".", maxsplit=1)
         url = img_sp[0]
         img_type = img_sp[1]
-        url = url.replace('original', 'master') + f'_master1200.{img_type}'
+        url = url.replace("original", "master") + f"_master1200.{img_type}"
     return url
-
-

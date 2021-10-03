@@ -9,14 +9,20 @@ from nonebot.adapters.cqhttp import Bot, MessageEvent
 import time
 
 
-__plugin_name__ = "更新pix关键字 | pix检查更新"
-
+__zx_plugin_name__ = "pix检查更新 [Superuser]"
 __plugin_usage__ = """
-    更新pix收录的所有或指定数量的关键词/uid/pid
-    更新pix关键词 [keyword/uid/pid] [num]=all 示例：更新pix关键词uid 5
-    pix检测更新：检测从未更新过的uid和pid
-"""
-
+usage：
+    更新pix收录的所有或指定数量的 关键词/uid/pid
+    指令：
+        更新pix关键词 *[keyword/uid/pid] [num=max]: 更新仅keyword/uid/pid或全部
+        pix检测更新：检测从未更新过的uid和pid
+        示例：更新pix关键词keyword
+        示例：更新pix关键词uid 10
+""".strip()
+__plugin_des__ = "pix图库收录数据检查更新"
+__plugin_cmd__ = ["更新pix关键词 *[keyword/uid/pid] [num=max]", "pix检测更新"]
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
 
 start_update = on_command(
     "更新pix关键词", aliases={"更新pix关键字"}, permission=SUPERUSER, priority=1, block=True
