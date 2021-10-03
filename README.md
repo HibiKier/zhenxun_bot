@@ -335,6 +335,7 @@ python bot.py
 * 修复了负数开箱
 * 签到最低好感度设置为0.01 [pull/53](https://github.com/HibiKier/zhenxun_bot/pull/53)
 * pip安装新依赖 ruamel.yaml
+* 修复功能 EPIC [pull/58](https://github.com/HibiKier/zhenxun_bot/pull/58)
 
 ### 2021/9/10
 
