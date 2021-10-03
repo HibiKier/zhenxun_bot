@@ -333,9 +333,9 @@ python bot.py
 * 当群权限为-1时，不会对群发送修改权限通知，并屏蔽此群一切命令（包括提醒）
 * 修复了红包数量可以过大或为负数，红包数量大于群员数量时会修改为群员数量
 * 修复了负数开箱
-* 签到最低好感度设置为0.01 [pull/53](https://github.com/HibiKier/zhenxun_bot/pull/53)
+* 签到最低好感度设置为0.01 [@pull/53](https://github.com/HibiKier/zhenxun_bot/pull/53)
 * pip安装新依赖 ruamel.yaml
-* 修复功能 EPIC [pull/58](https://github.com/HibiKier/zhenxun_bot/pull/58)
+* 修复功能 EPIC [@pull/58](https://github.com/HibiKier/zhenxun_bot/pull/58)
 
 ### 2021/9/10
 
@@ -359,7 +359,7 @@ python bot.py
 * 修改 更新信息 图片大小
 * 修复 查看订阅 命令 UP和番剧无法正常显示
 * 修复订阅推送无法正确推送
-* 修复搜图返回列表为空时无法正确回复 @[pull/40](https://github.com/HibiKier/zhenxun_bot/pull/40)
+* 修复搜图返回列表为空时无法正确回复 [@pull/40](https://github.com/HibiKier/zhenxun_bot/pull/40)
 
 ### 2021/9/5
 * 添加配置PIX_IMAGE_SIZE，调整PIX下载图片大小，当设置的图片404时，改为原图
