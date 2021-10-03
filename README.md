@@ -334,6 +334,7 @@ python bot.py
 * 修复了红包数量可以过大或为负数，红包数量大于群员数量时会修改为群员数量
 * 修复了负数开箱
 * 签到最低好感度设置为0.01 [pull/53](https://github.com/HibiKier/zhenxun_bot/pull/53)
+* pip安装新依赖 ruamel.yaml
 
 ### 2021/9/10
 
