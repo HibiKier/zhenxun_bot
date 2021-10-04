@@ -29,6 +29,7 @@ from .data_source import (
     gen_message,
     check_local_exists_or_download,
     add_data_to_database,
+    get_setu_count
 )
 from nonebot.adapters.cqhttp.exception import ActionFailed
 from configs.config import ONLY_USE_LOCAL_SETU, WITHDRAW_SETU_TIME, NICKNAME
@@ -237,8 +238,8 @@ async def send_setu_handle(
         await matcher.finish("咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀")
     # 本地先拿图，下载失败补上去
     setu_list, code = None, 200
-    msg_id = None
-    if not ONLY_USE_LOCAL_SETU and tags:
+    setu_count = await get_setu_count(r18)
+    if (not ONLY_USE_LOCAL_SETU and tags) or setu_count <= 0:
         # 先尝试获取在线图片
         urls, text_list, add_databases_list, code = await get_setu_urls(
             tags, num, r18, command
@@ -288,9 +289,9 @@ async def send_setu_handle(
                 except ActionFailed:
                     await matcher.finish("坏了，这张图色过头了，我自己看看就行了！", at_sender=True)
             return
-    # 本地无图 或 超过上下限
     if code != 200:
         await matcher.finish("网络连接失败...", at_sender=True)
+    # 本地无图
     if setu_list is None:
         setu_list, code = await get_setu_list(tags=tags, r18=r18)
         if code != 200:

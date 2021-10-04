@@ -210,6 +210,14 @@ def get_luoxiang(impression):
     return None
 
 
+async def get_setu_count(r18: int) -> int:
+    """
+    获取色图数量
+    :param r18: r18类型
+    """
+    return await Setu.get_image_count(r18)
+
+
 async def find_img_index(img_url, user_id):
     async with aiohttp.ClientSession() as session:
         async with session.get(img_url, proxy=get_local_proxy(), timeout=5) as res:

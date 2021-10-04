@@ -45,7 +45,7 @@ async def _():
             all_group = [x.group_id for x in await GroupInfo.get_all_group()]
             for g in gl:
                 if g not in all_group:
-                    await update_member_info(g)
+                    await update_member_info(g, False)
                     logger.info(f"快速更新群信息以及权限：{g}")
     except (IndexError, ConnectionDoesNotExistError):
         pass

@@ -640,6 +640,7 @@ class CreateMat:
             _max_value = ceil(
                 _max_value / eval("1" + "0" * (len(str(_max_value)) - 1))
             ) * eval("1" + "0" * (len(str(_max_value)) - 1))
+            _max_value = _max_value if _max_value >= 10 else 100
             _step = int(_max_value / 10)
             for i in range(_step, _max_value + _step, _step):
                 _y_index.append(i)

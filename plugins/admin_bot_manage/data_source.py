@@ -190,10 +190,11 @@ def _get_plugin_status() -> MessageSegment:
     return image(b64=A.pic2bs4())
 
 
-async def update_member_info(group_id: int) -> bool:
+async def update_member_info(group_id: int, remind_superuser: bool = False) -> bool:
     """
     更新群成员信息
     :param group_id: 群号
+    :param remind_superuser: 失败信息提醒超级用户
     """
     bot = get_bot()
     _group_user_list = await bot.get_group_member_list(group_id=group_id)
@@ -262,7 +263,7 @@ async def update_member_info(group_id: int) -> bool:
                 logger.info(f"退群用户{del_user} 所属{group_id} 已删除")
             else:
                 logger.info(f"退群用户{del_user} 所属{group_id} 删除失败")
-    if _error_member_list:
+    if _error_member_list and remind_superuser:
         result = ""
         for error_user in _error_member_list:
             result += error_user

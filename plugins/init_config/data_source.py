@@ -121,7 +121,6 @@ def init_plugins_settings(data_path: str):
     with open(plugins2config_file, "w", encoding="utf8") as wf:
         round_trip_dump(_data, wf)
     logger.info(f"已成功加载 {len(plugins2settings_manager.get_data())} 个非限制插件.")
-    print(admin_manager)
 
 
 def init_plugins_cd_limit(data_path):

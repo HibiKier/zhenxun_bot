@@ -157,6 +157,10 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 async def generate_statistics_img(
     data: dict, arg: str, name: str, plugin: str, day_index: int
 ):
+    try:
+        plugin = plugins2settings_manager.get_plugin_data(plugin)['cmd'][0]
+    except (KeyError, IndexError):
+        pass
     bar_graph = None
     if arg == "day_statistics":
         bar_graph = await init_bar_graph(data, f"{name} 日功能调用统计")
@@ -180,7 +184,6 @@ async def generate_statistics_img(
                         count.append(0)
                 else:
                     try:
-                        print(data[str(week_lst[i])][plugin])
                         count.append(data[str(week_lst[i])][plugin])
                     except KeyError:
                         count.append(0)
