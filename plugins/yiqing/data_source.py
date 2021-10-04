@@ -1,6 +1,5 @@
 from utils.user_agent import get_user_agent
 from configs.path_config import TEXT_PATH
-from configs.config import NICKNAME
 from typing import List
 from pathlib import Path
 import ujson as json
@@ -22,7 +21,7 @@ async def get_yiqing_data(area: str):
     if area == "中国":
         province = area
         province_type = ""
-    elif area in data.keys() and area[-1] != "市":
+    elif area[-1] == '省' or (area in data.keys() and area[-1] != "市"):
         province = area if area[-1] != "省" else area[:-1]
         if len(data[province]) == 1:
             province_type = "市"
@@ -33,8 +32,6 @@ async def get_yiqing_data(area: str):
             if area in data[p]:
                 province = p
                 city = area
-    if not province and not city:
-        return f"{NICKNAME}只支持国内的疫情查询喔..."
     async with aiohttp.ClientSession(headers=get_user_agent()) as session:
         async with session.get(url, timeout=7) as response:
             epidemic_data = json.loads((await response.json())["data"])
@@ -77,7 +74,7 @@ async def get_yiqing_data(area: str):
     )
 
 
-def get_city_list() -> List[str]:
+def get_city_and_province_list() -> List[str]:
     global data
     if not data:
         try:
