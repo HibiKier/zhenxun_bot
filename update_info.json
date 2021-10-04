@@ -5,7 +5,8 @@
       "models",
       "services",
       "utils",
-      "resources/ttf"
+      "resources/ttf",
+      "bot.py"
     ],
     "add_file": ["resources/img/background"],
     "delete_file": []
