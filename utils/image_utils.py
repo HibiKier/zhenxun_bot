@@ -987,7 +987,8 @@ class CreateMat:
                 font_size=self.font_size,
                 color=(255, 255, 255, 0),
             )
-            while text.size[0] > self.padding_w - 10:
+            idx = 0
+            while text.size[0] > self.padding_w - 10 and idx < 3:
                 text = CreateImg(
                     0,
                     0,
@@ -996,6 +997,7 @@ class CreateMat:
                     color=(255, 255, 255, 0),
                 )
                 w, _ = text.getsize(f"{_y}")
+                idx += 1
             A.paste(text, (padding_w - w - 10, current_h - h), alpha=True)
             current_h -= _interval
         if x_name:
