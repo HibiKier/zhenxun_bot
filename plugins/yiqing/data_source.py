@@ -86,4 +86,5 @@ def get_city_and_province_list() -> List[str]:
     for p in data.keys():
         for c in data[p]:
             city_list.append(c)
+        city_list.append(p)
     return city_list
