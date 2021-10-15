@@ -178,17 +178,22 @@ async def download_map_init(
                 if not _map.exists():
                     # padding_w, padding_h = data['padding']
                     data = data["slices"]
-                    map_url = data[0][0]['url']
-                    await download_image(
-                        map_url,
-                        f"{map_path}/map.png",
-                        session,
-                        semaphore,
-                        force_flag=flag,
-                    )
-                    map_file = CreateImg(
-                        0, 0, background=f"{map_path}/map.png", ratio=MAP_RATIO
-                    )
+                    idx = 0
+                    for _map_data in data[0]:
+                        map_url = _map_data['url']
+                        await download_image(
+                            map_url,
+                            f"{map_path}/{idx}.png",
+                            session,
+                            semaphore,
+                            force_flag=flag,
+                        )
+                        idx += 1
+                    _w, h = CreateImg(0, 0, background=f"{map_path}/0.png", ratio=MAP_RATIO).size
+                    w = _w * len(os.listdir(map_path))
+                    map_file = CreateImg(w, h, _w, h, ratio=MAP_RATIO)
+                    for i in range(idx):
+                        map_file.paste(CreateImg(0, 0, background=f"{map_path}/{i}.png", ratio=MAP_RATIO))
                     map_file.save(f"{map_path}/map.png")
             else:
                 logger.warning(f'获取原神地图失败 msg: {data["message"]}')
