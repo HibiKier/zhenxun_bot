@@ -66,8 +66,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         at_user = await bot.get_group_member_info(group_id=event.group_id, user_id=qq)
         user_name = at_user["card"] if at_user["card"] else at_user["nickname"]
     msg = re.search(
-        r"^我.*?朋友.*?(想问问|说|让我问问|想问|让我问|想知道|让我帮他问问|让我帮他问|让我帮忙问|让我帮忙问问|问)(.*)", msg
+        r"^(.*)想问问(.*)", msg
     )
+    name=msg.group(1)
+    if not name:
+        user_name=name
     msg = msg.group(2)
     if not msg:
         msg = "都不知道问什么"
