@@ -1,14 +1,12 @@
-import aiohttp
 from io import BytesIO
 from random import choice
 from nonebot import on_regex
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from utils.utils import get_message_text, get_message_at
+from utils.utils import get_message_text, get_message_at, get_user_avatar
 from utils.message_builder import image
 import re
 from utils.image_utils import CreateImg
-from asyncio.exceptions import TimeoutError
 
 __zx_plugin_name__ = "我有一个朋友"
 __plugin_usage__ = """
@@ -33,18 +31,6 @@ one_friend = on_regex(
     priority=4,
     block=True,
 )
-
-
-async def get_pic(qq):
-    url = f"http://q1.qlogo.cn/g?b=qq&nk={qq}&s=100"
-    async with aiohttp.ClientSession() as session:
-        for _ in range(3):
-            try:
-                async with session.get(url, timeout=5) as response:
-                    return await response.read()
-            except TimeoutError:
-                pass
-        return None
 
 
 @one_friend.handle()
@@ -72,11 +58,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if not msg:
         msg = "都不知道问什么"
     msg = msg.replace("他", "我").replace("她", "我").replace("它", "我")
-    x = await get_pic(qq)
+    x = await get_user_avatar(qq)
     if x:
-        ava = CreateImg(100, 100, background=BytesIO(await get_pic(qq)))
+        ava = CreateImg(200, 100, background=BytesIO(x))
     else:
-        ava = CreateImg(100, 100, color=(0, 0, 0))
+        ava = CreateImg(200, 100, color=(0, 0, 0))
     ava.circle()
     text = CreateImg(300, 30, font_size=30)
     text.text((0, 0), user_name)

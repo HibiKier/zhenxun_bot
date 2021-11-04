@@ -41,7 +41,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         try:
             for _ in range(3):
                 try:
-                    async with session.get(url, proxy=get_local_proxy(), timeout=2) as response:
+                    async with session.get(url, proxy=get_local_proxy(), timeout=2, verify_ssl=False) as response:
                         _url = (await response.json())['text']
                         async with session.get(
                             _url, timeout=5, proxy=get_local_proxy(), verify_ssl=False

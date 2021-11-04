@@ -1,7 +1,7 @@
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot import on_command
-from utils.utils import get_message_imgs, get_local_proxy, get_message_text, is_Chinese
+from utils.utils import get_message_imgs, get_local_proxy, get_message_text, is_chinese
 from utils.message_builder import image
 import aiohttp
 import aiofiles
@@ -134,11 +134,11 @@ async def get_translate(msg: str) -> str:
 def formalization_msg(msg: str) -> str:
     rst = ""
     for i in range(len(msg)):
-        if is_Chinese(msg[i]):
+        if is_chinese(msg[i]):
             rst += msg[i] + " "
         else:
             rst += msg[i]
-        if i + 1 < len(msg) and is_Chinese(msg[i + 1]) and msg[i].isalpha():
+        if i + 1 < len(msg) and is_chinese(msg[i + 1]) and msg[i].isalpha():
             rst += " "
     return rst
 

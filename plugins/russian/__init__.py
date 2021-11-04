@@ -5,13 +5,13 @@ from nonebot.adapters.cqhttp import GROUP, Bot, GroupMessageEvent, Message
 from nonebot.typing import T_State
 from utils.utils import get_message_text, is_number, get_message_at
 from models.group_member_info import GroupInfoUser
-from utils.message_builder import at
-from models.russian_user import RussianUser
+from utils.message_builder import at, image
+from .model import RussianUser
 from models.bag_user import BagUser
 from services.log import logger
 import time
 from .data_source import rank
-from configs.config import MAX_RUSSIAN_BET_GOLD, NICKNAME
+from configs.config import NICKNAME, Config
 
 __zx_plugin_name__ = "俄罗斯轮盘"
 __plugin_usage__ = """
@@ -46,6 +46,13 @@ __plugin_settings__ = {
     "default_status": True,
     "limit_superuser": False,
     "cmd": ["俄罗斯轮盘", "装弹"],
+}
+__plugin_configs__ = {
+    "MAX_RUSSIAN_BET_GOLD": {
+        "value": 1000,
+        "help": "俄罗斯轮盘最大赌注金额",
+        "default_value": 1000,
+    }
 }
 
 rs_player = {}
@@ -228,7 +235,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             and rs_player[event.group_id][2]
             and time.time() - rs_player[event.group_id]["time"] > 30
         ):
-            await shot.send("决斗已过时，强行结算...")
+            await russian.send("决斗已过时，强行结算...")
             await end_game(bot, event)
         if (
             not rs_player[event.group_id][2]
@@ -250,11 +257,15 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             msg = msg[0].strip()
             if is_number(msg) and not (int(msg) < 1 or int(msg) > 6):
                 state["bullet_num"] = int(msg)
-            if is_number(money) and 0 < int(money) <= MAX_RUSSIAN_BET_GOLD:
+            if is_number(money) and 0 < int(money) <= Config.get_config(
+                "russian", "MAX_RUSSIAN_BET_GOLD"
+            ):
                 state["money"] = int(money)
             else:
                 state["money"] = 200
-                await russian.send(f"赌注金额超过限制（{MAX_RUSSIAN_BET_GOLD}），已改为200（默认）")
+                await russian.send(
+                    f"赌注金额超过限制（{Config.get_config('russian', 'MAX_RUSSIAN_BET_GOLD')}），已改为200（默认）"
+                )
     state["at"] = get_message_at(event.json())
 
 
@@ -267,8 +278,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     user_money = await BagUser.get_gold(event.user_id, event.group_id)
     if bullet_num < 0 or bullet_num > 6:
         await russian.reject("子弹数量必须大于0小于7！速速重新装弹！")
-    if money > MAX_RUSSIAN_BET_GOLD:
-        await russian.finish(f"太多了！单次金额不能超过{MAX_RUSSIAN_BET_GOLD}！", at_sender=True)
+    if money > Config.get_config("russian", "MAX_RUSSIAN_BET_GOLD"):
+        await russian.finish(
+            f"太多了！单次金额不能超过{Config.get_config('russian', 'MAX_RUSSIAN_BET_GOLD')}！",
+            at_sender=True,
+        )
     if money > user_money:
         await russian.finish("你没有足够的钱支撑起这场挑战", at_sender=True)
 
@@ -433,6 +447,7 @@ async def end_game(bot: Bot, event: GroupMessageEvent):
     for x in rs_player[event.group_id]["bullet"]:
         bullet_str += "__ " if x == 0 else "| "
     logger.info(f"俄罗斯轮盘：胜者：{win_name} - 败者：{lose_name} - 金币：{money}")
+    rs_player[event.group_id] = {}
     await bot.send(
         event,
         message=f"结算：\n"
@@ -449,7 +464,6 @@ async def end_game(bot: Bot, event: GroupMessageEvent):
         f"哼哼，{NICKNAME}从中收取了 {float(rand)}%({fee}金币) 作为手续费！\n"
         f"子弹排列：{bullet_str[:-1]}",
     )
-    rs_player[event.group_id] = {}
 
 
 @record.handle()
@@ -471,18 +485,26 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 @russian_rank.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+    num = get_message_text(event.json())
+    if is_number(num) and 51 > int(num) > 10:
+        num = int(num)
+    else:
+        num = 10
+    rank_image = None
     if state["_prefix"]["raw_command"] in ["胜场排行", "胜利排行"]:
-        await russian_rank.finish(await rank(event.group_id, "win_rank"))
+        rank_image = await rank(event.group_id, "win_rank", num)
     if state["_prefix"]["raw_command"] in ["败场排行", "失败排行"]:
-        await russian_rank.finish(await rank(event.group_id, "lose_rank"))
+        rank_image = await rank(event.group_id, "lose_rank", num)
     if state["_prefix"]["raw_command"] == "欧洲人排行":
-        await russian_rank.finish(await rank(event.group_id, "make_money"))
+        rank_image = await rank(event.group_id, "make_money", num)
     if state["_prefix"]["raw_command"] == "慈善家排行":
-        await russian_rank.finish(await rank(event.group_id, "spend_money"))
+        rank_image = await rank(event.group_id, "spend_money", num)
     if state["_prefix"]["raw_command"] == "最高连胜排行":
-        await russian_rank.finish(await rank(event.group_id, "max_winning_streak"))
+        rank_image = await rank(event.group_id, "max_winning_streak", num)
     if state["_prefix"]["raw_command"] == "最高连败排行":
-        await russian_rank.finish(await rank(event.group_id, "max_losing_streak"))
+        rank_image = await rank(event.group_id, "max_losing_streak", num)
+    if rank_image:
+        await russian_rank.send(image(b64=rank_image.pic2bs4()))
 
 
 # 随机子弹排列

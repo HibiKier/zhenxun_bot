@@ -1,13 +1,17 @@
 from configs.path_config import IMAGE_PATH, VOICE_PATH
 from nonebot.adapters.cqhttp.message import MessageSegment
+from configs.config import NICKNAME
 from services.log import logger
-from typing import Union
+from typing import Union, List
 from pathlib import Path
 import os
 
 
 def image(
-    img_name: Union[str, Path] = None, path: str = None, abspath: str = None, b64: str = None
+    img_name: Union[str, Path] = None,
+    path: str = None,
+    abspath: str = None,
+    b64: str = None,
 ) -> Union[MessageSegment, str]:
     """
     说明：
@@ -153,3 +157,27 @@ def poke(qq: int) -> MessageSegment:
         :param qq: qq号
     """
     return MessageSegment("poke", {"qq": qq})
+
+
+def custom_forward_msg(
+    msg_list: List[str], uin: Union[int, str], name: str = f"这里是{NICKNAME}"
+) -> List[dict]:
+    """
+    生成自定义合并消息
+    :param msg_list: 消息列表
+    :param uin: 发送者 QQ
+    :param name: 自定义名称
+    """
+    uin = int(uin)
+    mes_list = []
+    for _message in msg_list:
+        data = {
+            "type": "node",
+            "data": {
+                "name": name,
+                "uin": f"{uin}",
+                "content": _message,
+            },
+        }
+        mes_list.append(data)
+    return mes_list

@@ -6,7 +6,6 @@ from .group_user_checkin import (
 )
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from utils.manager import plugins2cd_manager
 from nonebot.adapters.cqhttp.permission import GROUP
 from utils.message_builder import image
 from nonebot import on_command
@@ -15,6 +14,7 @@ from pathlib import Path
 from configs.path_config import DATA_PATH
 from services.log import logger
 from .utils import clear_sign_data_pic
+from utils.utils import is_number
 
 try:
     import ujson as json
@@ -43,9 +43,30 @@ __plugin_settings__ = {
     "limit_superuser": False,
     "cmd": ["签到"],
 }
-plugins2cd_manager.add_cd_limit(
-    'sign_in',
-)
+__plugin_cd_limit__ = {}
+__plugin_configs__ = {
+    "MAX_SIGN_GOLD": {
+        "value": 200,
+        "help": "签到好感度加成额外获得的最大金币数",
+        "default_value": 200
+    },
+    "SIGN_CARD1_PROB": {
+        "value": 0.2,
+        "help": "签到好感度双倍加持卡Ⅰ掉落概率",
+        "default_value": 0.2
+    },
+    "SIGN_CARD2_PROB": {
+        "value": 0.09,
+        "help": "签到好感度双倍加持卡Ⅱ掉落概率",
+        "default_value": 0.09
+    },
+    "SIGN_CARD3_PROB": {
+        "value": 0.05,
+        "help": "签到好感度双倍加持卡Ⅲ掉落概率",
+        "default_value": 0.05
+    }
+}
+
 
 _file = Path(f"{DATA_PATH}/not_show_sign_rank_user.json")
 try:
@@ -90,7 +111,14 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 @sign_rank.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    await sign_rank.send(await group_impression_rank(event.group_id))
+    num = get_message_text(event.json())
+    if is_number(num) and 51 > int(num) > 10:
+        num = int(num)
+    else:
+        num = 10
+    _image = await group_impression_rank(event.group_id, num)
+    if _image:
+        await sign_rank.send(image(b64=_image.pic2bs4()))
 
 
 @total_sign_rank.handle()

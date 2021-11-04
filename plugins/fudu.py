@@ -9,9 +9,9 @@ from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 import aiohttp
 import aiofiles
-from asyncio.exceptions import TimeoutError
-from configs.config import FUDU_PROBABILITY
+from configs.config import Config
 from utils.manager import group_manager
+from services.log import logger
 
 
 __zx_plugin_name__ = "复读"
@@ -24,6 +24,9 @@ __plugin_type__ = ("被动相关",)
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_task__ = {"fudu": "复读"}
+__plugin_configs__ = {
+    "FUDU_PROBABILITY": {"value": 0.7, "help": "复读概率", "default_value": 0.7}
+}
 
 
 class Fudu:
@@ -98,9 +101,9 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         _fudu_list.clear(event.group_id)
         _fudu_list.append(event.group_id, add_msg)
     if _fudu_list.size(event.group_id) > 2:
-        if random.random() < FUDU_PROBABILITY and not _fudu_list.is_repeater(
-            event.group_id
-        ):
+        if random.random() < Config.get_config(
+            "fudu", "FUDU_PROBABILITY"
+        ) and not _fudu_list.is_repeater(event.group_id):
             if random.random() < 0.2:
                 await fudu.finish("打断施法！")
             _fudu_list.set_repeater(event.group_id)
@@ -126,5 +129,6 @@ async def get_fudu_img_hash(url, group_id):
                     await f.write(await response.read())
         img_hash = get_img_hash(IMAGE_PATH + f"temp/compare_{group_id}_img.jpg")
         return str(img_hash)
-    except TimeoutError:
+    except Exception as e:
+        logger.warning(f"复读读取图片Hash出错 {type(e)}：{e}")
         return ""

@@ -15,6 +15,7 @@ usage：
 """.strip()
 __plugin_des__ = "以图识番"
 __plugin_cmd__ = ["识番 [图片]"]
+__plugin_type__ = ("一些工具",)
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {

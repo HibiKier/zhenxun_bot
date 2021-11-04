@@ -4,7 +4,7 @@ from utils.message_builder import image
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 from nonebot.typing import T_State
 from .data_source import gen_keyword_pic, get_keyword_num
-from models.pixiv_keyword_user import PixivKeywordUser
+from .model.pixiv_keyword_user import PixivKeywordUser
 import asyncio
 
 

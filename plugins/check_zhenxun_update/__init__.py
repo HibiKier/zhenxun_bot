@@ -6,7 +6,7 @@ from .data_source import check_update, get_latest_version_data
 from services.log import logger
 from utils.utils import scheduler, get_bot
 from pathlib import Path
-from configs.config import AUTO_UPDATE_ZHENXUN
+from configs.config import Config
 from nonebot.rule import to_me
 import platform
 import os
@@ -24,6 +24,13 @@ __plugin_des__ = "就算是真寻也会成长的"
 __plugin_cmd__ = ["检查更新真寻", "重启"]
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
+__plugin_configs__ = {
+    "AUTO_UPDATE_ZHENXUN": {
+        "value": False,
+        "help": "真寻是否自动检查更新",
+        "default": False,
+    }
+}
 
 update_zhenxun = on_command("检查更新真寻", permission=SUPERUSER, priority=1, block=True)
 
@@ -82,7 +89,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     minute=0,
 )
 async def _():
-    if AUTO_UPDATE_ZHENXUN:
+    if Config.get_config("check_zhenxun_update", "AUTO_UPDATE_ZHENXUN"):
         _version = "v0.0.0"
         _version_file = Path() / "__version__"
         if _version_file.exists():

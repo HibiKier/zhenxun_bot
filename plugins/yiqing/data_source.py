@@ -82,7 +82,7 @@ def get_city_and_province_list() -> List[str]:
                 data = json.load(f)
         except FileNotFoundError:
             data = {}
-    city_list = []
+    city_list = ["中国"]
     for p in data.keys():
         for c in data[p]:
             city_list.append(c)

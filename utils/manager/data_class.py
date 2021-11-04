@@ -12,15 +12,25 @@ class StaticData:
     """
 
     def __init__(self, file: Optional[Path]):
-        self._data = {}
+        self._data: dict = {}
         if file:
             file.parent.mkdir(exist_ok=True, parents=True)
             self.file = file
             if file.exists():
-                self._data: dict = json.load(open(file, "r", encoding="utf8"))
+                with open(file, "r", encoding="utf8") as f:
+                    if file.name.endswith("json"):
+                        self._data: dict = json.load(f)
+                    elif file.name.endswith("yaml"):
+                        self._data = yaml.load(f)
 
     def set(self, key, value):
         self._data[key] = value
+        self.save()
+
+    def set_module_data(self, module, key, value):
+        if module in self._data.keys():
+            self._data[module][key] = value
+        self.save()
 
     def get(self, key):
         return self._data.get(key)
@@ -31,20 +41,24 @@ class StaticData:
     def delete(self, key):
         if self._data.get(key) is not None:
             del self._data[key]
+        self.save()
 
-    def get_data(self):
+    def get_data(self) -> dict:
         return self._data
 
     def save(self, path: Union[str, Path] = None):
         path = path if path else self.file
-        with open(path, "w", encoding="utf8") as f:
-            json.dump(self._data, f, ensure_ascii=False, indent=4)
+        if isinstance(path, str):
+            path = Path(path)
+        if path:
+            with open(path, "w", encoding="utf8") as f:
+                json.dump(self._data, f, ensure_ascii=False, indent=4)
 
     def reload(self):
         if self.file.exists():
-            if self.file.name.endswith('json'):
+            if self.file.name.endswith("json"):
                 self._data: dict = json.load(open(self.file, "r", encoding="utf8"))
-            elif self.file.name.endswith('yaml'):
+            elif self.file.name.endswith("yaml"):
                 self._data: dict = yaml.load(open(self.file, "r", encoding="utf8"))
 
     def is_exists(self):
@@ -61,4 +75,3 @@ class StaticData:
 
     def __getitem__(self, key):
         return self._data[key]
-

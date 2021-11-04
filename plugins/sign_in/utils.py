@@ -11,6 +11,7 @@ from .config import (
 from models.sign_group_user import SignGroupUser
 from models.group_member_info import GroupInfoUser
 from nonebot.adapters.cqhttp import MessageSegment
+from utils.utils import get_user_avatar
 from utils.image_utils import CreateImg
 from utils.message_builder import image
 from configs.config import NICKNAME
@@ -22,7 +23,6 @@ from io import BytesIO
 import asyncio
 import random
 import nonebot
-import aiohttp
 import os
 
 
@@ -39,13 +39,6 @@ async def init_image():
         await _u.update(uid=0).apply()
     generate_progress_bar_pic()
     clear_sign_data_pic()
-
-
-async def _get_pic(qq):
-    url = f"http://q1.qlogo.cn/g?b=qq&nk={qq}&s=100"
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, timeout=5) as response:
-            return await response.read()
 
 
 async def get_card(
@@ -80,7 +73,7 @@ async def get_card(
                     "sign/today_card",
                 )
             is_card_view = True
-        ava = BytesIO(await _get_pic(user_id))
+        ava = BytesIO(await get_user_avatar(user_id))
         uid = await GroupInfoUser.get_group_member_uid(
             user.user_qq, user.belonging_group
         )

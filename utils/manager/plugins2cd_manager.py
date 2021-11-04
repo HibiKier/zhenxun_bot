@@ -17,6 +17,13 @@ class Plugins2cdManager(StaticData):
         self.file = file
         super().__init__(None)
         self._freq_limiter: Dict[str, FreqLimiter] = {}
+        if file.exists():
+            with open(file, "r", encoding="utf8") as f:
+                self._data = yaml.load(f)
+        if "PluginCdLimit" in self._data.keys():
+            self._data = (
+                self._data["PluginCdLimit"] if self._data["PluginCdLimit"] else {}
+            )
 
     def add_cd_limit(
         self,
@@ -40,15 +47,15 @@ class Plugins2cdManager(StaticData):
         :param data_dict: 封装好的字典数据
         """
         if data_dict:
-            cd = data_dict.get('cd')
-            status = data_dict.get('status')
-            check_type = data_dict.get('check_type')
-            limit_type = data_dict.get('limit_type')
-            rst = data_dict.get('rst')
+            cd = data_dict.get("cd")
+            status = data_dict.get("status")
+            check_type = data_dict.get("check_type")
+            limit_type = data_dict.get("limit_type")
+            rst = data_dict.get("rst")
             cd = cd if cd is not None else 5
             status = status if status is not None else True
-            check_type = check_type if check_type else 'all'
-            limit_type = limit_type if limit_type else 'user'
+            check_type = check_type if check_type else "all"
+            limit_type = limit_type if limit_type else "user"
         if check_type not in ["all", "group", "private"]:
             raise ValueError(
                 f"{plugin} 添加cd限制错误，‘check_type‘ 必须为 'private'/'group'/'all'"
@@ -62,14 +69,6 @@ class Plugins2cdManager(StaticData):
             "limit_type": limit_type,
             "rst": rst,
         }
-
-    def remove_cd_limit(self, plugin: str):
-        """
-        删除一个插件 cd 限制
-        :param plugin: 插件模块名称
-        """
-        if self._data.get(plugin):
-            del self._data[plugin]
 
     def get_plugin_cd_data(self, plugin: str) -> Optional[dict]:
         """
@@ -128,8 +127,10 @@ class Plugins2cdManager(StaticData):
         """
         for plugin in self._data:
             if self.check_plugin_cd_status(plugin):
-                self._freq_limiter[plugin] = FreqLimiter(self.get_plugin_cd_data(plugin)['cd'])
-        logger.info(f'已成功加载 {len(self._freq_limiter)} 个Cd限制.')
+                self._freq_limiter[plugin] = FreqLimiter(
+                    self.get_plugin_cd_data(plugin)["cd"]
+                )
+        logger.info(f"已成功加载 {len(self._freq_limiter)} 个Cd限制.")
 
     def reload(self):
         """
@@ -138,7 +139,5 @@ class Plugins2cdManager(StaticData):
         if self.file.exists():
             with open(self.file, "r", encoding="utf8") as f:
                 self._data: dict = yaml.load(f)
-                self._data = self._data['PluginCdLimit']
+                self._data = self._data["PluginCdLimit"]
                 self.reload_cd_limit()
-
-

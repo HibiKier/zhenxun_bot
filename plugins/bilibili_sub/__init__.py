@@ -9,11 +9,11 @@ from .data_source import (
     get_media_id,
     get_sub_status,
     SubManager,
+    BilibiliSub
 )
 from models.level_user import LevelUser
-from configs.config import GROUP_BILIBILI_SUB_LEVEL
+from configs.config import Config
 from utils.utils import get_message_text, is_number, scheduler, get_bot
-from models.bilibili_sub import BilibiliSub
 from typing import Optional
 from services.log import logger
 from nonebot import Driver
@@ -34,20 +34,27 @@ usage：
         示例：添加订阅番剧 125344 <-(番剧id)
         示例：删除订阅 2324344 <-(任意id，通过查看订阅获取)
 """.strip()
-__plugin_des__ = '非常便利的B站订阅通知'
-__plugin_cmd__ = ['添加订阅 [主播/UP/番剧] [id/链接/番名]', '删除订阅 [id]', '查看订阅']
+__plugin_des__ = "非常便利的B站订阅通知"
+__plugin_cmd__ = ["添加订阅 [主播/UP/番剧] [id/链接/番名]", "删除订阅 [id]", "查看订阅"]
 __plugin_version__ = 0.1
-__plugin_author__ = 'HibiKier'
+__plugin_author__ = "HibiKier"
 __plugin_settings__ = {
     "level": 5,
     "default_status": True,
     "limit_superuser": False,
-    "cmd": ["B站订阅", 'b站订阅', '添加订阅', '删除订阅', '查看订阅'],
+    "cmd": ["B站订阅", "b站订阅", "添加订阅", "删除订阅", "查看订阅"],
+}
+__plugin_configs__ = {
+    "GROUP_BILIBILI_SUB_LEVEL": {
+        "value": 5,
+        "help": "群内bilibili订阅需要管理的权限",
+        "default_value": 5,
+    }
 }
 
 add_sub = on_command("添加订阅", priority=5, block=True)
 del_sub = on_command("删除订阅", priority=5, block=True)
-show_sub_info = on_command('查看订阅', priority=5, block=True)
+show_sub_info = on_command("查看订阅", priority=5, block=True)
 
 driver: Driver = nonebot.get_driver()
 
@@ -79,10 +86,13 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     id_ = ""
     if isinstance(event, GroupMessageEvent):
         if not await LevelUser.check_level(
-            event.user_id, event.group_id, GROUP_BILIBILI_SUB_LEVEL
+            event.user_id,
+            event.group_id,
+            Config.get_config("bilibili_sub", "GROUP_BILIBILI_SUB_LEVEL"),
         ):
             await add_sub.finish(
-                f"您的权限不足，群内订阅的需要 {GROUP_BILIBILI_SUB_LEVEL} 级权限..", at_sender=True
+                f"您的权限不足，群内订阅的需要 {Config.get_config('bilibili_sub', 'GROUP_BILIBILI_SUB_LEVEL')} 级权限..",
+                at_sender=True,
             )
         sub_user = f"{event.user_id}:{event.group_id}"
     else:
@@ -134,44 +144,52 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json())
     if not is_number(msg):
-        await del_sub.finish('Id必须为数字！', at_sender=True)
-    id_ = f'{event.user_id}:{event.group_id}' if isinstance(event, GroupMessageEvent) else f'{event.user_id}'
+        await del_sub.finish("Id必须为数字！", at_sender=True)
+    id_ = (
+        f"{event.user_id}:{event.group_id}"
+        if isinstance(event, GroupMessageEvent)
+        else f"{event.user_id}"
+    )
     if await BilibiliSub.delete_bilibili_sub(int(msg), id_):
-        await del_sub.send(f'删除订阅id：{msg} 成功...')
+        await del_sub.send(f"删除订阅id：{msg} 成功...")
         logger.info(
             f"(USER {event.user_id}, GROUP "
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
             f" 删除订阅 {id_}"
         )
     else:
-        await del_sub.send(f'删除订阅id：{msg} 失败...')
+        await del_sub.send(f"删除订阅id：{msg} 失败...")
 
 
 @show_sub_info.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    id_ = f'{event.user_id}:{event.group_id}' if isinstance(event, GroupMessageEvent) else f'{event.user_id}'
+    id_ = (
+        f"{event.user_id}:{event.group_id}"
+        if isinstance(event, GroupMessageEvent)
+        else f"{event.user_id}"
+    )
     data = await BilibiliSub.get_sub_data(id_)
-    live_rst = ''
-    up_rst = ''
-    season_rst = ''
+    live_rst = ""
+    up_rst = ""
+    season_rst = ""
     for x in data:
-        if x.sub_type == 'live':
-            live_rst += f'\t直播间id：{x.sub_id}\n' \
-                        f'\t名称：{x.uname}\n' \
-                        f'------------------\n'
-        if x.sub_type == 'up':
-            up_rst += f'\tUP：{x.uname}\n' \
-                      f'\tuid：{x.uid}\n' \
-                      f'------------------\n'
-        if x.sub_type == 'season':
-            season_rst += f'\t番名：{x.season_name}\n' \
-                          f'\t当前集数：{x.season_current_episode}\n' \
-                          f'------------------\n'
-    live_rst = '当前订阅的直播：\n' + live_rst if live_rst else live_rst
-    up_rst = '当前订阅的UP：\n' + up_rst if up_rst else up_rst
-    season_rst = '当前订阅的番剧：\n' + season_rst if season_rst else season_rst
+        if x.sub_type == "live":
+            live_rst += (
+                f"\t直播间id：{x.sub_id}\n" f"\t名称：{x.uname}\n" f"------------------\n"
+            )
+        if x.sub_type == "up":
+            up_rst += f"\tUP：{x.uname}\n" f"\tuid：{x.uid}\n" f"------------------\n"
+        if x.sub_type == "season":
+            season_rst += (
+                f"\t番名：{x.season_name}\n"
+                f"\t当前集数：{x.season_current_episode}\n"
+                f"------------------\n"
+            )
+    live_rst = "当前订阅的直播：\n" + live_rst if live_rst else live_rst
+    up_rst = "当前订阅的UP：\n" + up_rst if up_rst else up_rst
+    season_rst = "当前订阅的番剧：\n" + season_rst if season_rst else season_rst
     if not live_rst and not up_rst and not season_rst:
-        live_rst = '您目前没有任何订阅...'
+        live_rst = "您目前没有任何订阅..."
     await show_sub_info.send(live_rst + up_rst + season_rst)
 
 

@@ -32,6 +32,13 @@ __plugin_settings__ = {
 __plugin_block_limit__ = {
     "rst": "您有bt任务正在进行，请等待结束."
 }
+__plugin_configs__ = {
+    "BT_MAX_NUM": {
+        "value": 10,
+        "help": "单次BT搜索返回最大消息数量",
+        "default_value": 10,
+    }
+}
 
 
 bt = on_command("bt", permission=PRIVATE, priority=5, block=True)

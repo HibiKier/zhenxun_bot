@@ -5,9 +5,8 @@ from nonebot import on_command
 from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
-from configs.config import DELETE_IMG_LEVEL
-from configs.config import IMAGE_DIR_LIST
 from utils.utils import is_number, cn2py, get_message_text
+from configs.config import Config
 from pathlib import Path
 import os
 
@@ -25,7 +24,7 @@ __plugin_cmd__ = ["删除图片 [图库] [id]", "查看公开图库"]
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {
-    "admin_level": DELETE_IMG_LEVEL
+    "admin_level": Config.get_config("image_management", "DELETE_IMAGE_LEVEL")
 }
 
 
@@ -37,7 +36,7 @@ async def parse(bot: Bot, event: MessageEvent, state: T_State):
     if get_message_text(event.json()) in ["取消", "算了"]:
         await delete_img.finish("已取消操作..", at_sender=True)
     if state["_current_key"] in ["path"]:
-        if get_message_text(event.json()) not in IMAGE_DIR_LIST:
+        if get_message_text(event.json()) not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
             await delete_img.reject("此目录不正确，请重新输入目录！")
         state[state["_current_key"]] = get_message_text(event.json())
     if state["_current_key"] == "id":
@@ -53,7 +52,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         args = raw_arg.split(" ")
         if args[0] in ["帮助"]:
             await delete_img.finish(__plugin_usage__)
-        if len(args) >= 2 and args[0] in IMAGE_DIR_LIST and is_number(args[1]):
+        if len(args) >= 2 and args[0] in Config.get_config("image_management", "IMAGE_DIR_LIST") and is_number(args[1]):
             state["path"] = args[0]
             state["id"] = args[1]
 

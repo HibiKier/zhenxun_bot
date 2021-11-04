@@ -1,5 +1,5 @@
 from nonebot import on_regex
-from .data_source import get_weather_of_city, update_city, get_city_list
+from .data_source import get_weather_of_city, get_city_list
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from jieba import posseg
 from services.log import logger
@@ -28,7 +28,7 @@ __plugin_settings__ = {
 }
 
 
-weather = on_regex(r".*?(.*)市?的?天气.*?", priority=5, block=True)
+weather = on_regex(r".{0,10}市?的?天气.{0,10}", priority=5, block=True)
 
 
 @weather.handle()

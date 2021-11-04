@@ -8,6 +8,7 @@ from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent
 from nonebot.permission import SUPERUSER
 import random
 from nonebot.plugin import MatcherGroup
+from configs.path_config import IMAGE_PATH
 import re
 from .open_cases_c import (
     open_case,
@@ -68,6 +69,20 @@ __plugin_settings__ = {
 }
 __plugin_task__ = {"open_case_reset_remind": "每日开箱重置提醒"}
 __plugin_cd_limit__ = {"rst": "着什么急啊，慢慢来！"}
+__plugin_resources__ = {f"cases": IMAGE_PATH}
+__plugin_configs__ = {
+    "INITIAL_OPEN_CASE_COUNT": {"value": 20, "help": "初始每日开箱次数", "default_value": 20},
+    "EACH_IMPRESSION_ADD_COUNT": {
+        "value": 3,
+        "help": "每 * 点好感度额外增加开箱次数",
+        "default_value": 3,
+    },
+    "COOKIE": {
+        "value": None,
+        "help": "BUFF的cookie",
+    },
+    "BUFF_PROXY": {"value": None, "help": "使用代理访问BUFF"},
+}
 
 cases_name = ["狂牙大行动", "突围大行动", "命悬一线", "裂空", "光谱"]
 

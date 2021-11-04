@@ -416,6 +416,7 @@ class CreateImg:
                 color = self.markImg.getpixel((i, k))
                 color = color[:-1] + (int(100 * alpha_ratio),)
                 self.markImg.putpixel((i, k), color)
+        self.draw = ImageDraw.Draw(self.markImg)
 
     def pic2bs4(self) -> str:
         """
@@ -501,26 +502,38 @@ class CreateImg:
             :param radii: 半径
         """
         # 画圆（用于分离4个角）
-        circle = Image.new('L', (radii * 2, radii * 2), 0)
+        circle = Image.new("L", (radii * 2, radii * 2), 0)
         draw = ImageDraw.Draw(circle)
         draw.ellipse((0, 0, radii * 2, radii * 2), fill=255)
         self.markImg = self.markImg.convert("RGBA")
         w, h = self.markImg.size
-        alpha = Image.new('L', self.markImg.size, 255)
+        alpha = Image.new("L", self.markImg.size, 255)
         alpha.paste(circle.crop((0, 0, radii, radii)), (0, 0))
         alpha.paste(circle.crop((radii, 0, radii * 2, radii)), (w - radii, 0))
-        alpha.paste(circle.crop((radii, radii, radii * 2, radii * 2)), (w - radii, h - radii))
+        alpha.paste(
+            circle.crop((radii, radii, radii * 2, radii * 2)), (w - radii, h - radii)
+        )
         alpha.paste(circle.crop((0, radii, radii, radii * 2)), (0, h - radii))
         self.markImg.putalpha(alpha)
 
-    def rotate(self, angle: int):
+    def rotate(self, angle: int, expand: bool = False):
         """
         说明：
             旋转图片
         参数：
             :param angle: 角度
+            :param expand: 放大图片适应角度
         """
-        self.markImg = self.markImg.rotate(angle)
+        self.markImg = self.markImg.rotate(angle, expand=expand)
+
+    def transpose(self, angle: int):
+        """
+        说明：
+            旋转图片(包括边框)
+        参数：
+            :param angle: 角度
+        """
+        self.markImg.transpose(angle)
 
     def filter(self, filter_: str, aud: int = None):
         """
@@ -529,21 +542,22 @@ class CreateImg:
         :param aud: 利率
         """
         _x = None
-        if filter_ == 'GaussianBlur':           # 高斯模糊
+        if filter_ == "GaussianBlur":  # 高斯模糊
             _x = ImageFilter.GaussianBlur
-        elif filter_ == 'EDGE_ENHANCE':         # 锐化效果
+        elif filter_ == "EDGE_ENHANCE":  # 锐化效果
             _x = ImageFilter.EDGE_ENHANCE
-        elif filter_ == 'BLUR':                 # 模糊效果
+        elif filter_ == "BLUR":  # 模糊效果
             _x = ImageFilter.BLUR
-        elif filter_ == 'CONTOUR':              # 铅笔滤镜
+        elif filter_ == "CONTOUR":  # 铅笔滤镜
             _x = ImageFilter.CONTOUR
-        elif filter_ == 'FIND_EDGES':           # 边缘检测
+        elif filter_ == "FIND_EDGES":  # 边缘检测
             _x = ImageFilter.FIND_EDGES
         if _x:
             if aud:
                 self.markImg = self.markImg.filter(_x(aud))
             else:
                 self.markImg = self.markImg.filter(_x)
+        self.draw = ImageDraw.Draw(self.markImg)
 
     #
     def getchannel(self, type_):
@@ -565,9 +579,11 @@ class CreateMat:
         y_name: Optional[str] = None,
         x_index: List[Union[str, int, float]] = None,
         y_index: List[Union[str, int, float]] = None,
+        x_rotate: int = 0,
         title: Optional[str] = None,
         size: Tuple[int, int] = (1000, 1000),
-        font_size: int = 20,
+        font: str = "msyh.ttf",
+        font_size: Optional[int] = None,
         display_num: bool = False,
         is_grid: bool = False,
         background: Optional[List[str]] = None,
@@ -584,8 +600,10 @@ class CreateMat:
             :param y_name: 纵坐标名称
             :param x_index: 横坐标值
             :param y_index: 纵坐标值
+            :param x_rotate: 横坐标旋转角度
             :param title: 标题
             :param size: 图像大小，建议默认
+            :param font: 字体
             :param font_size: 字体大小，建议默认
             :param display_num: 是否显示数值
             :param is_grid: 是否添加栅格
@@ -603,8 +621,9 @@ class CreateMat:
         self.y_name = y_name
         self.x_index = x_index
         self.y_index = y_index
+        self.x_rotate = x_rotate
         self.title = title
-        self.font_size = font_size
+        self.font = font
         self.display_num = display_num
         self.is_grid = is_grid
         self.background = background
@@ -616,6 +635,10 @@ class CreateMat:
         self.line_length = 760
         self._deviation = 0.905
         self._color = {}
+        if not font_size:
+            self.font_size = int(25 * (1 - len(x_index) / 100))
+        else:
+            self.font_size = font_size
         if self.bar_color == ["*"]:
             self.bar_color = [
                 "#FF0000",
@@ -629,14 +652,11 @@ class CreateMat:
         if not x_index:
             raise ValueError("缺少 x_index [横坐标值]...")
         self._x_interval = int((self.line_length - 70) / len(x_index))
-        self._bar_width = int(
-            (self.line_length - (len(x_index) * (10 if len(x_index) >= 18 else 25)))
-            / len(x_index)
-        )
+        self._bar_width = int(30 * (1 - (len(x_index) + 10) / 100))
         # 没有 y_index 时自动生成
         if not y_index:
             _y_index = []
-            _max_value = max(y)
+            _max_value = int(max(y))
             _max_value = ceil(
                 _max_value / eval("1" + "0" * (len(str(_max_value)) - 1))
             ) * eval("1" + "0" * (len(str(_max_value)) - 1))
@@ -793,9 +813,9 @@ class CreateMat:
                 self.markImg.text(
                     (
                         current_w - w,
-                        current_h - int(y[i] * self._p * self._deviation) - 25,
+                        current_h - int(y[i] * self._p * self._deviation) - 25 - 5,
                     ),
-                    str(y[i]),
+                    f"{y[i]:.2f}" if isinstance(y[i], float) else f"{y[i]}",
                 )
             self.markImg.paste(
                 _black_point,
@@ -840,15 +860,17 @@ class CreateMat:
             current_w = self.padding_w + _interval
             current_h = self.padding_h + self.line_length
         for i in range(len(y)):
+            # 画出显示数字
             if display_num:
+                # 横柱状图
                 if is_barh:
                     font_h = self.markImg.getsize(str(y[i]))[1]
                     self.markImg.text(
                         (
-                            self.padding_w + int(y[i] * self._p * self._deviation) + 2,
-                            current_h - int(font_h / 2),
+                            self.padding_w + int(y[i] * self._p * self._deviation) + 2 + 5,
+                            current_h - int(font_h / 2) - 1,
                         ),
-                        str(y[i]),
+                        f"{y[i]:.2f}" if isinstance(y[i], float) else f"{y[i]}",
                     )
                 else:
                     w = int(self.markImg.getsize(str(y[i]))[0] / 2)
@@ -857,7 +879,7 @@ class CreateMat:
                             current_w - w,
                             current_h - int(y[i] * self._p * self._deviation) - 25,
                         ),
-                        str(y[i]),
+                        f"{y[i]:.2f}" if isinstance(y[i], float) else f"{y[i]}",
                     )
             if i != len(y):
                 bar_color = random.choice(self.bar_color)
@@ -915,7 +937,7 @@ class CreateMat:
         padding_h = self.padding_h
         line_length = self.line_length
         background = random.choice(self.background) if self.background else None
-        A = CreateImg(self.w, self.h, font_size=font_size, background=background)
+        A = CreateImg(self.w, self.h, font_size=font_size, font=self.font, background=background)
         if background:
             _tmp = CreateImg(self.w, self.h)
             _tmp.transparent(2)
@@ -928,6 +950,7 @@ class CreateMat:
                 color=(255, 255, 255, 0),
                 font_size=35,
                 font_color=self._color.get("title"),
+                font=self.font
             )
             A.paste(title, (0, 25), True, "by_width")
         A.line(
@@ -957,8 +980,9 @@ class CreateMat:
             y_index = tmp
             _interval = self._y_interval
         current_w = padding_w + _interval
-        _text_font = CreateImg(0, 0, font_size=self.font_size)
+        _text_font = CreateImg(0, 0, font_size=self.font_size, font=self.font)
         _grid = self.line_length if is_grid else 10
+        x_rotate_height = 0
         for _x in x_index:
             _p = CreateImg(1, _grid, color="#a9a9a9")
             A.paste(_p, (current_w, padding_h + line_length - _grid))
@@ -969,15 +993,18 @@ class CreateMat:
                 plain_text=f"{_x}",
                 font_size=self.font_size,
                 color=(255, 255, 255, 0),
+                font=self.font
             )
+            text.rotate(self.x_rotate, True)
             A.paste(text, (current_w - w, padding_h + line_length + 10), alpha=True)
             current_w += _interval
+            x_rotate_height = text.h
         _interval = self._x_interval if self.mat_type == "barh" else self._y_interval
         current_h = padding_h + line_length - _interval
-        _text_font = CreateImg(0, 0, font_size=self.font_size)
+        _text_font = CreateImg(0, 0, font_size=self.font_size, font=self.font)
         for _y in y_index:
             _p = CreateImg(_grid, 1, color="#a9a9a9")
-            A.paste(_p, (padding_w, current_h))
+            A.paste(_p, (padding_w + 2, current_h))
             w, h = _text_font.getsize(f"{_y}")
             h = int(h / 2)
             text = CreateImg(
@@ -986,6 +1013,7 @@ class CreateMat:
                 plain_text=f"{_y}",
                 font_size=self.font_size,
                 color=(255, 255, 255, 0),
+                font=self.font
             )
             idx = 0
             while text.size[0] > self.padding_w - 10 and idx < 3:
@@ -993,8 +1021,9 @@ class CreateMat:
                     0,
                     0,
                     plain_text=f"{_y}",
-                    font_size=int(self.font_size * 0.9),
+                    font_size=int(self.font_size * 0.75),
                     color=(255, 255, 255, 0),
+                    font=self.font
                 )
                 w, _ = text.getsize(f"{_y}")
                 idx += 1
@@ -1004,10 +1033,10 @@ class CreateMat:
             A.text((int(padding_w / 2), int(padding_w / 2)), x_name)
         if y_name:
             A.text(
-                (int(padding_w + line_length + 50), int(padding_h + line_length + 50)),
+                (int(padding_w + line_length + 50 - A.getsize(y_name)[0]),
+                 int(padding_h + line_length + 50 + x_rotate_height)),
                 y_name,
             )
-        # A.show()
         return A
 
 

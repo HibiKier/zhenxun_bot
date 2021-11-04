@@ -12,10 +12,18 @@ class Plugins2blockManager(StaticData):
     """
     插件命令阻塞 管理器
     """
+
     def __init__(self, file: Path):
         self.file = file
         super().__init__(None)
         self._block_limiter: Dict[str, UserBlockLimiter] = {}
+        if file.exists():
+            with open(file, "r", encoding="utf8") as f:
+                self._data = yaml.load(f)
+        if "PluginBlockLimit" in self._data.keys():
+            self._data = (
+                self._data["PluginBlockLimit"] if self._data["PluginBlockLimit"] else {}
+            )
 
     def add_block_limit(
         self,
@@ -36,13 +44,13 @@ class Plugins2blockManager(StaticData):
         :param data_dict: 封装好的字典数据
         """
         if data_dict:
-            status = data_dict.get('status')
-            check_type = data_dict.get('check_type')
-            limit_type = data_dict.get('limit_type')
-            rst = data_dict.get('rst')
+            status = data_dict.get("status")
+            check_type = data_dict.get("check_type")
+            limit_type = data_dict.get("limit_type")
+            rst = data_dict.get("rst")
             status = status if status is not None else True
-            check_type = check_type if check_type else 'all'
-            limit_type = limit_type if limit_type else 'user'
+            check_type = check_type if check_type else "all"
+            limit_type = limit_type if limit_type else "user"
         if check_type not in ["all", "group", "private"]:
             raise ValueError(
                 f"{plugin} 添加block限制错误，‘check_type‘ 必须为 'private'/'group'/'all'"
@@ -55,14 +63,6 @@ class Plugins2blockManager(StaticData):
             "limit_type": limit_type,
             "rst": rst,
         }
-
-    def remove_block_limit(self, plugin: str):
-        """
-        删除一个插件 block 限制
-        :param plugin: 插件模块名称
-        """
-        if self._data.get(plugin):
-            del self._data[plugin]
 
     def get_plugin_block_data(self, plugin: str) -> Optional[dict]:
         """
@@ -78,10 +78,7 @@ class Plugins2blockManager(StaticData):
         检测插件是否有 block
         :param plugin: 模块名
         """
-        return (
-            plugin in self._data.keys()
-            and self._data[plugin]["status"]
-        )
+        return plugin in self._data.keys() and self._data[plugin]["status"]
 
     def check(self, id_: int, plugin: str) -> bool:
         """
@@ -119,7 +116,7 @@ class Plugins2blockManager(StaticData):
         for plugin in self._data:
             if self.check_plugin_block_status(plugin):
                 self._block_limiter[plugin] = UserBlockLimiter()
-        logger.info(f'已成功加载 {len(self._block_limiter)} 个Block限制.')
+        logger.info(f"已成功加载 {len(self._block_limiter)} 个Block限制.")
 
     def reload(self):
         """
@@ -128,5 +125,5 @@ class Plugins2blockManager(StaticData):
         if self.file.exists():
             with open(self.file, "r", encoding="utf8") as f:
                 self._data: dict = yaml.load(f)
-                self._data = self._data['PluginBlockLimit']
+                self._data = self._data["PluginBlockLimit"]
                 self.reload_block_limit()

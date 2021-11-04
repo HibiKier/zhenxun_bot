@@ -13,7 +13,7 @@ from models.group_member_info import GroupInfoUser
 from services.log import logger
 from utils.utils import get_message_text, get_message_imgs
 from .data_source import get_chat_result, hello, no_result
-from configs.config import NICKNAME
+from configs.config import NICKNAME, Config
 
 __zx_plugin_name__ = "AI"
 __plugin_usage__ = f"""
@@ -28,6 +28,23 @@ __plugin_settings__ = {
     "limit_superuser": False,
     "cmd": ["Ai", "ai", "AI", "aI"],
 }
+__plugin_configs__ = {
+    "TL_KEY": {
+        "value": [],
+        "help": "图灵Key"
+    },
+    "ALAPI_AI_CHECK": {
+        "value": False,
+        "help": "是否检测青云客骂娘回复",
+        "default_value": False
+    }
+}
+Config.add_plugin_config(
+    "alapi",
+    "ALAPI_TOKEN",
+    None,
+    help_="在https://admin.alapi.cn/user/login登录后获取token"
+)
 
 ai = on_message(rule=to_me(), priority=8)
 
@@ -36,7 +53,7 @@ ai = on_message(rule=to_me(), priority=8)
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json())
     imgs = get_message_imgs(event.json())
-    if "CQ:xml" in msg:
+    if "CQ:xml" in str(event.get_message()):
         return
     # 打招呼
     if (not msg and not imgs) or msg in [

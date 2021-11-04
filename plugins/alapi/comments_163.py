@@ -1,7 +1,6 @@
 from nonebot import on_command
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
-from configs.config import ALAPI_TOKEN
 from .data_source import get_data
 from services.log import logger
 
@@ -34,8 +33,7 @@ comments_163_url = "https://v2.alapi.cn/api/comment"
 
 @comments_163.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    params = {"token": ALAPI_TOKEN}
-    data, code = await get_data(comments_163_url, params)
+    data, code = await get_data(comments_163_url)
     if code != 200:
         await comments_163.finish(data, at_sender=True)
     data = data["data"]

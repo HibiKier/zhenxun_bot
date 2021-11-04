@@ -1,4 +1,3 @@
-from configs.config import DEFAULT_GROUP_LEVEL
 from typing import Optional, List, Union, Dict
 from pathlib import Path
 from .data_class import StaticData
@@ -15,33 +14,30 @@ class GroupManager(StaticData):
         super().__init__(file)
         if not self._data:
             self._data = {
-                "super": {"close_plugins": {}, "white_group_list": []},
+                "super": {"white_group_list": []},
                 "group_manager": {},
             }
         self._task = {}
 
-    def block_plugin(
-        self, plugin_cmd: str, group_id: Optional[int] = None, block_type: str = "all"
-    ):
+    def block_plugin(self, module: str, group_id: int):
         """
         说明：
             锁定插件
         参数：
-            :param plugin_cmd: 功能模块名
+            :param module: 功能模块名
             :param group_id: 群组，None时为超级用户禁用
-            :param block_type: 限制类型
         """
-        self._set_plugin_status(plugin_cmd, "block", group_id, block_type)
+        self._set_plugin_status(module, "block", group_id)
 
-    def unblock_plugin(self, plugin_cmd: str, group_id: Optional[int] = None):
+    def unblock_plugin(self, module: str, group_id: int):
         """
         说明：
             解锁插件
         参数：
-            :param plugin_cmd: 功能模块名
+            :param module: 功能模块名
             :param group_id: 群组
         """
-        self._set_plugin_status(plugin_cmd, "unblock", group_id)
+        self._set_plugin_status(module, "unblock", group_id)
 
     def set_group_level(self, group_id: int, level: int):
         """
@@ -57,49 +53,21 @@ class GroupManager(StaticData):
         self._data["group_manager"][group_id]["level"] = level
         self.save()
 
-    def get_plugin_status(
-        self, plugin_cmd: str, group_id: Optional[int] = None, block_type: str = "all"
-    ) -> bool:
+    def get_plugin_status(self, module: str, group_id: int) -> bool:
         """
         说明：
             获取插件状态
         参数：
-            :param plugin_cmd: 功能模块名
+            :param module: 功能模块名
             :param group_id: 群组
-            :param block_type: 限制类型
         """
         group_id = str(group_id) if group_id else group_id
-        if group_id:
-            if not self._data["group_manager"].get(group_id):
-                self._init_group(group_id)
-                return True
-            if plugin_cmd in self._data["group_manager"][group_id]["close_plugins"]:
-                return False
+        if not self._data["group_manager"].get(group_id):
+            self._init_group(group_id)
             return True
-        else:
-            if plugin_cmd in self._data["super"]["close_plugins"]:
-                if (
-                    self._data["super"]["close_plugins"][plugin_cmd] == "all"
-                    and block_type == "all"
-                ):
-                    return False
-                else:
-                    return (
-                        not self._data["super"]["close_plugins"][plugin_cmd]
-                        == block_type
-                    )
-            return True
-
-    def get_plugin_block_type(self, plugin_cmd: str) -> str:
-        """
-        说明：
-            获取功能限制类型
-        参数：
-            :param plugin_cmd: 模块名称
-        """
-        if plugin_cmd in self._data["super"]["close_plugins"]:
-            return self._data["super"]["close_plugins"][plugin_cmd]
-        return ""
+        if module in self._data["group_manager"][group_id]["close_plugins"]:
+            return False
+        return True
 
     def get_group_level(self, group_id: int) -> int:
         """
@@ -149,6 +117,17 @@ class GroupManager(StaticData):
         """
         return self._data["super"]["white_group_list"]
 
+    def delete_group(self, group_id: int):
+        """
+        删除群配置
+        :param group_id: 群号
+        """
+        if group_id in self._data["group_manager"]:
+            del self._data["group_manager"][str(group_id)]
+        if group_id in self._data["super"]["white_group_list"]:
+            self._data["super"]["white_group_list"].remove(group_id)
+        self.save()
+
     async def open_group_task(self, group_id: int, task: str):
         """
         开启群被动技能
@@ -181,6 +160,9 @@ class GroupManager(StaticData):
         return self._data["group_manager"][group_id]["group_task_status"][task]
 
     def get_task_data(self) -> Dict[str, str]:
+        """
+        获取所有被动任务
+        """
         return self._task
 
     async def group_task_status(self, group_id: int) -> str:
@@ -188,7 +170,7 @@ class GroupManager(StaticData):
         查看群被全部动技能状态
         :param group_id: 群号
         """
-        x = '[群被动技能]:\n'
+        x = "[群被动技能]:\n"
         group_id = str(group_id)
         if not self._data["group_manager"][group_id].get("group_task_status"):
             await self.init_group_task(group_id)
@@ -222,8 +204,8 @@ class GroupManager(StaticData):
         if not self._task:
             for matcher in get_matchers():
                 _plugin = nonebot.plugin.get_plugin(matcher.module)
-                _module = _plugin.module
                 try:
+                    _module = _plugin.module
                     plugin_task = _module.__getattribute__("__plugin_task__")
                     for key in plugin_task.keys():
                         self._task[key] = plugin_task[key]
@@ -240,18 +222,20 @@ class GroupManager(StaticData):
                 if not self._data["group_manager"].get(group_id):
                     self._init_group(group_id)
                 if not self._data["group_manager"][group_id].get("group_task_status"):
-                    self._data["group_manager"][group_id]['group_task_status'] = {}
+                    self._data["group_manager"][group_id]["group_task_status"] = {}
                 for task in self._task:
                     if (
-                        self._data["group_manager"][group_id][
-                            "group_task_status"
-                        ].get(task)
+                        self._data["group_manager"][group_id]["group_task_status"].get(
+                            task
+                        )
                         is None
                     ):
                         self._data["group_manager"][group_id]["group_task_status"][
                             task
                         ] = True
-                for task in self._data["group_manager"][group_id]["group_task_status"]:
+                for task in list(
+                    self._data["group_manager"][group_id]["group_task_status"]
+                ):
                     if task not in self._task:
                         del self._data["group_manager"][group_id]["group_task_status"][
                             task
@@ -260,48 +244,27 @@ class GroupManager(StaticData):
 
     def _set_plugin_status(
         self,
-        plugin_cmd: str,
+        module: str,
         status: str,
-        group_id: Optional[str],
-        block_type: str = "all",
+        group_id: int,
     ):
         """
         说明：
             设置功能开关状态
         参数：
-            :param plugin_cmd: 功能模块名
+            :param module: 功能模块名
             :param status: 功能状态
             :param group_id: 群组
-            :param block_type: 限制类型
         """
         group_id = str(group_id) if group_id else group_id
-        if plugin_cmd:
-            if group_id:
-                if not self._data["group_manager"].get(group_id):
-                    self._init_group(group_id)
-                if status == "block":
-                    if (
-                        plugin_cmd
-                        not in self._data["group_manager"][group_id]["close_plugins"]
-                    ):
-                        self._data["group_manager"][group_id]["close_plugins"].append(
-                            plugin_cmd
-                        )
-                else:
-                    if plugin_cmd in self._data["group_manager"][group_id]["close_plugins"]:
-                        self._data["group_manager"][group_id]["close_plugins"].remove(
-                            plugin_cmd
-                        )
-            else:
-                if status == "block":
-                    if (
-                        plugin_cmd not in self._data["super"]["close_plugins"]
-                        or block_type != self._data["super"]["close_plugins"][plugin_cmd]
-                    ):
-                        self._data["super"]["close_plugins"][plugin_cmd] = block_type
-                else:
-                    if plugin_cmd in self._data["super"]["close_plugins"]:
-                        del self._data["super"]["close_plugins"][plugin_cmd]
+        if not self._data["group_manager"].get(group_id):
+            self._init_group(group_id)
+        if status == "block":
+            if module not in self._data["group_manager"][group_id]["close_plugins"]:
+                self._data["group_manager"][group_id]["close_plugins"].append(module)
+        else:
+            if module in self._data["group_manager"][group_id]["close_plugins"]:
+                self._data["group_manager"][group_id]["close_plugins"].remove(module)
             self.save()
 
     def _init_group(self, group_id: str):
@@ -311,9 +274,22 @@ class GroupManager(StaticData):
         参数：
             :param group_id: 群号
         """
+        default_group_level = 5  # Config.get_config("group_manager")
+        if not default_group_level:
+            default_group_level = 5
         if not self._data["group_manager"].get(group_id):
             self._data["group_manager"][group_id] = {
-                "level": DEFAULT_GROUP_LEVEL,
+                "level": default_group_level,
                 "close_plugins": [],
                 "group_task_status": {},
             }
+
+    def get_super_old_data(self) -> Optional[dict]:
+        """
+        获取旧数据，平时使用请不要调用
+        """
+        if self._data["super"].get("close_plugins"):
+            _x = self._data["super"].get("close_plugins")
+            del self._data["super"]["close_plugins"]
+            return _x
+        return None

@@ -1,9 +1,7 @@
-from services.log import logger
 from utils.message_builder import image
 from utils.user_agent import get_user_agent
 from configs.path_config import TEXT_PATH
 from configs.config import NICKNAME
-from asyncio.exceptions import TimeoutError
 from typing import List
 from nonebot import Driver
 from pathlib import Path
@@ -23,7 +21,7 @@ async def get_weather_of_city(city: str) -> str:
     if code == 999:
         return "不要查一个省份的天气啊，很累人的！"
     elif code == 998:
-        return f"{NICKNAME}只可以查询国内城市的天气喔..."
+        return f"{NICKNAME}没查到!!试试查火星的天气？"
     else:
         async with aiohttp.ClientSession(headers=get_user_agent()) as session:
             async with session.get(
@@ -32,7 +30,7 @@ async def get_weather_of_city(city: str) -> str:
                 data_json = json.loads(await res.text(encoding="utf8"))
                 if "desc" in data_json:
                     if data_json["desc"] == "invilad-citykey":
-                        return f"你为啥不查火星的天气呢？{NICKNAME}只支持国内天气查询!!" + image(
+                        return f"{NICKNAME}没查到!!试试查火星的天气？" + image(
                             "shengqi", "zhenxun"
                         )
                     elif data_json["desc"] == "OK":
@@ -48,34 +46,9 @@ async def get_weather_of_city(city: str) -> str:
                     return "好像出错了？"
 
 
-# 更新城市
-@driver.on_startup
-async def update_city():
-    global data
-    try:
-        async with aiohttp.ClientSession(headers=get_user_agent()) as session:
-            async with session.get(
-                "http://www.weather.com.cn/data/city3jdata/china.html", timeout=5
-            ) as res:
-                provinces_data = json.loads(await res.text(encoding="utf8"))
-            for province in provinces_data.keys():
-                data[provinces_data[province]] = []
-                async with session.get(
-                    f"http://www.weather.com.cn/data/city3jdata/provshi/{province}.html",
-                    timeout=5,
-                ) as res:
-                    city_data = json.loads(await res.text(encoding="utf8"))
-                    for city in city_data.keys():
-                        data[provinces_data[province]].append(city_data[city])
-        with open(china_city, "w", encoding="utf8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
-        logger.info("自动更新城市列表完成.....")
-    except TimeoutError:
-        logger.info("自动更新城市列表超时.....")
-
-
 # 城市是否存在或是否是省份
 def _check_exists_city(city: str) -> int:
+    global data
     city = city if city[-1] != "市" else city[:-1]
     for province in data.keys():
         for city_ in data[province]:
@@ -99,4 +72,5 @@ def get_city_list() -> List[str]:
     for p in data.keys():
         for c in data[p]:
             city_list.append(c)
+        city_list.append(p)
     return city_list

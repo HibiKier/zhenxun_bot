@@ -4,7 +4,7 @@ from nonebot import on_command
 from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
-from configs.config import IMAGE_DIR_LIST, MOVE_IMG_LEVEL
+from configs.config import Config
 from utils.utils import is_number, cn2py
 from configs.path_config import IMAGE_PATH
 from pathlib import Path
@@ -24,7 +24,7 @@ __plugin_cmd__ = ["移动图片 [源图库] [目标图库] [id]", "查看公开�
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {
-    "admin_level": MOVE_IMG_LEVEL
+    "admin_level": Config.get_config("image_management", "MOVE_IMAGE_LEVEL")
 }
 
 
@@ -36,7 +36,9 @@ async def parse(bot: Bot, event: MessageEvent, state: T_State):
     if str(event.get_message()) in ["取消", "算了"]:
         await move_img.finish("已取消操作..", at_sender=True)
     if state["_current_key"] in ["source_path", "destination_path"]:
-        if str(event.get_message()) not in IMAGE_DIR_LIST:
+        if str(event.get_message()) not in Config.get_config(
+            "image_management", "IMAGE_DIR_LIST"
+        ):
             await move_img.reject("此目录不正确，请重新输入目录！")
         state[state["_current_key"]] = str(event.get_message())
     if state["_current_key"] == "id":
@@ -54,8 +56,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             await move_img.finish(__plugin_usage__)
         if (
             len(args) >= 3
-            and args[0] in IMAGE_DIR_LIST
-            and args[1] in IMAGE_DIR_LIST
+            and args[0] in Config.get_config("image_management", "IMAGE_DIR_LIST")
+            and args[1] in Config.get_config("image_management", "IMAGE_DIR_LIST")
             and is_number(args[2])
         ):
             state["source_path"] = args[0]
@@ -78,9 +80,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     if int(img_id) > max_id or int(img_id) < 0:
         await move_img.finish(f"Id超过上下限，上限：{max_id}", at_sender=True)
     try:
-        os.rename(
-            source_path / f"{img_id}.jpg", destination_path / f"{des_max_id}.jpg"
-        )
+        os.rename(source_path / f"{img_id}.jpg", destination_path / f"{des_max_id}.jpg")
         logger.info(
             f"移动 {source_path}/{img_id}.jpg ---> {destination_path}/{des_max_id} 移动成功"
         )

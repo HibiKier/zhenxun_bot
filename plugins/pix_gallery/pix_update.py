@@ -3,8 +3,8 @@ from utils.utils import get_message_text, is_number
 from nonebot.permission import SUPERUSER
 from nonebot.typing import T_State
 from .data_source import start_update_image_url
-from models.pixiv_keyword_user import PixivKeywordUser
-from models.pixiv import Pixiv
+from .model.pixiv_keyword_user import PixivKeywordUser
+from .model.pixiv import Pixiv
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 import time
 

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import traceback
 from typing import Dict
 
 from aiohttp.client_exceptions import ClientError
@@ -8,7 +7,7 @@ from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from services.log import logger
 from utils.utils import get_message_text, get_message_imgs
-from configs.config import MAX_FIND_IMG_COUNT
+from configs.config import Config
 from nonebot.rule import to_me
 
 from .ex import get_des as get_des_ex
@@ -36,6 +35,9 @@ __plugin_settings__ = {
     "default_status": True,
     "limit_superuser": False,
     "cmd": ["识图"],
+}
+__plugin_configs__ = {
+    "MAX_FIND_IMAGE_COUNT": {"value": 3, "help": "识图返回的最大结果数", "default_value": 3}
 }
 
 
@@ -109,11 +111,13 @@ async def get_setu(bot: Bot, event: MessageEvent, state: T_State):
         async for msg in get_des(url, mod, event.user_id):
             if msg:
                 await bot.send(event=event, message=msg)
-                if idx == MAX_FIND_IMG_COUNT:
+                if idx == Config.get_config(
+                    "nonebot_plugin_picsearcher", "MAX_FIND_IMAGE_COUNT"
+                ):
                     break
                 idx += 1
         if id == 1:
-            await bot.send(event=event, message='没找着.')
+            await bot.send(event=event, message="没找着.")
         logger.info(
             f"(USER {event.user_id}, GROUP "
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 识图:{url}"
@@ -163,7 +167,9 @@ async def handle_previous(bot: Bot, event: GroupMessageEvent, state: T_State):
         idx = 1
         async for msg in get_des(url, "nao", event.user_id):
             await bot.send(event=event, message=msg)
-            if idx == MAX_FIND_IMG_COUNT:
+            if idx == Config.get_config(
+                "nonebot_plugin_picsearcher", "MAX_FIND_IMAGE_COUNT"
+            ):
                 break
             idx += 1
     except IndexError:

@@ -105,15 +105,19 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 itype = 'total_statistics'
             tmp_dict = {}
             data = data[itype]
-            for group in data.keys():
-                if group != 'total':
-                    for day in data[group].keys():
-                        for plugin_name in data[group][day].keys():
-                            if data[group][day][plugin_name] is not None:
-                                if tmp_dict.get(plugin_name) is None:
-                                    tmp_dict[plugin_name] = 1
-                                else:
-                                    tmp_dict[plugin_name] += data[group][day][plugin_name]
+            if itype in ["day_statistics", "total_statistics"]:
+                for key in data['total']:
+                    tmp_dict[key] = data['total'][key]
+            else:
+                for group in data.keys():
+                    if group != 'total':
+                        for day in data[group].keys():
+                            for plugin_name in data[group][day].keys():
+                                if data[group][day][plugin_name] is not None:
+                                    if tmp_dict.get(plugin_name) is None:
+                                        tmp_dict[plugin_name] = 1
+                                    else:
+                                        tmp_dict[plugin_name] += data[group][day][plugin_name]
             bar_graph = await init_bar_graph(tmp_dict, state["_prefix"]["raw_command"])
             await asyncio.get_event_loop().run_in_executor(None, bar_graph.gen_graph)
             await statistics.finish(image(b64=bar_graph.pic2bs4()))
@@ -273,3 +277,4 @@ def update_data(data: dict):
                 else:
                     tmp_dict[plugin_name] += data[day][plugin_name]
     return tmp_dict
+
