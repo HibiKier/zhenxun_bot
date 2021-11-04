@@ -60,6 +60,13 @@ __plugin_settings__ = {
     "cmd": ["p站排行", "搜图", "p站搜图", "P站搜图"],
 }
 __plugin_block_limit__ = {"rst": "P站排行榜或搜图正在搜索，请不要重复触发命令..."}
+__plugin_configs__ = {
+    "TIMEOUT": {
+        "value": 10,
+        "help": "图片下载超时限制",
+        "default_value": 10
+    }
+}
 Config.add_plugin_config(
     "hibiapi",
     "HIBIAPI",
@@ -67,6 +74,13 @@ Config.add_plugin_config(
     help_="如果没有自建或其他hibiapi请不要修改",
     default_value="https://api.obfs.dev",
 )
+Config.add_plugin_config(
+    "pixiv",
+    "PIXIV_NGINX_URL",
+    "i.pixiv.re",
+    help_="Pixiv反向代理"
+)
+
 
 rank_dict = {
     "1": "day",

@@ -90,7 +90,9 @@ async def search_online_setu(
     """
     ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
     if ws_url:
-        url_ = url_.replace("i.pixiv.cat", ws_url)
+        if ws_url.startswith("http"):
+            ws_url = ws_url.split("//")[-1]
+        url_ = url_.replace("i.pximg.net", ws_url).replace("i.pixiv.cat", ws_url)
     async with aiohttp.ClientSession(headers=headers) as session:
         for i in range(3):
             logger.info(f"search_online_setu --> {i}")

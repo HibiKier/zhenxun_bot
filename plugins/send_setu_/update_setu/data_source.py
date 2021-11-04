@@ -7,6 +7,7 @@ from asyncio.exceptions import TimeoutError
 from ..model import Setu
 from aiohttp.client_exceptions import ClientConnectorError
 from asyncpg.exceptions import UniqueViolationError
+from configs.config import Config
 from pathlib import Path
 from nonebot import Driver
 import nonebot
@@ -105,10 +106,15 @@ async def update_setu_img():
             path.mkdir(exist_ok=True, parents=True)
             rar_path.mkdir(exist_ok=True, parents=True)
             if not local_image.exists() or not image.img_hash:
+                url_ = image.img_url
+                ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
+                if ws_url.startswith("http"):
+                    ws_url = ws_url.split("//")[-1]
+                url_ = url_.replace("i.pximg.net", ws_url).replace("i.pixiv.cat", ws_url)
                 for _ in range(3):
                     try:
                         async with session.get(
-                            image.img_url, proxy=get_local_proxy(), timeout=30
+                            url_, proxy=get_local_proxy(), timeout=30
                         ) as response:
                             if response.status == 200:
                                 async with aiofiles.open(

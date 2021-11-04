@@ -37,9 +37,9 @@ async def get_pixiv_urls(
     if date:
         params["date"] = date
     hibiapi = Config.get_config("hibiapi", "HIBIAPI")
-    hibiapi = hibiapi[:-1] if hibiapi[-1] == '/' else hibiapi
+    hibiapi = hibiapi[:-1] if hibiapi[-1] == "/" else hibiapi
     rank_url = f"{hibiapi}/api/pixiv/rank"
-    return await parser_data(rank_url, num, params, 'rank')
+    return await parser_data(rank_url, num, params, "rank")
 
 
 async def search_pixiv_urls(
@@ -52,14 +52,16 @@ async def search_pixiv_urls(
     :param page: 页数
     :param r18: 是否r18
     """
-    params = {"word": keyword, 'page': page}
+    params = {"word": keyword, "page": page}
     hibiapi = Config.get_config("hibiapi", "HIBIAPI")
-    hibiapi = hibiapi[:-1] if hibiapi[-1] == '/' else hibiapi
+    hibiapi = hibiapi[:-1] if hibiapi[-1] == "/" else hibiapi
     search_url = f"{hibiapi}/api/pixiv/search"
-    return await parser_data(search_url, num, params, 'search', r18)
+    return await parser_data(search_url, num, params, "search", r18)
 
 
-async def parser_data(url: str, num: int, params: dict, type_: str, r18: int = 0) -> "list, int":
+async def parser_data(
+    url: str, num: int, params: dict, type_: str, r18: int = 0
+) -> "list, int":
     """
     解析数据
     :param url: hibiapi搜索url
@@ -73,7 +75,10 @@ async def parser_data(url: str, num: int, params: dict, type_: str, r18: int = 0
         for _ in range(3):
             try:
                 async with session.get(
-                    url, params=params, proxy=get_local_proxy(), timeout=5
+                    url,
+                    params=params,
+                    proxy=get_local_proxy(),
+                    timeout=Config.get_config("pixiv_rank_search", "TIMEOUT"),
                 ) as response:
                     if response.status == 200:
                         data = await response.json()
@@ -87,8 +92,8 @@ async def parser_data(url: str, num: int, params: dict, type_: str, r18: int = 0
         num = num if num < 30 else 30
         data = data[:num]
         for x in data:
-            if type_ == 'search' and r18 == 1:
-                if 'R-18' in str(x['tags']):
+            if type_ == "search" and r18 == 1:
+                if "R-18" in str(x["tags"]):
                     continue
             title = x["title"]
             author = x["user"]["name"]
@@ -114,12 +119,21 @@ async def download_pixiv_imgs(
     result = ""
     index = 0
     for url in urls:
-        url = url.replace('_webp', '')
+        ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
+        if ws_url.startswith("http"):
+            ws_url = ws_url.split("//")[-1]
+        url = (
+            url.replace("i.pximg.net", ws_url)
+            .replace("i.pixiv.cat", ws_url)
+            .replace("_webp", "")
+        )
         async with aiohttp.ClientSession(headers=headers) as session:
             for _ in range(3):
                 try:
                     async with session.get(
-                        url, proxy=get_local_proxy(), timeout=3
+                        url,
+                        proxy=get_local_proxy(),
+                        timeout=Config.get_config("pixiv_rank_search", "TIMEOUT"),
                     ) as response:
                         if response.status == 200:
                             try:
@@ -158,4 +172,3 @@ async def download_pixiv_imgs(
             else:
                 result += "\n这张图下载失败了..\n"
     return result
-

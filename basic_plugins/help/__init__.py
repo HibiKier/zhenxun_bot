@@ -23,6 +23,7 @@ if help_image.exists():
     help_image.unlink()
 if simple_help_image.exists():
     simple_help_image.unlink()
+group_help_path.mkdir(exist_ok=True, parents=True)
 for x in os.listdir(group_help_path):
     group_help_image = group_help_path / x
     group_help_image.unlink()
