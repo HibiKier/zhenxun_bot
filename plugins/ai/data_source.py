@@ -70,6 +70,8 @@ async def tu_ling(text: str, img_url: str, user_id: int, sess: ClientSession) ->
     """
     global index
     TL_KEY = Config.get_config("ai", "TL_KEY")
+    if not TL_KEY:
+        return ''
     try:
         if text:
             req = {
