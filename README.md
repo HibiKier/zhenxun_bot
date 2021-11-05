@@ -317,6 +317,11 @@ python bot.py
 
 ## 更新
 
+### 2021/11/5
+
+* 修复ai没有图灵key时报错
+* 提供图片路径resource/img/background/check
+
 ### 2021/11/4
 
 * 通用排行榜改用图片消息，且可以自定义排行榜人数
