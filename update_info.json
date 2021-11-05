@@ -7,6 +7,6 @@
       "utils",
       "bot.py"
     ],
-    "add_file": ["basic_plugins"],
+    "add_file": ["basic_plugins", "resources/img/background/check"],
     "delete_file": []
 }
