@@ -25,7 +25,7 @@ __plugin_configs__ = {
 
 friend_req = on_request(priority=5, block=True)
 group_req = on_request(priority=5, block=True)
-x = on_message(priority=5, block=False)
+x = on_message(priority=9, block=False)
 
 exists_data = {"private": {}, "group": {}}
 
