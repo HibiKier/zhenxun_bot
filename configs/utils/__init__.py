@@ -112,10 +112,11 @@ class ConfigsManager:
         """
         key = key.upper()
         if module in self._data.keys():
-            if self._data[module].get(key) is not None:
-                if self._data[module][key]["value"] is None:
-                    return self._data[module][key]["default_value"]
-                return self._data[module][key]["value"]
+            for key in [key, f"{key} [LEVEL]"]:
+                if self._data[module].get(key) is not None:
+                    if self._data[module][key]["value"] is None:
+                        return self._data[module][key]["default_value"]
+                    return self._data[module][key]["value"]
         return None
 
     def get(self, key: str):
