@@ -6,6 +6,7 @@ from .data_source import start_update_image_url
 from .model import PixivKeywordUser, Pixiv, OmegaPixivIllusts
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 from services.log import logger
+from typing import List
 from datetime import datetime
 from pathlib import Path
 import asyncio
