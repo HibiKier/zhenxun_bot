@@ -5,6 +5,7 @@ from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 import aiohttp
 from asyncio.exceptions import TimeoutError
+from configs.config import Config
 
 
 __zx_plugin_name__ = "鸡汤"
@@ -33,7 +34,7 @@ jitang = on_command("鸡汤", aliases={"毒鸡汤"}, priority=5, block=True)
 
 @jitang.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    params = {"format": "json", "token": "h0KuF6qNniMHGUtA"}
+    params = {"format": "json", "token": f"{Config.get_config('alapi', 'ALAPI_TOKEN')}"}
     try:
         async with aiohttp.ClientSession(headers=get_user_agent()) as session:
             async with session.get(url, timeout=7, params=params) as response:
