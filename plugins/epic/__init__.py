@@ -15,7 +15,7 @@ usage：
 """.strip()
 __plugin_des__ = "可以不玩，不能没有，每日白嫖"
 __plugin_cmd__ = ["epic"]
-__plugin_version__ = 0.1
+__plugin_version__ = 0.2
 __plugin_author__ = "AkashiCoin"
 __plugin_settings__ = {
     "level": 5,
