@@ -56,7 +56,7 @@ async def start_update_image_url(
     semaphore = asyncio.Semaphore(10)
     if not HIBIAPI:
         HIBIAPI = Config.get_config("hibiapi", "HIBIAPI")
-        HIBIAPI = HIBIAPI[:-1] if HIBIAPI[-1] else HIBIAPI
+        HIBIAPI = HIBIAPI[:-1] if HIBIAPI[-1] == "/" else HIBIAPI
     async with aiohttp.ClientSession(headers=headers) as session:
         for keyword in current_keyword:
             for page in range(1, 110):
@@ -245,6 +245,10 @@ async def get_image(img_url: str, user_id: int) -> str:
     :param user_id:
     :return: 图片名称
     """
+    global HIBIAPI
+    if not HIBIAPI:
+        HIBIAPI = Config.get_config("hibiapi", "HIBIAPI")
+        HIBIAPI = HIBIAPI[:-1] if HIBIAPI[-1] == "/" else HIBIAPI
     async with aiohttp.ClientSession(headers=headers) as session:
         if "https://www.pixiv.net/artworks" in img_url:
             pid = img_url.rsplit("/", maxsplit=1)[-1]
@@ -274,6 +278,11 @@ async def get_image(img_url: str, user_id: int) -> str:
         img_url = change_picture_links(
             img_url, Config.get_config("pix", "PIX_IMAGE_SIZE")
         )
+        ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
+        if ws_url:
+            if ws_url.startswith("http"):
+                ws_url = ws_url.split("//")[-1]
+            img_url = img_url.replace("i.pximg.net", ws_url).replace("i.pixiv.cat", ws_url)
         for _ in range(3):
             try:
                 async with session.get(
