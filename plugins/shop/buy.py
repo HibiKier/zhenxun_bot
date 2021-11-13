@@ -6,7 +6,7 @@ from utils.utils import get_message_text, is_number
 from models.bag_user import BagUser
 from services.db_context import db
 from nonebot.adapters.cqhttp.permission import GROUP
-from models.goods_info import GoodsInfo
+from .models.goods_info import GoodsInfo
 
 
 __zx_plugin_name__ = "商店 - 购买道具"

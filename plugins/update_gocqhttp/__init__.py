@@ -6,7 +6,7 @@ import os
 from services.log import logger
 from utils.utils import scheduler, get_bot
 from nonebot.permission import SUPERUSER
-from configs.config import UPDATE_GOCQ_GROUP
+from configs.config import Config
 from pathlib import Path
 
 
@@ -20,7 +20,13 @@ usage：
 __plugin_cmd__ = ["更新gocq"]
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
-
+__plugin_configs__ = {
+    "UPDATE_GOCQ_GROUP": {
+        "value": [],
+        "help": "需要为哪些群更新最新版gocq吗？（上传最新版gocq）示例：[434995955, 239483248]",
+        "default_value": [],
+    }
+}
 
 path = str((Path() / "resources" / "gocqhttp_file").absolute()) + "/"
 
@@ -30,7 +36,7 @@ lasted_gocqhttp = on_command("更新gocq", permission=SUPERUSER, priority=5, blo
 @lasted_gocqhttp.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     # try:
-    if event.group_id in UPDATE_GOCQ_GROUP:
+    if event.group_id in Config.get_config("update_gocqhttp", "UPDATE_GOCQ_GROUP"):
         await lasted_gocqhttp.send("检测中...")
         info = await download_gocq_lasted(path)
         if info == "gocqhttp没有更新！":
@@ -51,14 +57,14 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     minute=1,
 )
 async def _():
-    if UPDATE_GOCQ_GROUP:
+    if Config.get_config("update_gocqhttp", "UPDATE_GOCQ_GROUP"):
         bot = get_bot()
         try:
             info = await download_gocq_lasted(path)
             if info == "gocqhttp没有更新！":
                 logger.info("gocqhttp没有更新！")
                 return
-            for group in UPDATE_GOCQ_GROUP:
+            for group in Config.get_config("update_gocqhttp", "UPDATE_GOCQ_GROUP"):
                 for file in os.listdir(path):
                     await upload_gocq_lasted(path, file, group)
                 await bot.send_group_msg(

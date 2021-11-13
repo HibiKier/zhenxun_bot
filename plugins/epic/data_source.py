@@ -1,7 +1,11 @@
 from httpx import AsyncClient
 from datetime import datetime
 from nonebot.log import logger
-from nonebot.adapters.cqhttp import Bot, Event, GroupMessageEvent
+from nonebot.adapters.cqhttp import (
+    Bot,
+    Event,
+    GroupMessageEvent,
+)
 from configs.config import NICKNAME
 
 
@@ -109,6 +113,16 @@ async def get_epic_free(bot: Bot, event: Event):
                         }
                         msg_list.append(data)
                     else:
+                        msg = "[CQ:image,file={}]\n\nFREE now :: {} ({})\n{}\n此游戏由 {} 开发、{} 发行，将在 UTC 时间 {} 结束免费游玩，戳链接速度加入你的游戏库吧~\n{}\n".format(
+                            game_thumbnail,
+                            game_name,
+                            game_price,
+                            game_desp,
+                            game_dev,
+                            game_pub,
+                            end_date,
+                            game_url,
+                        )
                         msg_list.append(msg)
             except TypeError as e:
                 # logger.info(str(e))

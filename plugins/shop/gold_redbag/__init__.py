@@ -19,6 +19,7 @@ from nonebot.matcher import Matcher
 from utils.utils import get_message_text, is_number, scheduler
 from utils.message_builder import image
 from services.log import logger
+from configs.path_config import IMAGE_PATH
 from nonebot.permission import SUPERUSER
 from nonebot.rule import to_me
 from datetime import datetime, timedelta
@@ -48,6 +49,9 @@ __plugin_settings__ = {
     "default_status": True,
     "limit_superuser": False,
     "cmd": ["金币红包", "塞红包"],
+}
+__plugin_resources__ = {
+    "prts": IMAGE_PATH
 }
 
 gold_redbag = on_command(

@@ -4,6 +4,7 @@ from nonebot.adapters.cqhttp import Bot, Event
 from nonebot.typing import T_State
 from nonebot.rule import to_me
 from nonebot.permission import SUPERUSER
+from utils.message_builder import image
 
 
 __zx_plugin_name__ = "服务器自我检查 [Superuser]"
@@ -29,4 +30,4 @@ check_ = on_command(
 
 @check_.handle()
 async def _(bot: Bot, event: Event, state: T_State):
-    await check_.send(await check.show())
+    await check_.send(image(b64=await check.show()))

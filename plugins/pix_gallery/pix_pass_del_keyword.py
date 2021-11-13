@@ -7,8 +7,8 @@ from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.permission import SUPERUSER
 from nonebot.typing import T_State
 from .data_source import remove_image
-from models.pixiv_keyword_user import PixivKeywordUser
-from models.pixiv import Pixiv
+from .model.pixiv_keyword_user import PixivKeywordUser
+from .model.pixiv import Pixiv
 
 
 __zx_plugin_name__ = "PIX关键词/UID/PID删除管理 [Superuser]"

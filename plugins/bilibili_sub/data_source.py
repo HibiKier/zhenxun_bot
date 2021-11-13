@@ -1,6 +1,7 @@
 from bilibili_api.exceptions.ResponseCodeException import ResponseCodeException
+from utils.manager import resources_manager
 from asyncio.exceptions import TimeoutError
-from models.bilibili_sub import BilibiliSub
+from .model import BilibiliSub
 from bilibili_api.live import LiveRoom
 from bilibili_api import bangumi
 from utils.message_builder import image
@@ -21,6 +22,9 @@ bilibili_search_url = "https://api.bilibili.com/x/web-interface/search/all/v2"
 
 dynamic_path = Path(IMAGE_PATH) / "bilibili_sub" / "dynamic"
 dynamic_path.mkdir(exist_ok=True, parents=True)
+
+
+resources_manager.add_temp_dir(dynamic_path)
 
 
 async def add_live_sub(live_id: int, sub_user: str) -> str:

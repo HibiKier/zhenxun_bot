@@ -1,15 +1,14 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from collections import defaultdict
 from nonebot import require
-from configs.path_config import TEXT_PATH
 from configs.config import SYSTEM_PROXY
-from typing import List, Union, Optional, Type
+from typing import List, Union, Optional, Type, Any
 from nonebot.adapters.cqhttp import Bot
 from nonebot.matcher import matchers, Matcher
+import httpx
 import nonebot
 import pytz
 import pypinyin
-import aiohttp
 import time
 
 try:
@@ -30,10 +29,10 @@ class CountLimiter:
         self.count = defaultdict(int)
         self.max_count = max_count
 
-    def add(self, key: Union[str, int, float]):
+    def add(self, key: Any):
         self.count[key] += 1
 
-    def check(self, key: Union[str, int, float]) -> bool:
+    def check(self, key: Any) -> bool:
         if self.count[key] >= self.max_count:
             self.count[key] = 0
             return True
@@ -49,14 +48,14 @@ class UserBlockLimiter:
         self.flag_data = defaultdict(bool)
         self.time = time.time()
 
-    def set_true(self, key: Union[str, int, float]):
+    def set_true(self, key: Any):
         self.time = time.time()
         self.flag_data[key] = True
 
-    def set_false(self, key: Union[str, int, float]):
+    def set_false(self, key: Any):
         self.flag_data[key] = False
 
-    def check(self, key: Union[str, int, float]) -> bool:
+    def check(self, key: Any) -> bool:
         if time.time() - self.time > 30:
             self.set_false(key)
             return False
@@ -72,15 +71,15 @@ class FreqLimiter:
         self.next_time = defaultdict(float)
         self.default_cd = default_cd_seconds
 
-    def check(self, key: Union[str, int, float]) -> bool:
+    def check(self, key: Any) -> bool:
         return time.time() >= self.next_time[key]
 
-    def start_cd(self, key: Union[str, int, float], cd_time: int = 0):
+    def start_cd(self, key: Any, cd_time: int = 0):
         self.next_time[key] = time.time() + (
             cd_time if cd_time > 0 else self.default_cd
         )
 
-    def left_time(self, key: Union[str, int, float]) -> float:
+    def left_time(self, key: Any) -> float:
         return self.next_time[key] - time.time()
 
 
@@ -131,8 +130,7 @@ class DailyNumberLimiter:
         self.max = max_num
 
     def check(self, key) -> bool:
-        now = datetime.now(self.tz)
-        day = (now - timedelta(hours=5)).day
+        day = datetime.now(self.tz).day
         if day != self.today:
             self.today = day
             self.count.clear()
@@ -282,18 +280,6 @@ def get_message_json(data: str) -> List[dict]:
         return []
 
 
-# 获取文本加密后的cookie
-def get_cookie_text(cookie_name: str) -> str:
-    """
-    说明：
-        获取 txt/cookie 目录下指定 cookie 的内容
-    参数：
-        :param cookie_name: cookie文件名称
-    """
-    with open(TEXT_PATH + "cookie/" + cookie_name + ".txt", "r") as f:
-        return f.read()
-
-
 def get_local_proxy():
     """
     说明：
@@ -302,7 +288,7 @@ def get_local_proxy():
     return SYSTEM_PROXY if SYSTEM_PROXY else None
 
 
-def is_Chinese(word: str) -> bool:
+def is_chinese(word: str) -> bool:
     """
     说明：
         判断字符串是否为纯中文
@@ -315,7 +301,7 @@ def is_Chinese(word: str) -> bool:
     return True
 
 
-async def user_avatar(qq: int) -> bytes:
+async def get_user_avatar(qq: int) -> bytes:
     """
     说明：
         快捷获取用户头像
@@ -323,12 +309,15 @@ async def user_avatar(qq: int) -> bytes:
         :param qq: qq号
     """
     url = f"http://q1.qlogo.cn/g?b=qq&nk={qq}&s=160"
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, proxy=get_local_proxy(), timeout=5) as response:
-            return await response.read()
+    async with httpx.AsyncClient() as client:
+        for _ in range(3):
+            try:
+                return (await client.get(url)).content
+            except TimeoutError:
+                pass
 
 
-async def group_avatar(group_id: int) -> bytes:
+async def get_group_avatar(group_id: int) -> bytes:
     """
     说明：
         快捷获取用群头像
@@ -336,9 +325,12 @@ async def group_avatar(group_id: int) -> bytes:
         :param group_id: 群号
     """
     url = f"http://p.qlogo.cn/gh/{group_id}/{group_id}/640/"
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, proxy=get_local_proxy(), timeout=5) as response:
-            return await response.read()
+    async with httpx.AsyncClient() as client:
+        for _ in range(3):
+            try:
+                return (await client.get(url)).content
+            except TimeoutError:
+                pass
 
 
 def cn2py(word: str) -> str:
@@ -368,3 +360,4 @@ def change_picture_links(url: str, mode: str):
         img_type = img_sp[1]
         url = url.replace("original", "master") + f"_master1200.{img_type}"
     return url
+

@@ -10,16 +10,6 @@ SIGN_BACKGROUND_PATH = Path(SIGN_RESOURCE_PATH) / 'background'
 SIGN_BORDER_PATH.mkdir(exist_ok=True, parents=True)
 SIGN_BACKGROUND_PATH.mkdir(exist_ok=True, parents=True)
 
-SIGN_CARD1_PROB = 0.2   # 好感度双倍加持卡Ⅰ
-SIGN_CARD2_PROB = 0.09   # 好感度双倍加持卡Ⅱ
-SIGN_CARD3_PROB = 0.05   # 好感度双倍加持卡Ⅲ
-
-PROB_DATA = {
-    SIGN_CARD3_PROB: '好感度双倍加持卡Ⅲ',
-    SIGN_CARD2_PROB: '好感度双倍加持卡Ⅱ',
-    SIGN_CARD1_PROB: '好感度双倍加持卡Ⅰ'
-}
-
 
 lik2relation = {
     '0': '路人',

@@ -1,6 +1,6 @@
 from utils.user_agent import get_user_agent
 import aiohttp
-from configs.config import MAXINFO_BT
+from configs.config import Config
 from bs4 import BeautifulSoup
 from utils.utils import get_local_proxy
 import platform
@@ -24,7 +24,9 @@ async def get_bt_info(keyword: str, page: str):
                 return
             soup = BeautifulSoup(text, "lxml")
             item_lst = soup.find_all("div", {"class": "search-item"})
-            for item in item_lst[:MAXINFO_BT]:
+            bt_max_num = Config.get_config("bt", "BT_MAX_NUM")
+            bt_max_num = bt_max_num if bt_max_num < len(item_lst) else len(item_lst)
+            for item in item_lst[:bt_max_num]:
                 divs = item.find_all("div")
                 title = (
                     str(divs[0].find("a").text)

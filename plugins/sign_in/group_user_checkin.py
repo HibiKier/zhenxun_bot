@@ -5,11 +5,13 @@ from models.bag_user import BagUser
 from configs.config import NICKNAME
 from nonebot.adapters.cqhttp import MessageSegment
 from asyncio.exceptions import TimeoutError
-from utils.image_utils import CreateImg
+from utils.image_utils import CreateImg, CreateMat
 from services.db_context import db
 from .utils import get_card, SIGN_TODAY_CARD_PATH
+from typing import Optional
 from services.log import logger
 from .random_event import random_event
+from utils.data_utils import init_rank
 from io import BytesIO
 import random
 import aiohttp
@@ -82,31 +84,9 @@ async def group_user_check(nickname: str, user_qq: int, group: int) -> MessageSe
     return await get_card(user, nickname, None, gold, "", is_card_view=True)
 
 
-async def group_impression_rank(group: int) -> str:
-    result = "\t好感度排行榜\t\n"
+async def group_impression_rank(group: int, num: int) -> Optional[CreateMat]:
     user_qq_list, impression_list, _ = await SignGroupUser.get_all_impression(group)
-    _count = 11
-    if user_qq_list and impression_list:
-        for i in range(1, len(user_qq_list)):
-            if len(user_qq_list) == 0 or len(impression_list) == 0 or i == _count:
-                break
-            impression = max(impression_list)
-            index = impression_list.index(impression)
-            user_qq = user_qq_list[index]
-            try:
-                user_name = (
-                    await GroupInfoUser.get_member_info(user_qq, group)
-                ).user_name
-            except AttributeError:
-                logger.info(f"USER {user_qq}, GROUP {group} 不在群内")
-                _count += 1
-                impression_list.remove(impression)
-                user_qq_list.remove(user_qq)
-                continue
-            result += f"{i - _count + 11}. {user_name}: {impression:.2f}\n"
-            impression_list.remove(impression)
-            user_qq_list.remove(user_qq)
-    return result[:-1]
+    return await init_rank("好感度排行榜", user_qq_list, impression_list, group, num)
 
 
 async def random_gold(user_id, group_id, impression):

@@ -55,16 +55,10 @@ class Plugins2settingsManager(StaticData):
             if limit_superuser is not None
             else False,
             "cmd": cmd,
-            "plugin_type": list(plugin_type if plugin_type is not None else ("normal",))
+            "plugin_type": list(
+                plugin_type if plugin_type is not None else ("normal",)
+            ),
         }
-
-    def remove_plugin_settings(self, plugin: str):
-        """
-        删除一个插件设置
-        :param plugin: 插件模块名称
-        """
-        if self._data.get(plugin):
-            del self._data[plugin]
 
     def get_plugin_data(self, module: str) -> dict:
         """
@@ -99,4 +93,4 @@ class Plugins2settingsManager(StaticData):
         if self.file.exists():
             with open(self.file, "r", encoding="utf8") as f:
                 self._data: dict = yaml.load(f)
-                self._data = self._data['PluginSettings']
+                self._data = self._data["PluginSettings"]

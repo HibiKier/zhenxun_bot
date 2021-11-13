@@ -4,11 +4,10 @@ import re
 
 import aiohttp
 from aiohttp.client import ClientSession
-
-from configs.config import TL_KEY, ALAPI_TOKEN, ALAPI_AI_CHECK, NICKNAME
 from configs.path_config import IMAGE_PATH, DATA_PATH
 from services.log import logger
 from utils.message_builder import image, face
+from configs.config import Config, NICKNAME
 
 try:
     import ujson as json
@@ -70,6 +69,9 @@ async def tu_ling(text: str, img_url: str, user_id: int, sess: ClientSession) ->
     :return: 图灵回复
     """
     global index
+    TL_KEY = Config.get_config("ai", "TL_KEY")
+    if not TL_KEY:
+        return ''
     try:
         if text:
             req = {
@@ -149,7 +151,7 @@ async def xie_ai(text: str, sess: ClientSession) -> str:
                     break
         return (
             content
-            if not content and not ALAPI_AI_CHECK
+            if not content and not Config.get_config("ai", "ALAPI_AI_CHECK")
             else await check_text(content, sess)
         )
 
@@ -200,9 +202,9 @@ async def check_text(text: str, sess: ClientSession) -> str:
     :param text: 回复
     :param sess: AIOHTTP SESSION
     """
-    if not ALAPI_TOKEN:
+    if not Config.get_config("alapi", "ALAPI_TOKEN"):
         return text
-    params = {"token": ALAPI_TOKEN, "text": text}
+    params = {"token": Config.get_config("alapi", "ALAPI_TOKEN"), "text": text}
     try:
         async with sess.get(check_url, timeout=2, params=params) as response:
             data = await response.json()

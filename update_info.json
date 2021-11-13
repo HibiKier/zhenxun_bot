@@ -5,8 +5,8 @@
       "models",
       "services",
       "utils",
-      "resources/ttf"
+      "bot.py"
     ],
-    "add_file": ["resources/img/background"],
+    "add_file": ["basic_plugins", "resources/img/background/check"],
     "delete_file": []
 }

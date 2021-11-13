@@ -6,6 +6,9 @@ from utils.user_agent import get_user_agent
 from asyncio.exceptions import TimeoutError
 from aiohttp.client_exceptions import ClientConnectorError
 from utils.utils import get_local_proxy
+from utils.image_utils import CreateImg
+from configs.path_config import IMAGE_PATH
+from pathlib import Path
 import asyncio
 from services.log import logger
 
@@ -57,6 +60,7 @@ class Check:
 
     async def show(self):
         await self.check_all()
+        A = CreateImg(0, 0, font_size=24)
         rst = (
             f'[Time] {str(datetime.now()).split(".")[0]}\n'
             f"-----System-----\n"
@@ -69,4 +73,17 @@ class Check:
         )
         if self.user:
             rst += "-----User-----\n" + self.user
-        return rst
+        width = 0
+        height = 0
+        for x in rst.split('\n'):
+            w, h = A.getsize(x)
+            if w > width:
+                width = w
+            height += 30
+        A = CreateImg(width + 50, height + 10, font_size=24, font="HWZhongSong.ttf")
+        A.transparent(1)
+        A.text((10, 10), rst)
+        _x = max(width, height)
+        bk = CreateImg(_x + 100, _x + 100, background=Path(IMAGE_PATH) / "background" / "check" / "0.jpg")
+        bk.paste(A, alpha=True, center_type='center')
+        return bk.pic2bs4()

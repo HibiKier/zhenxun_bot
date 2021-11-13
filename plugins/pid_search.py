@@ -104,7 +104,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                     )
                 )
                 logger.info(
-                    f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+                    f"(USER {event.user_id}, "
+                    f"GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
                     f" 查询图片 PID：{pid}"
                 )
                 if isinstance(event, GroupMessageEvent):

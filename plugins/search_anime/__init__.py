@@ -3,15 +3,15 @@ from .data_source import from_anime_get_info
 from services.log import logger
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
-from configs.config import MAXINFO_GROUP_ANIME, MAXINFO_PRIVATE_ANIME
+from configs.config import Config
 from utils.utils import get_message_text
+from utils.message_builder import custom_forward_msg
 
 
 __zx_plugin_name__ = "搜番"
 __plugin_usage__ = f"""
 usage：
     搜索动漫资源
-    普通的搜番群内使用此功能只返还 {MAXINFO_GROUP_ANIME} 个结果，私聊返还 {MAXINFO_PRIVATE_ANIME} 个结果（绝不能打扰老色批们看色图！）
     指令：
         搜番  [番剧名称或者关键词]
         示例：搜番 刀剑神域
@@ -27,8 +27,9 @@ __plugin_settings__ = {
     "limit_superuser": False,
     "cmd": ["搜番"],
 }
-__plugin_block_limit__ = {
-    "rst": "搜索还未完成，不要重复触发！"
+__plugin_block_limit__ = {"rst": "搜索还未完成，不要重复触发！"}
+__plugin_configs__ = {
+    "SEARCH_ANIME_MAX_INFO": {"value": 20, "help": "搜索动漫返回的最大数量", "default_value": 20}
 }
 
 search_anime = on_command("搜番", aliases={"搜动漫"}, priority=5, block=True)
@@ -54,12 +55,14 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     await search_anime.send(f"开始搜番 {key_word}", at_sender=True)
     anime_report = await from_anime_get_info(
         key_word,
-        MAXINFO_GROUP_ANIME
-        if isinstance(event, GroupMessageEvent)
-        else MAXINFO_PRIVATE_ANIME,
+        Config.get_config("search_anime", "SEARCH_ANIME_MAX_INFO"),
     )
     if anime_report:
-        await search_anime.send(anime_report)
+        if isinstance(event, GroupMessageEvent):
+            mes_list = custom_forward_msg(anime_report, bot.self_id)
+            await bot.send_group_forward_msg(group_id=event.group_id, messages=mes_list)
+        else:
+            await search_anime.send("\n\n".join(anime_report))
         logger.info(
             f"USER {event.user_id} GROUP"
             f" {event.group_id if isinstance(event, GroupMessageEvent) else 'private'} 搜索番剧 {key_word} 成功"

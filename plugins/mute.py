@@ -9,15 +9,9 @@ from nonebot.adapters.cqhttp.exception import ActionFailed
 from configs.path_config import DATA_PATH, IMAGE_PATH
 from utils.image_utils import get_img_hash
 from services.log import logger
-from configs.config import MUTE_LEVEL
+from configs.config import NICKNAME, Config
 import aiohttp
 import aiofiles
-from configs.config import (
-    MUTE_DEFAULT_COUNT,
-    MUTE_DEFAULT_TIME,
-    MUTE_DEFAULT_DURATION,
-    NICKNAME,
-)
 
 try:
     import ujson as json
@@ -40,7 +34,29 @@ __plugin_des__ = "刷屏禁言相关操作"
 __plugin_cmd__ = ["设置刷屏检测时间 [秒]", "设置刷屏检测次数 [次数]", "设置刷屏禁言时长 [分钟]", "刷屏检测设置"]
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
-__plugin_settings__ = {"admin_level": MUTE_LEVEL}
+__plugin_settings__ = {"admin_level": Config.get_config("mute", "MUTE_LEVEL")}
+__plugin_configs__ = {
+    "MUTE_LEVEL [LEVEL]": {
+        "value": 5,
+        "help": "更改禁言设置的管理权限",
+        "default_value": 5
+    },
+    "MUTE_DEFAULT_COUNT": {
+        "value": 10,
+        "help": "刷屏禁言默认检测次数",
+        "default_value": 10
+    },
+    "MUTE_DEFAULT_TIME": {
+        "value": 7,
+        "help": "刷屏检测默认规定时间",
+        "default_value": 7
+    },
+    "MUTE_DEFAULT_DURATION": {
+        "value": 10,
+        "help": "刷屏检测默禁言时长（分钟）",
+        "default_value": 10
+    },
+}
 
 
 mute = on_message(priority=1, block=False)
@@ -98,9 +114,9 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     msg += img_hash
     if not mute_data.get(group_id):
         mute_data[group_id] = {
-            "count": MUTE_DEFAULT_COUNT,
-            "time": MUTE_DEFAULT_TIME,
-            "duration": MUTE_DEFAULT_DURATION,
+            "count": Config.get_config("mute", "MUTE_DEFAULT_COUNT"),
+            "time": Config.get_config("mute", "MUTE_DEFAULT_TIME"),
+            "duration": Config.get_config("mute", "MUTE_DEFAULT_DURATION"),
         }
     if not mute_dict.get(event.user_id):
         mute_dict[event.user_id] = {"time": time.time(), "count": 1, "msg": msg}

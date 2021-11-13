@@ -4,6 +4,7 @@ from nonebot.adapters.cqhttp import Bot, MessageEvent, Message, GroupMessageEven
 from nonebot.permission import SUPERUSER
 from utils.utils import get_message_text, is_number, get_message_imgs
 from utils.message_builder import image
+from utils.message_builder import text as _text
 from services.log import logger
 from utils.message_builder import at
 
@@ -52,7 +53,7 @@ __plugin_settings__ = {
 dialogue_data = {}
 
 
-dialogue = on_command("[滴滴滴]", aliases={"滴滴滴-"}, priority=1, block=True)
+dialogue = on_command("[滴滴滴]", aliases={"滴滴滴-"}, priority=5, block=True)
 reply = on_command("/t", priority=1, permission=SUPERUSER, block=True)
 
 
@@ -61,7 +62,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     uid = event.user_id
     coffee = int(list(bot.config.superusers)[0])
     text = get_message_text(event.json())
-    img_msg = ""
+    img_msg = _text("")
     for img in get_message_imgs(event.json()):
         img_msg += image(img)
     if not text or text in ["帮助"]:
@@ -78,15 +79,16 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             nickname = event.sender.card if event.sender.card else event.sender.nickname
         await bot.send_private_msg(
             user_id=coffee,
-            message=Message(
+            message=_text(
                 f"*****一份交流报告*****\n"
                 f"昵称：{nickname}({uid})\n"
                 f"群聊：{group_name}({group_id})\n"
-                f"消息：{text} {img_msg}"
-            ),
+                f"消息：{text}"
+            )
+            + img_msg,
         )
         await dialogue.send(
-            Message(f"您的话已发送至管理员！\n======\n{text}{img_msg}"), at_sender=True
+            _text(f"您的话已发送至管理员！\n======\n{text}") + img_msg, at_sender=True
         )
         nickname = event.sender.nickname if event.sender.nickname else event.sender.card
         dialogue_data[len(dialogue_data)] = {
@@ -94,7 +96,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             "user_id": event.user_id,
             "group_id": group_id,
             "group_name": group_name,
-            "msg": f"{text} {img_msg}",
+            "msg": _text(text) + img_msg,
         }
         # print(dialogue_data)
         logger.info(f"Q{uid}@群{group_id} 联系管理员：{coffee} text:{text}")

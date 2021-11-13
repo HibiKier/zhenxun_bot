@@ -1,8 +1,8 @@
-from models.goods_info import GoodsInfo
+from ..models.goods_info import GoodsInfo
 from utils.image_utils import CreateImg
 from utils.utils import is_number
 from configs.path_config import IMAGE_PATH
-from configs.config import IMPORT_DEFAULT_SHOP_GOODS
+from configs.config import Config
 from nonebot import Driver
 import nonebot
 import time
@@ -17,7 +17,7 @@ driver: Driver = nonebot.get_driver()
 async def init_default_shop_goods():
     if os.path.exists(f"{IMAGE_PATH}/shop_help.png"):
         os.remove(f"{IMAGE_PATH}/shop_help.png")
-    if IMPORT_DEFAULT_SHOP_GOODS:
+    if Config.get_config("shop", "IMPORT_DEFAULT_SHOP_GOODS"):
         await add_goods(["好感度双倍加持卡Ⅰ", 30, "下次签到双倍好感度概率 + 10%（谁才是真命天子？）（同类商品将覆盖）"])
         await add_goods(["好感度双倍加持卡Ⅱ", 150, "下次签到双倍好感度概率 + 20%（平平庸庸）（同类商品将覆盖）"])
         await add_goods(["好感度双倍加持卡Ⅲ", 250, "下次签到双倍好感度概率 + 30%（金币才是真命天子！）（同类商品将覆盖）"])

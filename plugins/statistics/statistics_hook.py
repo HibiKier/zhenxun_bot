@@ -97,7 +97,7 @@ async def _(
     if (
         matcher.type == "message"
         and matcher.priority not in [1, 9]
-        and matcher.module not in ["update_info"]
+        and matcher.module not in ["update_info", "statistics_handle"]
     ):
         module = matcher.module
         day_index = _prefix_count_dict["day_index"]
@@ -153,7 +153,7 @@ def check_exists_key(group_id: str, user_id: str, plugin_name: str):
             data["week_statistics"]["total"][plugin_name] = 0
         if not data["month_statistics"]["total"].get(plugin_name):
             data["month_statistics"]["total"][plugin_name] = 0
-
+        
         if not data["total_statistics"].get(key):
             data["total_statistics"][key] = {}
         if not data["total_statistics"][key].get(plugin_name):
@@ -163,23 +163,24 @@ def check_exists_key(group_id: str, user_id: str, plugin_name: str):
         if not data["day_statistics"][key].get(plugin_name):
             data["day_statistics"][key][plugin_name] = 0
 
-        if not data["week_statistics"].get(key):
-            data["week_statistics"][key] = {}
-        if data["week_statistics"][key].get("0") is None:
-            for i in range(7):
-                data["week_statistics"][key][str(i)] = {}
-        if data["week_statistics"][key]["0"].get(plugin_name) is None:
-            for i in range(7):
-                data["week_statistics"][key][str(i)][plugin_name] = 0
-
-        if not data["month_statistics"].get(key):
-            data["month_statistics"][key] = {}
-        if data["month_statistics"][key].get("0") is None:
-            for i in range(30):
-                data["month_statistics"][key][str(i)] = {}
-        if data["month_statistics"][key]["0"].get(plugin_name) is None:
-            for i in range(30):
-                data["month_statistics"][key][str(i)][plugin_name] = 0
+        if key != 'total':
+            if not data["week_statistics"].get(key):
+                data["week_statistics"][key] = {}
+            if data["week_statistics"][key].get("0") is None:
+                for i in range(7):
+                    data["week_statistics"][key][str(i)] = {}
+            if data["week_statistics"][key]["0"].get(plugin_name) is None:
+                for i in range(7):
+                    data["week_statistics"][key][str(i)][plugin_name] = 0
+    
+            if not data["month_statistics"].get(key):
+                data["month_statistics"][key] = {}
+            if data["month_statistics"][key].get("0") is None:
+                for i in range(30):
+                    data["month_statistics"][key][str(i)] = {}
+            if data["month_statistics"][key]["0"].get(plugin_name) is None:
+                for i in range(30):
+                    data["month_statistics"][key][str(i)][plugin_name] = 0
 
 
 # 天
@@ -213,3 +214,4 @@ async def _():
         json.dump(_prefix_count_dict, f, indent=4, ensure_ascii=False)
     with open(statistics_user_file, "w", encoding="utf8") as f:
         json.dump(_prefix_user_count_dict, f, indent=4, ensure_ascii=False)
+

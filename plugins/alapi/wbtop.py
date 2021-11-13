@@ -1,7 +1,6 @@
 from nonebot import on_command
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
-from configs.config import ALAPI_TOKEN
 from services.log import logger
 from .data_source import get_data, gen_wbtop_pic
 from utils.browser import get_browser
@@ -43,10 +42,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     global wbtop_data
     msg = get_message_text(event.json())
     if not wbtop_data or not msg:
-        params = {
-            'token': ALAPI_TOKEN
-        }
-        data, code = await get_data(wbtop_url, params)
+        data, code = await get_data(wbtop_url)
         if code != 200:
             await wbtop.finish(data, at_sender=True)
         wbtop_data = data['data']
@@ -67,6 +63,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             page = await browser.new_page()
             await page.goto(url, wait_until='networkidle', timeout=10000)
             await page.set_viewport_size({"width": 2560, "height": 1080})
+            await asyncio.sleep(5)
             div = await page.query_selector("#pl_feedlist_index")
             await div.screenshot(path=f'{IMAGE_PATH}/temp/wbtop_{event.user_id}.png', timeout=100000)
             await page.close()

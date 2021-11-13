@@ -103,8 +103,22 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 itype = 'month_statistics'
             else:
                 itype = 'total_statistics'
-            data = data[itype]["total"]
-            bar_graph = await init_bar_graph(data, state["_prefix"]["raw_command"])
+            tmp_dict = {}
+            data = data[itype]
+            if itype in ["day_statistics", "total_statistics"]:
+                for key in data['total']:
+                    tmp_dict[key] = data['total'][key]
+            else:
+                for group in data.keys():
+                    if group != 'total':
+                        for day in data[group].keys():
+                            for plugin_name in data[group][day].keys():
+                                if data[group][day][plugin_name] is not None:
+                                    if tmp_dict.get(plugin_name) is None:
+                                        tmp_dict[plugin_name] = 1
+                                    else:
+                                        tmp_dict[plugin_name] += data[group][day][plugin_name]
+            bar_graph = await init_bar_graph(tmp_dict, state["_prefix"]["raw_command"])
             await asyncio.get_event_loop().run_in_executor(None, bar_graph.gen_graph)
             await statistics.finish(image(b64=bar_graph.pic2bs4()))
         return
@@ -157,6 +171,10 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 async def generate_statistics_img(
     data: dict, arg: str, name: str, plugin: str, day_index: int
 ):
+    try:
+        plugin = plugins2settings_manager.get_plugin_data(plugin)['cmd'][0]
+    except (KeyError, IndexError):
+        pass
     bar_graph = None
     if arg == "day_statistics":
         bar_graph = await init_bar_graph(data, f"{name} 日功能调用统计")
@@ -180,7 +198,6 @@ async def generate_statistics_img(
                         count.append(0)
                 else:
                     try:
-                        print(data[str(week_lst[i])][plugin])
                         count.append(data[str(week_lst[i])][plugin])
                     except KeyError:
                         count.append(0)
@@ -260,3 +277,4 @@ def update_data(data: dict):
                 else:
                     tmp_dict[plugin_name] += data[day][plugin_name]
     return tmp_dict
+

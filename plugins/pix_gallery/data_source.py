@@ -4,17 +4,17 @@ from aiohttp.client_exceptions import (
     ClientConnectorError,
 )
 from asyncpg.exceptions import UniqueViolationError
-from models.omega_pixiv_illusts import OmegaPixivIllusts
+from .model.omega_pixiv_illusts import OmegaPixivIllusts
 from asyncio.locks import Semaphore
 from aiohttp import ClientPayloadError
 from aiohttp.client import ClientSession
 from asyncio.exceptions import TimeoutError
-from models.pixiv import Pixiv
+from .model.pixiv import Pixiv
 from typing import List
 from utils.utils import get_local_proxy, change_picture_links
 from utils.image_utils import CreateImg
 from services.log import logger
-from configs.config import HIBIAPI_BOOKMARKS, HIBIAPI, PIX_IMAGE_SIZE
+from configs.config import Config
 from configs.path_config import TEMP_PATH
 import platform
 import aiohttp
@@ -31,36 +31,45 @@ if str(platform.system()).lower() == "windows":
     policy = asyncio.WindowsSelectorEventLoopPolicy()
     asyncio.set_event_loop_policy(policy)
 
-search_url = f"{HIBIAPI}/api/pixiv/search"
-member_illust_url = f"{HIBIAPI}/api/pixiv/member_illust"
-illust_url = f"{HIBIAPI}/api/pixiv/illust"
-
 headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6;"
     " rv:2.0.1) Gecko/20100101 Firefox/4.0.1",
     "Referer": "https://www.pixiv.net",
 }
 
+HIBIAPI = None
 
-# 开始更新
-async def start_update_image_url(current_keyword: List[str], black_pid: List[str]):
+
+async def start_update_image_url(
+    current_keyword: List[str], black_pid: List[str]
+) -> "int, int":
+    """
+    开始更新图片url
+    :param current_keyword: 关键词
+    :param black_pid: 黑名单pid
+    :return: pid数量和图片数量
+    """
+    global HIBIAPI
     pid_count = 0
     pic_count = 0
     tasks = []
     semaphore = asyncio.Semaphore(10)
+    if not HIBIAPI:
+        HIBIAPI = Config.get_config("hibiapi", "HIBIAPI")
+        HIBIAPI = HIBIAPI[:-1] if HIBIAPI[-1] == "/" else HIBIAPI
     async with aiohttp.ClientSession(headers=headers) as session:
         for keyword in current_keyword:
             for page in range(1, 110):
                 if keyword.startswith("uid:"):
-                    url = member_illust_url
+                    url = f"{HIBIAPI}/api/pixiv/member_illust"
                     params = {"id": keyword[4:], "page": page}
                     if page == 30:
                         break
                 elif keyword.startswith("pid:"):
-                    url = illust_url
+                    url = f"{HIBIAPI}/api/pixiv/illust"
                     params = {"id": keyword[4:]}
                 else:
-                    url = search_url
+                    url = f"{HIBIAPI}/api/pixiv/search"
                     params = {"word": keyword, "page": page}
                 tasks.append(
                     asyncio.ensure_future(
@@ -86,7 +95,18 @@ async def search_image(
     session: ClientSession,
     page: int = 1,
     black: List[str] = None,
-):
+) -> "int, int":
+    """
+    搜索图片
+    :param url: 搜索url
+    :param keyword: 关键词
+    :param params: params参数
+    :param semaphore: semaphore
+    :param session: session
+    :param page: 页面
+    :param black: pid黑名单
+    :return: pid数量和图片数量
+    """
     tmp_pid = []
     pic_count = 0
     pid_count = 0
@@ -104,7 +124,7 @@ async def search_image(
                     or (not data.get("illusts") and not data.get("illust"))
                 ):
                     return 0, 0
-                if url != illust_url:
+                if url != f"{HIBIAPI}/api/pixiv/illust":
                     logger.info(f'{keyword}: 获取数据成功...数据总量：{len(data["illusts"])}')
                     data = data["illusts"]
                 else:
@@ -133,9 +153,13 @@ async def search_image(
                             img_urls.append(urls["image_urls"]["original"])
                     if (
                         (
-                            bookmarks >= HIBIAPI_BOOKMARKS
-                            or (url == member_illust_url and bookmarks >= 1500)
-                            or (url == illust_url)
+                            bookmarks
+                            >= Config.get_config("pix", "SEARCH_HIBIAPI_BOOKMARKS")
+                            or (
+                                url == f"{HIBIAPI}/api/pixiv/member_illust"
+                                and bookmarks >= 1500
+                            )
+                            or (url == f"{HIBIAPI}/api/pixiv/illust")
                         )
                         and len(img_urls) < 10
                         and _check_black(img_urls, black)
@@ -177,13 +201,8 @@ async def search_image(
                                     tmp_pid.append(data["pid"])
                                 pic_count += 1
                                 logger.info(f'存储图片PID：{data["pid"]} IMG_P：{img_p}')
-                                # await download_image(img_url, session)
                         except UniqueViolationError:
                             logger.warning(f'{data["pid"]} | {img_url} 已存在...')
-                    # 下载图片
-                    #  if not os.path.exists(f'{image_path}/
-                    # {img_url[img_url.rfind("/") + 1:]}'):
-                    #     await download_image(img_url, session)
         except (ServerDisconnectedError, ClientConnectorError, ClientOSError):
             logger.warning("搜索图片服务被关闭，再次调用....")
             await search_image(url, keyword, params, semaphore, session, page, black)
@@ -192,22 +211,26 @@ async def search_image(
 
 # 下载图片
 async def download_image(img_url: str, session: ClientSession, _count: int = 1):
+    """
+    下载图片
+    :param img_url:  图片url
+    :param session: session
+    :param _count: 次数
+    """
     try:
         async with session.get(img_url, proxy=get_local_proxy()) as response:
             logger.info(f"下载图片 --> {img_url}")
             async with aiofiles.open(f'tmp/{img_url.split("/")[-1]}', "wb") as f:
                 await f.write(await response.read())
-            # async with semaphore:
-            #    await asyncio.get_event_loop().run_in_executor(None,
-            # upload_image, img_url[img_url.rfind("/")+1:])
     except ServerDisconnectedError:
         logger.warning(f"下载图片服务被关闭，第 {_count} 次调用....")
         await download_image(img_url, session, _count + 1)
     except ClientOSError:
         logger.warning(f"远程连接被关闭，第 {_count} 次调用....")
-        await download_image(
-            img_url.replace("i.pximg.net", "i.pixiv.cat"), session, _count + 1
-        )
+        ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
+        if ws_url:
+            img_url = img_url.replace("i.pximg.net", ws_url)
+        await download_image(img_url, session, _count + 1)
     except TimeoutError:
         logger.warning(f"下载或写入超时，第 {_count} 次调用....")
         await download_image(img_url, session, _count + 1)
@@ -216,34 +239,56 @@ async def download_image(img_url: str, session: ClientSession, _count: int = 1):
 
 
 async def get_image(img_url: str, user_id: int) -> str:
+    """
+    下载图片
+    :param img_url:
+    :param user_id:
+    :return: 图片名称
+    """
+    global HIBIAPI
+    if not HIBIAPI:
+        HIBIAPI = Config.get_config("hibiapi", "HIBIAPI")
+        HIBIAPI = HIBIAPI[:-1] if HIBIAPI[-1] == "/" else HIBIAPI
     async with aiohttp.ClientSession(headers=headers) as session:
-        if 'https://www.pixiv.net/artworks' in img_url:
-            pid = img_url.rsplit('/', maxsplit=1)[-1]
+        if "https://www.pixiv.net/artworks" in img_url:
+            pid = img_url.rsplit("/", maxsplit=1)[-1]
             params = {"id": pid}
             for _ in range(3):
                 try:
                     async with session.get(
-                        illust_url,
+                        f"{HIBIAPI}/api/pixiv/illust",
                         params=params,
                         proxy=get_local_proxy(),
                     ) as response:
                         if response.status == 200:
                             data = await response.json()
-                            if data.get('illust'):
-                                if data['illust']['page_count'] == 1:
-                                    img_url = data['illust']['meta_single_page']['original_image_url']
+                            if data.get("illust"):
+                                if data["illust"]["page_count"] == 1:
+                                    img_url = data["illust"]["meta_single_page"][
+                                        "original_image_url"
+                                    ]
                                 else:
-                                    img_url = data['illust']["meta_pages"][0]["image_urls"]["original"]
+                                    img_url = data["illust"]["meta_pages"][0][
+                                        "image_urls"
+                                    ]["original"]
                                 break
                 except (ClientConnectorError, TimeoutError):
                     pass
         old_img_url = img_url
-        img_url = change_picture_links(img_url, PIX_IMAGE_SIZE)
+        img_url = change_picture_links(
+            img_url, Config.get_config("pix", "PIX_IMAGE_SIZE")
+        )
+        ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
+        if ws_url:
+            if ws_url.startswith("http"):
+                ws_url = ws_url.split("//")[-1]
+            img_url = img_url.replace("i.pximg.net", ws_url).replace("i.pixiv.cat", ws_url)
         for _ in range(3):
             try:
                 async with session.get(
                     img_url,
                     proxy=get_local_proxy(),
+                    timeout=Config.get_config("pix", "TIMEOUT"),
                 ) as response:
                     if response.status == 404:
                         img_url = old_img_url
@@ -257,12 +302,15 @@ async def get_image(img_url: str, user_id: int) -> str:
                 pass
 
 
-# 检测UID或PID是否有效
 async def uid_pid_exists(id_: str) -> bool:
+    """
+    检测 pid/uid 是否有效
+    :param id_: pid/uid
+    """
     if id_.startswith("uid:"):
         url = f"{HIBIAPI}/api/pixiv/member"
     elif id_.startswith("pid:"):
-        url = illust_url
+        url = f"{HIBIAPI}/api/pixiv/illust"
     else:
         return False
     params = {"id": int(id_[4:])}
@@ -274,13 +322,24 @@ async def uid_pid_exists(id_: str) -> bool:
     return True
 
 
-async def get_keyword_num(keyword: str) -> "int , int":
+async def get_keyword_num(keyword: str) -> "int, int, int, int, int":
+    """
+    查看图片相关 tag 数量
+    :param keyword: 关键词tag
+    """
     count, r18_count = await Pixiv.get_keyword_num(keyword.split())
-    count_, setu_count, r18_count_ = await OmegaPixivIllusts.get_keyword_num(keyword.split())
+    count_, setu_count, r18_count_ = await OmegaPixivIllusts.get_keyword_num(
+        keyword.split()
+    )
     return count, r18_count, count_, setu_count, r18_count_
 
 
 async def remove_image(pid: int, img_p: str) -> bool:
+    """
+    删除置顶图片
+    :param pid: pid
+    :param img_p: 图片 p 如 p0，p1 等
+    """
     if img_p:
         if "p" not in img_p:
             img_p = f"p{img_p}"
@@ -290,6 +349,12 @@ async def remove_image(pid: int, img_p: str) -> bool:
 def gen_keyword_pic(
     _pass_keyword: List[str], not_pass_keyword: List[str], is_superuser: bool
 ):
+    """
+    已通过或未通过的所有关键词/uid/pid
+    :param _pass_keyword: 通过列表
+    :param not_pass_keyword: 未通过列表
+    :param is_superuser: 是否超级用户
+    """
     _keyword = [
         x
         for x in _pass_keyword
@@ -373,10 +438,15 @@ def gen_keyword_pic(
     return A.pic2bs4()
 
 
-def _check_black(img_urls: List[str], black: List[str]):
+def _check_black(img_urls: List[str], black: List[str]) -> bool:
+    """
+    检测pid是否在黑名单中
+    :param img_urls: 图片img列表
+    :param black: 黑名单
+    :return:
+    """
     for b in black:
         for img_url in img_urls:
-            # img_url = img_url[img_url.rfind('/')+1: img_url.rfind('.')]
             if b in img_url:
                 return False
     return True
