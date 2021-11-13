@@ -32,11 +32,11 @@ async def get_epic_game():
             "withPromotions": True,
         },
     }
-    async with AsyncClient(headers=headers) as client:
+    async with AsyncClient(proxies={"all://": None}) as client:
         try:
-            res = await client.post(epic_url, json=data, timeout=10.0)
-            res_json = res.json()
-            games = res_json["data"]["Catalog"]["searchStore"]["elements"]
+            res = await client.post(epic_url, headers=headers, json=data, timeout=10.0)
+            resJson = res.json()
+            games = resJson["data"]["Catalog"]["searchStore"]["elements"]
             return games
         except Exception as e:
             logger.error(str(e))
@@ -53,89 +53,60 @@ async def get_epic_free(bot: Bot, event: Event):
     else:
         msg_list = []
         for game in games:
-            game_name = game["title"]
-            game_corp = game["seller"]["name"]
-            game_price = game["price"]["totalPrice"]["fmtPrice"]["originalPrice"]
-            # 赋初值以避免 local variable referenced before assignment
-            game_dev, game_pub, game_thumbnail = (None, None, None)
             try:
+                msg = ""
+                game_name = game["title"]
+                game_corp = game["seller"]["name"]
+                game_price = game["price"]["totalPrice"]["fmtPrice"]["originalPrice"]
                 game_promotions = game["promotions"]["promotionalOffers"]
                 upcoming_promotions = game["promotions"]["upcomingPromotionalOffers"]
                 if not game_promotions and upcoming_promotions:
-                    # 促销暂未上线，但即将上线
-                    promotion_data = upcoming_promotions[0]["promotionalOffers"][0]
-                    start_date_iso, end_date_iso = (
-                        promotion_data["startDate"][:-1],
-                        promotion_data["endDate"][:-1],
-                    )
-                    # 删除字符串中最后一个 "Z" 使 Python datetime 可处理此时间
-                    start_date = datetime.fromisoformat(start_date_iso).strftime(
-                        "%b.%d %H:%M"
-                    )
-                    end_date = datetime.fromisoformat(end_date_iso).strftime(
-                        "%b.%d %H:%M"
-                    )
-                    if isinstance(event, GroupMessageEvent):
-                        _message = "\n由 {} 公司发行的游戏 {} ({}) 在 UTC 时间 {} 即将推出免费游玩，预计截至 {}。".format(
-                            game_corp, game_name, game_price, start_date, end_date
-                        )
-                        data = {
-                            "type": "node",
-                            "data": {
-                                "name": f"这里是{NICKNAME}酱",
-                                "uin": f"{bot.self_id}",
-                                "content": _message,
-                            },
-                        }
-                        msg_list.append(data)
-                    else:
-                        msg = "\n由 {} 公司发行的游戏 {} ({}) 在 UTC 时间 {} 即将推出免费游玩，预计截至 {}。".format(
-                            game_corp, game_name, game_price, start_date, end_date
-                        )
-                        msg_list.append(msg)
+                    continue
                 else:
                     for image in game["keyImages"]:
-                        if image["type"] == "Thumbnail":
-                            game_thumbnail = image["url"]
-                    for pair in game["customAttributes"]:
-                        if pair["key"] == "developerName":
-                            game_dev = pair["value"]
-                        if pair["key"] == "publisherName":
-                            game_pub = pair["value"]
-                    # 如 game['customAttributes'] 未找到则均使用 game_corp 值
-                    game_dev = game_dev if game_dev is not None else game_corp
-                    game_pub = game_pub if game_pub is not None else game_corp
-                    game_desp = game["description"]
-                    end_date_iso = game["promotions"]["promotionalOffers"][0][
-                        "promotionalOffers"
-                    ][0]["endDate"][:-1]
-                    end_date = datetime.fromisoformat(end_date_iso).strftime(
-                        "%b.%d %H:%M"
-                    )
-                    # API 返回不包含游戏商店 URL，此处自行拼接，可能出现少数游戏 404 请反馈
-                    game_url_part = (
-                        (game["productSlug"].replace("/home", ""))
-                        if ("/home" in game["productSlug"])
-                        else game["productSlug"]
-                    )
-                    game_url = "https://www.epicgames.com/store/zh-CN/p/{}".format(
-                        game_url_part
-                    )
-                    if isinstance(event, GroupMessageEvent):
-                        _message = "[CQ:image,file={}]\n\nFREE now :: {} ({})\n{}\n此游戏由 {} 开发、{} 发行，将在 UTC 时间 {} 结束免费游玩，戳链接速度加入你的游戏库吧~\n{}\n".format(
-                            game_thumbnail,
-                            game_name,
-                            game_price,
-                            game_desp,
-                            game_dev,
-                            game_pub,
-                            end_date,
-                            game_url,
+                        game_thumbnail = (
+                            image["url"] if image["type"] == "Thumbnail" else None
                         )
+                    for pair in game["customAttributes"]:
+                        game_dev = (
+                            pair["value"]
+                            if pair["key"] == "developerName"
+                            else game_corp
+                        )
+                        game_pub = (
+                            pair["value"]
+                            if pair["key"] == "publisherName"
+                            else game_corp
+                        )
+                    game_desp = game["description"]
+                    end_date = ""
+                    if len(game["promotions"]["promotionalOffers"]) != 0:
+                        end_date_iso = game["promotions"]["promotionalOffers"][0][
+                            "promotionalOffers"
+                        ][0]["endDate"][:-1]
+                        end_date = datetime.fromisoformat(end_date_iso).strftime(
+                            "%b.%d %H:%M"
+                        )
+                    # API 返回不包含游戏商店 URL，此处自行拼接，可能出现少数游戏 404 请反馈
+                    game_url = f"https://www.epicgames.com/store/zh-CN/p/{game['productSlug'].replace('/home', '')}"
+                    msg = (
+                        f"[CQ:image,file={game_thumbnail}]\n\n"
+                        if game_thumbnail
+                        else ""
+                    )
+                    msg += f"FREE now :: {game_name} ({game_price})\n\n{game_desp}\n\n"
+                    msg += (
+                        f"游戏由 {game_pub} 发售，"
+                        if game_dev == game_pub
+                        else f"游戏由 {game_dev} 开发、{game_pub} 出版，"
+                    )
+                    msg += f"将在 UTC 时间 {end_date} 结束免费游玩，戳链接领取吧~\n{game_url}"
+                    _message = msg
+                    if isinstance(event, GroupMessageEvent):
                         data = {
                             "type": "node",
                             "data": {
-                                "name": f"这里是{NICKNAME}酱",
+                                "name": f"{NICKNAME}",
                                 "uin": f"{bot.self_id}",
                                 "content": _message,
                             },
