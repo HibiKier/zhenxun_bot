@@ -136,6 +136,7 @@ class PluginsManager(StaticData):
                 else:
                     if module in self._data.keys():
                         self._data[module]["status"] = True
+                        self._data[module]["block_type"] = None
             self.save()
 
     def init_plugin(self, module: str):
