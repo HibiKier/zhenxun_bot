@@ -25,6 +25,10 @@
 ## 真寻的帮助
 请对真寻说: '真寻帮助' or '管理员帮助' or '超级用户帮助' or '真寻帮助 指令'
 
+## 提供符合真寻标准的插件仓库
+
+[AkashiCoin/nonebot_plugins_zhenxun_bot](https://github.com/AkashiCoin/nonebot_plugins_zhenxun_bot)
+
 
 ## 功能列表
 <details>
@@ -268,7 +272,7 @@
   
 </details>
 
-## 详细配置请前往文档，以下为最简配置
+## 详细配置请前往文档，以下为最简部署和配置
 
 
 ## 简单部署
