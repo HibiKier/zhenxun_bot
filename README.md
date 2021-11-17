@@ -268,8 +268,10 @@
   
 </details>
 
+## 详细配置请前往文档，以下为最简配置
 
-## 部署
+
+## 简单部署
 
 ```
 
@@ -294,8 +296,7 @@ pip install -r requirements.txt
 python bot.py
 ```
 
-## 配置
-在 configs/config.py 中的 USE_CONFIG_FILE，默认为False
+## 简单配置
 
 ```
 1.在.env.dev文件中
@@ -303,12 +304,10 @@ python bot.py
   SUPERUSERS = [""]   # 填写你的QQ
 
 2.在configs/config.py文件中
-  必填：
-    1. API KEY
-    2.数据库配置
+  * 数据库配置
 
-  在./configs/config.py中配置基本配置（除API KEY ，数据库和代理外都含有默认值）
-  在./configs/path_config.py配置路径（含有默认配置）
+3.在configs/config.yaml文件中 # 该文件需要启动一次后生成
+  * 修改插件配置项
 
 ```
 
