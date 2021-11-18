@@ -72,9 +72,6 @@ async def _(bot: Bot, event: GroupRequestEvent, state: dict):
     if event.sub_type == "invite":
         if str(event.user_id) in bot.config.superusers:
             try:
-                await bot.set_group_add_request(
-                    flag=event.flag, sub_type="invite", approve=True
-                )
                 if await GroupInfo.get_group_info(event.group_id):
                     await GroupInfo.set_group_flag(event.group_id, 1)
                 else:
@@ -86,6 +83,9 @@ async def _(bot: Bot, event: GroupRequestEvent, state: dict):
                         group_info["member_count"],
                         1,
                     )
+                await bot.set_group_add_request(
+                    flag=event.flag, sub_type="invite", approve=True
+                )
             except ActionFailed:
                 pass
         else:
