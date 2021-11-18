@@ -32,7 +32,6 @@ exists_data = {"private": {}, "group": {}}
 
 @friend_req.handle()
 async def _(bot: Bot, event: FriendRequestEvent, state: dict):
-    print(event)
     global exists_data
     if exists_data["private"].get(event.user_id):
         if time.time() - exists_data["private"][event.user_id] < 60 * 5:
