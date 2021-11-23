@@ -82,7 +82,7 @@ class BanUser(db.Model):
         参数：
             :param user_qq: 目标用户qq号
             :param ban_level: 使用ban命令用户的权限
-            :param duration:  ban时长
+            :param duration:  ban时长，秒
         """
         query = cls.query.where((cls.user_qq == user_qq))
         query = query.with_for_update()

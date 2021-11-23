@@ -30,15 +30,15 @@ __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_task__ = {"group_welcome": "进群欢迎", "refund_group_remind": "退群提醒"}
 Config.add_plugin_config(
-    "auto_invite", "message", f"请不要未经同意就拉{NICKNAME}入群！告辞！", help_="强制拉群后进群回复的内容.."
+    "invite_manager", "message", f"请不要未经同意就拉{NICKNAME}入群！告辞！", help_="强制拉群后进群回复的内容.."
 )
 Config.add_plugin_config(
-    "auto_invite", "flag", True, help_="被强制拉群后是否直接退出", default_value=True
+    "invite_manager", "flag", True, help_="被强制拉群后是否直接退出", default_value=True
 )
 Config.add_plugin_config(
-    "auto_invite", "welcome_msg_cd", 5, help_="群欢迎消息cd", default_value=5
+    "invite_manager", "welcome_msg_cd", 5, help_="群欢迎消息cd", default_value=5
 )
-_flmt = FreqLimiter(Config.get_config("auto_invite", "welcome_msg_cd"))
+_flmt = FreqLimiter(Config.get_config("invite_manager", "welcome_msg_cd"))
 
 
 # 群员增加处理
@@ -55,10 +55,10 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent, state: dict):
         group = await GroupInfo.get_group_info(event.group_id)
         # 群聊不存在或被强制拉群，退出该群
         if (not group or group.group_flag == 0) and Config.get_config(
-            "auto_invite", "flag"
+            "invite_manager", "flag"
         ):
             try:
-                msg = Config.get_config("auto_invite", "message")
+                msg = Config.get_config("invite_manager", "message")
                 if msg:
                     await bot.send_group_msg(group_id=event.group_id, message=msg)
                 await bot.set_group_leave(group_id=event.group_id)

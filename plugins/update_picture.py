@@ -7,11 +7,11 @@ from nonebot.rule import to_me
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from utils.utils import get_message_imgs
-import aiofiles
-import aiohttp
+from pathlib import Path
 from utils.utils import is_number, get_message_text
 from utils.image_utils import CreateImg, pic2b64
 from configs.config import NICKNAME
+from utils.http_utils import AsyncHttpx
 import cv2
 import numpy as np
 
@@ -203,22 +203,13 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         y = int(y)
     index = 0
     result = ""
-    async with aiohttp.ClientSession() as session:
-        for img_url in img_list:
-            async with session.get(img_url, timeout=7) as response:
-                if response.status == 200:
-                    async with aiofiles.open(
-                        IMAGE_PATH + f"temp/{event.user_id}_{index}_update.png", "wb"
-                    ) as f:
-                        await f.write(await response.read())
-                        index += 1
-                else:
-                    logger.warning(
-                        f"USER {event.user_id} GROUP "
-                        f"{event.group_id if event.message_type != 'private' else 'private'} "
-                        f"使用 {method} 时下载图片超时"
-                    )
-                    await update_img.finish("获取图片超时了...", at_sender=True)
+    for img_url in img_list:
+        if await AsyncHttpx.download_file(
+            img_url, Path(IMAGE_PATH) / "temp" / f"{event.user_id}_{index}_update.png"
+        ):
+            index += 1
+        else:
+            await update_img.finish("获取图片超时了...", at_sender=True)
     if index == 0:
         return
     if method in ["修改尺寸", "1"]:

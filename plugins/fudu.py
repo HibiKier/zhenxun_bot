@@ -4,12 +4,11 @@ from utils.image_utils import get_img_hash
 import random
 from utils.message_builder import image
 from nonebot import on_message
-from utils.utils import get_message_text, get_message_imgs, get_local_proxy
+from utils.utils import get_message_text, get_message_imgs
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-import aiohttp
-import aiofiles
 from configs.config import Config
+from utils.http_utils import AsyncHttpx
 from utils.manager import group_manager
 from services.log import logger
 
@@ -121,14 +120,13 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 async def get_fudu_img_hash(url, group_id):
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, proxy=get_local_proxy(), timeout=5) as response:
-                async with aiofiles.open(
-                    IMAGE_PATH + f"temp/compare_{group_id}_img.jpg", "wb"
-                ) as f:
-                    await f.write(await response.read())
-        img_hash = get_img_hash(IMAGE_PATH + f"temp/compare_{group_id}_img.jpg")
-        return str(img_hash)
+        if await AsyncHttpx.download_file(
+            url, IMAGE_PATH + f"temp/compare_{group_id}_img.jpg"
+        ):
+            img_hash = get_img_hash(IMAGE_PATH + f"temp/compare_{group_id}_img.jpg")
+            return str(img_hash)
+        else:
+            logger.warning(f"复读下载图片失败...")
     except Exception as e:
         logger.warning(f"复读读取图片Hash出错 {type(e)}：{e}")
         return ""

@@ -9,10 +9,12 @@ from .init_plugins_limit import (
     init_plugins_count_limit,
     init_plugins_cd_limit,
 )
+from .init import init
 from .check_plugin_status import check_plugin_status
 from nonebot.adapters.cqhttp import Bot
 from configs.path_config import DATA_PATH
 from services.log import logger
+from pathlib import Path
 from nonebot import Driver
 import nonebot
 
@@ -30,6 +32,11 @@ def _():
     """
     初始化数据
     """
+    _flag = False
+    config_file = Path(DATA_PATH) / "configs" / "plugins2config.yaml"
+    if not config_file.exists():
+        _flag = True
+    init()
     init_plugins_settings(DATA_PATH)
     init_plugins_cd_limit(DATA_PATH)
     init_plugins_block_limit(DATA_PATH)
@@ -42,6 +49,8 @@ def _():
     if x:
         for key in x.keys():
             plugins_manager.block_plugin(key, block_type=x[key])
+    if _flag:
+        raise Exception("首次运行，已在configs目录下生成配置文件config.yaml，修改后重启即可...")
     logger.info("初始化数据完成...")
 
 

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from typing import Dict
 
-from aiohttp.client_exceptions import ClientError
 from nonebot.plugin import on_command, on_message
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
@@ -127,8 +126,8 @@ async def get_setu(bot: Bot, event: MessageEvent, state: T_State):
     except IndexError:
         # await bot.send(event, traceback.format_exc())
         await setu.finish("参数错误")
-    except ClientError:
-        await setu.finish("连接失败")
+    # except ClientError:
+    #     await setu.finish("连接失败")
 
 
 pic_map: Dict[str, str] = {}  # 保存这个群的其阿金一张色图 {"123456":http://xxx"}
@@ -174,7 +173,8 @@ async def handle_previous(bot: Bot, event: GroupMessageEvent, state: T_State):
             idx += 1
     except IndexError:
         await previous.finish("参数错误")
-    except ClientError:
-        await previous.finish("连接错误")
     except KeyError:
         await previous.finish("没有图啊QAQ")
+    except Exception as e:
+        logger.error(f"识图未知错误 {type(e)}：{e}")
+        await previous.finish("未知错误...")

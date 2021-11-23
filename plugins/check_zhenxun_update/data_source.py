@@ -1,18 +1,14 @@
-from aiohttp.client_exceptions import ClientConnectorError
 from nonebot.adapters.cqhttp import Bot, Message
-from utils.user_agent import get_user_agent
-from utils.utils import get_local_proxy
 from utils.image_utils import CreateImg
 from configs.path_config import IMAGE_PATH
 from utils.message_builder import image
+from utils.http_utils import AsyncHttpx
 from typing import List
 from services.log import logger
 from pathlib import Path
 import ujson as json
 import nonebot
 import asyncio
-import aiofiles
-import aiohttp
 import platform
 import tarfile
 import shutil
@@ -77,7 +73,7 @@ async def check_update(bot: Bot) -> 'int, str':
                 message=f"检测真寻已更新，当前版本：{_version}，最新版本：{latest_version}\n" f"开始更新.....",
             )
             logger.info(f"开始下载真寻最新版文件....")
-            if await download_latest_file(tar_gz_url):
+            if await AsyncHttpx.download_file(tar_gz_url, zhenxun_latest_tar_gz):
                 logger.info("下载真寻最新版文件完成....")
                 error = await asyncio.get_event_loop().run_in_executor(
                     None, _file_handle, latest_version
@@ -194,30 +190,16 @@ def _file_handle(latest_version: str) -> str:
 
 # 获取最新版本号
 async def get_latest_version_data() -> dict:
-    async with aiohttp.ClientSession(headers=get_user_agent()) as session:
-        for _ in range(3):
-            try:
-                async with session.get(release_url, proxy=get_local_proxy()) as res:
-                    if res.status == 200:
-                        return await res.json()
-            except (TimeoutError, ClientConnectorError):
-                pass
+    for _ in range(3):
+        try:
+            res = await AsyncHttpx.get(release_url)
+            if res.status_code == 200:
+                return res.json()
+        except TimeoutError:
+            pass
+        except Exception as e:
+            logger.error(f"检查更新真寻获取版本失败 {type(e)}：{e}")
     return {}
-
-
-# 下载文件
-async def download_latest_file(url_: str) -> bool:
-    async with aiohttp.ClientSession(headers=get_user_agent()) as session:
-        for _ in range(3):
-            try:
-                async with session.get(url_, proxy=get_local_proxy()) as res:
-                    if res.status == 200:
-                        async with aiofiles.open(zhenxun_latest_tar_gz, "wb") as f:
-                            await f.write(await res.read())
-                            return True
-            except (TimeoutError, ClientConnectorError):
-                pass
-    return False
 
 
 # 逐行检测
@@ -226,6 +208,5 @@ def check_old_lines(lines: List[str], line: str) -> str:
         return line
     for l in lines:
         if "=" in l and l.split("=")[0].strip() == line.split("=")[0].strip():
-            if l.split("=")[1].strip() == 'None':
-                return l
+            return l
     return line

@@ -38,12 +38,15 @@ ALC_PATH.mkdir(parents=True, exist_ok=True)
 @almanac.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     alc_img = await get_alc_image(ALC_PATH)
-    mes = alc_img + "\n ※ 黄历数据来源于 genshin.pub"
-    await almanac.send(mes)
-    logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-        f" 发送查看原神黄历"
-    )
+    if alc_img:
+        mes = alc_img + "\n ※ 黄历数据来源于 genshin.pub"
+        await almanac.send(mes)
+        logger.info(
+            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+            f" 发送查看原神黄历"
+        )
+    else:
+        await almanac.send("黄历图片下载失败...")
 
 
 @scheduler.scheduled_job(
@@ -58,7 +61,8 @@ async def _():
         gl = await bot.get_group_list()
         gl = [g["group_id"] for g in gl]
         alc_img = await get_alc_image(ALC_PATH)
-        mes = alc_img + "\n ※ 黄历数据来源于 genshin.pub"
-        for gid in gl:
-            if await group_manager.check_group_task_status(gid, "genshin_alc"):
-                await bot.send_group_msg(group_id=int(gid), message=mes)
+        if alc_img:
+            mes = alc_img + "\n ※ 黄历数据来源于 genshin.pub"
+            for gid in gl:
+                if await group_manager.check_group_task_status(gid, "genshin_alc"):
+                    await bot.send_group_msg(group_id=int(gid), message=mes)

@@ -1,4 +1,3 @@
-import aiohttp
 from .config import DRAW_PATH, SEMAPHORE
 from asyncio.exceptions import TimeoutError
 from bs4 import BeautifulSoup
@@ -6,6 +5,7 @@ from .util import download_img
 from .util import remove_prohibited_str
 from urllib.parse import unquote
 from services.log import logger
+from utils.http_utils import AsyncHttpx
 import bs4
 import asyncio
 
@@ -24,19 +24,21 @@ async def update_simple_info(url: str, game_name: str) -> 'dict, int':
     except (ValueError, FileNotFoundError):
         data = {}
     try:
-        async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(url, timeout=7) as response:
-                soup = BeautifulSoup(await response.text(), 'lxml')
-                divs = get_char_divs(soup, game_name)
-                for div in divs:
-                    type_lst = get_type_lst(div, game_name)
-                    index = 0
-                    for char_lst in type_lst:
-                        contents = get_char_lst_contents(char_lst, game_name)
-                        for char in contents:
-                            data = await retrieve_char_data(char, game_name, data, index)
-                        index += 1
-                data = await _last_check(data, game_name, session)
+        text = (await AsyncHttpx.get(url)).text
+        soup = BeautifulSoup(text, 'lxml')
+        divs = get_char_divs(soup, game_name)
+        for div in divs:
+            type_lst = get_type_lst(div, game_name)
+            index = 0
+            for char_lst in type_lst:
+                try:
+                    contents = get_char_lst_contents(char_lst, game_name)
+                except AttributeError:
+                    continue
+                for char in contents[1:]:
+                    data = await retrieve_char_data(char, game_name, data, index)
+                index += 1
+        data = await _last_check(data, game_name)
     except TimeoutError:
         logger.warning(f'更新 {game_name} 超时...')
         return {}, 999
@@ -71,7 +73,7 @@ def get_char_lst_contents(char_lst: bs4.element.Tag, game_name: str):
 
 
 # 额外数据
-async def _last_check(data: dict, game_name: str, session: aiohttp.ClientSession) -> dict:
+async def _last_check(data: dict, game_name: str) -> dict:
     if game_name == 'azur':
         idx = 1
         for url in [
@@ -91,7 +93,7 @@ async def _last_check(data: dict, game_name: str, session: aiohttp.ClientSession
         tasks = []
         semaphore = asyncio.Semaphore(SEMAPHORE)
         for key in data.keys():
-            tasks.append(asyncio.ensure_future(_async_update_azur_extra_info(key, session, semaphore)))
+            tasks.append(asyncio.ensure_future(_async_update_azur_extra_info(key, semaphore)))
         asyResult = await asyncio.gather(*tasks)
         for x in asyResult:
             for key in x.keys():
@@ -125,10 +127,11 @@ async def retrieve_char_data(char: bs4.element.Tag, game_name: str, data: dict, 
             '名称': remove_prohibited_str(char.find('a')['title']),
             '星级': 3 - index}
     if game_name == 'azur':
-        char = char.find('td').find('div')
+        print(char)
+        char = char.find('div').find('div').find('div').find('div')
         avatar_img = char.find('a').find('img')
         try:
-            member_dict['名称'] = remove_prohibited_str(str(avatar_img['alt'])[: str(avatar_img['alt']).find('头像')])
+            member_dict['名称'] = remove_prohibited_str(char.find('a')['title'])
         except TypeError:
             member_dict['名称'] = char.find('a')['title'][:-4]
         try:
@@ -138,7 +141,7 @@ async def retrieve_char_data(char: bs4.element.Tag, game_name: str, data: dict, 
         except TypeError:
             member_dict['头像'] = "img link not find..."
             logger.warning(f'{member_dict["名称"]} 图片缺失....')
-        star = char.find('div').find('img')['alt']
+        star = char.find('img')['alt']
         if star == '舰娘头像外框普通.png':
             star = 1
         elif star == '舰娘头像外框稀有.png':
@@ -161,28 +164,28 @@ async def retrieve_char_data(char: bs4.element.Tag, game_name: str, data: dict, 
     return data
 
 
-async def _async_update_azur_extra_info(key: str, session: aiohttp.ClientSession, semaphore):
+async def _async_update_azur_extra_info(key: str, semaphore):
     if key[-1] == '改':
         return {key: {'获取途径': ['无法建造']}}
     async with semaphore:
         for i in range(20):
             try:
-                async with session.get(f'https://wiki.biligame.com/blhx/{key}', timeout=7) as res:
-                    soup = BeautifulSoup(await res.text(), 'lxml')
-                    try:
-                        construction_time = str(soup.find('table', {'class': 'wikitable sv-general'}).find('tbody'))
-                        x = {key: {'获取途径': []}}
-                        if construction_time.find('无法建造') != -1:
-                            x[key]['获取途径'].append('无法建造')
-                        elif construction_time.find('活动已关闭') != -1:
-                            x[key]['获取途径'].append('活动限定')
-                        else:
-                            x[key]['获取途径'].append('可以建造')
-                        logger.info(f'碧蓝航线获取额外信息 {key}...{x[key]["获取途径"]}')
-                    except AttributeError:
-                        x = {key: {'获取途径': []}}
-                        logger.warning(f'碧蓝航线获取额外信息错误 {key}...{[]}')
-                    return x
+                text = (await AsyncHttpx.get(f'https://wiki.biligame.com/blhx/{key}')).text
+                soup = BeautifulSoup(text, 'lxml')
+                try:
+                    construction_time = str(soup.find('table', {'class': 'wikitable sv-general'}).find('tbody'))
+                    x = {key: {'获取途径': []}}
+                    if construction_time.find('无法建造') != -1:
+                        x[key]['获取途径'].append('无法建造')
+                    elif construction_time.find('活动已关闭') != -1:
+                        x[key]['获取途径'].append('活动限定')
+                    else:
+                        x[key]['获取途径'].append('可以建造')
+                    logger.info(f'碧蓝航线获取额外信息 {key}...{x[key]["获取途径"]}')
+                except AttributeError:
+                    x = {key: {'获取途径': []}}
+                    logger.warning(f'碧蓝航线获取额外信息错误 {key}...{[]}')
+                return x
             except TimeoutError:
                 logger.warning(f'访问 https://wiki.biligame.com/blhx/{key} 第 {i}次 超时...已再次访问')
     return {}

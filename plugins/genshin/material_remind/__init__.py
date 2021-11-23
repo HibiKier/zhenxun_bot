@@ -1,6 +1,6 @@
 from nonebot import on_command, Driver
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, Message
+from nonebot.adapters.cqhttp import Bot, MessageEvent, Message, GroupMessageEvent
 from utils.message_builder import image
 from utils.image_utils import CreateImg
 from utils.browser import get_browser
@@ -59,7 +59,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         )
     )
     logger.info(
-        f"(USER {event.user_id}, GROUP {event.group_id if event.message_type != 'private' else 'private'})"
+        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
         f" 发送查看今日素材"
     )
 

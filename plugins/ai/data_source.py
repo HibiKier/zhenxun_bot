@@ -1,13 +1,12 @@
 import os
 import random
 import re
-
-import aiohttp
-from aiohttp.client import ClientSession
+from utils.http_utils import AsyncHttpx
 from configs.path_config import IMAGE_PATH, DATA_PATH
 from services.log import logger
 from utils.message_builder import image, face
 from configs.config import Config, NICKNAME
+from .utils import ai_message_manager
 
 try:
     import ujson as json
@@ -26,7 +25,7 @@ anime_data = json.load(open(DATA_PATH + "anime.json", "r", encoding="utf8"))
 
 async def get_chat_result(text: str, img_url: str, user_id: int, nickname: str) -> str:
     """
-    获取 AI 返回值，顺序：图灵 -> 青云客
+    获取 AI 返回值，顺序： 特殊回复 -> 图灵 -> 青云客
     :param text: 问题
     :param img_url: 图片链接
     :param user_id: 用户id
@@ -34,6 +33,11 @@ async def get_chat_result(text: str, img_url: str, user_id: int, nickname: str) 
     :return: 回答
     """
     global index
+    ai_message_manager.add_message(user_id, text)
+    special_rst = await ai_message_manager.get_result(user_id, nickname)
+    if special_rst:
+        ai_message_manager.add_result(user_id, special_rst)
+        return special_rst
     if index == 5:
         index = 0
     if len(text) < 6 and random.random() < 0.6:
@@ -41,10 +45,9 @@ async def get_chat_result(text: str, img_url: str, user_id: int, nickname: str) 
         for key in keys:
             if text.find(key) != -1:
                 return random.choice(anime_data[key]).replace("你", nickname)
-    async with aiohttp.ClientSession() as sess:
-        rst = await tu_ling(text, img_url, user_id, sess)
-        if not rst:
-            rst = await xie_ai(text, sess)
+    rst = await tu_ling(text, img_url, user_id)
+    if not rst:
+        rst = await xie_ai(text)
     if not rst:
         return no_result()
     if nickname:
@@ -55,23 +58,25 @@ async def get_chat_result(text: str, img_url: str, user_id: int, nickname: str) 
                     if nickname.find("大人") == -1:
                         nickname += "大~人~"
         rst = rst.replace("小主人", nickname).replace("小朋友", nickname)
+    ai_message_manager.add_result(user_id, rst)
+    print(ai_message_manager)
     return rst
 
 
 # 图灵接口
-async def tu_ling(text: str, img_url: str, user_id: int, sess: ClientSession) -> str:
+async def tu_ling(text: str, img_url: str, user_id: int) -> str:
     """
     获取图灵接口的回复
     :param text: 问题
     :param img_url: 图片链接
     :param user_id: 用户id
-    :param sess: AIOHTTP SESSION
     :return: 图灵回复
     """
     global index
     TL_KEY = Config.get_config("ai", "TL_KEY")
+    req = None
     if not TL_KEY:
-        return ''
+        return ""
     try:
         if text:
             req = {
@@ -98,62 +103,59 @@ async def tu_ling(text: str, img_url: str, user_id: int, sess: ClientSession) ->
         index = 0
         return ""
     text = ""
-    async with sess.post(url, json=req) as response:
-        if response.status != 200:
-            return no_result()
-        resp_payload = json.loads(await response.text())
-        if int(resp_payload["intent"]["code"]) in [4003]:
-            return ""
-        if resp_payload["results"]:
-            for result in resp_payload["results"]:
-                if result["resultType"] == "text":
-                    text = result["values"]["text"]
-                    if "请求次数超过" in text:
-                        text = ""
+    response = await AsyncHttpx.post(url, json=req)
+    if response.status_code != 200:
+        return no_result()
+    resp_payload = json.loads(response.text)
+    if int(resp_payload["intent"]["code"]) in [4003]:
+        return ""
+    if resp_payload["results"]:
+        for result in resp_payload["results"]:
+            if result["resultType"] == "text":
+                text = result["values"]["text"]
+                if "请求次数超过" in text:
+                    text = ""
     return text
 
 
 # 屑 AI
-async def xie_ai(text: str, sess: ClientSession) -> str:
+async def xie_ai(text: str) -> str:
     """
     获取青云客回复
     :param text: 问题
-    :param sess: AIOHTTP SESSION
     :return: 青云可回复
     """
-    async with sess.get(
-        f"http://api.qingyunke.com/api.php?key=free&appid=0&msg={text}"
-    ) as res:
-        content = ""
-        data = json.loads(await res.text())
-        if data["result"] == 0:
-            content = data["content"]
-            if "菲菲" in content:
-                content = content.replace("菲菲", NICKNAME)
-            if "艳儿" in content:
-                content = content.replace("艳儿", NICKNAME)
-            if "公众号" in content:
-                content = ""
-            if "{br}" in content:
-                content = content.replace("{br}", "\n")
-            if "提示" in content:
-                content = content[: content.find("提示")]
-            if "淘宝" in content:
-                return ""
-            while True:
-                r = re.search("{face:(.*)}", content)
-                if r:
-                    id_ = r.group(1)
-                    content = content.replace(
-                        "{" + f"face:{id_}" + "}", str(face(int(id_)))
-                    )
-                else:
-                    break
-        return (
-            content
-            if not content and not Config.get_config("ai", "ALAPI_AI_CHECK")
-            else await check_text(content, sess)
-        )
+    res = await AsyncHttpx.get(f"http://api.qingyunke.com/api.php?key=free&appid=0&msg={text}")
+    content = ""
+    data = json.loads(res.text)
+    if data["result"] == 0:
+        content = data["content"]
+        if "菲菲" in content:
+            content = content.replace("菲菲", NICKNAME)
+        if "艳儿" in content:
+            content = content.replace("艳儿", NICKNAME)
+        if "公众号" in content:
+            content = ""
+        if "{br}" in content:
+            content = content.replace("{br}", "\n")
+        if "提示" in content:
+            content = content[: content.find("提示")]
+        if "淘宝" in content:
+            return ""
+        while True:
+            r = re.search("{face:(.*)}", content)
+            if r:
+                id_ = r.group(1)
+                content = content.replace(
+                    "{" + f"face:{id_}" + "}", str(face(int(id_)))
+                )
+            else:
+                break
+    return (
+        content
+        if not content and not Config.get_config("ai", "ALAPI_AI_CHECK")
+        else await check_text(content)
+    )
 
 
 def hello() -> str:
@@ -196,21 +198,19 @@ def no_result() -> str:
     )
 
 
-async def check_text(text: str, sess: ClientSession) -> str:
+async def check_text(text: str) -> str:
     """
     ALAPI文本检测，主要针对青云客API，检测为恶俗文本改为无回复的回答
     :param text: 回复
-    :param sess: AIOHTTP SESSION
     """
     if not Config.get_config("alapi", "ALAPI_TOKEN"):
         return text
     params = {"token": Config.get_config("alapi", "ALAPI_TOKEN"), "text": text}
     try:
-        async with sess.get(check_url, timeout=2, params=params) as response:
-            data = await response.json()
-            if data["code"] == 200:
-                if data["data"]["conclusion_type"] == 2:
-                    return ""
+        data = (await AsyncHttpx.get(check_url, timeout=2, params=params)).json()
+        if data["code"] == 200:
+            if data["data"]["conclusion_type"] == 2:
+                return ""
     except Exception as e:
         logger.error(f"检测违规文本错误...{type(e)}：{e}")
     return text

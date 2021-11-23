@@ -1,12 +1,10 @@
 {
     "update_file": [
       "plugins",
-      "configs",
       "models",
-      "services",
+      "basic_plugins",
       "utils",
-      "bot.py"
     ],
-    "add_file": ["basic_plugins", "resources/img/background/check"],
+    "add_file": [],
     "delete_file": []
 }

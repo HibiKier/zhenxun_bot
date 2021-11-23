@@ -2,8 +2,7 @@ from nonebot import on_command
 from services.log import logger
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
-import aiohttp
-from utils.utils import get_local_proxy
+from utils.http_utils import AsyncHttpx
 
 
 __zx_plugin_name__ = "一言二次元语录"
@@ -32,9 +31,7 @@ url = "https://international.v1.hitokoto.cn/?c=a"
 
 @quotations.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, proxy=get_local_proxy(), timeout=5) as response:
-            data = await response.json()
+    data = (await AsyncHttpx.get(url, timeout=5)).json()
     result = f'{data["hitokoto"]}\t——{data["from"]}'
     await quotations.send(result)
     logger.info(

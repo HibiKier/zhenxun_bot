@@ -25,6 +25,7 @@ from nonebot.rule import to_me
 from datetime import datetime, timedelta
 from configs.config import NICKNAME
 from apscheduler.jobstores.base import JobLookupError
+from nonebot.adapters.cqhttp.exception import ActionFailed
 import random
 import time
 
@@ -320,7 +321,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                         b64=await generate_send_redbag_pic(int(bot.self_id), greetings)
                     ),
                 )
-            except AttributeError:
+            except ActionFailed:
+                logger.warning(f"节日红包 GROUP {g} 发送失败..")
                 pass
 
 

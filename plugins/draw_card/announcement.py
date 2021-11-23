@@ -1,11 +1,11 @@
-import aiohttp
 from bs4 import BeautifulSoup
-import re
 from datetime import datetime, timedelta
 from .config import DRAW_PATH
 from pathlib import Path
 from asyncio.exceptions import TimeoutError
 from services.log import logger
+from utils.http_utils import AsyncHttpx
+import re
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -66,16 +66,14 @@ class PrtsAnnouncement:
         self.game_name = '明日方舟'
 
     async def _get_announcement_text(self):
-        async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(prts_url, timeout=7) as res:
-                soup = BeautifulSoup(await res.text(), 'lxml')
-                ol = soup.find('ol', {'class': 'articleList active', 'data-category-key': 'LATEST'})
-                for li in ol:
-                    itype = li.find('span', {'class': 'articleItemCate'}).text
-                    if itype == '活动':
-                        a = li.find('a')['href']
-                        async with session.get(f'https://ak.hypergryph.com{a}', headers=headers, timeout=7) as res:
-                            return await res.text()
+        text = (await AsyncHttpx.get(prts_url)).text
+        soup = BeautifulSoup(text, 'lxml')
+        ol = soup.find('ol', {'class': 'articleList active', 'data-category-key': 'LATEST'})
+        for li in ol:
+            itype = li.find('span', {'class': 'articleItemCate'}).text
+            if itype == '活动':
+                a = li.find('a')['href']
+                return (await AsyncHttpx.get(f'https://ak.hypergryph.com{a}')).text
 
     async def update_up_char(self):
         prts_up_char.parent.mkdir(parents=True, exist_ok=True)
@@ -147,9 +145,7 @@ class GenshinAnnouncement:
         self.game_name = '原神'
 
     async def _get_announcement_text(self):
-        async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(genshin_url, timeout=7) as res:
-                return await res.text()
+        return (await AsyncHttpx.get(genshin_url)).text
 
     async def update_up_char(self):
         genshin_up_char.parent.mkdir(exist_ok=True, parents=True)
@@ -218,21 +214,20 @@ class PrettyAnnouncement:
         self.game_name = '赛马娘'
 
     async def _get_announcement_text(self):
-        async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(pretty_url, timeout=7) as res:
-                soup = BeautifulSoup(await res.text(), 'lxml')
-                divs = soup.find('div', {'id': 'mw-content-text'}).find('div').find_all('div')
-                for div in divs:
-                    a = div.find('a')
-                    try:
-                        title = a['title']
-                    except (KeyError, TypeError):
-                        continue
-                    if title.find('新角色追加') != -1:
-                        url = a['href']
-                        break
-            async with session.get(f'https://wiki.biligame.com/{url}', timeout=7) as res:
-                return await res.text(), title[:-2]
+        text = (await AsyncHttpx.get(pretty_url)).text
+        soup = BeautifulSoup(text, 'lxml')
+        divs = soup.find('div', {'id': 'mw-content-text'}).find('div').find_all('div')
+        title = "  "
+        for div in divs:
+            a = div.find('a')
+            try:
+                title = a['title']
+            except (KeyError, TypeError):
+                continue
+            if title.find('新角色追加') != -1:
+                url = a['href']
+                break
+        return (await AsyncHttpx.get(f'https://wiki.biligame.com/{url}')).text, title[:-2]
 
     async def update_up_char(self):
         pretty_up_char.parent.mkdir(exist_ok=True, parents=True)
@@ -343,9 +338,7 @@ class GuardianAnnouncement:
         self.game_name = '坎公骑冠剑'
 
     async def _get_announcement_text(self):
-        async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(guardian_url, timeout=7) as res:
-                return await res.text()
+        return (await AsyncHttpx.get(guardian_url)).text
 
     async def update_up_char(self):
         data = {

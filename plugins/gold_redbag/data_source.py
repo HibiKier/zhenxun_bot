@@ -1,12 +1,11 @@
 from models.bag_user import BagUser
-from utils.utils import is_number, get_local_proxy
+from utils.utils import is_number, get_local_proxy, get_user_avatar
 from utils.image_utils import CreateImg
 from utils.user_agent import get_user_agent
 from configs.path_config import IMAGE_PATH
-from ..models.redbag_user import RedbagUser
+from .model import RedbagUser
 import random
 import os
-import aiohttp
 from io import BytesIO
 import asyncio
 
@@ -47,7 +46,7 @@ async def open_redbag(user_id: int, group_id: int, redbag_data: dict):
 async def generate_send_redbag_pic(user_id: int, msg: str = '恭喜发财 大吉大利'):
     random_redbag = random.choice(os.listdir(f"{IMAGE_PATH}/prts/redbag_2"))
     redbag = CreateImg(0, 0, font_size=38, background=f'{IMAGE_PATH}/prts/redbag_2/{random_redbag}')
-    ava = CreateImg(65, 65, background=BytesIO(await get_pic(user_id)))
+    ava = CreateImg(65, 65, background=BytesIO(await get_user_avatar(user_id)))
     await asyncio.get_event_loop().run_in_executor(None, ava.circle)
     redbag.text((int((redbag.size[0] - redbag.getsize(msg)[0]) / 2), 210), msg, (240, 218, 164))
     redbag.paste(ava, (int((redbag.size[0] - ava.size[0])/2), 130), True)
@@ -59,14 +58,6 @@ async def generate_open_redbag_pic(user_id: int, send_user_nickname: str, amount
     return await asyncio.create_task(_generate_open_redbag_pic(user_id, send_user_nickname, amount, text))
 
 
-# 获取QQ头像
-async def get_pic(qq):
-    url = f'http://q1.qlogo.cn/g?b=qq&nk={qq}&s=160'
-    async with aiohttp.ClientSession(headers=get_user_agent()) as session:
-        async with session.get(url, proxy=get_local_proxy(), timeout=5) as response:
-            return await response.read()
-
-
 # 开红包图片
 async def _generate_open_redbag_pic(user_id: int, send_user_nickname: str, amount: int, text: str):
     send_user_nickname += '的红包'
@@ -75,7 +66,7 @@ async def _generate_open_redbag_pic(user_id: int, send_user_nickname: str, amoun
     size = CreateImg(0, 0, font_size=50).getsize(send_user_nickname)
     # QQ头像
     ava_bk = CreateImg(100 + size[0], 66, color='white', font_size=50)
-    ava = CreateImg(66, 66, background=BytesIO(await get_pic(user_id)))
+    ava = CreateImg(66, 66, background=BytesIO(await get_user_avatar(user_id)))
     ava_bk.paste(ava)
     ava_bk.text((100, 7), send_user_nickname)
     # ava_bk.show()

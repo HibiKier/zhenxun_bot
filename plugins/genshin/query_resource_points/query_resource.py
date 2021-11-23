@@ -3,18 +3,15 @@ from configs.path_config import IMAGE_PATH, TEXT_PATH
 from PIL.Image import UnidentifiedImageError
 from utils.message_builder import image
 from services.log import logger
-from .map import Map
 from utils.image_utils import CreateImg
-import asyncio
-from pathlib import Path
 from asyncio.exceptions import TimeoutError
 from asyncio import Semaphore
-from aiohttp.client import ClientSession
-from utils.user_agent import get_user_agent
 from utils.image_utils import is_valid
+from utils.http_utils import AsyncHttpx
+from pathlib import Path
+from .map import Map
+import asyncio
 import nonebot
-import aiohttp
-import aiofiles
 import os
 
 try:
@@ -96,130 +93,126 @@ async def init(flag: bool = False):
     global CENTER_POINT, resource_name_list
     try:
         semaphore = asyncio.Semaphore(10)
-        async with aiohttp.ClientSession(headers=get_user_agent()) as session:
-            await download_map_init(session, semaphore, MAP_RATIO, flag)
-            await download_resource_data(session, semaphore)
-            await download_resource_type(session)
-            if not CENTER_POINT:
-                CENTER_POINT = json.load(open(resource_label_file, "r", encoding="utf8"))[
-                    "CENTER_POINT"
-                ]
-            with open(resource_type_file, "r", encoding="utf8") as f:
-                data = json.load(f)
-            for id_ in data:
-                for x in data[id_]["children"]:
-                    resource_name_list.append(x["name"])
+        await download_map_init(semaphore, flag)
+        await download_resource_data(semaphore)
+        await download_resource_type()
+        if not CENTER_POINT:
+            CENTER_POINT = json.load(open(resource_label_file, "r", encoding="utf8"))[
+                "CENTER_POINT"
+            ]
+        with open(resource_type_file, "r", encoding="utf8") as f:
+            data = json.load(f)
+        for id_ in data:
+            for x in data[id_]["children"]:
+                resource_name_list.append(x["name"])
     except TimeoutError:
         logger.warning('原神资源查询信息初始化超时....')
         pass
 
 
 # 图标及位置资源
-async def download_resource_data(session: ClientSession, semaphore: Semaphore):
+async def download_resource_data(semaphore: Semaphore):
     icon_path.mkdir(parents=True, exist_ok=True)
     resource_label_file.parent.mkdir(parents=True, exist_ok=True)
     try:
-        async with session.get(POINT_LIST_URL, timeout=5) as response:
-            if response.status == 200:
-                data = await response.json()
-                if data["message"] == "OK":
-                    data = data["data"]
-                    for lst in ["label_list", "point_list"]:
-                        resource_data = {"CENTER_POINT": CENTER_POINT}
-                        tasks = []
-                        file = (
-                            resource_label_file
-                            if lst == "label_list"
-                            else resource_point_file
-                        )
-                        for x in data[lst]:
-                            id_ = x["id"]
-                            if lst == "label_list":
-                                img_url = x["icon"]
-                                tasks.append(
-                                    asyncio.ensure_future(
-                                        download_image(
-                                            img_url,
-                                            f"{icon_path}/{id_}.png",
-                                            session,
-                                            semaphore,
-                                            True,
-                                        )
+        response = await AsyncHttpx.get(POINT_LIST_URL)
+        if response.status_code == 200:
+            data = response.json()
+            if data["message"] == "OK":
+                data = data["data"]
+                for lst in ["label_list", "point_list"]:
+                    resource_data = {"CENTER_POINT": CENTER_POINT}
+                    tasks = []
+                    file = (
+                        resource_label_file
+                        if lst == "label_list"
+                        else resource_point_file
+                    )
+                    for x in data[lst]:
+                        id_ = x["id"]
+                        if lst == "label_list":
+                            img_url = x["icon"]
+                            tasks.append(
+                                asyncio.ensure_future(
+                                    download_image(
+                                        img_url,
+                                        f"{icon_path}/{id_}.png",
+                                        semaphore,
+                                        True,
                                     )
                                 )
-                            resource_data[id_] = x
-                        await asyncio.gather(*tasks)
-                        with open(file, "w", encoding="utf8") as f:
-                            json.dump(resource_data, f, ensure_ascii=False, indent=4)
-                else:
-                    logger.warning(f'获取原神资源失败 msg: {data["message"]}')
+                            )
+                        resource_data[id_] = x
+                    await asyncio.gather(*tasks)
+                    with open(file, "w", encoding="utf8") as f:
+                        json.dump(resource_data, f, ensure_ascii=False, indent=4)
             else:
-                logger.warning(f"获取原神资源失败 code：{response.status}")
+                logger.warning(f'获取原神资源失败 msg: {data["message"]}')
+        else:
+            logger.warning(f"获取原神资源失败 code：{response.status_code}")
     except TimeoutError:
         logger.warning("获取原神资源数据超时...已再次尝试...")
-        await download_resource_data(session, semaphore)
+        await download_resource_data(semaphore)
 
 
 # 下载原神地图并拼图
 async def download_map_init(
-    session: ClientSession, semaphore: Semaphore, ratio: float = 1, flag: bool = False
+    semaphore: Semaphore, flag: bool = False
 ):
     global CENTER_POINT, MAP_RATIO
     map_path.mkdir(exist_ok=True, parents=True)
     _map = map_path / "map.png"
     if _map.exists() and os.path.getsize(_map) > 1024 * 1024 * 30:
         _map.unlink()
-    async with session.get(MAP_URL, timeout=5) as response:
-        if response.status == 200:
-            data = await response.json()
-            if data["message"] == "OK":
-                data = json.loads(data["data"]["info"]["detail"])
-                CENTER_POINT = (data["origin"][0], data["origin"][1])
-                if not _map.exists():
-                    # padding_w, padding_h = data['padding']
-                    data = data["slices"]
-                    idx = 0
-                    for _map_data in data[0]:
-                        map_url = _map_data['url']
-                        await download_image(
-                            map_url,
-                            f"{map_path}/{idx}.png",
-                            session,
-                            semaphore,
-                            force_flag=flag,
-                        )
-                        idx += 1
-                    _w, h = CreateImg(0, 0, background=f"{map_path}/0.png", ratio=MAP_RATIO).size
-                    w = _w * len(os.listdir(map_path))
-                    map_file = CreateImg(w, h, _w, h, ratio=MAP_RATIO)
-                    for i in range(idx):
-                        map_file.paste(CreateImg(0, 0, background=f"{map_path}/{i}.png", ratio=MAP_RATIO))
-                    map_file.save(f"{map_path}/map.png")
-            else:
-                logger.warning(f'获取原神地图失败 msg: {data["message"]}')
+    response = await AsyncHttpx.get(MAP_URL)
+    if response.status_code == 200:
+        data = response.json()
+        if data["message"] == "OK":
+            data = json.loads(data["data"]["info"]["detail"])
+            CENTER_POINT = (data["origin"][0], data["origin"][1])
+            if not _map.exists():
+                data = data["slices"]
+                idx = 0
+                for _map_data in data[0]:
+                    map_url = _map_data['url']
+                    await download_image(
+                        map_url,
+                        f"{map_path}/{idx}.png",
+                        semaphore,
+                        force_flag=flag,
+                    )
+                    idx += 1
+                _w, h = CreateImg(0, 0, background=f"{map_path}/0.png", ratio=MAP_RATIO).size
+                w = _w * len(os.listdir(map_path))
+                map_file = CreateImg(w, h, _w, h, ratio=MAP_RATIO)
+                for i in range(idx):
+                    map_file.paste(CreateImg(0, 0, background=f"{map_path}/{i}.png", ratio=MAP_RATIO))
+                map_file.save(f"{map_path}/map.png")
         else:
-            logger.warning(f"获取原神地图失败 code：{response.status}")
+            logger.warning(f'获取原神地图失败 msg: {data["message"]}')
+    else:
+        logger.warning(f"获取原神地图失败 code：{response.status}")
 
 
 # 下载资源类型数据
-async def download_resource_type(session: ClientSession):
+async def download_resource_type():
     resource_type_file.parent.mkdir(parents=True, exist_ok=True)
-    async with session.get(LABEL_URL, timeout=5) as response:
-        if response.status == 200:
-            data = await response.json()
-            if data["message"] == "OK":
-                data = data["data"]["tree"]
-                resource_data = {}
-                for x in data:
-                    id_ = x["id"]
-                    resource_data[id_] = x
-                with open(resource_type_file, "w", encoding="utf8") as f:
-                    json.dump(resource_data, f, ensure_ascii=False, indent=4)
-                logger.info(f"更新原神资源类型成功...")
-            else:
-                logger.warning(f'获取原神资源类型失败 msg: {data["message"]}')
+    response = await AsyncHttpx.get(LABEL_URL)
+    if response.status_code == 200:
+        data = response.json()
+        if data["message"] == "OK":
+            data = data["data"]["tree"]
+            resource_data = {}
+            for x in data:
+                id_ = x["id"]
+                resource_data[id_] = x
+            with open(resource_type_file, "w", encoding="utf8") as f:
+                json.dump(resource_data, f, ensure_ascii=False, indent=4)
+            logger.info(f"更新原神资源类型成功...")
         else:
-            logger.warning(f"获取原神资源类型失败 code：{response.status}")
+            logger.warning(f'获取原神资源类型失败 msg: {data["message"]}')
+    else:
+        logger.warning(f"获取原神资源类型失败 code：{response.status_code}")
 
 
 # 初始化资源图标
@@ -239,7 +232,6 @@ def gen_icon(icon: str):
 async def download_image(
     img_url: str,
     path: str,
-    session: ClientSession,
     semaphore: Semaphore,
     gen_flag: bool = False,
     force_flag: bool = False,
@@ -247,15 +239,12 @@ async def download_image(
     async with semaphore:
         try:
             if not os.path.exists(path) or not is_valid or force_flag:
-                async with session.get(img_url, timeout=5) as response:
-                    async with aiofiles.open(path, "wb") as f:
-                        await f.write(await response.read())
-                        logger.info(f"下载原神资源图标：{img_url}")
-                        if gen_flag:
-                            gen_icon(path)
-        except TimeoutError:
-            logger.warning("下载原神资源图片超时...已再次尝试...")
-            await download_image(img_url, path, session, semaphore, gen_flag)
+                if await AsyncHttpx.download_file(img_url, path):
+                    logger.info(f"下载原神资源图标：{img_url}")
+                    if gen_flag:
+                        gen_icon(path)
+                else:
+                    logger.info(f"下载原神资源图标：{img_url} 失败，等待下次更新...")
         except UnidentifiedImageError:
             logger.warning(f"原神图片打开错误..已删除，等待下次更新... file: {path}")
             if os.path.exists(path):

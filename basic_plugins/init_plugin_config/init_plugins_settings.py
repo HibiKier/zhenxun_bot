@@ -17,23 +17,19 @@ def init_plugins_settings(data_path: str):
     plugins2settings_file = Path(data_path) / "configs" / "plugins2settings.yaml"
     plugins2settings_file.parent.mkdir(exist_ok=True, parents=True)
     _matchers = get_matchers()
-    _data = {}
-    if plugins2settings_file.exists():
-        with open(plugins2settings_file, "r", encoding="utf8") as f:
-            _data = _yaml.load(f)
-            _data = _data["PluginSettings"] if _data else {}
     _tmp_module = {}
     _tmp = []
+    for x in plugins2settings_manager.keys():
+        try:
+            _plugin = nonebot.plugin.get_plugin(x)
+            _module = _plugin.module
+            plugin_name = _module.__getattribute__("__zx_plugin_name__")
+            _tmp_module[x] = plugin_name
+        except (KeyError, AttributeError) as e:
+            logger.error(f"配置文件 模块：{x} 获取 plugin_name 失败...{e}")
+            _tmp_module[x] = ""
     for matcher in _matchers:
-        if matcher.module in _data.keys():
-            plugins2settings_manager.add_plugin_settings(
-                matcher.module,
-                plugin_type=_data[matcher.module]["plugin_type"],
-                data_dict=_data[matcher.module],
-            )
-            if _data[matcher.module]["cmd"]:
-                _tmp_module[matcher.module] = _data[matcher.module]["cmd"][0]
-        else:
+        if matcher.module not in plugins2settings_manager.keys():
             _plugin = nonebot.plugin.get_plugin(matcher.module)
             try:
                 _module = _plugin.module
@@ -52,7 +48,7 @@ def init_plugins_settings(data_path: str):
                         except (AttributeError, KeyError):
                             level = 5
                             cmd = None
-                        if not level:
+                        if level is None:
                             level = 5
                         admin_manager.add_admin_plugin_settings(
                             matcher.module, cmd, level
@@ -76,7 +72,7 @@ def init_plugins_settings(data_path: str):
                             "__plugin_settings__"
                         )
                         if (
-                            plugin_settings["cmd"]
+                            plugin_settings["cmd"] is not None
                             and plugin_name not in plugin_settings["cmd"]
                         ):
                             plugin_settings["cmd"].append(plugin_name)

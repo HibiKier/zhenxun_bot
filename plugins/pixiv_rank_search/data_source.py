@@ -1,13 +1,11 @@
 from configs.path_config import IMAGE_PATH
-from utils.utils import get_local_proxy
 from utils.message_builder import image
 from asyncio.exceptions import TimeoutError
 from configs.config import Config
-from aiohttp.client_exceptions import ClientConnectorError
+from utils.http_utils import AsyncHttpx
 from typing import Optional
+from services.log import logger
 from pathlib import Path
-import aiohttp
-import aiofiles
 import platform
 
 if platform.system() == "Windows":
@@ -71,40 +69,41 @@ async def parser_data(
     :param r18: 是否r18
     """
     info_list = []
-    async with aiohttp.ClientSession() as session:
-        for _ in range(3):
-            try:
-                async with session.get(
-                    url,
-                    params=params,
-                    proxy=get_local_proxy(),
-                    timeout=Config.get_config("pixiv_rank_search", "TIMEOUT"),
-                ) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        if data.get("illusts"):
-                            data = data["illusts"]
-                            break
-            except (TimeoutError, ClientConnectorError):
-                pass
+    for _ in range(3):
+        try:
+            response = await AsyncHttpx.get(
+                url,
+                params=params,
+                timeout=Config.get_config("pixiv_rank_search", "TIMEOUT"),
+            )
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("illusts"):
+                    data = data["illusts"]
+                    break
+        except TimeoutError:
+            pass
+        except Exception as e:
+            logger.error(f"P站排行/搜图解析数据发生错误 {type(e)}：{e}")
+            return ["发生了一些些错误..."], 995
+    else:
+        return ["网络不太好？没有该页数？也许过一会就好了..."], 998
+    num = num if num < 30 else 30
+    data = data[:num]
+    for x in data:
+        if type_ == "search" and r18 == 1:
+            if "R-18" in str(x["tags"]):
+                continue
+        title = x["title"]
+        author = x["user"]["name"]
+        urls = []
+        if x["page_count"] == 1:
+            urls.append(x["image_urls"]["large"])
         else:
-            return ["网络不太好？没有该页数？也许过一会就好了..."], 998
-        num = num if num < 30 else 30
-        data = data[:num]
-        for x in data:
-            if type_ == "search" and r18 == 1:
-                if "R-18" in str(x["tags"]):
-                    continue
-            title = x["title"]
-            author = x["user"]["name"]
-            urls = []
-            if x["page_count"] == 1:
-                urls.append(x["image_urls"]["large"])
-            else:
-                for j in x["meta_pages"]:
-                    urls.append(j["image_urls"]["large"])
-            info_list.append((title, author, urls))
-        return info_list, 200
+            for j in x["meta_pages"]:
+                urls.append(j["image_urls"]["large"])
+        info_list.append((title, author, urls))
+    return info_list, 200
 
 
 async def download_pixiv_imgs(
@@ -120,55 +119,36 @@ async def download_pixiv_imgs(
     index = 0
     for url in urls:
         ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
-        if ws_url.startswith("http"):
-            ws_url = ws_url.split("//")[-1]
-        url = (
-            url.replace("i.pximg.net", ws_url)
-            .replace("i.pixiv.cat", ws_url)
-            .replace("_webp", "")
-        )
-        async with aiohttp.ClientSession(headers=headers) as session:
-            for _ in range(3):
+        if ws_url:
+            url = (
+                url.replace("i.pximg.net", ws_url)
+                .replace("i.pixiv.cat", ws_url)
+                .replace("_webp", "")
+            )
+            try:
+                file = (
+                    f"{IMAGE_PATH}/temp/{user_id}_{forward_msg_index}_{index}_pixiv.jpg"
+                    if forward_msg_index is not None
+                    else f"{IMAGE_PATH}/temp/{user_id}_{index}_pixiv.jpg"
+                )
+                file = Path(file)
                 try:
-                    async with session.get(
+                    if await AsyncHttpx.download_file(
                         url,
-                        proxy=get_local_proxy(),
+                        file,
                         timeout=Config.get_config("pixiv_rank_search", "TIMEOUT"),
-                    ) as response:
-                        if response.status == 200:
-                            try:
-                                file = (
-                                    f"{IMAGE_PATH}/temp/{user_id}_{forward_msg_index}_{index}_pixiv.jpg"
-                                    if forward_msg_index is not None
-                                    else f"{IMAGE_PATH}/temp/{user_id}_{index}_pixiv.jpg"
-                                )
-                                file = Path(file)
-                                if forward_msg_index is not None:
-                                    async with aiofiles.open(
-                                        file,
-                                        "wb",
-                                    ) as f:
-                                        await f.write(await response.read())
-                                        result += image(
-                                            f"{user_id}_{forward_msg_index}_{index}_pixiv.jpg",
-                                            "temp",
-                                        )
-                                else:
-                                    async with aiofiles.open(
-                                        file,
-                                        "wb",
-                                    ) as f:
-                                        await f.write(await response.read())
-                                        result += image(
-                                            f"{user_id}_{index}_pixiv.jpg", "temp"
-                                        )
-                                index += 1
-                                break
-                            except OSError:
-                                file.unlink()
-                except (TimeoutError, ClientConnectorError):
-                    # result += '\n这张图下载失败了..\n'
-                    pass
-            else:
-                result += "\n这张图下载失败了..\n"
+                    ):
+                        if forward_msg_index is not None:
+                            result += image(
+                                f"{user_id}_{forward_msg_index}_{index}_pixiv.jpg",
+                                "temp",
+                            )
+                        else:
+                            result += image(f"{user_id}_{index}_pixiv.jpg", "temp")
+                    index += 1
+                except OSError:
+                    if file.exists():
+                        file.unlink()
+            except Exception as e:
+                logger.error(f"P站排行/搜图下载图片错误 {type(e)}：{e}")
     return result

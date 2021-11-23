@@ -1,13 +1,11 @@
-#coding:utf-8
-import aiohttp
 from .config import DRAW_PATH
 from asyncio.exceptions import TimeoutError
 from bs4 import BeautifulSoup
-import asyncio
 from .util import download_img
 from urllib.parse import unquote
 from services.log import logger
 from .util import remove_prohibited_str
+from utils.http_utils import AsyncHttpx
 import bs4
 import re
 try:
@@ -26,40 +24,39 @@ async def update_info(url: str, game_name: str, info_list: list = None) -> 'dict
     except (ValueError, FileNotFoundError):
         data = {}
     try:
-        async with aiohttp.ClientSession(headers=headers) as session:
-            async with session.get(url, timeout=7) as response:
-                soup = BeautifulSoup(await response.text(), 'lxml')
-                _tbody = get_tbody(soup, game_name, url)
-                trs = _tbody.find_all('tr')
-                att_dict, start_index, index = init_attr(game_name)
-                if game_name == 'guardian':
-                    start_index = 1
-                if game_name == 'azur':
-                    start_index = 0
-                for th in trs[0].find_all('th')[start_index:]:
-                    text = th.text
-                    if text[-1] == '\n':
-                        text = text[:-1]
-                    att_dict[text] = index
-                    index += 1
-                for tr in trs[1:]:
-                    member_dict = {}
-                    tds = tr.find_all('td')
-                    if not info_list:
-                        info_list = att_dict.keys()
-                    for key in info_list:
-                        key, attr = parse_key(key, game_name)
-                        td = tds[att_dict[key]]
-                        last_tag = unquote(_find_last_tag(td, attr, game_name), 'utf-8')
-                        member_dict[key] = last_tag
-                        member_dict = intermediate_check(member_dict, key, game_name, td)
-                    avatar_img = await _modify_avatar_url(session, game_name, member_dict["名称"])
-                    member_dict['头像'] = avatar_img if avatar_img else member_dict['头像']
-                    member_dict, name = replace_update_name(member_dict, game_name)
-                    await download_img(member_dict['头像'], game_name, name)
-                    data[name] = member_dict
-                    logger.info(f'{name} is update...')
-            data = await _last_check(data, game_name, session)
+        text = (await AsyncHttpx.get(url)).text
+        soup = BeautifulSoup(text, 'lxml')
+        _tbody = get_tbody(soup, game_name, url)
+        trs = _tbody.find_all('tr')
+        att_dict, start_index, index = init_attr(game_name)
+        if game_name == 'guardian':
+            start_index = 1
+        if game_name == 'azur':
+            start_index = 0
+        for th in trs[0].find_all('th')[start_index:]:
+            text = th.text
+            if text[-1] == '\n':
+                text = text[:-1]
+            att_dict[text] = index
+            index += 1
+        for tr in trs[1:]:
+            member_dict = {}
+            tds = tr.find_all('td')
+            if not info_list:
+                info_list = att_dict.keys()
+            for key in info_list:
+                key, attr = parse_key(key, game_name)
+                td = tds[att_dict[key]]
+                last_tag = unquote(_find_last_tag(td, attr, game_name), 'utf-8')
+                member_dict[key] = last_tag
+                member_dict = intermediate_check(member_dict, key, game_name, td)
+            avatar_img = await _modify_avatar_url(game_name, member_dict["名称"])
+            member_dict['头像'] = avatar_img if avatar_img else member_dict['头像']
+            member_dict, name = replace_update_name(member_dict, game_name)
+            await download_img(member_dict['头像'], game_name, name)
+            data[name] = member_dict
+            logger.info(f'{name} is update...')
+        data = await _last_check(data, game_name)
     except TimeoutError:
         logger.warning(f'更新 {game_name} 超时...')
         return {}, 999
@@ -97,7 +94,7 @@ def _find_last_tag(element: bs4.element.Tag, attr: str, game_name: str) -> str:
 
 
 # 获取大图（小图快爬）
-async def _modify_avatar_url(session: aiohttp.ClientSession, game_name: str, char_name: str):
+async def _modify_avatar_url(game_name: str, char_name: str):
     # if game_name == 'prts':
     #     async with session.get(f'https://wiki.biligame.com/arknights/{char_name}', timeout=7) as res:
     #         soup = BeautifulSoup(await res.text(), 'lxml')
@@ -109,10 +106,10 @@ async def _modify_avatar_url(session: aiohttp.ClientSession, game_name: str, cha
     if game_name == 'genshin':
         return None
     if game_name == 'pretty_card':
-        async with session.get(f'https://wiki.biligame.com/umamusume/{char_name}', timeout=7) as res:
-            soup = BeautifulSoup(await res.text(), 'lxml')
-            img_url = soup.find('div', {'class': 'support_card-left'}).find('div').find('img').get('src')
-            return img_url
+        text = (await AsyncHttpx.get(f'https://wiki.biligame.com/umamusume/{char_name}')).text
+        soup = BeautifulSoup(text, 'lxml')
+        img_url = soup.find('div', {'class': 'support_card-left'}).find('div').find('img').get('src')
+        return img_url
     if game_name == 'guardian':
         # 未上传图片太多，换成像素图
         # async with session.get(f'https://wiki.biligame.com/gt/{char_name}', timeout=7) as res:
@@ -130,7 +127,7 @@ async def _modify_avatar_url(session: aiohttp.ClientSession, game_name: str, cha
 
 
 # 数据最后处理（是否需要额外数据或处理数据）
-async def _last_check(data: dict, game_name: str, session: aiohttp.ClientSession):
+async def _last_check(data: dict, game_name: str):
     # if game_name == 'prts':
     #     url = 'https://wiki.biligame.com/arknights/'
     #     tasks = []
@@ -142,23 +139,23 @@ async def _last_check(data: dict, game_name: str, session: aiohttp.ClientSession
     #             data[key]['获取途径'] = x[key]['获取途径']
     if game_name == 'genshin':
         for key in data.keys():
-            async with session.get(f'https://wiki.biligame.com/ys/{key}', timeout=7) as res:
-                soup = BeautifulSoup(await res.text(), 'lxml')
-                _trs = ''
-                for table in soup.find_all('table', {'class': 'wikitable'}):
-                    if str(table).find('常驻/限定') != -1:
-                        _trs = table.find('tbody').find_all('tr')
-                        break
-                for tr in _trs:
-                    data[key]['常驻/限定'] = '未知'
-                    if str(tr).find('限定UP') != -1:
-                        data[key]['常驻/限定'] = '限定UP'
-                        logger.info(f'原神获取额外数据 {key}...{data[key]["常驻/限定"]}')
-                        break
-                    elif str(tr).find('常驻UP') != -1:
-                        data[key]['常驻/限定'] = '常驻UP'
-                        logger.info(f'原神获取额外数据 {key}...{data[key]["常驻/限定"]}')
-                        break
+            text = (await AsyncHttpx.get(f'https://wiki.biligame.com/ys/{key}')).text
+            soup = BeautifulSoup(text, 'lxml')
+            _trs = ''
+            for table in soup.find_all('table', {'class': 'wikitable'}):
+                if str(table).find('常驻/限定') != -1:
+                    _trs = table.find('tbody').find_all('tr')
+                    break
+            for tr in _trs:
+                data[key]['常驻/限定'] = '未知'
+                if str(tr).find('限定UP') != -1:
+                    data[key]['常驻/限定'] = '限定UP'
+                    logger.info(f'原神获取额外数据 {key}...{data[key]["常驻/限定"]}')
+                    break
+                elif str(tr).find('常驻UP') != -1:
+                    data[key]['常驻/限定'] = '常驻UP'
+                    logger.info(f'原神获取额外数据 {key}...{data[key]["常驻/限定"]}')
+                    break
     if game_name == 'pretty':
         for keys in data.keys():
             for key in data[keys].keys():

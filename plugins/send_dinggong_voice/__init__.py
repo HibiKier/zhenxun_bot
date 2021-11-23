@@ -1,11 +1,11 @@
 from nonebot import on_keyword
 from utils.message_builder import record
 from configs.path_config import VOICE_PATH
-import random
 from services.log import logger
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.rule import to_me
+import random
 import os
 
 __zx_plugin_name__ = "骂我"

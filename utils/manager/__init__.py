@@ -22,6 +22,7 @@ driver: Driver = nonebot.get_driver()
 group_manager: Optional[GroupManager] = GroupManager(
     Path(DATA_PATH) / "manager" / "group_manager.json"
 )
+
 # 撤回消息管理
 withdraw_message_manager: Optional[WithdrawMessageManager] = WithdrawMessageManager()
 

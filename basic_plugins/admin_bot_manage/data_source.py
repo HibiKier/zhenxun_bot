@@ -12,8 +12,7 @@ from models.level_user import LevelUser
 from configs.config import Config
 from utils.manager import group_manager, plugins2settings_manager, plugins_manager
 from utils.image_utils import CreateImg
-import aiofiles
-import aiohttp
+from utils.http_utils import AsyncHttpx
 import asyncio
 import time
 import os
@@ -73,12 +72,7 @@ async def custom_group_welcome(
             logger.info(f"USER {user_id} GROUP {group_id} 更换群欢迎消息 {msg}")
             result += msg
         if img:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(img, proxy=get_local_proxy()) as response:
-                    async with aiofiles.open(
-                        DATA_PATH + f"custom_welcome_msg/{group_id}.jpg", "wb"
-                    ) as f:
-                        await f.write(await response.read())
+            await AsyncHttpx.download_file(img, DATA_PATH + f"custom_welcome_msg/{group_id}.jpg")
             img_result = image(abspath=DATA_PATH + f"custom_welcome_msg/{group_id}.jpg")
             logger.info(f"USER {user_id} GROUP {group_id} 更换群欢迎消息图片")
     except Exception as e:

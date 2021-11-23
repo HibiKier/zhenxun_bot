@@ -14,7 +14,7 @@ from datetime import datetime
 from utils.browser import get_browser
 from services.db_context import db
 from services.log import logger
-import aiohttp
+from utils.http_utils import AsyncHttpx
 import random
 
 
@@ -150,7 +150,7 @@ async def delete_sub(sub_id: str, sub_user: str) -> str:
     :param sub_id: 订阅 id
     :param sub_user: 订阅用户 id # 7384933:private or 7384933:2342344(group)
     """
-    if await BilibiliSub.delete_bilibili_sub(sub_id, sub_user):
+    if await BilibiliSub.delete_bilibili_sub(int(sub_id), sub_user):
         return f"已成功取消订阅：{sub_id}"
     else:
         return f"取消订阅：{sub_id} 失败，请检查是否订阅过该Id...."
@@ -162,30 +162,27 @@ async def get_media_id(keyword: str) -> dict:
     :param keyword: 番剧名称
     """
     params = {"keyword": keyword}
-    async with aiohttp.ClientSession() as session:
-        for _ in range(3):
-            try:
-                _season_data = {}
-                async with session.get(
-                    bilibili_search_url, timeout=5, params=params
-                ) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        if data.get("data"):
-                            for item in data["data"]["result"]:
-                                if item["result_type"] == "media_bangumi":
-                                    idx = 0
-                                    for x in item["data"]:
-                                        _season_data[idx] = {
-                                            "media_id": x["media_id"],
-                                            "title": x["title"]
-                                            .replace('<em class="keyword">', "")
-                                            .replace("</em>", ""),
-                                        }
-                                        idx += 1
-                                    return _season_data
-            except TimeoutError:
-                pass
+    for _ in range(3):
+        try:
+            _season_data = {}
+            response = await AsyncHttpx.get(bilibili_search_url, params=params, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("data"):
+                    for item in data["data"]["result"]:
+                        if item["result_type"] == "media_bangumi":
+                            idx = 0
+                            for x in item["data"]:
+                                _season_data[idx] = {
+                                    "media_id": x["media_id"],
+                                    "title": x["title"]
+                                    .replace('<em class="keyword">', "")
+                                    .replace("</em>", ""),
+                                }
+                                idx += 1
+                            return _season_data
+        except TimeoutError:
+            pass
         return {}
 
 

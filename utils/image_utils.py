@@ -3,7 +3,7 @@ from PIL import Image, ImageFile, ImageDraw, ImageFont, ImageFilter
 from imagehash import ImageHash
 from io import BytesIO
 from matplotlib import pyplot as plt
-from typing import Tuple, Optional, Union, List
+from typing import Tuple, Optional, Union, List, Literal
 from pathlib import Path
 from math import ceil
 import random
@@ -38,7 +38,7 @@ def compare_image_with_hash(
         return False
 
 
-def get_img_hash(image_file: str) -> ImageHash:
+def get_img_hash(image_file: Union[str, Path]) -> ImageHash:
     """
     说明：
         获取图片的hash值
@@ -225,7 +225,7 @@ class CreateImg:
         img: "CreateImg" or Image,
         pos: Tuple[int, int] = None,
         alpha: bool = False,
-        center_type: Optional[str] = None,
+        center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
     ):
         """
         说明：
@@ -313,7 +313,7 @@ class CreateImg:
         pos: Tuple[int, int],
         text: str,
         fill: Tuple[int, int, int] = (0, 0, 0),
-        center_type: Optional[str] = None,
+        center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
     ):
         """
         说明：
@@ -867,7 +867,10 @@ class CreateMat:
                     font_h = self.markImg.getsize(str(y[i]))[1]
                     self.markImg.text(
                         (
-                            self.padding_w + int(y[i] * self._p * self._deviation) + 2 + 5,
+                            self.padding_w
+                            + int(y[i] * self._p * self._deviation)
+                            + 2
+                            + 5,
                             current_h - int(font_h / 2) - 1,
                         ),
                         f"{y[i]:.2f}" if isinstance(y[i], float) else f"{y[i]}",
@@ -937,7 +940,9 @@ class CreateMat:
         padding_h = self.padding_h
         line_length = self.line_length
         background = random.choice(self.background) if self.background else None
-        A = CreateImg(self.w, self.h, font_size=font_size, font=self.font, background=background)
+        A = CreateImg(
+            self.w, self.h, font_size=font_size, font=self.font, background=background
+        )
         if background:
             _tmp = CreateImg(self.w, self.h)
             _tmp.transparent(2)
@@ -950,7 +955,7 @@ class CreateMat:
                 color=(255, 255, 255, 0),
                 font_size=35,
                 font_color=self._color.get("title"),
-                font=self.font
+                font=self.font,
             )
             A.paste(title, (0, 25), True, "by_width")
         A.line(
@@ -993,7 +998,7 @@ class CreateMat:
                 plain_text=f"{_x}",
                 font_size=self.font_size,
                 color=(255, 255, 255, 0),
-                font=self.font
+                font=self.font,
             )
             text.rotate(self.x_rotate, True)
             A.paste(text, (current_w - w, padding_h + line_length + 10), alpha=True)
@@ -1013,7 +1018,7 @@ class CreateMat:
                 plain_text=f"{_y}",
                 font_size=self.font_size,
                 color=(255, 255, 255, 0),
-                font=self.font
+                font=self.font,
             )
             idx = 0
             while text.size[0] > self.padding_w - 10 and idx < 3:
@@ -1023,7 +1028,7 @@ class CreateMat:
                     plain_text=f"{_y}",
                     font_size=int(self.font_size * 0.75),
                     color=(255, 255, 255, 0),
-                    font=self.font
+                    font=self.font,
                 )
                 w, _ = text.getsize(f"{_y}")
                 idx += 1
@@ -1033,8 +1038,10 @@ class CreateMat:
             A.text((int(padding_w / 2), int(padding_w / 2)), x_name)
         if y_name:
             A.text(
-                (int(padding_w + line_length + 50 - A.getsize(y_name)[0]),
-                 int(padding_h + line_length + 50 + x_rotate_height)),
+                (
+                    int(padding_w + line_length + 50 - A.getsize(y_name)[0]),
+                    int(padding_h + line_length + 50 + x_rotate_height),
+                ),
                 y_name,
             )
         return A

@@ -41,7 +41,6 @@ class StaticData:
     def delete(self, key):
         if self._data.get(key) is not None:
             del self._data[key]
-        self.save()
 
     def get_data(self) -> dict:
         return self._data

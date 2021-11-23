@@ -301,7 +301,7 @@ def is_chinese(word: str) -> bool:
     return True
 
 
-async def get_user_avatar(qq: int) -> bytes:
+async def get_user_avatar(qq: int) -> Optional[bytes]:
     """
     说明：
         快捷获取用户头像
@@ -315,9 +315,10 @@ async def get_user_avatar(qq: int) -> bytes:
                 return (await client.get(url)).content
             except TimeoutError:
                 pass
+    return None
 
 
-async def get_group_avatar(group_id: int) -> bytes:
+async def get_group_avatar(group_id: int) -> Optional[bytes]:
     """
     说明：
         快捷获取用群头像
@@ -331,6 +332,7 @@ async def get_group_avatar(group_id: int) -> bytes:
                 return (await client.get(url)).content
             except TimeoutError:
                 pass
+    return None
 
 
 def cn2py(word: str) -> str:
@@ -346,18 +348,26 @@ def cn2py(word: str) -> str:
     return temp
 
 
-def change_picture_links(url: str, mode: str):
+def change_pixiv_image_links(
+    url: str, size: Optional[str] = None, nginx_url: Optional[str] = None
+):
     """
     说明：
-        根据配置改变图片大小
+        根据配置改变图片大小和反代链接
     参数：
         :param url: 图片原图链接
-        :param mode: 模式
+        :param size: 模式
+        :param nginx_url: 反代
     """
-    if mode == "master":
+    if size == "master":
         img_sp = url.rsplit(".", maxsplit=1)
         url = img_sp[0]
         img_type = img_sp[1]
         url = url.replace("original", "master") + f"_master1200.{img_type}"
+    if nginx_url:
+        url = (
+            url.replace("i.pximg.net", nginx_url)
+            .replace("i.pixiv.cat", nginx_url)
+            .replace("_webp", "")
+        )
     return url
-

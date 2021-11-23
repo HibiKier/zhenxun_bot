@@ -24,8 +24,6 @@ __plugin_version__ = 0.1
 __plugin_author__ = 'HibiKier'
 __plugin_settings__ = {
     "level": 5,
-    "default_status": True,
-    "limit_superuser": False,
     "cmd": ["Ai", "ai", "AI", "aI"],
 }
 __plugin_configs__ = {

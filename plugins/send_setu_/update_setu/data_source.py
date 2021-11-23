@@ -2,17 +2,15 @@ from configs.path_config import IMAGE_PATH, TEXT_PATH, TEMP_PATH
 from services.log import logger
 from datetime import datetime
 from utils.image_utils import compressed_image, get_img_hash
-from utils.utils import get_bot, get_local_proxy
+from utils.utils import get_bot
 from asyncio.exceptions import TimeoutError
 from ..model import Setu
-from aiohttp.client_exceptions import ClientConnectorError
 from asyncpg.exceptions import UniqueViolationError
 from configs.config import Config
+from utils.http_utils import AsyncHttpx
 from pathlib import Path
 from nonebot import Driver
 import nonebot
-import aiofiles
-import aiohttp
 import os
 import ujson as json
 import shutil
@@ -97,75 +95,63 @@ async def update_setu_img():
     error_info = []
     error_type = []
     count = 0
-    async with aiohttp.ClientSession(headers=headers) as session:
-        for image in image_list:
-            count += 1
-            path = _path / "_r18" if image.is_r18 else _path / "_setu"
-            rar_path = Path(TEMP_PATH)
-            local_image = path / f"{image.local_id}.jpg"
-            path.mkdir(exist_ok=True, parents=True)
-            rar_path.mkdir(exist_ok=True, parents=True)
-            if not local_image.exists() or not image.img_hash:
-                url_ = image.img_url
-                ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
-                if ws_url.startswith("http"):
-                    ws_url = ws_url.split("//")[-1]
+    for image in image_list:
+        count += 1
+        path = _path / "_r18" if image.is_r18 else _path / "_setu"
+        rar_path = Path(TEMP_PATH)
+        local_image = path / f"{image.local_id}.jpg"
+        path.mkdir(exist_ok=True, parents=True)
+        rar_path.mkdir(exist_ok=True, parents=True)
+        if not local_image.exists() or not image.img_hash:
+            url_ = image.img_url
+            ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
+            if ws_url:
                 url_ = url_.replace("i.pximg.net", ws_url).replace("i.pixiv.cat", ws_url)
-                for _ in range(3):
-                    try:
-                        async with session.get(
-                            url_, proxy=get_local_proxy(), timeout=30
-                        ) as response:
-                            if response.status == 200:
-                                async with aiofiles.open(
-                                    rar_path / f'{image.local_id}.jpg',
-                                    "wb",
-                                ) as f:
-                                    await f.write(await response.read())
-                                    _success += 1
-                                try:
-                                    if (
-                                        os.path.getsize(
-                                            rar_path / f'{image.local_id}.jpg',
-                                        )
-                                        > 1024 * 1024 * 1.5
-                                    ):
-                                        compressed_image(
-                                            rar_path / f"{image.local_id}.jpg",
-                                            path / f"{image.local_id}.jpg"
-                                        )
-                                    else:
-                                        logger.info(
-                                            f"不需要压缩，移动图片{rar_path}/{image.local_id}.jpg "
-                                            f"--> /{path}/{image.local_id}.jpg"
-                                        )
-                                        os.rename(
-                                            f"{rar_path}/{image.local_id}.jpg",
-                                            f"{path}/{image.local_id}.jpg",
-                                        )
-                                except FileNotFoundError:
-                                    logger.warning(f"文件 {image.local_id}.jpg 不存在，跳过...")
-                                    continue
-                                img_hash = str(
-                                    get_img_hash(
-                                        f"{path}/{image.local_id}.jpg"
-                                    )
-                                )
-                                await Setu.update_setu_data(
-                                    image.pid, img_hash=img_hash
-                                )
-                                break
-                    except (TimeoutError, ClientConnectorError) as e:
-                        logger.warning(f"{image.local_id}.jpg 更新失败 ..{type(e)}：{e}")
-                    except Exception as e:
-                        logger.error(f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}")
-                        if type(e) not in error_type:
-                            error_type.append(type(e))
-                            error_info.append(
-                                f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}"
-                            )
-            else:
-                logger.info(f'更新色图 {image.local_id}.jpg 已存在')
+            try:
+                if not await AsyncHttpx.download_file(url_, rar_path / f'{image.local_id}.jpg'):
+                    continue
+                _success += 1
+                try:
+                    if (
+                        os.path.getsize(
+                            rar_path / f'{image.local_id}.jpg',
+                        )
+                        > 1024 * 1024 * 1.5
+                    ):
+                        compressed_image(
+                            rar_path / f"{image.local_id}.jpg",
+                            path / f"{image.local_id}.jpg"
+                        )
+                    else:
+                        logger.info(
+                            f"不需要压缩，移动图片{rar_path}/{image.local_id}.jpg "
+                            f"--> /{path}/{image.local_id}.jpg"
+                        )
+                        os.rename(
+                            f"{rar_path}/{image.local_id}.jpg",
+                            f"{path}/{image.local_id}.jpg",
+                        )
+                except FileNotFoundError:
+                    logger.warning(f"文件 {image.local_id}.jpg 不存在，跳过...")
+                    continue
+                img_hash = str(
+                    get_img_hash(
+                        f"{path}/{image.local_id}.jpg"
+                    )
+                )
+                await Setu.update_setu_data(
+                    image.pid, img_hash=img_hash
+                )
+            except Exception as e:
+                _success -= 1
+                logger.error(f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}")
+                if type(e) not in error_type:
+                    error_type.append(type(e))
+                    error_info.append(
+                        f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}"
+                    )
+        else:
+            logger.info(f'更新色图 {image.local_id}.jpg 已存在')
     error_info = ['无报错..'] if not error_info else error_info
     if count or _success or (error_info and "无报错.." not in error_info):
         await get_bot().send_private_msg(

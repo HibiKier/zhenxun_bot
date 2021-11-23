@@ -1,17 +1,16 @@
 from nonebot import on_message, on_command
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from nonebot.adapters.cqhttp.permission import GROUP
-from utils.utils import get_message_text, is_number, get_message_imgs, get_local_proxy
+from utils.utils import get_message_text, is_number, get_message_imgs
 from nonebot.typing import T_State
-from asyncio.exceptions import TimeoutError
-import time
 from nonebot.adapters.cqhttp.exception import ActionFailed
-from configs.path_config import DATA_PATH, IMAGE_PATH
+from configs.path_config import DATA_PATH, TEMP_PATH
 from utils.image_utils import get_img_hash
 from services.log import logger
 from configs.config import NICKNAME, Config
-import aiohttp
-import aiofiles
+from utils.http_utils import AsyncHttpx
+from pathlib import Path
+import time
 
 try:
     import ujson as json
@@ -36,25 +35,13 @@ __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {"admin_level": Config.get_config("mute", "MUTE_LEVEL")}
 __plugin_configs__ = {
-    "MUTE_LEVEL [LEVEL]": {
-        "value": 5,
-        "help": "更改禁言设置的管理权限",
-        "default_value": 5
-    },
-    "MUTE_DEFAULT_COUNT": {
-        "value": 10,
-        "help": "刷屏禁言默认检测次数",
-        "default_value": 10
-    },
-    "MUTE_DEFAULT_TIME": {
-        "value": 7,
-        "help": "刷屏检测默认规定时间",
-        "default_value": 7
-    },
+    "MUTE_LEVEL [LEVEL]": {"value": 5, "help": "更改禁言设置的管理权限", "default_value": 5},
+    "MUTE_DEFAULT_COUNT": {"value": 10, "help": "刷屏禁言默认检测次数", "default_value": 10},
+    "MUTE_DEFAULT_TIME": {"value": 7, "help": "刷屏检测默认规定时间", "default_value": 7},
     "MUTE_DEFAULT_DURATION": {
         "value": 10,
         "help": "刷屏检测默禁言时长（分钟）",
-        "default_value": 10
+        "default_value": 10,
     },
 }
 
@@ -85,18 +72,11 @@ def save_data():
 
 
 async def download_img_and_hash(url, group_id):
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                url, proxy=get_local_proxy(), timeout=10
-            ) as response:
-                async with aiofiles.open(
-                    IMAGE_PATH + f"temp/mute_{group_id}_img.jpg", "wb"
-                ) as f:
-                    await f.write(await response.read())
-        return str(get_img_hash(IMAGE_PATH + f"temp/mute_{group_id}_img.jpg"))
-    except TimeoutError:
-        return ""
+    if await AsyncHttpx.download_file(
+        url, Path(TEMP_PATH) / f"mute_{group_id}_img.jpg"
+    ):
+        return str(get_img_hash(Path(TEMP_PATH) / f"mute_{group_id}_img.jpg"))
+    return ""
 
 
 mute_dict = {}

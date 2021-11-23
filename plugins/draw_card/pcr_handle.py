@@ -1,7 +1,5 @@
 import ujson as json
-import os
 from nonebot.adapters.cqhttp import MessageSegment
-import nonebot
 import random
 from .update_game_info import update_info
 from .update_game_simple_info import update_simple_info
@@ -10,7 +8,6 @@ from .config import PCR_TWO_P, PCR_THREE_P, PCR_ONE_P, DRAW_PATH, PCR_FLAG, PCR_
 from dataclasses import dataclass
 from .init_card_pool import init_game_pool
 
-driver: nonebot.Driver = nonebot.get_driver()
 
 ALL_CHAR = []
 

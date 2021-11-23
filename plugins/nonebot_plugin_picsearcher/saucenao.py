@@ -79,7 +79,7 @@ async def get_pic_from_url(url: str):
         data = FormData(boundary="----WebKitFormBoundaryPpuR3EZ1Ap2pXv8W")
         data.add_field(name="file", value=content, content_type="image/jpeg",
                        filename="blob")
-        async with session.post("https://saucenao.com/search.php", data=data, headers=header) as res:
+        async with session.post("https://saucenao.com/search.php", proxy=get_local_proxy(), data=data, headers=header) as res:
             html = await res.text()
             image_data = [each for each in parse_html(html)]
     return image_data

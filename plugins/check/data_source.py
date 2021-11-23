@@ -1,11 +1,7 @@
 import psutil
-import aiohttp
 import time
 from datetime import datetime
-from utils.user_agent import get_user_agent
-from asyncio.exceptions import TimeoutError
-from aiohttp.client_exceptions import ClientConnectorError
-from utils.utils import get_local_proxy
+from utils.http_utils import AsyncHttpx
 from utils.image_utils import CreateImg
 from configs.path_config import IMAGE_PATH
 from pathlib import Path
@@ -34,23 +30,16 @@ class Check:
         self.disk = psutil.disk_usage("/").percent
 
     async def check_network(self):
-        async with aiohttp.ClientSession(headers=get_user_agent()) as session:
-            try:
-                async with session.get(
-                    "https://www.baidu.com/", proxy=get_local_proxy(), timeout=3
-                ) as response:
-                    pass
-            except (TimeoutError, ClientConnectorError) as e:
-                logger.warning(f"访问BaiDu失败... e: {e}")
-                self.baidu = 404
-            try:
-                async with session.get(
-                    "https://www.google.com/", proxy=get_local_proxy(), timeout=3
-                ) as response:
-                    pass
-            except (TimeoutError, ClientConnectorError) as e:
-                logger.warning(f"访问Google失败... e: {e}")
-                self.google = 404
+        try:
+            await AsyncHttpx.get("https://www.baidu.com/", timeout=5)
+        except Exception as e:
+            logger.warning(f"访问BaiDu失败... {type(e)}: {e}")
+            self.baidu = 404
+        try:
+            await AsyncHttpx.get("https://www.google.com/", timeout=5)
+        except Exception as e:
+            logger.warning(f"访问Google失败... {type(e)}: {e}")
+            self.google = 404
 
     def check_user(self):
         rst = ""

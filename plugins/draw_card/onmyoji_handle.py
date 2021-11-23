@@ -6,7 +6,6 @@ from .util import generate_img, init_star_rst, BaseData, set_list, get_star, max
 from .config import ONMYOJI_SR, ONMYOJI_SSR, ONMYOJI_SP, ONMYOJI_R, DRAW_PATH, ONMYOJI_FLAG
 from dataclasses import dataclass
 from .init_card_pool import init_game_pool
-import nonebot
 try:
     import ujson as json
 except ModuleNotFoundError:

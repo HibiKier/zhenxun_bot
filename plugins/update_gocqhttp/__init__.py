@@ -2,12 +2,12 @@ from nonebot import on_command
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from .data_source import download_gocq_lasted, upload_gocq_lasted
-import os
 from services.log import logger
 from utils.utils import scheduler, get_bot
 from nonebot.permission import SUPERUSER
 from configs.config import Config
 from pathlib import Path
+import os
 
 
 __zx_plugin_name__ = "更新gocq [Superuser]"

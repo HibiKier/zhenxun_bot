@@ -14,6 +14,13 @@ class Plugins2settingsManager(StaticData):
     def __init__(self, file: Path):
         self.file = file
         super().__init__(None)
+        if file.exists():
+            with open(file, "r", encoding="utf8") as f:
+                self._data = yaml.load(f)
+        if "PluginSettings" in self._data.keys():
+            self._data = (
+                self._data["PluginSettings"] if self._data["PluginSettings"] else {}
+            )
 
     def add_plugin_settings(
         self,

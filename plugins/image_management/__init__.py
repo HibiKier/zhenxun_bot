@@ -21,7 +21,7 @@ Config.add_plugin_config(
 )
 
 Config.add_plugin_config(
-    "image_management:delete_img",
+    "image_management:delete_image",
     "DELETE_IMAGE_LEVEL [LEVEL]",
     7,
     help_="删除图库图片需要的管理员等级",
@@ -29,7 +29,7 @@ Config.add_plugin_config(
 )
 
 Config.add_plugin_config(
-    "image_management:move_img",
+    "image_management:move_image",
     "MOVE_IMAGE_LEVEL [LEVEL]",
     7,
     help_="移动图库图片需要的管理员等级",
@@ -37,7 +37,7 @@ Config.add_plugin_config(
 )
 
 Config.add_plugin_config(
-    "image_management:upload_img",
+    "image_management:upload_image",
     "UPLOAD_IMAGE_LEVEL [LEVEL]",
     6,
     help_="上传图库图片需要的管理员等级",

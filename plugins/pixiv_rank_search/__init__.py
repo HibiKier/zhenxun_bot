@@ -7,7 +7,6 @@ from .data_source import get_pixiv_urls, download_pixiv_imgs, search_pixiv_urls
 from services.log import logger
 from nonebot.adapters.cqhttp.exception import NetworkError
 from asyncio.exceptions import TimeoutError
-from aiohttp.client_exceptions import ClientConnectorError
 from utils.message_builder import custom_forward_msg
 from configs.config import Config
 from typing import Type
@@ -209,5 +208,5 @@ async def send_image(
                     f"author: {author}\n"
                     + await download_pixiv_imgs(urls, event.user_id)
                 )
-            except (NetworkError, TimeoutError, ClientConnectorError):
+            except (NetworkError, TimeoutError):
                 await matcher.send("这张图网络直接炸掉了！", at_sender=True)

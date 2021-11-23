@@ -4,7 +4,7 @@ import nonebot
 
 Config.add_plugin_config(
     "admin_bot_manage:custom_welcome_message",
-    "SET_GROUP_WELCOME_MESSAGE_LEVEL",
+    "SET_GROUP_WELCOME_MESSAGE_LEVEL [LEVEL]",
     2,
     name="群管理员操作",
     help_="设置群欢迎消息权限",

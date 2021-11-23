@@ -1,13 +1,9 @@
-
-import aiohttp
-import aiofiles
-from asyncio.exceptions import TimeoutError
-from aiohttp.client_exceptions import InvalidURL
 from nonebot.adapters.cqhttp import MessageSegment
 from typing import List, Union, Set
 from pathlib import Path
 from .config import path_dict
 from configs.path_config import IMAGE_PATH
+from utils.http_utils import AsyncHttpx
 import nonebot
 import pypinyin
 from utils.image_utils import CreateImg
@@ -54,21 +50,12 @@ async def download_img(url: str, path: str, name: str) -> bool:
     if not file.exists():
         file.parent.mkdir(exist_ok=True, parents=True)
         try:
-            async with aiohttp.ClientSession(headers=headers) as session:
-                async with session.get(url, timeout=7) as response:
-                    async with aiofiles.open(IMAGE_PATH + f'/draw_card/{path}/{codename}.png', 'wb') as f:
-                        await f.write(await response.read())
-                        logger.info(f'下载 {path_dict[path]} 图片成功，名称：{name}，url：{url}')
-                        return True
-        except TimeoutError:
-            logger.warning(f'下载 {path_dict[path]} 图片超时，名称：{name}，url：{url}')
-            return False
-        except InvalidURL:
-            logger.warning(f'下载 {path_dict[path]} 链接错误，名称：{name}，url：{url}')
-            return False
-    else:
-        # logger.info(f'{path_dict[path]} 图片 {name} 已存在')
-        return False
+            if await AsyncHttpx.download_file(url, IMAGE_PATH + f'/draw_card/{path}/{codename}.png'):
+                logger.info(f'下载 {path_dict[path]} 图片成功，名称：{name}，url：{url}')
+                return True
+        except Exception as e:
+            logger.warning(f'下载 {path_dict[path]} 链接错误 {type(e)}：{e}，名称：{name}，url：{url}')
+    return False
 
 
 @driver.on_startup

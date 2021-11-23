@@ -7,7 +7,6 @@ from nonebot.adapters.cqhttp import PrivateMessageEvent
 from utils.utils import get_message_text
 from nonebot.adapters.cqhttp.permission import PRIVATE
 from asyncio.exceptions import TimeoutError
-from aiohttp.client_exceptions import ServerDisconnectedError
 
 __zx_plugin_name__ = "磁力搜索"
 __plugin_usage__ = """
@@ -89,11 +88,9 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
             send_flag = True
     except TimeoutError:
         await bt.finish(f"搜索 {keyword} 超时...")
-    except ServerDisconnectedError:
-        await bt.finish(f"搜索 {keyword} 连接失败")
     except Exception as e:
         await bt.finish(f"bt 其他未知错误..")
-        logger.error(f"bt 错误 e：{e}")
+        logger.error(f"bt 错误 {type(e)}：{e}")
     if not send_flag:
         await bt.send(f"{keyword} 未搜索到...")
     logger.info(f"USER {event.user_id} BT搜索 {keyword} 第 {page} 页")

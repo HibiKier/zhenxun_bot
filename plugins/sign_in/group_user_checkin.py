@@ -4,7 +4,6 @@ from models.group_member_info import GroupInfoUser
 from models.bag_user import BagUser
 from configs.config import NICKNAME
 from nonebot.adapters.cqhttp import MessageSegment
-from asyncio.exceptions import TimeoutError
 from utils.image_utils import CreateImg, CreateMat
 from services.db_context import db
 from .utils import get_card, SIGN_TODAY_CARD_PATH
@@ -12,9 +11,9 @@ from typing import Optional
 from services.log import logger
 from .random_event import random_event
 from utils.data_utils import init_rank
+from utils.utils import get_user_avatar
 from io import BytesIO
 import random
-import aiohttp
 import math
 import asyncio
 import secrets
@@ -142,47 +141,44 @@ async def _pst(users: list, impressions: list, groups: list):
     width = 10
     idx = 0
     A = CreateImg(1740, 3300, color="#FFE4C4")
-    async with aiohttp.ClientSession() as session:
-        for _ in range(count):
-            col_img = CreateImg(550, 3300, 550, 100, color="#FFE4C4")
-            for _ in range(33 if int(lens / 33) >= 1 else lens % 33 - 1):
-                idx += 1
-                if idx > 100:
-                    break
-                impression = max(impressions)
-                index = impressions.index(impression)
-                user = users[index]
-                group = groups[index]
-                impressions.pop(index)
-                users.pop(index)
-                groups.pop(index)
-                try:
-                    user_name = (
-                        await GroupInfoUser.get_member_info(user, group)
-                    ).user_name
-                except AttributeError:
-                    user_name = f"我名字呢？"
-                user_name = user_name if len(user_name) < 11 else user_name[:10] + "..."
-                try:
-                    async with session.get(
-                        f"http://q1.qlogo.cn/g?b=qq&nk={user}&s=160", timeout=5
-                    ) as response:
-                        ava = CreateImg(
-                            50, 50, background=BytesIO(await response.read())
-                        )
-                except TimeoutError:
-                    ava = CreateImg(50, 50, color="white")
-                ava.circle()
-                bk = CreateImg(550, 100, color="#FFE4C4", font_size=30)
-                font_w, font_h = bk.getsize(f"{idx}")
-                bk.text((5, int((100 - font_h) / 2)), f"{idx}.")
-                bk.paste(ava, (55, int((100 - 50) / 2)), True)
-                bk.text((120, int((100 - font_h) / 2)), f"{user_name}")
-                bk.text((460, int((100 - font_h) / 2)), f"[{impression:.2f}]")
-                col_img.paste(bk)
-            A.paste(col_img, (width, 0))
-            lens -= 33
-            width += 580
+    for _ in range(count):
+        col_img = CreateImg(550, 3300, 550, 100, color="#FFE4C4")
+        for _ in range(33 if int(lens / 33) >= 1 else lens % 33 - 1):
+            idx += 1
+            if idx > 100:
+                break
+            impression = max(impressions)
+            index = impressions.index(impression)
+            user = users[index]
+            group = groups[index]
+            impressions.pop(index)
+            users.pop(index)
+            groups.pop(index)
+            try:
+                user_name = (
+                    await GroupInfoUser.get_member_info(user, group)
+                ).user_name
+            except AttributeError:
+                user_name = f"我名字呢？"
+            user_name = user_name if len(user_name) < 11 else user_name[:10] + "..."
+            ava = await get_user_avatar(user)
+            if ava:
+                ava = CreateImg(
+                    50, 50, background=BytesIO(ava)
+                )
+            else:
+                ava = CreateImg(50, 50, color="white")
+            ava.circle()
+            bk = CreateImg(550, 100, color="#FFE4C4", font_size=30)
+            font_w, font_h = bk.getsize(f"{idx}")
+            bk.text((5, int((100 - font_h) / 2)), f"{idx}.")
+            bk.paste(ava, (55, int((100 - 50) / 2)), True)
+            bk.text((120, int((100 - font_h) / 2)), f"{user_name}")
+            bk.text((460, int((100 - font_h) / 2)), f"[{impression:.2f}]")
+            col_img.paste(bk)
+        A.paste(col_img, (width, 0))
+        lens -= 33
+        width += 580
     W = CreateImg(1740, 3700, color="#FFE4C4", font_size=130)
     W.paste(A, (0, 260))
     font_w, font_h = W.getsize(f"{NICKNAME}的好感度总榜")

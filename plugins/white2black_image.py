@@ -1,14 +1,13 @@
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot import on_command
-from utils.utils import get_message_imgs, get_local_proxy, get_message_text, is_chinese
+from utils.utils import get_message_imgs, get_message_text, is_chinese
 from utils.message_builder import image
-import aiohttp
-import aiofiles
-from configs.path_config import IMAGE_PATH
+from configs.path_config import TEMP_PATH
 from utils.image_utils import CreateImg
-from utils.user_agent import get_user_agent
 from services.log import logger
+from utils.http_utils import AsyncHttpx
+from pathlib import Path
 
 # ZH_CN2EN 中文　»　英语
 # ZH_CN2JA 中文　»　日语
@@ -53,14 +52,12 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     if not img or not msg:
         await w2b_img.finish(f"格式错误：\n" + __plugin_usage__)
     img = img[0]
-    async with aiohttp.ClientSession(headers=get_user_agent()) as session:
-        async with session.get(img, proxy=get_local_proxy()) as response:
-            async with aiofiles.open(
-                IMAGE_PATH + f"temp/{event.user_id}_w2b.png", "wb"
-            ) as f:
-                await f.write(await response.read())
+    if not await AsyncHttpx.download_file(
+        img, Path(TEMP_PATH) / f"{event.user_id}_w2b.png"
+    ):
+        await w2b_img.finish("下载图片失败...请稍后再试...")
     msg = await get_translate(msg)
-    w2b = CreateImg(0, 0, background=IMAGE_PATH + f"temp/{event.user_id}_w2b.png")
+    w2b = CreateImg(0, 0, background=Path(TEMP_PATH) / f"{event.user_id}_w2b.png")
     w2b.convert("L")
     msg_sp = msg.split("<|>")
     w, h = w2b.size
@@ -93,17 +90,17 @@ def centered_text(img: CreateImg, text: str, add_h: int):
     text_sp = text.split("<|>")
     w, h = img.getsize(text_sp[0])
     if len(text_sp) == 1:
-        w = (img.w - w) / 2
-        h = top_h + (bottom_h - top_h - h) / 2
+        w = int((img.w - w) / 2)
+        h = int(top_h + (bottom_h - top_h - h) / 2)
         img.text((w, h), text_sp[0], (255, 255, 255))
     else:
-        br_h = top_h + (bottom_h - top_h) / 2
-        w = (img.w - w) / 2
-        h = top_h + (br_h - top_h - h) / 2
+        br_h = int(top_h + (bottom_h - top_h) / 2)
+        w = int((img.w - w) / 2)
+        h = int(top_h + (br_h - top_h - h) / 2)
         img.text((w, h), text_sp[0], (255, 255, 255))
         w, h = img.getsize(text_sp[1])
-        w = (img.w - w) / 2
-        h = br_h + (bottom_h - br_h - h) / 2
+        w = int((img.w - w) / 2)
+        h = int(br_h + (bottom_h - br_h - h) / 2)
         img.text((w, h), text_sp[1], (255, 255, 255))
 
 
@@ -119,15 +116,10 @@ async def get_translate(msg: str) -> str:
         "action": "FY_BY_CLICKBUTTON",
         "typoResult": "true",
     }
-    async with aiohttp.ClientSession(headers=get_user_agent()) as session:
-        try:
-            async with session.post(url, data=data, proxy=get_local_proxy()) as res:
-                data = await res.json()
-                if data["errorCode"] == 0:
-                    translate = data["translateResult"][0][0]["tgt"]
-                    msg += "<|>" + translate
-        except Exception as e:
-            logger.warning(f"黑白草图翻译出错 e:{e}")
+    data = (await AsyncHttpx.post(url, data=data)).json()
+    if data["errorCode"] == 0:
+        translate = data["translateResult"][0][0]["tgt"]
+        msg += "<|>" + translate
     return msg
 
 

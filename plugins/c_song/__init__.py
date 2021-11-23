@@ -25,22 +25,22 @@ __plugin_settings__ = {
 }
 
 
-songpicker = on_command("点歌", priority=5, block=True)
+music = on_command("点歌", priority=5, block=True)
 
 
-@songpicker.handle()
+@music.handle()
 async def handle_first_receive(bot: Bot, event: Event, state: T_State):
     args = str(event.get_message()).strip()
     if args:
         state["song_name"] = args
 
 
-@songpicker.got("song_name", prompt="歌名是？")
+@music.got("song_name", prompt="歌名是？")
 async def _(bot: Bot, event: Event, state: T_State):
     song = state["song_name"]
     song_id = await get_song_id(song)
     if not song_id:
-        await songpicker.finish("没有找到这首歌！", at_sender=True)
+        await music.finish("没有找到这首歌！", at_sender=True)
     for _ in range(3):
         song_content = [{"type": "music", "data": {"type": 163, "id": song_id}}]
         logger.info(
@@ -48,9 +48,9 @@ async def _(bot: Bot, event: Event, state: T_State):
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
             f" 点歌 :{song}"
         )
-        await songpicker.finish(song_content)
+        await music.finish(song_content)
     else:
-        await songpicker.finish("网易云繁忙...")
+        await music.finish("网易云繁忙...")
 
 
 

@@ -1,16 +1,13 @@
 from configs.path_config import IMAGE_PATH
 from utils.message_builder import image
 from services.log import logger
-from aiohttp.client_exceptions import ClientConnectorError
 from utils.image_utils import get_img_hash, compressed_image
 from asyncpg.exceptions import UniqueViolationError
-from utils.utils import get_local_proxy
 from asyncio.exceptions import TimeoutError
 from typing import List, Optional
 from configs.config import NICKNAME, Config
+from utils.http_utils import AsyncHttpx
 from ..model import Setu
-import aiohttp
-import aiofiles
 import asyncio
 import os
 import random
@@ -37,38 +34,39 @@ async def get_setu_urls(
         "num": 100,  # 一次返回的结果数量
         "size": ["original"],
     }
-    async with aiohttp.ClientSession() as session:
-        for count in range(3):
-            logger.info(f"get_setu_url: count --> {count}")
-            try:
-                async with session.get(
-                    url, proxy=get_local_proxy(), timeout=Config.get_config("send_setu", "TIMEOUT"), params=params
-                ) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        if not data["error"]:
-                            data = data["data"]
-                            (
-                                urls,
-                                text_list,
-                                add_databases_list,
-                            ) = await asyncio.get_event_loop().run_in_executor(
-                                None, _setu_data_process, data, command
-                            )
-                            num = num if num < len(data) else len(data)
-                            random_idx = random.sample(range(len(data)), num)
-                            x_urls = []
-                            x_text_lst = []
-                            for x in random_idx:
-                                x_urls.append(urls[x])
-                                x_text_lst.append(text_list[x])
-                            if not x_urls:
-                                return ["没找到符合条件的色图..."], [], [], 401
-                            return x_urls, x_text_lst, add_databases_list, 200
-                        else:
-                            return ["没找到符合条件的色图..."], [], [], 401
-            except (TimeoutError, ClientConnectorError):
-                pass
+    for count in range(3):
+        logger.info(f"get_setu_url: count --> {count}")
+        try:
+            response = await AsyncHttpx.get(
+                url, timeout=Config.get_config("send_setu", "TIMEOUT"), params=params
+            )
+            if response.status_code == 200:
+                data = await response.json()
+                if not data["error"]:
+                    data = data["data"]
+                    (
+                        urls,
+                        text_list,
+                        add_databases_list,
+                    ) = await asyncio.get_event_loop().run_in_executor(
+                        None, _setu_data_process, data, command
+                    )
+                    num = num if num < len(data) else len(data)
+                    random_idx = random.sample(range(len(data)), num)
+                    x_urls = []
+                    x_text_lst = []
+                    for x in random_idx:
+                        x_urls.append(urls[x])
+                        x_text_lst.append(text_list[x])
+                    if not x_urls:
+                        return ["没找到符合条件的色图..."], [], [], 401
+                    return x_urls, x_text_lst, add_databases_list, 200
+                else:
+                    return ["没找到符合条件的色图..."], [], [], 401
+        except TimeoutError:
+            pass
+        except Exception as e:
+            logger.error(f"send_setu 访问页面错误 {type(e)}：{e}")
     return ["我网线被人拔了..QAQ"], [], [], 999
 
 
@@ -90,43 +88,36 @@ async def search_online_setu(
     """
     ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
     if ws_url:
-        if ws_url.startswith("http"):
-            ws_url = ws_url.split("//")[-1]
         url_ = url_.replace("i.pximg.net", ws_url).replace("i.pixiv.cat", ws_url)
-    async with aiohttp.ClientSession(headers=headers) as session:
-        for i in range(3):
-            logger.info(f"search_online_setu --> {i}")
-            try:
-                async with session.get(url_, proxy=get_local_proxy(), timeout=Config.get_config("send_setu", "TIMEOUT")) as res:
-                    if res.status == 200:
-                        index = random.randint(1, 100000) if id_ is None else id_
-                        path_ = "temp" if not path_ else path_
-                        file = f"{index}_temp_setu.jpg" if not path_ else f"{index}.jpg"
-                        if not os.path.exists(f"{IMAGE_PATH}/{path_}"):
-                            os.mkdir(f"{IMAGE_PATH}/{path_}")
-                        async with aiofiles.open(
-                            f"{IMAGE_PATH}/{path_}/{file}", "wb"
-                        ) as f:
-                            try:
-                                await f.write(await res.read())
-                            except TimeoutError:
-                                continue
-                        if id_ is not None:
-                            if (
-                                os.path.getsize(f"{IMAGE_PATH}/{path_}/{index}.jpg")
-                                > 1024 * 1024 * 1.5
-                            ):
-                                compressed_image(
-                                    f"{IMAGE_PATH}/{path_}/{index}.jpg",
-                                )
-                        logger.info(f"下载 lolicon图片 {url_} 成功， id：{index}")
-                        return image(file, path_), index
-                    else:
-                        logger.warning(f"访问 lolicon图片 {url_} 失败 status：{res.status}")
-                        # return '\n这图好难下载啊！QAQ', -1, False
-            except (TimeoutError, ClientConnectorError):
-                pass
-        return "图片被小怪兽恰掉啦..!QAQ", -1
+    for i in range(3):
+        logger.info(f"search_online_setu --> {i}")
+        try:
+            index = random.randint(1, 100000) if id_ is None else id_
+            path_ = "temp" if not path_ else path_
+            file = f"{index}_temp_setu.jpg" if not path_ else f"{index}.jpg"
+            if not os.path.exists(f"{IMAGE_PATH}/{path_}"):
+                os.mkdir(f"{IMAGE_PATH}/{path_}")
+            if not await AsyncHttpx.download_file(
+                url_,
+                f"{IMAGE_PATH}/{path_}/{file}",
+                timeout=Config.get_config("send_setu", "TIMEOUT"),
+            ):
+                continue
+            if id_ is not None:
+                if (
+                    os.path.getsize(f"{IMAGE_PATH}/{path_}/{index}.jpg")
+                    > 1024 * 1024 * 1.5
+                ):
+                    compressed_image(
+                        f"{IMAGE_PATH}/{path_}/{index}.jpg",
+                    )
+            logger.info(f"下载 lolicon图片 {url_} 成功， id：{index}")
+            return image(file, path_), index
+        except TimeoutError:
+            pass
+        except Exception as e:
+            logger.error(f"send_setu 下载图片错误 {type(e)}：{e}")
+    return "图片被小怪兽恰掉啦..!QAQ", -1
 
 
 # 检测本地是否有id涩图，无的话则下载
@@ -224,12 +215,12 @@ async def get_setu_count(r18: int) -> int:
 
 
 async def find_img_index(img_url, user_id):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(img_url, proxy=get_local_proxy(), timeout=Config.get_config("send_setu", "TIMEOUT")) as res:
-            async with aiofiles.open(
-                IMAGE_PATH + f"temp/{user_id}_find_setu_index.jpg", "wb"
-            ) as f:
-                await f.write(await res.read())
+    if not await AsyncHttpx.download_file(
+        img_url,
+        IMAGE_PATH + f"temp/{user_id}_find_setu_index.jpg",
+        timeout=Config.get_config("send_setu", "TIMEOUT"),
+    ):
+        return "检索图片下载上失败..."
     img_hash = str(get_img_hash(IMAGE_PATH + f"temp/{user_id}_find_setu_index.jpg"))
     setu_img = await Setu.get_image_in_hash(img_hash)
     if setu_img:

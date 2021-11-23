@@ -1,6 +1,4 @@
-import aiohttp
-from utils.utils import get_local_proxy
-from utils.user_agent import get_user_agent
+from utils.http_utils import AsyncHttpx
 
 url = f"http://fanyi.youdao.com/translate?smartresult=dict&smartresult=rule&smartresult=ugc&sessionFrom=null"
 
@@ -16,11 +14,9 @@ async def translate_msg(language_type, msg):
         "action": "FY_BY_CLICKBUTTON",
         "typoResult": "true",
     }
-    async with aiohttp.ClientSession(headers=get_user_agent()) as session:
-        async with session.post(url, data=data, proxy=get_local_proxy()) as res:
-            data = await res.json()
-            if data["errorCode"] == 0:
-                return data["translateResult"][0][0]["tgt"]
+    data = (await AsyncHttpx.post(url, data=data)).json()
+    if data["errorCode"] == 0:
+        return data["translateResult"][0][0]["tgt"]
     return "翻译惜败.."
 
 

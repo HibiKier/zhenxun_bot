@@ -11,9 +11,9 @@ from nonebot.adapters.cqhttp.exception import ActionFailed
 from utils.image_utils import CreateImg
 from utils.browser import get_browser
 from configs.path_config import IMAGE_PATH
+from utils.http_utils import AsyncHttpx
 import asyncio
 import time
-import aiohttp
 from bilibili_api import settings
 from utils.manager import group_manager
 import ujson as json
@@ -51,17 +51,12 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             if data:
                 # 转发视频
                 if data.get("desc") == "哔哩哔哩":
-                    async with aiohttp.ClientSession(
-                        headers=get_user_agent()
-                    ) as session:
-                        async with session.get(
-                            data["meta"]["detail_1"]["qqdocurl"],
-                            proxy=get_local_proxy(),
-                            timeout=7,
-                        ) as response:
-                            url = str(response.url).split("?")[0]
-                            bvid = url.split("/")[-1]
-                            vd_info = await video.Video(bvid=bvid).get_info()
+                    response = await AsyncHttpx.get(
+                        data["meta"]["detail_1"]["qqdocurl"], timeout=7
+                    )
+                    url = str(response.url).split("?")[0]
+                    bvid = url.split("/")[-1]
+                    vd_info = await video.Video(bvid=bvid).get_info()
                 # 转发专栏
                 if (
                     data.get("meta")

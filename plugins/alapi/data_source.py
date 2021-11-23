@@ -4,7 +4,7 @@ from utils.message_builder import image
 from configs.path_config import IMAGE_PATH
 from typing import Optional
 from configs.config import Config
-import aiohttp
+from utils.http_utils import AsyncHttpx
 
 
 async def get_data(url: str, params: Optional[dict] = None) -> "Union[dict, str], int":
@@ -16,18 +16,16 @@ async def get_data(url: str, params: Optional[dict] = None) -> "Union[dict, str]
     if not params:
         params = {}
     params["token"] = Config.get_config("alapi", "ALAPI_TOKEN")
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(url, timeout=2, params=params) as response:
-                data = await response.json()
-                if data["code"] == 200:
-                    if not data["data"]:
-                        return "没有搜索到...", 997
-                    return data, 200
-                else:
-                    return f'发生了错误...code：{data["code"]}', 999
-        except TimeoutError:
-            return "超时了....", 998
+    try:
+        data = (await AsyncHttpx.get(url, params=params, timeout=5)).json()
+        if data["code"] == 200:
+            if not data["data"]:
+                return "没有搜索到...", 997
+            return data, 200
+        else:
+            return f'发生了错误...code：{data["code"]}', 999
+    except TimeoutError:
+        return "超时了....", 998
 
 
 def gen_wbtop_pic(data: dict) -> MessageSegment:

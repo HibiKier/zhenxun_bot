@@ -3,7 +3,7 @@ from models.ban_user import BanUser
 from models.level_user import LevelUser
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot
-from nonebot.adapters.cqhttp import GroupMessageEvent, PrivateMessageEvent
+from nonebot.adapters.cqhttp import GroupMessageEvent, PrivateMessageEvent, MessageEvent
 from utils.utils import get_message_at, get_message_text, is_number
 from configs.config import NICKNAME, Config
 from nonebot.permission import SUPERUSER
@@ -24,10 +24,14 @@ usage：
 """.strip()
 __plugin_superuser_usage__ = """
 usage：
-    屏蔽用户消息，相当于最上级.ban
+    b了=屏蔽用户消息，相当于最上级.ban
+    跨群ban以及跨群b了
     指令：
-        b了 [at]
+        b了 [at/qq]
+        .ban [user_id] ?[小时] ?[分钟]
         示例：b了 @user
+        示例：b了 1234567
+        示例：.ban 12345567
 """.strip()
 __plugin_des__ = '你被逮捕了！丢进小黑屋！'
 __plugin_cmd__ = ['.ban [at] ?[小时] ?[分钟]', '.unban [at]', 'b了 [at] [_superuser]']
@@ -182,8 +186,14 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
 
 
 @super_ban.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    qq = get_message_at(event.json())
+async def _(bot: Bot, event: MessageEvent, state: T_State):
+    if isinstance(event, GroupMessageEvent):
+        qq = get_message_at(event.json())
+    else:
+        qq = get_message_text(event.json())
+        if not is_number(qq):
+            await super_ban.finish("对象qq必须为纯数字...")
+        qq = [qq]
     if qq:
         qq = qq[0]
         user = await bot.get_group_member_info(group_id=event.group_id, user_id=qq)
