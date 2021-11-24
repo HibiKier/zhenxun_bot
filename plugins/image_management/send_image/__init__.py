@@ -67,7 +67,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     if length == 0:
         logger.warning(f"图库 {path} 为空，调用取消！")
         await send_img.finish("该图库中没有图片噢")
-    index = img_id if img_id else str(random.randint(0, length))
+    index = img_id if img_id else str(random.randint(0, length - 1))
     if not is_number(index):
         return
     if int(index) > length - 1 or int(index) < 0:
