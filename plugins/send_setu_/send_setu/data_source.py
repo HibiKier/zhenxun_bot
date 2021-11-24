@@ -41,7 +41,7 @@ async def get_setu_urls(
                 url, timeout=Config.get_config("send_setu", "TIMEOUT"), params=params
             )
             if response.status_code == 200:
-                data = await response.json()
+                data = response.json()
                 if not data["error"]:
                     data = data["data"]
                     (
