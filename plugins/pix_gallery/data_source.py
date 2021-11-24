@@ -30,7 +30,10 @@ headers = {
     "Referer": "https://www.pixiv.net",
 }
 
-HIBIAPI = None
+HIBIAPI = Config.get_config("hibiapi", "HIBIAPI")
+if not HIBIAPI:
+    HIBIAPI = "https://api.obfs.dev"
+HIBIAPI = HIBIAPI[:-1] if HIBIAPI[-1] == "/" else HIBIAPI
 
 
 async def start_update_image_url(
@@ -47,9 +50,6 @@ async def start_update_image_url(
     pic_count = 0
     tasks = []
     semaphore = asyncio.Semaphore(10)
-    if not HIBIAPI:
-        HIBIAPI = Config.get_config("hibiapi", "HIBIAPI")
-        HIBIAPI = HIBIAPI[:-1] if HIBIAPI[-1] else HIBIAPI
     for keyword in current_keyword:
         for page in range(1, 110):
             if keyword.startswith("uid:"):
@@ -390,3 +390,6 @@ def _check_black(img_urls: List[str], black: List[str]) -> bool:
             if b in img_url:
                 return False
     return True
+
+
+
