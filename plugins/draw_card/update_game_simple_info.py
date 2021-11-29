@@ -6,6 +6,7 @@ from .util import remove_prohibited_str
 from urllib.parse import unquote
 from services.log import logger
 from utils.http_utils import AsyncHttpx
+from httpx import ConnectTimeout, CloseError
 import bs4
 import asyncio
 
@@ -36,10 +37,13 @@ async def update_simple_info(url: str, game_name: str) -> 'dict, int':
                 except AttributeError:
                     continue
                 for char in contents[1:]:
-                    data = await retrieve_char_data(char, game_name, data, index)
+                    try:
+                        data = await retrieve_char_data(char, game_name, data, index)
+                    except AttributeError:
+                        continue
                 index += 1
         data = await _last_check(data, game_name)
-    except TimeoutError:
+    except (TimeoutError, ConnectTimeout, CloseError):
         logger.warning(f'更新 {game_name} 超时...')
         return {}, 999
     with open(DRAW_PATH + f'{game_name}.json', 'w', encoding='utf8') as wf:
@@ -127,7 +131,6 @@ async def retrieve_char_data(char: bs4.element.Tag, game_name: str, data: dict, 
             '名称': remove_prohibited_str(char.find('a')['title']),
             '星级': 3 - index}
     if game_name == 'azur':
-        print(char)
         char = char.find('div').find('div').find('div').find('div')
         avatar_img = char.find('a').find('img')
         try:
@@ -186,7 +189,9 @@ async def _async_update_azur_extra_info(key: str, semaphore):
                     x = {key: {'获取途径': []}}
                     logger.warning(f'碧蓝航线获取额外信息错误 {key}...{[]}')
                 return x
-            except TimeoutError:
-                logger.warning(f'访问 https://wiki.biligame.com/blhx/{key} 第 {i}次 超时...已再次访问')
+            except (TimeoutError, ConnectTimeout, CloseError):
+                logger.warning(f'访问 https://wiki.biligame.com/blhx/{key} 第 {i}次 超时/失败...已再次访问')
+            except Exception as e:
+                logger.error(f'访问 https://wiki.biligame.com/blhx/{key} 第 {i}次 未知错误 {type(e)}：{e}...已再次访问')
     return {}
 
