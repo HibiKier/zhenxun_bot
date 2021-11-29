@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from .util import remove_prohibited_str
 from utils.http_utils import AsyncHttpx
 from services.log import logger
+from httpx import ConnectTimeout, CloseError
 import asyncio
 
 try:
@@ -50,9 +51,12 @@ async def update_requests_info(game_name: str):
                 data = add_to_data(data, x, game_name)
                 logger.info(f"{key} is update...")
         data = await _last_check(data, game_name)
-    except TimeoutError:
+    except (TimeoutError, ConnectTimeout, CloseError):
         logger.warning(f"更新 {game_name} 超时...")
         return {}, 999
+    except Exception as e:
+        logger.error(f"更新 {game_name} 未知错误 {type(e)}：{e}")
+        return {}, 998
     with open(DRAW_PATH + f"{game_name}.json", "w", encoding="utf8") as wf:
         json.dump(data, wf, ensure_ascii=False, indent=4)
     return data, 200
@@ -150,6 +154,8 @@ async def _async_update_fgo_extra_info(url: str, key: str, _id: str, semaphore):
                 x = {key: {}}
                 x[key]["入手方式"] = obtain
                 return x
-            except TimeoutError:
+            except (TimeoutError, ConnectTimeout, CloseError):
                 logger.warning(f"访问{url}{_id} 第 {i}次 超时...已再次访问")
+            except Exception as e:
+                logger.error(f"访问{url}{_id} 第 {i}次 未知错误 {type(e)}：{e}...已再次访问")
     return {}
