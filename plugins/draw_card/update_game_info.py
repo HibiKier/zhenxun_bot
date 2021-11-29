@@ -6,6 +6,7 @@ from urllib.parse import unquote
 from services.log import logger
 from .util import remove_prohibited_str
 from utils.http_utils import AsyncHttpx
+from httpx import ConnectTimeout, CloseError
 import bs4
 import re
 try:
@@ -57,9 +58,12 @@ async def update_info(url: str, game_name: str, info_list: list = None) -> 'dict
             data[name] = member_dict
             logger.info(f'{name} is update...')
         data = await _last_check(data, game_name)
-    except TimeoutError:
+    except (TimeoutError, ConnectTimeout, CloseError):
         logger.warning(f'更新 {game_name} 超时...')
         return {}, 999
+    except Exception as e:
+        logger.error(f"更新 {game_name} 未知错误 {type(e)}：{e}")
+        return {}, 998
     with open(DRAW_PATH + f'{game_name}.json', 'w', encoding='utf8') as wf:
         wf.write(json.dumps(data, ensure_ascii=False, indent=4))
     return data, 200
