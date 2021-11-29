@@ -29,7 +29,7 @@ class ConfigsManager:
         name: Optional[str] = None,
         help_: Optional[str] = None,
         default_value: Optional[str] = None,
-        _override: bool = False
+        _override: bool = False,
     ):
         """
         为插件添加一个配置，不会被覆盖，只有第一个生效
@@ -61,6 +61,7 @@ class ConfigsManager:
                 "name": name.strip() if isinstance(name, str) else name,
                 "help": help_.strip() if isinstance(help_, str) else help_,
                 "default_value": default_value,
+                "level_module": _module,
             }
 
     def remove_plugin_config(self, module: str):
@@ -119,6 +120,17 @@ class ConfigsManager:
                     return self._data[module][key]["value"]
         return None
 
+    def get_level2module(self, module: str, key: str) -> Optional[str]:
+        """
+        获取指定key所绑定的module，一般为权限等级
+        :param module: 模块名
+        :param key: 配置名称
+        :return:
+        """
+        if self._data.get(module) is not None:
+            if self._data[module].get(key) is not None:
+                return self._data[module][key].get("level_module")
+
     def get(self, key: str):
         """
         获取插件配置数据
@@ -158,3 +170,4 @@ class ConfigsManager:
 
     def __getitem__(self, key):
         return self._data[key]
+

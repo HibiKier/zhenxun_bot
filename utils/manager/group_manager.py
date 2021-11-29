@@ -2,7 +2,13 @@ from typing import Optional, List, Union, Dict
 from pathlib import Path
 from .data_class import StaticData
 from utils.utils import get_matchers, get_bot
+from configs.config import Config
 import nonebot
+
+
+Config.add_plugin_config(
+    "group_manager", "DEFAULT_GROUP_LEVEL", 5, help_="默认群权限", default_value=5
+)
 
 
 class GroupManager(StaticData):
@@ -274,7 +280,7 @@ class GroupManager(StaticData):
         参数：
             :param group_id: 群号
         """
-        default_group_level = 5  # Config.get_config("group_manager")
+        default_group_level = Config.get_config("group_manager", "DEFAULT_GROUP_LEVEL")
         if not default_group_level:
             default_group_level = 5
         if not self._data["group_manager"].get(group_id):
@@ -293,3 +299,4 @@ class GroupManager(StaticData):
             del self._data["super"]["close_plugins"]
             return _x
         return None
+

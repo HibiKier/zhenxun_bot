@@ -92,11 +92,14 @@ def init_plugins_config(data_path):
         if user_config_file.exists():
             with open(user_config_file, "r", encoding="utf8") as f:
                 _data = _yaml.load(f)
+        # 数据替换
         for plugin in Config.keys():
             _tmp_data[plugin] = {}
             for k in Config[plugin].keys():
                 if _data.get(plugin) and k in _data[plugin].keys():
                     Config.set_config(plugin, k, _data[plugin][k])
+                    if level2module := Config.get_level2module(plugin, k):
+                        admin_manager.set_admin_level(level2module, _data[plugin][k])
                 _tmp_data[plugin][k] = Config.get_config(plugin, k)
         Config.save()
         temp_file = Path() / "configs" / "temp_config.yaml"
@@ -145,3 +148,4 @@ def init_plugins_config(data_path):
             logger.error(f"生成简易配置注释错误 {type(e)}：{e}")
         if temp_file.exists():
             temp_file.unlink()
+
