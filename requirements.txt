@@ -83,3 +83,4 @@ win32-setctime==1.0.3
 yarl==1.6.3
 zipp==3.4.1
 ruamel.yaml==0.17.16
+retrying==1.3.3
