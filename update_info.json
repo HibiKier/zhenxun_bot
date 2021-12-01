@@ -3,7 +3,8 @@
       "plugins",
       "models",
       "basic_plugins",
-      "utils"
+      "utils",
+      "services"
     ],
     "add_file": [],
     "delete_file": []
