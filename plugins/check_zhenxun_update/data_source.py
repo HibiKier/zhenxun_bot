@@ -128,21 +128,32 @@ def _file_handle(latest_version: str) -> str:
         shutil.rmtree(backup_dir)
     tf = None
     error = ''
-    try:
-        backup_dir.mkdir(exist_ok=True, parents=True)
-        logger.info("开始解压真寻文件压缩包....")
-        tf = tarfile.open(zhenxun_latest_tar_gz)
-        tf.extractall(temp_dir)
-        logger.info("解压真寻文件压缩包完成....")
-        zhenxun_latest_file = Path(temp_dir) / os.listdir(temp_dir)[0]
-        update_info_file = Path(zhenxun_latest_file) / "update_info.json"
-        update_info = json.load(open(update_info_file, "r", encoding="utf8"))
-        update_file = update_info["update_file"]
-        add_file = update_info["add_file"]
-        delete_file = update_info["delete_file"]
-        config_file = Path() / "configs" / "config.py"
-        config_path_file = Path() / "configs" / "config_path.py"
-        for file in delete_file + update_file:
+    # try:
+    backup_dir.mkdir(exist_ok=True, parents=True)
+    logger.info("开始解压真寻文件压缩包....")
+    tf = tarfile.open(zhenxun_latest_tar_gz)
+    tf.extractall(temp_dir)
+    logger.info("解压真寻文件压缩包完成....")
+    zhenxun_latest_file = Path(temp_dir) / os.listdir(temp_dir)[0]
+    update_info_file = Path(zhenxun_latest_file) / "update_info.json"
+    update_info = json.load(open(update_info_file, "r", encoding="utf8"))
+    update_file = update_info["update_file"]
+    add_file = update_info["add_file"]
+    delete_file = update_info["delete_file"]
+    config_file = Path() / "configs" / "config.py"
+    config_path_file = Path() / "configs" / "path_config.py"
+    for file in [config_file.name]:
+        tmp = ""
+        new_file = Path(zhenxun_latest_file) / "configs" / file
+        old_file = Path() / "configs" / file
+        new_lines = open(new_file, "r", encoding="utf8").readlines()
+        old_lines = open(old_file, "r", encoding="utf8").readlines()
+        for nl in new_lines:
+            tmp += check_old_lines(old_lines, nl)
+        with open(old_file, "w", encoding="utf8") as f:
+            f.write(tmp)
+    for file in delete_file + update_file:
+        if file != "configs":
             file = Path() / file
             backup_file = Path(backup_dir) / file
             if file.exists():
@@ -157,23 +168,15 @@ def _file_handle(latest_version: str) -> str:
                     with open(backup_file, "w", encoding="utf8") as wf:
                         wf.write(data)
                 logger.info(f"已备份文件：{file}")
-        for file in add_file + update_file:
-            new_file = Path(zhenxun_latest_file) / file
-            old_file = Path() / file
-            if old_file not in [config_file, config_path_file]:
-                if not old_file.exists() and new_file.exists():
-                    os.rename(new_file.absolute(), old_file.absolute())
-                    logger.info(f"已更新文件：{file}")
-            else:
-                tmp = ""
-                new_lines = open(new_file, "r", encoding="utf8").readlines()
-                old_lines = open(old_file, "r", encoding="utf8").readlines()
-                for nl in new_lines:
-                    tmp += check_old_lines(old_lines, nl)
-                with open(file, "w", encoding="utf8") as f:
-                    f.write(tmp)
-    except Exception as e:
-        error = f'{type(e)}：{e}'
+    for file in add_file + update_file:
+        new_file = Path(zhenxun_latest_file) / file
+        old_file = Path() / file
+        if old_file not in [config_file, config_path_file] and file != "configs":
+            if not old_file.exists() and new_file.exists():
+                os.rename(new_file.absolute(), old_file.absolute())
+                logger.info(f"已更新文件：{file}")
+    # except Exception as e:
+    #     error = f'{type(e)}：{e}'
     if tf:
         tf.close()
     if temp_dir.exists():
