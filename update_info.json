@@ -5,7 +5,7 @@
       "basic_plugins",
       "utils",
       "services",
-      "configs"
+      "configs/utils"
     ],
     "add_file": [],
     "delete_file": []
