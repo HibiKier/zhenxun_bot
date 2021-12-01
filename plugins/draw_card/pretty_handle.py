@@ -1,5 +1,4 @@
 
-import nonebot
 from .update_game_info import update_info
 from .announcement import PrettyAnnouncement
 from .util import init_star_rst, generate_img, max_card, BaseData, \
@@ -15,7 +14,6 @@ try:
 except ModuleNotFoundError:
     import json
 
-driver: nonebot.Driver = nonebot.get_driver()
 
 announcement = PrettyAnnouncement()
 

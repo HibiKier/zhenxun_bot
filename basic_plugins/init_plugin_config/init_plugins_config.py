@@ -148,4 +148,3 @@ def init_plugins_config(data_path):
             logger.error(f"生成简易配置注释错误 {type(e)}：{e}")
         if temp_file.exists():
             temp_file.unlink()
-

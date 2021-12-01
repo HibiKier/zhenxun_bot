@@ -89,8 +89,13 @@ async def parser_data(
     else:
         return ["网络不太好？没有该页数？也许过一会就好了..."], 998
     num = num if num < 30 else 30
-    data = data[:num]
+    _data = []
     for x in data:
+        if x["page_count"] < Config.get_config("pixiv_rank_search", "MAX_PAGE_LIMIT"):
+            _data.append(x)
+        if len(_data) == num:
+            break
+    for x in _data:
         if type_ == "search" and r18 == 1:
             if "R-18" in str(x["tags"]):
                 continue

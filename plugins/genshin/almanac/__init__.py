@@ -65,4 +65,4 @@ async def _():
             mes = alc_img + "\n ※ 黄历数据来源于 genshin.pub"
             for gid in gl:
                 if await group_manager.check_group_task_status(gid, "genshin_alc"):
-                    await bot.send_group_msg(group_id=int(gid), message=mes)
+                    await bot.send_group_msg(group_id=int(gid), message="" + mes)

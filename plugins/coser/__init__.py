@@ -51,4 +51,3 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     except Exception as e:
         await coser.send("你cos给我看！")
         logger.error(f"coser 发送了未知错误 {type(e)}：{e}")
-

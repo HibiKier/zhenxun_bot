@@ -67,7 +67,13 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if not answer:
         await add_word.finish("未检测到词条回答...")
     idx = 0
-    _builder = WordBankBuilder(event.user_id, event.group_id, problem)
+    for n in bot.config.nickname:
+        if problem.startswith(n):
+            _problem = f"[_to_me|{n}]" + problem[len(n):]
+            break
+    else:
+        _problem = problem
+    _builder = WordBankBuilder(event.user_id, event.group_id, _problem)
     for at_ in get_message_at(event.json()):
         r = re.search(rf"\[CQ:at,qq={at_}]", answer)
         if r:

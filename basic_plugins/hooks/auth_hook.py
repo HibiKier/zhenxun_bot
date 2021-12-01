@@ -20,6 +20,7 @@ from models.ban_user import BanUser
 from utils.utils import FreqLimiter
 from utils.message_builder import at
 from models.level_user import LevelUser
+import nonebot
 
 
 _flmt = FreqLimiter(Config.get_config("hook", "CHECK_NOTICE_INFO_CD"))
@@ -46,6 +47,18 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
         and not plugins2info_dict[module]["limit_superuser"]
     ):
         return
+    # 超级用户命令
+    try:
+        _plugin = nonebot.plugin.get_plugin(module)
+        _module = _plugin.module
+        plugin_name = _module.__getattribute__("__zx_plugin_name__")
+        if (
+            "[superuser]" in plugin_name.lower()
+            and str(event.user_id) in bot.config.superusers
+        ):
+            return
+    except AttributeError:
+        pass
     # 群黑名单检测
     if isinstance(event, GroupMessageEvent):
         if group_manager.get_group_level(event.group_id) < 0:

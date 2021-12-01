@@ -19,17 +19,23 @@ data_dir = Path(DATA_PATH) / "word_bank"
 data_dir.mkdir(parents=True, exist_ok=True)
 
 
-message_handle = on_message(priority=7, block=True, rule=check)
+message_handle = on_message(priority=5, block=True, rule=check)
 
 
 @message_handle.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     path = data_dir / f"{event.group_id}"
-    q = await WordBank.check(event.group_id, get_message_text(event.json()))
-    placeholder_list = [
-        (x.split("<_s>")[0], x.split("<_s>")[1])
-        for x in q.format.split("<format>")[:-1]
-    ] if q.format else []
+    q = await WordBank.check(
+        event.group_id, get_message_text(event.json()), event.is_tome()
+    )
+    placeholder_list = (
+        [
+            (x.split("<_s>")[0], x.split("<_s>")[1])
+            for x in q.format.split("<format>")[:-1]
+        ]
+        if q.format
+        else []
+    )
     answer = ""
     _a = q.answer
     if not placeholder_list:
@@ -37,8 +43,10 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     else:
         for idx, placeholder in placeholder_list:
             if placeholder.endswith("jpg"):
-                answer += _a[:_a.find(f"[__placeholder_{idx}]")] + image(path / placeholder)
+                answer += _a[: _a.find(f"[__placeholder_{idx}]")] + image(
+                    path / placeholder
+                )
             else:
-                answer += _a[:_a.find(f"[__placeholder_{idx}]")] + at(placeholder)
-            _a = _a[_a.find(f"[__placeholder_{idx}]") + len(f"[__placeholder_{idx}]"):]
+                answer += _a[: _a.find(f"[__placeholder_{idx}]")] + at(placeholder)
+            _a = _a[_a.find(f"[__placeholder_{idx}]") + len(f"[__placeholder_{idx}]") :]
     await message_handle.send(answer)

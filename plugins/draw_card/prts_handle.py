@@ -1,6 +1,5 @@
 
 from nonebot.adapters.cqhttp import MessageSegment, Message
-import nonebot
 import random
 from .config import PRTS_FIVE_P, PRTS_FOUR_P, PRTS_SIX_P, PRTS_THREE_P, DRAW_PATH, PRTS_FLAG
 from .update_game_info import update_info
@@ -15,7 +14,6 @@ try:
 except ModuleNotFoundError:
     import json
 
-driver: nonebot.Driver = nonebot.get_driver()
 
 announcement = PrtsAnnouncement()
 

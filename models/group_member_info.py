@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from configs.config import Config
 from services.db_context import db
 from typing import List, Optional
 
@@ -129,6 +129,17 @@ class GroupInfoUser(db.Model):
         return False
 
     @classmethod
+    async def get_user_all_group(cls, user_qq: int) -> List[int]:
+        """
+        获取该用户所在的所有群聊
+        :param user_qq: 用户qq
+        """
+        query = await cls.query.where(cls.user_qq == user_qq).gino.all()
+        if query:
+            query = [x.belonging_group for x in query]
+        return query
+
+    @classmethod
     async def get_group_member_nickname(cls, user_qq: int, belonging_group: int) -> str:
         """
         说明：
@@ -143,7 +154,11 @@ class GroupInfoUser(db.Model):
         user = await query.gino.first()
         if user:
             if user.nickname:
-                return user.nickname
+                _tmp = ""
+                black_word = Config.get_config("nickname", "BLACK_WORD")
+                for x in user.nickname:
+                    _tmp += "*" if x in black_word else x
+                return _tmp
         return ""
 
     @classmethod

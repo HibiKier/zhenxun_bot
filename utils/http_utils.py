@@ -8,7 +8,9 @@ from asyncio.exceptions import TimeoutError
 from nonebot.adapters.cqhttp import MessageSegment
 from playwright.async_api import Page
 from .message_builder import image
+from httpx import ConnectTimeout
 from .browser import get_browser
+from retrying import retry
 import asyncio
 import aiofiles
 import httpx
@@ -19,6 +21,7 @@ class AsyncHttpx:
     proxy = {"http://": get_local_proxy()}
 
     @classmethod
+    @retry(stop_max_attempt_number=3)
     async def get(
         cls,
         url: str,
@@ -149,7 +152,7 @@ class AsyncHttpx:
                         await wf.write(content)
                         logger.info(f"下载图片 {url} 成功.. Path：{path.absolute()}")
                     return True
-                except TimeoutError:
+                except (TimeoutError, ConnectTimeout):
                     pass
             else:
                 logger.error(f"下载图片 {url} 下载超时.. Path：{path.absolute()}")
@@ -312,6 +315,7 @@ class AsyncPlaywright:
             return image(path)
         except Exception as e:
             logger.warning(f"Playwright 截图 url：{url} element：{element} 发生错误 {type(e)}：{e}")
+        finally:
             if page:
                 await page.close()
         return None

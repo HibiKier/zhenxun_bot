@@ -3,6 +3,7 @@ from typing import Optional, List, Union, Tuple
 from datetime import datetime
 from pathlib import Path
 from configs.path_config import DATA_PATH
+import re
 import random
 
 
@@ -97,18 +98,39 @@ class WordBank(db.Model):
         q = await cls.query.where(cls.group_id == group_id).gino.all()
         q = [x.problem for x in q]
         q.sort()
-        return list(set(q))
+        _tmp = []
+        for problem in q:
+            if "[_to_me" in problem:
+                r = re.search(r"\[_to_me\|(.*?)](.*)", problem)
+                if r:
+                    bot_name = r.group(1)
+                    problem = problem.replace(f"[_to_me|{bot_name}]", bot_name)
+            _tmp.append(problem)
+        return list(set(_tmp))
 
     @classmethod
-    async def check(cls, group_id: int, problem: str) -> Optional["WordBank"]:
+    async def check(cls, group_id: int, problem: str, is_tome: bool = False) -> Optional["WordBank"]:
         """
         检测词条并随机返回
         :param group_id: 群号
         :param problem: 问题
+        :param is_tome：是否at真寻
         """
-        q = await cls.query.where(
-            (cls.group_id == group_id) & (cls.problem == problem)
-        ).gino.all()
+        if is_tome:
+            q = await cls.query.where(
+                (cls.group_id == group_id)
+            ).gino.all()
+            q = [x for x in q if "[_to_me" in x.problem]
+            if q:
+                for x in q:
+                    r = re.search(r"\[_to_me\|(.*?)](.*)", x.problem)
+                    if r and r.group(2) == problem:
+                        return x
+            return None
+        else:
+            q = await cls.query.where(
+                (cls.group_id == group_id) & (cls.problem == problem)
+            ).gino.all()
         return random.choice(q) if q else None
 
     @classmethod

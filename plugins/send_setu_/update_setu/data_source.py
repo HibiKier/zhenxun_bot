@@ -37,8 +37,8 @@ async def update_old_setu_data():
                 for x in data:
                     if file == setu_data_file:
                         idx = index
-                        if 'R-18' in data[x]["tags"]:
-                            data[x]["tags"].remove('R-18')
+                        if "R-18" in data[x]["tags"]:
+                            data[x]["tags"].remove("R-18")
                     else:
                         idx = r18_index
                     img_url = (
@@ -58,14 +58,16 @@ async def update_old_setu_data():
                             ",".join(data[x]["tags"]),
                         )
                         count += 1
-                        if 'R-18' in data[x]["tags"]:
+                        if "R-18" in data[x]["tags"]:
                             r18_index += 1
                         else:
                             index += 1
                         logger.info(f'添加旧色图数据成功 PID：{data[x]["pid"]} index：{idx}....')
                     except UniqueViolationError:
                         fail_count += 1
-                        logger.info(f'添加旧色图数据失败，色图重复 PID：{data[x]["pid"]} index：{idx}....')
+                        logger.info(
+                            f'添加旧色图数据失败，色图重复 PID：{data[x]["pid"]} index：{idx}....'
+                        )
                 file.unlink()
         setu_url_path = path / "setu_url.json"
         setu_r18_url_path = path / "setu_r18_url.json"
@@ -106,21 +108,25 @@ async def update_setu_img():
             url_ = image.img_url
             ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
             if ws_url:
-                url_ = url_.replace("i.pximg.net", ws_url).replace("i.pixiv.cat", ws_url)
+                url_ = url_.replace("i.pximg.net", ws_url).replace(
+                    "i.pixiv.cat", ws_url
+                )
             try:
-                if not await AsyncHttpx.download_file(url_, rar_path / f'{image.local_id}.jpg'):
+                if not await AsyncHttpx.download_file(
+                    url_, rar_path / f"{image.local_id}.jpg"
+                ):
                     continue
                 _success += 1
                 try:
                     if (
                         os.path.getsize(
-                            rar_path / f'{image.local_id}.jpg',
+                            rar_path / f"{image.local_id}.jpg",
                         )
                         > 1024 * 1024 * 1.5
                     ):
                         compressed_image(
                             rar_path / f"{image.local_id}.jpg",
-                            path / f"{image.local_id}.jpg"
+                            path / f"{image.local_id}.jpg",
                         )
                     else:
                         logger.info(
@@ -134,30 +140,20 @@ async def update_setu_img():
                 except FileNotFoundError:
                     logger.warning(f"文件 {image.local_id}.jpg 不存在，跳过...")
                     continue
-                img_hash = str(
-                    get_img_hash(
-                        f"{path}/{image.local_id}.jpg"
-                    )
-                )
-                await Setu.update_setu_data(
-                    image.pid, img_hash=img_hash
-                )
+                img_hash = str(get_img_hash(f"{path}/{image.local_id}.jpg"))
+                await Setu.update_setu_data(image.pid, img_hash=img_hash)
             except Exception as e:
                 _success -= 1
                 logger.error(f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}")
                 if type(e) not in error_type:
                     error_type.append(type(e))
-                    error_info.append(
-                        f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}"
-                    )
+                    error_info.append(f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}")
         else:
-            logger.info(f'更新色图 {image.local_id}.jpg 已存在')
-    error_info = ['无报错..'] if not error_info else error_info
-    if count or _success or (error_info and "无报错.." not in error_info):
+            logger.info(f"更新色图 {image.local_id}.jpg 已存在")
+    error_info = ["无报错.."] if not error_info else error_info
+    if count or _success or error_info:
         await get_bot().send_private_msg(
             user_id=int(list(get_bot().config.superusers)[0]),
-            message=f'{str(datetime.now()).split(".")[0]} 更新 色图 完成，本地存在 {count} 张，实际更新 {_success} 张，以下为更新时未知错误：\n'
-            + "\n".join(error_info),
+            message=f'{str(datetime.now()).split(".")[0]} 更新 色图 完成，本地存在 {count} 张，实际更新 {_success} 张，'
+            f"以下为更新时未知错误：\n" + "\n".join(error_info),
         )
-
-

@@ -1,6 +1,5 @@
 import os
 from nonebot.adapters.cqhttp import MessageSegment, Message
-import nonebot
 import random
 from .update_game_info import update_info
 from .util import generate_img, init_star_rst, BaseData, set_list, get_star, init_up_char
@@ -15,7 +14,6 @@ try:
 except ModuleNotFoundError:
     import json
 
-driver: nonebot.Driver = nonebot.get_driver()
 
 announcement = GenshinAnnouncement()
 

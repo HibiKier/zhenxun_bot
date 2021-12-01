@@ -26,7 +26,7 @@ def init_plugins_settings(data_path: str):
             plugin_name = _module.__getattribute__("__zx_plugin_name__")
             _tmp_module[x] = plugin_name
         except (KeyError, AttributeError) as e:
-            logger.error(f"配置文件 模块：{x} 获取 plugin_name 失败...{e}")
+            logger.warning(f"配置文件 模块：{x} 获取 plugin_name 失败...{e}")
             _tmp_module[x] = ""
     for matcher in _matchers:
         if matcher.module not in plugins2settings_manager.keys():

@@ -8,7 +8,7 @@ from models.friend_user import FriendUser
 import random
 from models.ban_user import BanUser
 from services.log import logger
-from configs.config import NICKNAME
+from configs.config import NICKNAME, Config
 
 
 __zx_plugin_name__ = "昵称系统"
@@ -23,6 +23,13 @@ __plugin_des__ = "区区昵称，才不想叫呢！"
 __plugin_cmd__ = ["以后叫我 [昵称]", f"{NICKNAME}我是谁"]
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
+__plugin_configs__ = {
+    "BLACK_WORD": {
+        "value": ["爸", "妈", "爹", "爷"],
+        "help": "昵称所屏蔽的关键词，会被替换为 *",
+        "default_value": None
+    }
+}
 
 nickname = on_command(
     "nickname",
@@ -47,52 +54,52 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         await nickname.finish("叫你空白？叫你虚空？叫你无名？？", at_sender=True)
     if len(msg) > 10:
         await nickname.finish("昵称可不能超过10个字！", at_sender=True)
-    if await GroupInfoUser.set_group_member_nickname(
-        event.user_id, event.group_id, msg
-    ):
-        if len(msg) < 5:
-            if random.random() < 0.5:
-                msg = "~".join(msg)
-        await nickname.send(
-            random.choice(
-                [
-                    f"好啦好啦，我知道啦，{msg}，以后就这么叫你吧",
-                    f"嗯嗯，{NICKNAME}记住你的昵称了哦，{msg}",
-                    f"好突然，突然要叫你昵称什么的...{msg}..",
-                    f"{NICKNAME}会好好记住的{msg}的，放心吧",
-                    f"好..好.，那窝以后就叫你{msg}了.",
-                ]
+    if msg in bot.config.superusers:
+        await nickname.finish("笨蛋！休想占用我的名字！#", at_sender=True)
+    _tmp = ""
+    black_word = Config.get_config("nickname", "BLACK_WORD")
+    for x in msg:
+        _tmp += "*" if x in black_word else x
+    msg = _tmp
+    if isinstance(event, GroupMessageEvent):
+        if await GroupInfoUser.set_group_member_nickname(
+            event.user_id, event.group_id, msg
+        ):
+            if len(msg) < 5:
+                if random.random() < 0.3:
+                    msg = "~".join(msg)
+            await nickname.send(
+                random.choice(
+                    [
+                        f"好啦好啦，我知道啦，{msg}，以后就这么叫你吧",
+                        f"嗯嗯，{NICKNAME}记住你的昵称了哦，{msg}",
+                        f"好突然，突然要叫你昵称什么的...{msg}..",
+                        f"{NICKNAME}会好好记住的{msg}的，放心吧",
+                        f"好..好.，那窝以后就叫你{msg}了.",
+                    ]
+                )
             )
-        )
-        logger.info(f"USER {event.user_id} GROUP {event.group_id} 设置群昵称 {msg}")
+            logger.info(f"USER {event.user_id} GROUP {event.group_id} 设置群昵称 {msg}")
+        else:
+            await nickname.send("设置昵称失败，请更新群组成员信息！", at_sender=True)
+            logger.warning(f"USER {event.user_id} GROUP {event.group_id} 设置群昵称 {msg} 失败")
     else:
-        await nickname.send("设置昵称失败，请更新群组成员信息！", at_sender=True)
-        logger.warning(f"USER {event.user_id} GROUP {event.group_id} 设置群昵称 {msg} 失败")
-
-
-@nickname.handle()
-async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
-    msg = get_message_text(event.json())
-    if not msg:
-        await nickname.finish("叫你空白？叫你虚空？叫你无名？？", at_sender=True)
-    if len(msg) > 10:
-        await nickname.finish("不要超过10个字！", at_sender=True)
-    if await FriendUser.set_friend_nickname(event.user_id, msg):
-        await nickname.send(
-            random.choice(
-                [
-                    f"好啦好啦，我知道啦，{msg}，以后就这么叫你吧",
-                    f"嗯嗯，{NICKNAME}记住你的昵称了哦，{msg}",
-                    f"好突然，突然要叫你昵称什么的...{msg}..",
-                    f"{NICKNAME}会好好记住的{msg}的，放心吧",
-                    f"好..好.，那窝以后就叫你{msg}了.",
-                ]
+        if await FriendUser.set_friend_nickname(event.user_id, msg):
+            await nickname.send(
+                random.choice(
+                    [
+                        f"好啦好啦，我知道啦，{msg}，以后就这么叫你吧",
+                        f"嗯嗯，{NICKNAME}记住你的昵称了哦，{msg}",
+                        f"好突然，突然要叫你昵称什么的...{msg}..",
+                        f"{NICKNAME}会好好记住的{msg}的，放心吧",
+                        f"好..好.，那窝以后就叫你{msg}了.",
+                    ]
+                )
             )
-        )
-        logger.info(f"USER {event.user_id} 设置昵称 {msg}")
-    else:
-        await nickname.send("设置昵称失败了，明天再来试一试！或联系管理员更新好友！", at_sender=True)
-        logger.warning(f"USER {event.user_id} 设置昵称 {msg} 失败")
+            logger.info(f"USER {event.user_id} 设置昵称 {msg}")
+        else:
+            await nickname.send("设置昵称失败了，明天再来试一试！或联系管理员更新好友！", at_sender=True)
+            logger.warning(f"USER {event.user_id} 设置昵称 {msg} 失败")
 
 
 @my_nickname.handle()

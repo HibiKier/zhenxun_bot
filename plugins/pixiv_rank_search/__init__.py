@@ -64,6 +64,11 @@ __plugin_configs__ = {
         "value": 10,
         "help": "图片下载超时限制",
         "default_value": 10
+    },
+    "MAX_PAGE_LIMIT": {
+        "value": 20,
+        "help": "作品最大页数限制，超过的作品会被略过",
+        "default_value": 20
     }
 }
 Config.add_plugin_config(

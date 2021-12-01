@@ -15,6 +15,10 @@ __zx_plugin_name__ = "重载插件配置 [Superuser]"
 __plugin_usage__ = """
 usage：
     重载插件配置
+    plugins2settings,
+    plugins2cd
+    plugins2block
+    group_manager
     指令：
         重载插件配置
 """.strip()
@@ -27,7 +31,7 @@ __plugin_author__ = "HibiKier"
 
 
 reload_plugins_manager = on_command(
-    "重载插件限制", rule=to_me(), permission=SUPERUSER, priority=1, block=True
+    "重载配置", rule=to_me(), permission=SUPERUSER, priority=1, block=True
 )
 
 

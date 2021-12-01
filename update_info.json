@@ -4,7 +4,8 @@
       "models",
       "basic_plugins",
       "utils",
-      "services"
+      "services",
+      "configs"
     ],
     "add_file": [],
     "delete_file": []

@@ -43,10 +43,10 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     msg = get_message_text(event.json()).strip().split(" ")
     num = 1
     if len(msg) > 1:
-        if is_number(msg[1]):
+        if is_number(msg[1]) and int(msg[1]) > 0:
             num = int(msg[1])
         else:
-            await buy.finish("购买的数量要是数字！", at_sender=True)
+            await buy.finish("购买的数量要是数字且大于0！", at_sender=True)
     # print(msg, num)
     if is_number(msg[0]):
         msg = int(msg[0])

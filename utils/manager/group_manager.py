@@ -299,4 +299,3 @@ class GroupManager(StaticData):
             del self._data["super"]["close_plugins"]
             return _x
         return None
-

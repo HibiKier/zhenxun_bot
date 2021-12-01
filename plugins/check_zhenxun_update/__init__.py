@@ -110,17 +110,17 @@ async def _():
                     f"当前版本：{_version}，最新版本：{latest_version}\n"
                     f"尝试自动更新...",
                 )
-                try:
-                    code = await check_update(bot)
-                except Exception as e:
-                    logger.error(f"更新真寻未知错误 {type(e)}：{e}")
-                    await bot.send_private_msg(
-                        user_id=int(list(bot.config.superusers)[0]),
-                        message=f"更新真寻未知错误 {type(e)}：{e}\n",
-                    )
-                else:
-                    if code == 200:
-                        await bot.send_private_msg(
-                            user_id=int(list(bot.config.superusers)[0]),
-                            message=f"更新完毕，请重启真寻....",
-                        )
+                # try:
+                #     code = await check_update(bot)
+                # except Exception as e:
+                #     logger.error(f"更新真寻未知错误 {type(e)}：{e}")
+                #     await bot.send_private_msg(
+                #         user_id=int(list(bot.config.superusers)[0]),
+                #         message=f"更新真寻未知错误 {type(e)}：{e}\n",
+                #     )
+                # else:
+                #     if code == 200:
+                #         await bot.send_private_msg(
+                #             user_id=int(list(bot.config.superusers)[0]),
+                #             message=f"更新完毕，请重启真寻....",
+                #         )

@@ -22,7 +22,7 @@ __plugin_des__ = "指定图库图片上传"
 __plugin_cmd__ = ["上传图片 [图库] [图片]", "连续上传图片 [图库]", "查看公开图库"]
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
-__plugin_settings__ = {"admin_level": Config.get_config("image_management", "DELETE_IMAGE_LEVEL")}
+__plugin_settings__ = {"admin_level": Config.get_config("image_management", "UPLOAD_IMAGE_LEVEL")}
 
 upload_img = on_command("上传图片", rule=to_me(), priority=5, block=True)
 

@@ -1,6 +1,5 @@
 
 import os
-import nonebot
 from nonebot.adapters.cqhttp import MessageSegment, Message
 from .update_game_info import update_info
 from .announcement import GuardianAnnouncement
@@ -18,7 +17,6 @@ try:
 except ModuleNotFoundError:
     import json
 
-driver: nonebot.Driver = nonebot.get_driver()
 
 announcement = GuardianAnnouncement()
 

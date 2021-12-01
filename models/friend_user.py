@@ -1,4 +1,5 @@
 from services.db_context import db
+from configs.config import Config
 
 
 class FriendUser(db.Model):
@@ -80,7 +81,11 @@ class FriendUser(db.Model):
         user = await query.gino.first()
         if user:
             if user.nickname:
-                return user.nickname
+                _tmp = ""
+                black_word = Config.get_config("nickname", "BLACK_WORD")
+                for x in user.nickname:
+                    _tmp += "*" if x in black_word else x
+                return _tmp
         return ""
 
     @classmethod
