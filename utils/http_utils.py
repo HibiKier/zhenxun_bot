@@ -18,7 +18,7 @@ import httpx
 
 class AsyncHttpx:
 
-    proxy = {"http://": get_local_proxy()}
+    proxy = {"http://": get_local_proxy(), "https://": get_local_proxy()}
 
     @classmethod
     @retry(stop_max_attempt_number=3)
