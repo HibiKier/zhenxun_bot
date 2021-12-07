@@ -58,6 +58,7 @@ async def _handle_check_in(
         await BagUser.add_gold(user_qq, group, gold + gift)
         gift = f"额外金币 + {gift}"
     else:
+        await BagUser.add_gold(user_qq, group, gold)
         await BagUser.add_props(user_qq, group, gift)
         gift += ' + 1'
     if critx2 + add_probability > 0.97 or critx2 < specify_probability:
