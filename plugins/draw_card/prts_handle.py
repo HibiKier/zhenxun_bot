@@ -91,22 +91,26 @@ def _get_operator_card(add: float):
                 zoom = z
             else:
                 weight = z
+        up_operator_name = ""
         # UP
-        if random.random() < zoom:
-            up_operators = [x.operators for x in UP_OPERATOR if x.star == star and x.zoom < 1][0]
-            up_operator_name = random.choice(up_operators)
-            # print(up_operator_name)
-            acquire_operator = [x for x in ALL_OPERATOR if x.name == up_operator_name][0]
-        else:
-            all_star_operators = [x for x in ALL_OPERATOR if x.star == star
-                                  and not any([x.limited, x.event_only, x.recruit_only])]
-            weight_up_operators = [x.operators for x in UP_OPERATOR if x.star == star and x.zoom > 1]
-            # 权重
-            if weight_up_operators and random.random() < 1.0 / float(len(all_star_operators)) * weight:
-                up_operator_name = random.choice(weight_up_operators[0])
+        try:
+            if random.random() < zoom:
+                up_operators = [x.operators for x in UP_OPERATOR if x.star == star and x.zoom < 1][0]
+                up_operator_name = random.choice(up_operators)
+                # print(up_operator_name)
                 acquire_operator = [x for x in ALL_OPERATOR if x.name == up_operator_name][0]
             else:
-                acquire_operator = random.choice(all_star_operators)
+                all_star_operators = [x for x in ALL_OPERATOR if x.star == star
+                                      and not any([x.limited, x.event_only, x.recruit_only])]
+                weight_up_operators = [x.operators for x in UP_OPERATOR if x.star == star and x.zoom > 1]
+                # 权重
+                if weight_up_operators and random.random() < 1.0 / float(len(all_star_operators)) * weight:
+                    up_operator_name = random.choice(weight_up_operators[0])
+                    acquire_operator = [x for x in ALL_OPERATOR if x.name == up_operator_name][0]
+                else:
+                    acquire_operator = random.choice(all_star_operators)
+        except IndexError:
+            acquire_operator = Operator(up_operator_name, star, True, False, False)
     else:
         acquire_operator = random.choice([x for x in ALL_OPERATOR if x.star == star
                                           and not any([x.limited, x.event_only, x.recruit_only])])
