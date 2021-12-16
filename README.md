@@ -20,7 +20,7 @@
 
 ## 未完成的文档
 
-<h1>[传送门](https://hibikier.github.io/zhenxun_bot/)</h1>
+<h1> [传送门](https://hibikier.github.io/zhenxun_bot/) </h1>
 
 ## 真寻的帮助
 请对真寻说: '真寻帮助' or '管理员帮助' or '超级用户帮助' or '真寻帮助 指令'
