@@ -59,6 +59,9 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                     at_sender=True,
                 )
         else:
+            if not is_number(args[0]):
+                await super_cmd.finish("所有参数必须是数字！", at_sender=True)
+            level = int(args[0])
             qq = qq[0]
             group_id = event.group_id
             flag = 2
