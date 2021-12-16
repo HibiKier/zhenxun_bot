@@ -1,6 +1,6 @@
 from models.bag_user import BagUser
 from utils.utils import is_number, get_user_avatar
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from configs.path_config import IMAGE_PATH
 from .model import RedbagUser
 import random
@@ -44,8 +44,8 @@ async def open_redbag(user_id: int, group_id: int, redbag_data: dict):
 # 随机红包图片
 async def generate_send_redbag_pic(user_id: int, msg: str = '恭喜发财 大吉大利'):
     random_redbag = random.choice(os.listdir(f"{IMAGE_PATH}/prts/redbag_2"))
-    redbag = CreateImg(0, 0, font_size=38, background=f'{IMAGE_PATH}/prts/redbag_2/{random_redbag}')
-    ava = CreateImg(65, 65, background=BytesIO(await get_user_avatar(user_id)))
+    redbag = BuildImage(0, 0, font_size=38, background=f'{IMAGE_PATH}/prts/redbag_2/{random_redbag}')
+    ava = BuildImage(65, 65, background=BytesIO(await get_user_avatar(user_id)))
     await asyncio.get_event_loop().run_in_executor(None, ava.circle)
     redbag.text((int((redbag.size[0] - redbag.getsize(msg)[0]) / 2), 210), msg, (240, 218, 164))
     redbag.paste(ava, (int((redbag.size[0] - ava.size[0])/2), 130), True)
@@ -61,19 +61,19 @@ async def generate_open_redbag_pic(user_id: int, send_user_nickname: str, amount
 async def _generate_open_redbag_pic(user_id: int, send_user_nickname: str, amount: int, text: str):
     send_user_nickname += '的红包'
     amount = str(amount)
-    head = CreateImg(1000, 980, font_size=30, background=f'{IMAGE_PATH}/prts/redbag_12.png')
-    size = CreateImg(0, 0, font_size=50).getsize(send_user_nickname)
+    head = BuildImage(1000, 980, font_size=30, background=f'{IMAGE_PATH}/prts/redbag_12.png')
+    size = BuildImage(0, 0, font_size=50).getsize(send_user_nickname)
     # QQ头像
-    ava_bk = CreateImg(100 + size[0], 66, color='white', font_size=50)
-    ava = CreateImg(66, 66, background=BytesIO(await get_user_avatar(user_id)))
+    ava_bk = BuildImage(100 + size[0], 66, color='white', font_size=50)
+    ava = BuildImage(66, 66, background=BytesIO(await get_user_avatar(user_id)))
     ava_bk.paste(ava)
     ava_bk.text((100, 7), send_user_nickname)
     # ava_bk.show()
     ava_bk_w, ava_bk_h = ava_bk.size
     head.paste(ava_bk, (int((1000 - ava_bk_w) / 2), 300))
     # 金额
-    size = CreateImg(0, 0, font_size=150).getsize(amount)
-    price = CreateImg(size[0], size[1], font_size=150)
+    size = BuildImage(0, 0, font_size=150).getsize(amount)
+    price = BuildImage(size[0], size[1], font_size=150)
     price.text((0, 0), amount, fill=(209, 171, 108))
     # 金币中文
     head.paste(price, (int((1000 - size[0]) / 2) - 50, 460))

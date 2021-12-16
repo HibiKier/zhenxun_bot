@@ -6,7 +6,7 @@ from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from utils.utils import get_message_text, get_message_at, get_user_avatar
 from utils.message_builder import image
 import re
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 
 __zx_plugin_name__ = "我有一个朋友"
 __plugin_usage__ = """
@@ -60,13 +60,13 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     msg = msg.replace("他", "我").replace("她", "我").replace("它", "我")
     x = await get_user_avatar(qq)
     if x:
-        ava = CreateImg(200, 100, background=BytesIO(x))
+        ava = BuildImage(200, 100, background=BytesIO(x))
     else:
-        ava = CreateImg(200, 100, color=(0, 0, 0))
+        ava = BuildImage(200, 100, color=(0, 0, 0))
     ava.circle()
-    text = CreateImg(300, 30, font_size=30)
+    text = BuildImage(300, 30, font_size=30)
     text.text((0, 0), user_name)
-    A = CreateImg(700, 150, font_size=25, color="white")
+    A = BuildImage(700, 150, font_size=25, color="white")
     A.paste(ava, (30, 25), True)
     A.paste(text, (150, 38))
     A.text((150, 85), msg, (125, 125, 125))

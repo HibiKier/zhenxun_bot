@@ -5,7 +5,7 @@ from nonebot.typing import T_State
 from pathlib import Path
 from configs.path_config import DATA_PATH, IMAGE_PATH
 from utils.utils import get_message_text
-from utils.image_utils import CreateMat
+from utils.image_utils import BuildMat
 from utils.message_builder import image
 from utils.manager import plugins2settings_manager
 import asyncio
@@ -202,7 +202,7 @@ async def generate_statistics_img(
                     except KeyError:
                         count.append(0)
             week_lst = ["7" if i == "0" else i for i in week_lst]
-            bar_graph = CreateMat(
+            bar_graph = BuildMat(
                 y=count,
                 mat_type="line",
                 title=f"{name} 周 {plugin} 功能调用统计【为7天统计】",
@@ -226,7 +226,7 @@ async def generate_statistics_img(
                 day_lst.append(i)
             count = [data[str(day_lst[i])][plugin] for i in range(30)]
             day_lst = [str(x + 1) for x in day_lst]
-            bar_graph = CreateMat(
+            bar_graph = BuildMat(
                 y=count,
                 mat_type="line",
                 title=f"{name} 月 {plugin} 功能调用统计【为30天统计】",
@@ -246,12 +246,12 @@ async def generate_statistics_img(
     return bar_graph.pic2bs4()
 
 
-async def init_bar_graph(data: dict, title: str) -> CreateMat:
+async def init_bar_graph(data: dict, title: str) -> BuildMat:
     return await asyncio.get_event_loop().run_in_executor(None, _init_bar_graph, data, title)
 
 
-def _init_bar_graph(data: dict, title: str) -> CreateMat:
-    bar_graph = CreateMat(
+def _init_bar_graph(data: dict, title: str) -> BuildMat:
+    bar_graph = BuildMat(
         y=[data[x] for x in data.keys() if data[x] != 0],
         mat_type="barh",
         title=title,

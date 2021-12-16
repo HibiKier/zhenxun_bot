@@ -183,13 +183,15 @@ def gen_message(setu_image: Setu, img_msg: bool = False) -> str:
     title = setu_image.title
     author = setu_image.author
     pid = setu_image.pid
-    return (
-        f"id：{local_id}\n"
-        f"title：{title}\n"
-        f"author：{author}\n"
-        f"PID：{pid}\n"
-        f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}"
-    )
+    if Config.get_config("send_setu", "SHOW_INFO"):
+        return (
+            f"id：{local_id}\n"
+            f"title：{title}\n"
+            f"author：{author}\n"
+            f"PID：{pid}\n"
+            f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}"
+        )
+    return f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}"
 
 
 # 罗翔老师！

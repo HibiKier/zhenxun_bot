@@ -9,7 +9,7 @@ from nonebot.typing import T_State
 from utils.utils import get_message_imgs
 from pathlib import Path
 from utils.utils import is_number, get_message_text
-from utils.image_utils import CreateImg, pic2b64
+from utils.image_utils import BuildImage, pic2b64
 from configs.config import NICKNAME
 from utils.http_utils import AsyncHttpx
 import cv2
@@ -83,7 +83,7 @@ for i in range(len(method_list)):
     method_oper.append(method_list[i])
     method_oper.append(str(i + 1))
 
-update_img_help = CreateImg(960, 700, font_size=24)
+update_img_help = BuildImage(960, 700, font_size=24)
 update_img_help.text((10, 10), __plugin_usage__)
 update_img_help.save(IMAGE_PATH + "update_img_help.png")
 

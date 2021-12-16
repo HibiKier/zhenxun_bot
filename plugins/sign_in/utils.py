@@ -12,7 +12,7 @@ from models.sign_group_user import SignGroupUser
 from models.group_member_info import GroupInfoUser
 from nonebot.adapters.cqhttp import MessageSegment
 from utils.utils import get_user_avatar
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from utils.message_builder import image
 from configs.config import NICKNAME
 from pathlib import Path
@@ -112,18 +112,18 @@ def _generate_card(
     is_double: bool = False,
     is_card_view: bool = False,
 ) -> MessageSegment:
-    ava_bk = CreateImg(140, 140, is_alpha=True)
-    ava_border = CreateImg(
+    ava_bk = BuildImage(140, 140, is_alpha=True)
+    ava_border = BuildImage(
         140,
         140,
         background=SIGN_BORDER_PATH / "ava_border_01.png",
     )
-    ava = CreateImg(102, 102, background=ava_bytes)
+    ava = BuildImage(102, 102, background=ava_bytes)
     ava.circle()
     ava_bk.paste(ava, center_type="center")
     ava_bk.paste(ava_border, alpha=True, center_type="center")
 
-    info_img = CreateImg(250, 150, color=(255, 255, 255, 0), font_size=15)
+    info_img = BuildImage(250, 150, color=(255, 255, 255, 0), font_size=15)
     level, next_impression, previous_impression = get_level_and_next_impression(
         user.impression
     )
@@ -131,8 +131,8 @@ def _generate_card(
     info_img.text((0, 20), f"· {NICKNAME}对你的态度：{level2attitude[level]}")
     info_img.text((0, 40), f"· 距离升级还差 {next_impression - user.impression:.2f} 好感度")
 
-    bar_bk = CreateImg(220, 20, background=SIGN_RESOURCE_PATH / "bar_white.png")
-    bar = CreateImg(220, 20, background=SIGN_RESOURCE_PATH / "bar.png")
+    bar_bk = BuildImage(220, 20, background=SIGN_RESOURCE_PATH / "bar_white.png")
+    bar = BuildImage(220, 20, background=SIGN_RESOURCE_PATH / "bar.png")
     bar_bk.paste(
         bar,
         (
@@ -150,7 +150,7 @@ def _generate_card(
     font_size = 30
     if "好感度双倍加持卡" in gift:
         font_size = 20
-    gift_border = CreateImg(
+    gift_border = BuildImage(
         270,
         100,
         background=SIGN_BORDER_PATH / "gift_border_02.png",
@@ -158,20 +158,20 @@ def _generate_card(
     )
     gift_border.text((0, 0), gift, center_type="center")
 
-    bk = CreateImg(
+    bk = BuildImage(
         876,
         424,
         background=SIGN_BACKGROUND_PATH
         / random.choice(os.listdir(SIGN_BACKGROUND_PATH)),
         font_size=25,
     )
-    A = CreateImg(876, 274, background=SIGN_RESOURCE_PATH / "white.png")
-    line = CreateImg(2, 180, color="black")
+    A = BuildImage(876, 274, background=SIGN_RESOURCE_PATH / "white.png")
+    line = BuildImage(2, 180, color="black")
     A.transparent(2)
     A.paste(ava_bk, (25, 80), True)
     A.paste(line, (200, 70))
 
-    nickname_img = CreateImg(
+    nickname_img = BuildImage(
         0,
         0,
         plain_text=nickname,
@@ -184,7 +184,7 @@ def _generate_card(
         uid = uid[:4] + " " + uid[4:8] + " " + uid[8:]
     else:
         uid = "XXXX XXXX XXXX"
-    uid_img = CreateImg(
+    uid_img = BuildImage(
         0,
         0,
         plain_text=f"UID: {uid}",
@@ -192,7 +192,7 @@ def _generate_card(
         font_size=30,
         font_color=(255, 255, 255),
     )
-    sign_day_img = CreateImg(
+    sign_day_img = BuildImage(
         0,
         0,
         plain_text=f"{user.checkin_count}",
@@ -200,17 +200,17 @@ def _generate_card(
         font_size=40,
         font_color=(211, 64, 33),
     )
-    lik_text1_img = CreateImg(
+    lik_text1_img = BuildImage(
         0, 0, plain_text="当前", color=(255, 255, 255, 0), font_size=20
     )
-    lik_text2_img = CreateImg(
+    lik_text2_img = BuildImage(
         0,
         0,
         plain_text=f"好感度：{user.impression:.2f}",
         color=(255, 255, 255, 0),
         font_size=30,
     )
-    watermark = CreateImg(
+    watermark = BuildImage(
         0,
         0,
         plain_text=f"{NICKNAME}@{datetime.now().year}",
@@ -218,15 +218,15 @@ def _generate_card(
         font_size=15,
         font_color=(155, 155, 155),
     )
-    today_data = CreateImg(300, 300, color=(255, 255, 255, 0), font_size=20)
+    today_data = BuildImage(300, 300, color=(255, 255, 255, 0), font_size=20)
     if is_card_view:
-        today_sign_text_img = CreateImg(
+        today_sign_text_img = BuildImage(
             0, 0, plain_text="", color=(255, 255, 255, 0), font_size=30
         )
         if impression_list:
             impression_list.sort(reverse=True)
             index = impression_list.index(user.impression)
-            rank_img = CreateImg(
+            rank_img = BuildImage(
                 0,
                 0,
                 plain_text=f"* 此群好感排名第 {index + 1} 位",
@@ -247,7 +247,7 @@ def _generate_card(
         _type = "view"
     else:
         A.paste(gift_border, (570, 140), True)
-        today_sign_text_img = CreateImg(
+        today_sign_text_img = BuildImage(
             0, 0, plain_text="今日签到", color=(255, 255, 255, 0), font_size=30
         )
         if is_double:
@@ -262,7 +262,7 @@ def _generate_card(
     hour = current_date.hour
     minute = current_date.minute
     second = current_date.second
-    data_img = CreateImg(
+    data_img = BuildImage(
         0,
         0,
         plain_text=f"时间：{data} {weekdays[week]} {hour}:{minute}:{second}",
@@ -296,14 +296,14 @@ def generate_progress_bar_pic():
     bg_2 = (254, 1, 254)
     bg_1 = (0, 245, 246)
 
-    bk = CreateImg(1000, 50, is_alpha=True)
-    img_x = CreateImg(50, 50, color=bg_2)
+    bk = BuildImage(1000, 50, is_alpha=True)
+    img_x = BuildImage(50, 50, color=bg_2)
     img_x.circle()
     img_x.crop((25, 0, 50, 50))
-    img_y = CreateImg(50, 50, color=bg_1)
+    img_y = BuildImage(50, 50, color=bg_1)
     img_y.circle()
     img_y.crop((0, 0, 25, 50))
-    A = CreateImg(950, 50)
+    A = BuildImage(950, 50)
     width, height = A.size
 
     step_r = (bg_2[0] - bg_1[0]) / width
@@ -321,12 +321,12 @@ def generate_progress_bar_pic():
     bk.paste(img_x, (975, 0), True)
     bk.save(SIGN_RESOURCE_PATH / "bar.png")
 
-    A = CreateImg(950, 50)
-    bk = CreateImg(1000, 50, is_alpha=True)
-    img_x = CreateImg(50, 50)
+    A = BuildImage(950, 50)
+    bk = BuildImage(1000, 50, is_alpha=True)
+    img_x = BuildImage(50, 50)
     img_x.circle()
     img_x.crop((25, 0, 50, 50))
-    img_y = CreateImg(50, 50)
+    img_y = BuildImage(50, 50)
     img_y.circle()
     img_y.crop((0, 0, 25, 50))
     bk.paste(img_y, (0, 0), True)

@@ -65,7 +65,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     img_msg = _text("")
     for img in get_message_imgs(event.json()):
         img_msg += image(img)
-    if not text or text in ["帮助"]:
+    if not text and not img_msg:
         await dialogue.send("请发送[滴滴滴]+您要说的内容~", at_sender=True)
     else:
         group_id = 0

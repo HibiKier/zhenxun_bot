@@ -18,6 +18,7 @@ from .open_cases_c import (
     open_shilian_case,
 )
 from .utils import util_get_buff_price, util_get_buff_img, update_count_daily
+from configs.config import Config
 
 __zx_plugin_name__ = "开箱"
 __plugin_usage__ = """
@@ -83,6 +84,14 @@ __plugin_configs__ = {
     },
     "BUFF_PROXY": {"value": None, "help": "使用代理访问BUFF"},
 }
+
+Config.add_plugin_config(
+    "_task",
+    "DEFAULT_OPEN_CASE_RESET_REMIND",
+    True,
+    help_="被动 每日开箱重置提醒 进群默认开关状态",
+    default_value=True,
+)
 
 cases_name = ["狂牙大行动", "突围大行动", "命悬一线", "裂空", "光谱"]
 

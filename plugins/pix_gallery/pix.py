@@ -143,14 +143,17 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         uid = img.uid
         _img = await get_image(img_url, event.user_id)
         if _img:
-            msg_id = await pix.send(
-                Message(
-                    f"title：{title}\n"
-                    f"author：{author}\n"
-                    f"PID：{pid}\nUID：{uid}\n"
-                    f"{image(_img, 'temp')}"
+            if Config.get_config("pix", "SHOW_INFO"):
+                msg_id = await pix.send(
+                    Message(
+                        f"title：{title}\n"
+                        f"author：{author}\n"
+                        f"PID：{pid}\nUID：{uid}\n"
+                        f"{image(_img, 'temp')}"
+                    )
                 )
-            )
+            else:
+                msg_id = await pix.send(image(_img, 'temp'))
             logger.info(
                 f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
                 f" 查看PIX图库PID: {pid}"

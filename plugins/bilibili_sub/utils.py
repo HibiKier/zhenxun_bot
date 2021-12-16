@@ -1,4 +1,4 @@
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from configs.path_config import IMAGE_PATH
 from utils.http_utils import AsyncHttpx
 from pathlib import Path
@@ -35,21 +35,21 @@ async def create_live_des_image(uid: int, title: str, cover: str, tags: str, des
     sex = user_info["sex"]
     face = user_info["face"]
     sign = user_info["sign"]
-    ava = CreateImg(100, 100, background=BytesIO(await get_pic(face)))
+    ava = BuildImage(100, 100, background=BytesIO(await get_pic(face)))
     ava.circle()
-    cover = CreateImg(470, 265, background=BytesIO(await get_pic(cover)))
+    cover = BuildImage(470, 265, background=BytesIO(await get_pic(cover)))
     print()
 
 
 def _create_live_des_image(
     title: str,
-    cover: CreateImg,
+    cover: BuildImage,
     tags: str,
     des: str,
     user_name: str,
     sex: str,
     sign: str,
-    ava: CreateImg,
+    ava: BuildImage,
 ):
     """
     生成主播简介图片
@@ -66,6 +66,6 @@ def _create_live_des_image(
     border = BORDER_PATH / "0.png"
     border_img = None
     if border.exists():
-        border_img = CreateImg(1772, 2657, background=border)
-    bk = CreateImg(1772, 2657, font_size=30)
+        border_img = BuildImage(1772, 2657, background=border)
+    bk = BuildImage(1772, 2657, font_size=30)
     bk.paste(cover, (0, 100), center_type="by_width")

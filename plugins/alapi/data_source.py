@@ -1,5 +1,5 @@
 from nonebot.adapters.cqhttp import MessageSegment
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from utils.message_builder import image
 from configs.path_config import IMAGE_PATH
 from typing import Optional
@@ -33,14 +33,14 @@ def gen_wbtop_pic(data: dict) -> MessageSegment:
     生成微博热搜图片
     :param data: 微博热搜数据
     """
-    bk = CreateImg(700, 32 * 50 + 280, 700, 32, color="#797979")
-    wbtop_bk = CreateImg(700, 280, background=f"{IMAGE_PATH}/other/webtop.png")
+    bk = BuildImage(700, 32 * 50 + 280, 700, 32, color="#797979")
+    wbtop_bk = BuildImage(700, 280, background=f"{IMAGE_PATH}/other/webtop.png")
     bk.paste(wbtop_bk)
-    text_bk = CreateImg(700, 32 * 50, 700, 32, color="#797979")
+    text_bk = BuildImage(700, 32 * 50, 700, 32, color="#797979")
     for i, data in enumerate(data):
         title = f"{i+1}. {data['hot_word']}"
         hot = data["hot_word_num"]
-        img = CreateImg(700, 30, font_size=20)
+        img = BuildImage(700, 30, font_size=20)
         w, h = img.getsize(title)
         img.text((10, int((30 - h) / 2)), title)
         img.text((580, int((30 - h) / 2)), hot)

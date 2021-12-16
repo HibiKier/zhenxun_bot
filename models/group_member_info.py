@@ -156,8 +156,9 @@ class GroupInfoUser(db.Model):
             if user.nickname:
                 _tmp = ""
                 black_word = Config.get_config("nickname", "BLACK_WORD")
-                for x in user.nickname:
-                    _tmp += "*" if x in black_word else x
+                if black_word:
+                    for x in user.nickname:
+                        _tmp += "*" if x in black_word else x
                 return _tmp
         return ""
 

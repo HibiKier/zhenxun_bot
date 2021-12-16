@@ -9,7 +9,7 @@ from nonebot.adapters.cqhttp import (
 )
 from configs.config import Config
 from models.ban_user import BanUser
-from utils.utils import is_number, static_flmt
+from utils.utils import is_number, static_flmt, FreqLimiter
 from utils.message_builder import at
 
 
@@ -19,6 +19,8 @@ Config.add_plugin_config(
     "才不会给你发消息.",
     help_="对被ban用户发送的消息",
 )
+
+_flmt = FreqLimiter(300)
 
 
 # 检查是否被ban
@@ -55,7 +57,8 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
                 if matcher.priority != 9:
                     try:
                         ban_result = Config.get_config("hook", "BAN_RESULT")
-                        if ban_result:
+                        if ban_result and _flmt.check(event.user_id):
+                            _flmt.start_cd(event.user_id)
                             await bot.send_group_msg(
                                 group_id=event.group_id,
                                 message=at(event.user_id)

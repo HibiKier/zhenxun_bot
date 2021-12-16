@@ -7,6 +7,7 @@ from utils.utils import get_message_text, get_message_imgs
 from services.log import logger
 from utils.message_builder import image
 from utils.manager import group_manager
+from configs.config import Config
 
 __zx_plugin_name__ = "广播 [Superuser]"
 __plugin_usage__ = """
@@ -20,6 +21,13 @@ __plugin_cmd__ = ["广播-"]
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_task__ = {"broadcast": "广播"}
+Config.add_plugin_config(
+    "_task",
+    "DEFAULT_BROADCAST",
+    True,
+    help_="被动 广播 进群默认开关状态",
+    default_value=True,
+)
 
 broadcast = on_command("广播-", priority=1, permission=SUPERUSER, block=True)
 

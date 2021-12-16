@@ -8,10 +8,10 @@ import os
 from services.log import logger
 from utils.utils import get_bot
 from asyncio.exceptions import TimeoutError
-import pypinyin
 from nonebot.adapters.cqhttp.exception import ActionFailed
 from configs.config import Config
 from utils.manager import group_manager
+from .config import *
 
 url = "https://buff.163.com/api/market/goods"
 # proxies = 'http://49.75.59.242:3128'

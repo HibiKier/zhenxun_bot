@@ -5,8 +5,9 @@
       "basic_plugins",
       "utils",
       "services",
-      "configs/utils"
+      "configs/utils",
+      "bot.py"
     ],
-    "add_file": [],
+    "add_file": ["resources/img/genshin/genshin_card", "resources/img/genshin/genshin_memo"],
     "delete_file": []
 }

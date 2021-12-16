@@ -1,6 +1,6 @@
 from pathlib import Path
 from configs.path_config import IMAGE_PATH, TEXT_PATH
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from typing import Tuple, List
 from math import sqrt, pow
 import random
@@ -39,7 +39,7 @@ class Map:
             :param planning_route: 是否规划最佳线路
             :param ratio: 压缩比率
         """
-        self.map = CreateImg(0, 0, background=map_path)
+        self.map = BuildImage(0, 0, background=map_path)
         self.resource_name = resource_name
         self.center_x = center_point[0]
         self.center_y = center_point[1]
@@ -225,13 +225,13 @@ class Map:
         # self.map.line(xy, (255, 0, 0), width=3)
 
     # 获取资源图标
-    def _get_icon_image(self, id_: int) -> "CreateImg":
+    def _get_icon_image(self, id_: int) -> "BuildImage":
         icon = icon_path / f"{id_}.png"
         if icon.exists():
-            return CreateImg(
+            return BuildImage(
                 int(50 * self.ratio), int(50 * self.ratio), background=icon
             )
-        return CreateImg(
+        return BuildImage(
             int(50 * self.ratio),
             int(50 * self.ratio),
             background=f"{icon_path}/box.png",

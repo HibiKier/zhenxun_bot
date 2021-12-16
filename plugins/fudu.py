@@ -19,13 +19,20 @@ usage：
     重复3次相同的消息时会复读
 """.strip()
 __plugin_des__ = "群友的本质是什么？是复读机哒！"
-__plugin_type__ = ("被动相关",)
+__plugin_type__ = ("其他",)
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_task__ = {"fudu": "复读"}
 __plugin_configs__ = {
     "FUDU_PROBABILITY": {"value": 0.7, "help": "复读概率", "default_value": 0.7}
 }
+Config.add_plugin_config(
+    "_task",
+    "DEFAULT_FUDU",
+    True,
+    help_="被动 复读 进群默认开关状态",
+    default_value=True,
+)
 
 
 class Fudu:

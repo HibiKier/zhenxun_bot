@@ -8,11 +8,16 @@ from utils.http_utils import AsyncHttpx
 import os
 
 
+_path = Path(IMAGE_PATH) / "image_management"
+
+
 async def upload_image_to_local(
-    img_list: List[str], path: str, user_id: int, group_id: int = 0
+    img_list: List[str], path_: str, user_id: int, group_id: int = 0
 ) -> str:
-    _path = path
-    path = Path(IMAGE_PATH) / cn2py(path)
+    _path_name = path_
+    path = _path / cn2py(path_)
+    if not path.exists() and (path.parent.parent / cn2py(path_)).exists():
+        path = path.parent.parent / cn2py(path_)
     path.mkdir(parents=True, exist_ok=True)
     img_id = len(os.listdir(path))
     failed_list = []
@@ -28,15 +33,15 @@ async def upload_image_to_local(
         failed_result += str(img) + "\n"
     logger.info(
         f"USER {user_id}  GROUP {group_id}"
-        f" 上传图片至 {_path} 共 {len(img_list)} 张，失败 {len(failed_list)} 张，id={success_id[:-1]}"
+        f" 上传图片至 {_path_name} 共 {len(img_list)} 张，失败 {len(failed_list)} 张，id={success_id[:-1]}"
     )
     if failed_list:
         return (
-            f"这次一共为 {_path}库 添加了 {len(img_list) - len(failed_list)} 张图片\n"
+            f"这次一共为 {_path_name}库 添加了 {len(img_list) - len(failed_list)} 张图片\n"
             f"依次的Id为：{success_id[:-1]}\n上传失败：{failed_result[:-1]}\n{NICKNAME}感谢您对图库的扩充!WW"
         )
     else:
         return (
-            f"这次一共为 {_path}库 添加了 {len(img_list)} 张图片\n依次的Id为："
+            f"这次一共为 {_path_name}库 添加了 {len(img_list)} 张图片\n依次的Id为："
             f"{success_id[:-1]}\n{NICKNAME}感谢您对图库的扩充!WW"
         )

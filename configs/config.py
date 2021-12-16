@@ -17,8 +17,8 @@ address: str = ""  # 数据库地址
 port: str = ""  # 数据库端口
 database: str = ""  # 数据库名称
 
-# 全局代理，例如 "http://127.0.0.1:7890"
-SYSTEM_PROXY: Optional[str] = None
+# 代理，例如 "http://127.0.0.1:7890"
+SYSTEM_PROXY: Optional[str] = None  # 全局代理
 
 
 Config = ConfigsManager(Path() / "data" / "configs" / "plugins2config.yaml")

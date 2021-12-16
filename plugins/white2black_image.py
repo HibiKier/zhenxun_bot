@@ -4,7 +4,7 @@ from nonebot import on_command
 from utils.utils import get_message_imgs, get_message_text, is_chinese
 from utils.message_builder import image
 from configs.path_config import TEMP_PATH
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from services.log import logger
 from utils.http_utils import AsyncHttpx
 from pathlib import Path
@@ -57,12 +57,12 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     ):
         await w2b_img.finish("下载图片失败...请稍后再试...")
     msg = await get_translate(msg)
-    w2b = CreateImg(0, 0, background=Path(TEMP_PATH) / f"{event.user_id}_w2b.png")
+    w2b = BuildImage(0, 0, background=Path(TEMP_PATH) / f"{event.user_id}_w2b.png")
     w2b.convert("L")
     msg_sp = msg.split("<|>")
     w, h = w2b.size
     add_h, font_size = init_h_font_size(h)
-    bg = CreateImg(w, h + add_h, color="black", font_size=font_size)
+    bg = BuildImage(w, h + add_h, color="black", font_size=font_size)
     bg.paste(w2b)
     chinese_msg = formalization_msg(msg)
     if not bg.check_font_size(chinese_msg):
@@ -84,7 +84,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     )
 
 
-def centered_text(img: CreateImg, text: str, add_h: int):
+def centered_text(img: BuildImage, text: str, add_h: int):
     top_h = img.h - add_h + (img.h / 100)
     bottom_h = img.h - (img.h / 100)
     text_sp = text.split("<|>")

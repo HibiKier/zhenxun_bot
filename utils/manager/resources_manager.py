@@ -69,11 +69,11 @@ class ResourcesManager(StaticData):
         for module in self._data.keys():
             for source_path in self._data[module].keys():
                 move_path = Path(self._data[module][source_path])
-                source_path = Path(source_path)
-                file_name = source_path.name
-                move_path = move_path / file_name
-                move_path.mkdir(exist_ok=True, parents=True)
                 try:
+                    source_path = Path(source_path)
+                    file_name = source_path.name
+                    move_path = move_path / file_name
+                    move_path.mkdir(exist_ok=True, parents=True)
                     if source_path.exists():
                         if move_path.exists():
                             shutil.rmtree(str(move_path.absolute()), ignore_errors=True)

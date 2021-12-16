@@ -6,6 +6,7 @@ from services.log import logger
 from configs.path_config import IMAGE_PATH
 from .data_source import get_alc_image
 from utils.manager import group_manager
+from configs.config import Config
 from pathlib import Path
 
 __zx_plugin_name__ = "原神老黄历"
@@ -27,6 +28,14 @@ __plugin_settings__ = {
     "cmd": ["原神黄历", "原神老黄历"],
 }
 __plugin_task__ = {"genshin_alc": "原神黄历提醒"}
+
+Config.add_plugin_config(
+    "_task",
+    "DEFAULT_GENSHIN_ALC",
+    True,
+    help_="被动 原神黄历提醒 进群默认开关状态",
+    default_value=True,
+)
 
 almanac = on_command("原神黄历", priority=5, block=True)
 

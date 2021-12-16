@@ -5,8 +5,10 @@ from services.log import logger
 from models.group_info import GroupInfo
 from models.friend_user import FriendUser
 from nonebot.adapters.cqhttp.exception import ActionFailed
-from configs.config import NICKNAME
+from configs.config import NICKNAME, Config
 from utils.manager import group_manager
+from pathlib import Path
+import shutil
 
 __zx_plugin_name__ = "定时任务相关 [Hidden]"
 __plugin_version__ = 0.1
@@ -14,7 +16,33 @@ __plugin_author__ = "HibiKier"
 __plugin_task__ = {'zwa': '早晚安'}
 
 
-x = on_message(priority=9, block=False)
+Config.add_plugin_config(
+    "_task",
+    "DEFAULT_ZWA",
+    True,
+    help_="被动 早晚安 进群默认开关状态",
+    default_value=True,
+)
+
+Config.add_plugin_config(
+    "_backup",
+    "BACKUP_FLAG",
+    True,
+    help_="是否开启文件备份",
+    default_value=True
+)
+
+Config.add_plugin_config(
+    "_backup",
+    "BACKUP_DIR_OR_FILE",
+    ['data/black_word', 'data/configs', 'data/statistics', 'data/word_bank', 'data/manager', 'configs'],
+    name="文件备份",
+    help_="备份的文件夹或文件",
+    default_value=[]
+)
+
+
+cx = on_message(priority=9, block=False)
 
 
 # 早上好
@@ -104,6 +132,34 @@ async def _():
                 logger.warning(f'自动更新好友 {f["user_id"]} 信息失败')
     except Exception as e:
         logger.error(f"自动更新群组信息错误 e:{e}")
+
+
+# 自动备份
+@scheduler.scheduled_job(
+    "cron",
+    hour=3,
+    minute=25,
+)
+async def _():
+    if Config.get_config("_backup", "BACKUP_FLAG"):
+        _backup_path = Path() / 'backup'
+        _backup_path.mkdir(exist_ok=True, parents=True)
+        for x in Config.get_config("_backup", "BACKUP_DIR_OR_FILE"):
+            try:
+                path = Path(x)
+                _p = _backup_path / x
+                if path.exists():
+                    if path.is_dir():
+                        if _p.exists():
+                            shutil.rmtree(_p, ignore_errors=True)
+                        shutil.copytree(x, _p)
+                    else:
+                        if _p.exists():
+                            _p.unlink()
+                        shutil.copy(x, _p)
+                    logger.info(f'已完成自动备份：{x}')
+            except Exception as e:
+                logger.error(f"自动备份文件 {x} 发生错误 {type(e)}:{e}")
 
 
     #  一次性任务

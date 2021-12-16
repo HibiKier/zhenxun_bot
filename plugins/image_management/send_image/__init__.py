@@ -6,6 +6,7 @@ from services.log import logger
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from utils.utils import FreqLimiter, cn2py
+from pathlib import Path
 from configs.config import Config
 from utils.manager import group_manager, withdraw_message_manager
 import random
@@ -16,7 +17,7 @@ try:
 except ModuleNotFoundError:
     import json
 
-__zx_plugin_name__ = "发送本地图库图片"
+__zx_plugin_name__ = "本地图库"
 __plugin_usage__ = f"""
 usage：
     发送指定图库下的随机或指定id图片
@@ -37,49 +38,61 @@ __plugin_settings__ = {
     "cmd": ["发送图片"] + Config.get_config("image_management", "IMAGE_DIR_LIST"),
 }
 __plugin_task__ = {"pa": "丢人爬"}
-__plugin_resources__ = {
-    "pa": IMAGE_PATH
-}
+__plugin_resources__ = {"pa": IMAGE_PATH}
+
+Config.add_plugin_config(
+    "_task",
+    "DEFAULT_PA",
+    True,
+    help_="被动 爬 进群默认开关状态",
+    default_value=True,
+)
 
 _flmt = FreqLimiter(1)
 
 cmd = set(Config.get_config("image_management", "IMAGE_DIR_LIST"))
 
-# print(cmd)
-
 send_img = on_command("img", aliases=cmd, priority=5, block=True)
 pa = on_keyword({"丢人爬", "爪巴"}, priority=5, block=True)
 pa_reg = on_regex("^爬$", priority=5, block=True)
 
-search_url = "https://api.fantasyzone.cc/tu/search.php"
+
+_path = Path(IMAGE_PATH) / "image_management"
 
 
 @send_img.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     img_id = get_message_text(event.json())
-    path = cn2py(state["_prefix"]["raw_command"]) + "/"
+    path = _path / cn2py(state["_prefix"]["raw_command"])
     if state["_prefix"]["raw_command"] in Config.get_config(
         "image_management", "IMAGE_DIR_LIST"
     ):
-        if not os.path.exists(f"{IMAGE_PATH}/{path}/"):
-            os.mkdir(f"{IMAGE_PATH}/{path}/")
-    length = len(os.listdir(IMAGE_PATH + path))
+        if not path.exists() and (path.parent.parent / cn2py(state["_prefix"]["raw_command"])).exists():
+            path = Path(IMAGE_PATH) / cn2py(state["_prefix"]["raw_command"])
+        else:
+            path.mkdir(parents=True, exist_ok=True)
+    length = len(os.listdir(path))
     if length == 0:
-        logger.warning(f"图库 {path} 为空，调用取消！")
+        logger.warning(f'图库 {cn2py(state["_prefix"]["raw_command"])} 为空，调用取消！')
         await send_img.finish("该图库中没有图片噢")
     index = img_id if img_id else str(random.randint(0, length - 1))
     if not is_number(index):
         return
     if int(index) > length - 1 or int(index) < 0:
         await send_img.finish(f"超过当前上下限！({length - 1})")
-    result = image(f"{index}.jpg", path)
+    result = image(path / f"{index}.jpg")
     if result:
         logger.info(
             f"(USER {event.user_id}, GROUP "
-            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送{path}:"
+            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) "
+            f"发送{cn2py(state['_prefix']['raw_command'])}:"
             + result
         )
-        msg_id = await send_img.send(f"id：{index}" + result)
+        msg_id = await send_img.send(
+            f"id：{index}" + result
+            if Config.get_config("image_management", "SHOW_ID")
+            else "" + result
+        )
         withdraw_message_manager.withdraw_message(
             event,
             msg_id,
@@ -88,7 +101,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     else:
         logger.info(
             f"(USER {event.user_id}, GROUP "
-            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 发送 {path} 失败"
+            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) "
+            f"发送 {cn2py(state['_prefix']['raw_command'])} 失败"
         )
         await send_img.finish(f"不想给你看Ov|")
 

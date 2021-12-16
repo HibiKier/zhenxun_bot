@@ -38,6 +38,22 @@ Config.add_plugin_config(
 Config.add_plugin_config(
     "invite_manager", "welcome_msg_cd", 5, help_="群欢迎消息cd", default_value=5
 )
+Config.add_plugin_config(
+    "_task",
+    "DEFAULT_GROUP_WELCOME",
+    True,
+    help_="被动 进群欢迎 进群默认开关状态",
+    default_value=True,
+)
+Config.add_plugin_config(
+    "_task",
+    "DEFAULT_REFUND_GROUP_REMIND",
+    True,
+    help_="被动 退群提醒 进群默认开关状态",
+    default_value=True,
+)
+
+
 _flmt = FreqLimiter(Config.get_config("invite_manager", "welcome_msg_cd"))
 
 

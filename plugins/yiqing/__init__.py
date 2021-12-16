@@ -54,4 +54,4 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                     f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 查询疫情失败"
                 )
         else:
-            await yiqing.send(f"{NICKNAME}只支持国内的疫情查询喔...")
+            await yiqing.send(f"{NICKNAME}没有查到{msg}的疫情查询...")

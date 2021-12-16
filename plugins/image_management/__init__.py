@@ -1,4 +1,6 @@
 from configs.config import Config
+from configs.path_config import IMAGE_PATH
+from pathlib import Path
 import nonebot
 
 
@@ -43,6 +45,17 @@ Config.add_plugin_config(
     help_="上传图库图片需要的管理员等级",
     default_value=6,
 )
+
+Config.add_plugin_config(
+    "image_management",
+    "SHOW_ID",
+    True,
+    help_="是否消息显示图片下标id",
+    default_value=True
+)
+
+
+(Path(IMAGE_PATH) / "image_management").mkdir(parents=True, exist_ok=True)
 
 
 nonebot.load_plugins("plugins/image_management")

@@ -10,7 +10,7 @@ import random
 from .utils import get_price
 from .models.buff_prices import BuffPrice
 from PIL import Image
-from utils.image_utils import alpha2white_pil, CreateImg
+from utils.image_utils import alpha2white_pil, BuildImage
 from configs.path_config import IMAGE_PATH
 import asyncio
 from utils.utils import cn2py
@@ -239,7 +239,7 @@ async def open_shilian_case(user_qq: int, group: int, case_name: str, num: int =
             ):
                 skin_name += "".join(i)
             # img = image(skin_name, "cases/" + case, "png")
-            wImg = CreateImg(200, 270, 200, 200)
+            wImg = BuildImage(200, 270, 200, 200)
             wImg.paste(
                 alpha2white_pil(
                     Image.open(IMAGE_PATH + f"cases/{case}/{skin_name}.png").resize(
@@ -263,7 +263,7 @@ async def open_shilian_case(user_qq: int, group: int, case_name: str, num: int =
             logger.warning(
                 f"USER {user_qq} GROUP {group} 开启{case_name}武器箱 {num} 次， 价格：{uplist[10]}， 数据更新失败"
             )
-    # markImg = CreateImg(1000, h, 200, 270)
+    # markImg = BuildImage(1000, h, 200, 270)
     # for img in img_list:
     #     markImg.paste(img)
     markImg = await asyncio.get_event_loop().run_in_executor(
@@ -284,7 +284,7 @@ async def open_shilian_case(user_qq: int, group: int, case_name: str, num: int =
 
 
 def paste_markImg(h: int, img_list: list):
-    markImg = CreateImg(1000, h, 200, 270)
+    markImg = BuildImage(1000, h, 200, 270)
     for img in img_list:
         markImg.paste(img)
     return markImg
@@ -399,7 +399,7 @@ async def my_knifes_name(user_id: int, group: int):
 
 
 def _pst_my_knife(w, h, knifes_list):
-    A = CreateImg(w, h, 540, 600)
+    A = BuildImage(w, h, 540, 600)
     for knife in knifes_list:
         case = knife.split("||")[0]
         knife = knife.split("||")[1]
@@ -415,7 +415,7 @@ def _pst_my_knife(w, h, knifes_list):
             style=pypinyin.NORMAL,
         ):
             skin_name += "".join(i)
-        knife_img = CreateImg(470, 600, 470, 470, font_size=20)
+        knife_img = BuildImage(470, 600, 470, 470, font_size=20)
         knife_img.paste(
             alpha2white_pil(
                 Image.open(IMAGE_PATH + f"cases/{case}/{skin_name}.png").resize(

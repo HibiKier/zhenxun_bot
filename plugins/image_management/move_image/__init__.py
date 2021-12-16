@@ -31,6 +31,9 @@ __plugin_settings__ = {
 move_img = on_command("移动图片", priority=5, rule=to_me(), block=True)
 
 
+_path = Path(IMAGE_PATH) / "image_management"
+
+
 @move_img.args_parser
 async def parse(bot: Bot, event: MessageEvent, state: T_State):
     if str(event.get_message()) in ["取消", "算了"]:
@@ -72,8 +75,20 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @move_img.got("id", prompt="要移动的图片id是？")
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     img_id = state["id"]
-    source_path = Path(IMAGE_PATH) / cn2py(state["source_path"])
-    destination_path = Path(IMAGE_PATH) / cn2py(state["destination_path"])
+    source_path = _path / cn2py(state["source_path"])
+    destination_path = _path / cn2py(state["destination_path"])
+    if (
+        not source_path.exists()
+        and (source_path.parent.parent / cn2py(state["source_path"])).exists()
+    ):
+        source_path = source_path.parent.parent / cn2py(state["source_path"])
+    if (
+        not destination_path.exists()
+        and (destination_path.parent.parent / cn2py(state["destination_path"])).exists()
+    ):
+        destination_path = destination_path.parent.parent / cn2py(
+            state["destination_path"]
+        )
     destination_path.mkdir(parents=True, exist_ok=True)
     max_id = len(os.listdir(source_path)) - 1
     des_max_id = len(os.listdir(destination_path))

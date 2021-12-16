@@ -1,4 +1,4 @@
-from nonebot import on_command, on_message
+from nonebot import on_command, on_message, on_regex
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent, GROUP
 from .data_source import (
@@ -6,12 +6,14 @@ from .data_source import (
     set_plugin_status,
     get_plugin_status,
     group_current_status,
+    set_group_bot_status
 )
 from services.log import logger
 from configs.config import NICKNAME, Config
 from utils.utils import get_message_text, is_number
 from nonebot.permission import SUPERUSER
 from .rule import switch_rule
+import re
 
 
 __zx_plugin_name__ = "群功能开关 [Admin]"
@@ -24,6 +26,7 @@ usage：
         群被动状态
         开启全部被动
         关闭全部被动
+        醒来/休息吧
         示例：开启/关闭色图
 """.strip()
 __plugin_superuser_usage__ = """
@@ -40,6 +43,7 @@ __plugin_cmd__ = [
     "群被动状态",
     "开启全部被动",
     "关闭全部被动",
+    "醒来/休息吧",
     "功能状态 [_superuser]",
     "开启/关闭[功能] [group] [_superuser]",
     "开启/关闭[功能] ['private'/'group'] [_superuser]",
@@ -56,6 +60,8 @@ switch_rule_matcher = on_message(rule=switch_rule, priority=4, block=True)
 plugins_status = on_command("功能状态", permission=SUPERUSER, priority=5, block=True)
 
 group_task_status = on_command("群被动状态", permission=GROUP, priority=5, block=True)
+
+group_status = on_regex("^(休息吧|醒来)$", permission=GROUP, priority=5, block=True)
 
 
 @switch_rule_matcher.handle()
@@ -105,3 +111,15 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @group_task_status.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     await group_task_status.send(await group_current_status(event.group_id))
+
+
+@group_status.handle()
+async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+    r = re.search("^(休息吧|醒来)$", get_message_text(event.json()))
+    if r:
+        if r.group(1) == "休息吧":
+            msg = set_group_bot_status(event.group_id, False)
+        else:
+            msg = set_group_bot_status(event.group_id, True)
+        await group_status.send(msg)
+        logger.info(f"USER {event.user_id} GROUP {event.group_id} 使用总开关命令：{r.group(1)}")

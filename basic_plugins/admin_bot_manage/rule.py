@@ -14,10 +14,10 @@ def switch_rule(bot: Bot, event: Event, state: T_State) -> bool:
     :param event: pass
     :param state: pass
     """
+    global cmd
     try:
         if not cmd:
-            cmd.append('关闭全部被动')
-            cmd.append('开启全部被动')
+            cmd = ["关闭全部被动", "开启全部被动", "开启全部功能", "关闭全部功能"]
             _data = group_manager.get_task_data()
             for key in _data:
                 cmd.append(f"开启{_data[key]}")

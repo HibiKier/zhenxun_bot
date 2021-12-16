@@ -8,10 +8,11 @@ from nonebot.adapters.cqhttp.permission import GROUP
 from bilibili_api import video
 from utils.message_builder import image
 from nonebot.adapters.cqhttp.exception import ActionFailed
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from utils.browser import get_browser
 from configs.path_config import IMAGE_PATH
 from utils.http_utils import AsyncHttpx
+from configs.config import Config
 import asyncio
 import time
 from bilibili_api import settings
@@ -25,10 +26,18 @@ usage：
     B站转发解析，解析b站分享信息，支持bv，bilibili链接，b站手机端转发卡片，cv，b23.tv，且5分钟内不解析相同url
 """.strip()
 __plugin_des__ = "B站转发解析"
-__plugin_type__ = ("被动相关",)
+__plugin_type__ = ("其他",)
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_task__ = {"bilibili_parse": "b站转发解析"}
+Config.add_plugin_config(
+    "_task",
+    "DEFAULT_BILIBILI_PARSE",
+    True,
+    help_="被动 B站转发解析 进群默认开关状态",
+    default_value=True,
+)
+
 
 if get_local_proxy():
     settings.proxy = get_local_proxy()
@@ -154,5 +163,5 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 
 def resize(path: str):
-    A = CreateImg(0, 0, background=path, ratio=0.5)
+    A = BuildImage(0, 0, background=path, ratio=0.5)
     A.save(path)

@@ -69,6 +69,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             data = (await AsyncHttpx.get(url, params=params, timeout=5)).json()
         except TimeoutError:
             pass
+        except Exception as e:
+            await pid_search.finish(f"发生了一些错误..{type(e)}：{e}")
         else:
             if not data["width"] and not data["height"]:
                 await pid_search.finish(f"没有搜索到 PID：{pid} 的图片", at_sender=True)

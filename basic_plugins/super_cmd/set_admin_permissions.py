@@ -40,7 +40,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     group_id = -1
     level = 0
     try:
-        args = get_message_text(event.json()).strip().split()
+        args = get_message_text(event.json()).split()
         qq = get_message_at(event.json())
         flag = -1
         if not qq:
@@ -55,7 +55,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             else:
                 await super_cmd.finish(
                     "权限参数不完全\n\t格式：添加/删除权限 [at] [level]"
-                    "\n\t格式：添加/删除权限 [qq] [group] [level]",
+                    "\n\t格式：添加/删除权限 [qq] [group_id] [level]",
                     at_sender=True,
                 )
         else:
@@ -63,10 +63,6 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             group_id = event.group_id
             flag = 2
         if state["_prefix"]["raw_command"][:2] == "添加":
-            if is_number(args[0]):
-                level = int(args[0])
-            else:
-                await super_cmd.finish("权限等级必须是数字！", at_sender=True)
             if await LevelUser.set_level(qq, group_id, level, 1):
                 result = "添加管理成功, 权限: " + str(level)
             else:

@@ -33,17 +33,20 @@ class AsyncHttpx:
         proxy: Dict[str, str] = None,
         allow_redirects: bool = True,
         timeout: Optional[int] = 30,
+        **kwargs,
     ) -> Response:
         """
-        Get
-        :param url: url
-        :param params: params
-        :param headers: 请求头
-        :param cookies: cookies
-        :param use_proxy: 使用默认代理
-        :param proxy: 指定代理
-        :param allow_redirects: allow_redirects
-        :param timeout: 超时时间
+        说明：
+            Get
+        参数：
+            :param url: url
+            :param params: params
+            :param headers: 请求头
+            :param cookies: cookies
+            :param use_proxy: 使用默认代理
+            :param proxy: 指定代理
+            :param allow_redirects: allow_redirects
+            :param timeout: 超时时间
         """
         if not headers:
             headers = get_user_agent()
@@ -56,6 +59,7 @@ class AsyncHttpx:
                 cookies=cookies,
                 allow_redirects=allow_redirects,
                 timeout=timeout,
+                **kwargs
             )
 
     @classmethod
@@ -74,21 +78,24 @@ class AsyncHttpx:
         cookies: Optional[Dict[str, str]] = None,
         allow_redirects: bool = True,
         timeout: Optional[int] = 30,
+        **kwargs,
     ) -> Response:
         """
-        Post
-        :param url: url
-        :param data: data
-        :param content: content
-        :param files: files
-        :param use_proxy: 是否默认代理
-        :param proxy: 指定代理
-        :param json: json
-        :param params: params
-        :param headers: 请求头
-        :param cookies: cookies
-        :param allow_redirects: allow_redirects
-        :param timeout: 超时时间
+        说明：
+            Post
+        参数：
+            :param url: url
+            :param data: data
+            :param content: content
+            :param files: files
+            :param use_proxy: 是否默认代理
+            :param proxy: 指定代理
+            :param json: json
+            :param params: params
+            :param headers: 请求头
+            :param cookies: cookies
+            :param allow_redirects: allow_redirects
+            :param timeout: 超时时间
         """
         if not headers:
             headers = get_user_agent()
@@ -105,6 +112,7 @@ class AsyncHttpx:
                 cookies=cookies,
                 allow_redirects=allow_redirects,
                 timeout=timeout,
+                **kwargs,
             )
 
     @classmethod
@@ -119,17 +127,20 @@ class AsyncHttpx:
         headers: Optional[Dict[str, str]] = None,
         cookies: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = 30,
+        **kwargs,
     ) -> bool:
         """
-        下载文件
-        :param url: url
-        :param path: 存储路径
-        :param params: params
-        :param use_proxy: 使用代理
-        :param proxy: 指定代理
-        :param headers: 请求头
-        :param cookies: cookies
-        :param timeout: 超时时间
+        说明：
+            下载文件
+        参数：
+            :param url: url
+            :param path: 存储路径
+            :param params: params
+            :param use_proxy: 使用代理
+            :param proxy: 指定代理
+            :param headers: 请求头
+            :param cookies: cookies
+            :param timeout: 超时时间
         """
         if isinstance(path, str):
             path = Path(path)
@@ -146,18 +157,19 @@ class AsyncHttpx:
                             use_proxy=use_proxy,
                             proxy=proxy,
                             timeout=timeout,
+                            **kwargs,
                         )
                     ).content
                     async with aiofiles.open(path, "wb") as wf:
                         await wf.write(content)
-                        logger.info(f"下载图片 {url} 成功.. Path：{path.absolute()}")
+                        logger.info(f"下载 {url} 成功.. Path：{path.absolute()}")
                     return True
                 except (TimeoutError, ConnectTimeout):
                     pass
             else:
-                logger.error(f"下载图片 {url} 下载超时.. Path：{path.absolute()}")
+                logger.error(f"下载 {url} 下载超时.. Path：{path.absolute()}")
         except Exception as e:
-            logger.error(f"下载图片 {url} 未知错误 {type(e)}：{e}.. Path：{path.absolute()}")
+            logger.error(f"下载 {url} 未知错误 {type(e)}：{e}.. Path：{path.absolute()}")
         return False
 
     @classmethod
@@ -173,19 +185,21 @@ class AsyncHttpx:
         headers: Optional[Dict[str, str]] = None,
         cookies: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = 30,
+        **kwargs,
     ) -> List[bool]:
         """
-        分组同时下载文件
-        :param url_list: url列表
-        :param path_list: 存储路径列表
-        :param limit_async_number: 限制同时请求数量
-        :param params: params
-        :param use_proxy: 使用代理
-        :param proxy: 指定代理
-        :param headers: 请求头
-        :param cookies: cookies
-        :param timeout: 超时时间
-        :return:
+        说明：
+            分组同时下载文件
+        参数：
+            :param url_list: url列表
+            :param path_list: 存储路径列表
+            :param limit_async_number: 限制同时请求数量
+            :param params: params
+            :param use_proxy: 使用代理
+            :param proxy: 指定代理
+            :param headers: 请求头
+            :param cookies: cookies
+            :param timeout: 超时时间
         """
         if n := len(url_list) != len(path_list):
             raise UrlPathNumberNotEqual(
@@ -222,7 +236,8 @@ class AsyncHttpx:
                             cookies=cookies,
                             use_proxy=use_proxy,
                             timeout=timeout,
-                            proxy=proxy
+                            proxy=proxy,
+                            ** kwargs,
                         )
                     )
                 )
@@ -235,14 +250,16 @@ class AsyncHttpx:
 class AsyncPlaywright:
 
     @classmethod
-    async def _new_page(cls, user_agent: Optional[str] = None) -> Page:
+    async def _new_page(cls, user_agent: Optional[str] = None, **kwargs) -> Page:
         """
-        获取一个新页面
-        :param user_agent: 请求头
+        说明：
+            获取一个新页面
+        参数：
+            :param user_agent: 请求头
         """
         browser = await get_browser()
         if browser:
-            return await browser.new_page(user_agent=user_agent)
+            return await browser.new_page(user_agent=user_agent, **kwargs)
         raise BrowserIsNone("获取Browser失败...")
 
     @classmethod
@@ -255,17 +272,20 @@ class AsyncPlaywright:
             Literal["domcontentloaded", "load", "networkidle"]
         ] = "networkidle",
         referer: str = None,
+        **kwargs
     ) -> Optional[Page]:
         """
-        goto
-        :param url: 网址
-        :param timeout: 超时限制
-        :param wait_until: 等待类型
-        :param referer:
+        说明：
+            goto
+        参数：
+            :param url: 网址
+            :param timeout: 超时限制
+            :param wait_until: 等待类型
+            :param referer:
         """
         page = None
         try:
-            page = await cls._new_page()
+            page = await cls._new_page(**kwargs)
             await page.goto(url, timeout=timeout, wait_until=wait_until, referer=referer)
             return page
         except Exception as e:
@@ -288,17 +308,20 @@ class AsyncPlaywright:
         ] = "networkidle",
         timeout: float = None,
         type_: Literal["jpeg", "png"] = None,
+        **kwargs
     ) -> Optional[MessageSegment]:
         """
-        截图，该方法仅用于简单快捷截图，复杂截图请操作 page
-        :param url: 网址
-        :param path: 存储路径
-        :param element: 元素选择
-        :param sleep: 延迟截取
-        :param viewport_size: 窗口大小
-        :param wait_until: 等待类型
-        :param timeout: 超时限制
-        :param type_: 保存类型
+        说明：
+            截图，该方法仅用于简单快捷截图，复杂截图请操作 page
+        参数：
+            :param url: 网址
+            :param path: 存储路径
+            :param element: 元素选择
+            :param sleep: 延迟截取
+            :param viewport_size: 窗口大小
+            :param wait_until: 等待类型
+            :param timeout: 超时限制
+            :param type_: 保存类型
         """
         page = None
         if viewport_size is None:
@@ -306,7 +329,7 @@ class AsyncPlaywright:
         if isinstance(path, str):
             path = Path(path)
         try:
-            page = await cls.goto(url, wait_until=wait_until)
+            page = await cls.goto(url, wait_until=wait_until, **kwargs)
             await page.set_viewport_size(viewport_size)
             if sleep:
                 await asyncio.sleep(sleep)

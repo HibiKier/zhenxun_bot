@@ -25,7 +25,7 @@ __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_configs__ = {
     "BLACK_WORD": {
-        "value": ["爸", "妈", "爹", "爷"],
+        "value": ["爸", "爹", "爷"],
         "help": "昵称所屏蔽的关键词，会被替换为 *",
         "default_value": None
     }

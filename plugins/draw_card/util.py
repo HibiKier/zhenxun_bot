@@ -6,7 +6,7 @@ from configs.path_config import IMAGE_PATH
 from utils.http_utils import AsyncHttpx
 import nonebot
 import pypinyin
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 import platform
 from services.log import logger
 import random
@@ -98,37 +98,37 @@ async def generate_img(card_set: Union[Set[BaseData], List[BaseData]], game_name
     num = 0
     for n in star_list:
         num += n
-    A = CreateImg(w, h)
+    A = BuildImage(w, h)
     A.paste(card_img)
     return A.pic2bs4()
 
 
 def _pst(h: int, img_list: list, game_name: str, background_list: list):
-    card_img = CreateImg(100 * 10, h, 100, 100)
+    card_img = BuildImage(100 * 10, h, 100, 100)
     idx = 0
     for img in img_list:
         try:
             if game_name == 'prts':
-                bk = CreateImg(100, 100, color=background_list[idx])
-                b = CreateImg(94, 94, background=img)
+                bk = BuildImage(100, 100, color=background_list[idx])
+                b = BuildImage(94, 94, background=img)
                 bk.paste(b, (3, 3))
                 b = bk
             elif game_name == 'azur' and background_list:
-                bk = CreateImg(100, 100, background=background_list[idx])
-                b = CreateImg(98, 90, background=img)
+                bk = BuildImage(100, 100, background=background_list[idx])
+                b = BuildImage(98, 90, background=img)
                 bk.paste(b, (1, 5))
                 b = bk
             else:
                 try:
-                    b = CreateImg(100, 100, background=img)
+                    b = BuildImage(100, 100, background=img)
                 except UnidentifiedImageError as e:
                     logger.warning(f'无法识别图片 已删除图片，下次更新重新下载... e：{e}')
                     if os.path.exists(img):
                         os.remove(img)
-                    b = CreateImg(100, 100, color='black')
+                    b = BuildImage(100, 100, color='black')
         except FileNotFoundError:
             logger.warning(f'{img} not exists')
-            b = CreateImg(100, 100, color='black')
+            b = BuildImage(100, 100, color='black')
         card_img.paste(b)
         idx += 1
     return card_img

@@ -16,7 +16,7 @@ usage：
     戳一戳随机掉落语音或美图萝莉图
 """.strip()
 __plugin_des__ = "戳一戳发送语音美图萝莉图不美哉？"
-__plugin_type__ = ("被动相关",)
+__plugin_type__ = ("其他",)
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {

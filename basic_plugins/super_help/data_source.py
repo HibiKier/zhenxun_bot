@@ -1,4 +1,4 @@
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from configs.path_config import IMAGE_PATH
 from services.log import logger
 from utils.utils import get_matchers
@@ -32,7 +32,7 @@ def _create_help_image():
     _plugin_name_list = []
     width = 0
     help_str = "超级用户帮助\n\n*  注: ‘*’ 代表可有多个相同参数 ‘?’ 代表可省略该参数  *\n\n"
-    tmp_img = CreateImg(0, 0, plain_text='1', font_size=24)
+    tmp_img = BuildImage(0, 0, plain_text='1', font_size=24)
     for matcher in _matchers:
         plugin_name = ""
         try:
@@ -72,8 +72,8 @@ def _create_help_image():
             )
     height = len(help_str.split("\n")) * 33
     width += 500
-    A = CreateImg(width, height, font_size=24)
-    _background = CreateImg(width, height, background=background)
+    A = BuildImage(width, height, font_size=24)
+    _background = BuildImage(width, height, background=background)
     A.text((300, 140), help_str)
     A.paste(_background, alpha=True)
     A.save(superuser_help_image)

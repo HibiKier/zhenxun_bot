@@ -2,7 +2,7 @@ import psutil
 import time
 from datetime import datetime
 from utils.http_utils import AsyncHttpx
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from configs.path_config import IMAGE_PATH
 from pathlib import Path
 import asyncio
@@ -49,7 +49,7 @@ class Check:
 
     async def show(self):
         await self.check_all()
-        A = CreateImg(0, 0, font_size=24)
+        A = BuildImage(0, 0, font_size=24)
         rst = (
             f'[Time] {str(datetime.now()).split(".")[0]}\n'
             f"-----System-----\n"
@@ -69,10 +69,10 @@ class Check:
             if w > width:
                 width = w
             height += 30
-        A = CreateImg(width + 50, height + 10, font_size=24, font="HWZhongSong.ttf")
+        A = BuildImage(width + 50, height + 10, font_size=24, font="HWZhongSong.ttf")
         A.transparent(1)
         A.text((10, 10), rst)
         _x = max(width, height)
-        bk = CreateImg(_x + 100, _x + 100, background=Path(IMAGE_PATH) / "background" / "check" / "0.jpg")
+        bk = BuildImage(_x + 100, _x + 100, background=Path(IMAGE_PATH) / "background" / "check" / "0.jpg")
         bk.paste(A, alpha=True, center_type='center')
         return bk.pic2bs4()

@@ -3,6 +3,7 @@ from .group_user_checkin import (
     group_user_check,
     group_impression_rank,
     impression_rank,
+    check_in_all
 )
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
@@ -45,26 +46,18 @@ __plugin_settings__ = {
 }
 __plugin_cd_limit__ = {}
 __plugin_configs__ = {
-    "MAX_SIGN_GOLD": {
-        "value": 200,
-        "help": "签到好感度加成额外获得的最大金币数",
-        "default_value": 200
-    },
-    "SIGN_CARD1_PROB": {
-        "value": 0.2,
-        "help": "签到好感度双倍加持卡Ⅰ掉落概率",
-        "default_value": 0.2
-    },
+    "MAX_SIGN_GOLD": {"value": 200, "help": "签到好感度加成额外获得的最大金币数", "default_value": 200},
+    "SIGN_CARD1_PROB": {"value": 0.2, "help": "签到好感度双倍加持卡Ⅰ掉落概率", "default_value": 0.2},
     "SIGN_CARD2_PROB": {
         "value": 0.09,
         "help": "签到好感度双倍加持卡Ⅱ掉落概率",
-        "default_value": 0.09
+        "default_value": 0.09,
     },
     "SIGN_CARD3_PROB": {
         "value": 0.05,
         "help": "签到好感度双倍加持卡Ⅲ掉落概率",
-        "default_value": 0.05
-    }
+        "default_value": 0.05,
+    },
 }
 
 
@@ -98,6 +91,9 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         await group_user_check_in(nickname, event.user_id, event.group_id),
         at_sender=True,
     )
+    if get_message_text(event.json()) == "all":
+        await check_in_all(nickname, event.user_id)
+
 
 
 @my_sign.handle()
@@ -142,12 +138,12 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 
 @scheduler.scheduled_job(
-    'interval',
+    "interval",
     hours=1,
 )
 async def _():
     try:
         clear_sign_data_pic()
-        logger.info('清理日常签到图片数据数据完成....')
+        logger.info("清理日常签到图片数据数据完成....")
     except Exception as e:
-        logger.error(f'清理日常签到图片数据数据失败..{type(e)}: {e}')
+        logger.error(f"清理日常签到图片数据数据失败..{type(e)}: {e}")

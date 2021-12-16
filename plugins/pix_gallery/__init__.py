@@ -57,6 +57,14 @@ Config.add_plugin_config(
     default_value=10
 )
 
+Config.add_plugin_config(
+    "pix",
+    "SHOW_INFO",
+    True,
+    help_="是否显示图片的基本信息，如PID等",
+    default_value=True
+)
+
 nonebot.load_plugins("plugins/pix_gallery")
 
 

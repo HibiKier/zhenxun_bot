@@ -115,6 +115,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 redbag_data[event.group_id]["amount"]
                 - redbag_data[event.group_id]["open_amount"]
             )
+            await return_gold(event.user_id, event.group_id, amount)
             await gold_redbag.send(
                 f'{redbag_data[event.group_id]["nickname"]}的红包过时未开完，退还{amount}金币...'
             )
@@ -137,11 +138,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     else:
         amount = msg[0]
         num = msg[1]
+        if not is_number(num) or int(num) < 1:
+            await gold_redbag.finish("红包个数给我输正确啊！", at_sender=True)
         flag, amount = await check_gold(event.user_id, event.group_id, amount)
         if not flag:
             await gold_redbag.finish(amount, at_sender=True)
-        if not is_number(num) or int(num) < 1:
-            await gold_redbag.finish("红包个数给我输正确啊！", at_sender=True)
         group_member_num = (await bot.get_group_info(group_id=event.group_id))['member_count']
         num = int(num)
         if num > group_member_num:

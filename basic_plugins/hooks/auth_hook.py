@@ -13,7 +13,7 @@ from nonebot.adapters.cqhttp import (
     Bot,
     MessageEvent,
     GroupMessageEvent,
-    PokeNotifyEvent,
+    PokeNotifyEvent
 )
 from configs.config import Config
 from models.ban_user import BanUser
@@ -37,16 +37,19 @@ ignore_rst_module = ["ai", "poke", "dialogue"]
 async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
     module = matcher.module
     plugins2info_dict = plugins2settings_manager.get_data()
-    if (
-        (not isinstance(event, MessageEvent) and module != "poke")
-        or await BanUser.is_ban(event.user_id)
-        and str(event.user_id) not in bot.config.superusers
-    ) or (
-        str(event.user_id) in bot.config.superusers
-        and plugins2info_dict.get(module)
-        and not plugins2info_dict[module]["limit_superuser"]
-    ):
-        return
+    try:
+        if (
+            (not isinstance(event, MessageEvent) and module != "poke")
+            or await BanUser.is_ban(event.user_id)
+            and str(event.user_id) not in bot.config.superusers
+        ) or (
+            str(event.user_id) in bot.config.superusers
+            and plugins2info_dict.get(module)
+            and not plugins2info_dict[module]["limit_superuser"]
+        ):
+            return
+    except AttributeError:
+        pass
     # 超级用户命令
     try:
         _plugin = nonebot.plugin.get_plugin(module)
@@ -59,10 +62,19 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
             return
     except AttributeError:
         pass
-    # 群黑名单检测
-    if isinstance(event, GroupMessageEvent):
-        if group_manager.get_group_level(event.group_id) < 0:
-            raise IgnoredException("群黑名单")
+    # 群黑名单检测 群总开关检测
+    if isinstance(event, GroupMessageEvent) or matcher.module == "poke":
+        try:
+            if group_manager.get_group_level(event.group_id) < 0:
+                raise IgnoredException("群黑名单")
+            if not group_manager.check_group_bot_status(event.group_id):
+                try:
+                    if str(event.get_message()) != "醒来":
+                        raise IgnoredException("功能总开关关闭状态")
+                except ValueError:
+                    raise IgnoredException("功能总开关关闭状态")
+        except AttributeError:
+            pass
     if module in admin_manager.keys() and matcher.priority not in [1, 9]:
         if isinstance(event, GroupMessageEvent):
             # 个人权限

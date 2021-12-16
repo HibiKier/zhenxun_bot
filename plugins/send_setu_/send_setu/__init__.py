@@ -98,6 +98,11 @@ __plugin_configs__ = {
         "value": 10,
         "help": "色图下载超时限制(秒)",
         "default_value": 10
+    },
+    "SHOW_INFO": {
+        "value": True,
+        "help": "是否显示色图的基本信息，如PID等",
+        "default_value": True
     }
 }
 Config.add_plugin_config(

@@ -5,6 +5,7 @@ from nonebot.typing import T_State
 from utils.utils import scheduler, get_bot
 from .data_source import get_epic_free
 from utils.manager import group_manager
+from configs.config import Config
 
 __zx_plugin_name__ = "epic免费游戏"
 __plugin_usage__ = """
@@ -24,6 +25,14 @@ __plugin_settings__ = {
     "cmd": ["epic"],
 }
 __plugin_task__ = {"epic_free_game": "epic免费游戏"}
+Config.add_plugin_config(
+    "_task",
+    "DEFAULT_EPIC_FREE_GAME",
+    True,
+    help_="被动 epic免费游戏 进群默认开关状态",
+    default_value=True,
+)
+
 
 epic = on_command("epic", priority=5, block=True)
 
@@ -58,9 +67,7 @@ async def _():
         if await group_manager.check_group_task_status(g, "epic_free_game"):
             try:
                 msg_list, code = await get_epic_free(bot, GroupMessageEvent)
-                if code == 200:
+                if msg_list and code == 200:
                     await bot.send_group_forward_msg(group_id=g, messages=msg_list)
-                else:
-                    await bot.send_group_msg(group_id=g, message=msg_list)
             except Exception as e:
                 logger.error(f"GROUP {g} epic免费游戏推送错误 {type(e)}: {e}")

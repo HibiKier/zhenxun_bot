@@ -11,7 +11,7 @@ from services.db_context import db
 from models.level_user import LevelUser
 from configs.config import Config
 from utils.manager import group_manager, plugins2settings_manager, plugins_manager
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from utils.http_utils import AsyncHttpx
 import asyncio
 import time
@@ -72,7 +72,9 @@ async def custom_group_welcome(
             logger.info(f"USER {user_id} GROUP {group_id} 更换群欢迎消息 {msg}")
             result += msg
         if img:
-            await AsyncHttpx.download_file(img, DATA_PATH + f"custom_welcome_msg/{group_id}.jpg")
+            await AsyncHttpx.download_file(
+                img, DATA_PATH + f"custom_welcome_msg/{group_id}.jpg"
+            )
             img_result = image(abspath=DATA_PATH + f"custom_welcome_msg/{group_id}.jpg")
             logger.info(f"USER {user_id} GROUP {group_id} 更换群欢迎消息图片")
     except Exception as e:
@@ -107,7 +109,16 @@ async def change_group_switch(cmd: str, group_id: int, is_super: bool = False):
             else:
                 if await group_manager.check_group_task_status(group_id, task):
                     await group_manager.close_group_task(group_id, task)
+        if group_help_file.exists():
+            group_help_file.unlink()
         return f"已 {status} 全部被动技能！"
+    if cmd == "全部功能":
+        for f in plugins2settings_manager.get_data():
+            if status == "开启":
+                group_manager.unblock_plugin(f, group_id)
+            else:
+                group_manager.block_plugin(f, group_id)
+        return f"已 {status} 全部功能！"
     if cmd in [task_data[x] for x in task_data.keys()]:
         type_ = "task"
         modules = [x for x in task_data.keys() if task_data[x] == cmd]
@@ -132,14 +143,14 @@ async def change_group_switch(cmd: str, group_id: int, is_super: bool = False):
                 if not group_manager.get_plugin_status(module, group_id):
                     return f"功能 {cmd} 正处于关闭状态！不要重复关闭."
                 group_manager.block_plugin(module, group_id)
-        if group_help_file.exists():
-            group_help_file.unlink()
+    if group_help_file.exists():
+        group_help_file.unlink()
     if is_super:
-        for file in os.listdir(Path(DATA_PATH) / 'group_help'):
-            file = Path(DATA_PATH) / 'group_help' / file
+        for file in os.listdir(Path(DATA_PATH) / "group_help"):
+            file = Path(DATA_PATH) / "group_help" / file
             file.unlink()
     else:
-        _help_image = Path(DATA_PATH) / 'group_help' / f"{group_id}.png"
+        _help_image = Path(DATA_PATH) / "group_help" / f"{group_id}.png"
         if _help_image.exists():
             _help_image.unlink()
     return f"{status} {cmd} 功能！"
@@ -158,8 +169,8 @@ def set_plugin_status(cmd: str, block_type: str = "all"):
         plugins_manager.unblock_plugin(module)
     else:
         plugins_manager.block_plugin(module, block_type=block_type)
-    for file in os.listdir(Path(DATA_PATH) / 'group_help'):
-        file = Path(DATA_PATH) / 'group_help' / file
+    for file in os.listdir(Path(DATA_PATH) / "group_help"):
+        file = Path(DATA_PATH) / "group_help" / file
         file.unlink()
 
 
@@ -195,11 +206,11 @@ def _get_plugin_status() -> MessageSegment:
         rst += "\n"
         flag_str += f"{flag}\n"
     height = len(rst.split("\n")) * 24
-    a = CreateImg(250, height, font_size=20)
+    a = BuildImage(250, height, font_size=20)
     a.text((10, 10), rst)
-    b = CreateImg(200, height, font_size=20)
+    b = BuildImage(200, height, font_size=20)
     b.text((10, 10), flag_str)
-    A = CreateImg(500, height)
+    A = BuildImage(500, height)
     A.paste(a)
     A.paste(b, (270, 0))
     return image(b64=A.pic2bs4())
@@ -288,3 +299,21 @@ async def update_member_info(group_id: int, remind_superuser: bool = False) -> b
             user_id=int(list(bot.config.superusers)[0]), message=result[:-1]
         )
     return True
+
+
+def set_group_bot_status(group_id: int, status: bool) -> str:
+    """
+    设置群聊bot开关状态
+    :param group_id: 群号
+    :param status: 状态
+    """
+    if status:
+        if group_manager.check_group_bot_status(group_id):
+            return "我还醒着呢！"
+        group_manager.turn_on_group_bot_status(group_id)
+        return "呜..醒来了..."
+    else:
+        group_manager.shutdown_group_bot_status(group_id)
+        # for x in group_manager.get_task_data():
+        #     group_manager.close_group_task(group_id, x)
+        return "那我先睡觉了..."

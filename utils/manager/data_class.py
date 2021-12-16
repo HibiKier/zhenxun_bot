@@ -19,7 +19,11 @@ class StaticData:
             if file.exists():
                 with open(file, "r", encoding="utf8") as f:
                     if file.name.endswith("json"):
-                        self._data: dict = json.load(f)
+                        try:
+                            self._data: dict = json.load(f)
+                        except ValueError:
+                            if f.read().strip():
+                                raise ValueError(f"{file} 文件加载错误，请检查文件内容格式.")
                     elif file.name.endswith("yaml"):
                         self._data = yaml.load(f)
 

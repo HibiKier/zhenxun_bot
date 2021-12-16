@@ -2,7 +2,7 @@ from nonebot import on_command, Driver
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, Message, GroupMessageEvent
 from utils.message_builder import image
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from utils.browser import get_browser
 from configs.path_config import IMAGE_PATH
 import nonebot
@@ -131,12 +131,12 @@ async def update_image():
         height = await asyncio.get_event_loop().run_in_executor(
             None, get_background_height, weapons_imgs
         )
-        background_img = CreateImg(1200, height + 100, color="#f6f2ee")
+        background_img = BuildImage(1200, height + 100, color="#f6f2ee")
         current_width = 50
         for imgs in [char_imgs, weapons_imgs]:
             current_height = 20
             for img in imgs:
-                x = CreateImg(0, 0, background=img)
+                x = BuildImage(0, 0, background=img)
                 background_img.paste(x, (current_width, current_height))
                 current_height += x.size[1]
             current_width += 600
@@ -154,8 +154,8 @@ async def update_image():
 def get_background_height(weapons_imgs: List[str]) -> int:
     height = 0
     for weapons in weapons_imgs:
-        height += CreateImg(0, 0, background=weapons).size[1]
-    last_weapon = CreateImg(0, 0, background=weapons_imgs[-1])
+        height += BuildImage(0, 0, background=weapons).size[1]
+    last_weapon = BuildImage(0, 0, background=weapons_imgs[-1])
     w, h = last_weapon.size
     last_weapon.crop((0, 0, w, h - 10))
     last_weapon.save(weapons_imgs[-1])

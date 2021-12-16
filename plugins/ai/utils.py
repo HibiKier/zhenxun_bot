@@ -75,7 +75,10 @@ class AiMessageManager(StaticData):
         :param user_id: 用户id
         :param nickname: 用户昵称
         """
-        if len(self._data[user_id]["message"]) < 2:
+        try:
+            if len(self._data[user_id]["message"]) < 2:
+                return None
+        except KeyError:
             return None
         msg = await self._get_user_repeat_message_result(user_id)
         if not msg:

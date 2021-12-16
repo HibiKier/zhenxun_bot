@@ -1,4 +1,4 @@
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from configs.path_config import IMAGE_PATH
 from services.log import logger
 from utils.utils import get_matchers
@@ -84,8 +84,8 @@ def _create_help_image():
     for i, x in enumerate(task_data.keys()):
         help_str += f'{i+1}.开启/关闭{task_data[x]}\n\n'
     height = len(help_str.split("\n")) * 33
-    A = CreateImg(width, height, font_size=24)
-    _background = CreateImg(width, height, background=background)
+    A = BuildImage(width, height, font_size=24)
+    _background = BuildImage(width, height, background=background)
     A.text((150, 110), help_str)
     A.paste(_background, alpha=True)
     A.save(admin_help_image)

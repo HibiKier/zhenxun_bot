@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from typing import List
 from services.db_context import db
 
 
@@ -26,6 +26,14 @@ class SignGroupUser(db.Model):
     async def ensure(
         cls, user_qq: int, belonging_group: int, for_update: bool = False
     ) -> "SignGroupUser":
+        """
+        说明:
+            获取签到用户
+        参数:
+            :param user_qq: 用户qq
+            :param belonging_group: 所在群聊
+            :param for_update: 是否存在修改数据
+        """
         query = cls.query.where(
             (cls.user_qq == user_qq) & (cls.belonging_group == belonging_group)
         )
@@ -41,7 +49,27 @@ class SignGroupUser(db.Model):
         )
 
     @classmethod
+    async def get_user_all_data(cls, user_qq: int) -> List["SignGroupUser"]:
+        """
+        说明:
+            获取某用户所有数据
+        参数:
+            :param user_qq: 用户qq
+        """
+        query = cls.query.where(cls.user_qq == user_qq)
+        query = query.with_for_update()
+        return await query.gino.all()
+
+    @classmethod
     async def sign(cls, user: "SignGroupUser", impression: float, checkin_time_last: datetime):
+        """
+        说明:
+            签到
+        说明:
+            :param user: 用户
+            :param impression: 增加的好感度
+            :param checkin_time_last: 签到时间
+        """
         await user.update(
             checkin_count=user.checkin_count + 1,
             checkin_time_last=checkin_time_last,

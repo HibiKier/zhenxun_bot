@@ -105,11 +105,12 @@ class ConfigsManager:
             if self._data[module].get(key) is not None:
                 self._data[module][key]["default_value"] = value
 
-    def get_config(self, module: str, key: str) -> Optional[Any]:
+    def get_config(self, module: str, key: str, default: Optional[Any] = None) -> Optional[Any]:
         """
         获取指定配置值
         :param module: 模块名
         :param key: 配置名称
+        :param default: 没有key值内容的默认返回值
         """
         key = key.upper()
         if module in self._data.keys():
@@ -118,6 +119,8 @@ class ConfigsManager:
                     if self._data[module][key]["value"] is None:
                         return self._data[module][key]["default_value"]
                     return self._data[module][key]["value"]
+        if default is not None:
+            return default
         return None
 
     def get_level2module(self, module: str, key: str) -> Optional[str]:
@@ -170,4 +173,3 @@ class ConfigsManager:
 
     def __getitem__(self, key):
         return self._data[key]
-

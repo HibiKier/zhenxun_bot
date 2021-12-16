@@ -10,10 +10,14 @@ Config.add_plugin_config(
     "group_manager", "DEFAULT_GROUP_LEVEL", 5, help_="默认群权限", default_value=5
 )
 
+Config.add_plugin_config(
+    "group_manager", "DEFAULT_GROUP_BOT_STATUS", True, help_="默认进群总开关状态", default_value=True
+)
+
 
 class GroupManager(StaticData):
     """
-    群权限 | 功能 | 聊天时间 管理器
+    群权限 | 功能 | 总开关 | 聊天时间 管理器
     """
 
     def __init__(self, file: Path):
@@ -44,6 +48,41 @@ class GroupManager(StaticData):
             :param group_id: 群组
         """
         self._set_plugin_status(module, "unblock", group_id)
+
+    def turn_on_group_bot_status(self, group_id: int):
+        """
+        说明：
+            开启群bot开关
+        参数：
+            :param group_id: 群号
+        """
+        self._set_group_bot_status(group_id, True)
+
+    def shutdown_group_bot_status(self, group_id: int):
+        """
+        说明：
+            关闭群bot开关
+        参数：
+            :param group_id: 群号
+        """
+        self._set_group_bot_status(group_id, False)
+
+    def check_group_bot_status(self, group_id: int) -> bool:
+        """
+        说明：
+            检查群聊bot总开关状态
+        参数：
+            :param group_id: 说明
+        """
+        group_id = str(group_id)
+        if not self._data["group_manager"].get(group_id):
+            self._init_group(group_id)
+        if self._data["group_manager"][group_id].get("status") is None:
+            default_group_bot_status = Config.get_config("group_manager", "DEFAULT_GROUP_BOT_STATUS")
+            if default_group_bot_status:
+                default_group_bot_status = True
+            self._data["group_manager"][group_id]["status"] = default_group_bot_status
+        return self._data["group_manager"][group_id]["status"]
 
     def set_group_level(self, group_id: int, level: int):
         """
@@ -125,8 +164,10 @@ class GroupManager(StaticData):
 
     def delete_group(self, group_id: int):
         """
-        删除群配置
-        :param group_id: 群号
+        说明：
+            删除群配置
+        参数：
+            :param group_id: 群号
         """
         if group_id in self._data["group_manager"]:
             del self._data["group_manager"][str(group_id)]
@@ -136,25 +177,31 @@ class GroupManager(StaticData):
 
     async def open_group_task(self, group_id: int, task: str):
         """
-        开启群被动技能
-        :param group_id: 群号
-        :param task: 被动技能名称
+        说明：
+            开启群被动技能
+        参数：
+            :param group_id: 群号
+            :param task: 被动技能名称
         """
         await self._set_group_task_status(group_id, task, True)
 
     async def close_group_task(self, group_id: int, task: str):
         """
-        关闭群被动技能
-        :param group_id: 群号
-        :param task: 被动技能名称
+        说明：
+            关闭群被动技能
+        参数：
+            :param group_id: 群号
+            :param task: 被动技能名称
         """
         await self._set_group_task_status(group_id, task, False)
 
     async def check_group_task_status(self, group_id: int, task: str) -> bool:
         """
-        查看群被动技能状态
-        :param group_id: 群号
-        :param task: 被动技能名称
+        说明：
+            查看群被动技能状态
+        参数：
+            :param group_id: 群号
+            :param task: 被动技能名称
         """
         group_id = str(group_id)
         if (
@@ -167,14 +214,17 @@ class GroupManager(StaticData):
 
     def get_task_data(self) -> Dict[str, str]:
         """
-        获取所有被动任务
+        说明：
+            获取所有被动任务
         """
         return self._task
 
     async def group_task_status(self, group_id: int) -> str:
         """
-        查看群被全部动技能状态
-        :param group_id: 群号
+        说明：
+            查看群被全部动技能状态
+        参数：
+            :param group_id: 群号
         """
         x = "[群被动技能]:\n"
         group_id = str(group_id)
@@ -186,10 +236,12 @@ class GroupManager(StaticData):
 
     async def _set_group_task_status(self, group_id: int, task: str, status: bool):
         """
-        管理群被动技能状态
-        :param group_id: 群号
-        :param task: 被动技能
-        :param status: 状态
+        说明：
+            管理群被动技能状态
+        参数：
+            :param group_id: 群号
+            :param task: 被动技能
+            :param status: 状态
         """
         group_id = str(group_id)
         if not self._data["group_manager"].get(group_id):
@@ -205,7 +257,8 @@ class GroupManager(StaticData):
 
     async def init_group_task(self, group_id: Optional[Union[int, str]] = None):
         """
-        初始化群聊 被动技能 状态
+        说明：
+            初始化群聊 被动技能 状态
         """
         if not self._task:
             for matcher in get_matchers():
@@ -238,7 +291,8 @@ class GroupManager(StaticData):
                     ):
                         self._data["group_manager"][group_id]["group_task_status"][
                             task
-                        ] = True
+                        ] = Config.get_config('_task', f'DEFAULT_{task}', default=True)
+                        print(task, Config.get_config('_task', f'DEFAULT_{task}'))
                 for task in list(
                     self._data["group_manager"][group_id]["group_task_status"]
                 ):
@@ -271,7 +325,7 @@ class GroupManager(StaticData):
         else:
             if module in self._data["group_manager"][group_id]["close_plugins"]:
                 self._data["group_manager"][group_id]["close_plugins"].remove(module)
-            self.save()
+        self.save()
 
     def _init_group(self, group_id: str):
         """
@@ -281,18 +335,37 @@ class GroupManager(StaticData):
             :param group_id: 群号
         """
         default_group_level = Config.get_config("group_manager", "DEFAULT_GROUP_LEVEL")
-        if not default_group_level:
+        if default_group_level is None:
             default_group_level = 5
+        default_group_bot_status = Config.get_config("group_manager", "DEFAULT_GROUP_BOT_STATUS")
+        if default_group_bot_status:
+            default_group_bot_status = True
         if not self._data["group_manager"].get(group_id):
             self._data["group_manager"][group_id] = {
                 "level": default_group_level,
+                "status": default_group_bot_status,
                 "close_plugins": [],
                 "group_task_status": {},
             }
 
+    def _set_group_bot_status(self, group_id: Union[int, str], status: bool):
+        """
+        说明：
+            设置群聊bot总开关
+        参数：
+            :param group_id: 群号
+            :param status: 开关状态
+        """
+        group_id = str(group_id)
+        if not self._data["group_manager"].get(group_id):
+            self._init_group(group_id)
+        self._data["group_manager"][group_id]["status"] = status
+        self.save()
+
     def get_super_old_data(self) -> Optional[dict]:
         """
-        获取旧数据，平时使用请不要调用
+        说明：
+            获取旧数据，平时使用请不要调用
         """
         if self._data["super"].get("close_plugins"):
             _x = self._data["super"].get("close_plugins")

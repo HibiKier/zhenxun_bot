@@ -1,10 +1,10 @@
 from .model import RussianUser
 from typing import Optional
 from utils.data_utils import init_rank
-from utils.image_utils import CreateMat
+from utils.image_utils import BuildMat
 
 
-async def rank(group_id: int, itype: str, num: int) -> Optional[CreateMat]:
+async def rank(group_id: int, itype: str, num: int) -> Optional[BuildMat]:
     all_users = await RussianUser.get_all_user(group_id)
     all_user_id = [user.user_qq for user in all_users]
     if itype == 'win_rank':

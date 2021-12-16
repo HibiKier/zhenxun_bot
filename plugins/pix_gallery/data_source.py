@@ -5,7 +5,7 @@ from asyncio.exceptions import TimeoutError
 from .model.pixiv import Pixiv
 from typing import List, Optional
 from utils.utils import change_pixiv_image_links
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from utils.http_utils import AsyncHttpx
 from services.log import logger
 from configs.config import Config
@@ -347,16 +347,16 @@ def gen_keyword_pic(
         del img_data["_n_pid"]
         del img_data["_n_uid"]
     current_width = 0
-    A = CreateImg(img_width, 1100)
+    A = BuildImage(img_width, 1100)
     for x in list(img_data.keys()):
         if img_data[x]["data"]:
-            img = CreateImg(img_data[x]["width"] * 200, 1100, 200, 1100, font_size=40)
+            img = BuildImage(img_data[x]["width"] * 200, 1100, 200, 1100, font_size=40)
             start_index = 0
             end_index = 40
             total_index = img_data[x]["width"] * 40
             for _ in range(img_data[x]["width"]):
-                tmp = CreateImg(198, 1100, font_size=20)
-                text_img = CreateImg(198, 100, font_size=50)
+                tmp = BuildImage(198, 1100, font_size=20)
+                text_img = BuildImage(198, 100, font_size=50)
                 key_str = "\n".join(
                     [key for key in img_data[x]["data"][start_index:end_index]]
                 )
@@ -370,7 +370,7 @@ def gen_keyword_pic(
                 end_index = (
                     end_index + 40 if end_index + 40 <= total_index else total_index
                 )
-                background_img = CreateImg(200, 1100, color="#FFE4C4")
+                background_img = BuildImage(200, 1100, color="#FFE4C4")
                 background_img.paste(tmp, (1, 1))
                 img.paste(background_img)
             A.paste(img, (current_width, 0))

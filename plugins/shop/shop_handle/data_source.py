@@ -1,5 +1,5 @@
 from ..models.goods_info import GoodsInfo
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from utils.utils import is_number
 from configs.path_config import IMAGE_PATH
 from configs.config import Config
@@ -37,9 +37,9 @@ async def create_shop_help():
     w = 1000
     h = 400 + len(goods_lst) * 40
     h = 1000 if h < 1000 else h
-    shop_logo = CreateImg(100, 100, background=f"{IMAGE_PATH}/other/shop_text.png")
-    shop = CreateImg(w, h, font_size=20)
-    zhenxun_img = CreateImg(525, 581, background=f"{IMAGE_PATH}/zhenxun/toukan_2.png")
+    shop_logo = BuildImage(100, 100, background=f"{IMAGE_PATH}/other/shop_text.png")
+    shop = BuildImage(w, h, font_size=20)
+    zhenxun_img = BuildImage(525, 581, background=f"{IMAGE_PATH}/zhenxun/toukan_2.png")
     shop.paste(zhenxun_img, (780, 100))
     shop.paste(shop_logo, (450, 30), True)
     shop.text(

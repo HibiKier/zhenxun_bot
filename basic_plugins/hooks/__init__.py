@@ -1,5 +1,4 @@
 from configs.config import Config
-import nonebot
 
 
 Config.add_plugin_config(
@@ -35,4 +34,3 @@ Config.add_plugin_config(
     default_value=6
 )
 
-nonebot.load_plugins("basic_plugins/hooks")

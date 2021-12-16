@@ -3,7 +3,7 @@ from configs.path_config import IMAGE_PATH, TEXT_PATH
 from PIL.Image import UnidentifiedImageError
 from utils.message_builder import image
 from services.log import logger
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from asyncio.exceptions import TimeoutError
 from asyncio import Semaphore
 from utils.image_utils import is_valid
@@ -186,11 +186,11 @@ async def download_map_init(
                             force_flag=flag,
                         )
                         idx += 1
-                    _w, h = CreateImg(0, 0, background=f"{map_path}/0.png", ratio=MAP_RATIO).size
+                    _w, h = BuildImage(0, 0, background=f"{map_path}/0.png", ratio=MAP_RATIO).size
                     w = _w * len(os.listdir(map_path))
-                    map_file = CreateImg(w, h, _w, h, ratio=MAP_RATIO)
+                    map_file = BuildImage(w, h, _w, h, ratio=MAP_RATIO)
                     for i in range(idx):
-                        map_file.paste(CreateImg(0, 0, background=f"{map_path}/{i}.png", ratio=MAP_RATIO))
+                        map_file.paste(BuildImage(0, 0, background=f"{map_path}/{i}.png", ratio=MAP_RATIO))
                     map_file.save(f"{map_path}/map.png")
             else:
                 logger.warning(f'获取原神地图失败 msg: {data["message"]}')
@@ -230,10 +230,10 @@ async def download_resource_type():
 
 # 初始化资源图标
 def gen_icon(icon: str):
-    A = CreateImg(0, 0, background=f"{icon_path}/box.png")
-    B = CreateImg(0, 0, background=f"{icon_path}/box_alpha.png")
+    A = BuildImage(0, 0, background=f"{icon_path}/box.png")
+    B = BuildImage(0, 0, background=f"{icon_path}/box_alpha.png")
     icon_ = icon_path / f"{icon}"
-    icon_img = CreateImg(115, 115, background=icon_)
+    icon_img = BuildImage(115, 115, background=icon_)
     icon_img.circle()
     B.paste(icon_img, (17, 10), True)
     B.paste(A, alpha=True)

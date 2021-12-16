@@ -5,7 +5,7 @@ from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from utils.message_builder import image
 from services.log import logger
 from utils.utils import get_message_text
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 
 __zx_plugin_name__ = "鲁迅说"
 __plugin_usage__ = """
@@ -31,7 +31,7 @@ __plugin_block_limit__ = {
 luxun = on_command("鲁迅说过", aliases={"鲁迅说"}, priority=5, block=True)
 
 
-luxun_author = CreateImg(0, 0, plain_text="--鲁迅", font_size=30, font='msyh.ttf', font_color=(255, 255, 255))
+luxun_author = BuildImage(0, 0, plain_text="--鲁迅", font_size=30, font='msyh.ttf', font_color=(255, 255, 255))
 
 
 @luxun.handle()
@@ -46,7 +46,7 @@ async def handle_event(bot: Bot, event: MessageEvent, state: T_State):
     content = state["content"].strip()
     if content.startswith(",") or content.startswith("，"):
         content = content[1:]
-    A = CreateImg(0, 0, font_size=37, background=f'{IMAGE_PATH}/other/luxun.jpg', font='msyh.ttf')
+    A = BuildImage(0, 0, font_size=37, background=f'{IMAGE_PATH}/other/luxun.jpg', font='msyh.ttf')
     x = ""
     if len(content) > 40:
         await luxun.finish('太长了，鲁迅说不完...')

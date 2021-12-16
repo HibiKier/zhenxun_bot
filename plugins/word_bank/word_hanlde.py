@@ -59,11 +59,11 @@ show_word = on_command("显示词条", aliases={"查看词条"}, priority=5, blo
 @add_word.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     msg = str(event.get_message()).strip()
-    r = re.search(r"^问(.+)\s?答(.*)", msg)
+    r = re.search(r"^问(.+)\s?答([\s\S]*)", msg)
     if not r:
         await add_word.finish("未检测到词条问题...")
     problem = r.group(1).strip()
-    answer = r.group(2).strip()
+    answer = msg.split('答', maxsplit=1)[-1]
     if not answer:
         await add_word.finish("未检测到词条回答...")
     idx = 0

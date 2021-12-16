@@ -1,4 +1,4 @@
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from configs.path_config import IMAGE_PATH
 from utils.manager import (
     plugins2settings_manager,
@@ -50,7 +50,7 @@ def _create_help_img(
     _des_tmp = {}
     _plugin_name_tmp = []
     _tmp = []
-    tmp_img = CreateImg(0, 0, plain_text="1", font_size=24)
+    tmp_img = BuildImage(0, 0, plain_text="1", font_size=24)
     font_height = tmp_img.h
     # 插件分类
     for matcher in _matchers:
@@ -181,7 +181,7 @@ def _create_help_img(
                 )
         height = len(help_str.split("\n")) * (font_height + 5)
         simple_height = len(simple_help_str.split("\n")) * (font_height + 5)
-        A = CreateImg(
+        A = BuildImage(
             width + 150, height, font_size=24, color="white" if not ix % 2 else "black"
         )
         A.text((10, 10), help_str, (255, 255, 255) if ix % 2 else (0, 0, 0))
@@ -192,8 +192,8 @@ def _create_help_img(
             for x in simple_help_str.split("\n")
         ]:
             simple_width = simple_width if simple_width > x else x
-        bk = CreateImg(simple_width + 20, simple_height, font_size=24, color="#6495ED")
-        B = CreateImg(
+        bk = BuildImage(simple_width + 20, simple_height, font_size=24, color="#6495ED")
+        B = BuildImage(
             simple_width + 20,
             simple_height,
             font_size=24,
@@ -236,7 +236,7 @@ def _create_help_img(
     for img in help_img_list:
         height += img.h
     if not group_id:
-        A = CreateImg(width + 150, height + 50, font_size=24)
+        A = BuildImage(width + 150, height + 50, font_size=24)
         A.text(
             (10, 10), '*  注: ‘*’ 代表可有多个相同参数 ‘?’ 代表可省略该参数  *\n\n" "功能名: 功能简介 -> 指令\n\n'
         )
@@ -253,14 +253,14 @@ def _create_help_img(
         if img.h > height:
             height = img.h
         width += img.w + 10
-    B = CreateImg(width + 100, height + 250, font_size=24)
+    B = BuildImage(width + 100, height + 250, font_size=24)
     width, _ = get_max_width_or_paste(simple_help_img_list, B)
     bk = None
     random_bk = os.listdir(random_bk_path)
     if random_bk:
         bk = random.choice(random_bk)
     x = max(width + 50, height + 250)
-    B = CreateImg(
+    B = BuildImage(
         x,
         x,
         font_size=24,
@@ -272,7 +272,7 @@ def _create_help_img(
     w = 10
     h = 10
     for msg in ["目前支持的功能列表:", "可以通过 ‘帮助[功能名称]’ 来获取对应功能的使用方法", "或者使用 ‘详细帮助’ 来获取所有功能方法"]:
-        text = CreateImg(
+        text = BuildImage(
             0,
             0,
             plain_text=msg,
@@ -284,7 +284,7 @@ def _create_help_img(
         if msg == "目前支持的功能列表:":
             w += 50
     B.paste(
-        CreateImg(
+        BuildImage(
             0,
             0,
             plain_text="注: 红字代表功能被群管理员禁用，红线代表功能正在维护",
@@ -299,8 +299,8 @@ def _create_help_img(
 
 
 def get_max_width_or_paste(
-    simple_help_img_list: list, B: CreateImg = None, is_paste: bool = False
-) -> "int, CreateImg":
+    simple_help_img_list: list, B: BuildImage = None, is_paste: bool = False
+) -> "int, BuildImage":
     """
     获取最大宽度，或直接贴图
     :param simple_help_img_list: 简单帮助图片列表
@@ -353,8 +353,8 @@ def get_plugin_help(msg: str, is_super: bool = False) -> Optional[str]:
                         _width = len(x) * 24
                         width = width if width > _width else _width
                     height = len(result.split("\n")) * 45
-                    A = CreateImg(width, height, font_size=24)
-                    bk = CreateImg(
+                    A = BuildImage(width, height, font_size=24)
+                    bk = BuildImage(
                         width,
                         height,
                         background=Path(IMAGE_PATH) / "background" / "1.png",

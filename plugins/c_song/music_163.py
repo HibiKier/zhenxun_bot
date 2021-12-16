@@ -23,7 +23,10 @@ async def search_song(song_name: str):
 async def get_song_id(song_name: str) -> int:
     """ """
     r = await search_song(song_name)
-    return r["result"]["songs"][0]["id"]
+    try:
+        return r["result"]["songs"][0]["id"]
+    except KeyError:
+        return 0
 
 
 async def get_song_info(songId: int):

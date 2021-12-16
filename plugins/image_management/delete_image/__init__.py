@@ -31,12 +31,17 @@ __plugin_settings__ = {
 delete_img = on_command("删除图片", priority=5, rule=to_me(), block=True)
 
 
+_path = Path(IMAGE_PATH) / "image_management"
+
+
 @delete_img.args_parser
 async def parse(bot: Bot, event: MessageEvent, state: T_State):
     if get_message_text(event.json()) in ["取消", "算了"]:
         await delete_img.finish("已取消操作..", at_sender=True)
     if state["_current_key"] in ["path"]:
-        if get_message_text(event.json()) not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+        if get_message_text(event.json()) not in Config.get_config(
+            "image_management", "IMAGE_DIR_LIST"
+        ):
             await delete_img.reject("此目录不正确，请重新输入目录！")
         state[state["_current_key"]] = get_message_text(event.json())
     if state["_current_key"] == "id":
@@ -52,7 +57,11 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         args = raw_arg.split(" ")
         if args[0] in ["帮助"]:
             await delete_img.finish(__plugin_usage__)
-        if len(args) >= 2 and args[0] in Config.get_config("image_management", "IMAGE_DIR_LIST") and is_number(args[1]):
+        if (
+            len(args) >= 2
+            and args[0] in Config.get_config("image_management", "IMAGE_DIR_LIST")
+            and is_number(args[1])
+        ):
             state["path"] = args[0]
             state["id"] = args[1]
 
@@ -60,18 +69,18 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 @delete_img.got("path", prompt="请输入要删除的目标图库？")
 @delete_img.got("id", prompt="请输入要删除的图片id？")
 async def arg_handle(bot: Bot, event: MessageEvent, state: T_State):
-    path = cn2py(state["path"])
     img_id = state["id"]
-    # path = IMAGE_PATH + path
-    path = Path(IMAGE_PATH) / path
-    temp = Path(IMAGE_PATH) / "temp"
+    path = _path / cn2py(state["path"])
+    if not path.exists() and (path.parent.parent / cn2py(state["path"])).exists():
+        path = path.parent.parent / cn2py(state["path"])
+    temp = Path(TEMP_PATH)
     max_id = len(os.listdir(path)) - 1
     if int(img_id) > max_id or int(img_id) < 0:
         await delete_img.finish(f"Id超过上下限，上限：{max_id}", at_sender=True)
     try:
-        if os.path.exists(temp / "delete.jpg"):
-            os.remove(temp / "delete.jpg")
-        logger.info("删除图片 delete.jpg 成功")
+        if (temp / "delete.jpg").exists():
+            (temp / "delete.jpg").unlink()
+        logger.info(f"删除{cn2py(state['path'])}图片 {img_id}.jpg 成功")
     except Exception as e:
         logger.warning(f"删除图片 delete.jpg 失败 e{e}")
     try:

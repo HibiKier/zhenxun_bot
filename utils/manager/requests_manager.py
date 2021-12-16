@@ -3,7 +3,7 @@ from nonebot.adapters.cqhttp import Bot
 from nonebot.adapters.cqhttp.exception import ActionFailed
 from services.log import logger
 from typing import Optional
-from utils.image_utils import CreateImg
+from utils.image_utils import BuildImage
 from utils.utils import get_user_avatar
 from pathlib import Path
 from io import BytesIO
@@ -128,27 +128,27 @@ class RequestManager(StaticData):
             comment = data[id_]["comment"] if type_ == "private" else ""
             from_ = data[id_]["from"]
             sex = data[id_]["sex"]
-            ava = CreateImg(
+            ava = BuildImage(
                 80, 80, background=BytesIO(await get_user_avatar(data[id_]["id"]))
             )
             ava.circle()
-            age_bk = CreateImg(
+            age_bk = BuildImage(
                 len(str(age)) * 10 - 5,
                 15,
                 color="#04CAF7" if sex == "male" else "#F983C1",
             )
             age_bk.text((3, 1), f"{age}", fill=(255, 255, 255))
-            x = CreateImg(
+            x = BuildImage(
                 90, 32, font_size=15, color="#EEEFF4", font="HYWenHei-85W.ttf"
             )
             x.text((0, 0), "同意/拒绝", center_type="center")
             x.circle_corner(10)
-            A = CreateImg(500, 100, font_size=24, font="msyh.ttf")
+            A = BuildImage(500, 100, font_size=24, font="msyh.ttf")
             A.paste(ava, (15, 0), alpha=True, center_type="by_height")
             A.text((120, 15), nickname)
             A.paste(age_bk, (120, 50), True)
             A.paste(
-                CreateImg(
+                BuildImage(
                     200,
                     0,
                     font_size=12,
@@ -160,7 +160,7 @@ class RequestManager(StaticData):
             )
             if type_ == "private":
                 A.paste(
-                    CreateImg(
+                    BuildImage(
                         200,
                         0,
                         font_size=12,
@@ -172,7 +172,7 @@ class RequestManager(StaticData):
                 )
             else:
                 A.paste(
-                    CreateImg(
+                    BuildImage(
                         200,
                         0,
                         font_size=12,
@@ -184,7 +184,7 @@ class RequestManager(StaticData):
                 )
             A.paste(x, (380, 35), True)
             A.paste(
-                CreateImg(
+                BuildImage(
                     0,
                     0,
                     plain_text=f"id：{id_}",
@@ -195,10 +195,10 @@ class RequestManager(StaticData):
                 True,
             )
             img_list.append(A)
-        A = CreateImg(500, len(img_list) * 100, 500, 100)
+        A = BuildImage(500, len(img_list) * 100, 500, 100)
         for img in img_list:
             A.paste(img)
-        bk = CreateImg(A.w, A.h + 50, color="#F8F9FB", font_size=20)
+        bk = BuildImage(A.w, A.h + 50, color="#F8F9FB", font_size=20)
         bk.paste(A, (0, 50))
         bk.text(
             (15, 13), "好友请求" if type_ == "private" else "群聊请求", fill=(140, 140, 143)

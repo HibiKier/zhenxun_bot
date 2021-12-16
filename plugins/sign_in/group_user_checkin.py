@@ -4,7 +4,7 @@ from models.group_member_info import GroupInfoUser
 from models.bag_user import BagUser
 from configs.config import NICKNAME
 from nonebot.adapters.cqhttp import MessageSegment
-from utils.image_utils import CreateImg, CreateMat
+from utils.image_utils import BuildImage, BuildMat
 from services.db_context import db
 from .utils import get_card, SIGN_TODAY_CARD_PATH
 from typing import Optional
@@ -37,6 +37,26 @@ async def group_user_check_in(
             gold = await BagUser.get_gold(user_qq, group)
             return await get_card(user, nickname, -1, gold, "")
         return await _handle_check_in(nickname, user_qq, group, present)  # ok
+
+
+async def check_in_all(nickname: str, user_qq: int):
+    """
+    说明:
+        签到所有群
+    参数:
+        :param nickname: 昵称
+        :param user_qq: 用户qq
+    """
+    async with db.transaction():
+        present = datetime.now()
+        for u in await SignGroupUser.get_user_all_data(user_qq):
+            group = u.belonging_group
+            if not ((
+                u.checkin_time_last + timedelta(hours=8)
+            ).date() >= present.date() or f"{u}_{group}_sign_{datetime.now().date()}" in os.listdir(
+                SIGN_TODAY_CARD_PATH
+            )):
+                await _handle_check_in(nickname, user_qq, group, present)
 
 
 async def _handle_check_in(
@@ -84,7 +104,7 @@ async def group_user_check(nickname: str, user_qq: int, group: int) -> MessageSe
     return await get_card(user, nickname, None, gold, "", is_card_view=True)
 
 
-async def group_impression_rank(group: int, num: int) -> Optional[CreateMat]:
+async def group_impression_rank(group: int, num: int) -> Optional[BuildMat]:
     user_qq_list, impression_list, _ = await SignGroupUser.get_all_impression(group)
     return await init_rank("好感度排行榜", user_qq_list, impression_list, group, num)
 
@@ -141,9 +161,9 @@ async def _pst(users: list, impressions: list, groups: list):
     count = math.ceil(lens / 33)
     width = 10
     idx = 0
-    A = CreateImg(1740, 3300, color="#FFE4C4")
+    A = BuildImage(1740, 3300, color="#FFE4C4")
     for _ in range(count):
-        col_img = CreateImg(550, 3300, 550, 100, color="#FFE4C4")
+        col_img = BuildImage(550, 3300, 550, 100, color="#FFE4C4")
         for _ in range(33 if int(lens / 33) >= 1 else lens % 33 - 1):
             idx += 1
             if idx > 100:
@@ -164,13 +184,13 @@ async def _pst(users: list, impressions: list, groups: list):
             user_name = user_name if len(user_name) < 11 else user_name[:10] + "..."
             ava = await get_user_avatar(user)
             if ava:
-                ava = CreateImg(
+                ava = BuildImage(
                     50, 50, background=BytesIO(ava)
                 )
             else:
-                ava = CreateImg(50, 50, color="white")
+                ava = BuildImage(50, 50, color="white")
             ava.circle()
-            bk = CreateImg(550, 100, color="#FFE4C4", font_size=30)
+            bk = BuildImage(550, 100, color="#FFE4C4", font_size=30)
             font_w, font_h = bk.getsize(f"{idx}")
             bk.text((5, int((100 - font_h) / 2)), f"{idx}.")
             bk.paste(ava, (55, int((100 - 50) / 2)), True)
@@ -180,7 +200,7 @@ async def _pst(users: list, impressions: list, groups: list):
         A.paste(col_img, (width, 0))
         lens -= 33
         width += 580
-    W = CreateImg(1740, 3700, color="#FFE4C4", font_size=130)
+    W = BuildImage(1740, 3700, color="#FFE4C4", font_size=130)
     W.paste(A, (0, 260))
     font_w, font_h = W.getsize(f"{NICKNAME}的好感度总榜")
     W.text((int((1740 - font_w) / 2), int((260 - font_h) / 2)), f"{NICKNAME}的好感度总榜")

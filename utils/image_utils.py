@@ -1,3 +1,4 @@
+import asyncio
 from configs.path_config import IMAGE_PATH, FONT_PATH
 from PIL import Image, ImageFile, ImageDraw, ImageFont, ImageFilter
 from imagehash import ImageHash
@@ -135,7 +136,7 @@ def is_valid(file: str) -> bool:
     return valid
 
 
-class CreateImg:
+class BuildImage:
     """
     快捷生成图片与操作图片的工具类
     """
@@ -219,10 +220,34 @@ class CreateImg:
         if plain_text:
             fill = font_color if font_color else (0, 0, 0)
             self.text((0, 0), plain_text, fill)
+        try:
+            self.loop = asyncio.get_event_loop()
+        except RuntimeError:
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            self.loop = asyncio.get_event_loop()
+
+    async def apaste(
+        self,
+        img: "BuildImage" or Image,
+        pos: Tuple[int, int] = None,
+        alpha: bool = False,
+        center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
+    ):
+        """
+        说明：
+            异步 贴图
+        参数：
+            :param img: 已打开的图片文件，可以为 BuildImage 或 Image
+            :param pos: 贴图位置（左上角）
+            :param alpha: 图片背景是否为透明
+            :param center_type: 居中类型，可能的值 center: 完全居中，by_width: 水平居中，by_height: 垂直居中
+        """
+        await self.loop.run_in_executor(None, self.paste, img, pos, alpha, center_type)
 
     def paste(
         self,
-        img: "CreateImg" or Image,
+        img: "BuildImage" or Image,
         pos: Tuple[int, int] = None,
         alpha: bool = False,
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
@@ -231,7 +256,7 @@ class CreateImg:
         说明：
             贴图
         参数：
-            :param img: 已打开的图片文件，可以为 CreateImg 或 Image
+            :param img: 已打开的图片文件，可以为 BuildImage 或 Image
             :param pos: 贴图位置（左上角）
             :param alpha: 图片背景是否为透明
             :param center_type: 居中类型，可能的值 center: 完全居中，by_width: 水平居中，by_height: 垂直居中
@@ -254,7 +279,7 @@ class CreateImg:
                 width = pos[0]
                 height = int((self.h - img.h) / 2)
             pos = (width, height)
-        if isinstance(img, CreateImg):
+        if isinstance(img, BuildImage):
             img = img.markImg
         if self.current_w == self.w:
             self.current_w = 0
@@ -280,6 +305,18 @@ class CreateImg:
         """
         return self.font.getsize(msg)
 
+    async def apoint(
+        self, pos: Tuple[int, int], fill: Optional[Tuple[int, int, int]] = None
+    ):
+        """
+        说明：
+            异步 绘制多个或单独的像素
+        参数：
+            :param pos: 坐标
+            :param fill: 填错颜色
+        """
+        await self.loop.run_in_executor(None, self.point, pos, fill)
+
     def point(self, pos: Tuple[int, int], fill: Optional[Tuple[int, int, int]] = None):
         """
         说明：
@@ -289,6 +326,24 @@ class CreateImg:
             :param fill: 填错颜色
         """
         self.draw.point(pos, fill=fill)
+
+    async def aellipse(
+        self,
+        pos: Tuple[int, int, int, int],
+        fill: Optional[Tuple[int, int, int]] = None,
+        outline: Optional[Tuple[int, int, int]] = None,
+        width: int = 1,
+    ):
+        """
+        说明：
+            异步 绘制圆
+        参数：
+            :param pos: 坐标范围
+            :param fill: 填充颜色
+            :param outline: 描线颜色
+            :param width: 描线宽度
+        """
+        await self.loop.run_in_executor(None, self.ellipse, pos, fill, outline, width)
 
     def ellipse(
         self,
@@ -307,6 +362,24 @@ class CreateImg:
             :param width: 描线宽度
         """
         self.draw.ellipse(pos, fill, outline, width)
+
+    async def atext(
+        self,
+        pos: Tuple[int, int],
+        text: str,
+        fill: Tuple[int, int, int] = (0, 0, 0),
+        center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
+    ):
+        """
+        说明：
+            异步 在图片上添加文字
+        参数：
+            :param pos: 文字位置
+            :param text: 文字内容
+            :param fill: 文字颜色
+            :param center_type: 居中类型，可能的值 center: 完全居中，by_width: 水平居中，by_height: 垂直居中
+        """
+        await self.loop.run_in_executor(None, self.text, pos, text, fill, center_type)
 
     def text(
         self,
@@ -343,6 +416,15 @@ class CreateImg:
             pos = (w, h)
         self.draw.text(pos, text, fill=fill, font=self.font)
 
+    async def asave(self, path: Union[str, Path]):
+        """
+        说明：
+            异步 保存图片
+        参数：
+            :param path: 图片路径
+        """
+        await self.loop.run_in_executor(None, self.save, path)
+
     def save(self, path: Union[str, Path]):
         """
         说明：
@@ -360,6 +442,17 @@ class CreateImg:
             显示图片
         """
         self.markImg.show(self.markImg)
+
+    async def aresize(self, ratio: float = 0, w: int = 0, h: int = 0):
+        """
+        说明：
+            异步 压缩图片
+        参数：
+            :param ratio: 压缩倍率
+            :param w: 压缩图片宽度至 w
+            :param h: 压缩图片高度至 h
+        """
+        await self.loop.run_in_executor(None, self.resize, ratio, w, h)
 
     def resize(self, ratio: float = 0, w: int = 0, h: int = 0):
         """
@@ -379,6 +472,15 @@ class CreateImg:
         self.w, self.h = self.markImg.size
         self.size = self.w, self.h
         self.draw = ImageDraw.Draw(self.markImg)
+
+    async def acrop(self, box: Tuple[int, int, int, int]):
+        """
+        说明：
+            异步 裁剪图片
+        参数：
+            :param box: 左上角坐标，右下角坐标 (left, upper, right, lower)
+        """
+        await self.loop.run_in_executor(None, self.crop, box)
 
     def crop(self, box: Tuple[int, int, int, int]):
         """
@@ -401,6 +503,16 @@ class CreateImg:
         """
         return self.font.getsize(word)[0] > self.w
 
+    async def atransparent(self, alpha_ratio: float = 1, n: int = 0):
+        """
+        说明：
+            异步 图片透明化
+        参数：
+            :param alpha_ratio: 透明化程度
+            :param n: 透明化大小内边距
+        """
+        await self.loop.run_in_executor(None, self.transparent, alpha_ratio, n)
+
     def transparent(self, alpha_ratio: float = 1, n: int = 0):
         """
         说明：
@@ -421,7 +533,7 @@ class CreateImg:
     def pic2bs4(self) -> str:
         """
         说明：
-            CreateImg 转 base64
+            BuildImage 转 base64
         """
         buf = BytesIO()
         self.markImg.save(buf, format="PNG")
@@ -436,6 +548,24 @@ class CreateImg:
             :param type_: 类型
         """
         self.markImg = self.markImg.convert(type_)
+
+    async def arectangle(
+        self,
+        xy: Tuple[int, int, int, int],
+        fill: Optional[Tuple[int, int, int]] = None,
+        outline: str = None,
+        width: int = 1,
+    ):
+        """
+        说明：
+            异步 画框
+        参数：
+            :param xy: 坐标
+            :param fill: 填充颜色
+            :param outline: 轮廓颜色
+            :param width: 线宽
+        """
+        await self.loop.run_in_executor(None, self.rectangle, xy, fill, outline, width)
 
     def rectangle(
         self,
@@ -455,6 +585,54 @@ class CreateImg:
         """
         self.draw.rectangle(xy, fill, outline, width)
 
+    async def apolygon(
+        self,
+        xy: List[Tuple[int, int]],
+        fill: Tuple[int, int, int] = (0, 0, 0),
+        outline: int = 1,
+    ):
+        """
+        说明:
+            异步 画多边形
+        参数：
+            :param xy: 坐标
+            :param fill: 颜色
+            :param outline: 线宽
+        """
+        await self.loop.run_in_executor(None, self.polygon, xy, fill, outline)
+
+    def polygon(
+        self,
+        xy: List[Tuple[int, int]],
+        fill: Tuple[int, int, int] = (0, 0, 0),
+        outline: int = 1,
+    ):
+        """
+        说明:
+            画多边形
+        参数：
+            :param xy: 坐标
+            :param fill: 颜色
+            :param outline: 线宽
+        """
+        self.draw.polygon(xy, fill, outline)
+
+    async def aline(
+        self,
+        xy: Tuple[int, int, int, int],
+        fill: Optional[Tuple[int, int, int]] = None,
+        width: int = 1,
+    ):
+        """
+        说明：
+            异步 画线
+        参数：
+            :param xy: 坐标
+            :param fill: 填充
+            :param width: 线宽
+        """
+        await self.loop.run_in_executor(None, self.line, xy, fill, width)
+
     def line(
         self,
         xy: Tuple[int, int, int, int],
@@ -471,10 +649,17 @@ class CreateImg:
         """
         self.draw.line(xy, fill, width)
 
+    async def acircle(self):
+        """
+        说明：
+            异步 将 BuildImage 图片变为圆形
+        """
+        await self.loop.run_in_executor(None, self.circle)
+
     def circle(self):
         """
         说明：
-            将 CreateImg 图片变为圆形
+            将 BuildImage 图片变为圆形
         """
         self.convert("RGBA")
         r2 = min(self.w, self.h)
@@ -493,6 +678,15 @@ class CreateImg:
                 if l < r3:
                     pim_b[i - (r - r3), j - (r - r3)] = pim_a[i, j]
         self.markImg = imb
+
+    async def acircle_corner(self, radii: int = 30):
+        """
+        说明：
+            异步 矩形四角变圆
+        参数：
+            :param radii: 半径
+        """
+        await self.loop.run_in_executor(None, self.circle_corner, radii)
 
     def circle_corner(self, radii: int = 30):
         """
@@ -516,6 +710,16 @@ class CreateImg:
         alpha.paste(circle.crop((0, radii, radii, radii * 2)), (0, h - radii))
         self.markImg.putalpha(alpha)
 
+    async def arotate(self, angle: int, expand: bool = False):
+        """
+        说明：
+            异步 旋转图片
+        参数：
+            :param angle: 角度
+            :param expand: 放大图片适应角度
+        """
+        await self.loop.run_in_executor(None, self.rotate, angle, expand)
+
     def rotate(self, angle: int, expand: bool = False):
         """
         说明：
@@ -526,6 +730,15 @@ class CreateImg:
         """
         self.markImg = self.markImg.rotate(angle, expand=expand)
 
+    async def atranspose(self, angle: int):
+        """
+        说明：
+            异步 旋转图片(包括边框)
+        参数：
+            :param angle: 角度
+        """
+        await self.loop.run_in_executor(None, self.transpose, angle)
+
     def transpose(self, angle: int):
         """
         说明：
@@ -535,11 +748,23 @@ class CreateImg:
         """
         self.markImg.transpose(angle)
 
+    async def afilter(self, filter_: str, aud: int = None):
+        """
+        说明：
+            异步 图片变化
+        参数：
+            :param filter_: 变化效果
+            :param aud: 利率
+        """
+        await self.loop.run_in_executor(None, self.filter, filter_, aud)
+
     def filter(self, filter_: str, aud: int = None):
         """
-        图片变化
-        :param filter_: 变化效果
-        :param aud: 利率
+        说明：
+            图片变化
+        参数：
+            :param filter_: 变化效果
+            :param aud: 利率
         """
         _x = None
         if filter_ == "GaussianBlur":  # 高斯模糊
@@ -564,9 +789,9 @@ class CreateImg:
         self.markImg = self.markImg.getchannel(type_)
 
 
-class CreateMat:
+class BuildMat:
     """
-    针对 折线图/柱状图，基于 CreateImg 编写的 非常难用的 自定义画图工具
+    针对 折线图/柱状图，基于 BuildImage 编写的 非常难用的 自定义画图工具
     目前仅支持 正整数
     """
 
@@ -592,7 +817,7 @@ class CreateMat:
     ):
         """
         说明：
-            初始化 CreateMat
+            初始化 BuildMat
         参数：
             :param y: 坐标值
             :param mat_type: 图像类型 可能的值：[line]: 折线图，[bar]: 柱状图，[barh]: 横向柱状图
@@ -802,7 +1027,7 @@ class CreateMat:
             :param y: 坐标点
             :param display_num: 显示该点的值
         """
-        _black_point = CreateImg(7, 7, color=random.choice(self.bar_color))
+        _black_point = BuildImage(7, 7, color=random.choice(self.bar_color))
         _black_point.circle()
         x_interval = self._x_interval
         current_w = self.padding_w + x_interval
@@ -887,7 +1112,7 @@ class CreateMat:
             if i != len(y):
                 bar_color = random.choice(self.bar_color)
                 if is_barh:
-                    A = CreateImg(
+                    A = BuildImage(
                         int(y[i] * self._p * self._deviation),
                         self._bar_width,
                         color=bar_color,
@@ -900,7 +1125,7 @@ class CreateMat:
                         ),
                     )
                 else:
-                    A = CreateImg(
+                    A = BuildImage(
                         self._bar_width,
                         int(y[i] * self._p * self._deviation),
                         color=bar_color,
@@ -925,7 +1150,7 @@ class CreateMat:
         y_index: List[Union[str, int, float]] = None,
         font_size: Optional[int] = None,
         is_grid: bool = False,
-    ) -> CreateImg:
+    ) -> BuildImage:
         """
         说明：
             初始化图像，生成xy轴
@@ -940,15 +1165,15 @@ class CreateMat:
         padding_h = self.padding_h
         line_length = self.line_length
         background = random.choice(self.background) if self.background else None
-        A = CreateImg(
+        A = BuildImage(
             self.w, self.h, font_size=font_size, font=self.font, background=background
         )
         if background:
-            _tmp = CreateImg(self.w, self.h)
+            _tmp = BuildImage(self.w, self.h)
             _tmp.transparent(2)
             A.paste(_tmp, alpha=True)
         if self.title:
-            title = CreateImg(
+            title = BuildImage(
                 0,
                 0,
                 plain_text=self.title,
@@ -985,14 +1210,14 @@ class CreateMat:
             y_index = tmp
             _interval = self._y_interval
         current_w = padding_w + _interval
-        _text_font = CreateImg(0, 0, font_size=self.font_size, font=self.font)
+        _text_font = BuildImage(0, 0, font_size=self.font_size, font=self.font)
         _grid = self.line_length if is_grid else 10
         x_rotate_height = 0
         for _x in x_index:
-            _p = CreateImg(1, _grid, color="#a9a9a9")
+            _p = BuildImage(1, _grid, color="#a9a9a9")
             A.paste(_p, (current_w, padding_h + line_length - _grid))
             w = int(_text_font.getsize(f"{_x}")[0] / 2)
-            text = CreateImg(
+            text = BuildImage(
                 0,
                 0,
                 plain_text=f"{_x}",
@@ -1006,13 +1231,13 @@ class CreateMat:
             x_rotate_height = text.h
         _interval = self._x_interval if self.mat_type == "barh" else self._y_interval
         current_h = padding_h + line_length - _interval
-        _text_font = CreateImg(0, 0, font_size=self.font_size, font=self.font)
+        _text_font = BuildImage(0, 0, font_size=self.font_size, font=self.font)
         for _y in y_index:
-            _p = CreateImg(_grid, 1, color="#a9a9a9")
+            _p = BuildImage(_grid, 1, color="#a9a9a9")
             A.paste(_p, (padding_w + 2, current_h))
             w, h = _text_font.getsize(f"{_y}")
             h = int(h / 2)
-            text = CreateImg(
+            text = BuildImage(
                 0,
                 0,
                 plain_text=f"{_y}",
@@ -1022,7 +1247,7 @@ class CreateMat:
             )
             idx = 0
             while text.size[0] > self.padding_w - 10 and idx < 3:
-                text = CreateImg(
+                text = BuildImage(
                     0,
                     0,
                     plain_text=f"{_y}",
