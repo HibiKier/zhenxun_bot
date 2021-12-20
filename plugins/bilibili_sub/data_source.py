@@ -254,7 +254,7 @@ async def _get_up_status(id_: int) -> Optional[str]:
     if dynamic_img:
         await BilibiliSub.update_sub_info(id_, dynamic_upload_time=dynamic_upload_time)
         rst += f"{uname} 发布了动态！\n" f"{dynamic_img}\n"
-    if _user.latest_video_created != latest_video_created and video:
+    if _user.latest_video_created < latest_video_created and video:
         rst = rst + "-------------\n" if rst else rst
         await BilibiliSub.update_sub_info(
             id_, latest_video_created=latest_video_created
@@ -304,7 +304,7 @@ async def get_user_dynamic(
     browser = await get_browser()
     if dynamic_info.get("cards") and browser:
         dynamic_upload_time = dynamic_info["cards"][0]["desc"]["timestamp"]
-        if local_user.dynamic_upload_time != dynamic_upload_time:
+        if local_user.dynamic_upload_time < dynamic_upload_time:
             page = await browser.new_page()
             await page.goto(
                 f"https://space.bilibili.com/{local_user.uid}/dynamic",
