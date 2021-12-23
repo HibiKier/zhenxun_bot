@@ -5,7 +5,7 @@ from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from utils.utils import get_message_text
 from configs.config import NICKNAME
-
+from .other_than import get_other_data
 
 __zx_plugin_name__ = "疫情查询"
 __plugin_usage__ = """
@@ -54,4 +54,12 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                     f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 查询疫情失败"
                 )
         else:
-            await yiqing.send(f"{NICKNAME}没有查到{msg}的疫情查询...")
+            rely=await get_yiqing_data(msg)
+            if rely:
+                await yiqing.send(rely)
+                logger.info(
+                    f"(USER {event.user_id}, GROUP "
+                    f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 查询疫情失败"
+                )
+            else:
+                await yiqing.send(f"{NICKNAME}没有查到{msg}的疫情查询...")
