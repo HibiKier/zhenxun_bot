@@ -210,6 +210,10 @@ python bot.py
 
 ## 更新
 
+### 2021/12/24
+
+* 支持国际疫情数据查询 [@pull/99](https://github.com/HibiKier/zhenxun_bot/pull/99)
+
 ### 2021/12/20
 
 * 只有当真的发布新动态/视频的时候才获取并推送 [@pull/96](https://github.com/HibiKier/zhenxun_bot/pull/96)
