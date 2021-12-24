@@ -12,7 +12,7 @@ __plugin_usage__ = """
 usage：
     全国疫情查询
     指令：
-        疫情 中国
+        疫情 中国/美国/英国...
         疫情 [省份/城市]
     * 当省份与城市重名时，可在后添加 "市" 或 "省" *
     示例：疫情 吉林   <- [省]
@@ -22,7 +22,7 @@ __plugin_des__ = "实时疫情数据查询"
 __plugin_cmd__ = ["疫情 [省份/城市]", "疫情 中国"]
 __plugin_type__ = ('一些工具',)
 __plugin_version__ = 0.1
-__plugin_author__ = "HibiKier"
+__plugin_author__ = "HibiKier & yzyyz1387"
 __plugin_settings__ = {
     "level": 5,
     "default_status": True,
@@ -54,7 +54,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                     f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 查询疫情失败"
                 )
         else:
-            rely=await get_yiqing_data(msg)
+            rely = await get_other_data(msg)
             if rely:
                 await yiqing.send(rely)
                 logger.info(
