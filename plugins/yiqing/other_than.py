@@ -5,38 +5,44 @@
 # @Email   :  youzyyz1384@qq.com
 # @File    : other_than.py
 # @Software: PyCharm
-import httpx
+from utils.http_utils import AsyncHttpx
+from typing import Optional
+from services.log import logger
 import re
 import json
-__doc__='''爬虫实现国外疫情数据（找不到好接口）'''
+
+__doc__ = """爬虫实现国外疫情数据（找不到好接口）"""
 
 
-def intcomma(value):
+def intcomma(value) -> str:
     """
     数字格式化
     """
     orig = str(value)
-    new = re.sub("^(-?\d+)(\d{3})", '\g<1>,\g<2>', orig)
-    if orig == new:
-        return new
-    else:
-        return intcomma(new)
+    new = re.sub(r"^(-?\d+)(\d{3})", r"\g<1>,\g<2>", orig)
+    return new if orig == new else intcomma(new)
 
-async def get_other_data(place:str):
+
+async def get_other_data(place: str) -> Optional[str]:
     """
     :param place: 地名
     :return: 格式化字符串
     """
     try:
-        html = httpx.get('https://news.ifeng.com/c/special/7uLj4F83Cqm').text.replace('\n', '').replace(' ', '')
-    except:
-        return
-    find_data = re.compile(r'varallData=(.*?);</script>')
-    sum = re.findall(find_data, html)[0]
-    sum = json.loads(sum)
-    other_country=sum['yiqing_v2']['dataList'][29]['child']
+        html = (
+            (await AsyncHttpx.get("https://news.ifeng.com/c/special/7uLj4F83Cqm"))
+            .text.replace("\n", "")
+            .replace(" ", "")
+        )
+    except Exception as e:
+        logger.error(f"疫情查询发生错误 {type(e)}：{e}")
+        return None
+    find_data = re.compile(r"varallData=(.*?);</script>")
+    sum_ = re.findall(find_data, html)[0]
+    sum_ = json.loads(sum_)
+    other_country = sum_["yiqing_v2"]["dataList"][29]["child"]
     for country in other_country:
-        if place==country['name2']:
+        if place == country["name2"]:
             return (
                 f"{place} 疫情数据：\n"
                 "——————————————\n"
@@ -46,12 +52,12 @@ async def get_other_data(place:str):
                 f"累计治愈：{intcomma(country['zhiyu'])}\n"
                 f"死亡：{intcomma(country['siwang'])}\n"
                 "——————————————"
-                #f"更新时间：{country['sys_publishDateTime']}"
-                #时间无法精确到分钟，网页用了js我暂时找不到
+                # f"更新时间：{country['sys_publishDateTime']}"
+                # 时间无法精确到分钟，网页用了js我暂时找不到
             )
         else:
-            for city in country['child']:
-                if place==city['name3']:
+            for city in country["child"]:
+                if place == city["name3"]:
                     return (
                         f"{place} 疫情数据：\n"
                         "——————————————\n"
@@ -60,14 +66,5 @@ async def get_other_data(place:str):
                         f"累计治愈：{intcomma(city['zhiyu'])}\n"
                         f"死亡：{intcomma(city['siwang'])}\n"
                         "——————————————"
-
                     )
-    return
-
-
-if __name__ == '__main__':
-    a=get_other_data('英国')
-    print(a)
-    # print(get_other_data('美国'))
-    # print(get_other_data('印度'))
-    # print(get_other_data('伦敦'))
+    return None
