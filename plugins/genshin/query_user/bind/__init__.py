@@ -16,7 +16,7 @@ usage：
         原神绑定uid [uid]
         原神绑定米游社id [mys_id]
         原神绑定cookie [cookie] # 该绑定请私聊
-        原神解绑 [uid]
+        原神解绑
         示例：原神绑定uid 92342233
     如果不明白怎么获取cookie请输入“原神绑定cookie”。
 """.strip()
@@ -63,7 +63,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     else:
         if not msg:
             await bind.finish(
-                "私聊发送！！\n打开https://bbs.mihoyo.com/ys/登录后按F12点击控制台输入document.cookie复制输出的内容即可"
+                "私聊发送！！\n打开https://bbs.mihoyo.com/ys/\n登录后按F12点击控制台输入document.cookie复制输出的内容即可"
             )
         if isinstance(event, GroupMessageEvent):
             await bind.finish("请立即撤回你的消息并私聊发送！")

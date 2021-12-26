@@ -210,6 +210,11 @@ python bot.py
 
 ## 更新
 
+### 2021/12/26
+
+* 修复群词条问题 空格 会被录入导致不断回复
+* 修复米游社app替换api导致无法正常查询
+
 ### 2021/12/24
 
 * 支持国际疫情数据查询 [@pull/99](https://github.com/HibiKier/zhenxun_bot/pull/99)

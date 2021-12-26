@@ -111,10 +111,8 @@ class Genshin(db.Model):
             :param flag：必须使用自己的cookie
         """
         cookie = await cls._get_user_data(None, uid, "cookie")
-        print(uid, cookie)
         if not cookie and not flag:
             cookie = await cls.get_query_cookie(uid)
-        print(uid, cookie)
         return cookie
 
     @classmethod

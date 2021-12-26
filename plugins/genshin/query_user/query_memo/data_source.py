@@ -55,7 +55,7 @@ async def get_user_memo(user_id: int, uid: int, uname: str) -> Optional[Union[st
 async def get_memo(uid: str, server_id: str) -> "Union[str, dict], int":
     try:
         req = await AsyncHttpx.get(
-            url=f"https://api-takumi.mihoyo.com/game_record/app/genshin/api/dailyNote?server={server_id}&role_id={uid}",
+            url=f"https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote?server={server_id}&role_id={uid}",
             headers={
                 "DS": get_ds(f"role_id={uid}&server={server_id}"),
                 "x-rpc-app_version": Config.get_config("genshin", "mhyVersion"),

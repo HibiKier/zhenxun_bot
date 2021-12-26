@@ -99,7 +99,7 @@ b=body q=query
 async def get_info(uid_: str, server_id: str) -> "Optional[Union[dict, str]], int":
     try:
         req = await AsyncHttpx.get(
-            url=f"https://api-takumi.mihoyo.com/game_record/app/genshin/api/index?server={server_id}&role_id={uid_}",
+            url=f"https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/index?server={server_id}&role_id={uid_}",
             headers={
                 "Accept": "application/json, text/plain, */*",
                 "DS": get_ds(f"role_id={uid_}&server={server_id}"),

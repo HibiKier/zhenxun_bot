@@ -209,3 +209,4 @@ class WordBank(db.Model):
             if q:
                 return [(x.answer, x.format.split("<format>")[:-1]) for x in q]
         return False
+

@@ -63,6 +63,8 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if not r:
         await add_word.finish("未检测到词条问题...")
     problem = r.group(1).strip()
+    if not problem:
+        await add_word.finish("未检测到词条问题...")
     answer = msg.split('答', maxsplit=1)[-1]
     if not answer:
         await add_word.finish("未检测到词条回答...")
