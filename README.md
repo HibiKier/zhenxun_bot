@@ -222,7 +222,7 @@ python bot.py
 
 ## 更新
 
-### 2021/1/5 \[v0.0.7.2]
+### 2021/1/5 \[v0.0.8.0]
 
 * 提供金币消费hook，可在plugins2settings.yaml中配置该功能需要消费的金币
 * 商店插件将作为内置插件移动至basic_plugins
