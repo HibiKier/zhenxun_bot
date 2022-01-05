@@ -4,6 +4,7 @@
       "plugins",
       "models",
       "services",
+      "basic_plugins",
       "utils",
       "resources/ttf"
     ],
