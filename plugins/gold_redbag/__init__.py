@@ -41,8 +41,19 @@ usage：
         示例：塞红包 1000
         示例：塞红包 1000 10
 """.strip()
+__plugin_superuser_usage__ = """
+usage：
+    节日全群红包指令
+    指令：
+        节日红包 [金额] [数量] ?[祝福语] ?[指定群]
+""".strip()
 __plugin_des__ = "运气项目又来了"
-__plugin_cmd__ = ["塞红包 [金币数] ?[红包数=5]", "开/抢", "退回"]
+__plugin_cmd__ = [
+    "塞红包 [金币数] ?[红包数=5]",
+    "开/抢",
+    "退回",
+    "节日红包 [金额] [数量] ?[祝福语] ?[指定群] [_superuser]",
+]
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {
@@ -51,9 +62,7 @@ __plugin_settings__ = {
     "limit_superuser": False,
     "cmd": ["金币红包", "塞红包"],
 }
-__plugin_resources__ = {
-    "prts": IMAGE_PATH
-}
+__plugin_resources__ = {"prts": IMAGE_PATH}
 
 gold_redbag = on_command(
     "塞红包", aliases={"金币红包"}, priority=5, block=True, permission=GROUP
@@ -143,10 +152,12 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         flag, amount = await check_gold(event.user_id, event.group_id, amount)
         if not flag:
             await gold_redbag.finish(amount, at_sender=True)
-        group_member_num = (await bot.get_group_info(group_id=event.group_id))['member_count']
+        group_member_num = (await bot.get_group_info(group_id=event.group_id))[
+            "member_count"
+        ]
         num = int(num)
         if num > group_member_num:
-            await gold_redbag.send('你发的红包数量也太多了，已经为你修改成与本群人数相同的红包数量...')
+            await gold_redbag.send("你发的红包数量也太多了，已经为你修改成与本群人数相同的红包数量...")
             num = group_member_num
     nickname = event.sender.card if event.sender.card else event.sender.nickname
     flag, result = init_redbag(
@@ -181,7 +192,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         .replace("。", "")
     )
     if msg:
-        if '红包' not in msg:
+        if "红包" not in msg:
             return
     flag1 = True
     flag2 = True
@@ -306,7 +317,9 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 await end_festive_redbag(bot, g)
             except JobLookupError:
                 pass
-            init_redbag(int(bot.self_id), g, f"{NICKNAME}", amount, num, int(bot.self_id), 1)
+            init_redbag(
+                int(bot.self_id), g, f"{NICKNAME}", amount, num, int(bot.self_id), 1
+            )
             scheduler.add_job(
                 end_festive_redbag,
                 "date",

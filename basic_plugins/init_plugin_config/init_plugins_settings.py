@@ -71,6 +71,8 @@ def init_plugins_settings(data_path: str):
                         plugin_settings = _module.__getattribute__(
                             "__plugin_settings__"
                         )
+                        if plugin_settings.get('cost_gold') is None:
+                            plugin_settings['cost_gold'] = 0
                         if (
                             plugin_settings["cmd"] is not None
                             and plugin_name not in plugin_settings["cmd"]
@@ -97,7 +99,7 @@ def init_plugins_settings(data_path: str):
                             plugins2settings_manager.add_plugin_settings(
                                 matcher.module,
                                 plugin_type=plugin_type,
-                                data_dict=plugin_settings,
+                                **plugin_settings,
                             )
                     except AttributeError:
                         pass

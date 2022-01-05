@@ -1,7 +1,10 @@
 from configs.path_config import TEXT_PATH
-from typing import List
+from typing import List, Union
 from pathlib import Path
 from utils.http_utils import AsyncHttpx
+from utils.image_utils import text2image
+from utils.message_builder import image
+from nonebot.adapters.cqhttp import MessageSegment
 import ujson as json
 
 china_city = Path(TEXT_PATH) / "china_city.json"
@@ -12,7 +15,7 @@ data = {}
 url = "https://view.inews.qq.com/g2/getOnsInfo?name=disease_h5"
 
 
-async def get_yiqing_data(area: str):
+async def get_yiqing_data(area: str) -> Union[str, MessageSegment]:
     """
     查看疫情数据
     :param area: 省份/城市
@@ -40,16 +43,16 @@ async def get_yiqing_data(area: str):
     if area == "中国":
         data_ = epidemic_data["areaTree"][0]
     else:
-        data_ = [
-            x
-            for x in epidemic_data["areaTree"][0]["children"]
-            if x["name"] == province
-        ][0]
-        if city:
-            try:
+        try:
+            data_ = [
+                x
+                for x in epidemic_data["areaTree"][0]["children"]
+                if x["name"] == province
+            ][0]
+            if city:
                 data_ = [x for x in data_["children"] if x["name"] == city][0]
-            except IndexError:
-                return "未查询到..."
+        except IndexError:
+            return "未查询到..."
     confirm = data_["total"]["confirm"]  # 累计确诊
     heal = data_["total"]["heal"]  # 累计治愈
     dead = data_["total"]["dead"]  # 累计死亡
@@ -59,20 +62,22 @@ async def get_yiqing_data(area: str):
     suspect = data_["total"]["suspect"]  # 疑似
     add_confirm = data_["today"]["confirm"]  # 新增确诊
     x = f"{city}市" if city else f"{province}{province_type}"
-    return (
-        f"{x} 疫情数据：\n"
-        f"\t目前确诊：\n"
-        f"\t\t确诊人数：{now_confirm}(+{add_confirm})\n"
-        f"\t\t疑似人数：{suspect}\n"
-        f"==================\n"
-        f"\t累计数据：\n"
-        f"\t\t确诊人数：{confirm}\n"
-        f"\t\t治愈人数：{heal}\n"
-        f"\t\t死亡人数：{dead}\n"
-        f"\t治愈率：{heal_rate}%\n"
-        f"\t死亡率：{dead_rate}%\n"
-        f"更新日期：{last_update_time}"
-    )
+    return image(b64=await text2image(
+    f"""
+  {x} 疫情数据：
+    目前确诊：
+      确诊人数：<f font_color=red>{now_confirm}(+{add_confirm})</f>
+      疑似人数：{suspect}
+  -----------------       
+    累计数据：
+      确诊人数：<f font_color=red>{confirm}</f>
+      治愈人数：<f font_color=#39de4b>{heal}</f>
+      死亡人数：<f font_color=#191d19>{dead}</f>
+    治愈率：{heal_rate}%
+    死亡率：{dead_rate}%
+  更新日期：{last_update_time} 
+        """, font_size=30, color="#f9f6f2"
+    ))
 
 
 def get_city_and_province_list() -> List[str]:

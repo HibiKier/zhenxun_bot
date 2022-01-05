@@ -3,7 +3,7 @@ from services.log import logger
 from datetime import datetime
 from utils.image_utils import compressed_image, get_img_hash
 from utils.utils import get_bot
-from asyncio.exceptions import TimeoutError
+from PIL import UnidentifiedImageError
 from ..model import Setu
 from asyncpg.exceptions import UniqueViolationError
 from configs.config import Config
@@ -142,6 +142,14 @@ async def update_setu_img():
                     continue
                 img_hash = str(get_img_hash(f"{path}/{image.local_id}.jpg"))
                 await Setu.update_setu_data(image.pid, img_hash=img_hash)
+            except UnidentifiedImageError:
+                # 图片已删除
+                with open(local_image, 'r') as f:
+                    if '404 Not Found' in f.read():
+                        max_num = await Setu.delete_image(image.pid)
+                        local_image.unlink()
+                        os.rename(path / f"{max_num}.jpg", local_image)
+                        logger.warning(f"更新色图 PID：{image.pid} 404，已删除并替换")
             except Exception as e:
                 _success -= 1
                 logger.error(f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}")

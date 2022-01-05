@@ -510,11 +510,12 @@ def get_char_data_image(
     return region, _h
 
 
-async def init_image(char_data_list: List[Dict], char_detailed_dict: dict):
+async def init_image(char_data_list: List[Dict], char_detailed_dict: dict, home_data_list: List[Dict]):
     """
     下载头像
     :param char_data_list: 角色列表
     :param char_detailed_dict: 角色武器
+    :param home_data_list: 家园列表
     """
     for char in char_data_list:
         file = image_path / "chars" / f'{char["name"]}.png'
@@ -527,4 +528,11 @@ async def init_image(char_data_list: List[Dict], char_detailed_dict: dict):
         if not file.exists():
             await AsyncHttpx.download_file(
                 char_detailed_dict[char]["weapon_image"], file
+            )
+    for home in home_data_list:
+        file = image_path / "homes" / f'{home["name"]}.png'
+        file.parent.mkdir(parents=True, exist_ok=True)
+        if not file.exists():
+            await AsyncHttpx.download_file(
+                home["icon"], file
             )

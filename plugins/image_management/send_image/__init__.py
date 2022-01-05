@@ -20,7 +20,7 @@ except ModuleNotFoundError:
 __zx_plugin_name__ = "本地图库"
 __plugin_usage__ = f"""
 usage：
-    发送指定图库下的随机或指定id图片
+    发送指定图库下的随机或指定id图片genshin_memo
     指令：
         {Config.get_config("image_management", "IMAGE_DIR_LIST")} ?[id]
         示例：美图 

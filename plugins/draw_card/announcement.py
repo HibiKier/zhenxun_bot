@@ -40,7 +40,7 @@ def is_expired(data: dict):
 
 # 检查写入
 def check_write(data: dict, up_char_file):
-    if not is_expired(data['char']):
+    if is_expired(data['char']):
         for x in list(data.keys()):
             data[x]['title'] = ''
     else:

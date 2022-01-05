@@ -59,7 +59,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 await yiqing.send(rely)
                 logger.info(
                     f"(USER {event.user_id}, GROUP "
-                    f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 查询疫情失败"
+                    f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) 查询疫情成功"
                 )
             else:
                 await yiqing.send(f"{NICKNAME}没有查到{msg}的疫情查询...")

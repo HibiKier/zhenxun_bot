@@ -1,5 +1,6 @@
 from services.db_context import db
 from typing import Optional, List
+from services.log import logger
 
 
 class BagUser(db.Model):
@@ -85,7 +86,7 @@ class BagUser(db.Model):
             return ""
 
     @classmethod
-    async def add_gold(cls, user_qq: int, belonging_group: int, num: int) -> bool:
+    async def add_gold(cls, user_qq: int, belonging_group: int, num: int):
         """
         说明：
             增加金币
@@ -99,27 +100,23 @@ class BagUser(db.Model):
         )
         query = query.with_for_update()
         user = await query.gino.first()
-        try:
-            if user:
-                await user.update(
-                    gold=user.gold + num,
-                    get_total_gold=user.get_total_gold + num,
-                    get_today_gold=user.get_today_gold + num,
-                ).apply()
-            else:
-                await cls.create(
-                    user_qq=user_qq,
-                    belonging_group=belonging_group,
-                    gold=100 + num,
-                    get_total_gold=num,
-                    get_today_gold=num,
-                )
-            return True
-        except Exception:
-            return False
+        if user:
+            await user.update(
+                gold=user.gold + num,
+                get_total_gold=user.get_total_gold + num,
+                get_today_gold=user.get_today_gold + num,
+            ).apply()
+        else:
+            await cls.create(
+                user_qq=user_qq,
+                belonging_group=belonging_group,
+                gold=100 + num,
+                get_total_gold=num,
+                get_today_gold=num,
+            )
 
     @classmethod
-    async def spend_gold(cls, user_qq: int, belonging_group: int, num: int) -> bool:
+    async def spend_gold(cls, user_qq: int, belonging_group: int, num: int):
         """
         说明：
             花费金币
@@ -133,27 +130,23 @@ class BagUser(db.Model):
         )
         query = query.with_for_update()
         user = await query.gino.first()
-        try:
-            if user:
-                await user.update(
-                    gold=user.gold - num,
-                    spend_total_gold=user.spend_total_gold + num,
-                    spend_today_gold=user.spend_today_gold + num,
-                ).apply()
-            else:
-                await cls.create(
-                    user_qq=user_qq,
-                    belonging_group=belonging_group,
-                    gold=100 - num,
-                    spend_total_gold=num,
-                    spend_today_gold=num,
-                )
-            return True
-        except Exception:
-            return False
+        if user:
+            await user.update(
+                gold=user.gold - num,
+                spend_total_gold=user.spend_total_gold + num,
+                spend_today_gold=user.spend_today_gold + num,
+            ).apply()
+        else:
+            await cls.create(
+                user_qq=user_qq,
+                belonging_group=belonging_group,
+                gold=100 - num,
+                spend_total_gold=num,
+                spend_today_gold=num,
+            )
 
     @classmethod
-    async def add_props(cls, user_qq: int, belonging_group: int, name: str) -> bool:
+    async def add_props(cls, user_qq: int, belonging_group: int, name: str):
         """
         说明：
             增加道具
@@ -167,16 +160,12 @@ class BagUser(db.Model):
         )
         query = query.with_for_update()
         user = await query.gino.first()
-        try:
-            if user:
-                await user.update(props=user.props + f"{name},").apply()
-            else:
-                await cls.create(
-                    user_qq=user_qq, belonging_group=belonging_group, props=f"{name},"
-                )
-            return True
-        except Exception:
-            return False
+        if user:
+            await user.update(props=user.props + f"{name},").apply()
+        else:
+            await cls.create(
+                user_qq=user_qq, belonging_group=belonging_group, props=f"{name},"
+            )
 
     @classmethod
     async def del_props(cls, user_qq: int, belonging_group: int, name: str) -> bool:
@@ -193,27 +182,48 @@ class BagUser(db.Model):
         )
         query = query.with_for_update()
         user = await query.gino.first()
-        try:
-            if user:
-                rst = ""
-                props = user.props
-                if props.find(name) != -1:
-                    props = props.split(",")
-                    try:
-                        index = props.index(name)
-                    except ValueError:
-                        return False
-                    props = props[:index] + props[index + 1 :]
-                    for p in props:
-                        if p != "":
-                            rst += p + ","
-                    await user.update(props=rst).apply()
-                    return True
-                else:
+        if user:
+            rst = ""
+            props = user.props
+            if props.find(name) != -1:
+                props = props.split(",")
+                try:
+                    index = props.index(name)
+                except ValueError:
                     return False
+                props = props[:index] + props[index + 1 :]
+                for p in props:
+                    if p != "":
+                        rst += p + ","
+                await user.update(props=rst).apply()
+                return True
             else:
                 return False
-        except Exception:
+        else:
+            return False
+
+    @classmethod
+    async def buy_props(
+        cls, user_qq: int, belonging_group: int, goods: "GoodsInfo", goods_num: int
+    ) -> bool:
+        """
+        说明：
+            购买道具
+        参数：
+            :param user_qq: 用户qq
+            :param belonging_group: 所在群聊
+            :param goods: 商品
+            :param goods_num: 商品数量
+        """
+        try:
+            # 折扣后金币
+            spend_gold = goods.goods_discount * goods.goods_price * goods_num
+            await BagUser.spend_gold(user_qq, belonging_group, spend_gold)
+            for _ in range(goods_num):
+                await BagUser.add_props(user_qq, belonging_group, goods.goods_name)
+            return True
+        except Exception as e:
+            logger.error(f"buy_props 发生错误 {type(e)}：{e}")
             return False
 
     @classmethod

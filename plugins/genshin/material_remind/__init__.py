@@ -7,9 +7,10 @@ from utils.browser import get_browser
 from configs.path_config import IMAGE_PATH
 import nonebot
 from services.log import logger
-from utils.utils import scheduler
 from nonebot.permission import SUPERUSER
+from pathlib import Path
 from typing import List
+from datetime import datetime, timedelta
 import os
 import asyncio
 import time
@@ -52,9 +53,12 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     if time.strftime("%w") == "0":
         await material.send("今天是周日，所有材料副本都开放了。")
         return
+    file_name = str((datetime.now() - timedelta(hours=4)).date())
+    if not (Path(IMAGE_PATH) / "genshin" / "material" / f"{file_name}.png").exists():
+        await update_image()
     await material.send(
         Message(
-            image("daily_material.png", "genshin/material")
+            image(f"{file_name}.png", "genshin/material")
             + "\n※ 每日素材数据来源于 genshin.pub"
         )
     )
@@ -73,7 +77,6 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         await super_cmd.send(f"更新失败...")
 
 
-@driver.on_startup
 async def update_image():
     page = None
     try:
@@ -140,7 +143,8 @@ async def update_image():
                 background_img.paste(x, (current_width, current_height))
                 current_height += x.size[1]
             current_width += 600
-        background_img.save(f"{IMAGE_PATH}/genshin/material/daily_material.png")
+        file_name = str((datetime.now() - timedelta(hours=4)).date())
+        background_img.save(f"{IMAGE_PATH}/genshin/material/{file_name}.png")
         await page.close()
         return True
     except Exception as e:
@@ -163,16 +167,3 @@ def get_background_height(weapons_imgs: List[str]) -> int:
     return height
 
 
-@scheduler.scheduled_job(
-    "cron",
-    hour=4,
-    minute=1,
-)
-async def _():
-    for _ in range(5):
-        try:
-            await update_image()
-            logger.info(f"更新每日天赋素材成功...")
-            break
-        except Exception as e:
-            logger.error(f"更新每日天赋素材出错 e：{e}")

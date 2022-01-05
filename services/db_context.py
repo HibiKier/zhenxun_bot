@@ -17,7 +17,7 @@ async def init():
         await db.gino.create_all()
         logger.info(f'Database loaded successfully!')
     except Exception as e:
-        raise Exception(f'数据库连接错误.... e: {e}')
+        raise Exception(f'数据库连接错误.... {type(e)}: {e}')
 
 
 async def disconnect():

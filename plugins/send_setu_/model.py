@@ -125,6 +125,27 @@ class Setu(db.Model):
         )
 
     @classmethod
+    async def delete_image(cls, pid: int) -> int:
+        """
+        说明：
+            删除图片并替换
+        参数：
+            :param pid: 图片pid
+        """
+        query = await cls.query.where(cls.pid == pid).gino.first()
+        if query:
+            is_r18 = query.is_r18
+            num = await cls.get_image_count(is_r18)
+            x = await cls.query.where((cls.is_r18 == is_r18) & (cls.local_id == num - 1)).gino.first()
+            _tmp_local_id = x.local_id
+            if x:
+                x.update(local_id=query.local_id).apply()
+            await cls.delete.where(cls.pid == pid).gino.status()
+            return _tmp_local_id
+        return -1
+
+
+    @classmethod
     async def update_setu_data(
         cls,
         pid: int,

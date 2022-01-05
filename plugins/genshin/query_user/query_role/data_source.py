@@ -64,7 +64,7 @@ async def get_image(
                         "affix_level": char["weapon"]["affix_level"],
                     }
 
-            await init_image(char_data_list, _x)
+            await init_image(char_data_list, _x, home_data_list)
             return await get_genshin_image(
                 user_id,
                 uid,

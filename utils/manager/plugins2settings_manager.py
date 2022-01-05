@@ -21,6 +21,9 @@ class Plugins2settingsManager(StaticData):
             self._data = (
                 self._data["PluginSettings"] if self._data["PluginSettings"] else {}
             )
+        for x in self._data.keys():
+            if self._data[x].get("cost_gold") is None:
+                self._data[x]["cost_gold"] = 0
 
     def add_plugin_settings(
         self,
@@ -30,7 +33,8 @@ class Plugins2settingsManager(StaticData):
         level: Optional[int] = 5,
         limit_superuser: Optional[bool] = False,
         plugin_type: Tuple[Union[str, int]] = ("normal",),
-        data_dict: Optional[dict] = None,
+        cost_gold: int = 0,
+        **kwargs
     ):
         """
         添加一个插件设置
@@ -40,21 +44,22 @@ class Plugins2settingsManager(StaticData):
         :param level: 功能权限等级
         :param limit_superuser: 功能状态是否限制超级用户
         :param plugin_type: 插件类型
-        :param data_dict: 封装好的字典数据
+        :param cost_gold: 需要消费的金币
         """
-        if data_dict:
-            level = data_dict.get("level") if data_dict.get("level") is not None else 5
+        if kwargs:
+            level = kwargs.get("level") if kwargs.get("level") is not None else 5
             default_status = (
-                data_dict.get("default_status")
-                if data_dict.get("default_status") is not None
+                kwargs.get("default_status")
+                if kwargs.get("default_status") is not None
                 else True
             )
             limit_superuser = (
-                data_dict.get("limit_superuser")
-                if data_dict.get("limit_superuser") is not None
+                kwargs.get("limit_superuser")
+                if kwargs.get("limit_superuser") is not None
                 else False
             )
-            cmd = data_dict.get("cmd") if data_dict.get("cmd") is not None else []
+            cmd = kwargs.get("cmd") if kwargs.get("cmd") is not None else []
+            cost_gold = cost_gold if kwargs.get("cost_gold") else 0
         self._data[plugin] = {
             "level": level if level is not None else 5,
             "default_status": default_status if default_status is not None else True,
@@ -65,6 +70,7 @@ class Plugins2settingsManager(StaticData):
             "plugin_type": list(
                 plugin_type if plugin_type is not None else ("normal",)
             ),
+            "cost_gold": cost_gold,
         }
 
     def get_plugin_data(self, module: str) -> dict:

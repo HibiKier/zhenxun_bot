@@ -146,12 +146,14 @@ def _format_card_information(_count: int, user_id, pool_name):
     five_index_list = []
     five_list = []
     five_dict = {}
+    _start_add_count = 72 if pool_name == 'char' else 62
+    _x = 90 if pool_name == 'char' else 80      # 保底
     add = 0.0
-    if genshin_count.get(user_id) and _count <= 90:
+    if genshin_count.get(user_id) and _count <= _x:
         f_count = genshin_count[user_id]
     else:
         f_count = 0
-    if genshin_pl_count.get(user_id) and _count <= 90:
+    if genshin_pl_count.get(user_id) and _count <= _x:
         count = genshin_pl_count[user_id]
     else:
         count = 0
@@ -159,23 +161,23 @@ def _format_card_information(_count: int, user_id, pool_name):
         count += 1
         f_count += 1
         # 十连保底
-        if count == 10 and f_count != 90:
-            if f_count >= 72:
+        if count == 10 and f_count != _x:
+            if f_count >= _start_add_count:
                 add += I72_ADD
             char, code = _get_genshin_card(2, pool_name, add=add)
             count = 0
         # 大保底
-        elif f_count == 90:
+        elif f_count == _x:
             char, code = _get_genshin_card(3, pool_name)
         else:
-            if f_count >= 72:
+            if f_count >= _start_add_count:
                 add += I72_ADD
             char, code = _get_genshin_card(pool_name=pool_name, add=add)
             if code == 1:
                 count = 0
         star_list[code] += 1
         if code == 0:
-            if _count <= 90:
+            if _count <= _x:
                 genshin_five[user_id] = f_count
             add = 0.0
             f_count = 0
@@ -186,7 +188,7 @@ def _format_card_information(_count: int, user_id, pool_name):
             except KeyError:
                 five_dict[char.name] = 1
         char_list.append(char)
-    if _count <= 90:
+    if _count <= _x:
         genshin_count[user_id] = f_count
         genshin_pl_count[user_id] = count
     return char_list, five_list, five_index_list, five_dict, star_list

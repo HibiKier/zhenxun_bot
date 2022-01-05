@@ -105,7 +105,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     path = get_message_imgs(event.json())
     if path in Config.get_config("image_management", "IMAGE_DIR_LIST"):
         state["path"] = path
-        await continuous_upload_img.send("图来！！")
+        await continuous_upload_img.send("图来！！【停止请发送 ‘stop’ 开始上传】")
     state["tmp"] = []
 
 

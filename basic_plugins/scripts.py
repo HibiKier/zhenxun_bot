@@ -7,6 +7,7 @@ from services.log import logger
 from configs.path_config import TEXT_PATH
 from asyncio.exceptions import TimeoutError
 from utils.http_utils import AsyncHttpx
+from utils.utils import scheduler
 from pathlib import Path
 import nonebot
 
@@ -27,31 +28,32 @@ async def update_city():
     """
     china_city = Path(TEXT_PATH) / "china_city.json"
     data = {}
-    try:
-        res = await AsyncHttpx.get(
-            "http://www.weather.com.cn/data/city3jdata/china.html", timeout=5
-        )
-        res.encoding = "utf8"
-        provinces_data = json.loads(res.text)
-        for province in provinces_data.keys():
-            data[provinces_data[province]] = []
+    if not china_city.exists():
+        try:
             res = await AsyncHttpx.get(
-                f"http://www.weather.com.cn/data/city3jdata/provshi/{province}.html",
-                timeout=5,
+                "http://www.weather.com.cn/data/city3jdata/china.html", timeout=5
             )
             res.encoding = "utf8"
-            city_data = json.loads(res.text)
-            for city in city_data.keys():
-                data[provinces_data[province]].append(city_data[city])
-        with open(china_city, "w", encoding="utf8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
-        logger.info("自动更新城市列表完成.....")
-    except TimeoutError:
-        logger.warning("自动更新城市列表超时.....")
-    except ValueError:
-        logger.warning("自动城市列表失败.....")
-    except Exception as e:
-        logger.error(f"自动城市列表未知错误 {type(e)}：{e}")
+            provinces_data = json.loads(res.text)
+            for province in provinces_data.keys():
+                data[provinces_data[province]] = []
+                res = await AsyncHttpx.get(
+                    f"http://www.weather.com.cn/data/city3jdata/provshi/{province}.html",
+                    timeout=5,
+                )
+                res.encoding = "utf8"
+                city_data = json.loads(res.text)
+                for city in city_data.keys():
+                    data[provinces_data[province]].append(city_data[city])
+            with open(china_city, "w", encoding="utf8") as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+            logger.info("自动更新城市列表完成.....")
+        except TimeoutError:
+            logger.warning("自动更新城市列表超时.....")
+        except ValueError:
+            logger.warning("自动城市列表失败.....")
+        except Exception as e:
+            logger.error(f"自动城市列表未知错误 {type(e)}：{e}")
 
 
 @driver.on_startup
@@ -101,3 +103,13 @@ async def _(bot: Bot):
             else:
                 await GroupInfo.delete_group_info(group_id)
                 logger.info(f"移除不存在的群聊信息：{group_id}")
+
+
+# 自动更新城市列表
+@scheduler.scheduled_job(
+    "cron",
+    hour=6,
+    minute=1,
+)
+async def _():
+    await update_city()
