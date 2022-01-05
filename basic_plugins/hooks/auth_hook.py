@@ -260,34 +260,6 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
     # 以下为限制检测 #######################################################
     # 以下为限制检测 #######################################################
     # 以下为限制检测 #######################################################
-
-    # Cd
-    if plugins2cd_manager.check_plugin_cd_status(module):
-        plugin_cd_data = plugins2cd_manager.get_plugin_cd_data(module)
-        check_type = plugin_cd_data["check_type"]
-        limit_type = plugin_cd_data["limit_type"]
-        rst = plugin_cd_data["rst"]
-        if (
-                (isinstance(event, PrivateMessageEvent) and check_type == "private")
-                or (isinstance(event, GroupMessageEvent) and check_type == "group")
-                or plugins2cd_manager.get_plugin_data(module).get("check_type") == "all"
-        ):
-            cd_type_ = event.user_id
-            if limit_type == "group" and isinstance(event, GroupMessageEvent):
-                cd_type_ = event.group_id
-            if not plugins2cd_manager.check(module, cd_type_):
-                if rst:
-                    rst = await init_rst(rst, event)
-                    await send_msg(rst, bot, event)
-                raise IgnoredException(f"{module} 正在cd中...")
-            else:
-                plugins2cd_manager.start_cd(module, cd_type_)
-    module = matcher.module
-    if (
-            isinstance(event, GroupMessageEvent)
-            and status_message_manager.get(event.group_id) is None
-    ):
-        status_message_manager.delete(event.group_id)
     # Cd
     if plugins2cd_manager.check_plugin_cd_status(module):
         plugin_cd_data = plugins2cd_manager.get_plugin_cd_data(module)
