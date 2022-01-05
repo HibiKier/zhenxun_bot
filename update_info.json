@@ -1,5 +1,6 @@
 {
     "update_file": [
+      "configs/utils/__init__.py",
       "plugins",
       "models",
       "services",
