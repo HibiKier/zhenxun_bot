@@ -133,7 +133,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 user_id = 0
                 if is_number(msg[1]):
                     group_id = int(msg[1])
-                    text = msg[2]
+                    text = " ".join(msg[2:])
                 else:
                     await reply.finish("群号错误...", at_sender=True)
         else:
