@@ -20,7 +20,7 @@ usage：
 """.strip()
 __plugin_des__ = "实时疫情数据查询"
 __plugin_cmd__ = ["疫情 [省份/城市]", "疫情 中国"]
-__plugin_type__ = ('一些工具',)
+__plugin_type__ = ("一些工具",)
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier & yzyyz1387"
 __plugin_settings__ = {

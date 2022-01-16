@@ -2,7 +2,7 @@ from nonebot import on_command
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, Message, GroupMessageEvent
 from nonebot.permission import SUPERUSER
-from utils.utils import get_message_text, is_number, get_message_imgs
+from utils.utils import get_message_text, is_number, get_message_img
 from utils.message_builder import image
 from utils.message_builder import text as _text
 from services.log import logger
@@ -63,7 +63,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     coffee = int(list(bot.config.superusers)[0])
     text = get_message_text(event.json())
     img_msg = _text("")
-    for img in get_message_imgs(event.json()):
+    for img in get_message_img(event.json()):
         img_msg += image(img)
     if not text and not img_msg:
         await dialogue.send("请发送[滴滴滴]+您要说的内容~", at_sender=True)
@@ -127,7 +127,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 id_ = msg[0]
                 user_id = dialogue_data[id_]["user_id"]
                 group_id = dialogue_data[id_]["group_id"]
-                text = msg[1]
+                text = " ".join(msg[1:])
                 dialogue_data.pop(id_)
             else:
                 user_id = 0
@@ -140,13 +140,13 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             user_id = int(msg[0])
             if is_number(msg[1]) and len(msg[1]) > 5:
                 group_id = int(msg[1])
-                text = msg[2]
+                text = " ".join(msg[2:])
             else:
                 group_id = 0
-                text = msg[1]
+                text = " ".join(msg[1:])
     else:
         await reply.finish("第一参数，请输入数字.....", at_sender=True)
-    for img in get_message_imgs(event.json()):
+    for img in get_message_img(event.json()):
         text += image(img)
     if group_id:
         if user_id:

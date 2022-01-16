@@ -3,7 +3,7 @@ from nonebot.typing import T_State
 from nonebot.adapters import Bot, Event
 from nonebot.permission import SUPERUSER
 import asyncio
-from utils.utils import get_message_text, get_message_imgs
+from utils.utils import get_message_text, get_message_img
 from services.log import logger
 from utils.message_builder import image
 from utils.manager import group_manager
@@ -35,7 +35,7 @@ broadcast = on_command("广播-", priority=1, permission=SUPERUSER, block=True)
 @broadcast.handle()
 async def _(bot: Bot, event: Event, state: T_State):
     msg = get_message_text(event.json())
-    imgs = get_message_imgs(event.json())
+    imgs = get_message_img(event.json())
     rst = ""
     for img in imgs:
         rst += image(img)

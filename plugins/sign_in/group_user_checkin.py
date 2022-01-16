@@ -50,7 +50,7 @@ async def check_in_all(nickname: str, user_qq: int):
     async with db.transaction():
         present = datetime.now()
         for u in await SignGroupUser.get_user_all_data(user_qq):
-            group = u.belonging_group
+            group = u.group_id
             if not ((
                 u.checkin_time_last + timedelta(hours=8)
             ).date() >= present.date() or f"{u}_{group}_sign_{datetime.now().date()}" in os.listdir(
@@ -79,18 +79,18 @@ async def _handle_check_in(
         gift = f"额外金币 + {gift}"
     else:
         await BagUser.add_gold(user_qq, group, gold)
-        await BagUser.add_props(user_qq, group, gift)
+        await BagUser.add_property(user_qq, group, gift)
         gift += ' + 1'
     if critx2 + add_probability > 0.97 or critx2 < specify_probability:
         logger.info(
-            f"(USER {user.user_qq}, GROUP {user.belonging_group})"
+            f"(USER {user.user_qq}, GROUP {user.group_id})"
             f" CHECKED IN successfully. score: {user.impression:.2f} "
             f"(+{impression_added * 2:.2f}).获取金币：{gold + gift if gift == 'gold' else gold}"
         )
         return await get_card(user, nickname, impression_added, gold, gift, True)
     else:
         logger.info(
-            f"(USER {user.user_qq}, GROUP {user.belonging_group})"
+            f"(USER {user.user_qq}, GROUP {user.group_id})"
             f" CHECKED IN successfully. score: {user.impression:.2f} "
             f"(+{impression_added:.2f}).获取金币：{gold + gift if gift == 'gold' else gold}"
         )

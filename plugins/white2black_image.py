@@ -1,7 +1,7 @@
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot import on_command
-from utils.utils import get_message_imgs, get_message_text, is_chinese
+from utils.utils import get_message_img, get_message_text, is_chinese
 from utils.message_builder import image
 from configs.path_config import TEMP_PATH
 from utils.image_utils import BuildImage
@@ -47,7 +47,7 @@ w2b_img = on_command("黑白草图", aliases={"黑白图"}, priority=5, block=Tr
 @w2b_img.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     # try:
-    img = get_message_imgs(event.json())
+    img = get_message_img(event.json())
     msg = get_message_text(event.json())
     if not img or not msg:
         await w2b_img.finish(f"格式错误：\n" + __plugin_usage__)

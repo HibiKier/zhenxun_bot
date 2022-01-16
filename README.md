@@ -221,7 +221,26 @@ python bot.py
 
 ## 更新
 
-### 2021/1/5 \[v0.0.7.2]
+### 2021/1/16 \[v0.0.9.0]
+
+* Ai提供文本敏感词过滤器
+* 疫情插件适配新版腾讯API
+* 修复/t回复带空格切分
+* 修复原神玩家查询缺少渊下宫和稻妻家园以及角色不完全
+* 修复方法 text2image 中 padding 和 font 无法对纯文本生效
+* 修复签到图片中信息并未使用配置文件中的色图概率
+* 修改原神大地图合成方式，改为先压缩再合成
+* bag_user弃用字段props（该字段会在下次更新删除），使用新字段property
+* 数据库中所有belonging_group统一修改为group_id
+* 商店将registered_use和register_goods更名为register_use何register_goods
+* 商品注册提供了kwargs参数提供：
+    * bot 
+    * event
+    * 特殊字段
+      * “send_success_msg”(发送成功的交互信息->即：使用道具 {name} {num} 次成功)
+      * “_max_num_limit”(该道具单次使用的最多个数，默认1)
+
+### 2021/1/5 \[v0.0.8.3]
 
 * 提供金币消费hook，可在plugins2settings.yaml中配置该功能需要消费的金币
 * 商店插件将作为内置插件移动至basic_plugins

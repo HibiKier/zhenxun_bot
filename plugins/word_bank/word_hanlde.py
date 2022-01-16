@@ -1,9 +1,11 @@
-from utils.utils import get_message_at, is_number, get_message_imgs, get_message_text
+from utils.utils import get_message_at, is_number, get_message_img, get_message_text
 from services.log import logger
 from configs.path_config import DATA_PATH
 from utils.http_utils import AsyncHttpx
 from .data_source import WordBankBuilder
 from configs.config import Config
+from utils.message_builder import image
+from utils.image_utils import text2image
 from .model import WordBank
 from nonebot.adapters.cqhttp import (
     Bot,
@@ -42,7 +44,7 @@ __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {
     "admin_level": Config.get_config("word_bank", "WORD_BANK_LEVEL"),
-    "cmd": ["词库问答", "添加词条", "删除词条", "查看词条"]
+    "cmd": ["词库问答", "添加词条", "删除词条", "查看词条"],
 }
 
 data_dir = Path(DATA_PATH) / "word_bank"
@@ -65,13 +67,13 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     problem = r.group(1).strip()
     if not problem:
         await add_word.finish("未检测到词条问题...")
-    answer = msg.split('答', maxsplit=1)[-1]
+    answer = msg.split("答", maxsplit=1)[-1]
     if not answer:
         await add_word.finish("未检测到词条回答...")
     idx = 0
     for n in bot.config.nickname:
         if problem.startswith(n):
-            _problem = f"[_to_me|{n}]" + problem[len(n):]
+            _problem = f"[_to_me|{n}]" + problem[len(n) :]
             break
     else:
         _problem = problem
@@ -82,7 +84,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             answer = answer.replace(f"[CQ:at,qq={at_}]", f"[__placeholder_{idx}]", 1)
             _builder.set_placeholder(idx, at_)
             idx += 1
-    for img in get_message_imgs(event.json()):
+    for img in get_message_img(event.json()):
         _x = img.split("?")[0]
         r = re.search(rf"\[CQ:image,file=(.*),url={_x}.*?]", answer)
         if r:
@@ -90,7 +92,8 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             for i in range(3):
                 answer = answer.replace(f",subType={i}", "")
             answer = answer.replace(
-                rf"[CQ:image,file={r.group(1)},url={img}]", f"[__placeholder_{idx}]",
+                rf"[CQ:image,file={r.group(1)},url={img}]",
+                f"[__placeholder_{idx}]",
             )
             await AsyncHttpx.download_file(
                 img, data_dir / f"{event.group_id}" / f"__placeholder_{rand}_{idx}.jpg"
@@ -119,11 +122,13 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         x = problem.split(":")[-1]
         if not is_number(x) or int(x) < 0:
             await delete_word.finish("id必须为数字且符合规范！")
-        p = (await WordBank.get_group_all_problem(event.group_id))
+        p = await WordBank.get_group_all_problem(event.group_id)
         if p:
             problem = p[int(x)]
     try:
-        if answer := await WordBank.delete_problem_answer(event.user_id, event.group_id, problem, index):
+        if answer := await WordBank.delete_problem_answer(
+            event.user_id, event.group_id, problem, index
+        ):
             await delete_word.send(f"删除词条成功：{problem}\n回答：\n{answer}")
             logger.info(
                 f"(USER {event.user_id}, GROUP "
@@ -143,21 +148,20 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         _problem_list = await WordBank.get_group_all_problem(event.group_id)
         if not _problem_list:
             await show_word.finish("该群未收录任何词条..")
-        _problem_list = [f"{i}. {x}" for i, x in enumerate(_problem_list)]
+        _problem_list = [f"\t{i}. {x}" for i, x in enumerate(_problem_list)]
         await show_word.send(
-            "该群已收录的词条：\n" + "\n".join(_problem_list)
+            image(
+                b64=await text2image(
+                    "该群已收录的词条：\n\n" + "\n".join(_problem_list),
+                    padding=10,
+                    color="#f9f6f2",
+                )
+            )
         )
     else:
         _answer_list = await WordBank.get_group_all_answer(event.group_id, msg)
         if not _answer_list:
-            await show_word.send(
-                "未收录该词条..."
-            )
+            await show_word.send("未收录该词条...")
         else:
             _answer_list = [f"{i}. {x}" for i, x in enumerate(_answer_list)]
-            await show_word.send(
-                f"词条 {msg} 回答：\n" + "\n".join(_answer_list)
-            )
-
-
-
+            await show_word.send(f"词条 {msg} 回答：\n" + "\n".join(_answer_list))

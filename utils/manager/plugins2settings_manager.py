@@ -86,7 +86,7 @@ class Plugins2settingsManager(StaticData):
         self, cmd: str, is_all: bool = False
     ) -> Union[str, List[str]]:
         """
-        根据 cmd 获取功能 module
+        根据 cmd 获取功能 modules
         :param cmd: 命令
         :param is_all: 获取全部包含cmd的模块
         """

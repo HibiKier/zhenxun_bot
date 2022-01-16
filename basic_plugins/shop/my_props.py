@@ -31,21 +31,11 @@ my_props = on_command("我的道具", priority=5, block=True, permission=GROUP)
 
 @my_props.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    props = await BagUser.get_props(event.user_id, event.group_id)
+    props = await BagUser.get_property(event.user_id, event.group_id)
     if props:
-        pname_list = []
-        pnum_list = []
         rst = ""
-        props = props[:-1].split(",")
-        for p in props:
-            if p != "":
-                if p in pname_list:
-                    pnum_list[pname_list.index(p)] += 1
-                else:
-                    pname_list.append(p)
-                    pnum_list.append(1)
-        for i in range(len(pname_list)):
-            rst += f"{i+1}.{pname_list[i]}\t×{pnum_list[i]}\n"
+        for i, p in enumerate(props.keys()):
+            rst += f"{i+1}.{p}\t×{props[p]}\n"
         await my_props.send("\n" + rst[:-1], at_sender=True)
         logger.info(f"USER {event.user_id} GROUP {event.group_id} 查看我的道具")
     else:

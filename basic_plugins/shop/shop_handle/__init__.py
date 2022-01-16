@@ -3,7 +3,7 @@ from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent
 from nonebot.typing import T_State
 from configs.path_config import IMAGE_PATH
 from utils.message_builder import image
-from .data_source import create_shop_help, delete_goods, update_goods, registered_goods, parse_goods_info
+from .data_source import create_shop_help, delete_goods, update_goods, register_goods, parse_goods_info
 from nonebot.permission import SUPERUSER
 from utils.utils import get_message_text, is_number
 from nonebot.plugin import export
@@ -53,7 +53,7 @@ __plugin_block_limit__ = {
 
 # 导出方法供其他插件使用
 export = export()
-export.registered_goods = registered_goods
+export.register_goods = register_goods
 export.delete_goods = delete_goods
 export.update_goods = update_goods
 
@@ -80,7 +80,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             await shop_add_goods.finish(data)
         if not data.get("name") or not data.get("price") or not data.get("des"):
             await shop_add_goods.finish("name:price:des 参数不可缺少！")
-        if await registered_goods(**data):
+        if await register_goods(**data):
             await shop_add_goods.send(f"添加商品 {data['name']} 成功！\n"
                                       f"名称：{data['name']}\n"
                                       f"价格：{data['price']}金币\n"

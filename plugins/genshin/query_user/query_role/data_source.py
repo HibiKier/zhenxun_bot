@@ -64,7 +64,7 @@ async def get_image(
                         "affix_level": char["weapon"]["affix_level"],
                     }
 
-            await init_image(char_data_list, _x, home_data_list)
+            await init_image(world_data_dict, char_data_list, _x, home_data_list)
             return await get_genshin_image(
                 user_id,
                 uid,
@@ -204,6 +204,7 @@ def parsed_data(
             "image": world["icon"],
             "name": world["name"],
             "offerings": world["offerings"],
+            "icon": world["icon"]
         }
         world_data_dict[world["name"]] = _x
     home_data_list = []

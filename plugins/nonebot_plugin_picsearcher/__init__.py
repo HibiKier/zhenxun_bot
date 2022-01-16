@@ -5,7 +5,7 @@ from nonebot.plugin import on_command, on_message
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from services.log import logger
-from utils.utils import get_message_text, get_message_imgs
+from utils.utils import get_message_text, get_message_img
 from configs.config import Config
 from nonebot.rule import to_me
 
@@ -72,7 +72,7 @@ setu = on_command("识图", aliases={"search"}, block=True, priority=5)
 @setu.handle()
 async def handle_first_receive(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json())
-    imgs = get_message_imgs(event.json())
+    imgs = get_message_img(event.json())
     if imgs:
         state["setu"] = imgs[0]
     if msg:
@@ -87,7 +87,7 @@ async def handle_first_receive(bot: Bot, event: MessageEvent, state: T_State):
 
 @setu.args_parser
 async def get_setu(bot: Bot, event: MessageEvent, state: T_State):
-    imgs = get_message_imgs(event.json())
+    imgs = get_message_img(event.json())
     msg = get_message_text(event.json())
     if not imgs:
         await setu.reject()

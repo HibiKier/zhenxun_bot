@@ -111,7 +111,7 @@ def _create_help_img(
                     logger.warning(f"{type(e)}: {e}")
             else:
                 matchers_data[plugin_type][plugin_name] = {
-                    "module": matcher.module,
+                    "modules": matcher.module,
                     "des": plugin_des,
                     "cmd": plugin_cmd,
                     "text_type": text_type,
@@ -147,16 +147,16 @@ def _create_help_img(
             # 禁用flag
             flag = True
             if plugins_manager.get_plugin_status(
-                matchers_data[type_][k]["module"], "all"
+                matchers_data[type_][k]["modules"], "all"
             ):
                 flag = False
             if group_id:
                 flag = flag and plugins_manager.get_plugin_status(
-                    matchers_data[type_][k]["module"], "group"
+                    matchers_data[type_][k]["modules"], "group"
                 )
             simple_help_str += (
                 f"{i+1}.{k}<|_|~|>"
-                f"{group_manager.get_plugin_status(matchers_data[type_][k]['module'], group_id) if group_id else '_'}|"
+                f"{group_manager.get_plugin_status(matchers_data[type_][k]['modules'], group_id) if group_id else '_'}|"
                 f"{flag}\n"
             )
             if matchers_data[type_][k]["text_type"] == 1:

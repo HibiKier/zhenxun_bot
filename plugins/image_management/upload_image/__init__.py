@@ -3,7 +3,7 @@ from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from configs.config import Config
-from utils.utils import get_message_imgs, get_message_text
+from utils.utils import get_message_img, get_message_text
 from .data_source import upload_image_to_local
 
 
@@ -49,15 +49,15 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             await upload_img.reject("此目录不正确，请重新输入目录！")
         state["path"] = msg
     if state["_current_key"] in ["imgs"]:
-        if not get_message_imgs(event.json()):
+        if not get_message_img(event.json()):
             await upload_img.reject("图呢图呢图呢图呢！GKD！")
-        state["imgs"] = get_message_imgs(event.json())
+        state["imgs"] = get_message_img(event.json())
 
 
 @upload_img.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     raw_arg = get_message_text(event.json())
-    img_list = get_message_imgs(event.json())
+    img_list = get_message_img(event.json())
     if raw_arg:
         if raw_arg in Config.get_config("image_management", "IMAGE_DIR_LIST"):
             state["path"] = raw_arg
@@ -92,7 +92,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         state[state["_current_key"]] = str(event.get_message())
     else:
         if get_message_text(event.json()) not in ["stop"]:
-            img = get_message_imgs(event.json())
+            img = get_message_img(event.json())
             if img:
                 state["tmp"].extend(img)
             await continuous_upload_img.reject("图再来！！")
@@ -102,7 +102,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 @continuous_upload_img.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    path = get_message_imgs(event.json())
+    path = get_message_img(event.json())
     if path in Config.get_config("image_management", "IMAGE_DIR_LIST"):
         state["path"] = path
         await continuous_upload_img.send("图来！！【停止请发送 ‘stop’ 开始上传】")

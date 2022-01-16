@@ -1,5 +1,5 @@
 from nonebot import on_command
-from utils.utils import get_message_text, get_message_imgs
+from utils.utils import get_message_text, get_message_img
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from .data_source import custom_group_welcome
@@ -38,7 +38,7 @@ custom_welcome = on_command(
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     try:
         msg = get_message_text(event.json())
-        imgs = get_message_imgs(event.json())
+        imgs = get_message_img(event.json())
         if not msg and not imgs:
             await custom_welcome.finish(__plugin_usage__)
         await custom_welcome.send(

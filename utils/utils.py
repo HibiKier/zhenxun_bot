@@ -208,7 +208,7 @@ def get_message_at(data: str) -> List[int]:
         return []
 
 
-def get_message_imgs(data: str) -> List[str]:
+def get_message_img(data: str) -> List[str]:
     """
     说明：
         获取消息中所有的 图片 的链接

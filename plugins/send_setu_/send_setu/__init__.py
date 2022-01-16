@@ -9,7 +9,7 @@ from gino.exceptions import UninitializedError
 from utils.utils import (
     is_number,
     get_message_text,
-    get_message_imgs,
+    get_message_img,
 )
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import (
@@ -243,7 +243,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     if str(event.message) == "取消":
         await find_setu.finish("取消了操作", at_sender=True)
-    imgs = get_message_imgs(event.json())
+    imgs = get_message_img(event.json())
     if not imgs:
         await find_setu.reject("不搞错了，俺要图！")
     state["img"] = imgs[0]
@@ -253,7 +253,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     if get_message_text(event.json()) in ["帮助"]:
         await find_setu.finish("通过图片获取本地色图id\n\t示例：查色图(图片)")
-    imgs = get_message_imgs(event.json())
+    imgs = get_message_img(event.json())
     if imgs:
         state["img"] = imgs[0]
 

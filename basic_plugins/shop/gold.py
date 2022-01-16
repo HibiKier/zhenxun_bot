@@ -34,7 +34,7 @@ gold_rank = on_command("金币排行", priority=5, block=True, permission=GROUP)
 
 @my_gold.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    await my_gold.finish(await BagUser.get_my_total_gold(event.user_id, event.group_id))
+    await my_gold.finish(await BagUser.get_user_total_gold(event.user_id, event.group_id))
 
 
 @gold_rank.handle()

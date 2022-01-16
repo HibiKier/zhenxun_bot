@@ -2,7 +2,7 @@ from .data_source import get_anime
 from nonebot import on_command
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
-from utils.utils import get_message_imgs
+from utils.utils import get_message_img
 from services.log import logger
 
 
@@ -33,7 +33,7 @@ what_anime = on_command("识番", priority=5, block=True)
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     if str(event.get_message()) in ["取消", "算了"]:
         await what_anime.finish("已取消操作..", at_sender=True)
-    img_url = get_message_imgs(event.json())
+    img_url = get_message_img(event.json())
     if not img_url:
         await what_anime.reject(prompt="图呢图呢图呢图呢GKD", at_sender=True)
     state["img_url"] = img_url
@@ -43,7 +43,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     if str(event.get_message()) in ["帮助"]:
         await what_anime.finish(__plugin_usage__)
-    img_url = get_message_imgs(event.json())
+    img_url = get_message_img(event.json())
     if img_url:
         state["img_url"] = img_url
 

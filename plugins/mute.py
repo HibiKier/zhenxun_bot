@@ -1,7 +1,7 @@
 from nonebot import on_message, on_command
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from nonebot.adapters.cqhttp.permission import GROUP
-from utils.utils import get_message_text, is_number, get_message_imgs
+from utils.utils import get_message_text, is_number, get_message_img
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp.exception import ActionFailed
 from configs.path_config import DATA_PATH, TEMP_PATH
@@ -87,7 +87,7 @@ mute_data = get_data()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     group_id = str(event.group_id)
     msg = get_message_text(event.json())
-    imgs = get_message_imgs(event.json())
+    imgs = get_message_img(event.json())
     img_hash = ""
     for img in imgs:
         img_hash += await download_img_and_hash(img, event.group_id)

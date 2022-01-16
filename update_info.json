@@ -4,8 +4,8 @@
       "models",
       "services",
       "utils",
-      "resources/ttf"
+      "basic_plugins"
     ],
-    "add_file": ["resources/img/other/time.png"],
+    "add_file": [],
     "delete_file": []
 }

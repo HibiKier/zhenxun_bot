@@ -20,36 +20,24 @@ async def init_default_shop_goods():
     """
     导入内置的三个商品
     """
-
-    async def sign_card_1(**kwargs):
+    async def sign_card(**kwargs):
         user_id = kwargs['user_id']
         group_id = kwargs['group_id']
+        prob = kwargs["prob"]
         user = await SignGroupUser.ensure(user_id, group_id)
-        await user.update(add_probability=0.1).apply()
-
-    async def sign_card_2(**kwargs):
-        user_id = kwargs['user_id']
-        group_id = kwargs['group_id']
-        user = await SignGroupUser.ensure(user_id, group_id)
-        await user.update(add_probability=0.2).apply()
-
-    async def sign_card_3(**kwargs):
-        user_id = kwargs['user_id']
-        group_id = kwargs['group_id']
-        user = await SignGroupUser.ensure(user_id, group_id)
-        await user.update(add_probability=0.3).apply()
+        await user.update(add_probability=prob).apply()
 
     if Config.get_config("shop", "IMPORT_DEFAULT_SHOP_GOODS"):
-        await registered_goods(
+        await register_goods(
             "好感度双倍加持卡Ⅰ", 30, "下次签到双倍好感度概率 + 10%（谁才是真命天子？）（同类商品将覆盖）"
         )
-        use.registered_use("好感度双倍加持卡Ⅰ", sign_card_1)
-        await registered_goods("好感度双倍加持卡Ⅱ", 150, "下次签到双倍好感度概率 + 20%（平平庸庸）（同类商品将覆盖）")
-        use.registered_use("好感度双倍加持卡Ⅱ", sign_card_2)
-        await registered_goods(
+        use.register_use("好感度双倍加持卡Ⅰ", sign_card, **{"prob": 0.1})
+        await register_goods("好感度双倍加持卡Ⅱ", 150, "下次签到双倍好感度概率 + 20%（平平庸庸）（同类商品将覆盖）")
+        use.register_use("好感度双倍加持卡Ⅱ", sign_card, **{"prob": 0.2})
+        await register_goods(
             "好感度双倍加持卡Ⅲ", 250, "下次签到双倍好感度概率 + 30%（金币才是真命天子！）（同类商品将覆盖）"
         )
-        use.registered_use("好感度双倍加持卡Ⅲ", sign_card_3)
+        use.register_use("好感度双倍加持卡Ⅲ", sign_card, **{"prob": 0.3})
 
 
 # 创建商店界面
@@ -136,7 +124,7 @@ async def create_shop_help() -> str:
     return shop.pic2bs4()
 
 
-async def registered_goods(
+async def register_goods(
         name: str,
         price: int,
         des: str,

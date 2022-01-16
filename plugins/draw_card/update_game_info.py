@@ -182,7 +182,7 @@ def intermediate_check(member_dict: dict, key: str, game_name: str, td: bs4.elem
     if game_name == 'prts':
         if key == '获取途径':
             msg = re.search('<td.*?>([\\s\\S]*)</td>', str(td)).group(1).strip()
-            msg = msg[:-1] if msg[-1] == '\n' else msg
+            msg = msg[:-1] if msg and msg[-1] == '\n' else msg
             if msg.find('<a') != -1:
                 for a in td.find_all('a'):
                     msg = msg.replace(str(a), a.text)

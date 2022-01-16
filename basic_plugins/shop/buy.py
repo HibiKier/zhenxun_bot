@@ -29,6 +29,9 @@ __plugin_settings__ = {
     "limit_superuser": False,
     "cmd": ["商店", "购买道具"],
 }
+__plugin_cd_limit__ = {
+    "cd": 3
+}
 
 
 buy = on_command("购买", aliases={"购买道具"}, priority=5, block=True, permission=GROUP)
@@ -69,7 +72,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             await BagUser.get_gold(event.user_id, event.group_id)
         ) < goods.goods_price * num * goods.goods_discount:
             await buy.finish("您的金币好像不太够哦", at_sender=True)
-        if await BagUser.buy_props(event.user_id, event.group_id, goods, num):
+        if await BagUser.buy_property(event.user_id, event.group_id, goods, num):
             await buy.send(
                 f"花费 {goods.goods_price * num * goods.goods_discount} 金币购买 {goods.goods_name} ×{num} 成功！",
                 at_sender=True,

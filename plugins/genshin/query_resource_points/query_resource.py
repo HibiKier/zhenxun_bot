@@ -108,7 +108,6 @@ async def init(flag: bool = False):
                 resource_name_list.append(x["name"])
     except TimeoutError:
         logger.warning('原神资源查询信息初始化超时....')
-        pass
 
 
 # 图标及位置资源
@@ -185,12 +184,13 @@ async def download_map_init(
                             semaphore,
                             force_flag=flag,
                         )
+                        BuildImage(0, 0, background=f"{map_path}/{idx}.png", ratio=MAP_RATIO).save()
                         idx += 1
-                    _w, h = BuildImage(0, 0, background=f"{map_path}/0.png", ratio=MAP_RATIO).size
+                    _w, h = BuildImage(0, 0, background=f"{map_path}/0.png").size
                     w = _w * len(os.listdir(map_path))
                     map_file = BuildImage(w, h, _w, h, ratio=MAP_RATIO)
                     for i in range(idx):
-                        map_file.paste(BuildImage(0, 0, background=f"{map_path}/{i}.png", ratio=MAP_RATIO))
+                        map_file.paste(BuildImage(0, 0, background=f"{map_path}/{i}.png"))
                     map_file.save(f"{map_path}/map.png")
             else:
                 logger.warning(f'获取原神地图失败 msg: {data["message"]}')

@@ -59,7 +59,7 @@ class AdminManager(StaticData):
 
     def get_plugin_module(self, cmd: str) -> Optional[str]:
         """
-        根据 cmd 获取功能 module
+        根据 cmd 获取功能 modules
         :param cmd: 命令
         """
         for key in self._data.keys():

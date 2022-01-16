@@ -77,42 +77,38 @@ def _get_genshin_image(
     :param nickname: 用户昵称
     :param user_ava：用户头像
     """
-    x = 450 if char_detailed_dict else 330
-    char_height = (
-        len(char_data_list) / 7
-        if len(char_data_list) % 7 == 0
-        else len(char_data_list) / 7 + 1
-    )
-    foot = BuildImage(1700, 87, background=image_path / "head.png")
-    head = BuildImage(1700, 87, background=image_path / "head.png")
-    head.rotate(180)
-    middle = BuildImage(
-        1700, int(1600 + 200 + x * char_height), background=image_path / "middle.png"
-    )
-    A = BuildImage(middle.w, middle.h + foot.h + head.h)
-    A.paste(head, (-5, 0), True)
-    A.paste(middle, (0, head.h), True)
-    A.paste(foot, (0, head.h + middle.h), True)
-    A.crop((0, 0, A.w - 5, A.h))
     user_image = get_user_data_image(uid, role_data, mys_data, nickname, user_ava)
     home_image = get_home_data_image(home_data_list)
     country_image = get_country_data_image(world_data_dict)
-    char_image, _h = get_char_data_image(char_data_list, char_detailed_dict)
-    top_bk = BuildImage(user_image.w, user_image.h + home_image.h + 100, color="#F9F6F2")
+    char_image = get_char_data_image(char_data_list, char_detailed_dict)
+    top_bk = BuildImage(user_image.w, user_image.h + max([home_image.h, country_image.h]) + 100, color="#F9F6F2")
     top_bk.paste(user_image, alpha=True)
     top_bk.paste(home_image, (0, user_image.h + 50), alpha=True)
     top_bk.paste(country_image, (home_image.w + 100, user_image.h + 50), alpha=True)
     bar = BuildImage(1600, 200, font_size=50, color="#F9F6F2", font="HYWenHei-85W.ttf")
     bar.text((50, 10), "角色背包", (104, 103, 101))
     bar.line((50, 90, 1550, 90), (227, 219, 209), width=10)
-    if A.h - top_bk.h - bar.h - _h > 200:
-        _h = A.h - top_bk.h - bar.h - _h - 200
+
+    foot = BuildImage(1700, 87, background=image_path / "head.png")
+    head = BuildImage(1700, 87, background=image_path / "head.png")
+    head.rotate(180)
+    middle = BuildImage(
+        1700, top_bk.h + bar.h + char_image.h, background=image_path / "middle.png"
+    )
+    A = BuildImage(middle.w, middle.h + foot.h + head.h)
+    A.paste(head, (-5, 0), True)
+    A.paste(middle, (0, head.h), True)
+    A.paste(foot, (0, head.h + middle.h), True)
+    A.crop((0, 0, A.w - 5, A.h))
+    if A.h - top_bk.h - bar.h - char_image.h > 200:
+        _h = A.h - top_bk.h - bar.h - char_image.h - 200
         A.crop((0, 0, A.w, A.h - _h))
         A.paste(foot, (0, A.h - 87))
     A.paste(top_bk, (0, 100), center_type="by_width")
     A.paste(bar, (50, top_bk.h + 80))
     A.paste(char_image, (0, top_bk.h + bar.h + 10), center_type="by_width")
     rand = random.randint(1, 10000)
+    A.resize(0.8)
     A.save(Path(IMAGE_PATH) / "temp" / f"genshin_user_card_{rand}.png")
     return image(f"genshin_user_card_{rand}.png", "temp")
 
@@ -233,8 +229,9 @@ def get_home_data_image(home_data_list: List[Dict]) -> BuildImage:
     画出家园数据
     :param home_data_list: 家园列表
     """
+    h = 130 + 300 * 4
     region = BuildImage(
-        550, 1050, color="#E3DBD1", font="HYWenHei-85W.ttf", font_size=40
+        550, h, color="#E3DBD1", font="HYWenHei-85W.ttf", font_size=40
     )
     try:
         region.text(
@@ -245,7 +242,7 @@ def get_home_data_image(home_data_list: List[Dict]) -> BuildImage:
         )
     except (IndexError, KeyError):
         region.text((0, 30), f"尘歌壶 Lv.0", center_type="by_width")
-        region.text((0, 980), f"仙力: 0", center_type="by_width")
+        region.text((0, region.h - 70), f"仙力: 0", center_type="by_width")
     region.circle_corner(30)
     height = 100
     homes = os.listdir(image_path / "homes")
@@ -300,9 +297,9 @@ def get_country_data_image(world_data_dict: Dict) -> BuildImage:
     画出国家探索供奉等图像
     :param world_data_dict: 国家数据字典
     """
-    region = BuildImage(790, 1050, color="#F9F6F2")
+    region = BuildImage(790, 267 * len(world_data_dict), color="#F9F6F2")
     height = 0
-    for country in ["蒙德", "龙脊雪山", "璃月", "稻妻"]:
+    for country in ["蒙德", "龙脊雪山", "璃月", "稻妻", "渊下宫"]:
         x = BuildImage(790, 250, color="#3A4467")
         logo = BuildImage(180, 180, background=image_path / "logo" / f"{country}.png")
         tmp_bk = BuildImage(770, 230, color="#606779")
@@ -356,6 +353,14 @@ def get_country_data_image(world_data_dict: Dict) -> BuildImage:
                 f"Lv.{world_data_dict[country]['offerings'][0]['level']}",
                 fill=(255, 255, 255),
             )
+        elif country in ["渊下宫"]:
+            content_bk.text((300, 0), "探索", fill=(239, 211, 114), center_type="by_height")
+            content_bk.text(
+                (450, 20),
+                f"{world_data_dict[country]['exploration_percentage'] / 10}%",
+                fill=(255, 255, 255),
+                center_type="by_height",
+            )
         x.paste(tmp_bk, alpha=True, center_type="center")
         x.paste(content_bk, alpha=True, center_type="center")
         x.circle_corner(20)
@@ -372,12 +377,9 @@ def get_char_data_image(
     :param char_data_list: 角色列表
     :param char_detailed_dict: 角色武器
     """
-    x = 420 if char_detailed_dict else 350
-    _h = x * int(
-        len(char_data_list) / 7
-        if len(char_data_list) % 7 == 0
-        else len(char_data_list) / 7 + 1
-    )
+    lens = len(char_data_list) / 7 if len(char_data_list) % 7 == 0 else len(char_data_list) / 7 + 1
+    x = 500
+    _h = int(x * lens)
     region = BuildImage(
         1600,
         _h,
@@ -389,12 +391,12 @@ def get_char_data_image(
     for char in char_data_list:
         if width + 230 > 1550:
             width = 120
-            height += x
+            height += 420
         idx += 1
         char_img = image_path / "chars" / f'{char["name"]}.png'
         char_bk = BuildImage(
             270,
-            500 if char_detailed_dict else 400,
+            500,
             background=image_path / "element.png",
             font="HYWenHei-85W.ttf",
             font_size=35,
@@ -507,16 +509,23 @@ def get_char_data_image(
         char_bk.resize(0.8)
         region.paste(char_bk, (width, height), True)
         width += 230
-    return region, _h
+    region.crop((0, 0, region.w, height + 430))
+    return region
 
 
-async def init_image(char_data_list: List[Dict], char_detailed_dict: dict, home_data_list: List[Dict]):
+async def init_image(world_data_dict: Dict[str, Dict[str, str]], char_data_list: List[Dict[str, str]], char_detailed_dict: dict, home_data_list: List[Dict]):
     """
     下载头像
+    :param world_data_dict: 地图标志
     :param char_data_list: 角色列表
     :param char_detailed_dict: 角色武器
     :param home_data_list: 家园列表
     """
+    for world in world_data_dict:
+        file = image_path / "logo" / f'{world_data_dict[world]["name"]}.png'
+        file.parent.mkdir(parents=True, exist_ok=True)
+        if not file.exists():
+            await AsyncHttpx.download_file(world_data_dict[world]["icon"], file)
     for char in char_data_list:
         file = image_path / "chars" / f'{char["name"]}.png'
         file.parent.mkdir(parents=True, exist_ok=True)

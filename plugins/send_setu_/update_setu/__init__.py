@@ -32,7 +32,7 @@ update_setu = on_command(
 async def _(bot: Bot, event: Event, state: T_State):
     if Config.get_config("send_setu", "DOWNLOAD_SETU"):
         await update_setu.send("开始更新色图...", at_sender=True)
-        await update_setu.send(await update_setu_img(), at_sender=True)
+        await update_setu_img(True)
     else:
         await update_setu.finish("更新色图配置未开启")
 

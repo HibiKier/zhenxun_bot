@@ -8,8 +8,7 @@ class SignGroupUser(db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     user_qq = db.Column(db.BigInteger(), nullable=False)
-    belonging_group = db.Column(db.BigInteger(), nullable=False)
-
+    group_id = db.Column(db.BigInteger(), nullable=False)
     checkin_count = db.Column(db.Integer(), nullable=False)
     checkin_time_last = db.Column(db.DateTime(timezone=True), nullable=False)
     impression = db.Column(db.Numeric(scale=3, asdecimal=False), nullable=False)
@@ -20,29 +19,29 @@ class SignGroupUser(db.Model):
         db.Numeric(scale=3, asdecimal=False), nullable=False, default=0
     )
 
-    _idx1 = db.Index("sign_group_users_idx1", "user_qq", "belonging_group", unique=True)
+    _idx1 = db.Index("sign_group_users_idx1", "user_qq", "group_id", unique=True)
 
     @classmethod
     async def ensure(
-        cls, user_qq: int, belonging_group: int, for_update: bool = False
+        cls, user_qq: int, group_id: int, for_update: bool = False
     ) -> "SignGroupUser":
         """
         说明:
             获取签到用户
         参数:
             :param user_qq: 用户qq
-            :param belonging_group: 所在群聊
+            :param group_id: 所在群聊
             :param for_update: 是否存在修改数据
         """
         query = cls.query.where(
-            (cls.user_qq == user_qq) & (cls.belonging_group == belonging_group)
+            (cls.user_qq == user_qq) & (cls.group_id == group_id)
         )
         if for_update:
             query = query.with_for_update()
         user = await query.gino.first()
         return user or await cls.create(
             user_qq=user_qq,
-            belonging_group=belonging_group,
+            group_id=group_id,
             checkin_count=0,
             checkin_time_last=datetime.min,  # 从未签到过
             impression=0,
@@ -79,22 +78,22 @@ class SignGroupUser(db.Model):
         ).apply()
 
     @classmethod
-    async def get_all_impression(cls, belonging_group: int) -> "list, list, list":
+    async def get_all_impression(cls, group_id: int) -> "list, list, list":
         """
         说明：
             获取该群所有用户 id 及对应 好感度
         参数：
-            :param belonging_group: 群号
+            :param group_id: 群号
         """
         impression_list = []
         user_qq_list = []
         user_group = []
-        if belonging_group:
-            query = cls.query.where(cls.belonging_group == belonging_group)
+        if group_id:
+            query = cls.query.where(cls.group_id == group_id)
         else:
             query = cls.query
         for user in await query.gino.all():
             impression_list.append(user.impression)
             user_qq_list.append(user.user_qq)
-            user_group.append(user.belonging_group)
+            user_group.append(user.group_id)
         return user_qq_list, impression_list, user_group

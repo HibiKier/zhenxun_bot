@@ -56,18 +56,26 @@ async def get_yiqing_data(area: str) -> Union[str, MessageSegment]:
     confirm = data_["total"]["confirm"]  # 累计确诊
     heal = data_["total"]["heal"]  # 累计治愈
     dead = data_["total"]["dead"]  # 累计死亡
-    dead_rate = data_["total"]["deadRate"]  # 死亡率
-    heal_rate = data_["total"]["healRate"]  # 治愈率
     now_confirm = data_["total"]["nowConfirm"]  # 目前确诊
-    suspect = data_["total"]["suspect"]  # 疑似
     add_confirm = data_["today"]["confirm"]  # 新增确诊
+    grade = ""
+    _grade_color = ""
+    if data_["total"].get("grade"):
+        grade = data_["total"]["grade"]
+        if "中风险" in grade:
+            _grade_color = "#fa9424"
+        else:
+            _grade_color = "red"
+
+    dead_rate = f"{dead / confirm * 100:.2f}"  # 死亡率
+    heal_rate = f"{heal / confirm * 100:.2f}"  # 治愈率
+
     x = f"{city}市" if city else f"{province}{province_type}"
     return image(b64=await text2image(
     f"""
-  {x} 疫情数据：
+  {x} 疫情数据 {f"(<f font_color={_grade_color}>{grade}</f>)" if grade else ""}：
     目前确诊：
       确诊人数：<f font_color=red>{now_confirm}(+{add_confirm})</f>
-      疑似人数：{suspect}
   -----------------       
     累计数据：
       确诊人数：<f font_color=red>{confirm}</f>
@@ -75,7 +83,7 @@ async def get_yiqing_data(area: str) -> Union[str, MessageSegment]:
       死亡人数：<f font_color=#191d19>{dead}</f>
     治愈率：{heal_rate}%
     死亡率：{dead_rate}%
-  更新日期：{last_update_time} 
+  更新日期：{last_update_time}   
         """, font_size=30, color="#f9f6f2"
     ))
 

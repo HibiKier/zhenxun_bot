@@ -165,7 +165,9 @@ async def get_media_id(keyword: str) -> dict:
     for _ in range(3):
         try:
             _season_data = {}
-            response = await AsyncHttpx.get(bilibili_search_url, params=params, timeout=5)
+            response = await AsyncHttpx.get(
+                bilibili_search_url, params=params, timeout=5
+            )
             if response.status_code == 200:
                 data = response.json()
                 if data.get("data"):
@@ -254,7 +256,12 @@ async def _get_up_status(id_: int) -> Optional[str]:
     if dynamic_img:
         await BilibiliSub.update_sub_info(id_, dynamic_upload_time=dynamic_upload_time)
         rst += f"{uname} 发布了动态！\n" f"{dynamic_img}\n"
-    if _user.latest_video_created < latest_video_created and video:
+    if (
+        latest_video_created
+        and _user.latest_video_created
+        and video
+        and _user.latest_video_created < latest_video_created
+    ):
         rst = rst + "-------------\n" if rst else rst
         await BilibiliSub.update_sub_info(
             id_, latest_video_created=latest_video_created

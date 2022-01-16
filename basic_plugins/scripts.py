@@ -1,11 +1,17 @@
+from asyncpg.exceptions import (
+    DuplicateColumnError,
+    UndefinedColumnError,
+    PostgresSyntaxError,
+)
 from nonebot import Driver
 from services.db_context import db
-from asyncpg.exceptions import DuplicateColumnError
 from models.group_info import GroupInfo
+from models.bag_user import BagUser
 from nonebot.adapters.cqhttp import Bot
 from services.log import logger
 from configs.path_config import TEXT_PATH
 from asyncio.exceptions import TimeoutError
+from typing import List
 from utils.http_utils import AsyncHttpx
 from utils.utils import scheduler
 from pathlib import Path
@@ -61,15 +67,70 @@ async def _():
     """
     数据库表结构变换
     """
+    _flag = []
     sql_str = [
-        "ALTER TABLE group_info ADD group_flag Integer NOT NULL DEFAULT 0;"  # group_info表添加一个group_flag
+        (
+            "ALTER TABLE group_info ADD group_flag Integer NOT NULL DEFAULT 0;",
+            "group_info",
+        ),  # group_info表添加一个group_flag
+        (
+            "ALTER TABLE bag_users rename belonging_group To group_id;",
+            "bag_users",
+        ),  # 将 bag_users 的 belonging_group 改为 group_id
+        (
+            "ALTER TABLE group_info_users rename belonging_group To group_id;",
+            "group_info_users",
+        ),
+        (
+            "ALTER TABLE sign_group_users rename belonging_group To group_id;",
+            "sign_group_users",
+        ),
+        (
+            "ALTER TABLE open_cases_users rename belonging_group To group_id;",
+            "open_cases_users",
+        ),
+        (
+            "ALTER TABLE bag_users ADD property json NOT NULL DEFAULT '{}';",
+            "bag_users",
+        ),  # bag_users 新增字段 property 替代 props
     ]
     for sql in sql_str:
         try:
+            flag = sql[1]
+            sql = sql[0]
             query = db.text(sql)
             await db.first(query)
-        except DuplicateColumnError:
+            logger.info(f"完成sql操作：{sql}")
+            _flag.append(flag)
+        except (DuplicateColumnError, UndefinedColumnError):
             pass
+        except PostgresSyntaxError:
+            logger.error(f"语法错误：执行sql失败：{sql}")
+    # bag_user 将文本转为字典格式
+    await __database_script(_flag)
+
+    # 完成后
+    end_sql_str = [
+        # "ALTER TABLE bag_users DROP COLUMN props;"          # 删除 bag_users 的 props 字段（还不到时候）
+    ]
+    for sql in end_sql_str:
+        try:
+            query = db.text(sql)
+            await db.first(query)
+            logger.info(f"完成执行sql操作：{sql}")
+        except (DuplicateColumnError, UndefinedColumnError):
+            pass
+        except PostgresSyntaxError:
+            logger.error(f"语法错误：执行sql失败：{sql}")
+
+    # str2json_sql = ["alter table bag_users alter COLUMN props type json USING props::json;"]       # 字段类型替换
+    # rename_sql = 'alter table {} rename {} to {};'                              # 字段更名
+    # for sql in str2json_sql:
+    #     try:
+    #         query = db.text(sql)
+    #         await db.first(query)
+    #     except DuplicateColumnError:
+    #         pass
 
 
 @driver.on_bot_connect
@@ -103,6 +164,26 @@ async def _(bot: Bot):
             else:
                 await GroupInfo.delete_group_info(group_id)
                 logger.info(f"移除不存在的群聊信息：{group_id}")
+
+
+async def __database_script(_flag: List[str]):
+    # bag_user 将文本转为字典格式
+    if "bag_users" in _flag:
+        for x in await BagUser.get_all_users():
+            props = {}
+            if x.props:
+                for prop in [p for p in x.props.split(",") if p]:
+                    if props.get(prop):
+                        props[prop] += 1
+                    else:
+                        props[prop] = 1
+                logger.info(
+                    f"__database_script USER {x.user_qq} GROUP {x.group_id} 更新数据 {props}"
+                )
+            await x.update(
+                property=props,
+                props="",
+            ).apply()
 
 
 # 自动更新城市列表

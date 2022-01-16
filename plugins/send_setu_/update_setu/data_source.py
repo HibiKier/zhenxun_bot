@@ -90,7 +90,11 @@ headers = {
 }
 
 
-async def update_setu_img():
+async def update_setu_img(flag: bool = False):
+    """
+    更新色图
+    :param flag: 是否手动更新
+    """
     image_list = await Setu.get_all_setu()
     image_list.reverse()
     _success = 0
@@ -105,6 +109,9 @@ async def update_setu_img():
         path.mkdir(exist_ok=True, parents=True)
         rar_path.mkdir(exist_ok=True, parents=True)
         if not local_image.exists() or not image.img_hash:
+            temp_file = rar_path / f"{image.local_id}.jpg"
+            if temp_file.exists():
+                temp_file.unlink()
             url_ = image.img_url
             ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
             if ws_url:
@@ -158,8 +165,7 @@ async def update_setu_img():
                     error_info.append(f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}")
         else:
             logger.info(f"更新色图 {image.local_id}.jpg 已存在")
-    error_info = ["无报错.."] if not error_info else error_info
-    if count or _success or error_info:
+    if _success or error_info or flag:
         await get_bot().send_private_msg(
             user_id=int(list(get_bot().config.superusers)[0]),
             message=f'{str(datetime.now()).split(".")[0]} 更新 色图 完成，本地存在 {count} 张，实际更新 {_success} 张，'

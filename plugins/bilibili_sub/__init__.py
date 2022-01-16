@@ -9,7 +9,7 @@ from .data_source import (
     get_media_id,
     get_sub_status,
     SubManager,
-    BilibiliSub
+    BilibiliSub,
 )
 from models.level_user import LevelUser
 from configs.config import Config
@@ -163,11 +163,10 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 @show_sub_info.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    id_ = (
-        f"{event.user_id}:{event.group_id}"
-        if isinstance(event, GroupMessageEvent)
-        else f"{event.user_id}"
-    )
+    if isinstance(event, GroupMessageEvent):
+        id_ = f"{event.group_id}"
+    else:
+        id_ = f"{event.user_id}"
     data = await BilibiliSub.get_sub_data(id_)
     live_rst = ""
     up_rst = ""
@@ -181,6 +180,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             up_rst += f"\tUP：{x.uname}\n" f"\tuid：{x.uid}\n" f"------------------\n"
         if x.sub_type == "season":
             season_rst += (
+                f"\t番剧id：{x.sub_id}\n"
                 f"\t番名：{x.season_name}\n"
                 f"\t当前集数：{x.season_current_episode}\n"
                 f"------------------\n"
@@ -189,7 +189,9 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     up_rst = "当前订阅的UP：\n" + up_rst if up_rst else up_rst
     season_rst = "当前订阅的番剧：\n" + season_rst if season_rst else season_rst
     if not live_rst and not up_rst and not season_rst:
-        live_rst = "您目前没有任何订阅..."
+        live_rst = (
+            "该群目前没有任何订阅..." if isinstance(event, GroupMessageEvent) else "您目前没有任何订阅..."
+        )
     await show_sub_info.send(live_rst + up_rst + season_rst)
 
 

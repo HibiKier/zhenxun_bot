@@ -6,7 +6,7 @@ from services.log import logger
 from nonebot.rule import to_me
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
-from utils.utils import get_message_imgs
+from utils.utils import get_message_img
 from pathlib import Path
 from utils.utils import is_number, get_message_text
 from utils.image_utils import BuildImage, pic2b64
@@ -150,9 +150,9 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 await update_img.reject("请输入支持的替换的底色：\n红色 蓝色 白色 绿色")
             state["y"] = str(event.get_message())
     if state["_current_key"] == "imgs":
-        if not get_message_imgs(event.json()):
+        if not get_message_img(event.json()):
             await update_img.reject("没图？没图？没图？来图速来！")
-        state[state["_current_key"]] = get_message_imgs(event.json())
+        state[state["_current_key"]] = get_message_img(event.json())
 
 
 @update_img.handle()
@@ -160,7 +160,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     if str(event.get_message()) in ["帮助"]:
         await update_img.finish(image("update_img_help.png"))
     raw_arg = get_message_text(event.json())
-    img_list = get_message_imgs(event.json())
+    img_list = get_message_img(event.json())
     if raw_arg:
         args = raw_arg.split("[")[0].split(" ")
         print(args)

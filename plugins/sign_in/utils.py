@@ -11,6 +11,7 @@ from .config import (
 from models.sign_group_user import SignGroupUser
 from models.group_member_info import GroupInfoUser
 from nonebot.adapters.cqhttp import MessageSegment
+from configs.config import Config
 from utils.utils import get_user_avatar
 from utils.image_utils import BuildImage
 from utils.message_builder import image
@@ -55,32 +56,32 @@ async def get_card(
     _type = "view" if is_card_view else "sign"
     card_file = (
         Path(SIGN_TODAY_CARD_PATH)
-        / f"{user_id}_{user.belonging_group}_{_type}_{date}.png"
+        / f"{user_id}_{user.group_id}_{_type}_{date}.png"
     )
     if card_file.exists():
         return image(
-            f"{user_id}_{user.belonging_group}_{_type}_{date}.png", "sign/today_card"
+            f"{user_id}_{user.group_id}_{_type}_{date}.png", "sign/today_card"
         )
     else:
         if add_impression == -1:
             card_file = (
                 Path(SIGN_TODAY_CARD_PATH)
-                / f"{user_id}_{user.belonging_group}_view_{date}.png"
+                / f"{user_id}_{user.group_id}_view_{date}.png"
             )
             if card_file.exists():
                 return image(
-                    f"{user_id}_{user.belonging_group}_view_{date}.png",
+                    f"{user_id}_{user.group_id}_view_{date}.png",
                     "sign/today_card",
                 )
             is_card_view = True
         ava = BytesIO(await get_user_avatar(user_id))
         uid = await GroupInfoUser.get_group_member_uid(
-            user.user_qq, user.belonging_group
+            user.user_qq, user.group_id
         )
         impression_list = None
         if is_card_view:
             _, impression_list, _ = await SignGroupUser.get_all_impression(
-                user.belonging_group
+                user.group_id
             )
         return await asyncio.get_event_loop().run_in_executor(
             None,
@@ -239,9 +240,10 @@ def _generate_card(
             f"上次签到日期：{'从未' if user.checkin_time_last == datetime.min else user.checkin_time_last.date()}",
         )
         today_data.text((0, 25), f"总金币：{gold}")
+        default_setu_prob = Config.get_config("send_setu", "INITIAL_SETU_PROBABILITY") * 100
         today_data.text(
             (0, 50),
-            f"色图概率：{(70 + user.impression if user.impression < 100 else 100):.2f}%",
+            f"色图概率：{(default_setu_prob + user.impression if user.impression < 100 else 100):.2f}%",
         )
         today_data.text((0, 75), f"开箱次数：{(20 + int(user.impression / 3))}")
         _type = "view"
@@ -285,10 +287,10 @@ def _generate_card(
     bk.paste(today_data, (580, 220), True)
     bk.paste(watermark, (15, 400), True)
     bk.save(
-        SIGN_TODAY_CARD_PATH / f"{user_id}_{user.belonging_group}_{_type}_{data}.png"
+        SIGN_TODAY_CARD_PATH / f"{user_id}_{user.group_id}_{_type}_{data}.png"
     )
     return image(
-        f"{user_id}_{user.belonging_group}_{_type}_{data}.png", "sign/today_card"
+        f"{user_id}_{user.group_id}_{_type}_{data}.png", "sign/today_card"
     )
 
 

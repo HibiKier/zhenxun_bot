@@ -1,7 +1,7 @@
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
 from nonebot import on_command
-from utils.utils import get_message_imgs, get_message_text
+from utils.utils import get_message_img, get_message_text
 from utils.message_builder import share
 from services.log import logger
 
@@ -32,7 +32,7 @@ fake_msg = on_command("假消息", priority=5, block=True)
 @fake_msg.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     msg = get_message_text(event.json()).split(" ")
-    img = get_message_imgs(event.json())
+    img = get_message_img(event.json())
     if len(msg) > 1:
         if len(msg) == 2:
             url = msg[0]

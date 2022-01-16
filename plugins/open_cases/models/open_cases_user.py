@@ -9,7 +9,7 @@ class OpenCasesUser(db.Model):
 
     id = db.Column(db.Integer(), primary_key=True)
     user_qq = db.Column(db.BigInteger(), nullable=False)
-    belonging_group = db.Column(db.BigInteger(), nullable=False)
+    group_id = db.Column(db.BigInteger(), nullable=False)
     total_count = db.Column(db.Integer(), nullable=False, default=0)
     blue_count = db.Column(db.Integer(), nullable=False, default=0)
     blue_st_count = db.Column(db.Integer(), nullable=False, default=0)
@@ -27,19 +27,19 @@ class OpenCasesUser(db.Model):
     open_cases_time_last = db.Column(db.DateTime(timezone=True), nullable=False, default=datetime.now())
     knifes_name = db.Column(db.Unicode(), nullable=False, default="")
 
-    _idx1 = db.Index('open_cases_group_users_idx1', 'user_qq', 'belonging_group', unique=True)
+    _idx1 = db.Index('open_cases_group_users_idx1', 'user_qq', 'group_id', unique=True)
 
     @classmethod
-    async def ensure(cls, user_qq: int, belonging_group: int, for_update: bool = False) -> 'OpenCasesUser':
+    async def ensure(cls, user_qq: int, group_id: int, for_update: bool = False) -> 'OpenCasesUser':
         query = cls.query.where(
-            (cls.user_qq == user_qq) & (cls.belonging_group == belonging_group)
+            (cls.user_qq == user_qq) & (cls.group_id == group_id)
         )
         if for_update:
             query = query.with_for_update()
         user = await query.gino.first()
         return user or await cls.create(
             user_qq=user_qq,
-            belonging_group=belonging_group,
+            group_id=group_id,
         )
 
     @classmethod
@@ -49,7 +49,7 @@ class OpenCasesUser(db.Model):
             query = await cls.query.gino.all()
         else:
             query = await cls.query.where(
-                (cls.belonging_group == group_id)
+                (cls.group_id == group_id)
             ).gino.all()
         for user in query:
             user_list.append(user)

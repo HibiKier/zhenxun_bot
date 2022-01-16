@@ -4,7 +4,7 @@ from utils.image_utils import get_img_hash
 import random
 from utils.message_builder import image
 from nonebot import on_message
-from utils.utils import get_message_text, get_message_imgs
+from utils.utils import get_message_text, get_message_img
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 from configs.config import Config
@@ -90,7 +90,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if get_message_text(event.json()):
         if get_message_text(event.json()).find("@可爱的小真寻") != -1:
             await fudu.finish("复制粘贴的虚空艾特？", at_sender=True)
-    imgs = get_message_imgs(event.json())
+    imgs = get_message_img(event.json())
     msg = get_message_text(event.json())
     if not imgs and not msg:
         return

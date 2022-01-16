@@ -168,6 +168,17 @@ async def text2image(
         :param font_color: 普通字体颜色
         :param padding: 文本外边距，元组类型时为 （上，左，下，右）
     """
+    pw = ph = top_padding = left_padding = 0
+    if padding:
+        if isinstance(padding, int):
+            pw = padding * 2
+            ph = padding * 2
+            top_padding = left_padding = padding
+        elif isinstance(padding, tuple):
+            pw = padding[0] + padding[2]
+            ph = padding[1] + padding[3]
+            top_padding = padding[0]
+            left_padding = padding[1]
     if auto_parse and re.search(r"<f(.*)>(.*)</f>", text):
         _data = []
         new_text = ""
@@ -277,24 +288,13 @@ async def text2image(
         for img in image_list:
             height += img.h
             width = width if width > img.w else img.w
-        top_padding = left_padding = 0
-        if padding:
-            if isinstance(padding, int):
-                width += padding * 2
-                height += padding * 2
-                top_padding = left_padding = padding
-            elif isinstance(padding, tuple):
-                width += padding[0] + padding[2]
-                height += padding[1] + padding[3]
-                top_padding = padding[0]
-                left_padding = padding[1]
+        width += pw
+        height += ph
         A = BuildImage(width + left_padding, height + top_padding, color=color)
         current_height = top_padding
         for img in image_list:
             await A.apaste(img, (left_padding, current_height), True)
             current_height += img.h
-        # A.show()
-        return A.pic2bs4()
     else:
         width = 0
         height = 0
@@ -303,10 +303,18 @@ async def text2image(
             w, h = _tmp.getsize(x)
             height += h
             width = width if width > w else w
-        A = BuildImage(width, height, font_size=font_size, color=color)
-        await A.atext((0, 0), text, font_color)
-        # A.show()
-        return A.pic2bs4()
+        width += pw
+        height += ph
+        A = BuildImage(
+            width + left_padding,
+            height + top_padding,
+            font_size=font_size,
+            color=color,
+            font=font,
+        )
+        await A.atext((left_padding, top_padding), text, font_color)
+    # A.show()
+    return A.pic2bs4()
 
 
 class BuildImage:
@@ -354,6 +362,7 @@ class BuildImage:
         self.font = ImageFont.truetype(FONT_PATH + font, int(font_size))
         if not plain_text and not color:
             color = (255, 255, 255)
+        self.background = background
         if not background:
             if plain_text:
                 if not color:
@@ -589,7 +598,7 @@ class BuildImage:
             pos = (w, h)
         self.draw.text(pos, text, fill=fill, font=self.font)
 
-    async def asave(self, path: Union[str, Path]):
+    async def asave(self, path: Optional[Union[str, Path]] = None):
         """
         说明：
             异步 保存图片
@@ -598,15 +607,15 @@ class BuildImage:
         """
         await self.loop.run_in_executor(None, self.save, path)
 
-    def save(self, path: Union[str, Path]):
+    def save(self, path: Optional[Union[str, Path]] = None):
         """
         说明：
             保存图片
         参数：
             :param path: 图片路径
         """
-        if isinstance(path, Path):
-            path = path.absolute()
+        if not path:
+            path = self.background
         self.markImg.save(path)
 
     def show(self):
@@ -847,8 +856,8 @@ class BuildImage:
             for j in range(r2):
                 lx = abs(i - r)  # 到圆心距离的横坐标
                 ly = abs(j - r)  # 到圆心距离的纵坐标
-                l = (pow(lx, 2) + pow(ly, 2)) ** 0.5  # 三角函数 半径
-                if l < r3:
+                l_ = (pow(lx, 2) + pow(ly, 2)) ** 0.5  # 三角函数 半径
+                if l_ < r3:
                     pim_b[i - (r - r3), j - (r - r3)] = pim_a[i, j]
         self.markImg = imb
 
