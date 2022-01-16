@@ -240,7 +240,7 @@ python bot.py
       * “send_success_msg”(发送成功的交互信息->即：使用道具 {name} {num} 次成功)
       * “_max_num_limit”(该道具单次使用的最多个数，默认1)
 
-### 2021/1/5 \[v0.0.8.3]
+### 2021/1/5 \[v0.0.8.2]
 
 * 提供金币消费hook，可在plugins2settings.yaml中配置该功能需要消费的金币
 * 商店插件将作为内置插件移动至basic_plugins
