@@ -838,28 +838,41 @@ class BuildImage:
         """
         await self.loop.run_in_executor(None, self.circle)
 
+    def draw_ellipse(self, image, bounds, width=1, outline='white', antialias=4):
+        """
+        Improved ellipse drawing function, based on PIL.ImageDraw.
+        """
+
+        # Use a single channel image (mode='L') as mask.
+        # The size of the mask can be increased relative to the imput image
+        # to get smoother looking results.
+        mask = Image.new(
+            size=[int(dim * antialias) for dim in image.size],
+            mode='L', color='black')
+        draw = ImageDraw.Draw(mask)
+
+        # draw outer shape in white (color) and inner shape in black (transparent)
+        for offset, fill in (width / -2.0, 'black'), (width / 2.0, 'white'):
+            left, top = [(value + offset) * antialias for value in bounds[:2]]
+            right, bottom = [(value - offset) * antialias for value in bounds[2:]]
+            draw.ellipse([left, top, right, bottom], fill=fill)
+
+        # downsample the mask using PIL.Image.LANCZOS
+        # (a high-quality downsampling filter).
+        mask = mask.resize(image.size, Image.LANCZOS)
+
+        # paste outline color to input image through the mask
+        image.putalpha(mask)
+
+    #
     def circle(self):
-        """
-        说明：
-            将 BuildImage 图片变为圆形
-        """
-        self.convert("RGBA")
-        r2 = min(self.w, self.h)
-        if self.w != self.h:
-            self.resize(w=r2, h=r2)
-        r3 = int(r2 / 2)
-        imb = Image.new("RGBA", (r3 * 2, r3 * 2), (255, 255, 255, 0))
-        pim_a = self.markImg.load()  # 像素的访问对象
-        pim_b = imb.load()
-        r = float(r2 / 2)
-        for i in range(r2):
-            for j in range(r2):
-                lx = abs(i - r)  # 到圆心距离的横坐标
-                ly = abs(j - r)  # 到圆心距离的纵坐标
-                l_ = (pow(lx, 2) + pow(ly, 2)) ** 0.5  # 三角函数 半径
-                if l_ < r3:
-                    pim_b[i - (r - r3), j - (r - r3)] = pim_a[i, j]
-        self.markImg = imb
+        self.markImg.convert("RGBA")
+        size = self.markImg.size
+        r2 = min(size[0], size[1])
+        if size[0] != size[1]:
+            self.markImg = self.markImg.resize((r2, r2), Image.ANTIALIAS)
+        ellipse_box = [0, 0, r2 - 2, r2 - 2]
+        self.draw_ellipse(self.markImg, ellipse_box, width=1)
 
     async def acircle_corner(self, radii: int = 30):
         """
