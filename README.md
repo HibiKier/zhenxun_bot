@@ -25,6 +25,9 @@
 ## 真寻的帮助
 请对真寻说: '真寻帮助' or '管理员帮助' or '超级用户帮助' or '真寻帮助 指令'
 
+## 普通帮助图片
+![x](https://github.com/HibiKier/zhenxun_bot/blob/0.0.8.2/docs_image/3238573864-836268675-E2FFBB2AC143EAF4DDDF150438508721.png)
+
 ## 提供符合真寻标准的插件仓库
 
 [AkashiCoin/nonebot_plugins_zhenxun_bot](https://github.com/AkashiCoin/nonebot_plugins_zhenxun_bot)
@@ -32,9 +35,6 @@
 ## 来点优点？
 一.作为bot：
   * 实现了许多功能，且提供了大量功能管理命令
-  * __..... 更多详细请通过`传送门`查看文档！__
-
-二.作为框架？：
   * 通过Config配置项将所有插件配置统计保存至config.yaml，利于统一用户修改
   * 方便增删插件，原生nonebot2 matcher，不需要额外修改，仅仅通过简单的配置属性就可以生成`帮助图片`和`帮助信息`
   * 提供了cd，阻塞，每日次数等限制，仅仅通过简单的属性就可以生成一个限制，例如：`__plugin_cd_limit__`
@@ -67,6 +67,8 @@
 - [x] 原神资源查询  (借鉴[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
 - [x] 原神便笺查询
 - [x] 原神玩家查询
+- [x] 原神树脂提醒
+- [x] 原神签到/自动签到
 - [x] 金币红包
 - [x] 微博热搜
 - [x] B站主播/UP/番剧订阅
@@ -147,6 +149,7 @@
 - [x] 清理临时数据
 - [x] 增删群认证
 - [x] 同意/拒绝好友/群聊请求
+- [x] 配置重载
 
 #### 超级用户的被动技能
 - [x] 邀请入群提醒(别人邀请真寻入群)
@@ -171,6 +174,7 @@
 - [x] 群管理员监控，自动为新晋管理员增加权限，为失去群管理员的用户删除权限
 - [x] 群权限系统
 - [x] 定时更新权限
+- [x] 自动配置重载
 </details>
 
 ## 详细配置请前往文档，以下为最简部署和配置，如果你有基础并学习过nonebot2的话
@@ -217,9 +221,24 @@ python bot.py
 ```
 
 
+## 使用Docker
+__Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
+#### GitHub：[Sakuracio/zxenv](https://github.com/Sakuracio/zxenv)
+#### DockerHub：[hibikier/zhenxun_bot](https://hub.docker.com/r/hibikier/zhenxun_bot)
+
 
 
 ## 更新
+
+### 2021/2/9 \[v0.1]
+
+* 新增原神自动签到和手动签到
+* 新增原神树脂提醒
+* 新增手动重载Config.yaml命令以及重载配置定时任务（极少部分帮助或配置可能需要重启
+* 修改了发送本地图库的matcher，改为on_message
+* register_use可以通过返回值发送消息
+* 修复修改商品时限制时间出错
+* 修复超时商品依旧可以被购买
 
 ### 2021/1/16 \[v0.0.9.0]
 
@@ -240,7 +259,7 @@ python bot.py
       * “send_success_msg”(发送成功的交互信息->即：使用道具 {name} {num} 次成功)
       * “_max_num_limit”(该道具单次使用的最多个数，默认1)
 
-### 2021/1/5 \[v0.0.8.3]
+### 2021/1/5 \[v0.0.8.2]
 
 * 提供金币消费hook，可在plugins2settings.yaml中配置该功能需要消费的金币
 * 商店插件将作为内置插件移动至basic_plugins
@@ -311,5 +330,5 @@ __..... 更多更新信息请查看文档__
 [H-K-Y / Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot) ：原神bot，这是一个基于nonebot和HoshinoBot的原神娱乐及信息查询插件  
 [NothAmor / nonebot2_luxun_says](https://github.com/NothAmor/nonebot2_luxun_says) ：基于nonebot2机器人框架的鲁迅说插件  
 [Kyomotoi / AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus) ：一个~~特二刺螈~~（文爱）的适用于任何bot的词库  
-[Ailitonia / omega-miya](https://github.com/Ailitonia/omega-miya) ：基于nonebot2的qq机器人
+[Ailitonia / omega-miya](https://github.com/Ailitonia/omega-miya) ：基于nonebot2的qq机器人  
 [KimigaiiWuyi / GenshinUID]("https://github.com/KimigaiiWuyi/GenshinUID") ：一个基于HoshinoBot/NoneBot2的原神UID查询插件

@@ -11,7 +11,6 @@ from .init_plugins_limit import (
 )
 from .init import init
 from .check_plugin_status import check_plugin_status
-from utils.manager import admin_manager
 from nonebot.adapters.cqhttp import Bot
 from configs.path_config import DATA_PATH
 from services.log import logger

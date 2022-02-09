@@ -90,12 +90,12 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if get_message_text(event.json()):
         if get_message_text(event.json()).find("@可爱的小真寻") != -1:
             await fudu.finish("复制粘贴的虚空艾特？", at_sender=True)
-    imgs = get_message_img(event.json())
+    img = get_message_img(event.json())
     msg = get_message_text(event.json())
-    if not imgs and not msg:
+    if not img and not msg:
         return
-    if imgs:
-        img_hash = await get_fudu_img_hash(imgs[0], event.group_id)
+    if img:
+        img_hash = await get_fudu_img_hash(img[0], event.group_id)
     else:
         img_hash = ""
     add_msg = msg + "|-|" + img_hash
@@ -113,15 +113,17 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             if random.random() < 0.2:
                 await fudu.finish("打断施法！")
             _fudu_list.set_repeater(event.group_id)
-            if imgs and msg:
+            if img and msg:
                 rst = msg + image(f"compare_{event.group_id}_img.jpg", "temp")
-            elif imgs:
+            elif img:
                 rst = image(f"compare_{event.group_id}_img.jpg", "temp")
             elif msg:
                 rst = msg
             else:
                 rst = ""
             if rst:
+                if rst.endswith("打断施法！"):
+                    rst = "打断" + rst
                 await fudu.send(rst)
 
 

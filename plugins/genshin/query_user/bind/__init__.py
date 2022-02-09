@@ -70,9 +70,9 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         uid = await Genshin.get_user_uid(event.user_id)
         if not uid:
             await bind.finish("请先绑定原神uid..")
-        if msg.startswith('"'):
+        if msg.startswith('"') or msg.startswith("'"):
             msg = msg[1:]
-        if msg.endswith('"'):
+        if msg.endswith('"') or msg.endswith("'"):
             msg = msg[:-1]
         await Genshin.set_cookie(uid, msg)
         _x = f"已成功为uid：{uid} 设置cookie"

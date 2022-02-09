@@ -1,6 +1,7 @@
-from nonebot.adapters.cqhttp import GroupMessageEvent
+from nonebot.adapters.cqhttp import GroupMessageEvent, MessageSegment
 from services.log import logger
 from nonebot.adapters.cqhttp import Bot
+from typing import Optional, Union
 import asyncio
 
 
@@ -32,7 +33,7 @@ class GoodsUseFuncManager:
             return self._data[goods_name]["kwargs"]["_max_num_limit"]
         return 1
 
-    async def use(self, **kwargs):
+    async def use(self, **kwargs) -> Optional[Union[str, MessageSegment]]:
         """
         使用道具
         :param kwargs: kwargs
@@ -40,11 +41,11 @@ class GoodsUseFuncManager:
         goods_name = kwargs.get("goods_name")
         if self.exists(goods_name):
             if asyncio.iscoroutinefunction(self._data[goods_name]["func"]):
-                await self._data[goods_name]["func"](
+                return await self._data[goods_name]["func"](
                     **kwargs,
                 )
             else:
-                self._data[goods_name]["func"](
+                return self._data[goods_name]["func"](
                     **kwargs,
                 )
 
@@ -70,7 +71,9 @@ class GoodsUseFuncManager:
 func_manager = GoodsUseFuncManager()
 
 
-async def effect(bot: Bot, event: GroupMessageEvent, goods_name: str, num: int) -> bool:
+async def effect(
+    bot: Bot, event: GroupMessageEvent, goods_name: str, num: int
+) -> Optional[Union[str, MessageSegment]]:
     """
     商品生效
     :param bot: Bot
@@ -83,7 +86,7 @@ async def effect(bot: Bot, event: GroupMessageEvent, goods_name: str, num: int) 
     try:
         if func_manager.exists(goods_name):
             _kwargs = func_manager.get_kwargs(goods_name)
-            await func_manager.use(
+            return await func_manager.use(
                 **{
                     **_kwargs,
                     "_bot": bot,
@@ -94,10 +97,9 @@ async def effect(bot: Bot, event: GroupMessageEvent, goods_name: str, num: int) 
                     "goods_name": goods_name,
                 }
             )
-        return True
     except Exception as e:
         logger.error(f"use 商品生效函数effect 发生错误 {type(e)}：{e}")
-    return False
+    return None
 
 
 def register_use(goods_name: str, func, **kwargs):

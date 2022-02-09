@@ -131,8 +131,10 @@ class GroupInfoUser(db.Model):
     @classmethod
     async def get_user_all_group(cls, user_qq: int) -> List[int]:
         """
-        获取该用户所在的所有群聊
-        :param user_qq: 用户qq
+        说明：
+            获取该用户所在的所有群聊
+        参数：
+            :param user_qq: 用户qq
         """
         query = await cls.query.where(cls.user_qq == user_qq).gino.all()
         if query:

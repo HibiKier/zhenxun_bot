@@ -238,7 +238,7 @@ def get_home_data_image(home_data_list: List[Dict]) -> BuildImage:
             (0, 30), f'尘歌壶 Lv.{home_data_list[0]["level"]}', center_type="by_width"
         )
         region.text(
-            (0, 980), f'仙力: {home_data_list[0]["comfort_num"]}', center_type="by_width"
+            (0, region.h - 70), f'仙力: {home_data_list[0]["comfort_num"]}', center_type="by_width"
         )
     except (IndexError, KeyError):
         region.text((0, 30), f"尘歌壶 Lv.0", center_type="by_width")

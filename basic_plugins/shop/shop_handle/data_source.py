@@ -217,11 +217,12 @@ async def update_goods(**kwargs) -> "str, str, int":
             tmp += f'折扣：{discount} --> {kwargs["discount"]}\n'
             discount = kwargs["discount"]
         if kwargs.get("limit_time"):
+            kwargs["limit_time"] = float(kwargs["limit_time"])
             new_time = time.strftime(
                 "%Y-%m-%d %H:%M:%S",
-                time.localtime(time.time() + int(kwargs["limit_time"] * 60 * 60)),
+                time.localtime(time.time() + kwargs["limit_time"] * 60 * 60),
             )
-            tmp += f"折扣至： {new_time}\n"
+            tmp += f"限时至： {new_time}\n"
             limit_time = kwargs["limit_time"]
         return (
             await GoodsInfo.update_goods(
@@ -249,7 +250,6 @@ def parse_goods_info(msg: str) -> Union[dict, str]:
         sp = x.split(":", maxsplit=1)
         if str(sp[1]).strip():
             sp[1] = sp[1].strip()
-            print(sp)
             if sp[0] == "name":
                 data["name"] = sp[1]
             elif sp[0] == "price":

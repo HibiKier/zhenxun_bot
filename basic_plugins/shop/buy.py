@@ -7,6 +7,7 @@ from models.bag_user import BagUser
 from services.db_context import db
 from nonebot.adapters.cqhttp.permission import GROUP
 from models.goods_info import GoodsInfo
+import time
 
 
 __zx_plugin_name__ = "商店 - 购买道具"
@@ -20,7 +21,7 @@ usage：
 """.strip()
 __plugin_des__ = "商店 - 购买道具"
 __plugin_cmd__ = ["购买 [序号或名称] ?[数量=1]"]
-__plugin_type__ = ('商店',)
+__plugin_type__ = ("商店",)
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {
@@ -29,9 +30,7 @@ __plugin_settings__ = {
     "limit_superuser": False,
     "cmd": ["商店", "购买道具"],
 }
-__plugin_cd_limit__ = {
-    "cd": 3
-}
+__plugin_cd_limit__ = {"cd": 3}
 
 
 buy = on_command("购买", aliases={"购买道具"}, priority=5, block=True, permission=GROUP)
@@ -42,8 +41,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     goods = None
     if get_message_text(event.json()) in ["神秘药水"]:
         await buy.finish("你们看看就好啦，这是不可能卖给你们的~", at_sender=True)
-    goods_lst = await GoodsInfo.get_all_goods()
-    goods_name_lst = [x.goods_name for x in goods_lst]
+    goods_name_lst = [
+        x.goods_name
+        for x in await GoodsInfo.get_all_goods()
+        if x.goods_limit_time > time.time() or x.goods_limit_time == 0
+    ]
     msg = get_message_text(event.json()).split()
     num = 1
     if len(msg) > 1:
@@ -51,17 +53,16 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             num = int(msg[1])
         else:
             await buy.finish("购买的数量要是数字且大于0！", at_sender=True)
-    # print(msg, num)
     if is_number(msg[0]):
         msg = int(msg[0])
-        if msg > len(goods_lst) or msg < 1:
+        if msg > len(goods_name_lst) or msg < 1:
             await buy.finish("请输入正确的商品id！", at_sender=True)
-        goods = goods_lst[msg - 1]
+        goods = goods_name_lst[msg - 1]
     else:
         if msg[0] in goods_name_lst:
             for i in range(len(goods_name_lst)):
                 if msg[0] == goods_name_lst[i]:
-                    goods = goods_lst[i]
+                    goods = goods_name_lst[i]
                     break
             else:
                 await buy.finish("请输入正确的商品名称！")

@@ -193,7 +193,6 @@ async def get_sub_status(id_: int, sub_type: str) -> Optional[str]:
     获取订阅状态
     :param id_: 订阅 id
     :param sub_type: 订阅类型
-    :return:
     """
     try:
         if sub_type == "live":
@@ -203,7 +202,7 @@ async def get_sub_status(id_: int, sub_type: str) -> Optional[str]:
         elif sub_type == "season":
             return await _get_season_status(id_)
     except ResponseCodeException:
-        return "获取信息失败...请检查订阅Id是否存在或稍后再试..."
+        return f"Id：{id_} 获取信息失败...请检查订阅Id是否存在或稍后再试..."
     # except Exception as e:
     #     logger.error(f"获取订阅状态发生预料之外的错误 id_：{id_} {type(e)}：{e}")
     #     return "发生了预料之外的错误..请稍后再试或联系管理员....."

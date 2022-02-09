@@ -43,7 +43,7 @@ async def _():
 
 async def get_user_memo(user_id: int, uid: int, uname: str) -> Optional[Union[str, MessageSegment]]:
     uid = str(uid)
-    if uid[0] == "1" or uid[0] == "2":
+    if uid[0] in ["1", "2"]:
         server_id = "cn_gf01"
     elif uid[0] == "5":
         server_id = "cn_qd01"
@@ -72,7 +72,7 @@ async def get_memo(uid: str, server_id: str) -> "Union[str, dict], int":
     except TimeoutError:
         return "访问超时，请稍后再试", 997
     except Exception as e:
-        logger.info(f"便签查询获取失败未知错误 {e}：{e}")
+        logger.error(f"便签查询获取失败未知错误 {e}：{e}")
         return "发生了一些错误，请稍后再试", 998
 
 
