@@ -230,7 +230,7 @@ async def get_image(img_url: str, user_id: int) -> Optional[str]:
     )
     for _ in range(3):
         try:
-            response = await AsyncHttpx.get(img_url, timeout=Config.get_config("pix", "TIMEOUT"),)
+            response = await AsyncHttpx.get(img_url, headers=headers, timeout=Config.get_config("pix", "TIMEOUT"),)
             if response.status_code == 404:
                 img_url = old_img_url
                 continue
@@ -240,6 +240,7 @@ async def get_image(img_url: str, user_id: int) -> Optional[str]:
                 await f.write(response.content)
             return f"pix_{user_id}_{img_url[-10:-4]}.jpg"
         except TimeoutError:
+            logger.warning(f"PIX：{img_url} 图片下载超时...")
             pass
     return None
 
