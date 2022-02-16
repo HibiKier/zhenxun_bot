@@ -13,6 +13,8 @@ from configs.config import NICKNAME
 # 方法参考：RSSHub /epicgames 路由
 # https://github.com/DIYgod/RSSHub/blob/master/lib/routes/epicgames/index.js
 async def get_epic_game():
+    # 现在没用 graphql 辣
+    """ prv_graphql Code
     epic_url = "https://www.epicgames.com/store/backend/graphql-proxy"
     headers = {
         "Referer": "https://www.epicgames.com/store/zh-CN/",
@@ -31,10 +33,18 @@ async def get_epic_game():
             "withPrice": True,
             "withPromotions": True,
         },
+    } 
+    """
+    
+    epic_url = "https://store-site-backend-static-ipv4.ak.epicgames.com/freeGamesPromotions?locale=zh-CN&country=CN&allowCountries=CN"
+    headers = {
+        "Referer": "https://www.epicgames.com/store/zh-CN/",
+        "Content-Type": "application/json; charset=utf-8",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36"
     }
     async with AsyncClient(headers=headers) as client:
         try:
-            res = await client.post(epic_url, json=data, timeout=10.0)
+            res = await client.get(epic_url, timeout=10.0)
             res_json = res.json()
             games = res_json["data"]["Catalog"]["searchStore"]["elements"]
             return games
