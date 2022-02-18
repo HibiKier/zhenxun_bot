@@ -13,7 +13,7 @@ from configs.config import NICKNAME
 # 方法参考：RSSHub /epicgames 路由
 # https://github.com/DIYgod/RSSHub/blob/master/lib/routes/epicgames/index.js
 async def get_epic_game():
-    epic_url = "https://www.epicgames.com/store/backend/graphql-proxy"
+    epic_url = "https://www.epicgames.com/graphql"
     headers = {
         "Referer": "https://www.epicgames.com/store/zh-CN/",
         "Content-Type": "application/json; charset=utf-8",
