@@ -1,11 +1,7 @@
 from httpx import AsyncClient
 from datetime import datetime
 from nonebot.log import logger
-from nonebot.adapters.cqhttp import (
-    Bot,
-    Event,
-    GroupMessageEvent,
-)
+from nonebot.adapters.cqhttp import Bot
 from configs.config import NICKNAME
 
 
@@ -14,7 +10,7 @@ from configs.config import NICKNAME
 # https://github.com/DIYgod/RSSHub/blob/master/lib/routes/epicgames/index.js
 async def get_epic_game():
     # 现在没用 graphql 辣
-    """ prv_graphql Code
+    """prv_graphql Code
     epic_url = "https://www.epicgames.com/store/backend/graphql-proxy"
     headers = {
         "Referer": "https://www.epicgames.com/store/zh-CN/",
@@ -33,14 +29,14 @@ async def get_epic_game():
             "withPrice": True,
             "withPromotions": True,
         },
-    } 
+    }
     """
-    
+
     epic_url = "https://store-site-backend-static-ipv4.ak.epicgames.com/freeGamesPromotions?locale=zh-CN&country=CN&allowCountries=CN"
     headers = {
         "Referer": "https://www.epicgames.com/store/zh-CN/",
         "Content-Type": "application/json; charset=utf-8",
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
     }
     async with AsyncClient(headers=headers) as client:
         try:
@@ -56,7 +52,7 @@ async def get_epic_game():
 # 获取 Epic Game Store 免费游戏信息
 # 处理免费游戏的信息方法借鉴 pip 包 epicstore_api 示例
 # https://github.com/SD4RK/epicstore_api/blob/master/examples/free_games_example.py
-async def get_epic_free(bot: Bot, event: Event):
+async def get_epic_free(bot: Bot, Type_Event: str):
     games = await get_epic_game()
     if not games:
         return "Epic 可能又抽风啦，请稍后再试（", 404
@@ -85,7 +81,7 @@ async def get_epic_free(bot: Bot, event: Event):
                     end_date = datetime.fromisoformat(end_date_iso).strftime(
                         "%b.%d %H:%M"
                     )
-                    if isinstance(event, GroupMessageEvent):
+                    if Type_Event == "Group":
                         _message = "\n由 {} 公司发行的游戏 {} ({}) 在 UTC 时间 {} 即将推出免费游玩，预计截至 {}。".format(
                             game_corp, game_name, game_price, start_date, end_date
                         )
@@ -131,7 +127,7 @@ async def get_epic_free(bot: Bot, event: Event):
                     game_url = "https://www.epicgames.com/store/zh-CN/p/{}".format(
                         game_url_part
                     )
-                    if isinstance(event, GroupMessageEvent):
+                    if Type_Event == "Group":
                         _message = "[CQ:image,file={}]\n\nFREE now :: {} ({})\n{}\n此游戏由 {} 开发、{} 发行，将在 UTC 时间 {} 结束免费游玩，戳链接速度加入你的游戏库吧~\n{}\n".format(
                             game_thumbnail,
                             game_name,

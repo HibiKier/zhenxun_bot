@@ -33,13 +33,15 @@ Config.add_plugin_config(
     default_value=True,
 )
 
-
 epic = on_command("epic", priority=5, block=True)
 
 
 @epic.handle()
 async def handle(bot: Bot, event: MessageEvent, state: T_State):
-    msg_list, code = await get_epic_free(bot, event)
+    Type_Event = "Private"
+    if isinstance(event, GroupMessageEvent):
+        Type_Event = "Group"
+    msg_list, code = await get_epic_free(bot, Type_Event)
     if code == 404:
         await epic.send(msg_list)
     elif isinstance(event, GroupMessageEvent):
@@ -63,11 +65,13 @@ async def _():
     bot = get_bot()
     gl = await bot.get_group_list()
     gl = [g["group_id"] for g in gl]
+    msg_list, code = await get_epic_free(bot, "Group")
     for g in gl:
         if await group_manager.check_group_task_status(g, "epic_free_game"):
             try:
-                msg_list, code = await get_epic_free(bot, GroupMessageEvent)
                 if msg_list and code == 200:
                     await bot.send_group_forward_msg(group_id=g, messages=msg_list)
+                else:
+                    bot.send_group_msg(group_id=g, messages=msg_list)
             except Exception as e:
                 logger.error(f"GROUP {g} epic免费游戏推送错误 {type(e)}: {e}")
