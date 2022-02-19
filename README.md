@@ -236,13 +236,15 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
-### 2022/2/19 \[v0.1.2] (nonebot beta2！)
+### 2022/2/19 \[v0.1.3] (nonebot beta2！)
 
 * 适配nonebot.beta2
 * 删除图片搜索 nonebot_plugin_picsearcher
 * 新增图片搜索 search_image
 * 替换cos api
 * 原神签到树脂提醒新增绑定群里，在某群绑定uid就会在某群发送提醒信息（有好友则私聊，需要重新绑定uid
+* 修改update_info.json
+* 修复原神资源查询下载数据失败时导致报错
 * 优化BuildImage.circle()锯齿问题 [@pull/109](https://github.com/HibiKier/zhenxun_bot/pull/109)
 * epic restful 替换 [@pull/119](https://github.com/HibiKier/zhenxun_bot/pull/119)
 * fix: 修复远古时期残留的epic推送问题 [@pull/122](https://github.com/HibiKier/zhenxun_bot/pull/122)
