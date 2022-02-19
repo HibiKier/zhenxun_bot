@@ -196,12 +196,14 @@ git clone https://github.com/HibiKier/zhenxun_bot.git
 cd zhenxun_bot
 
 # 安装依赖
-pip install -r requirements.txt
+pip install poetry      # 安装 poetry
+poetry install          # 安装依赖
 
 # 进行基础配置
 ####请查看 配置 部分####
 
 # 开始运行
+poetry shell            # 进入虚拟环境
 python bot.py
 ```
 
