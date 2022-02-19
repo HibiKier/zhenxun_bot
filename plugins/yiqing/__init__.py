@@ -1,9 +1,8 @@
 from nonebot import on_command
 from .data_source import get_yiqing_data, get_city_and_province_list
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
-from nonebot.typing import T_State
-from utils.utils import get_message_text
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
+from nonebot.params import CommandArg
 from configs.config import NICKNAME
 from .other_than import get_other_data
 
@@ -35,8 +34,8 @@ yiqing = on_command("疫情", aliases={"查询疫情", "疫情查询"}, priority
 
 
 @yiqing.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     city_and_province_list = get_city_and_province_list()
     if msg:
         if msg in city_and_province_list or msg[:-1] in city_and_province_list:

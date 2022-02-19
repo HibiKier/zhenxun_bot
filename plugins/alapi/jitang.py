@@ -1,10 +1,7 @@
-from nonebot import on_command
+from nonebot import on_regex
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
-from nonebot.typing import T_State
-from utils.http_utils import AsyncHttpx
-from configs.config import Config
-from .data_source import get_data
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent
+from ._data_source import get_data
 
 
 __zx_plugin_name__ = "鸡汤"
@@ -28,11 +25,11 @@ __plugin_settings__ = {
 url = "https://v2.alapi.cn/api/soul"
 
 
-jitang = on_command("鸡汤", aliases={"毒鸡汤"}, priority=5, block=True)
+jitang = on_regex("^毒?鸡汤$", priority=5, block=True)
 
 
 @jitang.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent):
     try:
         data, code = await get_data(url)
         if code != 200:

@@ -1,7 +1,5 @@
 from nonebot import on_command
 from nonebot.permission import SUPERUSER
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent
 from configs.path_config import TEMP_PATH
 from nonebot.rule import to_me
 from utils.utils import scheduler
@@ -35,7 +33,7 @@ resources_manager.add_temp_dir(TEMP_PATH)
 
 
 @clear_data.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     await clear_data.send("开始清理临时数据....")
     size = await asyncio.get_event_loop().run_in_executor(None, _clear_data)
     await clear_data.send("共清理了 {:.2f}MB 的数据...".format(size / 1024 / 1024))
@@ -47,13 +45,14 @@ def _clear_data() -> float:
         if dir_.exists():
             for file in os.listdir(dir_):
                 file = dir_ / file
-                try:
-                    if time.time() - os.path.getatime(file) > 300:
-                        file_size = os.path.getsize(file)
-                        file.unlink()
-                        size += file_size
-                except Exception as e:
-                    logger.error(f"清理临时数据错误...{type(e)}：{e}")
+                if file.is_file():
+                    try:
+                        if time.time() - os.path.getatime(file) > 300:
+                            file_size = os.path.getsize(file)
+                            file.unlink()
+                            size += file_size
+                    except Exception as e:
+                        logger.error(f"清理临时数据错误...{type(e)}：{e}")
     return float(size)
 
 

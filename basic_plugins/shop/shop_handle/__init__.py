@@ -1,11 +1,11 @@
+from .data_source import create_shop_help, delete_goods, update_goods, register_goods, parse_goods_info
+from nonebot.adapters.onebot.v11 import MessageEvent, Message
 from nonebot import on_command
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent
-from nonebot.typing import T_State
 from configs.path_config import IMAGE_PATH
 from utils.message_builder import image
-from .data_source import create_shop_help, delete_goods, update_goods, register_goods, parse_goods_info
 from nonebot.permission import SUPERUSER
-from utils.utils import get_message_text, is_number
+from utils.utils import is_number
+from nonebot.params import CommandArg
 from nonebot.plugin import export
 from services.log import logger
 import os
@@ -67,13 +67,13 @@ shop_update_goods = on_command("修改商品", priority=5, permission=SUPERUSER,
 
 
 @shop_help.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _():
     await shop_help.send(image(b64=await create_shop_help()))
 
 
 @shop_add_goods.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     if msg:
         data = parse_goods_info(msg)
         if isinstance(data, str):
@@ -94,8 +94,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @shop_del_goods.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     if msg:
         name = ""
         id_ = 0
@@ -115,8 +115,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @shop_update_goods.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     if msg:
         data = parse_goods_info(msg)
         if isinstance(data, str):

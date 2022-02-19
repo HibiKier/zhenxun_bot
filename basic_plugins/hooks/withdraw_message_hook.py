@@ -2,7 +2,7 @@ from nonebot.matcher import Matcher
 from nonebot.message import run_postprocessor
 from typing import Optional
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, Event
+from nonebot.adapters.onebot.v11 import Bot, Event
 from utils.manager import withdraw_message_manager
 import asyncio
 
@@ -25,4 +25,4 @@ async def _(
 
 async def _withdraw_message(bot: Bot, id_: int, time: int):
     await asyncio.sleep(time)
-    await bot.delete_msg(message_id=id_, self_id=int(bot.self_id))
+    await bot.delete_msg(message_id=id_)

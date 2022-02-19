@@ -1,11 +1,8 @@
 from nonebot import on_command
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from nonebot.adapters.cqhttp.permission import GROUP
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
+from nonebot.adapters.onebot.v11.permission import GROUP
 from configs.path_config import DATA_PATH
 from utils.message_builder import image
-import os
-from pathlib import Path
 
 try:
     import ujson as json
@@ -36,13 +33,13 @@ view_custom_welcome = on_command(
 
 
 @view_custom_welcome.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     img = ""
     msg = ""
-    if os.path.exists(DATA_PATH + f"custom_welcome_msg/{event.group_id}.jpg"):
-        img = image(abspath=DATA_PATH + f"custom_welcome_msg/{event.group_id}.jpg")
+    if (DATA_PATH / "custom_welcome_msg" / f"{event.group_id}.jpg").exists():
+        img = image(abspath=DATA_PATH / "custom_welcome_msg" / f"{event.group_id}.jpg")
     custom_welcome_msg_json = (
-        Path() / "data" / "custom_welcome_msg" / "custom_welcome_msg.json"
+       DATA_PATH / "custom_welcome_msg" / "custom_welcome_msg.json"
     )
     if custom_welcome_msg_json.exists():
         data = json.load(open(custom_welcome_msg_json, "r"))

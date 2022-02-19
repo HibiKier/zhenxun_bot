@@ -1,7 +1,5 @@
 from nonebot import on_command
 from nonebot.permission import SUPERUSER
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent
 from nonebot.rule import to_me
 from utils.utils import get_bot
 from services.log import logger
@@ -34,7 +32,7 @@ update_friend_info = on_command(
 
 
 @update_group_info.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     bot = get_bot()
     gl = await bot.get_group_list()
     gl = [g["group_id"] for g in gl]
@@ -57,7 +55,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @update_friend_info.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     num = 0
     rst = ""
     fl = await get_bot().get_friend_list()

@@ -1,6 +1,6 @@
 from nonebot import on_command
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from utils.http_utils import AsyncHttpx
 

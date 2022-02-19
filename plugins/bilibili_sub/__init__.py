@@ -1,6 +1,6 @@
 from nonebot import on_command
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent, Message
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
 from .data_source import (
     add_live_sub,
     delete_sub,
@@ -13,10 +13,11 @@ from .data_source import (
 )
 from models.level_user import LevelUser
 from configs.config import Config
-from utils.utils import get_message_text, is_number, scheduler, get_bot
+from utils.utils import is_number, scheduler, get_bot
 from typing import Optional
 from services.log import logger
 from nonebot import Driver
+from nonebot.params import CommandArg, ArgPlainText
 import nonebot
 
 __zx_plugin_name__ = "B站订阅"
@@ -68,18 +69,9 @@ async def _():
     sub_manager = SubManager()
 
 
-@add_sub.args_parser
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    season_data = state["season_data"]
-    msg = get_message_text(event.json())
-    if not is_number(msg) or int(msg) < 1 or int(msg) > len(season_data):
-        await add_sub.reject("Id必须为数字且在范围内！请重新输入...")
-    state["id"] = season_data[int(msg) - 1]["media_id"]
-
-
 @add_sub.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json()).split()
+async def _(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip().split()
     if len(msg) < 2:
         await add_sub.finish("参数不完全，请查看订阅帮助...")
     sub_type = msg[0]
@@ -121,10 +113,13 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @add_sub.got("id")
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent, state: T_State, id_: str = ArgPlainText("id")):
+    season_data = state["season_data"]
+    if not is_number(id_) or int(id_) < 1 or int(id_) > len(season_data):
+        await add_sub.reject_arg("id", "Id必须为数字且在范围内！请重新输入...")
+    id_ = season_data[int(id_) - 1]["media_id"]
     sub_type = state["sub_type"]
     sub_user = state["sub_user"]
-    id_ = state["id"]
     if sub_type in ["主播", "直播"]:
         await add_sub.send(await add_live_sub(id_, sub_user))
     elif sub_type.lower() in ["up", "用户"]:
@@ -141,8 +136,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @del_sub.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     if not is_number(msg):
         await del_sub.finish("Id必须为数字！", at_sender=True)
     id_ = (
@@ -162,7 +157,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @show_sub_info.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent):
     if isinstance(event, GroupMessageEvent):
         id_ = f"{event.group_id}"
     else:

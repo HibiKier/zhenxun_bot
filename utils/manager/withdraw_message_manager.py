@@ -1,5 +1,5 @@
 from typing import Tuple, Union, Dict
-from nonebot.adapters.cqhttp import MessageEvent, PrivateMessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, PrivateMessageEvent, GroupMessageEvent
 
 
 class WithdrawMessageManager:

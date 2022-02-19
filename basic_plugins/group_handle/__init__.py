@@ -4,12 +4,12 @@ from utils.message_builder import image
 from models.group_member_info import GroupInfoUser
 from datetime import datetime
 from services.log import logger
-from nonebot.adapters.cqhttp import (
+from nonebot.adapters.onebot.v11 import (
     Bot,
     GroupIncreaseNoticeEvent,
     GroupDecreaseNoticeEvent,
 )
-from nonebot.adapters.cqhttp.exception import ActionFailed
+from nonebot.adapters.onebot.v11.exception import ActionFailed
 from utils.manager import group_manager, plugins2settings_manager, requests_manager
 from configs.config import NICKNAME
 from models.group_info import GroupInfo
@@ -66,7 +66,7 @@ add_group = on_request(priority=1, block=False)
 
 
 @group_increase_handle.handle()
-async def _(bot: Bot, event: GroupIncreaseNoticeEvent, state: dict):
+async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
     if event.user_id == int(bot.self_id):
         group = await GroupInfo.get_group_info(event.group_id)
         # 群聊不存在或被强制拉群，退出该群
@@ -112,9 +112,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent, state: dict):
             logger.info(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新失败")
 
         # 群欢迎消息
-        if await group_manager.check_group_task_status(
-            event.group_id, "group_welcome"
-        ) and _flmt.check(event.group_id):
+        if _flmt.check(event.group_id):
             _flmt.start_cd(event.group_id)
             msg = ""
             img = ""
@@ -129,23 +127,25 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent, state: dict):
                     if msg.find("[at]") != -1:
                         msg = msg.replace("[at]", "")
                         at_flag = True
-            if os.path.exists(DATA_PATH + f"custom_welcome_msg/{event.group_id}.jpg"):
+            if (DATA_PATH / "custom_welcome_msg" / f"{event.group_id}.jpg").exists():
                 img = image(
-                    abspath=DATA_PATH + f"custom_welcome_msg/{event.group_id}.jpg"
+                    abspath=DATA_PATH / "custom_welcome_msg" / f"{event.group_id}.jpg"
                 )
             if msg or img:
+                msg = msg.strip() + img
+                msg = "\n" + msg if at_flag else msg
                 await group_increase_handle.send(
-                    "\n" + msg.strip() + img, at_sender=at_flag
+                    "[[_task|group_welcome]]" + msg, at_sender=at_flag
                 )
             else:
                 await group_increase_handle.send(
-                    "新人快跑啊！！本群现状↓（快使用自定义！）"
-                    + image(random.choice(os.listdir(IMAGE_PATH + "qxz/")), "qxz")
+                    "[[_task|group_welcome]]新人快跑啊！！本群现状↓（快使用自定义！）"
+                    + image(random.choice(os.listdir(IMAGE_PATH / "qxz")), "qxz")
                 )
 
 
 @group_decrease_handle.handle()
-async def _(bot: Bot, event: GroupDecreaseNoticeEvent, state: dict):
+async def _(bot: Bot, event: GroupDecreaseNoticeEvent):
     # 被踢出群
     if event.sub_type == "kick_me":
         group_id = event.group_id
@@ -180,21 +180,16 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent, state: dict):
         logger.info(f"用户{user_name}, qq={event.user_id} 所属{event.group_id} 删除成功")
     else:
         logger.info(f"用户{user_name}, qq={event.user_id} 所属{event.group_id} 删除失败")
-    if await group_manager.check_group_task_status(
-        event.group_id, "refund_group_remind"
-    ):
-        rst = ""
-        if event.sub_type == "leave":
-            rst = f"{user_name}离开了我们..."
-        if event.sub_type == "kick":
-            operator = await bot.get_group_member_info(
-                user_id=event.operator_id, group_id=event.group_id
-            )
-            operator_name = (
-                operator["card"] if operator["card"] else operator["nickname"]
-            )
-            rst = f"{user_name} 被 {operator_name} 送走了."
-        try:
-            await group_decrease_handle.send(f"{rst}")
-        except ActionFailed:
-            return
+    rst = ""
+    if event.sub_type == "leave":
+        rst = f"{user_name}离开了我们..."
+    if event.sub_type == "kick":
+        operator = await bot.get_group_member_info(
+            user_id=event.operator_id, group_id=event.group_id
+        )
+        operator_name = operator["card"] if operator["card"] else operator["nickname"]
+        rst = f"{user_name} 被 {operator_name} 送走了."
+    try:
+        await group_decrease_handle.send(f"[[_task|refund_group_remind]]{rst}")
+    except ActionFailed:
+        return

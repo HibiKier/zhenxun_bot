@@ -1,4 +1,3 @@
-from pathlib import Path
 from configs.path_config import IMAGE_PATH, TEXT_PATH
 from utils.image_utils import BuildImage
 from typing import Tuple, List
@@ -10,10 +9,10 @@ try:
 except ModuleNotFoundError:
     import json
 
-icon_path = Path(IMAGE_PATH) / "genshin" / "genshin_icon"
-map_path = Path(IMAGE_PATH) / "genshin" / "map" / "map.png"
-resource_label_file = Path(TEXT_PATH) / "genshin" / "resource_label_file.json"
-resource_point_file = Path(TEXT_PATH) / "genshin" / "resource_point_file.json"
+icon_path = IMAGE_PATH / "genshin" / "genshin_icon"
+map_path = IMAGE_PATH / "genshin" / "map" / "map.png"
+resource_label_file = TEXT_PATH / "genshin" / "resource_label_file.json"
+resource_point_file = TEXT_PATH / "genshin" / "resource_point_file.json"
 
 
 class Map:

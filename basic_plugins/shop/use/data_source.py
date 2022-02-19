@@ -1,6 +1,6 @@
-from nonebot.adapters.cqhttp import GroupMessageEvent, MessageSegment
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageSegment
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot
+from nonebot.adapters.onebot.v11 import Bot
 from typing import Optional, Union
 import asyncio
 

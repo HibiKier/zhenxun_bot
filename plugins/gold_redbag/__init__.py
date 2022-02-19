@@ -1,11 +1,10 @@
 from nonebot import on_command, on_notice
-from nonebot.adapters.cqhttp import (
+from nonebot.adapters.onebot.v11 import (
     Bot,
     GroupMessageEvent,
     PokeNotifyEvent,
-    MessageEvent,
+    Message
 )
-from nonebot.typing import T_State
 from .data_source import (
     check_gold,
     generate_send_redbag_pic,
@@ -13,10 +12,10 @@ from .data_source import (
     generate_open_redbag_pic,
     return_gold,
 )
-from nonebot.adapters.cqhttp.permission import GROUP
+from nonebot.adapters.onebot.v11.permission import GROUP
 from nonebot.message import run_preprocessor, IgnoredException
 from nonebot.matcher import Matcher
-from utils.utils import get_message_text, is_number, scheduler
+from utils.utils import is_number, scheduler
 from utils.message_builder import image
 from services.log import logger
 from configs.path_config import IMAGE_PATH
@@ -25,7 +24,8 @@ from nonebot.rule import to_me
 from datetime import datetime, timedelta
 from configs.config import NICKNAME
 from apscheduler.jobstores.base import JobLookupError
-from nonebot.adapters.cqhttp.exception import ActionFailed
+from nonebot.adapters.onebot.v11.exception import ActionFailed
+from nonebot.params import CommandArg
 import random
 import time
 
@@ -85,7 +85,7 @@ festive_redbag_data = {}
 
 # 阻断其他poke
 @run_preprocessor
-async def _(matcher: Matcher, bot: Bot, event: PokeNotifyEvent, state: T_State):
+async def _(matcher: Matcher, event: PokeNotifyEvent):
     try:
         if matcher.type == "notice" and event.self_id == event.target_id:
             flag1 = True
@@ -106,17 +106,17 @@ async def _(matcher: Matcher, bot: Bot, event: PokeNotifyEvent, state: T_State):
             except KeyError:
                 flag2 = False
             if flag1 or flag2:
-                if matcher.module == "poke":
+                if matcher.plugin_name == "poke":
                     raise IgnoredException("目前正在抢红包...")
             else:
-                if matcher.module == "gold_redbag":
+                if matcher.plugin_name == "gold_redbag":
                     raise IgnoredException("目前没有红包...")
     except AttributeError:
         pass
 
 
 @gold_redbag.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
     global redbag_data, festive_redbag_data
     try:
         if time.time() - redbag_data[event.group_id]["time"] > 60:
@@ -137,7 +137,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             )
     except KeyError:
         pass
-    msg = get_message_text(event.json())
+    msg = arg.extract_plain_text().strip()
     msg = msg.split()
     if len(msg) == 1:
         flag, amount = await check_gold(event.user_id, event.group_id, msg[0])
@@ -159,7 +159,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         if num > group_member_num:
             await gold_redbag.send("你发的红包数量也太多了，已经为你修改成与本群人数相同的红包数量...")
             num = group_member_num
-    nickname = event.sender.card if event.sender.card else event.sender.nickname
+    nickname = event.sender.card or event.sender.nickname
     flag, result = init_redbag(
         event.user_id, event.group_id, nickname, amount, num, int(bot.self_id)
     )
@@ -180,9 +180,9 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 
 @open_.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
     global redbag_data, festive_redbag_data
-    msg = get_message_text(event.json())
+    msg = arg.extract_plain_text().strip()
     msg = (
         msg.replace("!", "")
         .replace("！", "")
@@ -226,7 +226,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 
 @poke_.handle()
-async def _poke_(bot: Bot, event: PokeNotifyEvent, state: T_State):
+async def _poke_(event: PokeNotifyEvent):
     global redbag_data, festive_redbag_data
     if event.self_id == event.target_id:
         flag1 = True
@@ -250,7 +250,7 @@ async def _poke_(bot: Bot, event: PokeNotifyEvent, state: T_State):
 
 
 @return_.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     global redbag_data
     try:
         if redbag_data[event.group_id]["user_id"] != event.user_id:
@@ -283,9 +283,9 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 
 @festive_redbag.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(bot: Bot, arg: Message = CommandArg()):
     global redbag_data
-    msg = get_message_text(event.json())
+    msg = arg.extract_plain_text().strip()
     if msg:
         msg = msg.split()
         amount = 0
@@ -309,7 +309,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                         await festive_redbag.finish("指定的群号必须要是数字啊！", at_sender=True)
                     gl.append(int(msg[i]))
         if not gl:
-            gl = await bot.get_group_list(self_id=int(bot.self_id))
+            gl = await bot.get_group_list()
             gl = [g["group_id"] for g in gl]
         for g in gl:
             try:

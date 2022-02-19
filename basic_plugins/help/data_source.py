@@ -16,9 +16,9 @@ import nonebot
 import os
 
 
-random_bk_path = Path(IMAGE_PATH) / "background" / "help" / "simple_help"
+random_bk_path = IMAGE_PATH / "background" / "help" / "simple_help"
 
-background = Path(IMAGE_PATH) / "background" / "0.png"
+background = IMAGE_PATH / "background" / "0.png"
 
 
 async def create_help_img(
@@ -55,7 +55,7 @@ def _create_help_img(
     # 插件分类
     for matcher in _matchers:
         plugin_name = None
-        _plugin = nonebot.plugin.get_plugin(matcher.module)
+        _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
         _module = _plugin.module
         try:
             plugin_name = _module.__getattribute__("__zx_plugin_name__")
@@ -74,10 +74,10 @@ def _create_help_img(
             plugin_type = ("normal",)
             text_type = 0
             if plugins2settings_manager.get(
-                matcher.module
-            ) and plugins2settings_manager[matcher.module].get("plugin_type"):
+                matcher.plugin_name
+            ) and plugins2settings_manager[matcher.plugin_name].get("plugin_type"):
                 plugin_type = tuple(
-                    plugins2settings_manager.get_plugin_data(matcher.module)[
+                    plugins2settings_manager.get_plugin_data(matcher.plugin_name)[
                         "plugin_type"
                     ]
                 )
@@ -111,7 +111,7 @@ def _create_help_img(
                     logger.warning(f"{type(e)}: {e}")
             else:
                 matchers_data[plugin_type][plugin_name] = {
-                    "modules": matcher.module,
+                    "modules": matcher.plugin_name,
                     "des": plugin_des,
                     "cmd": plugin_cmd,
                     "text_type": text_type,
@@ -129,7 +129,7 @@ def _create_help_img(
                 _des_tmp[plugin_des] = plugin_name
         except AttributeError as e:
             if plugin_name not in _plugin_name_tmp:
-                logger.warning(f"获取功能 {matcher.module}: {plugin_name} 设置失败...e：{e}")
+                logger.warning(f"获取功能 {matcher.plugin_name}: {plugin_name} 设置失败...e：{e}")
         if plugin_name not in _plugin_name_tmp:
             _plugin_name_tmp.append(plugin_name)
     help_img_list = []
@@ -357,7 +357,7 @@ def get_plugin_help(msg: str, is_super: bool = False) -> Optional[str]:
                     bk = BuildImage(
                         width,
                         height,
-                        background=Path(IMAGE_PATH) / "background" / "1.png",
+                        background=IMAGE_PATH / "background" / "1.png",
                     )
                     A.paste(bk, alpha=True)
                     A.text((int(width * 0.048), int(height * 0.21)), result)

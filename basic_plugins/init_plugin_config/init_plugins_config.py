@@ -15,14 +15,14 @@ def init_plugins_config(data_path):
     """
     初始化插件数据配置
     """
-    plugins2config_file = Path(data_path) / "configs" / "plugins2config.yaml"
+    plugins2config_file = data_path / "configs" / "plugins2config.yaml"
     plugins2config_file.parent.mkdir(parents=True, exist_ok=True)
     _data = {}
     if plugins2config_file.exists():
         _data = _yaml.load(open(plugins2config_file, "r", encoding="utf8"))
     _matchers = get_matchers()
     for matcher in _matchers:
-        _plugin = nonebot.plugin.get_plugin(matcher.module)
+        _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
         try:
             _module = _plugin.module
         except AttributeError:
@@ -39,16 +39,16 @@ def init_plugins_config(data_path):
         if (
             plugin_version is None
             or (
-                _data.get(matcher.module)
-                and _data[matcher.module].keys() != plugin_configs.keys()
+                _data.get(matcher.plugin_name)
+                and _data[matcher.plugin_name].keys() != plugin_configs.keys()
             )
-            or plugin_version > plugins_manager.get(matcher.module)["version"]
-            or matcher.module not in _data.keys()
+            or plugin_version > plugins_manager.get(matcher.plugin_name)["version"]
+            or matcher.plugin_name not in _data.keys()
         ):
             for key in plugin_configs:
                 if isinstance(plugin_configs[key], dict):
                     Config.add_plugin_config(
-                        matcher.module,
+                        matcher.plugin_name,
                         key,
                         plugin_configs[key].get("value"),
                         help_=plugin_configs[key].get("help"),
@@ -56,12 +56,12 @@ def init_plugins_config(data_path):
                         _override=True,
                     )
                 else:
-                    Config.add_plugin_config(matcher.module, key, plugin_configs[key])
+                    Config.add_plugin_config(matcher.plugin_name, key, plugin_configs[key])
         else:
-            plugin_configs = _data[matcher.module]
+            plugin_configs = _data[matcher.plugin_name]
             for key in plugin_configs:
                 Config.add_plugin_config(
-                    matcher.module,
+                    matcher.plugin_name,
                     key,
                     plugin_configs[key]["value"],
                     help_=plugin_configs[key]["help"],
@@ -99,7 +99,10 @@ def init_plugins_config(data_path):
                 if _data.get(plugin) and k in _data[plugin].keys():
                     Config.set_config(plugin, k, _data[plugin][k])
                     if level2module := Config.get_level2module(plugin, k):
-                        admin_manager.set_admin_level(level2module, _data[plugin][k])
+                        try:
+                            admin_manager.set_admin_level(level2module, _data[plugin][k])
+                        except KeyError:
+                            logger.warning(f"{level2module} 设置权限等级失败：{_data[plugin][k]}")
                 _tmp_data[plugin][k] = Config.get_config(plugin, k)
         Config.save()
         temp_file = Path() / "configs" / "temp_config.yaml"

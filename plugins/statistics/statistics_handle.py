@@ -1,13 +1,12 @@
 from nonebot import on_command
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent, Message
 from models.group_info import GroupInfo
-from nonebot.typing import T_State
-from pathlib import Path
 from configs.path_config import DATA_PATH, IMAGE_PATH
-from utils.utils import get_message_text
+from nonebot.params import CommandArg, Command
 from utils.image_utils import BuildMat
 from utils.message_builder import image
 from utils.manager import plugins2settings_manager
+from typing import Tuple
 import asyncio
 import os
 
@@ -85,27 +84,27 @@ statistics = on_command(
 )
 
 
-statistics_group_file = Path(DATA_PATH) / "statistics" / "_prefix_count.json"
-statistics_user_file = Path(DATA_PATH) / "statistics" / "_prefix_user_count.json"
+statistics_group_file = DATA_PATH / "statistics" / "_prefix_count.json"
+statistics_user_file = DATA_PATH / "statistics" / "_prefix_user_count.json"
 
 
 @statistics.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
-    if state["_prefix"]["raw_command"][:2] == "全局":
+async def _(bot: Bot, event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
+    if cmd[0][:2] == "全局":
         if str(event.user_id) in bot.config.superusers:
             data: dict = json.load(open(statistics_group_file, "r", encoding="utf8"))
-            if state["_prefix"]["raw_command"][2] == '日':
-                itype = 'day_statistics'
-            elif state["_prefix"]["raw_command"][2] == '周':
-                itype = 'week_statistics'
-            elif state["_prefix"]["raw_command"][2] == '月':
-                itype = 'month_statistics'
+            if cmd[0][2] == '日':
+                _type = 'day_statistics'
+            elif cmd[0][2] == '周':
+                _type = 'week_statistics'
+            elif cmd[0][2] == '月':
+                _type = 'month_statistics'
             else:
-                itype = 'total_statistics'
+                _type = 'total_statistics'
             tmp_dict = {}
-            data = data[itype]
-            if itype in ["day_statistics", "total_statistics"]:
+            data = data[_type]
+            if _type in ["day_statistics", "total_statistics"]:
                 for key in data['total']:
                     tmp_dict[key] = data['total'][key]
             else:
@@ -118,29 +117,30 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                                         tmp_dict[plugin_name] = 1
                                     else:
                                         tmp_dict[plugin_name] += data[group][day][plugin_name]
-            bar_graph = await init_bar_graph(tmp_dict, state["_prefix"]["raw_command"])
+            bar_graph = await init_bar_graph(tmp_dict, cmd[0])
             await asyncio.get_event_loop().run_in_executor(None, bar_graph.gen_graph)
             await statistics.finish(image(b64=bar_graph.pic2bs4()))
         return
-    if state["_prefix"]["raw_command"][:2] == "我的":
-        itype = "user"
+    if cmd[0][:2] == "我的":
+        _type = "user"
         key = str(event.user_id)
-        state["_prefix"]["raw_command"] = state["_prefix"]["raw_command"][2:]
+        cmd = list(cmd)
+        cmd[0] = cmd[0][2:]
         if not statistics_user_file.exists():
             await statistics.finish("统计文件不存在...", at_sender=True)
     else:
         if not isinstance(event, GroupMessageEvent):
             await statistics.finish("请在群内调用此功能...")
-        itype = "group"
+        _type = "group"
         key = str(event.group_id)
         if not statistics_group_file.exists():
             await statistics.finish("统计文件不存在...", at_sender=True)
     plugin = ""
-    if state["_prefix"]["raw_command"][0] == "日":
+    if cmd[0][0] == "日":
         arg = "day_statistics"
-    elif state["_prefix"]["raw_command"][0] == "周":
+    elif cmd[0][0] == "周":
         arg = "week_statistics"
-    elif state["_prefix"]["raw_command"][0] == "月":
+    elif cmd[0][0] == "月":
         arg = "month_statistics"
     else:
         arg = "total_statistics"
@@ -149,7 +149,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         if not plugin:
             if arg not in ["day_statistics", "total_statistics"]:
                 await statistics.finish("未找到此功能的调用...", at_sender=True)
-    if itype == "group":
+    if _type == "group":
         data: dict = json.load(open(statistics_group_file, "r", encoding="utf8"))
         if not data[arg].get(str(event.group_id)):
             await statistics.finish("该群统计数据不存在...", at_sender=True)
@@ -159,11 +159,11 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             await statistics.finish("该用户统计数据不存在...", at_sender=True)
     day_index = data["day_index"]
     data = data[arg][key]
-    if itype == "group":
+    if _type == "group":
         name = await GroupInfo.get_group_info(event.group_id)
         name = name.group_name if name else str(event.group_id)
     else:
-        name = event.sender.card if event.sender.card else event.sender.nickname
+        name = event.sender.card or event.sender.nickname
     img = await generate_statistics_img(data, arg, name, plugin, day_index)
     await statistics.send(image(b64=img))
 

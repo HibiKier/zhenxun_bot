@@ -1,9 +1,8 @@
 from nonebot import on_command
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from nonebot.typing import T_State
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from models.bag_user import BagUser
-from nonebot.adapters.cqhttp.permission import GROUP
+from nonebot.adapters.onebot.v11.permission import GROUP
 
 
 __zx_plugin_name__ = "商店 - 我的道具"
@@ -30,7 +29,7 @@ my_props = on_command("我的道具", priority=5, block=True, permission=GROUP)
 
 
 @my_props.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     props = await BagUser.get_property(event.user_id, event.group_id)
     if props:
         rst = ""

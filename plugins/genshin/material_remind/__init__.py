@@ -1,6 +1,5 @@
 from nonebot import on_command, Driver
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, Message, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, Message, GroupMessageEvent
 from utils.message_builder import image
 from utils.image_utils import BuildImage
 from utils.browser import get_browser
@@ -8,7 +7,6 @@ from configs.path_config import IMAGE_PATH
 import nonebot
 from services.log import logger
 from nonebot.permission import SUPERUSER
-from pathlib import Path
 from typing import List
 from datetime import datetime, timedelta
 import os
@@ -49,12 +47,12 @@ super_cmd = on_command("更新原神今日素材", permission=SUPERUSER, priorit
 
 
 @material.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent):
     if time.strftime("%w") == "0":
         await material.send("今天是周日，所有材料副本都开放了。")
         return
     file_name = str((datetime.now() - timedelta(hours=4)).date())
-    if not (Path(IMAGE_PATH) / "genshin" / "material" / f"{file_name}.png").exists():
+    if not (IMAGE_PATH / "genshin" / "material" / f"{file_name}.png").exists():
         await update_image()
     await material.send(
         Message(
@@ -69,7 +67,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @super_cmd.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     if await update_image():
         await super_cmd.send("更新成功...")
         logger.info(f"更新每日天赋素材成功...")
@@ -119,26 +117,26 @@ async def update_image():
             for _ in range(index * 3):
                 await div.press("PageUp")
         file_list = os.listdir(f"{IMAGE_PATH}/genshin/material")
-        char_imgs = [
+        char_img = [
             f"{IMAGE_PATH}/genshin/material/{x}"
             for x in file_list
             if x.startswith("char")
         ]
-        weapons_imgs = [
+        weapons_img = [
             f"{IMAGE_PATH}/genshin/material/{x}"
             for x in file_list
             if x.startswith("weapons")
         ]
-        char_imgs.sort()
-        weapons_imgs.sort()
+        char_img.sort()
+        weapons_img.sort()
         height = await asyncio.get_event_loop().run_in_executor(
-            None, get_background_height, weapons_imgs
+            None, get_background_height, weapons_img
         )
         background_img = BuildImage(1200, height + 100, color="#f6f2ee")
         current_width = 50
-        for imgs in [char_imgs, weapons_imgs]:
+        for img_list in [char_img, weapons_img]:
             current_height = 20
-            for img in imgs:
+            for img in img_list:
                 x = BuildImage(0, 0, background=img)
                 background_img.paste(x, (current_width, current_height))
                 current_height += x.size[1]
@@ -155,14 +153,14 @@ async def update_image():
 
 
 # 获取背景高度以及修改最后一张图片的黑边
-def get_background_height(weapons_imgs: List[str]) -> int:
+def get_background_height(weapons_img: List[str]) -> int:
     height = 0
-    for weapons in weapons_imgs:
+    for weapons in weapons_img:
         height += BuildImage(0, 0, background=weapons).size[1]
-    last_weapon = BuildImage(0, 0, background=weapons_imgs[-1])
+    last_weapon = BuildImage(0, 0, background=weapons_img[-1])
     w, h = last_weapon.size
     last_weapon.crop((0, 0, w, h - 10))
-    last_weapon.save(weapons_imgs[-1])
+    last_weapon.save(weapons_img[-1])
 
     return height
 

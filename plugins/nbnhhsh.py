@@ -1,7 +1,6 @@
 from nonebot import on_command
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
-from utils.utils import get_message_text
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
+from nonebot.params import CommandArg
 from utils.http_utils import AsyncHttpx
 from services.log import logger
 import ujson as json
@@ -31,8 +30,8 @@ nbnhhsh = on_command("nbnhhsh", aliases={"能不能好好说话"}, priority=5, b
 
 
 @nbnhhsh.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     if not msg:
         await nbnhhsh.finish("没话说就别说话！")
     response = await AsyncHttpx.post(

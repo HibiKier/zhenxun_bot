@@ -153,6 +153,20 @@ class ConfigsManager:
                 self._data, f, indent=2, Dumper=yaml.RoundTripDumper, allow_unicode=True
             )
 
+    def reload(self):
+        """
+        重新加载配置文件
+        """
+        _yaml = YAML()
+        temp_file = Path() / "configs" / "config.yaml"
+        if temp_file.exists():
+            with open(temp_file, "r", encoding="utf8") as f:
+                temp = _yaml.load(f)
+        for key in temp.keys():
+            for k in temp[key].keys():
+                self._data[key][k]["value"] = temp[key][k]
+        self.save()
+
     def get_admin_level_data(self):
         """
         获取管理插件等级

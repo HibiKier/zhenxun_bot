@@ -2,7 +2,7 @@ from configs.path_config import DATA_PATH
 from nonebot.matcher import Matcher
 from nonebot.message import run_postprocessor
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
 from datetime import datetime
 from utils.manager import plugins2settings_manager
 from utils.utils import scheduler
@@ -19,8 +19,8 @@ __zx_plugin_name__ = "功能调用统计 [Hidden]"
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 
-statistics_group_file = Path(DATA_PATH) / "statistics" / "_prefix_count.json"
-statistics_user_file = Path(DATA_PATH) / "statistics" / "_prefix_user_count.json"
+statistics_group_file = DATA_PATH / "statistics" / "_prefix_count.json"
+statistics_user_file = DATA_PATH / "statistics" / "_prefix_user_count.json"
 
 try:
     with open(statistics_group_file, "r", encoding="utf8") as f:
@@ -97,9 +97,9 @@ async def _(
     if (
         matcher.type == "message"
         and matcher.priority not in [1, 9]
-        and matcher.module not in ["update_info", "statistics_handle"]
+        and matcher.plugin_name not in ["update_info", "statistics_handle"]
     ):
-        module = matcher.module
+        module = matcher.plugin_name
         day_index = _prefix_count_dict["day_index"]
         try:
             group_id = str(event.group_id)

@@ -1,9 +1,9 @@
 from nonebot import on_command
-from utils.utils import get_message_text, get_message_img
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from .data_source import custom_group_welcome
-from nonebot.adapters.cqhttp.permission import GROUP
+from utils.utils import get_message_img
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
+from nonebot.params import CommandArg
+from ._data_source import custom_group_welcome
+from nonebot.adapters.onebot.v11.permission import GROUP
 from configs.config import Config
 from services.log import logger
 
@@ -35,14 +35,14 @@ custom_welcome = on_command(
 
 
 @custom_welcome.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
     try:
-        msg = get_message_text(event.json())
-        imgs = get_message_img(event.json())
-        if not msg and not imgs:
+        msg = arg.extract_plain_text().strip()
+        img = get_message_img(event.json())
+        if not msg and not img:
             await custom_welcome.finish(__plugin_usage__)
         await custom_welcome.send(
-            await custom_group_welcome(msg, imgs, event.user_id, event.group_id),
+            await custom_group_welcome(msg, img, event.user_id, event.group_id),
             at_sender=True,
         )
         logger.info(f"USER {event.user_id} GROUP {event.group_id} 自定义群欢迎消息：{msg}")

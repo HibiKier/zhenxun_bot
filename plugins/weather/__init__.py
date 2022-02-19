@@ -1,11 +1,10 @@
 from nonebot import on_regex
 from .data_source import get_weather_of_city, get_city_list
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
 from jieba import posseg
 from services.log import logger
-from nonebot.typing import T_State
+from nonebot.params import CommandArg
 import re
-from utils.utils import get_message_text
 
 
 __zx_plugin_name__ = "天气查询"
@@ -32,8 +31,8 @@ weather = on_regex(r".{0,10}市?的?天气.{0,10}", priority=5, block=True)
 
 
 @weather.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     msg1 = re.search(r".*?(.*)市?的?天气.*?", msg)
     msg2 = re.search(r".*?天气(.*).*?", msg)
     msg1 = msg1.group(1)

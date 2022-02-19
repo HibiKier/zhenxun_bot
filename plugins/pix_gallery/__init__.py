@@ -2,11 +2,6 @@ from configs.config import Config
 import nonebot
 
 
-__zx_plugin_name__ = "更新扩展图库Omega [Hidden]"
-__plugin_version__ = 0.1
-__plugin_author__ = "HibiKier"
-
-
 Config.add_plugin_config(
     "hibiapi",
     "HIBIAPI",

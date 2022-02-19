@@ -1,24 +1,24 @@
 from nonebot import on_command
-from nonebot.adapters.cqhttp import (
+from nonebot.adapters.onebot.v11 import (
     Bot,
     MessageEvent,
-    GroupMessageEvent
+    GroupMessageEvent,
+    Message
 )
+from nonebot.params import CommandArg
 from nonebot.typing import T_State
 from nonebot.rule import to_me
 from configs.path_config import IMAGE_PATH, DATA_PATH
 from utils.message_builder import image
 from .data_source import create_help_img, get_plugin_help
-from utils.utils import get_message_text
-from pathlib import Path
 import os
 
 
 __zx_plugin_name__ = "帮助"
 
-group_help_path = Path(DATA_PATH) / "group_help"
-help_image = Path(IMAGE_PATH) / "help.png"
-simple_help_image = Path(IMAGE_PATH) / "simple_help.png"
+group_help_path = DATA_PATH / "group_help"
+help_image = IMAGE_PATH / "help.png"
+simple_help_image = IMAGE_PATH / "simple_help.png"
 if help_image.exists():
     help_image.unlink()
 if simple_help_image.exists():
@@ -44,8 +44,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @simple_help.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     is_super = False
     if msg:
         if '-super' in msg:

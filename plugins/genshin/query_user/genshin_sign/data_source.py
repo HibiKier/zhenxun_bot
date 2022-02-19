@@ -1,8 +1,8 @@
 from utils.http_utils import AsyncHttpx
 from configs.config import Config
 from services.log import logger
-from ..utils import random_hex, get_old_ds
-from ..models import Genshin
+from .._utils import random_hex, get_old_ds
+from .._models import Genshin
 from typing import Optional, Dict
 
 

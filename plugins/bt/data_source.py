@@ -12,7 +12,7 @@ if platform.system() == "Windows":
 url = "http://www.eclzz.world"
 
 
-async def get_bt_info(keyword: str, page: str):
+async def get_bt_info(keyword: str, page: int):
     """
     获取资源信息
     :param keyword: 关键词
@@ -34,11 +34,11 @@ async def get_bt_info(keyword: str, page: str):
             .strip()
         )
         spans = divs[2].find_all("span")
-        itype = spans[0].text
+        type_ = spans[0].text
         create_time = spans[1].find("b").text
         file_size = spans[2].find("b").text
         link = await get_download_link(divs[0].find("a")["href"])
-        yield title, itype, create_time, file_size, link
+        yield title, type_, create_time, file_size, link
 
 
 async def get_download_link(_url: str) -> str:

@@ -1,14 +1,13 @@
-import os
 from services.log import logger
 from nonebot import on_command
 from nonebot.rule import to_me
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
 from configs.config import Config
 from utils.utils import is_number, cn2py
 from configs.path_config import IMAGE_PATH
-from pathlib import Path
-
+from nonebot.params import CommandArg, ArgStr
+import os
 
 __zx_plugin_name__ = "移动图片 [Admin]"
 __plugin_usage__ = """
@@ -31,71 +30,63 @@ __plugin_settings__ = {
 move_img = on_command("移动图片", priority=5, rule=to_me(), block=True)
 
 
-_path = Path(IMAGE_PATH) / "image_management"
-
-
-@move_img.args_parser
-async def parse(bot: Bot, event: MessageEvent, state: T_State):
-    if str(event.get_message()) in ["取消", "算了"]:
-        await move_img.finish("已取消操作..", at_sender=True)
-    if state["_current_key"] in ["source_path", "destination_path"]:
-        if str(event.get_message()) not in Config.get_config(
-            "image_management", "IMAGE_DIR_LIST"
-        ):
-            await move_img.reject("此目录不正确，请重新输入目录！")
-        state[state["_current_key"]] = str(event.get_message())
-    if state["_current_key"] == "id":
-        if not is_number(str(event.get_message())):
-            await move_img.reject("id不正确！请重新输入数字...")
-        state[state["_current_key"]] = str(event.get_message())
+_path = IMAGE_PATH / "image_management"
 
 
 @move_img.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    raw_arg = str(event.get_message()).strip()
-    if raw_arg:
-        args = raw_arg.split(" ")
-        if args[0] in ["帮助"]:
-            await move_img.finish(__plugin_usage__)
-        if (
-            len(args) >= 3
-            and args[0] in Config.get_config("image_management", "IMAGE_DIR_LIST")
-            and args[1] in Config.get_config("image_management", "IMAGE_DIR_LIST")
-            and is_number(args[2])
-        ):
-            state["source_path"] = args[0]
-            state["destination_path"] = args[1]
+async def _(state: T_State, arg: Message = CommandArg()):
+    args = arg.extract_plain_text().strip().split()
+    if args:
+        if n := len(args):
+            if args[0] in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+                state["source_path"] = args[0]
+        if n > 1:
+            if args[1] in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+                state["destination_path"] = args[1]
+        if n > 2 and is_number(args[2]):
             state["id"] = args[2]
-        else:
-            await move_img.finish("参数错误，请重试", at_sender=True)
 
 
 @move_img.got("source_path", prompt="要从哪个图库移出？")
 @move_img.got("destination_path", prompt="要移动到哪个图库？")
 @move_img.got("id", prompt="要移动的图片id是？")
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    img_id = state["id"]
-    source_path = _path / cn2py(state["source_path"])
-    destination_path = _path / cn2py(state["destination_path"])
+async def _(
+    event: MessageEvent,
+    source_path: str = ArgStr("source_path"),
+    destination_path: str = ArgStr("destination_path"),
+    img_id: str = ArgStr("id"),
+):
     if (
-        not source_path.exists()
-        and (source_path.parent.parent / cn2py(state["source_path"])).exists()
+        source_path in ["取消", "算了"]
+        or img_id in ["取消", "算了"]
+        or destination_path in ["取消", "算了"]
     ):
-        source_path = source_path.parent.parent / cn2py(state["source_path"])
-    if (
-        not destination_path.exists()
-        and (destination_path.parent.parent / cn2py(state["destination_path"])).exists()
-    ):
-        destination_path = destination_path.parent.parent / cn2py(
-            state["destination_path"]
-        )
-    destination_path.mkdir(parents=True, exist_ok=True)
+        await move_img.finish("已取消操作...")
+    if source_path not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+        await move_img.reject_arg("source_path", "移除目录不正确，请重新输入！")
+    if destination_path not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+        await move_img.reject_arg("destination_path", "移入目录不正确，请重新输入！")
+    if not is_number(img_id):
+        await move_img.reject_arg("id", "id不正确！请重新输入数字...")
+    source_path = _path / cn2py(source_path)
+    destination_path = _path / cn2py(destination_path)
+    if not source_path.exists():
+        if (source_path.parent.parent / cn2py(source_path.name)).exists():
+            source_path = source_path.parent.parent / cn2py(source_path.name)
+    if not destination_path.exists():
+        if (destination_path.parent.parent / cn2py(destination_path.name)).exists():
+            source_path = destination_path.parent.parent / cn2py(destination_path.name)
+    source_path.mkdir(exist_ok=True, parents=True)
+    destination_path.mkdir(exist_ok=True, parents=True)
+    if not len(os.listdir(source_path)):
+        await move_img.finish(f"{source_path}图库中没有任何图片，移动失败。")
     max_id = len(os.listdir(source_path)) - 1
     des_max_id = len(os.listdir(destination_path))
     if int(img_id) > max_id or int(img_id) < 0:
         await move_img.finish(f"Id超过上下限，上限：{max_id}", at_sender=True)
     try:
-        os.rename(source_path / f"{img_id}.jpg", destination_path / f"{des_max_id}.jpg")
+        move_file = source_path / f"{img_id}.jpg"
+        move_file.rename(destination_path / f"{des_max_id}.jpg")
         logger.info(
             f"移动 {source_path}/{img_id}.jpg ---> {destination_path}/{des_max_id} 移动成功"
         )
@@ -106,7 +97,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         await move_img.finish(f"移动图片id：{img_id} 失败了...", at_sender=True)
     if max_id > 0:
         try:
-            os.rename(source_path / f"{max_id}.jpg", source_path / f"{img_id}.jpg")
+            rep_file = source_path / f"{max_id}.jpg"
+            rep_file.rename(source_path / f"{img_id}.jpg")
             logger.info(f"{source_path}/{max_id}.jpg 替换 {source_path}/{img_id}.jpg 成功")
         except Exception as e:
             logger.warning(

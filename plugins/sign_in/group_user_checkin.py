@@ -3,7 +3,7 @@ from models.sign_group_user import SignGroupUser
 from models.group_member_info import GroupInfoUser
 from models.bag_user import BagUser
 from configs.config import NICKNAME
-from nonebot.adapters.cqhttp import MessageSegment
+from nonebot.adapters.onebot.v11 import MessageSegment
 from utils.image_utils import BuildImage, BuildMat
 from services.db_context import db
 from .utils import get_card, SIGN_TODAY_CARD_PATH

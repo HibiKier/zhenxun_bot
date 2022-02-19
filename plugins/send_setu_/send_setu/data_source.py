@@ -1,4 +1,4 @@
-from configs.path_config import IMAGE_PATH
+from configs.path_config import IMAGE_PATH, TEMP_PATH
 from utils.message_builder import image
 from services.log import logger
 from utils.image_utils import get_img_hash, compressed_image
@@ -7,7 +7,7 @@ from asyncio.exceptions import TimeoutError
 from typing import List, Optional
 from configs.config import NICKNAME, Config
 from utils.http_utils import AsyncHttpx
-from ..model import Setu
+from .._model import Setu
 import asyncio
 import os
 import random
@@ -19,8 +19,8 @@ except ModuleNotFoundError:
 
 
 url = "https://api.lolicon.app/setu/v2"
-path = "_setu/"
-r18_path = "_r18/"
+path = "_setu"
+r18_path = "_r18"
 
 
 # 获取url
@@ -93,13 +93,12 @@ async def search_online_setu(
         logger.info(f"search_online_setu --> {i}")
         try:
             index = random.randint(1, 100000) if id_ is None else id_
-            path_ = "temp" if not path_ else path_
-            file = f"{index}_temp_setu.jpg" if not path_ else f"{index}.jpg"
-            if not os.path.exists(f"{IMAGE_PATH}/{path_}"):
-                os.mkdir(f"{IMAGE_PATH}/{path_}")
+            path_ = IMAGE_PATH / path_ if path_ else TEMP_PATH
+            file_name = f"{index}_temp_setu.jpg" if not path_ == TEMP_PATH else f"{index}.jpg"
+            path_.mkdir(parents=True, exist_ok=True)
             if not await AsyncHttpx.download_file(
                 url_,
-                f"{IMAGE_PATH}/{path_}/{file}",
+                path_ / file_name,
                 timeout=Config.get_config("send_setu", "TIMEOUT"),
             ):
                 continue
@@ -111,8 +110,8 @@ async def search_online_setu(
                     compressed_image(
                         f"{IMAGE_PATH}/{path_}/{index}.jpg",
                     )
-            logger.info(f"下载 lolicon图片 {url_} 成功， id：{index}")
-            return image(file, path_), index
+            logger.info(f"下载 lolicon 图片 {url_} 成功， id：{index}")
+            return image(abspath=path_ / file_name), index
         except TimeoutError:
             pass
         except Exception as e:
@@ -126,11 +125,9 @@ async def check_local_exists_or_download(setu_image: Setu) -> "MessageSegment, i
     id_ = None
     if Config.get_config("send_setu", "DOWNLOAD_SETU"):
         id_ = setu_image.local_id
-        if setu_image.is_r18:
-            path_ = "_r18"
-        else:
-            path_ = path
-        if os.path.exists(f"{IMAGE_PATH}/{path_}/{setu_image.local_id}.jpg"):
+        path_ = r18_path if setu_image.is_r18 else path
+        file = IMAGE_PATH / path_ / f"{setu_image.local_id}.jpg"
+        if file.exists():
             return image(f"{setu_image.local_id}.jpg", path_), 200
     return await search_online_setu(setu_image.img_url, id_, path_)
 
@@ -202,7 +199,7 @@ def get_luoxiang(impression):
     if probability < random.randint(1, 101):
         return (
             "我为什么要给你发这个？"
-            + image(random.choice(os.listdir(IMAGE_PATH + "luoxiang/")), "luoxiang")
+            + image(random.choice(os.listdir(IMAGE_PATH / "luoxiang")), "luoxiang")
             + f"\n(快向{NICKNAME}签到提升好感度吧！)"
         )
     return None
@@ -219,11 +216,11 @@ async def get_setu_count(r18: int) -> int:
 async def find_img_index(img_url, user_id):
     if not await AsyncHttpx.download_file(
         img_url,
-        IMAGE_PATH + f"temp/{user_id}_find_setu_index.jpg",
+        TEMP_PATH / f"{user_id}_find_setu_index.jpg",
         timeout=Config.get_config("send_setu", "TIMEOUT"),
     ):
         return "检索图片下载上失败..."
-    img_hash = str(get_img_hash(IMAGE_PATH + f"temp/{user_id}_find_setu_index.jpg"))
+    img_hash = str(get_img_hash(TEMP_PATH / f"{user_id}_find_setu_index.jpg"))
     setu_img = await Setu.get_image_in_hash(img_hash)
     if setu_img:
         return (

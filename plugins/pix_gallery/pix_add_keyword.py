@@ -1,11 +1,12 @@
 from nonebot import on_command
-from utils.utils import get_message_text, is_number
+from utils.utils import is_number
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
-from nonebot.typing import T_State
-from .data_source import uid_pid_exists
-from .model.pixiv_keyword_user import PixivKeywordUser
-from .model.pixiv import Pixiv
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
+from nonebot.params import CommandArg, Command
+from typing import Tuple
+from ._data_source import uid_pid_exists
+from ._model.pixiv_keyword_user import PixivKeywordUser
+from ._model.pixiv import Pixiv
 from nonebot.permission import SUPERUSER
 
 __zx_plugin_name__ = "PIX关键词/UID/PID添加管理 [Superuser]"
@@ -39,8 +40,8 @@ add_uid_pid = on_command(
 
 
 @add_keyword.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     group_id = -1
     if isinstance(event, GroupMessageEvent):
         group_id = event.group_id
@@ -62,8 +63,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @add_uid_pid.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(bot: Bot, event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     exists_flag = True
     if msg.find("-f") != -1 and str(event.user_id) in bot.config.superusers:
         exists_flag = False
@@ -72,7 +73,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         for msg in msg.split():
             if not is_number(msg):
                 await add_uid_pid.finish("UID只能是数字的说...", at_sender=True)
-            if state["_prefix"]["raw_command"].lower().endswith("uid"):
+            if cmd[0].lower().endswith("uid"):
                 msg = f"uid:{msg}"
             else:
                 msg = f"pid:{msg}"
@@ -96,8 +97,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @add_black_pid.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    pid = get_message_text(event.json())
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+    pid = arg.extract_plain_text().strip()
     img_p = ""
     if "p" in pid:
         img_p = pid.split("p")[-1]

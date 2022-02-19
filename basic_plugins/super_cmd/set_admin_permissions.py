@@ -1,11 +1,12 @@
 from nonebot import on_command
 from nonebot.permission import SUPERUSER
 from models.level_user import LevelUser
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, Message
-from utils.utils import get_message_at, get_message_text, is_number
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message
+from utils.utils import get_message_at, is_number
 from services.log import logger
 from utils.message_builder import at
+from nonebot.params import Command, CommandArg
+from typing import Tuple
 
 __zx_plugin_name__ = "用户权限管理 [Superuser]"
 __plugin_usage__ = """
@@ -36,11 +37,12 @@ super_cmd = on_command(
 
 
 @super_cmd.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(bot: Bot, event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
+    cmd = cmd[0]
     group_id = -1
     level = 0
     try:
-        args = get_message_text(event.json()).split()
+        args = arg.extract_plain_text().strip().split()
         qq = get_message_at(event.json())
         flag = -1
         if not qq:
@@ -65,7 +67,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             qq = qq[0]
             group_id = event.group_id
             flag = 2
-        if state["_prefix"]["raw_command"][:2] == "添加":
+        if cmd[:2] == "添加":
             if await LevelUser.set_level(qq, group_id, level, 1):
                 result = "添加管理成功, 权限: " + str(level)
             else:

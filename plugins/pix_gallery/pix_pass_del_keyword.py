@@ -1,14 +1,14 @@
 from nonebot import on_command
-from nonebot.adapters.cqhttp.message import Message
-from utils.utils import get_message_text, is_number
+from utils.utils import is_number
 from utils.message_builder import at
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
+from nonebot.params import CommandArg, Command
 from nonebot.permission import SUPERUSER
-from nonebot.typing import T_State
-from .data_source import remove_image
-from .model.pixiv_keyword_user import PixivKeywordUser
-from .model.pixiv import Pixiv
+from ._data_source import remove_image
+from ._model.pixiv_keyword_user import PixivKeywordUser
+from ._model.pixiv import Pixiv
+from typing import Tuple
 
 
 __zx_plugin_name__ = "PIX关键词/UID/PID删除管理 [Superuser]"
@@ -52,8 +52,8 @@ del_pic = on_command("删除pix图片", permission=SUPERUSER, priority=1, block=
 
 
 @del_keyword.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     if not msg:
         await del_keyword.finish("好好输入要删除什么关键字啊笨蛋！")
     if is_number(msg):
@@ -71,8 +71,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @del_pic.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    pid_arr = get_message_text(event.json())
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+    pid_arr = arg.extract_plain_text().strip()
     if pid_arr:
         msg = ""
         black_pid = ""
@@ -127,13 +127,13 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @pass_keyword.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(bot: Bot, event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
     tmp = {"group": {}, "private": {}}
-    msg = get_message_text(event.json())
+    msg = arg.extract_plain_text().strip()
     if not msg:
         await pass_keyword.finish("通过虚空的关键词/UID？离谱...")
     msg = msg.split()
-    flag = True if state["_prefix"]["raw_command"][:2] == "通过" else False
+    flag = cmd[0][:2] == "通过"
     for x in msg:
         if x.lower().startswith("uid"):
             x = x.replace("uid", "").replace(":", "")
@@ -163,7 +163,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 else:
                     tmp["group"][group_id][user_id]["keyword"].append(x)
     msg = " ".join(msg)
-    await pass_keyword.send(f'已成功{state["_prefix"]["raw_command"][:2]}搜图关键词：{msg}....')
+    await pass_keyword.send(f'已成功{cmd[0][:2]}搜图关键词：{msg}....')
     for user in tmp["private"]:
         x = "，".join(tmp["private"][user]["keyword"])
         await bot.send_private_msg(

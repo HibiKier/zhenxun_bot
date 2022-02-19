@@ -1,12 +1,11 @@
 from utils.image_utils import BuildImage
 from configs.path_config import IMAGE_PATH
 from utils.http_utils import AsyncHttpx
-from pathlib import Path
 from bilibili_api import user
 from io import BytesIO
 
 
-BORDER_PATH = Path(IMAGE_PATH) / "border"
+BORDER_PATH = IMAGE_PATH / "border"
 BORDER_PATH.mkdir(parents=True, exist_ok=True)
 
 

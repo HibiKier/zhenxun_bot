@@ -1,5 +1,5 @@
 from utils.utils import scheduler, get_bot
-from .data_source import update_member_info
+from ._data_source import update_member_info
 from services.log import logger
 from models.group_info import GroupInfo
 from asyncpg.exceptions import ConnectionDoesNotExistError, UndefinedColumnError

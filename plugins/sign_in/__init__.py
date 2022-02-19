@@ -5,12 +5,12 @@ from .group_user_checkin import (
     impression_rank,
     check_in_all
 )
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from nonebot.adapters.cqhttp.permission import GROUP
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
+from nonebot.adapters.onebot.v11.permission import GROUP
 from utils.message_builder import image
 from nonebot import on_command
-from utils.utils import get_message_text, scheduler
+from utils.utils import scheduler
+from nonebot.params import CommandArg
 from pathlib import Path
 from configs.path_config import DATA_PATH
 from services.log import logger
@@ -85,20 +85,19 @@ total_sign_rank = on_command(
 
 
 @sign.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    nickname = event.sender.card if event.sender.card else event.sender.nickname
+async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
+    nickname = event.sender.card or event.sender.nickname
     await sign.send(
         await group_user_check_in(nickname, event.user_id, event.group_id),
         at_sender=True,
     )
-    if get_message_text(event.json()) == "all":
+    if arg.extract_plain_text().strip() == "all":
         await check_in_all(nickname, event.user_id)
 
 
-
 @my_sign.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    nickname = event.sender.card if event.sender.card else event.sender.nickname
+async def _(event: GroupMessageEvent):
+    nickname = event.sender.card or event.sender.nickname
     await my_sign.send(
         await group_user_check(nickname, event.user_id, event.group_id),
         at_sender=True,
@@ -106,8 +105,8 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 
 @sign_rank.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    num = get_message_text(event.json())
+async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
+    num = arg.extract_plain_text().strip()
     if is_number(num) and 51 > int(num) > 10:
         num = int(num)
     else:
@@ -118,8 +117,8 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 
 @total_sign_rank.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     if not msg:
         await total_sign_rank.send("请稍等..正在整理数据...")
         await total_sign_rank.send(image(b64=await impression_rank(0, data)))

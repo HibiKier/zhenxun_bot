@@ -31,7 +31,7 @@ class ResourcesManager(StaticData):
         if isinstance(source_file, Path):
             source_file = str(source_file.absolute())
         if isinstance(move_file, Path):
-            move_file = move_file.absolute()
+            move_file = str(move_file.absolute())
         if module not in self._data.keys():
             self._data[module] = {source_file: move_file}
         else:
@@ -97,6 +97,7 @@ class ResourcesManager(StaticData):
         """
         添加临时清理文件夹
         :param path: 路径
+        :param recursive: 是否将该目录下的所有目录也添加为临时文件夹
         """
         if isinstance(path, str):
             path = Path(path)

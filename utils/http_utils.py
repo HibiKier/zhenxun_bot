@@ -5,7 +5,7 @@ from services.log import logger
 from pathlib import Path
 from httpx import Response
 from asyncio.exceptions import TimeoutError
-from nonebot.adapters.cqhttp import MessageSegment
+from nonebot.adapters.onebot.v11 import MessageSegment
 from playwright.async_api import Page
 from .message_builder import image
 from httpx import ConnectTimeout
@@ -31,7 +31,6 @@ class AsyncHttpx:
         cookies: Optional[Dict[str, str]] = None,
         use_proxy: bool = True,
         proxy: Dict[str, str] = None,
-        allow_redirects: bool = True,
         timeout: Optional[int] = 30,
         **kwargs,
     ) -> Response:
@@ -45,7 +44,6 @@ class AsyncHttpx:
             :param cookies: cookies
             :param use_proxy: 使用默认代理
             :param proxy: 指定代理
-            :param allow_redirects: allow_redirects
             :param timeout: 超时时间
         """
         if not headers:
@@ -57,7 +55,6 @@ class AsyncHttpx:
                 params=params,
                 headers=headers,
                 cookies=cookies,
-                allow_redirects=allow_redirects,
                 timeout=timeout,
                 **kwargs
             )
@@ -76,7 +73,6 @@ class AsyncHttpx:
         params: Optional[Dict[str, str]] = None,
         headers: Optional[Dict[str, str]] = None,
         cookies: Optional[Dict[str, str]] = None,
-        allow_redirects: bool = True,
         timeout: Optional[int] = 30,
         **kwargs,
     ) -> Response:
@@ -94,7 +90,6 @@ class AsyncHttpx:
             :param params: params
             :param headers: 请求头
             :param cookies: cookies
-            :param allow_redirects: allow_redirects
             :param timeout: 超时时间
         """
         if not headers:
@@ -110,7 +105,6 @@ class AsyncHttpx:
                 params=params,
                 headers=headers,
                 cookies=cookies,
-                allow_redirects=allow_redirects,
                 timeout=timeout,
                 **kwargs,
             )
@@ -299,7 +293,7 @@ class AsyncPlaywright:
         cls,
         url: str,
         path: Union[Path, str],
-        element: str,
+        element: Union[str, List[str]],
         *,
         sleep: Optional[int] = None,
         viewport_size: Dict[str, int] = None,
@@ -333,7 +327,12 @@ class AsyncPlaywright:
             await page.set_viewport_size(viewport_size)
             if sleep:
                 await asyncio.sleep(sleep)
-            card = await page.query_selector(element)
+            if isinstance(element, str):
+                card = await page.query_selector(element)
+            else:
+                card = page
+                for e in element:
+                    card = await card.query_selector(e)
             await card.screenshot(path=path, timeout=timeout, type=type_)
             return image(path)
         except Exception as e:

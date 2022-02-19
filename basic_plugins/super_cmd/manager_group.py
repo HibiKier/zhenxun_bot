@@ -1,14 +1,16 @@
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GROUP, GroupMessageEvent, Message
 from nonebot import on_command, on_regex
 from nonebot.permission import SUPERUSER
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GROUP, GroupMessageEvent
 from nonebot.rule import to_me
-from utils.utils import get_message_text, is_number
+from utils.utils import is_number
 from utils.manager import group_manager, plugins2settings_manager
 from models.group_info import GroupInfo
 from services.log import logger
 from configs.config import NICKNAME
-from nonebot.adapters.cqhttp.exception import ActionFailed
+from nonebot.adapters.onebot.v11.exception import ActionFailed
+from nonebot.params import Command, CommandArg
+from typing import Tuple
 
 
 __zx_plugin_name__ = "管理群操作 [Superuser]"
@@ -65,8 +67,8 @@ group_auth = on_command(
 
 
 @del_group.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    group_id = get_message_text(event.json())
+async def _(bot: Bot, arg: Message = CommandArg()):
+    group_id = arg.extract_plain_text().strip()
     if group_id:
         if is_number(group_id):
             try:
@@ -84,8 +86,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @add_group_level.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     group_id = 0
     level = 0
     if not msg:
@@ -109,7 +111,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @my_group_level.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     level = group_manager.get_group_level(event.group_id)
     tmp = ""
     data = plugins2settings_manager.get_data()
@@ -125,17 +127,18 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 
 @what_up_group_level.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _():
     await what_up_group_level.finish(
         f"[此功能用于防止内鬼，如果引起不便那真是抱歉了]\n" f"目前提高群权限的方法：\n" f"\t1.管理员修改权限"
     )
 
 
 @manager_group_whitelist.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json()).split()
+async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
+    cmd = cmd[0]
+    msg = arg.extract_plain_text().strip()
     all_group = [
-        g["group_id"] for g in await bot.get_group_list(self_id=int(bot.self_id))
+        g["group_id"] for g in await bot.get_group_list()
     ]
     group_list = []
     for group in msg:
@@ -143,20 +146,20 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             group_list.append(int(group))
     if group_list:
         for group in group_list:
-            if state["_prefix"]["raw_command"] in ["添加群白名单"]:
+            if cmd in ["添加群白名单"]:
                 group_manager.add_group_white_list(group)
             else:
                 group_manager.delete_group_white_list(group)
         group_list = [str(x) for x in group_list]
         await manager_group_whitelist.send(
-            "已成功将 " + "\n".join(group_list) + " " + state["_prefix"]["raw_command"]
+            "已成功将 " + "\n".join(group_list) + " " + cmd
         )
     else:
         await manager_group_whitelist.send(f"添加失败，请检查{NICKNAME}是否已加入这些群聊或重复添加/删除群白单名")
 
 
 @show_group_whitelist.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     x = group_manager.get_group_white_list()
     x = [str(g) for g in x]
     if x:
@@ -166,13 +169,14 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @group_auth.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json()).split()
+async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
+    cmd = cmd[0]
+    msg = arg.extract_plain_text().strip().split()
     for group_id in msg:
         if not is_number(group_id):
             await group_auth.send(f"{group_id}非纯数字，已跳过该项..")
         group_id = int(group_id)
-        if state["_prefix"]["raw_command"][:2] == "添加":
+        if cmd[:2] == "添加":
             if await GroupInfo.get_group_info(group_id):
                 await GroupInfo.set_group_flag(group_id, 1)
             else:
@@ -196,5 +200,5 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             if await GroupInfo.get_group_info(group_id):
                 await GroupInfo.set_group_flag(group_id, 0)
         await group_auth.send(
-            f'已为 {group_id} {state["_prefix"]["raw_command"][:2]}群认证..'
+            f'已为 {group_id} {cmd[:2]}群认证..'
         )

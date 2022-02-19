@@ -89,7 +89,7 @@ async def open_case(user_qq: int, group: int, case_name: str = "狂牙大行动"
             dbprice = await BuffPrice.ensure(skin[9 : skin.rfind("(")].strip())
         if dbprice.skin_price != 0:
             price_result = dbprice.skin_price
-            print("数据库查询到价格: ", dbprice.skin_price)
+            logger.info("数据库查询到价格: ", dbprice.skin_price)
             uplist[10] = dbprice.skin_price
         else:
             price = -1
@@ -102,7 +102,7 @@ async def open_case(user_qq: int, group: int, case_name: str = "狂牙大行动"
                         price = float(pcp[1].strip())
                         break
                 if price != -1:
-                    print("存储入数据库---->", price)
+                    logger.info("存储入数据库---->", price)
                     uplist[10] = price
                     price_result = str(price)
                     await dbprice.update(
@@ -242,7 +242,7 @@ async def open_shilian_case(user_qq: int, group: int, case_name: str, num: int =
             wImg = BuildImage(200, 270, 200, 200)
             wImg.paste(
                 alpha2white_pil(
-                    Image.open(IMAGE_PATH + f"cases/{case}/{skin_name}.png").resize(
+                    Image.open(IMAGE_PATH / "cases" / case / f"{skin_name}.png").resize(
                         (200, 200), Image.ANTIALIAS
                     )
                 ),
@@ -418,7 +418,7 @@ def _pst_my_knife(w, h, knifes_list):
         knife_img = BuildImage(470, 600, 470, 470, font_size=20)
         knife_img.paste(
             alpha2white_pil(
-                Image.open(IMAGE_PATH + f"cases/{case}/{skin_name}.png").resize(
+                Image.open(IMAGE_PATH / f"cases" / case / f"{skin_name}.png").resize(
                     (470, 470), Image.ANTIALIAS
                 )
             ),

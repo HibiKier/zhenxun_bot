@@ -1,4 +1,4 @@
-from nonebot.adapters.cqhttp import Bot, Event
+from nonebot.adapters.onebot.v11 import Bot, Event
 from nonebot.typing import T_State
 from utils.utils import get_message_text
 from configs.config import Config

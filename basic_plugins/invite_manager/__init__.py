@@ -1,5 +1,5 @@
 from nonebot import on_request, on_message
-from nonebot.adapters.cqhttp import (
+from nonebot.adapters.onebot.v11 import (
     Bot,
     FriendRequestEvent,
     GroupRequestEvent,
@@ -8,7 +8,7 @@ from nonebot.adapters.cqhttp import (
 from models.friend_user import FriendUser
 from datetime import datetime
 from configs.config import NICKNAME, Config
-from nonebot.adapters.cqhttp.exception import ActionFailed
+from nonebot.adapters.onebot.v11.exception import ActionFailed
 from utils.manager import requests_manager
 from models.group_info import GroupInfo
 from utils.utils import scheduler
@@ -31,7 +31,7 @@ exists_data = {"private": {}, "group": {}}
 
 
 @friend_req.handle()
-async def _(bot: Bot, event: FriendRequestEvent, state: dict):
+async def _(bot: Bot, event: FriendRequestEvent):
     global exists_data
     if exists_data["private"].get(event.user_id):
         if time.time() - exists_data["private"][event.user_id] < 60 * 5:
@@ -66,7 +66,7 @@ async def _(bot: Bot, event: FriendRequestEvent, state: dict):
 
 
 @group_req.handle()
-async def _(bot: Bot, event: GroupRequestEvent, state: dict):
+async def _(bot: Bot, event: GroupRequestEvent):
     global exists_data
     if event.sub_type == "invite":
         if str(event.user_id) in bot.config.superusers:
@@ -125,7 +125,7 @@ async def _(bot: Bot, event: GroupRequestEvent, state: dict):
 
 
 @x.handle()
-async def _(bot: Bot, event: MessageEvent, state: dict):
+async def _(event: MessageEvent):
     await asyncio.sleep(0.1)
     r = re.search(r'groupcode="(.*?)"', str(event.get_message()))
     if r:

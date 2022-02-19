@@ -10,7 +10,7 @@ from .config import (
 )
 from models.sign_group_user import SignGroupUser
 from models.group_member_info import GroupInfoUser
-from nonebot.adapters.cqhttp import MessageSegment
+from nonebot.adapters.onebot.v11 import MessageSegment
 from configs.config import Config
 from utils.utils import get_user_avatar
 from utils.image_utils import BuildImage

@@ -1,7 +1,6 @@
 from nonebot import on_command
-from nonebot.adapters.cqhttp.permission import GROUP
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
+from nonebot.adapters.onebot.v11.permission import GROUP
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from models.group_member_info import GroupInfoUser
 from datetime import timedelta
 from models.level_user import LevelUser
@@ -26,7 +25,7 @@ my_level = on_command("我的权限", permission=GROUP, priority=5, block=True)
 
 
 @get_my_group_info.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     result = await get_member_info(event.user_id, event.group_id)
     await get_my_group_info.finish(result)
 
@@ -42,7 +41,7 @@ async def get_member_info(user_qq: int, group_id: int) -> str:
 
 
 @my_level.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     if (level := await LevelUser.get_user_level(event.user_id, event.group_id)) == -1:
         await my_level.finish("您目前没有任何权限了，硬要说的话就是0吧~", at_sender=True)
     await my_level.finish(f"您目前的权限等级：{level}", at_sender=True)

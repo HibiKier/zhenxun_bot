@@ -1,14 +1,14 @@
 from asyncio.exceptions import TimeoutError
 from nonebot import on_command
-from nonebot.adapters.cqhttp import Bot, MessageEvent, Message, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, Message, GroupMessageEvent
 from nonebot.typing import T_State
 from configs.path_config import TEMP_PATH
 from services.log import logger
 from utils.message_builder import image
-from utils.utils import get_message_text, is_number
+from utils.utils import is_number
 from utils.manager import withdraw_message_manager
 from utils.http_utils import AsyncHttpx
-from pathlib import Path
+from nonebot.params import CommandArg, Arg
 
 try:
     import ujson as json
@@ -39,32 +39,24 @@ pid_search = on_command("p搜", aliases={"pixiv搜", "P搜"}, priority=5, block=
 url = "https://api.fantasyzone.cc/tu/search.php"
 
 
-@pid_search.args_parser
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    pid = get_message_text(event.json())
-    if pid:
-        if pid in ["取消", "算了"]:
-            await pid_search.finish("已取消操作...")
-        if not is_number(pid):
-            await pid_search.reject("笨蛋，重新输入数！字！", at_sender=True)
-        state["pid"] = pid
-
-
 @pid_search.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    pid = get_message_text(event.json())
+async def _(state: T_State, arg: Message = CommandArg()):
+    pid = arg.extract_plain_text().strip()
     if pid:
         state["pid"] = pid
 
 
 @pid_search.got("pid", prompt="需要查询的图片PID是？")
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    pid = state["pid"]
+async def _(event: MessageEvent, state: T_State, pid: str = Arg("pid")):
+    if pid in ["取消", "算了"]:
+        await pid_search.finish("已取消操作...")
+    if is_number(pid):
+        await pid_search.reject_arg("pid", "笨蛋，重新输入数！字！")
     params = {
         "id": pid,
         "p": 1,
     }
-    for _ in range(10):
+    for _ in range(3):
         try:
             data = (await AsyncHttpx.get(url, params=params, timeout=5)).json()
         except TimeoutError:
@@ -80,7 +72,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             author_id = data["userId"]
             img_url = data["url"]
             if not await AsyncHttpx.download_file(
-                img_url, Path(TEMP_PATH) / f"pid_search_{event.user_id}.png"
+                img_url, TEMP_PATH / f"pid_search_{event.user_id}.png"
             ):
                 await pid_search.finish("图片下载失败了....", at_sender=True)
             tmp = ""

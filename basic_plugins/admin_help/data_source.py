@@ -3,8 +3,7 @@ from configs.path_config import IMAGE_PATH
 from services.log import logger
 from utils.utils import get_matchers
 from utils.manager import group_manager
-from nonebot.adapters.cqhttp import Bot
-from pathlib import Path
+from nonebot.adapters.onebot.v11 import Bot
 from nonebot import Driver
 import asyncio
 import nonebot
@@ -12,9 +11,9 @@ import nonebot
 
 driver: Driver = nonebot.get_driver()
 
-background = Path(IMAGE_PATH) / "background" / "0.png"
+background = IMAGE_PATH / "background" / "0.png"
 
-admin_help_image = Path(IMAGE_PATH) / 'admin_help_img.png'
+admin_help_image = IMAGE_PATH / 'admin_help_img.png'
 
 
 @driver.on_bot_connect
@@ -42,7 +41,7 @@ def _create_help_image():
     width = 0
     _plugin_level = {}
     for matcher in _matchers:
-        _plugin = nonebot.plugin.get_plugin(matcher.module)
+        _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
         _module = _plugin.module
         try:
             plugin_name = _module.__getattribute__("__zx_plugin_name__")
@@ -71,7 +70,7 @@ def _create_help_image():
                 x = len(f"[{admin_level}] {plugin_des} -> " + " / ".join(plugin_cmd)) * 23
                 width = width if width > x else x
         except AttributeError:
-            logger.warning(f"获取管理插件 {matcher.module}: {plugin_name} 设置失败...")
+            logger.warning(f"获取管理插件 {matcher.plugin_name}: {plugin_name} 设置失败...")
     help_str = "*  注: ‘*’ 代表可有多个相同参数 ‘?’ 代表可省略该参数  *\n\n" \
                "[权限等级] 管理员帮助：\n\n"
     x = list(_plugin_level.keys())

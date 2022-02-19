@@ -3,14 +3,13 @@ from configs.path_config import TEXT_PATH
 from configs.config import NICKNAME
 from typing import List
 from nonebot import Driver
-from pathlib import Path
 from utils.http_utils import AsyncHttpx
 import ujson as json
 import nonebot
 
 driver: Driver = nonebot.get_driver()
 
-china_city = Path(TEXT_PATH) / "china_city.json"
+china_city = TEXT_PATH / "china_city.json"
 
 data = {}
 

@@ -6,7 +6,7 @@
 # @File    : other_than.py
 # @Software: PyCharm
 from utils.http_utils import AsyncHttpx
-from nonebot.adapters.cqhttp import MessageSegment
+from nonebot.adapters.onebot.v11 import MessageSegment
 from typing import Optional
 from services.log import logger
 from utils.image_utils import text2image
@@ -54,7 +54,7 @@ async def get_other_data(place: str, count: int = 0) -> Optional[MessageSegment]
         for country in other_country:
             if place == country["name2"]:
                 return image(
-                    b64=await text2image(
+                    b64=(await text2image(
                         f"  {place} 疫情数据：\n"
                         "——————————————\n"
                         f"    新增病例：<f font_color=red>{intcomma(country['quezhen_add'])}</f>\n"
@@ -69,13 +69,13 @@ async def get_other_data(place: str, count: int = 0) -> Optional[MessageSegment]
                         font_size=30,
                         color="#f9f6f2",
                         padding=15
-                    )
+                    )).pic2bs4()
                 )
             else:
                 for city in country["child"]:
                     if place == city["name3"]:
                         return image(
-                            b64=await text2image(
+                            b64=(await text2image(
                                 f"\n{place} 疫情数据：\n"
                                 "——————————————\n"
                                 f"\t新增病例：<f font_color=red>{intcomma(city['quezhen_add'])}</f>\n"
@@ -86,7 +86,7 @@ async def get_other_data(place: str, count: int = 0) -> Optional[MessageSegment]
                                 font_size=30,
                                 color="#f9f6f2",
                                 padding=15
-                            )
+                            )).pic2bs4()
                         )
     except Exception as e:
         logger.error(f"疫情查询发生错误 {type(e)}：{e}")

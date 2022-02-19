@@ -8,11 +8,10 @@ from typing import Optional, Type
 from gino.exceptions import UninitializedError
 from utils.utils import (
     is_number,
-    get_message_text,
     get_message_img,
 )
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import (
+from nonebot.adapters.onebot.v11 import (
     Bot,
     MessageEvent,
     GroupMessageEvent,
@@ -31,9 +30,11 @@ from .data_source import (
     add_data_to_database,
     get_setu_count,
 )
-from nonebot.adapters.cqhttp.exception import ActionFailed
+from nonebot.adapters.onebot.v11.exception import ActionFailed
 from configs.config import Config, NICKNAME
 from utils.manager import withdraw_message_manager
+from nonebot.params import CommandArg, Command
+from typing import Tuple
 import re
 
 try:
@@ -87,30 +88,17 @@ __plugin_configs__ = {
     "INITIAL_SETU_PROBABILITY": {
         "value": 0.7,
         "help": "初始色图概率，总概率 = 初始色图概率 + 好感度",
-        "default_value": 0.7
+        "default_value": 0.7,
     },
     "DOWNLOAD_SETU": {
         "value": True,
         "help": "是否存储下载的色图，使用本地色图可以加快图片发送速度",
-        "default_value": True
+        "default_value": True,
     },
-    "TIMEOUT": {
-        "value": 10,
-        "help": "色图下载超时限制(秒)",
-        "default_value": 10
-    },
-    "SHOW_INFO": {
-        "value": True,
-        "help": "是否显示色图的基本信息，如PID等",
-        "default_value": True
-    }
+    "TIMEOUT": {"value": 10, "help": "色图下载超时限制(秒)", "default_value": 10},
+    "SHOW_INFO": {"value": True, "help": "是否显示色图的基本信息，如PID等", "default_value": True},
 }
-Config.add_plugin_config(
-    "pixiv",
-    "PIXIV_NGINX_URL",
-    "i.pixiv.re",
-    help_="Pixiv反向代理"
-)
+Config.add_plugin_config("pixiv", "PIXIV_NGINX_URL", "i.pixiv.re", help_="Pixiv反向代理")
 
 setu_data_list = []
 
@@ -125,7 +113,7 @@ async def do_something(
 ):
     global setu_data_list
     if isinstance(event, MessageEvent):
-        if matcher.module == "send_setu":
+        if matcher.plugin_name == "send_setu":
             # 添加数据至数据库
             try:
                 await add_data_to_database(setu_data_list)
@@ -141,12 +129,12 @@ setu = on_command(
 
 setu_reg = on_regex("(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图$", priority=5, block=True)
 
-find_setu = on_command("查色图", priority=5, block=True)
-
 
 @setu.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(
+    event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()
+):
+    msg = arg.extract_plain_text().strip()
     if isinstance(event, GroupMessageEvent):
         impression = (
             await SignGroupUser.ensure(event.user_id, event.group_id)
@@ -157,14 +145,10 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     r18 = 0
     num = 1
     # 是否看r18
-    if state["_prefix"]["raw_command"] == "色图r" and isinstance(
-        event, PrivateMessageEvent
-    ):
+    if cmd[0] == "色图r" and isinstance(event, PrivateMessageEvent):
         r18 = 1
         num = 10
-    elif state["_prefix"]["raw_command"] == "色图r" and isinstance(
-        event, GroupMessageEvent
-    ):
+    elif cmd[0] == "色图r" and isinstance(event, GroupMessageEvent):
         await setu.finish(
             random.choice(["这种不好意思的东西怎么可能给这么多人看啦", "羞羞脸！给我滚出克私聊！", "变态变态变态变态大变态！"])
         )
@@ -187,7 +171,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 Config.get_config("send_setu", "WITHDRAW_SETU_MESSAGE"),
             )
         return
-    await send_setu_handle(setu, event, state["_prefix"]["raw_command"], msg, num, r18)
+    await send_setu_handle(setu, event, cmd[0], msg, num, r18)
 
 
 num_key = {
@@ -206,7 +190,7 @@ num_key = {
 
 
 @setu_reg.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent, arg: Message = CommandArg()):
     if isinstance(event, GroupMessageEvent):
         impression = (
             await SignGroupUser.ensure(event.user_id, event.group_id)
@@ -214,7 +198,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         luox = get_luoxiang(impression)
         if luox:
             await setu.finish(luox, at_sender=True)
-    msg = get_message_text(event.json())
+    msg = arg.extract_plain_text().strip()
     num = 1
     msg = re.search(r"(.*)[份发张个次点](.*)[瑟涩色]图", msg)
     # 解析 tags 以及 num
@@ -237,31 +221,6 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     else:
         return
     await send_setu_handle(setu_reg, event, "色图", tags, num, 0)
-
-
-@find_setu.args_parser
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if str(event.message) == "取消":
-        await find_setu.finish("取消了操作", at_sender=True)
-    imgs = get_message_img(event.json())
-    if not imgs:
-        await find_setu.reject("不搞错了，俺要图！")
-    state["img"] = imgs[0]
-
-
-@find_setu.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if get_message_text(event.json()) in ["帮助"]:
-        await find_setu.finish("通过图片获取本地色图id\n\t示例：查色图(图片)")
-    imgs = get_message_img(event.json())
-    if imgs:
-        state["img"] = imgs[0]
-
-
-@find_setu.got("img", prompt="速速来图！")
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    img = state["img"]
-    await find_setu.send(await find_img_index(img, event.user_id), at_sender=True)
 
 
 async def send_setu_handle(

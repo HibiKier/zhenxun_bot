@@ -1,7 +1,6 @@
 from nonebot import on_message
-from nonebot.adapters.cqhttp.permission import GROUP
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
+from nonebot.adapters.onebot.v11.permission import GROUP
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from .data_source import cancel_all_notice, save_data, get_data, set_data_value
 from services.log import logger
 import time
@@ -16,7 +15,7 @@ last_chat = on_message(priority=1, block=False, permission=GROUP)
 
 
 @last_chat.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     time_data = await get_data()
     set_data_value(event.group_id, time.time())
     if event.group_id in time_data["_group"]:

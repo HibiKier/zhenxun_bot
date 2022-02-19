@@ -9,7 +9,6 @@ from asyncio import Semaphore
 from utils.image_utils import is_valid
 from utils.http_utils import AsyncHttpx
 from httpx import ConnectTimeout
-from pathlib import Path
 from .map import Map
 import asyncio
 import nonebot
@@ -26,11 +25,11 @@ LABEL_URL = "https://api-static.mihoyo.com/common/blackboard/ys_obc/v1/map/label
 POINT_LIST_URL = "https://api-static.mihoyo.com/common/blackboard/ys_obc/v1/map/point/list?map_id=2&app_sn=ys_obc"
 MAP_URL = "https://api-static.mihoyo.com/common/map_user/ys_obc/v1/map/info?map_id=2&app_sn=ys_obc&lang=zh-cn"
 
-icon_path = Path(IMAGE_PATH) / "genshin" / "genshin_icon"
-map_path = Path(IMAGE_PATH) / "genshin" / "map"
-resource_label_file = Path(TEXT_PATH) / "genshin" / "resource_label_file.json"
-resource_point_file = Path(TEXT_PATH) / "genshin" / "resource_point_file.json"
-resource_type_file = Path(TEXT_PATH) / "genshin" / "resource_type_file.json"
+icon_path = IMAGE_PATH / "genshin" / "genshin_icon"
+map_path = IMAGE_PATH / "genshin" / "map"
+resource_label_file = TEXT_PATH / "genshin" / "resource_label_file.json"
+resource_point_file = TEXT_PATH / "genshin" / "resource_point_file.json"
+resource_type_file = TEXT_PATH / "genshin" / "resource_type_file.json"
 
 # 地图中心坐标
 CENTER_POINT: Optional[Tuple[int, int]] = None
@@ -115,7 +114,7 @@ async def download_resource_data(semaphore: Semaphore):
     icon_path.mkdir(parents=True, exist_ok=True)
     resource_label_file.parent.mkdir(parents=True, exist_ok=True)
     try:
-        response = await AsyncHttpx.get(POINT_LIST_URL)
+        response = await AsyncHttpx.get(POINT_LIST_URL, timeout=5)
         if response.status_code == 200:
             data = response.json()
             if data["message"] == "OK":
@@ -167,7 +166,7 @@ async def download_map_init(
     if _map.exists() and os.path.getsize(_map) > 1024 * 1024 * 30:
         _map.unlink()
     try:
-        response = await AsyncHttpx.get(MAP_URL)
+        response = await AsyncHttpx.get(MAP_URL, timeout=5)
         if response.status_code == 200:
             data = response.json()
             if data["message"] == "OK":
@@ -206,7 +205,7 @@ async def download_map_init(
 async def download_resource_type():
     resource_type_file.parent.mkdir(parents=True, exist_ok=True)
     try:
-        response = await AsyncHttpx.get(LABEL_URL)
+        response = await AsyncHttpx.get(LABEL_URL, timeout=5)
         if response.status_code == 200:
             data = response.json()
             if data["message"] == "OK":
@@ -252,7 +251,7 @@ async def download_image(
     async with semaphore:
         try:
             if not os.path.exists(path) or not is_valid or force_flag:
-                if await AsyncHttpx.download_file(img_url, path):
+                if await AsyncHttpx.download_file(img_url, path, timeout=5):
                     logger.info(f"下载原神资源图标：{img_url}")
                     if gen_flag:
                         gen_icon(path)

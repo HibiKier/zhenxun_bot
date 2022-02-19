@@ -1,5 +1,5 @@
 from utils.manager import plugins_manager
-from nonebot.adapters.cqhttp import Bot
+from nonebot.adapters.onebot.v11 import Bot
 
 
 async def check_plugin_status(bot: Bot):

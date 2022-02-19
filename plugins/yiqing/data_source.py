@@ -1,13 +1,12 @@
 from configs.path_config import TEXT_PATH
 from typing import List, Union
-from pathlib import Path
 from utils.http_utils import AsyncHttpx
 from utils.image_utils import text2image
 from utils.message_builder import image
-from nonebot.adapters.cqhttp import MessageSegment
+from nonebot.adapters.onebot.v11 import MessageSegment
 import ujson as json
 
-china_city = Path(TEXT_PATH) / "china_city.json"
+china_city = TEXT_PATH / "china_city.json"
 
 data = {}
 
@@ -71,21 +70,21 @@ async def get_yiqing_data(area: str) -> Union[str, MessageSegment]:
     heal_rate = f"{heal / confirm * 100:.2f}"  # 治愈率
 
     x = f"{city}市" if city else f"{province}{province_type}"
-    return image(b64=await text2image(
-    f"""
-  {x} 疫情数据 {f"(<f font_color={_grade_color}>{grade}</f>)" if grade else ""}：
+    return image(b64=(await text2image(
+            f"""
+    {x} 疫情数据 {f"(<f font_color={_grade_color}>{grade}</f>)" if grade else ""}：
     目前确诊：
       确诊人数：<f font_color=red>{now_confirm}(+{add_confirm})</f>
-  -----------------       
+    -----------------       
     累计数据：
       确诊人数：<f font_color=red>{confirm}</f>
       治愈人数：<f font_color=#39de4b>{heal}</f>
       死亡人数：<f font_color=#191d19>{dead}</f>
     治愈率：{heal_rate}%
     死亡率：{dead_rate}%
-  更新日期：{last_update_time}   
+    更新日期：{last_update_time}   
         """, font_size=30, color="#f9f6f2"
-    ))
+            )).pic2bs4())
 
 
 def get_city_and_province_list() -> List[str]:

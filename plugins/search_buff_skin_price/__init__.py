@@ -2,10 +2,10 @@ from nonebot import on_command
 from .data_source import get_price, update_buff_cookie
 from services.log import logger
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
 from nonebot.rule import to_me
 from nonebot.permission import SUPERUSER
-from utils.utils import get_message_text
+from nonebot.params import CommandArg, ArgStr
 from configs.config import NICKNAME
 
 
@@ -28,38 +28,21 @@ __plugin_settings__ = {
     "limit_superuser": False,
     "cmd": ["查询皮肤"],
 }
-__plugin_block_limit__ = {
-    "rst": "您有皮肤正在搜索，请稍等..."
-}
+__plugin_block_limit__ = {"rst": "您有皮肤正在搜索，请稍等..."}
 __plugin_configs__ = {
-    "BUFF_PROXY": {
-        "value": None,
-        "help": "BUFF代理，有些厂ip可能被屏蔽"
-    },
-    "COOKIE": {
-        "value": None,
-        "help": "BUFF的账号cookie"
-    }
+    "BUFF_PROXY": {"value": None, "help": "BUFF代理，有些厂ip可能被屏蔽"},
+    "COOKIE": {"value": None, "help": "BUFF的账号cookie"},
 }
 
 
 search_skin = on_command("查询皮肤", aliases={"皮肤查询"}, priority=5, block=True)
 
 
-@search_skin.args_parser
-async def parse(bot: Bot, event: MessageEvent, state: T_State):
-    if get_message_text(event.json()) in ["取消", "算了"]:
-        await search_skin.finish("已取消操作..", at_sender=True)
-    state[state["_current_key"]] = str(event.get_message())
-
-
 @search_skin.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if str(event.get_message()) in ["帮助"]:
-        await search_skin.finish(__plugin_usage__)
-    raw_arg = get_message_text(event.json())
+async def _(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
+    raw_arg = arg.extract_plain_text().strip()
     if raw_arg:
-        args = raw_arg.split(" ")
+        args = raw_arg.split()
         if len(args) >= 2:
             state["name"] = args[0]
             state["skin"] = args[1]
@@ -67,11 +50,18 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 @search_skin.got("name", prompt="要查询什么武器呢？")
 @search_skin.got("skin", prompt="要查询该武器的什么皮肤呢？")
-async def arg_handle(bot: Bot, event: MessageEvent, state: T_State):
+async def arg_handle(
+    event: MessageEvent,
+    state: T_State,
+    name: str = ArgStr("name"),
+    skin: str = ArgStr("skin"),
+):
+    if name in ["算了", "取消"] or skin in ["算了", "取消"]:
+        await search_skin.finish("已取消操作...")
     result = ""
-    if state["name"] in ["ak", "ak47"]:
-        state["name"] = "ak-47"
-    name = state["name"] + " | " + state["skin"]
+    if name in ["ak", "ak47"]:
+        name = "ak-47"
+    name = name + " | " + skin
     try:
         result, status_code = await get_price(name)
     except FileNotFoundError:
@@ -100,7 +90,7 @@ update_buff_session = on_command(
 
 
 @update_buff_session.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent):
     await update_buff_session.finish(
         update_buff_cookie(str(event.get_message())), at_sender=True
     )

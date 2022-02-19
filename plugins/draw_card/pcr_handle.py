@@ -1,13 +1,16 @@
-import ujson as json
-from nonebot.adapters.cqhttp import MessageSegment
+from nonebot.adapters.onebot.v11 import MessageSegment
 import random
 from .update_game_info import update_info
 from .update_game_simple_info import update_simple_info
 from .util import generate_img, init_star_rst, BaseData, set_list, get_star, max_card
-from .config import PCR_TWO_P, PCR_THREE_P, PCR_ONE_P, DRAW_PATH, PCR_FLAG, PCR_G_TWO_P, PCR_G_THREE_P, PCR_TAI
+from .config import DRAW_DATA_PATH, draw_config
 from dataclasses import dataclass
 from .init_card_pool import init_game_pool
 
+try:
+    import ujson as json
+except ModuleNotFoundError:
+    import json
 
 ALL_CHAR = []
 
@@ -30,7 +33,7 @@ async def pcr_draw(count: int):
 
 async def update_pcr_info():
     global ALL_CHAR
-    if PCR_TAI:
+    if draw_config.PCR_TAI:
         url = 'https://wiki.biligame.com/pcr/角色图鉴'
         data, code = await update_simple_info(url, 'pcr')
     else:
@@ -42,8 +45,8 @@ async def update_pcr_info():
 
 async def init_pcr_data():
     global ALL_CHAR
-    if PCR_FLAG:
-        with open(DRAW_PATH + 'pcr.json', 'r', encoding='utf8') as f:
+    if draw_config.PCR_FLAG:
+        with (DRAW_DATA_PATH / 'pcr.json').open('r', encoding='utf8') as f:
             pcr_dict = json.load(f)
         ALL_CHAR = init_game_pool('pcr', pcr_dict, PcrChar)
 
@@ -51,10 +54,11 @@ async def init_pcr_data():
 # 抽取卡池
 def _get_pcr_card(mode: int = 1):
     global ALL_CHAR
+    pcr_config = draw_config.pcr
     if mode == 2:
-        star = get_star([3, 2], [PCR_G_THREE_P, PCR_G_TWO_P])
+        star = get_star([3, 2], [pcr_config.PCR_G_THREE_P, pcr_config.PCR_G_TWO_P])
     else:
-        star = get_star([3, 2, 1], [PCR_THREE_P, PCR_TWO_P, PCR_ONE_P])
+        star = get_star([3, 2, 1], [pcr_config.PCR_THREE_P, pcr_config.PCR_TWO_P, pcr_config.PCR_ONE_P])
     chars = [x for x in ALL_CHAR if x.star == star and not x.limited]
     return random.choice(chars), 3 - star
 

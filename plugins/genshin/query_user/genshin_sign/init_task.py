@@ -4,7 +4,7 @@ from utils.message_builder import at
 from services.log import logger
 from utils.utils import scheduler, get_bot
 from apscheduler.jobstores.base import ConflictingIdError
-from ..models import Genshin
+from .._models import Genshin
 from datetime import datetime, timedelta
 from nonebot import Driver
 import nonebot
@@ -103,8 +103,10 @@ async def _sign(user_id: int, uid: int, count: int):
         if user_id in [x["user_id"] for x in await bot.get_friend_list()]:
             await bot.send_private_msg(user_id=user_id, message=msg)
         else:
-            group_list = await GroupInfoUser.get_user_all_group(user_id)
-            if group_list:
-                await bot.send_group_msg(
-                    group_id=group_list[0], message=at(user_id) + msg
-                )
+            if not (group_id := await Genshin.get_bind_group(uid)):
+                group_list = await GroupInfoUser.get_user_all_group(user_id)
+                if group_list:
+                    group_id = group_list[0]
+            await bot.send_group_msg(
+                group_id=group_id, message=at(user_id) + msg
+            )

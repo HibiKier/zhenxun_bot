@@ -1,7 +1,6 @@
 from nonebot import on_command
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
-from utils.utils import get_message_text
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
+from nonebot.params import CommandArg
 from services.log import logger
 from configs.config import NICKNAME
 import random
@@ -33,11 +32,11 @@ roll = on_command("roll", priority=5, block=True)
 
 
 @roll.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json()).split()
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip().split()
     if not msg:
         await roll.finish(f"roll: {random.randint(0, 100)}", at_sender=True)
-    user_name = event.sender.card if event.sender.card else event.sender.nickname
+    user_name = event.sender.card or event.sender.nickname
     await roll.send(
         random.choice(
             [

@@ -1,11 +1,11 @@
 from configs.path_config import IMAGE_PATH
 from nonebot import on_command
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
 from utils.message_builder import image
 from services.log import logger
-from utils.utils import get_message_text
 from utils.image_utils import BuildImage
+from nonebot.params import CommandArg
 
 __zx_plugin_name__ = "鲁迅说"
 __plugin_usage__ = """
@@ -35,14 +35,14 @@ luxun_author = BuildImage(0, 0, plain_text="--鲁迅", font_size=30, font='msyh.
 
 
 @luxun.handle()
-async def handle(bot: Bot, event: MessageEvent, state: T_State):
-    args = get_message_text(event.json())
+async def handle(state: T_State, arg: Message = CommandArg()):
+    args = arg.extract_plain_text().strip()
     if args:
         state["content"] = args if args else "烦了，不说了"
 
 
 @luxun.got("content", prompt="你让鲁迅说点啥?")
-async def handle_event(bot: Bot, event: MessageEvent, state: T_State):
+async def handle_event(event: MessageEvent, state: T_State):
     content = state["content"].strip()
     if content.startswith(",") or content.startswith("，"):
         content = content[1:]

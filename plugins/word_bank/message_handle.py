@@ -1,21 +1,16 @@
-from utils.utils import get_message_text
 from utils.message_builder import image, at
-from .rule import check
+from ._rule import check
 from .model import WordBank
 from configs.path_config import DATA_PATH
-from pathlib import Path
-from nonebot.adapters.cqhttp import (
-    Bot,
-    GroupMessageEvent,
-)
-from nonebot.typing import T_State
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
+from utils.utils import get_message_text
 from nonebot import on_message
 
 
 __zx_plugin_name__ = "词库问答回复操作 [Hidden]"
 
 
-data_dir = Path(DATA_PATH) / "word_bank"
+data_dir = DATA_PATH / "word_bank"
 data_dir.mkdir(parents=True, exist_ok=True)
 
 
@@ -23,7 +18,7 @@ message_handle = on_message(priority=5, block=True, rule=check)
 
 
 @message_handle.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     path = data_dir / f"{event.group_id}"
     q = await WordBank.check(
         event.group_id, get_message_text(event.json()), event.is_tome()

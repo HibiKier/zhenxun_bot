@@ -1,6 +1,4 @@
 from nonebot import on_regex
-from nonebot.adapters.cqhttp import Bot, MessageEvent
-from nonebot.typing import T_State
 from nonebot.rule import to_me
 from pathlib import Path
 
@@ -29,7 +27,7 @@ about = on_regex("^关于$", priority=5, block=True, rule=to_me())
 
 
 @about.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     ver_file = Path() / '__version__'
     version = None
     if ver_file.exists():

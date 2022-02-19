@@ -1,7 +1,8 @@
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent, GROUP, Message
 from nonebot import on_command, on_message, on_regex
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent, GROUP
-from .data_source import (
+from nonebot.params import CommandArg
+from ._data_source import (
     change_group_switch,
     set_plugin_status,
     get_plugin_status,
@@ -13,7 +14,6 @@ from configs.config import NICKNAME, Config
 from utils.utils import get_message_text, is_number
 from nonebot.permission import SUPERUSER
 from .rule import switch_rule
-import re
 
 
 __zx_plugin_name__ = "群功能开关 [Admin]"
@@ -65,19 +65,19 @@ group_status = on_regex("^(休息吧|醒来)$", permission=GROUP, priority=5, bl
 
 
 @switch_rule_matcher.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    _cmd = get_message_text(event.json()).split()[0]
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+    _cmd = arg.extract_plain_text().strip().split()[0]
     if isinstance(event, GroupMessageEvent):
         await switch_rule_matcher.send(await change_group_switch(_cmd, event.group_id))
         logger.info(f"USER {event.user_id} GROUP {event.group_id} 使用群功能管理命令 {_cmd}")
     else:
         if str(event.user_id) in bot.config.superusers:
-            block_type = " ".join(get_message_text(event.json()).split()[1:])
+            block_type = " ".join(arg.extract_plain_text().strip().split()[1:])
             block_type = block_type if block_type else "a"
             if is_number(block_type):
                 if not int(block_type) in [
                     g["group_id"]
-                    for g in await bot.get_group_list(self_id=int(bot.self_id))
+                    for g in await bot.get_group_list()
                 ]:
                     await switch_rule_matcher.finish(f"{NICKNAME}未加入群聊：{block_type}")
                 await change_group_switch(_cmd, int(block_type), True)
@@ -104,22 +104,21 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @plugins_status.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     await plugins_status.send(await get_plugin_status())
 
 
 @group_task_status.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     await group_task_status.send(await group_current_status(event.group_id))
 
 
 @group_status.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    r = re.search("^(休息吧|醒来)$", get_message_text(event.json()))
-    if r:
-        if r.group(1) == "休息吧":
-            msg = set_group_bot_status(event.group_id, False)
-        else:
-            msg = set_group_bot_status(event.group_id, True)
-        await group_status.send(msg)
-        logger.info(f"USER {event.user_id} GROUP {event.group_id} 使用总开关命令：{r.group(1)}")
+async def _(event: GroupMessageEvent, state: T_State):
+    cmd = state["_matched_groups"][0]
+    if cmd == "休息吧":
+        msg = set_group_bot_status(event.group_id, False)
+    else:
+        msg = set_group_bot_status(event.group_id, True)
+    await group_status.send(msg)
+    logger.info(f"USER {event.user_id} GROUP {event.group_id} 使用总开关命令：{cmd}")

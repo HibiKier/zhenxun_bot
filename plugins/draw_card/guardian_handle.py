@@ -1,17 +1,12 @@
-
-import os
-from nonebot.adapters.cqhttp import MessageSegment, Message
+from nonebot.adapters.onebot.v11 import MessageSegment, Message
 from .update_game_info import update_info
-from .announcement import GuardianAnnouncement
 from .util import init_star_rst, generate_img, max_card, BaseData,\
     set_list, get_star, format_card_information, init_up_char
 import random
-from .config import DRAW_PATH, GUARDIAN_ONE_CHAR_P, GUARDIAN_TWO_CHAR_P, GUARDIAN_THREE_CHAR_P, \
-    GUARDIAN_THREE_CHAR_UP_P, GUARDIAN_TWO_ARMS_P, GUARDIAN_FIVE_ARMS_P, GUARDIAN_THREE_CHAR_OTHER_P, \
-    GUARDIAN_FOUR_ARMS_P, GUARDIAN_THREE_ARMS_P, GUARDIAN_EXCLUSIVE_ARMS_P, GUARDIAN_EXCLUSIVE_ARMS_UP_P, \
-    GUARDIAN_EXCLUSIVE_ARMS_OTHER_P, GUARDIAN_FLAG
+from .config import DRAW_DATA_PATH, draw_config
 from dataclasses import dataclass
 from .init_card_pool import init_game_pool
+from .announcement import GuardianAnnouncement
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -96,13 +91,13 @@ async def update_guardian_info():
 
 async def init_guardian_data():
     global ALL_CHAR, ALL_ARMS
-    if GUARDIAN_FLAG:
-        if not os.path.exists(DRAW_PATH + 'guardian.json') or not os.path.exists(DRAW_PATH + 'guardian_arms.json'):
+    if draw_config.GUARDIAN_FLAG:
+        if not (DRAW_DATA_PATH / 'guardian.json').exists() or not (DRAW_DATA_PATH / 'guardian_arms.json').exists():
             await update_guardian_info()
         else:
-            with open(DRAW_PATH + 'guardian.json', 'r', encoding='utf8') as f:
+            with (DRAW_DATA_PATH / 'guardian.json').open('r', encoding='utf8') as f:
                 guardian_char_dict = json.load(f)
-            with open(DRAW_PATH + 'guardian_arms.json', 'r', encoding='utf8') as f:
+            with (DRAW_DATA_PATH / 'guardian_arms.json').open('r', encoding='utf8') as f:
                 guardian_arms_dict = json.load(f)
             ALL_CHAR = init_game_pool('guardian', guardian_char_dict, GuardianChar)
             ALL_ARMS = init_game_pool('guardian_arms', guardian_arms_dict, GuardianArms)
@@ -112,21 +107,22 @@ async def init_guardian_data():
 # 抽取卡池
 def _get_guardian_card(pool_name: str = '', mode: int = 1):
     global ALL_ARMS, ALL_CHAR, UP_ARMS, UP_CHAR, _CURRENT_ARMS_POOL_TITLE, _CURRENT_CHAR_POOL_TITLE
+    guardian_config = draw_config.guardian
     if pool_name == 'char':
         if mode == 1:
-            star = get_star([3, 2, 1], [GUARDIAN_THREE_CHAR_P, GUARDIAN_TWO_CHAR_P, GUARDIAN_ONE_CHAR_P])
+            star = get_star([3, 2, 1], [guardian_config.GUARDIAN_THREE_CHAR_P, guardian_config.GUARDIAN_TWO_CHAR_P, guardian_config.GUARDIAN_ONE_CHAR_P])
         else:
-            star = get_star([3, 2], [GUARDIAN_THREE_CHAR_P, GUARDIAN_TWO_CHAR_P])
+            star = get_star([3, 2], [guardian_config.GUARDIAN_THREE_CHAR_P, guardian_config.GUARDIAN_TWO_CHAR_P])
         up_lst = UP_CHAR
         flag = _CURRENT_CHAR_POOL_TITLE
         _max_star = 3
         all_data = ALL_CHAR
     else:
         if mode == 1:
-            star = get_star([5, 4, 3, 2], [GUARDIAN_FIVE_ARMS_P, GUARDIAN_FOUR_ARMS_P,
-                                           GUARDIAN_THREE_ARMS_P, GUARDIAN_TWO_ARMS_P])
+            star = get_star([5, 4, 3, 2], [guardian_config.GUARDIAN_FIVE_ARMS_P, guardian_config.GUARDIAN_FOUR_ARMS_P,
+                                           guardian_config.GUARDIAN_THREE_ARMS_P, guardian_config.GUARDIAN_TWO_ARMS_P])
         else:
-            star = get_star([5, 4], [GUARDIAN_FIVE_ARMS_P, GUARDIAN_FOUR_ARMS_P])
+            star = get_star([5, 4], [guardian_config.GUARDIAN_FIVE_ARMS_P, guardian_config.GUARDIAN_FOUR_ARMS_P])
         up_lst = UP_ARMS
         flag = _CURRENT_ARMS_POOL_TITLE
         _max_star = 5
@@ -158,3 +154,6 @@ async def _guardian_init_up_char():
 async def reload_guardian_pool():
     await _guardian_init_up_char()
     return Message(f'当前UP池子：{_CURRENT_CHAR_POOL_TITLE} & {_CURRENT_ARMS_POOL_TITLE}')
+
+
+

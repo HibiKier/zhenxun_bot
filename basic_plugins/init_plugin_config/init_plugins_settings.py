@@ -14,7 +14,7 @@ def init_plugins_settings(data_path: str):
     """
     初始化插件设置，从插件中获取 __zx_plugin_name__，__plugin_cmd__，__plugin_settings__
     """
-    plugins2settings_file = Path(data_path) / "configs" / "plugins2settings.yaml"
+    plugins2settings_file = data_path / "configs" / "plugins2settings.yaml"
     plugins2settings_file.parent.mkdir(exist_ok=True, parents=True)
     _matchers = get_matchers()
     _tmp_module = {}
@@ -29,12 +29,12 @@ def init_plugins_settings(data_path: str):
             logger.warning(f"配置文件 模块：{x} 获取 plugin_name 失败...{e}")
             _tmp_module[x] = ""
     for matcher in _matchers:
-        if matcher.module not in plugins2settings_manager.keys():
-            _plugin = nonebot.plugin.get_plugin(matcher.module)
+        if matcher.plugin_name not in plugins2settings_manager.keys():
+            _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
             try:
                 _module = _plugin.module
             except AttributeError:
-                logger.warning(f"插件 {matcher.module} 加载失败...，插件控制未加载.")
+                logger.warning(f"插件 {matcher.plugin_name} 加载失败...，插件控制未加载.")
             else:
                 try:
                     plugin_name = _module.__getattribute__("__zx_plugin_name__")
@@ -51,23 +51,23 @@ def init_plugins_settings(data_path: str):
                         if level is None:
                             level = 5
                         admin_manager.add_admin_plugin_settings(
-                            matcher.module, cmd, level
+                            matcher.plugin_name, cmd, level
                         )
                     if (
                         "[hidden]" in plugin_name.lower()
                         or "[admin]" in plugin_name.lower()
                         or "[superuser]" in plugin_name.lower()
-                        or matcher.module in plugins2settings_manager.keys()
+                        or matcher.plugin_name in plugins2settings_manager.keys()
                     ):
                         continue
                 except AttributeError:
-                    if matcher.module not in _tmp:
+                    if matcher.plugin_name not in _tmp:
                         logger.warning(
-                            f"获取插件 {matcher.module} __zx_plugin_name__ 失败...，插件控制未加载."
+                            f"获取插件 {matcher.plugin_name} __zx_plugin_name__ 失败...，插件控制未加载."
                         )
                 else:
                     try:
-                        _tmp_module[matcher.module] = plugin_name
+                        _tmp_module[matcher.plugin_name] = plugin_name
                         plugin_settings = _module.__getattribute__(
                             "__plugin_settings__"
                         )
@@ -79,13 +79,13 @@ def init_plugins_settings(data_path: str):
                         ):
                             plugin_settings["cmd"].append(plugin_name)
                         if plugins2settings_manager.get(
-                            matcher.module
-                        ) and plugins2settings_manager[matcher.module].get(
+                            matcher.plugin_name
+                        ) and plugins2settings_manager[matcher.plugin_name].get(
                             "plugin_type"
                         ):
                             plugin_type = tuple(
                                 plugins2settings_manager.get_plugin_data(
-                                    matcher.module
+                                    matcher.plugin_name
                                 )["plugin_type"]
                             )
                         else:
@@ -95,15 +95,15 @@ def init_plugins_settings(data_path: str):
                                 )
                             except AttributeError:
                                 plugin_type = ("normal",)
-                        if plugin_settings and matcher.module:
+                        if plugin_settings and matcher.plugin_name:
                             plugins2settings_manager.add_plugin_settings(
-                                matcher.module,
+                                matcher.plugin_name,
                                 plugin_type=plugin_type,
                                 **plugin_settings,
                             )
                     except AttributeError:
                         pass
-        _tmp.append(matcher.module)
+        _tmp.append(matcher.plugin_name)
     _tmp_data = {"PluginSettings": plugins2settings_manager.get_data()}
     with open(plugins2settings_file, "w", encoding="utf8") as wf:
         yaml.dump(_tmp_data, wf, Dumper=yaml.RoundTripDumper, allow_unicode=True)

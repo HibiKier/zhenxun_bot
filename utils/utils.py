@@ -3,7 +3,7 @@ from collections import defaultdict
 from nonebot import require
 from configs.config import SYSTEM_PROXY
 from typing import List, Union, Optional, Type, Any
-from nonebot.adapters.cqhttp import Bot
+from nonebot.adapters.onebot.v11 import Bot, Message
 from nonebot.matcher import matchers, Matcher
 import httpx
 import nonebot
@@ -190,76 +190,82 @@ def get_matchers() -> List[Type[Matcher]]:
     return _matchers
 
 
-def get_message_at(data: str) -> List[int]:
+def get_message_at(data: Union[str, Message]) -> List[int]:
     """
     说明：
         获取消息中所有的 at 对象的 qq
     参数：
         :param data: event.json()
     """
-    try:
-        qq_list = []
+    qq_list = []
+    if isinstance(data, str):
         data = json.loads(data)
         for msg in data["message"]:
             if msg["type"] == "at":
                 qq_list.append(int(msg["data"]["qq"]))
-        return qq_list
-    except KeyError:
-        return []
+    else:
+        for seg in data:
+            if seg.type == "image":
+                qq_list.append(seg.data["url"])
+    return qq_list
 
 
-def get_message_img(data: str) -> List[str]:
+def get_message_img(data: Union[str, Message]) -> List[str]:
     """
     说明：
         获取消息中所有的 图片 的链接
     参数：
         :param data: event.json()
     """
-    try:
-        img_list = []
+    img_list = []
+    if isinstance(data, str):
         data = json.loads(data)
         for msg in data["message"]:
             if msg["type"] == "image":
                 img_list.append(msg["data"]["url"])
-        return img_list
-    except KeyError:
-        return []
+    else:
+        for seg in data["image"]:
+            img_list.append(seg.data["url"])
+    return img_list
 
 
-def get_message_text(data: str) -> str:
+def get_message_text(data: Union[str, Message]) -> str:
     """
     说明：
         获取消息中 纯文本 的信息
     参数：
         :param data: event.json()
     """
-    try:
+    result = ""
+    if isinstance(data, str):
         data = json.loads(data)
-        result = ""
         for msg in data["message"]:
             if msg["type"] == "text":
                 result += msg["data"]["text"].strip() + " "
         return result.strip()
-    except KeyError:
-        return ""
+    else:
+        for seg in data["text"]:
+            result += seg.data["text"] + " "
+    return result
 
 
-def get_message_record(data: str) -> List[str]:
+def get_message_record(data: Union[str, Message]) -> List[str]:
     """
     说明：
         获取消息中所有 语音 的链接
     参数：
         :param data: event.json()
     """
-    try:
-        record_list = []
+    record_list = []
+    if isinstance(data, str):
         data = json.loads(data)
         for msg in data["message"]:
             if msg["type"] == "record":
                 record_list.append(msg["data"]["url"])
-        return record_list
-    except KeyError:
-        return []
+    else:
+        for seg in data["record"]:
+            record_list.append(seg.data["url"])
+    return record_list
 
 
 def get_message_json(data: str) -> List[dict]:

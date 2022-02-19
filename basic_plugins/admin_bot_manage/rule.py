@@ -1,5 +1,4 @@
-from nonebot.adapters.cqhttp import Bot, Event
-from nonebot.typing import T_State
+from nonebot.adapters.onebot.v11 import Event
 from utils.manager import group_manager, plugins2settings_manager
 from utils.utils import get_message_text
 from services.log import logger
@@ -7,12 +6,10 @@ from services.log import logger
 cmd = []
 
 
-def switch_rule(bot: Bot, event: Event, state: T_State) -> bool:
+def switch_rule(event: Event) -> bool:
     """
     检测文本是否是关闭功能命令
-    :param bot: pass
     :param event: pass
-    :param state: pass
     """
     global cmd
     try:
@@ -34,7 +31,7 @@ def switch_rule(bot: Bot, event: Event, state: T_State) -> bool:
                         cmd.append(f"关闭 {x}")
                 except KeyError:
                     pass
-        msg = get_message_text(event.json()).split()
+        msg = get_message_text(event.json())
         msg = msg[0] if msg else ""
         return msg in cmd
     except Exception as e:

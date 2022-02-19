@@ -1,8 +1,6 @@
 from utils.utils import scheduler
 from nonebot import on_command
 from nonebot.permission import SUPERUSER
-from nonebot.typing import T_State
-from nonebot.adapters import Bot, Event
 from nonebot.rule import to_me
 from .data_source import update_setu_img
 from configs.config import Config
@@ -29,7 +27,7 @@ update_setu = on_command(
 
 
 @update_setu.handle()
-async def _(bot: Bot, event: Event, state: T_State):
+async def _():
     if Config.get_config("send_setu", "DOWNLOAD_SETU"):
         await update_setu.send("开始更新色图...", at_sender=True)
         await update_setu_img(True)

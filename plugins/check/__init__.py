@@ -1,7 +1,5 @@
 from nonebot import on_command
 from .data_source import Check
-from nonebot.adapters.cqhttp import Bot, Event
-from nonebot.typing import T_State
 from nonebot.rule import to_me
 from nonebot.permission import SUPERUSER
 from utils.message_builder import image
@@ -29,5 +27,5 @@ check_ = on_command(
 
 
 @check_.handle()
-async def _(bot: Bot, event: Event, state: T_State):
+async def _():
     await check_.send(image(b64=await check.show()))

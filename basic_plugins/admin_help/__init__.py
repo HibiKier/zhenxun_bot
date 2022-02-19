@@ -1,7 +1,7 @@
 from nonebot import on_command
 from nonebot.typing import T_State
 from nonebot.adapters import Bot
-from nonebot.adapters.cqhttp import GroupMessageEvent
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from utils.message_builder import image
 from .data_source import create_help_image, admin_help_image
 

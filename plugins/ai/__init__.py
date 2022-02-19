@@ -1,17 +1,16 @@
 from nonebot import on_message
-from nonebot.adapters.cqhttp import (
+from nonebot.adapters.onebot.v11 import (
     Bot,
     GroupMessageEvent,
     Message,
     MessageEvent,
 )
 from nonebot.rule import to_me
-from nonebot.typing import T_State
-
+from nonebot.params import CommandArg
 from models.friend_user import FriendUser
 from models.group_member_info import GroupInfoUser
 from services.log import logger
-from utils.utils import get_message_text, get_message_img
+from utils.utils import get_message_img
 from .data_source import get_chat_result, hello, no_result
 from configs.config import NICKNAME, Config
 
@@ -36,15 +35,15 @@ __plugin_configs__ = {
     },
 }
 Config.add_plugin_config(
-    "alapi", "ALAPI_TOKEN", None, help_="在https://admin.alapi.cn/user/login登录后获取token"
+    "alapi", "ALAPI_TOKEN", None, help_="在 https://admin.alapi.cn/user/login 登录后获取token"
 )
 
 ai = on_message(rule=to_me(), priority=8)
 
 
 @ai.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     img = get_message_img(event.json())
     if "CQ:xml" in str(event.get_message()):
         return
@@ -69,7 +68,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         nickname = await FriendUser.get_friend_nickname(event.user_id)
     if not nickname:
         if isinstance(event, GroupMessageEvent):
-            nickname = event.sender.card if event.sender.card else event.sender.nickname
+            nickname = event.sender.card or event.sender.nickname
         else:
             nickname = event.sender.nickname
     result = await get_chat_result(msg, img, event.user_id, nickname)

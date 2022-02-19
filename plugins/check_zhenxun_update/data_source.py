@@ -1,4 +1,4 @@
-from nonebot.adapters.cqhttp import Bot, Message
+from nonebot.adapters.onebot.v11 import Bot, Message
 from utils.image_utils import BuildImage
 from configs.path_config import IMAGE_PATH
 from utils.message_builder import image

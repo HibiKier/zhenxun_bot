@@ -8,7 +8,6 @@ from utils.message_builder import image
 from bilibili_api.user import User
 from bilibili_api import user
 from typing import Optional
-from pathlib import Path
 from configs.path_config import IMAGE_PATH
 from datetime import datetime
 from utils.browser import get_browser
@@ -20,7 +19,7 @@ import random
 
 bilibili_search_url = "https://api.bilibili.com/x/web-interface/search/all/v2"
 
-dynamic_path = Path(IMAGE_PATH) / "bilibili_sub" / "dynamic"
+dynamic_path = IMAGE_PATH / "bilibili_sub" / "dynamic"
 dynamic_path.mkdir(exist_ok=True, parents=True)
 
 

@@ -1,11 +1,11 @@
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
 from nonebot.matcher import Matcher
+from nonebot.params import CommandArg
 from nonebot import on_command
-from utils.utils import get_message_text, is_number
+from utils.utils import is_number
 from .data_source import get_pixiv_urls, download_pixiv_imgs, search_pixiv_urls
 from services.log import logger
-from nonebot.adapters.cqhttp.exception import NetworkError
+from nonebot.adapters.onebot.v11.exception import NetworkError
 from asyncio.exceptions import TimeoutError
 from utils.message_builder import custom_forward_msg
 from configs.config import Config
@@ -110,8 +110,8 @@ pixiv_keyword = on_command("搜图", priority=5, block=True, rule=to_me())
 
 
 @pixiv_rank.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json()).strip()
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip().strip()
     msg = msg.split(" ")
     msg = [m for m in msg if m]
     code = 0
@@ -149,8 +149,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @pixiv_keyword.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     if isinstance(event, GroupMessageEvent):
         if "r18" in msg.lower():
             await pixiv_keyword.finish("(脸红#) 你不会害羞的 八嘎！", at_sender=True)

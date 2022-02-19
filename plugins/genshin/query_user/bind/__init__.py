@@ -1,9 +1,10 @@
 from nonebot import on_command
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
-from utils.utils import get_message_text, is_number
-from ..models import Genshin
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
+from utils.utils import is_number
+from .._models import Genshin
 from services.log import logger
+from nonebot.params import CommandArg, Command
+from typing import Tuple
 
 
 __zx_plugin_name__ = "原神绑定"
@@ -40,13 +41,14 @@ unbind = on_command("原神解绑", priority=5, block=True)
 
 
 @bind.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
-    if state["_prefix"]["raw_command"] in ["原神绑定uid", "原神绑定米游社id"]:
+async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
+    cmd = cmd[0]
+    msg = arg.extract_plain_text().strip()
+    if cmd in ["原神绑定uid", "原神绑定米游社id"]:
         if not is_number(msg):
             await bind.finish("uid/id必须为纯数字！", at_senders=True)
         msg = int(msg)
-    if state["_prefix"]["raw_command"] == "原神绑定uid":
+    if cmd == "原神绑定uid":
         uid = await Genshin.get_user_uid(event.user_id)
         if uid:
             await bind.finish(f"您已绑定过uid：{uid}，如果希望更换uid，请先发送原神解绑")
@@ -54,7 +56,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         if not flag:
             await bind.finish("添加失败，该uid可能已存在...")
         _x = f"已成功添加原神uid：{msg}"
-    elif state["_prefix"]["raw_command"] == "原神绑定米游社id":
+    elif cmd == "原神绑定米游社id":
         uid = await Genshin.get_user_uid(event.user_id)
         if not uid:
             await bind.finish("请先绑定原神uid..")
@@ -63,7 +65,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     else:
         if not msg:
             await bind.finish(
-                "私聊发送！！\n打开https://bbs.mihoyo.com/ys/\n登录后按F12点击控制台输入document.cookie复制输出的内容即可"
+                "私聊发送！！\n打开 https://bbs.mihoyo.com/ys/\n登录后按F12点击控制台输入document.cookie复制输出的内容即可"
             )
         if isinstance(event, GroupMessageEvent):
             await bind.finish("请立即撤回你的消息并私聊发送！")
@@ -76,16 +78,18 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             msg = msg[:-1]
         await Genshin.set_cookie(uid, msg)
         _x = f"已成功为uid：{uid} 设置cookie"
+    if isinstance(event, GroupMessageEvent):
+        await Genshin.set_bind_group(uid, event.group_id)
     await bind.send(_x)
     logger.info(
         f"(USER {event.user_id}, "
         f"GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-        f" {state['_prefix']['raw_command']}：{msg}"
+        f" {cmd}：{msg}"
     )
 
 
 @unbind.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent):
     if await Genshin.delete_user(event.user_id):
         await unbind.send("用户数据删除成功...")
         logger.info(

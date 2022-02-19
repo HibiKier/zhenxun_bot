@@ -18,6 +18,7 @@ class Genshin(db.Model):
     auto_sign_time = db.Column(db.DateTime(timezone=True))
     resin_remind = db.Column(db.Boolean(), default=False)   # 树脂提醒
     resin_recovery_time = db.Column(db.DateTime(timezone=True))  # 满树脂提醒日期
+    bind_group = db.Column(db.BigInteger())
 
     _idx1 = db.Index("genshin_uid_idx1", "user_qq", "uid", unique=True)
 
@@ -55,6 +56,35 @@ class Genshin(db.Model):
             await user.update(mys_id=mys_id).apply()
             return True
         return False
+
+    @classmethod
+    async def set_bind_group(cls, uid: int, bind_group) -> bool:
+        """
+        说明：
+            绑定group_id，除私聊外的提醒将在此群发送
+        参数：
+            :param uid: uid
+            :param bind_group: 群号
+        """
+        query = cls.query.where(cls.uid == uid).with_for_update()
+        user = await query.gino.first()
+        if user:
+            await user.update(bind_group=bind_group).apply()
+            return True
+        return False
+
+    @classmethod
+    async def get_bind_group(cls, uid: int) -> Optional[int]:
+        """
+        说明：
+            获取用户绑定的群聊
+        参数：
+            :param uid: uid
+        """
+        user = await cls.query.where(cls.uid == uid).gino.first()
+        if user:
+            return user.bind_group
+        return None
 
     @classmethod
     async def set_cookie(cls, uid: int, cookie: str) -> bool:

@@ -1,14 +1,12 @@
-
-from nonebot.adapters.cqhttp import MessageSegment, Message
+from nonebot.adapters.onebot.v11 import MessageSegment, Message
 import random
-from .config import PRTS_FIVE_P, PRTS_FOUR_P, PRTS_SIX_P, PRTS_THREE_P, DRAW_PATH, PRTS_FLAG
+from .config import DRAW_DATA_PATH, draw_config
 from .update_game_info import update_info
 from .util import generate_img, init_star_rst, max_card, BaseData, UpEvent, set_list, get_star
 from .init_card_pool import init_game_pool
-from pathlib import Path
 from .announcement import PrtsAnnouncement
-from services.log import logger
 from dataclasses import dataclass
+from nonebot.log import logger
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -16,8 +14,6 @@ except ModuleNotFoundError:
 
 
 announcement = PrtsAnnouncement()
-
-up_char_file = Path() / "data" / "draw_card" / "draw_card_up" / "prts_up_char.json"
 
 prts_dict = {}
 UP_OPERATOR = []
@@ -71,8 +67,8 @@ async def update_prts_info():
 
 async def init_prts_data():
     global prts_dict, ALL_OPERATOR
-    if PRTS_FLAG:
-        with open(DRAW_PATH + 'prts.json', 'r', encoding='utf8') as f:
+    if draw_config.PRTS_FLAG:
+        with (DRAW_DATA_PATH / 'prts.json').open('r', encoding='utf8') as f:
             prts_dict = json.load(f)
         ALL_OPERATOR = init_game_pool('prts', prts_dict, Operator)
         await _init_up_char()
@@ -80,7 +76,8 @@ async def init_prts_data():
 
 # 抽取干员
 def _get_operator_card(add: float):
-    star = get_star([6, 5, 4, 3], [PRTS_SIX_P + add, PRTS_FIVE_P, PRTS_FOUR_P, PRTS_THREE_P])
+    prts_config = draw_config.prts
+    star = get_star([6, 5, 4, 3], [prts_config.PRTS_SIX_P + add, prts_config.PRTS_FIVE_P, prts_config.PRTS_FOUR_P, prts_config.PRTS_THREE_P])
     if _CURRENT_POOL_TITLE:
         zooms = [x.zoom for x in UP_OPERATOR if x.star == star]
         zoom = 0
@@ -92,12 +89,11 @@ def _get_operator_card(add: float):
             else:
                 weight = z
         up_operator_name = ""
-        # UP
+        # UPs
         try:
-            if random.random() < zoom:
+            if 0 < zoom:
                 up_operators = [x.operators for x in UP_OPERATOR if x.star == star and x.zoom < 1][0]
                 up_operator_name = random.choice(up_operators)
-                # print(up_operator_name)
                 acquire_operator = [x for x in ALL_OPERATOR if x.name == up_operator_name][0]
             else:
                 all_star_operators = [x for x in ALL_OPERATOR if x.star == star

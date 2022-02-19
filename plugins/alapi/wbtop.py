@@ -1,11 +1,10 @@
 from nonebot import on_command
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
-from nonebot.typing import T_State
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
+from nonebot.params import CommandArg
 from services.log import logger
-from .data_source import get_data, gen_wbtop_pic
-from utils.utils import get_message_text, is_number
+from ._data_source import get_data, gen_wbtop_pic
+from utils.utils import is_number
 from configs.path_config import IMAGE_PATH
-from utils.message_builder import image
 from utils.http_utils import AsyncPlaywright
 import asyncio
 
@@ -38,9 +37,9 @@ wbtop_data = []
 
 
 @wbtop.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent, arg: Message = CommandArg()):
     global wbtop_data
-    msg = get_message_text(event.json())
+    msg = arg.extract_plain_text().strip()
     if not wbtop_data or not msg:
         data, code = await get_data(wbtop_url)
         if code != 200:

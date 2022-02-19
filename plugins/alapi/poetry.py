@@ -1,8 +1,7 @@
 from nonebot import on_command
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
-from nonebot.typing import T_State
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent
 from services.log import logger
-from .data_source import get_data
+from ._data_source import get_data
 
 __zx_plugin_name__ = "古诗"
 __plugin_usage__ = """usage：
@@ -27,7 +26,7 @@ poetry_url = "https://v2.alapi.cn/api/shici"
 
 
 @poetry.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent):
     data, code = await get_data(poetry_url)
     if code != 200:
         await poetry.finish(data, at_sender=True)

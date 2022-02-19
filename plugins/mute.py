@@ -1,15 +1,16 @@
 from nonebot import on_message, on_command
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from nonebot.adapters.cqhttp.permission import GROUP
-from utils.utils import get_message_text, is_number, get_message_img
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message
+from nonebot.adapters.onebot.v11.permission import GROUP
+from utils.utils import is_number, get_message_img
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp.exception import ActionFailed
+from nonebot.adapters.onebot.v11.exception import ActionFailed
 from configs.path_config import DATA_PATH, TEMP_PATH
 from utils.image_utils import get_img_hash
 from services.log import logger
 from configs.config import NICKNAME, Config
 from utils.http_utils import AsyncHttpx
-from pathlib import Path
+from nonebot.params import CommandArg, Command
+from typing import Tuple
 import time
 
 try:
@@ -58,7 +59,7 @@ mute_setting = on_command(
 
 def get_data():
     try:
-        with open(DATA_PATH + "group_mute_data.json", "r", encoding="utf8") as f:
+        with open(DATA_PATH / "group_mute_data.json", "r", encoding="utf8") as f:
             data = json.load(f)
     except (ValueError, FileNotFoundError):
         data = {}
@@ -67,15 +68,15 @@ def get_data():
 
 def save_data():
     global mute_data
-    with open(DATA_PATH + "group_mute_data.json", "w", encoding="utf8") as f:
+    with open(DATA_PATH / "group_mute_data.json", "w", encoding="utf8") as f:
         json.dump(mute_data, f, indent=4)
 
 
 async def download_img_and_hash(url, group_id):
     if await AsyncHttpx.download_file(
-        url, Path(TEMP_PATH) / f"mute_{group_id}_img.jpg"
+        url, TEMP_PATH / f"mute_{group_id}_img.jpg"
     ):
-        return str(get_img_hash(Path(TEMP_PATH) / f"mute_{group_id}_img.jpg"))
+        return str(get_img_hash(TEMP_PATH / f"mute_{group_id}_img.jpg"))
     return ""
 
 
@@ -84,12 +85,12 @@ mute_data = get_data()
 
 
 @mute.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(bot: Bot, event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
     group_id = str(event.group_id)
-    msg = get_message_text(event.json())
-    imgs = get_message_img(event.json())
+    msg = arg.extract_plain_text().strip()
+    img_list = get_message_img(event.json())
     img_hash = ""
-    for img in imgs:
+    for img in img_list:
         img_hash += await download_img_and_hash(img, event.group_id)
     msg += img_hash
     if not mute_data.get(group_id):
@@ -101,7 +102,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     if not mute_dict.get(event.user_id):
         mute_dict[event.user_id] = {"time": time.time(), "count": 1, "msg": msg}
     else:
-        if state["_prefix"]["raw_command"] or not msg:
+        if cmd or not msg:
             return
         if msg and msg.find(mute_dict[event.user_id]["msg"]) != -1:
             mute_dict[event.user_id]["count"] += 1
@@ -135,12 +136,12 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 
 @mute_setting.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
     group_id = str(event.group_id)
     if not mute_data.get(group_id):
         mute_data[group_id] = {"count": 10, "time": 7, "duration": 0}
-    msg = get_message_text(event.json())
-    if state["_prefix"]["raw_command"] == "刷屏检测设置":
+    msg = arg.extract_plain_text().strip()
+    if cmd[0] == "刷屏检测设置":
         await mute_setting.finish(
             f'最大次数：{mute_data[group_id]["count"]} 次\n'
             f'规定时间：{mute_data[group_id]["time"]} 秒\n'
@@ -149,17 +150,17 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         )
     if not is_number(msg):
         await mute.finish("设置的参数必须是数字啊！", at_sender=True)
-    if state["_prefix"]["raw_command"] == "设置检测时间":
+    if cmd[0] == "设置检测时间":
         mute_data[group_id]["time"] = int(msg)
         msg += "秒"
-    if state["_prefix"]["raw_command"] == "设置检测次数":
+    if cmd[0] == "设置检测次数":
         mute_data[group_id]["count"] = int(msg)
         msg += " 次"
-    if state["_prefix"]["raw_command"] == "设置禁言时长":
+    if cmd[0] == "设置禁言时长":
         mute_data[group_id]["duration"] = int(msg) * 60
         msg += " 分钟"
-    await mute_setting.send(f'刷屏检测：{state["_prefix"]["raw_command"]}为 {msg}')
+    await mute_setting.send(f'刷屏检测：{cmd[0]}为 {msg}')
     logger.info(
-        f'USER {event.user_id} GROUP {group_id} {state["_prefix"]["raw_command"]}：{msg}'
+        f'USER {event.user_id} GROUP {group_id} {cmd[0]}：{msg}'
     )
     save_data()

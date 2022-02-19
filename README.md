@@ -18,9 +18,6 @@
 ## 声明
 此项目仅用于学习交流，请勿用于非法用途
 
-## Gitee同步
-# [Gitee](https://gitee.com/two_Dimension/zhenxun_bot)
-
 ## 未完成的文档
 
 # [传送门](https://hibikier.github.io/zhenxun_bot/)
@@ -36,7 +33,7 @@
 [AkashiCoin/nonebot_plugins_zhenxun_bot](https://github.com/AkashiCoin/nonebot_plugins_zhenxun_bot)
 
 ## 来点优点？
-一.作为bot：
+
   * 实现了许多功能，且提供了大量功能管理命令
   * 通过Config配置项将所有插件配置统计保存至config.yaml，利于统一用户修改
   * 方便增删插件，原生nonebot2 matcher，不需要额外修改，仅仅通过简单的配置属性就可以生成`帮助图片`和`帮助信息`
@@ -233,6 +230,17 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/2/19 \[v0.1.2] (nonebot beta2！)
+
+* 适配nonebot.beta2
+* 删除图片搜索 nonebot_plugin_picsearcher
+* 新增图片搜索 search_image
+* 替换cos api
+* 原神签到树脂提醒新增绑定群里，在某群绑定uid就会在某群发送提醒信息（有好友则私聊，需要重新绑定uid
+* 优化BuildImage.circle()锯齿问题 [@pull/109](https://github.com/HibiKier/zhenxun_bot/pull/109)
+* epic restful 替换 [@pull/119](https://github.com/HibiKier/zhenxun_bot/pull/119)
+* fix: 修复远古时期残留的epic推送问题 [@pull/122](https://github.com/HibiKier/zhenxun_bot/pull/122)
+
 ### 2021/2/11
 
 * 修复pix不使用反代无法下载图片
@@ -326,7 +334,6 @@ __..... 更多更新信息请查看文档__
 
 
 ## Todo
-- [ ] docker容器
 - [ ] web管理
 
 ## 感谢

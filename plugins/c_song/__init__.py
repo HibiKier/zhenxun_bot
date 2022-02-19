@@ -1,5 +1,6 @@
 from .music_163 import get_song_id, get_song_info
-from nonebot.adapters.cqhttp import Bot, Event, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, Event, GroupMessageEvent, Message
+from nonebot.params import CommandArg
 from nonebot.typing import T_State
 from services.log import logger
 from nonebot import on_command
@@ -29,8 +30,8 @@ music = on_command("点歌", priority=5, block=True)
 
 
 @music.handle()
-async def handle_first_receive(bot: Bot, event: Event, state: T_State):
-    args = str(event.get_message()).strip()
+async def handle_first_receive(state: T_State, arg: Message = CommandArg()):
+    args = arg.extract_plain_text().strip()
     if args:
         state["song_name"] = args
 

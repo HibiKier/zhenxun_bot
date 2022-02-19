@@ -1,6 +1,6 @@
-from nonebot import on_command
+from nonebot import on_regex
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from utils.utils import scheduler, get_bot
 from .data_source import get_epic_free
@@ -33,7 +33,7 @@ Config.add_plugin_config(
     default_value=True,
 )
 
-epic = on_command("epic", priority=5, block=True)
+epic = on_regex("^epic$", priority=5, block=True)
 
 
 @epic.handle()

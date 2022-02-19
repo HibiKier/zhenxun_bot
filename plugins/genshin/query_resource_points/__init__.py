@@ -1,11 +1,11 @@
 from nonebot import on_command, on_regex
 from .query_resource import get_resource_type_list, query_resource, init, check_resource_exists
-from utils.utils import get_message_text, scheduler
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent, Message
-from nonebot.typing import T_State
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
+from utils.utils import scheduler
 from services.log import logger
 from configs.config import NICKNAME
 from nonebot.permission import SUPERUSER
+from nonebot.params import CommandArg
 import re
 
 try:
@@ -51,8 +51,8 @@ update_info = on_command("更新原神资源信息", permission=SUPERUSER, prior
 
 
 @qr.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    resource_name = get_message_text(event.json())
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    resource_name = arg.extract_plain_text().strip()
     if check_resource_exists(resource_name):
         await qr.send("正在生成位置....")
         resource = await query_resource(resource_name)
@@ -66,9 +66,9 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @rex_qr.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
-    if msg.find("在哪") != -1:
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
+    if "在哪" in msg:
         rs = re.search("(.*)在哪.*?", msg)
         resource_name = rs.group(1) if rs else ""
     else:
@@ -86,7 +86,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @qr_lst.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(bot: Bot, event: MessageEvent):
     txt = get_resource_type_list()
     txt_list = txt.split("\n")
     if isinstance(event, GroupMessageEvent):
@@ -113,7 +113,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @update_info.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     await init(True)
     await update_info.send("更新原神资源信息完成...")
 

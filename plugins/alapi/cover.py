@@ -1,9 +1,8 @@
 from nonebot import on_command
-from nonebot.adapters.cqhttp import Bot, MessageEvent, Message, GroupMessageEvent
-from nonebot.typing import T_State
+from nonebot.adapters.onebot.v11 import MessageEvent, Message, GroupMessageEvent
 from utils.message_builder import image
-from utils.utils import get_message_text
-from .data_source import get_data
+from nonebot.params import CommandArg
+from ._data_source import get_data
 from services.log import logger
 
 __zx_plugin_name__ = "b封面"
@@ -32,8 +31,8 @@ cover_url = "https://v2.alapi.cn/api/bilibili/cover"
 
 
 @cover.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     params = {"c": msg}
     data, code = await get_data(cover_url, params)
     if code != 200:

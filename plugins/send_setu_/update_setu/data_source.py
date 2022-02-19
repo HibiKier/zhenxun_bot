@@ -4,11 +4,10 @@ from datetime import datetime
 from utils.image_utils import compressed_image, get_img_hash
 from utils.utils import get_bot
 from PIL import UnidentifiedImageError
-from ..model import Setu
+from .._model import Setu
 from asyncpg.exceptions import UniqueViolationError
 from configs.config import Config
 from utils.http_utils import AsyncHttpx
-from pathlib import Path
 from nonebot import Driver
 import nonebot
 import os
@@ -17,13 +16,13 @@ import shutil
 
 driver: Driver = nonebot.get_driver()
 
-_path = Path(IMAGE_PATH)
+_path = IMAGE_PATH
 
 
 # 替换旧色图数据，修复local_id一直是50的问题
 @driver.on_startup
 async def update_old_setu_data():
-    path = Path(TEXT_PATH)
+    path = TEXT_PATH
     setu_data_file = path / "setu_data.json"
     r18_data_file = path / "r18_setu_data.json"
     if setu_data_file.exists() or r18_data_file.exists():
@@ -79,9 +78,9 @@ async def update_old_setu_data():
 
 
 # 删除色图rar文件夹
-shutil.rmtree(Path(IMAGE_PATH) / "setu_rar", ignore_errors=True)
-shutil.rmtree(Path(IMAGE_PATH) / "r18_rar", ignore_errors=True)
-shutil.rmtree(Path(IMAGE_PATH) / "rar", ignore_errors=True)
+shutil.rmtree(IMAGE_PATH / "setu_rar", ignore_errors=True)
+shutil.rmtree(IMAGE_PATH / "r18_rar", ignore_errors=True)
+shutil.rmtree(IMAGE_PATH / "rar", ignore_errors=True)
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6;"
@@ -104,12 +103,11 @@ async def update_setu_img(flag: bool = False):
     for image in image_list:
         count += 1
         path = _path / "_r18" if image.is_r18 else _path / "_setu"
-        rar_path = Path(TEMP_PATH)
         local_image = path / f"{image.local_id}.jpg"
         path.mkdir(exist_ok=True, parents=True)
-        rar_path.mkdir(exist_ok=True, parents=True)
+        TEMP_PATH.mkdir(exist_ok=True, parents=True)
         if not local_image.exists() or not image.img_hash:
-            temp_file = rar_path / f"{image.local_id}.jpg"
+            temp_file = TEMP_PATH / f"{image.local_id}.jpg"
             if temp_file.exists():
                 temp_file.unlink()
             url_ = image.img_url
@@ -120,29 +118,29 @@ async def update_setu_img(flag: bool = False):
                 )
             try:
                 if not await AsyncHttpx.download_file(
-                    url_, rar_path / f"{image.local_id}.jpg"
+                    url_, TEMP_PATH / f"{image.local_id}.jpg"
                 ):
                     continue
                 _success += 1
                 try:
                     if (
                         os.path.getsize(
-                            rar_path / f"{image.local_id}.jpg",
+                            TEMP_PATH / f"{image.local_id}.jpg",
                         )
                         > 1024 * 1024 * 1.5
                     ):
                         compressed_image(
-                            rar_path / f"{image.local_id}.jpg",
+                            TEMP_PATH / f"{image.local_id}.jpg",
                             path / f"{image.local_id}.jpg",
                         )
                     else:
                         logger.info(
-                            f"不需要压缩，移动图片{rar_path}/{image.local_id}.jpg "
+                            f"不需要压缩，移动图片{TEMP_PATH}/{image.local_id}.jpg "
                             f"--> /{path}/{image.local_id}.jpg"
                         )
                         os.rename(
-                            f"{rar_path}/{image.local_id}.jpg",
-                            f"{path}/{image.local_id}.jpg",
+                            TEMP_PATH / f"/{image.local_id}.jpg",
+                            path / f"{image.local_id}.jpg",
                         )
                 except FileNotFoundError:
                     logger.warning(f"文件 {image.local_id}.jpg 不存在，跳过...")

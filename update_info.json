@@ -4,7 +4,10 @@
       "models",
       "services",
       "utils",
-      "basic_plugins"
+      "basic_plugins",
+      "configs/path_config.py",
+      "configs/utils",
+      "bot.py"
     ],
     "add_file": [],
     "delete_file": []

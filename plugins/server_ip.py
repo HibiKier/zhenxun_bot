@@ -1,5 +1,5 @@
 from nonebot import on_command
-from nonebot.adapters.cqhttp import Bot, PrivateMessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, PrivateMessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
 from nonebot.rule import to_me
 

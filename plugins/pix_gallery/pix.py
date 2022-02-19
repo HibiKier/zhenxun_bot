@@ -1,18 +1,18 @@
-from nonebot.adapters.cqhttp.message import Message
-from utils.utils import get_message_text, is_number
+from utils.utils import is_number
 from configs.config import Config
-from .model.omega_pixiv_illusts import OmegaPixivIllusts
+from ._model.omega_pixiv_illusts import OmegaPixivIllusts
 from utils.message_builder import image
 from utils.manager import withdraw_message_manager
 from services.log import logger
-from nonebot.adapters.cqhttp import (
+from nonebot.adapters.onebot.v11 import (
     Bot,
     MessageEvent,
     GroupMessageEvent,
+    Message
 )
-from nonebot.typing import T_State
-from .data_source import get_image
-from .model.pixiv import Pixiv
+from nonebot.params import CommandArg
+from ._data_source import get_image
+from ._model.pixiv import Pixiv
 from nonebot import on_command
 import random
 
@@ -59,7 +59,7 @@ OMEGA_RATIO = None
 
 
 @pix.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     global PIX_RATIO, OMEGA_RATIO
     if PIX_RATIO is None:
         pix_omega_pixiv_ratio = Config.get_config("pix", "PIX_OMEGA_PIXIV_RATIO")
@@ -68,7 +68,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         )
         OMEGA_RATIO = 1 - PIX_RATIO
     num = 1
-    keyword = get_message_text(event.json())
+    keyword = arg.extract_plain_text().strip()
     x = keyword.split(" ")
     if "-s" in x:
         x.remove("-s")

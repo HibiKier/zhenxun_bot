@@ -1,11 +1,11 @@
 from typing import Optional, List, Dict, Union
 from .draw_image import init_image, get_genshin_image
-from nonebot.adapters.cqhttp import MessageSegment
-from ..utils import get_ds, element_mastery
+from nonebot.adapters.onebot.v11 import MessageSegment
+from .._utils import get_ds, element_mastery
 from services.log import logger
 from utils.http_utils import AsyncHttpx
 from configs.config import Config
-from ..models import Genshin
+from .._models import Genshin
 
 try:
     import ujson as json

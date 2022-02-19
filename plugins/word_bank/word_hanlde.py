@@ -1,20 +1,22 @@
-from utils.utils import get_message_at, is_number, get_message_img, get_message_text
+from utils.utils import get_message_at, is_number, get_message_img
+from nonebot.params import CommandArg
 from services.log import logger
 from configs.path_config import DATA_PATH
 from utils.http_utils import AsyncHttpx
-from .data_source import WordBankBuilder
+from ._data_source import WordBankBuilder
 from configs.config import Config
 from utils.message_builder import image
 from utils.image_utils import text2image
 from .model import WordBank
-from nonebot.adapters.cqhttp import (
+from nonebot.adapters.onebot.v11 import (
     Bot,
     GroupMessageEvent,
+    Message
 )
-from pathlib import Path
 from nonebot.typing import T_State
 from nonebot import on_command
 import random
+import os
 import re
 
 __zx_plugin_name__ = "词库问答 [Admin]"
@@ -47,7 +49,7 @@ __plugin_settings__ = {
     "cmd": ["词库问答", "添加词条", "删除词条", "查看词条"],
 }
 
-data_dir = Path(DATA_PATH) / "word_bank"
+data_dir = DATA_PATH / "word_bank"
 data_dir.mkdir(parents=True, exist_ok=True)
 
 
@@ -59,8 +61,8 @@ show_word = on_command("显示词条", aliases={"查看词条"}, priority=5, blo
 
 
 @add_word.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    msg = str(event.get_message()).strip()
+async def _(bot: Bot, event: GroupMessageEvent, state: T_State, arg: Message = CommandArg()):
+    msg = str(arg)
     r = re.search(r"^问(.+)\s?答([\s\S]*)", msg)
     if not r:
         await add_word.finish("未检测到词条问题...")
@@ -72,11 +74,12 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         await add_word.finish("未检测到词条回答...")
     idx = 0
     for n in bot.config.nickname:
-        if problem.startswith(n):
+        if n and problem.startswith(n):
             _problem = f"[_to_me|{n}]" + problem[len(n) :]
             break
     else:
         _problem = problem
+    (data_dir / f"{event.group_id}").mkdir(exist_ok=True, parents=True)
     _builder = WordBankBuilder(event.user_id, event.group_id, _problem)
     for at_ in get_message_at(event.json()):
         r = re.search(rf"\[CQ:at,qq={at_}]", answer)
@@ -88,7 +91,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         _x = img.split("?")[0]
         r = re.search(rf"\[CQ:image,file=(.*),url={_x}.*?]", answer)
         if r:
-            rand = random.randint(1, 10000) + random.randint(1, 14514)
+            rand = random.randint(1, 10000) + random.randint(1, 114514)
+            for _ in range(10):
+                if f"__placeholder_{rand}_{idx}.jpg" not in os.listdir(data_dir / f"{event.group_id}"):
+                    break
+                rand = random.randint(1, 10000) + random.randint(1, 114514)
             for i in range(3):
                 answer = answer.replace(f",subType={i}", "")
             answer = answer.replace(
@@ -107,8 +114,8 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 
 @delete_word.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     if not msg:
         await delete_word.finish("此命令之后需要跟随指定词条，通过“显示词条“查看")
     index = None
@@ -142,8 +149,8 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 
 @show_word.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     if not msg:
         _problem_list = await WordBank.get_group_all_problem(event.group_id)
         if not _problem_list:
@@ -151,11 +158,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         _problem_list = [f"\t{i}. {x}" for i, x in enumerate(_problem_list)]
         await show_word.send(
             image(
-                b64=await text2image(
+                b64=(await text2image(
                     "该群已收录的词条：\n\n" + "\n".join(_problem_list),
                     padding=10,
                     color="#f9f6f2",
-                )
+                )).pic2bs4()
             )
         )
     else:

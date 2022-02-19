@@ -1,15 +1,14 @@
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, PrivateMessageEvent, Message
 from nonebot import on_command
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, PrivateMessageEvent
 from nonebot.rule import to_me
-from utils.utils import get_message_text
 from models.group_member_info import GroupInfoUser
 from models.friend_user import FriendUser
-import random
 from models.ban_user import BanUser
 from services.log import logger
 from configs.config import NICKNAME, Config
-
+from nonebot.params import CommandArg
+import random
 
 __zx_plugin_name__ = "昵称系统"
 __plugin_usage__ = f"""
@@ -48,8 +47,8 @@ cancel_nickname = on_command("取消昵称", rule=to_me(), priority=5, block=Tru
 
 
 @nickname.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     if not msg:
         await nickname.finish("叫你空白？叫你虚空？叫你无名？？", at_sender=True)
     if len(msg) > 10:
@@ -103,7 +102,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 
 @my_nickname.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     try:
         nickname_ = await GroupInfoUser.get_group_member_nickname(
             event.user_id, event.group_id
@@ -124,7 +123,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
             )
         )
     else:
-        nickname_ = event.sender.card if event.sender.card else event.sender.nickname
+        nickname_ = event.sender.card or event.sender.nickname
         await my_nickname.send(
             random.choice(
                 ["没..没有昵称嘛，{}", "啊，你是{}啊，我想叫你的昵称！", "是{}啊，有什么事吗？", "你是{}？"]
@@ -158,7 +157,7 @@ async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
 
 
 @cancel_nickname.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     nickname_ = await GroupInfoUser.get_group_member_nickname(
         event.user_id, event.group_id
     )
@@ -181,7 +180,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 
 
 @cancel_nickname.handle()
-async def _(bot: Bot, event: PrivateMessageEvent, state: T_State):
+async def _(event: PrivateMessageEvent):
     nickname_ = await FriendUser.get_friend_nickname(event.user_id)
     if nickname_:
         await cancel_nickname.send(

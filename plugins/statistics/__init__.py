@@ -1,4 +1,3 @@
-from pathlib import Path
 from configs.path_config import DATA_PATH
 import nonebot
 import os
@@ -9,9 +8,9 @@ except ModuleNotFoundError:
 
 nonebot.load_plugins("plugins/statistics")
 
-old_file1 = Path(DATA_PATH) / "_prefix_count.json"
-old_file2 = Path(DATA_PATH) / "_prefix_user_count.json"
-new_path = Path(DATA_PATH) / "statistics"
+old_file1 = DATA_PATH / "_prefix_count.json"
+old_file2 = DATA_PATH / "_prefix_user_count.json"
+new_path = DATA_PATH / "statistics"
 new_path.mkdir(parents=True, exist_ok=True)
 if old_file1.exists():
     os.rename(old_file1, new_path / "_prefix_count.json")
@@ -21,8 +20,8 @@ if old_file2.exists():
 
 # 修改旧数据
 
-statistics_group_file = Path(DATA_PATH) / "statistics" / "_prefix_count.json"
-statistics_user_file = Path(DATA_PATH) / "statistics" / "_prefix_user_count.json"
+statistics_group_file = DATA_PATH / "statistics" / "_prefix_count.json"
+statistics_user_file = DATA_PATH / "statistics" / "_prefix_user_count.json"
 
 for file in [statistics_group_file, statistics_user_file]:
     if file.exists():

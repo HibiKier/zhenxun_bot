@@ -1,14 +1,13 @@
-from nonebot import on_message, on_keyword, on_regex
+from nonebot import on_message, on_regex
 from configs.path_config import IMAGE_PATH
 from utils.message_builder import image
-from utils.utils import get_message_text, is_number
+from utils.utils import is_number
 from services.log import logger
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
 from utils.utils import FreqLimiter, cn2py
-from pathlib import Path
 from configs.config import Config
-from utils.manager import group_manager, withdraw_message_manager
+from utils.manager import withdraw_message_manager
+from nonebot.params import CommandArg
 from .rule import rule
 import random
 import os
@@ -38,7 +37,6 @@ __plugin_settings__ = {
     "limit_superuser": False,
     "cmd": ["发送图片"] + Config.get_config("image_management", "IMAGE_DIR_LIST"),
 }
-__plugin_task__ = {"pa": "丢人爬"}
 __plugin_resources__ = {"pa": IMAGE_PATH}
 
 Config.add_plugin_config(
@@ -53,16 +51,15 @@ _flmt = FreqLimiter(1)
 
 
 send_img = on_message(priority=5, rule=rule, block=True)
-pa = on_keyword({"丢人爬", "爪巴"}, priority=5, block=True)
-pa_reg = on_regex("^爬$", priority=5, block=True)
+pa_reg = on_regex("^(爬|丢人爬|爪巴)$", priority=5, block=True)
 
 
-_path = Path(IMAGE_PATH) / "image_management"
+_path = IMAGE_PATH / "image_management"
 
 
 @send_img.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json()).split()
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip().split()
     gallery = msg[0]
     if gallery not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
         return
@@ -74,7 +71,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         "image_management", "IMAGE_DIR_LIST"
     ):
         if not path.exists() and (path.parent.parent / cn2py(gallery)).exists():
-            path = Path(IMAGE_PATH) / cn2py(gallery)
+            path = IMAGE_PATH / cn2py(gallery)
         else:
             path.mkdir(parents=True, exist_ok=True)
     length = len(os.listdir(path))
@@ -113,32 +110,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         await send_img.finish(f"不想给你看Ov|")
 
 
-@pa.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if (
-        isinstance(event, GroupMessageEvent)
-        and not await group_manager.check_group_task_status(event.group_id, "pa")
-        or get_message_text(event.json()).startswith("开启")
-        or get_message_text(event.json()).startswith("关闭")
-    ):
-        return
-    msg = get_message_text(event.json())
-    if not msg or str(event.get_message()[:2]) in ["开启", "关闭"]:
-        return
-    if _flmt.check(event.user_id):
-        _flmt.start_cd(event.user_id)
-        await pa.finish(image(random.choice(os.listdir(IMAGE_PATH + "pa")), "pa"))
-
-
 @pa_reg.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if (
-        isinstance(event, GroupMessageEvent)
-        and not await group_manager.check_group_task_status(event.group_id, "pa")
-        or get_message_text(event.json()).startswith("开启")
-        or get_message_text(event.json()).startswith("关闭")
-    ):
-        return
+async def _(event: MessageEvent):
     if _flmt.check(event.user_id):
         _flmt.start_cd(event.user_id)
-        await pa_reg.finish(image(random.choice(os.listdir(IMAGE_PATH + "pa")), "pa"))
+        await pa_reg.finish(image(random.choice(os.listdir(IMAGE_PATH / "pa")), "pa"))

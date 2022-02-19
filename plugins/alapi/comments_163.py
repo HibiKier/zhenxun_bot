@@ -1,7 +1,6 @@
-from nonebot import on_command
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
-from nonebot.typing import T_State
-from .data_source import get_data
+from nonebot import on_regex
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent
+from ._data_source import get_data
 from services.log import logger
 
 __zx_plugin_name__ = "网易云热评"
@@ -23,8 +22,8 @@ __plugin_settings__ = {
 }
 
 
-comments_163 = on_command(
-    "网易云热评", aliases={"网易云评论", "到点了", "12点了"}, priority=5, block=True
+comments_163 = on_regex(
+    "^(网易云热评|网易云评论|到点了|12点了)$", priority=5, block=True
 )
 
 
@@ -32,7 +31,7 @@ comments_163_url = "https://v2.alapi.cn/api/comment"
 
 
 @comments_163.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent):
     data, code = await get_data(comments_163_url)
     if code != 200:
         await comments_163.finish(data, at_sender=True)

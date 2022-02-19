@@ -4,7 +4,6 @@ from datetime import datetime
 from utils.http_utils import AsyncHttpx
 from utils.image_utils import BuildImage
 from configs.path_config import IMAGE_PATH
-from pathlib import Path
 import asyncio
 from services.log import logger
 
@@ -73,6 +72,6 @@ class Check:
         A.transparent(1)
         A.text((10, 10), rst)
         _x = max(width, height)
-        bk = BuildImage(_x + 100, _x + 100, background=Path(IMAGE_PATH) / "background" / "check" / "0.jpg")
+        bk = BuildImage(_x + 100, _x + 100, background=IMAGE_PATH / "background" / "check" / "0.jpg")
         bk.paste(A, alpha=True, center_type='center')
         return bk.pic2bs4()

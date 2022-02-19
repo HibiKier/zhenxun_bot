@@ -1,20 +1,19 @@
 from nonebot import on_command
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent
 from apscheduler.jobstores.base import JobLookupError
 from services.log import logger
 from .init_task import scheduler, add_job
-from ..models import Genshin
-from datetime import datetime
-import random
-import asyncio
-import pytz
+from .._models import Genshin
+from nonebot.params import Command
+from typing import Tuple
 
 
 __zx_plugin_name__ = "原神树脂提醒"
 __plugin_usage__ = """
 usage：
     即将满树脂的提醒
+    会在 120-140 140-160 160 以及溢出指定部分时提醒，
+    共提醒3-4次
     指令：
         开原神树脂提醒
         关原神树脂提醒
@@ -30,12 +29,25 @@ __plugin_settings__ = {
     "limit_superuser": False,
     "cmd": ["原神树脂提醒", "关原神树脂提醒", "开原神树脂提醒"],
 }
+__plugin_configs__ = {
+    "AUTO_CLOSE_QUERY_FAIL_RESIN_REMIND": {
+        "value": True,
+        "help": "当请求连续三次失败时，关闭用户的树脂提醒",
+        "default_value": True
+    },
+    "CUSTOM_RESIN_OVERFLOW_REMIND": {
+        "value": 20,
+        "help": "自定义树脂溢出指定数量时的提醒，空值是为关闭",
+        "default_value": None
+    }
+}
 
 resin_remind = on_command("开原神树脂提醒", aliases={"关原神树脂提醒"}, priority=5, block=True)
 
 
 @resin_remind.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
+    cmd = cmd[0]
     uid = await Genshin.get_user_uid(event.user_id)
     if not uid or not await Genshin.get_user_cookie(uid, True):
         await resin_remind.finish("请先绑定uid和cookie！")
@@ -43,7 +55,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         scheduler.remove_job(f"genshin_resin_remind_{uid}_{event.user_id}")
     except JobLookupError:
         pass
-    if state["_prefix"]["raw_command"][0] == "开":
+    if cmd == "开":
         await Genshin.set_resin_remind(uid, True)
         add_job(event.user_id, uid)
         logger.info(
@@ -62,22 +74,3 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         )
         await resin_remind.send("已关闭原神树脂提醒..", at_sender=True)
 
-
-@scheduler.scheduled_job(
-    "interval",
-    minutes=30,
-)
-async def _():
-    for u in await Genshin.get_all_resin_remind_user():
-        if u.resin_recovery_time:
-            if await Genshin.get_user_resin_recovery_time(u.uid) < datetime.now(
-                pytz.timezone("Asia/Shanghai")
-            ):
-                await Genshin.clear_resin_remind_time(u.uid)
-            elif (
-                await Genshin.get_user_resin_recovery_time(u.uid)
-                - datetime.now(pytz.timezone("Asia/Shanghai"))
-            ).seconds > 360:
-                continue
-            add_job(u.user_qq, u.uid)
-            await asyncio.sleep(random.randint(10, 30))

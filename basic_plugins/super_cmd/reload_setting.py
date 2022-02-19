@@ -7,10 +7,8 @@ from utils.manager import (
     plugins2block_manager,
     group_manager,
 )
-from nonebot.typing import T_State
 from configs.config import Config
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, MessageEvent
 from utils.utils import scheduler
 
 
@@ -51,7 +49,7 @@ reload_plugins_manager = on_command(
 
 
 @reload_plugins_manager.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     plugins2settings_manager.reload()
     plugins2cd_manager.reload()
     plugins2block_manager.reload()

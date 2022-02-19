@@ -1,12 +1,12 @@
 from nonebot import on_command
-from utils.utils import get_message_text, is_number
+from utils.utils import is_number
 from nonebot.permission import SUPERUSER
-from nonebot.typing import T_State
-from .data_source import start_update_image_url
-from .model.pixiv_keyword_user import PixivKeywordUser
-from .model.omega_pixiv_illusts import OmegaPixivIllusts
-from .model.pixiv import Pixiv
-from nonebot.adapters.cqhttp import Bot, MessageEvent
+from ._data_source import start_update_image_url
+from ._model.pixiv_keyword_user import PixivKeywordUser
+from ._model.omega_pixiv_illusts import OmegaPixivIllusts
+from ._model.pixiv import Pixiv
+from nonebot.adapters.onebot.v11 import Message
+from nonebot.params import CommandArg
 import time
 from services.log import logger
 from pathlib import Path
@@ -47,8 +47,8 @@ check_omega = on_command("检测omega图库", permission=SUPERUSER, priority=1, 
 
 
 @start_update.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg_sp = get_message_text(event.json()).split()
+async def _(arg: Message = CommandArg()):
+    msg_sp = arg.extract_plain_text().strip().split()
     _pass_keyword, _ = await PixivKeywordUser.get_current_keyword()
     _pass_keyword.reverse()
     black_pid = await PixivKeywordUser.get_black_pid()
@@ -105,8 +105,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @check_not_update_uid_pid.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     flag = False
     if msg == "update":
         flag = True
@@ -142,7 +142,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @check_omega.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     async def _tasks(line: str, all_pid: List[int], length: int, index: int):
         data = line.split("VALUES", maxsplit=1)[-1].strip()
         if data.startswith("("):

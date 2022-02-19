@@ -55,7 +55,7 @@ Config.add_plugin_config(
 )
 
 
-(Path(IMAGE_PATH) / "image_management").mkdir(parents=True, exist_ok=True)
+(IMAGE_PATH / "image_management").mkdir(parents=True, exist_ok=True)
 
 
 nonebot.load_plugins("plugins/image_management")

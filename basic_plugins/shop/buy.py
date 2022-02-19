@@ -1,11 +1,11 @@
 from nonebot import on_command
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from nonebot.typing import T_State
-from utils.utils import get_message_text, is_number
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
+from nonebot.params import CommandArg
+from utils.utils import is_number
 from models.bag_user import BagUser
 from services.db_context import db
-from nonebot.adapters.cqhttp.permission import GROUP
+from nonebot.adapters.onebot.v11.permission import GROUP
 from models.goods_info import GoodsInfo
 import time
 
@@ -37,9 +37,9 @@ buy = on_command("购买", aliases={"购买道具"}, priority=5, block=True, per
 
 
 @buy.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
     goods = None
-    if get_message_text(event.json()) in ["神秘药水"]:
+    if arg.extract_plain_text().strip() in ["神秘药水"]:
         await buy.finish("你们看看就好啦，这是不可能卖给你们的~", at_sender=True)
     goods_list = [
         x
@@ -50,7 +50,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
         x.goods_name
         for x in goods_list
     ]
-    msg = get_message_text(event.json()).split()
+    msg = arg.extract_plain_text().strip().split()
     num = 1
     if len(msg) > 1:
         if is_number(msg[1]) and int(msg[1]) > 0:

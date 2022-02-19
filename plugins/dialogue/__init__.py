@@ -1,12 +1,12 @@
 from nonebot import on_command
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, Message, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, Message, GroupMessageEvent
 from nonebot.permission import SUPERUSER
-from utils.utils import get_message_text, is_number, get_message_img
+from utils.utils import is_number, get_message_img
 from utils.message_builder import image
 from utils.message_builder import text as _text
 from services.log import logger
 from utils.message_builder import at
+from nonebot.params import CommandArg
 
 
 __zx_plugin_name__ = "联系管理员"
@@ -58,10 +58,8 @@ reply = on_command("/t", priority=1, permission=SUPERUSER, block=True)
 
 
 @dialogue.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    uid = event.user_id
-    coffee = int(list(bot.config.superusers)[0])
-    text = get_message_text(event.json())
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+    text = arg.extract_plain_text().strip()
     img_msg = _text("")
     for img in get_message_img(event.json()):
         img_msg += image(img)
@@ -76,17 +74,18 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             group_name = (await bot.get_group_info(group_id=event.group_id))[
                 "group_name"
             ]
-            nickname = event.sender.card if event.sender.card else event.sender.nickname
-        await bot.send_private_msg(
-            user_id=coffee,
-            message=_text(
-                f"*****一份交流报告*****\n"
-                f"昵称：{nickname}({uid})\n"
-                f"群聊：{group_name}({group_id})\n"
-                f"消息：{text}"
+            nickname = event.sender.card or event.sender.nickname
+        for coffee in bot.config.superusers:
+            await bot.send_private_msg(
+                user_id=int(coffee),
+                message=_text(
+                    f"*****一份交流报告*****\n"
+                    f"昵称：{nickname}({event.user_id})\n"
+                    f"群聊：{group_name}({group_id})\n"
+                    f"消息：{text}"
+                )
+                + img_msg,
             )
-            + img_msg,
-        )
         await dialogue.send(
             _text(f"您的话已发送至管理员！\n======\n{text}") + img_msg, at_sender=True
         )
@@ -99,12 +98,12 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             "msg": _text(text) + img_msg,
         }
         # print(dialogue_data)
-        logger.info(f"Q{uid}@群{group_id} 联系管理员：{coffee} text:{text}")
+        logger.info(f"Q{event.user_id}@群{group_id} 联系管理员：text:{text}")
 
 
 @reply.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     if not msg:
         result = "*****待回复消息总览*****\n"
         for key in dialogue_data.keys():

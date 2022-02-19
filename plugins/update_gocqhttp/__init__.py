@@ -1,6 +1,6 @@
 from nonebot import on_command
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
 from .data_source import download_gocq_lasted, upload_gocq_lasted
 from services.log import logger
 from utils.utils import scheduler, get_bot

@@ -7,14 +7,13 @@ from nonebot import Driver
 from services.db_context import db
 from models.group_info import GroupInfo
 from models.bag_user import BagUser
-from nonebot.adapters.cqhttp import Bot
+from nonebot.adapters.onebot.v11 import Bot
 from services.log import logger
 from configs.path_config import TEXT_PATH
 from asyncio.exceptions import TimeoutError
 from typing import List
 from utils.http_utils import AsyncHttpx
 from utils.utils import scheduler
-from pathlib import Path
 import nonebot
 
 try:
@@ -32,7 +31,7 @@ async def update_city():
     部分插件需要中国省份城市
     这里直接更新，避免插件内代码重复
     """
-    china_city = Path(TEXT_PATH) / "china_city.json"
+    china_city = TEXT_PATH / "china_city.json"
     data = {}
     if not china_city.exists():
         try:
@@ -105,6 +104,10 @@ async def _():
             "ALTER TABLE genshin ADD resin_recovery_time timestamp with time zone;",
             "genshin"
         ),  # 新增原神自动签到字段
+        (
+            "ALTER TABLE genshin ADD bind_group Integer;",
+            "genshin"
+        ),  # 新增原神群号绑定字段
     ]
     for sql in sql_str:
         try:

@@ -4,7 +4,7 @@ from nonebot import on_message
 from services.log import logger
 from models.group_info import GroupInfo
 from models.friend_user import FriendUser
-from nonebot.adapters.cqhttp.exception import ActionFailed
+from nonebot.adapters.onebot.v11.exception import ActionFailed
 from configs.config import NICKNAME, Config
 from utils.manager import group_manager
 from pathlib import Path
@@ -57,12 +57,11 @@ async def _():
         gl = await bot.get_group_list()
         gl = [g["group_id"] for g in gl]
         for g in gl:
-            if await group_manager.check_group_task_status(g, 'zwa'):
-                result = image("zao.jpg", "zhenxun")
-                try:
-                    await bot.send_group_msg(group_id=g, message="早上好" + result)
-                except ActionFailed:
-                    logger.warning(f"{g} 群被禁言中，无法发送早安")
+            result = image("zao.jpg", "zhenxun")
+            try:
+                await bot.send_group_msg(group_id=g, message="[[_task|zwa]]早上好" + result)
+            except ActionFailed:
+                logger.warning(f"{g} 群被禁言中，无法发送早安")
     except Exception as e:
         logger.error(f"早晚安错误 e:{e}")
 
@@ -79,14 +78,13 @@ async def _():
         gl = await bot.get_group_list()
         gl = [g["group_id"] for g in gl]
         for g in gl:
-            if await group_manager.check_group_task_status(g, 'zwa'):
-                result = image("sleep.jpg", "zhenxun")
-                try:
-                    await bot.send_group_msg(
-                        group_id=g, message=f"{NICKNAME}要睡觉了，你们也要早点睡呀" + result
-                    )
-                except ActionFailed:
-                    logger.warning(f"{g} 群被禁言中，无法发送晚安")
+            result = image("sleep.jpg", "zhenxun")
+            try:
+                await bot.send_group_msg(
+                    group_id=g, message=f"[[_task|zwa]]{NICKNAME}要睡觉了，你们也要早点睡呀" + result
+                )
+            except ActionFailed:
+                logger.warning(f"{g} 群被禁言中，无法发送晚安")
     except Exception as e:
         logger.error(f"早晚安错误 e:{e}")
 

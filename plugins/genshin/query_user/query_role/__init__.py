@@ -1,10 +1,10 @@
 from nonebot import on_command
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
 from services.log import logger
 from .data_source import query_role_data
-from ..models import Genshin
-from utils.utils import get_message_text, is_number
+from .._models import Genshin
+from utils.utils import is_number
+from nonebot.params import CommandArg
 
 
 __zx_plugin_name__ = "原神玩家查询"
@@ -33,8 +33,8 @@ query_role_info_matcher = on_command("原神玩家查询", aliases={"原神玩�
 
 
 @query_role_info_matcher.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     if msg:
         if not is_number(msg):
             await query_role_info_matcher.finish("查询uid必须为数字！")
@@ -45,7 +45,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         uid = msg
     if not uid:  # or not await Genshin.get_user_cookie(uid):
         await query_role_info_matcher.finish("请先绑定uid和cookie！")
-    nickname = event.sender.card if event.sender.card else event.sender.nickname
+    nickname = event.sender.card or event.sender.nickname
     mys_id = await Genshin.get_user_mys_id(uid)
     data = await query_role_data(event.user_id, uid, mys_id, nickname)
     if data:

@@ -1,10 +1,9 @@
 from nonebot import on_command
-from utils.utils import get_message_text
 from utils.message_builder import image
-from nonebot.adapters.cqhttp import Bot, MessageEvent
-from nonebot.typing import T_State
-from .data_source import gen_keyword_pic, get_keyword_num
-from .model.pixiv_keyword_user import PixivKeywordUser
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, Message
+from ._data_source import gen_keyword_pic, get_keyword_num
+from ._model.pixiv_keyword_user import PixivKeywordUser
+from nonebot.params import CommandArg
 import asyncio
 
 
@@ -35,7 +34,7 @@ show_pix = on_command("查看pix图库", priority=1, block=True)
 
 
 @my_keyword.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent):
     data = await PixivKeywordUser.get_all_user_dict()
     if data.get(event.user_id) is None or not data[event.user_id]["keyword"]:
         await my_keyword.finish("您目前没有提供任何Pixiv搜图关键字...", at_sender=True)
@@ -45,7 +44,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @show_keyword.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(bot: Bot, event: MessageEvent):
     _pass_keyword, not_pass_keyword = await PixivKeywordUser.get_current_keyword()
     if _pass_keyword or not_pass_keyword:
         await show_keyword.send(
@@ -67,8 +66,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @show_pix.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    keyword = get_message_text(event.json())
+async def _(arg: Message = CommandArg()):
+    keyword = arg.extract_plain_text().strip()
     count, r18_count, count_, setu_count, r18_count_ = await get_keyword_num(keyword)
     await show_pix.send(
         f"PIX图库：{keyword}\n"

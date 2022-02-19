@@ -1,9 +1,8 @@
-from configs.path_config import IMAGE_PATH
-from pathlib import Path
+from configs.path_config import IMAGE_PATH, TEMP_PATH
 from utils.image_utils import BuildImage
 from typing import List, Dict, Optional
 from utils.message_builder import image
-from nonebot.adapters.cqhttp import MessageSegment
+from nonebot.adapters.onebot.v11 import MessageSegment
 from utils.http_utils import AsyncHttpx
 from utils.utils import get_user_avatar
 from io import BytesIO
@@ -12,7 +11,7 @@ import asyncio
 import os
 
 
-image_path = Path(IMAGE_PATH) / "genshin" / "genshin_card"
+image_path = IMAGE_PATH / "genshin" / "genshin_card"
 
 
 async def get_genshin_image(
@@ -109,8 +108,8 @@ def _get_genshin_image(
     A.paste(char_image, (0, top_bk.h + bar.h + 10), center_type="by_width")
     rand = random.randint(1, 10000)
     A.resize(0.8)
-    A.save(Path(IMAGE_PATH) / "temp" / f"genshin_user_card_{rand}.png")
-    return image(f"genshin_user_card_{rand}.png", "temp")
+    A.save(TEMP_PATH / f"genshin_user_card_{rand}.png")
+    return image(TEMP_PATH / f"genshin_user_card_{rand}.png")
 
 
 def get_user_data_image(

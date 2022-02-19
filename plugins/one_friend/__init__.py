@@ -2,11 +2,12 @@ from io import BytesIO
 from random import choice
 from nonebot import on_regex
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from utils.utils import get_message_text, get_message_at, get_user_avatar
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
+from utils.utils import get_message_at, get_user_avatar
 from utils.message_builder import image
-import re
 from utils.image_utils import BuildImage
+from nonebot.params import RegexGroup
+from typing import Tuple, Any
 
 __zx_plugin_name__ = "我有一个朋友"
 __plugin_usage__ = """
@@ -27,22 +28,21 @@ __plugin_settings__ = {
 }
 
 one_friend = on_regex(
-    "^我.*?朋友.*?(想问问|说|让我问问|想问|让我问|想知道|让我帮他问问|让我帮他问|让我帮忙问|让我帮忙问问|问).*",
+    "^我.*?朋友.*?(想问问|说|让我问问|想问|让我问|想知道|让我帮他问问|让我帮他问|让我帮忙问|让我帮忙问问|问)(.*)",
     priority=4,
     block=True,
 )
 
 
 @one_friend.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(bot: Bot, event: GroupMessageEvent, state: T_State, reg_group: Tuple[Any, ...] = RegexGroup()):
     qq = get_message_at(event.json())
     if not qq:
         qq = choice(
             [
                 x["user_id"]
                 for x in await bot.get_group_member_list(
-                    self_id=event.self_id, group_id=event.group_id
+                    group_id=event.group_id
                 )
             ]
         )
@@ -50,11 +50,8 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     else:
         qq = qq[0]
         at_user = await bot.get_group_member_info(group_id=event.group_id, user_id=qq)
-        user_name = at_user["card"] if at_user["card"] else at_user["nickname"]
-    msg = re.search(
-        r"^我.*?朋友.*?(想问问|说|让我问问|想问|让我问|想知道|让我帮他问问|让我帮他问|让我帮忙问|让我帮忙问问|问)(.*)", msg
-    )
-    msg = msg.group(2)
+        user_name = at_user["card"] or at_user["nickname"]
+    msg = reg_group[1]
     if not msg:
         msg = "都不知道问什么"
     msg = msg.replace("他", "我").replace("她", "我").replace("它", "我")
@@ -64,11 +61,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
     else:
         ava = BuildImage(200, 100, color=(0, 0, 0))
     ava.circle()
-    text = BuildImage(300, 30, font_size=30)
+    text = BuildImage(400, 30, font_size=30)
     text.text((0, 0), user_name)
     A = BuildImage(700, 150, font_size=25, color="white")
-    A.paste(ava, (30, 25), True)
-    A.paste(text, (150, 38))
-    A.text((150, 85), msg, (125, 125, 125))
+    await A.apaste(ava, (30, 25), True)
+    await A.apaste(text, (150, 38))
+    await A.atext((150, 85), msg, (125, 125, 125))
 
     await one_friend.send(image(b64=A.pic2bs4()))

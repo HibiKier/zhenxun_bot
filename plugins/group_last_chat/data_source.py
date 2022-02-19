@@ -32,14 +32,14 @@ async def init():
 
 def read_data(file_name: str):
     try:
-        with open(DATA_PATH + file_name, "r", encoding="utf8") as f:
+        with open(DATA_PATH / file_name, "r", encoding="utf8") as f:
             return json.load(f)
     except (ValueError, FileNotFoundError):
         return {}
 
 
 def save_data():
-    with open(DATA_PATH + "group_last_chat_time.json", "w") as f:
+    with open(DATA_PATH / "group_last_chat_time.json", "w") as f:
         json.dump(time_data, f, indent=4)
     logger.info(
         f'自动存储 group_last_chat_time.json 时间：{str(datetime.now()).split(".")[0]}'

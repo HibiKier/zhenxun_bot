@@ -1,15 +1,14 @@
-import random
-from nonebot import on_keyword
-import os
 from utils.message_builder import image
 from configs.path_config import IMAGE_PATH
 from nonebot import on_command
 from nonebot.rule import to_me
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent
-from nonebot.adapters.cqhttp.permission import GROUP
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
+from nonebot.adapters.onebot.v11.permission import GROUP
 from utils.utils import FreqLimiter
 from configs.config import NICKNAME
+import random
+from nonebot import on_keyword
+import os
 
 
 __zx_plugin_name__ = "基本设置 [Hidden]"
@@ -25,12 +24,12 @@ config_play_game = on_keyword({"打游戏"}, permission=GROUP, priority=1, block
 
 
 @config_play_game.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     if not _flmt.check(event.group_id):
         return
     _flmt.start_cd(event.group_id)
     await config_play_game.finish(
-        image(random.choice(os.listdir(IMAGE_PATH + "dayouxi/")), "dayouxi")
+        image(random.choice(os.listdir(IMAGE_PATH / "dayouxi")), "dayouxi")
     )
 
 
@@ -40,7 +39,7 @@ self_introduction = on_command(
 
 
 @self_introduction.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     if NICKNAME.find('真寻') != -1:
         result = (
             "我叫绪山真寻\n"
@@ -57,6 +56,6 @@ my_wife = on_keyword({"老婆"}, rule=to_me(), priority=5, block=True)
 
 
 @my_wife.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     await my_wife.finish(image("laopo.jpg", "other"))
 

@@ -1,16 +1,17 @@
-from nonebot.adapters.cqhttp.permission import GROUP
-from configs.path_config import IMAGE_PATH
+from nonebot.adapters.onebot.v11.permission import GROUP
+from configs.path_config import TEMP_PATH
 from utils.image_utils import get_img_hash
 import random
 from utils.message_builder import image
 from nonebot import on_message
-from utils.utils import get_message_text, get_message_img
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
+from utils.utils import get_message_img
+from nonebot.params import CommandArg, Command
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
 from configs.config import Config
 from utils.http_utils import AsyncHttpx
 from utils.manager import group_manager
 from services.log import logger
+from typing import Tuple
 
 
 __zx_plugin_name__ = "复读"
@@ -80,18 +81,18 @@ fudu = on_message(permission=GROUP, priority=9)
 
 
 @fudu.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
     if (
         event.is_tome()
-        or state["_prefix"]["raw_command"]
+        or cmd
         or not await group_manager.check_group_task_status(event.group_id, "fudu")
     ):
         return
-    if get_message_text(event.json()):
-        if get_message_text(event.json()).find("@可爱的小真寻") != -1:
+    if arg.extract_plain_text().strip():
+        if arg.extract_plain_text().strip().find("@可爱的小真寻") != -1:
             await fudu.finish("复制粘贴的虚空艾特？", at_sender=True)
     img = get_message_img(event.json())
-    msg = get_message_text(event.json())
+    msg = arg.extract_plain_text().strip()
     if not img and not msg:
         return
     if img:
@@ -130,9 +131,9 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
 async def get_fudu_img_hash(url, group_id):
     try:
         if await AsyncHttpx.download_file(
-            url, IMAGE_PATH + f"temp/compare_{group_id}_img.jpg"
+            url, TEMP_PATH / f"compare_{group_id}_img.jpg"
         ):
-            img_hash = get_img_hash(IMAGE_PATH + f"temp/compare_{group_id}_img.jpg")
+            img_hash = get_img_hash(TEMP_PATH / f"compare_{group_id}_img.jpg")
             return str(img_hash)
         else:
             logger.warning(f"复读下载图片失败...")

@@ -1,7 +1,6 @@
 from nonebot import on_command, on_notice
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, GROUP, GroupIncreaseNoticeEvent
-from .data_source import update_member_info
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, GROUP, GroupIncreaseNoticeEvent
+from ._data_source import update_member_info
 
 __zx_plugin_name__ = "更新群组成员列表 [Admin]"
 __plugin_usage__ = """
@@ -25,7 +24,7 @@ refresh_member_group = on_command(
 
 
 @refresh_member_group.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     if await update_member_info(event.group_id):
         await refresh_member_group.finish("更新群员信息成功！", at_sender=True)
     else:
@@ -36,6 +35,6 @@ group_increase_handle = on_notice(priority=1, block=False)
 
 
 @group_increase_handle.handle()
-async def _(bot: Bot, event: GroupIncreaseNoticeEvent, state: dict):
+async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
     if event.user_id == int(bot.self_id):
         await update_member_info(event.group_id)

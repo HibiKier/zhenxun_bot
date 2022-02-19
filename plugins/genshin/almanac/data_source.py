@@ -2,7 +2,7 @@ from utils.message_builder import image
 from datetime import datetime
 from pathlib import Path
 from utils.http_utils import AsyncPlaywright
-from nonebot.adapters.cqhttp import MessageSegment
+from nonebot.adapters.onebot.v11 import MessageSegment
 from typing import Optional
 import os
 

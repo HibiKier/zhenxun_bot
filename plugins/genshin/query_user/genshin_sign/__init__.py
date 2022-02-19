@@ -1,11 +1,12 @@
 from .data_source import get_sign_reward_list, genshin_sign
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent
 from nonebot import on_command
-from nonebot.typing import T_State
 from services.log import logger
 from .init_task import add_job, scheduler, _sign
 from apscheduler.jobstores.base import JobLookupError
-from ..models import Genshin
+from .._models import Genshin
+from nonebot.params import Command
+from typing import Tuple
 
 
 __zx_plugin_name__ = "原神自动签到"
@@ -19,7 +20,7 @@ usage：
         原神我硬签
 """.strip()
 __plugin_des__ = "原神懒人签到"
-__plugin_cmd__ = ["开/关原神自动签到", "原神我硬签"]
+__plugin_cmd__ = ["开启/关闭原神自动签到", "原神我硬签"]
 __plugin_type__ = ("原神相关",)
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
@@ -37,13 +38,14 @@ genshin_matcher = on_command(
 
 
 @genshin_matcher.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
+    cmd = cmd[0]
     uid = await Genshin.get_user_uid(event.user_id)
     if not uid or not await Genshin.get_user_cookie(uid, True):
         await genshin_matcher.finish("请先绑定uid和cookie！")
     if "account_id" not in await Genshin.get_user_cookie(uid, True):
         await genshin_matcher.finish("请更新cookie！")
-    if state["_prefix"]["raw_command"] == "原神我硬签":
+    if cmd == "原神我硬签":
         try:
             msg = await genshin_sign(uid)
             logger.info(
@@ -77,7 +79,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 scheduler.remove_job(f"genshin_auto_sign_{uid}_{event.user_id}_{i}")
             except JobLookupError:
                 pass
-        if state["_prefix"]["raw_command"][0] == "开":
+        if cmd[0] == "开":
             await Genshin.set_auto_sign(uid, True)
             next_date = await Genshin.random_sign_time(uid)
             add_job(event.user_id, uid, next_date)

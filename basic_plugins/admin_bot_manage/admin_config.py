@@ -1,7 +1,6 @@
 from nonebot import on_notice
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, GroupAdminNoticeEvent
-from nonebot.typing import T_State
+from nonebot.adapters.onebot.v11 import GroupAdminNoticeEvent
 from models.level_user import LevelUser
 from models.group_member_info import GroupInfoUser
 from configs.config import Config
@@ -16,7 +15,7 @@ admin_notice = on_notice(priority=5)
 
 
 @admin_notice.handle()
-async def _(bot: Bot, event: GroupAdminNoticeEvent, state: T_State):
+async def _(event: GroupAdminNoticeEvent):
     try:
         nickname = (
             await GroupInfoUser.get_member_info(event.user_id, event.group_id)

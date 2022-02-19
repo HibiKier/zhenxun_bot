@@ -1,9 +1,10 @@
 from nonebot import on_command
 from nonebot.permission import SUPERUSER
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, Message
+from nonebot.adapters.onebot.v11 import Bot, Message
+from nonebot.params import Command, CommandArg
+from typing import Tuple
 from nonebot.rule import to_me
-from utils.utils import get_message_text, is_number
+from utils.utils import is_number
 from utils.manager import requests_manager
 from utils.message_builder import image
 from models.group_info import GroupInfo
@@ -57,37 +58,30 @@ cls_request = on_command("查看所有请求", permission=SUPERUSER, priority=1,
 
 
 @cls_group.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    gl = await bot.get_group_list(self_id=int(bot.self_id))
+async def _(bot: Bot):
+    gl = await bot.get_group_list()
     msg = ["{group_id} {group_name}".format_map(g) for g in gl]
     msg = "\n".join(msg)
     msg = f"bot:{bot.self_id}\n| 群号 | 群名 | 共{len(gl)}个群\n" + msg
-    await bot.send_private_msg(
-        self_id=int(bot.self_id),
-        user_id=int(list(bot.config.superusers)[0]),
-        message=msg,
-    )
+    await cls_group.send(msg)
 
 
 @cls_friend.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    gl = await bot.get_friend_list(self_id=int(bot.self_id))
+async def _(bot: Bot):
+    gl = await bot.get_friend_list()
     msg = ["{user_id} {nickname}".format_map(g) for g in gl]
     msg = "\n".join(msg)
     msg = f"| QQ号 | 昵称 | 共{len(gl)}个好友\n" + msg
-    await bot.send_private_msg(
-        self_id=int(bot.self_id),
-        user_id=int(list(bot.config.superusers)[0]),
-        message=msg,
-    )
+    await cls_friend.send(msg)
 
 
 @friend_handle.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    id_ = get_message_text(event.json())
+async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
+    cmd = cmd[0]
+    id_ = arg.extract_plain_text().strip()
     if is_number(id_):
         id_ = int(id_)
-        if state["_prefix"]["raw_command"][:2] == "同意":
+        if cmd[:2] == "同意":
             if await requests_manager.approve(bot, id_, "private"):
                 await friend_handle.send("同意好友请求成功..")
             else:
@@ -102,11 +96,12 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @group_handle.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    id_ = get_message_text(event.json())
+async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
+    cmd = cmd[0]
+    id_ = arg.extract_plain_text().strip()
     if is_number(id_):
         id_ = int(id_)
-        if state["_prefix"]["raw_command"][:2] == "同意":
+        if cmd[:2] == "同意":
             rid = await requests_manager.approve(bot, id_, "group")
             if rid:
                 await friend_handle.send("同意群聊请求成功..")
@@ -133,7 +128,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @cls_request.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     _str = ""
     for type_ in ["private", "group"]:
         msg = await requests_manager.show(type_)
@@ -147,6 +142,6 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @clear_request.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     requests_manager.clear()
     await cls_request.send("已清空所有好友/群聊请求..")

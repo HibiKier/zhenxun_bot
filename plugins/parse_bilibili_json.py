@@ -1,18 +1,17 @@
 from nonebot import on_message
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from nonebot.typing import T_State
-from utils.utils import get_message_json, get_local_proxy, get_message_text, is_number
-from utils.user_agent import get_user_agent
-from nonebot.adapters.cqhttp.permission import GROUP
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
+from utils.utils import get_message_json, get_local_proxy, is_number
+from nonebot.adapters.onebot.v11.permission import GROUP
 from bilibili_api import video
 from utils.message_builder import image
-from nonebot.adapters.cqhttp.exception import ActionFailed
+from nonebot.adapters.onebot.v11.exception import ActionFailed
 from utils.image_utils import BuildImage
 from utils.browser import get_browser
 from configs.path_config import IMAGE_PATH
 from utils.http_utils import AsyncHttpx
 from configs.config import Config
+from nonebot.params import CommandArg
 import asyncio
 import time
 from bilibili_api import settings
@@ -48,7 +47,7 @@ _tmp = {}
 
 
 @parse_bilibili_json.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
     if await group_manager.check_group_task_status(event.group_id, "bilibili_parse"):
         vd_info = None
         url = None
@@ -106,8 +105,8 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                             await page.close()
                     return
         # BV
-        if get_message_text(event.json()):
-            msg = get_message_text(event.json())
+        if arg.extract_plain_text().strip():
+            msg = arg.extract_plain_text().strip()
             if "BV" in msg:
                 index = msg.find("BV")
                 if len(msg[index + 2 :]) >= 10:
@@ -123,15 +122,10 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                         vd_info = await video.Video(aid=int(msg)).get_info()
             elif "https://b23.tv" in msg:
                 url = "https://" + msg[msg.find("b23.tv") : msg.find("b23.tv") + 13]
-                async with aiohttp.ClientSession(headers=get_user_agent()) as session:
-                    async with session.get(
-                        url,
-                        proxy=get_local_proxy(),
-                        timeout=7,
-                    ) as response:
-                        url = str(response.url).split("?")[0]
-                        bvid = url.split("/")[-1]
-                        vd_info = await video.Video(bvid=bvid).get_info()
+                res = await AsyncHttpx.get(url, timeout=7)
+                url = str(res.url).split("?")[0]
+                bvid = url.split("/")[-1]
+                vd_info = await video.Video(bvid=bvid).get_info()
         if vd_info:
             if (
                 url in _tmp.keys() and time.time() - _tmp[url] > 30

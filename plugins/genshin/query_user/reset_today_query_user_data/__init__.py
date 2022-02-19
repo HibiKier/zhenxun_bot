@@ -1,5 +1,5 @@
 from utils.utils import scheduler
-from ..models import Genshin
+from .._models import Genshin
 from services.log import logger
 
 

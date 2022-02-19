@@ -1,6 +1,6 @@
 from nonebot.matcher import Matcher
 from nonebot.message import run_preprocessor, run_postprocessor, IgnoredException
-from nonebot.adapters.cqhttp.exception import ActionFailed
+from nonebot.adapters.onebot.v11.exception import ActionFailed
 from models.friend_user import FriendUser
 from models.group_member_info import GroupInfoUser
 from models.bag_user import BagUser
@@ -13,10 +13,10 @@ from utils.manager import (
     plugins2block_manager,
     plugins2count_manager
 )
-from .utils import set_block_limit_false, status_message_manager
+from ._utils import set_block_limit_false, status_message_manager
 from nonebot.typing import T_State
 from typing import Optional
-from nonebot.adapters.cqhttp import (
+from nonebot.adapters.onebot.v11 import (
     Bot,
     MessageEvent,
     GroupMessageEvent,
@@ -43,7 +43,7 @@ ignore_rst_module = ["ai", "poke", "dialogue"]
 # 权限检测
 @run_preprocessor
 async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
-    module = matcher.module
+    module = matcher.plugin_name
     plugins2info_dict = plugins2settings_manager.get_data()
     # 功能的金币检测 #######################################
     # 功能的金币检测 #######################################
@@ -83,7 +83,7 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
     except AttributeError:
         pass
     # 群黑名单检测 群总开关检测
-    if isinstance(event, GroupMessageEvent) or matcher.module == "poke":
+    if isinstance(event, GroupMessageEvent) or matcher.plugin_name == "poke":
         try:
             if group_manager.get_group_level(event.group_id) < 0:
                 raise IgnoredException("群黑名单")
@@ -354,15 +354,15 @@ async def _(
     event: Event,
     state: T_State,
 ):
-    if not isinstance(event, MessageEvent) and matcher.module != "poke":
+    if not isinstance(event, MessageEvent) and matcher.plugin_name != "poke":
         return
-    module = matcher.module
+    module = matcher.plugin_name
     set_block_limit_false(event, module)
 
 
 async def init_rst(rst: str, event: MessageEvent):
     if "[uname]" in rst:
-        uname = event.sender.card if event.sender.card else event.sender.nickname
+        uname = event.sender.card or event.sender.nickname
         rst = rst.replace("[uname]", uname)
     if "[nickname]" in rst:
         if isinstance(event, GroupMessageEvent):

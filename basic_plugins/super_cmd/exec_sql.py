@@ -1,10 +1,9 @@
+from nonebot.adapters.onebot.v11 import Message
 from nonebot import on_command
 from nonebot.permission import SUPERUSER
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent
 from nonebot.rule import to_me
 from services.db_context import db
-from utils.utils import get_message_text
+from nonebot.params import CommandArg
 from services.log import logger
 
 __zx_plugin_name__ = "执行sql [Superuser]"
@@ -26,8 +25,8 @@ exec_ = on_command("exec", rule=to_me(), permission=SUPERUSER, priority=1, block
 
 
 @exec_.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    sql = get_message_text(event.json())
+async def _(arg: Message = CommandArg()):
+    sql = arg.extract_plain_text().strip()
     async with db.transaction():
         try:
             query = db.text(sql)

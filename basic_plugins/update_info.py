@@ -1,6 +1,4 @@
 from nonebot import on_command
-from nonebot.adapters.cqhttp import Bot, Event
-from nonebot.typing import T_State
 from utils.message_builder import image
 
 
@@ -27,7 +25,7 @@ update_info = on_command("更新信息", aliases={"更新日志"}, priority=5, b
 
 
 @update_info.handle()
-async def _(bot: Bot, event: Event, state: T_State):
+async def _():
     img = image("update_info.png")
     if img:
         await update_info.finish(image("update_info.png"))

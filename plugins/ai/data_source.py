@@ -20,7 +20,7 @@ check_url = "https://v2.alapi.cn/api/censor/text"
 
 index = 0
 
-anime_data = json.load(open(DATA_PATH + "anime.json", "r", encoding="utf8"))
+anime_data = json.load(open(DATA_PATH / "anime.json", "r", encoding="utf8"))
 
 
 async def get_chat_result(text: str, img_url: str, user_id: int, nickname: str) -> str:
@@ -139,7 +139,7 @@ async def xie_ai(text: str) -> str:
             content = content.replace("{br}", "\n")
         if "提示" in content:
             content = content[: content.find("提示")]
-        if "淘宝" in content:
+        if "淘宝" in content or "taobao.com" in content:
             return ""
         while True:
             r = re.search("{face:(.*)}", content)
@@ -170,7 +170,7 @@ def hello() -> str:
             "呼呼，叫俺干嘛",
         )
     )
-    img = random.choice(os.listdir(IMAGE_PATH + "zai/"))
+    img = random.choice(os.listdir(IMAGE_PATH / "zai"))
     if img[-4:] == ".gif":
         result += image(img, "zai")
     else:
@@ -193,7 +193,7 @@ def no_result() -> str:
                 "我！不！知！道！",
             ]
         )
-        + image(random.choice(os.listdir(IMAGE_PATH + "noresult/")), "noresult")
+        + image(random.choice(os.listdir(IMAGE_PATH / "noresult")), "noresult")
     )
 
 

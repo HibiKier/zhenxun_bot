@@ -1,10 +1,10 @@
 from nonebot import on_command
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
-from nonebot.typing import T_State
-from utils.utils import is_number, get_message_text
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message
+from nonebot.params import CommandArg
+from utils.utils import is_number
 from models.bag_user import BagUser
-from nonebot.adapters.cqhttp.permission import GROUP
+from nonebot.adapters.onebot.v11.permission import GROUP
 from services.db_context import db
 from nonebot.plugin import export
 from .data_source import effect, register_use, func_manager
@@ -38,10 +38,8 @@ use_props = on_command("使用道具", priority=5, block=True, permission=GROUP)
 
 
 @use_props.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    msg = get_message_text(event.json())
-    if msg in ["", "帮助"]:
-        await use_props.finish(__plugin_usage__)
+async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     num = 1
     msg_sp = msg.split()
     if len(msg_sp) > 1 and is_number(msg_sp[-1]) and int(msg_sp[-1]) > 0:

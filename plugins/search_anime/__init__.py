@@ -1,11 +1,11 @@
 from nonebot import on_command
 from .data_source import from_anime_get_info
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
 from nonebot.typing import T_State
 from configs.config import Config
-from utils.utils import get_message_text
 from utils.message_builder import custom_forward_msg
+from nonebot.params import CommandArg, ArgStr
 
 
 __zx_plugin_name__ = "搜番"
@@ -35,23 +35,14 @@ __plugin_configs__ = {
 search_anime = on_command("搜番", aliases={"搜动漫"}, priority=5, block=True)
 
 
-@search_anime.args_parser
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
-    if not msg:
-        await search_anime.reject("番名番名番名呢？", at_sender=True)
-    state["anime"] = msg
-
-
 @search_anime.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if get_message_text(event.json()):
-        state["anime"] = get_message_text(event.json())
+async def _(state: T_State, arg: Message = CommandArg()):
+    if arg.extract_plain_text().strip():
+        state["anime"] = arg.extract_plain_text().strip()
 
 
 @search_anime.got("anime", prompt="是不是少了番名？")
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    key_word = state["anime"]
+async def _(bot: Bot, event: MessageEvent, state: T_State, key_word: str = ArgStr("anime")):
     await search_anime.send(f"开始搜番 {key_word}", at_sender=True)
     anime_report = await from_anime_get_info(
         key_word,

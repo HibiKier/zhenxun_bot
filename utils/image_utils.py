@@ -63,10 +63,10 @@ def compressed_image(
         :param out_file: 压缩后输出的文件路径
         :param ratio: 压缩率，宽高 * 压缩率
     """
-    in_file = Path(IMAGE_PATH) / in_file if isinstance(in_file, str) else in_file
+    in_file = IMAGE_PATH / in_file if isinstance(in_file, str) else in_file
     if out_file:
         out_file = (
-            Path(IMAGE_PATH) / out_file if isinstance(out_file, str) else out_file
+            IMAGE_PATH / out_file if isinstance(out_file, str) else out_file
         )
     else:
         out_file = in_file
@@ -137,186 +137,6 @@ def is_valid(file: str) -> bool:
     return valid
 
 
-async def text2image(
-    text: str,
-    auto_parse: bool = True,
-    font_size: int = 20,
-    color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]] = "white",
-    font: str = "CJGaoDeGuo.otf",
-    font_color: Union[str, Tuple[int, int, int]] = "black",
-    padding: Union[int, Tuple[int, int, int, int]] = 0,
-) -> str:
-    """
-    说明：
-        解析文本并转为图片
-        使用标签
-            <f> </f>
-        可选配置项
-            font: str -> 特殊文本字体
-            font_size: int -> 特殊文本大小
-            font_color: str -> 特殊文本颜色
-        示例
-            在不在，<f font=YSHaoShenTi-2.ttf font_size=30 font_color=red>HibiKi小姐</f>，
-            你最近还好吗，<f font_size=15 font_color=black>我非常想你</f>，这段时间我非常不好过，
-            <f font_size=25>抽卡抽不到金色</f>，这让我很痛苦
-    参数：
-        :param text: 文本
-        :param auto_parse: 是否自动解析，否则原样发送
-        :param font_size: 普通字体大小
-        :param color: 背景颜色
-        :param font: 普通字体
-        :param font_color: 普通字体颜色
-        :param padding: 文本外边距，元组类型时为 （上，左，下，右）
-    """
-    pw = ph = top_padding = left_padding = 0
-    if padding:
-        if isinstance(padding, int):
-            pw = padding * 2
-            ph = padding * 2
-            top_padding = left_padding = padding
-        elif isinstance(padding, tuple):
-            pw = padding[0] + padding[2]
-            ph = padding[1] + padding[3]
-            top_padding = padding[0]
-            left_padding = padding[1]
-    if auto_parse and re.search(r"<f(.*)>(.*)</f>", text):
-        _data = []
-        new_text = ""
-        placeholder_index = 0
-        for s in text.split("</f>"):
-            r = re.search(r"<f(.*)>(.*)", s)
-            if r:
-                start, end = r.span()
-                if start != 0 and (t := s[:start]):
-                    new_text += t
-                _data.append(
-                    [
-                        (start, end),
-                        f"[placeholder_{placeholder_index}]",
-                        r.group(1).strip(),
-                        r.group(2),
-                    ]
-                )
-                new_text += f"[placeholder_{placeholder_index}]"
-                placeholder_index += 1
-        new_text += text.split("</f>")[-1]
-        image_list = []
-        current_placeholder_index = 0
-        # 切分换行，每行为单张图片
-        for s in new_text.split("\n"):
-            _tmp_text = s
-            img_height = BuildImage(0, 0, font_size=font_size).getsize("正")[1]
-            img_width = 0
-            _tmp_index = current_placeholder_index
-            for _ in range(s.count("[placeholder_")):
-                placeholder = _data[_tmp_index]
-                if "font_size" in placeholder[2]:
-                    r = re.search(r"font_size=['\"]?(\d+)", placeholder[2])
-                    if r:
-                        w, h = BuildImage(0, 0, font_size=int(r.group(1))).getsize(
-                            placeholder[3]
-                        )
-                        img_height = img_height if img_height > h else h
-                        img_width += w
-                else:
-                    img_width += BuildImage(0, 0, font_size=font_size).getsize(
-                        placeholder[3]
-                    )[0]
-                _tmp_text = _tmp_text.replace(f"[placeholder_{_tmp_index}]", "")
-                _tmp_index += 1
-            img_width += BuildImage(0, 0, font_size=font_size).getsize(_tmp_text)[0]
-            # img_width += len(_tmp_text) * font_size
-            # 开始画图
-            A = BuildImage(
-                img_width, img_height, color=color, font=font, font_size=font_size
-            )
-            basic_font_h = A.getsize("正")[1]
-            current_width = 0
-            # 遍历占位符
-            for _ in range(s.count("[placeholder_")):
-                if not s.startswith(f"[placeholder_{current_placeholder_index}]"):
-                    slice_ = s.split(f"[placeholder_{current_placeholder_index}]")
-                    await A.atext(
-                        (current_width, A.h - basic_font_h - 1), slice_[0], font_color
-                    )
-                    current_width += A.getsize(slice_[0])[0]
-                placeholder = _data[current_placeholder_index]
-                # 解析配置
-                _font = font
-                _font_size = font_size
-                _font_color = font_color
-                for e in placeholder[2].split():
-                    if e.startswith("font="):
-                        _font = e.split("=")[-1]
-                    if e.startswith("font_size=") or e.startswith("fs="):
-                        _font_size = int(e.split("=")[-1])
-                        if _font_size > 1000:
-                            _font_size = 1000
-                        if _font_size < 1:
-                            _font_size = 1
-                    if e.startswith("font_color") or e.startswith("fc="):
-                        _font_color = e.split("=")[-1]
-                text_img = BuildImage(
-                    0,
-                    0,
-                    plain_text=placeholder[3],
-                    font_size=_font_size,
-                    font_color=_font_color,
-                    font=_font,
-                )
-                _img_h = (
-                    int(A.h / 2 - text_img.h / 2)
-                    if new_text == "[placeholder_0]"
-                    else A.h - text_img.h
-                )
-                await A.apaste(text_img, (current_width, _img_h - 1), True)
-                current_width += text_img.w
-                s = s[
-                    s.index(f"[placeholder_{current_placeholder_index}]")
-                    + len(f"[placeholder_{current_placeholder_index}]") :
-                ]
-                current_placeholder_index += 1
-            if s:
-                slice_ = s.split(f"[placeholder_{current_placeholder_index}]")
-                await A.atext((current_width, A.h - basic_font_h), slice_[0])
-                current_width += A.getsize(slice_[0])[0]
-            A.crop((0, 0, current_width, A.h))
-            # A.show()
-            image_list.append(A)
-        height = 0
-        width = 0
-        for img in image_list:
-            height += img.h
-            width = width if width > img.w else img.w
-        width += pw
-        height += ph
-        A = BuildImage(width + left_padding, height + top_padding, color=color)
-        current_height = top_padding
-        for img in image_list:
-            await A.apaste(img, (left_padding, current_height), True)
-            current_height += img.h
-    else:
-        width = 0
-        height = 0
-        _tmp = BuildImage(0, 0, font_size=font_size)
-        for x in text.split("\n"):
-            w, h = _tmp.getsize(x)
-            height += h
-            width = width if width > w else w
-        width += pw
-        height += ph
-        A = BuildImage(
-            width + left_padding,
-            height + top_padding,
-            font_size=font_size,
-            color=color,
-            font=font,
-        )
-        await A.atext((left_padding, top_padding), text, font_color)
-    # A.show()
-    return A.pic2bs4()
-
-
 class BuildImage:
     """
     快捷生成图片与操作图片的工具类
@@ -359,7 +179,7 @@ class BuildImage:
         self.paste_image_height = int(paste_image_height)
         self.current_w = 0
         self.current_h = 0
-        self.font = ImageFont.truetype(FONT_PATH + font, int(font_size))
+        self.font = ImageFont.truetype(str(FONT_PATH / font), int(font_size))
         if not plain_text and not color:
             color = (255, 255, 255)
         self.background = background
@@ -838,41 +658,29 @@ class BuildImage:
         """
         await self.loop.run_in_executor(None, self.circle)
 
-    def draw_ellipse(self, image, bounds, width=1, outline='white', antialias=4):
-        """
-        Improved ellipse drawing function, based on PIL.ImageDraw.
-        """
-
-        # Use a single channel image (mode='L') as mask.
-        # The size of the mask can be increased relative to the imput image
-        # to get smoother looking results.
-        mask = Image.new(
-            size=[int(dim * antialias) for dim in image.size],
-            mode='L', color='black')
-        draw = ImageDraw.Draw(mask)
-
-        # draw outer shape in white (color) and inner shape in black (transparent)
-        for offset, fill in (width / -2.0, 'black'), (width / 2.0, 'white'):
-            left, top = [(value + offset) * antialias for value in bounds[:2]]
-            right, bottom = [(value - offset) * antialias for value in bounds[2:]]
-            draw.ellipse([left, top, right, bottom], fill=fill)
-
-        # downsample the mask using PIL.Image.LANCZOS
-        # (a high-quality downsampling filter).
-        mask = mask.resize(image.size, Image.LANCZOS)
-
-        # paste outline color to input image through the mask
-        image.putalpha(mask)
-
-    #
     def circle(self):
+        """
+        说明：
+            使图像变圆
+        """
         self.markImg.convert("RGBA")
         size = self.markImg.size
         r2 = min(size[0], size[1])
         if size[0] != size[1]:
             self.markImg = self.markImg.resize((r2, r2), Image.ANTIALIAS)
+        width = 1
+        antialias = 4
         ellipse_box = [0, 0, r2 - 2, r2 - 2]
-        self.draw_ellipse(self.markImg, ellipse_box, width=1)
+        mask = Image.new(
+            size=[int(dim * antialias) for dim in self.markImg.size],
+            mode='L', color='black')
+        draw = ImageDraw.Draw(mask)
+        for offset, fill in (width / -2.0, 'black'), (width / 2.0, 'white'):
+            left, top = [(value + offset) * antialias for value in ellipse_box[:2]]
+            right, bottom = [(value - offset) * antialias for value in ellipse_box[2:]]
+            draw.ellipse([left, top, right, bottom], fill=fill)
+        mask = mask.resize(self.markImg.size, Image.LANCZOS)
+        self.markImg.putalpha(mask)
 
     async def acircle_corner(self, radii: int = 30):
         """
@@ -1517,6 +1325,186 @@ class BuildMat:
                 y_name,
             )
         return A
+
+
+async def text2image(
+    text: str,
+    auto_parse: bool = True,
+    font_size: int = 20,
+    color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]] = "white",
+    font: str = "CJGaoDeGuo.otf",
+    font_color: Union[str, Tuple[int, int, int]] = "black",
+    padding: Union[int, Tuple[int, int, int, int]] = 0,
+) -> BuildImage:
+    """
+    说明：
+        解析文本并转为图片
+        使用标签
+            <f> </f>
+        可选配置项
+            font: str -> 特殊文本字体
+            fs / font_size: int -> 特殊文本大小
+            fc / font_color: Union[str, Tuple[int, int, int]] -> 特殊文本颜色
+        示例
+            在不在，<f font=YSHaoShenTi-2.ttf font_size=30 font_color=red>HibiKi小姐</f>，
+            你最近还好吗，<f font_size=15 font_color=black>我非常想你</f>，这段时间我非常不好过，
+            <f font_size=25>抽卡抽不到金色</f>，这让我很痛苦
+    参数：
+        :param text: 文本
+        :param auto_parse: 是否自动解析，否则原样发送
+        :param font_size: 普通字体大小
+        :param color: 背景颜色
+        :param font: 普通字体
+        :param font_color: 普通字体颜色
+        :param padding: 文本外边距，元组类型时为 （上，左，下，右）
+    """
+    pw = ph = top_padding = left_padding = 0
+    if padding:
+        if isinstance(padding, int):
+            pw = padding * 2
+            ph = padding * 2
+            top_padding = left_padding = padding
+        elif isinstance(padding, tuple):
+            pw = padding[0] + padding[2]
+            ph = padding[1] + padding[3]
+            top_padding = padding[0]
+            left_padding = padding[1]
+    if auto_parse and re.search(r"<f(.*)>(.*)</f>", text):
+        _data = []
+        new_text = ""
+        placeholder_index = 0
+        for s in text.split("</f>"):
+            r = re.search(r"<f(.*)>(.*)", s)
+            if r:
+                start, end = r.span()
+                if start != 0 and (t := s[:start]):
+                    new_text += t
+                _data.append(
+                    [
+                        (start, end),
+                        f"[placeholder_{placeholder_index}]",
+                        r.group(1).strip(),
+                        r.group(2),
+                    ]
+                )
+                new_text += f"[placeholder_{placeholder_index}]"
+                placeholder_index += 1
+        new_text += text.split("</f>")[-1]
+        image_list = []
+        current_placeholder_index = 0
+        # 切分换行，每行为单张图片
+        for s in new_text.split("\n"):
+            _tmp_text = s
+            img_height = BuildImage(0, 0, font_size=font_size).getsize("正")[1]
+            img_width = 0
+            _tmp_index = current_placeholder_index
+            for _ in range(s.count("[placeholder_")):
+                placeholder = _data[_tmp_index]
+                if "font_size" in placeholder[2]:
+                    r = re.search(r"font_size=['\"]?(\d+)", placeholder[2])
+                    if r:
+                        w, h = BuildImage(0, 0, font_size=int(r.group(1))).getsize(
+                            placeholder[3]
+                        )
+                        img_height = img_height if img_height > h else h
+                        img_width += w
+                else:
+                    img_width += BuildImage(0, 0, font_size=font_size).getsize(
+                        placeholder[3]
+                    )[0]
+                _tmp_text = _tmp_text.replace(f"[placeholder_{_tmp_index}]", "")
+                _tmp_index += 1
+            img_width += BuildImage(0, 0, font_size=font_size).getsize(_tmp_text)[0]
+            # img_width += len(_tmp_text) * font_size
+            # 开始画图
+            A = BuildImage(
+                img_width, img_height, color=color, font=font, font_size=font_size
+            )
+            basic_font_h = A.getsize("正")[1]
+            current_width = 0
+            # 遍历占位符
+            for _ in range(s.count("[placeholder_")):
+                if not s.startswith(f"[placeholder_{current_placeholder_index}]"):
+                    slice_ = s.split(f"[placeholder_{current_placeholder_index}]")
+                    await A.atext(
+                        (current_width, A.h - basic_font_h - 1), slice_[0], font_color
+                    )
+                    current_width += A.getsize(slice_[0])[0]
+                placeholder = _data[current_placeholder_index]
+                # 解析配置
+                _font = font
+                _font_size = font_size
+                _font_color = font_color
+                for e in placeholder[2].split():
+                    if e.startswith("font="):
+                        _font = e.split("=")[-1]
+                    if e.startswith("font_size=") or e.startswith("fs="):
+                        _font_size = int(e.split("=")[-1])
+                        if _font_size > 1000:
+                            _font_size = 1000
+                        if _font_size < 1:
+                            _font_size = 1
+                    if e.startswith("font_color") or e.startswith("fc="):
+                        _font_color = e.split("=")[-1]
+                text_img = BuildImage(
+                    0,
+                    0,
+                    plain_text=placeholder[3],
+                    font_size=_font_size,
+                    font_color=_font_color,
+                    font=_font,
+                )
+                _img_h = (
+                    int(A.h / 2 - text_img.h / 2)
+                    if new_text == "[placeholder_0]"
+                    else A.h - text_img.h
+                )
+                await A.apaste(text_img, (current_width, _img_h - 1), True)
+                current_width += text_img.w
+                s = s[
+                    s.index(f"[placeholder_{current_placeholder_index}]")
+                    + len(f"[placeholder_{current_placeholder_index}]") :
+                ]
+                current_placeholder_index += 1
+            if s:
+                slice_ = s.split(f"[placeholder_{current_placeholder_index}]")
+                await A.atext((current_width, A.h - basic_font_h), slice_[0])
+                current_width += A.getsize(slice_[0])[0]
+            A.crop((0, 0, current_width, A.h))
+            # A.show()
+            image_list.append(A)
+        height = 0
+        width = 0
+        for img in image_list:
+            height += img.h
+            width = width if width > img.w else img.w
+        width += pw
+        height += ph
+        A = BuildImage(width + left_padding, height + top_padding, color=color)
+        current_height = top_padding
+        for img in image_list:
+            await A.apaste(img, (left_padding, current_height), True)
+            current_height += img.h
+    else:
+        width = 0
+        height = 0
+        _tmp = BuildImage(0, 0, font_size=font_size)
+        for x in text.split("\n"):
+            w, h = _tmp.getsize(x)
+            height += h
+            width = width if width > w else w
+        width += pw
+        height += ph
+        A = BuildImage(
+            width + left_padding,
+            height + top_padding,
+            font_size=font_size,
+            color=color,
+            font=font,
+        )
+        await A.atext((left_padding, top_padding), text, font_color)
+    # A.show()
+    return A
 
 
 if __name__ == "__main__":

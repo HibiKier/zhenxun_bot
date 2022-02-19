@@ -3,12 +3,11 @@ from typing import List
 from configs.path_config import IMAGE_PATH
 from services.log import logger
 from utils.utils import cn2py
-from pathlib import Path
 from utils.http_utils import AsyncHttpx
 import os
 
 
-_path = Path(IMAGE_PATH) / "image_management"
+_path = IMAGE_PATH / "image_management"
 
 
 async def upload_image_to_local(

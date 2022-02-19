@@ -1,4 +1,4 @@
-from nonebot.adapters.cqhttp import Bot, MessageEvent
+from nonebot.adapters.onebot.v11 import Bot
 from nonebot.typing import T_State
 from nonebot.permission import SUPERUSER
 from nonebot import on_command
@@ -45,7 +45,7 @@ restart = on_command(
 
 
 @update_zhenxun.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(bot: Bot):
     try:
         code, error = await check_update(bot)
         if error:
@@ -67,13 +67,13 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @restart.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _():
     if str(platform.system()).lower() == "windows":
         await restart.finish("暂无windows重启脚本...")
 
 
 @restart.got("flag", prompt="确定是否重启真寻？（重启失败咱们将失去联系，请谨慎！）")
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(state: T_State):
     flag = state["flag"]
     if flag.lower() in ["true", "是", "好", "确定", "确定是"]:
         await restart.send("开始重启真寻..请稍等...")
@@ -107,8 +107,7 @@ async def _():
                 await bot.send_private_msg(
                     user_id=int(list(bot.config.superusers)[0]),
                     message=f"检测到真寻版本更新\n"
-                    f"当前版本：{_version}，最新版本：{latest_version}\n"
-                    f"尝试自动更新...",
+                    f"当前版本：{_version}，最新版本：{latest_version}",
                 )
                 # try:
                 #     code = await check_update(bot)

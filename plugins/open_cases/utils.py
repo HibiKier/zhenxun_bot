@@ -4,14 +4,14 @@ from datetime import datetime, timedelta
 from configs.path_config import IMAGE_PATH
 from utils.http_utils import AsyncHttpx
 from .models.open_cases_user import OpenCasesUser
-import os
 from services.log import logger
-from utils.utils import get_bot
+from utils.utils import get_bot, cn2py
 from asyncio.exceptions import TimeoutError
-from nonebot.adapters.cqhttp.exception import ActionFailed
+from nonebot.adapters.onebot.v11.exception import ActionFailed
 from configs.config import Config
 from utils.manager import group_manager
 from .config import *
+import os
 
 url = "https://buff.163.com/api/market/goods"
 # proxies = 'http://49.75.59.242:3128'
@@ -20,9 +20,7 @@ url = "https://buff.163.com/api/market/goods"
 async def util_get_buff_price(case_name: str = "狂牙大行动") -> str:
     cookie = {"session": Config.get_config("open_cases", "COOKIE")}
     failed_list = []
-    case = ""
-    for i in pypinyin.pinyin(case_name, style=pypinyin.NORMAL):
-        case += "".join(i)
+    case = cn2py(case_name)
     if case_name == "狂牙大行动":
         case_id = 1
     elif case_name == "突围大行动":
@@ -165,12 +163,9 @@ async def util_get_buff_price(case_name: str = "狂牙大行动") -> str:
 async def util_get_buff_img(case_name: str = "狂牙大行动") -> str:
     cookie = {"session": Config.get_config("open_cases", "COOKIE")}
     error_list = []
-    case = ""
-    for i in pypinyin.pinyin(case_name, style=pypinyin.NORMAL):
-        case += "".join(i)
-    path = "cases/" + case + "/"
-    if not os.path.exists(IMAGE_PATH + path):
-        os.mkdir(IMAGE_PATH + path)
+    case = cn2py(case_name)
+    path = IMAGE_PATH / "cases/" / case
+    path.mkdir(exist_ok=True, parents=True)
     case = case.upper()
     CASE_KNIFE = eval(case + "_CASE_KNIFE")
     CASE_RED = eval(case + "_CASE_RED")
@@ -205,11 +200,8 @@ async def util_get_buff_img(case_name: str = "狂牙大行动") -> str:
                         for j in range(len(data)):
                             if data[j]["name"] in [f"{skin}（★）"]:
                                 img_url = data[j]["goods_info"]["icon_url"]
-                                for k in pypinyin.pinyin(
-                                    skin + "无涂装", style=pypinyin.NORMAL
-                                ):
-                                    skin_name += "".join(k)
-                                await AsyncHttpx.download_file(img_url, IMAGE_PATH + path + skin_name + ".png")
+                                skin_name = cn2py(skin + "无涂装")
+                                await AsyncHttpx.download_file(img_url, path / f"{skin_name}.png")
                                 flag = True
                                 break
                         if flag:
@@ -218,11 +210,8 @@ async def util_get_buff_img(case_name: str = "狂牙大行动") -> str:
                     img_url = (await response.json())["data"]["items"][0][
                         "goods_info"
                     ]["icon_url"]
-                    for i in pypinyin.pinyin(
-                        skin.replace("|", "-").strip(), style=pypinyin.NORMAL
-                    ):
-                        skin_name += "".join(i)
-                    if await AsyncHttpx.download_file(img_url, IMAGE_PATH + path + skin_name + ".png"):
+                    skin_name += cn2py(skin.replace("|", "-").strip())
+                    if await AsyncHttpx.download_file(img_url, path / f"{skin_name}.png"):
                         logger.info(f"------->写入 {skin} 成功")
                     else:
                         logger.info(f"------->写入 {skin} 失败")
@@ -276,11 +265,10 @@ async def update_count_daily():
         gl = await bot.get_group_list()
         gl = [g["group_id"] for g in gl]
         for g in gl:
-            if await group_manager.check_group_task_status(g, "open_case_reset_remind"):
-                try:
-                    await bot.send_group_msg(group_id=g, message="今日开箱次数重置成功")
-                except ActionFailed:
-                    logger.warning(f"{g} 群被禁言，无法发送 开箱重置提醒")
+            try:
+                await bot.send_group_msg(group_id=g, message="[[_task|open_case_reset_remind]]今日开箱次数重置成功")
+            except ActionFailed:
+                logger.warning(f"{g} 群被禁言，无法发送 开箱重置提醒")
         logger.info("今日开箱次数重置成功")
     except Exception as e:
         logger.error(f"开箱重置错误 e:{e}")

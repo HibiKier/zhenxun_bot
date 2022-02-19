@@ -1,17 +1,17 @@
 from nonebot import on_command
 from PIL import Image, ImageFilter
 from utils.message_builder import image
-from configs.path_config import IMAGE_PATH
+from configs.path_config import TEMP_PATH, IMAGE_PATH
 from services.log import logger
 from nonebot.rule import to_me
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
 from nonebot.typing import T_State
-from utils.utils import get_message_img
-from pathlib import Path
-from utils.utils import is_number, get_message_text
+from utils.utils import get_message_img, is_number
+from nonebot.params import CommandArg, Arg, ArgStr, Depends
 from utils.image_utils import BuildImage, pic2b64
 from configs.config import NICKNAME
 from utils.http_utils import AsyncHttpx
+from typing import Union
 import cv2
 import numpy as np
 
@@ -57,7 +57,6 @@ __plugin_settings__ = {
     "cmd": ["修改图片", "改图", "操作图片"],
 }
 
-# IMAGE_LOCAL = IMAGE_PATH + "temp/{}_update.png"
 method_flag = ""
 
 update_img = on_command(
@@ -85,85 +84,65 @@ for i in range(len(method_list)):
 
 update_img_help = BuildImage(960, 700, font_size=24)
 update_img_help.text((10, 10), __plugin_usage__)
-update_img_help.save(IMAGE_PATH + "update_img_help.png")
+update_img_help.save(IMAGE_PATH / "update_img_help.png")
 
 
-@update_img.args_parser
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    global method_flag
-    if str(event.get_message()) in ["取消", "算了"]:
-        await update_img.finish("已取消操作..", at_sender=True)
-    if state["_current_key"] in ["method"]:
-        if str(event.get_message()) not in method_oper:
-            await update_img.reject(f"操作不正确，请重新输入！{method_str}")
-        state[state["_current_key"]] = str(event.get_message())
-        method_flag = str(event.get_message())
-    if method_flag in ["1", "修改尺寸"]:
-        if state["_current_key"] == "x":
-            if not is_number(str(event.get_message())):
-                await update_img.reject("宽度不正确！请重新输入数字...")
-            state[state["_current_key"]] = str(event.get_message())
-        if state["_current_key"] == "y":
-            if not is_number(str(event.get_message())):
-                await update_img.reject("长度不正确！请重新输入数字...")
-            state[state["_current_key"]] = str(event.get_message())
-    elif method_flag in ["2", "等比压缩", "3", "旋转图片"]:
-        if state["_current_key"] == "x":
-            if not is_number(str(event.get_message())):
-                await update_img.reject("比率不正确！请重新输入数字...")
-            state[state["_current_key"]] = str(event.get_message())
-            state["y"] = ""
-    elif method_flag in [
-        "4",
-        "水平翻转",
-        "5",
-        "铅笔滤镜",
-        "6",
-        "模糊效果",
-        "7",
-        "锐化效果",
-        "8",
-        "高斯模糊",
-        "9",
-        "边缘检测",
-    ]:
-        state["x"] = ""
-        state["y"] = ""
-    elif method_flag in ["10", "底色替换"]:
-        if state["_current_key"] == "x":
-            if str(event.get_message()) not in ["红色", "蓝色", "红", "蓝"]:
-                await update_img.reject("请输入支持的被替换的底色：\n红色 蓝色")
-            state["x"] = str(event.get_message())
-        if state["_current_key"] == "y":
-            if str(event.get_message()) not in [
-                "红色",
-                "白色",
-                "蓝色",
-                "绿色",
-                "黄色",
-                "红",
-                "白",
-                "蓝",
-                "绿",
-                "黄",
-            ]:
-                await update_img.reject("请输入支持的替换的底色：\n红色 蓝色 白色 绿色")
-            state["y"] = str(event.get_message())
-    if state["_current_key"] == "imgs":
-        if not get_message_img(event.json()):
-            await update_img.reject("没图？没图？没图？来图速来！")
-        state[state["_current_key"]] = get_message_img(event.json())
+def parse_key(key: str):
+    async def _key_parser(
+        state: T_State, inp: Union[Message, str] = Arg(key)
+    ):
+        if key != "img_list" and isinstance(inp, Message):
+            inp = inp.extract_plain_text().strip()
+        if inp in ["取消", "算了"]:
+            await update_img.finish("已取消操作..")
+        if key == "method":
+            if inp not in method_oper:
+                await update_img.reject_arg("method", f"操作不正确，请重新输入！{method_str}")
+        elif key == "x":
+            method = state["method"]
+            if method in ["1", "修改尺寸"]:
+                if not is_number(inp) or int(inp) < 1:
+                    await update_img.reject_arg("x", "宽度不正确！请重新输入数字...")
+            elif method in ["2", "等比压缩", "3", "旋转图片"]:
+                if not is_number(inp):
+                    await update_img.reject_arg("x", "比率不正确！请重新输入数字...")
+            elif method in ["10", "底色替换"]:
+                if inp not in ["红色", "蓝色", "红", "蓝"]:
+                    await update_img.reject_arg("x", "请输入支持的被替换的底色：\n红色 蓝色")
+        elif key == "y":
+            method = state["method"]
+            if method in ["1", "修改尺寸"]:
+                if not is_number(inp) or int(inp) < 1:
+                    await update_img.reject_arg("y", "长度不正确！请重新输入数字...")
+            elif method in ["10", "底色替换"]:
+                if inp not in [
+                    "红色",
+                    "白色",
+                    "蓝色",
+                    "绿色",
+                    "黄色",
+                    "红",
+                    "白",
+                    "蓝",
+                    "绿",
+                    "黄",
+                ]:
+                    await update_img.reject_arg("y", "请输入支持的替换的底色：\n红色 蓝色 白色 绿色")
+        elif key == "img_list":
+            if not get_message_img(inp):
+                await update_img.reject_arg("img_list", "没图？没图？没图？来图速来！")
+        state[key] = inp
+    return _key_parser
 
 
 @update_img.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
     if str(event.get_message()) in ["帮助"]:
         await update_img.finish(image("update_img_help.png"))
-    raw_arg = get_message_text(event.json())
+    raw_arg = arg.extract_plain_text().strip()
     img_list = get_message_img(event.json())
     if raw_arg:
-        args = raw_arg.split("[")[0].split(" ")
-        print(args)
+        args = raw_arg.split("[")[0].split()
         state["method"] = args[0]
         if len(args) == 2:
             if args[0] in ["等比压缩", "旋转图片"]:
@@ -185,18 +164,24 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             state["x"] = ""
             state["y"] = ""
         if img_list:
-            state["imgs"] = img_list
+            state["img_list"] = event.message
 
 
-@update_img.got("method", prompt=f"要使用图片的什么操作呢？{method_str}")
-@update_img.got("x", prompt="[宽度？ 比率？ 旋转角度？ 底色？]")
-@update_img.got("y", prompt="[长度？ 0 0 底色？]")
-@update_img.got("imgs", prompt="图呢图呢图呢图呢？GKD！")
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    method = state["method"]
-    x = state["x"] if state["x"] else ""
-    y = state["y"] if state["y"] else ""
-    img_list = state["imgs"]
+@update_img.got("method", prompt=f"要使用图片的什么操作呢？{method_str}", parameterless=[Depends(parse_key("method"))])
+@update_img.got("x", prompt="[宽度？ 比率？ 旋转角度？ 底色？]", parameterless=[Depends(parse_key("x"))])
+@update_img.got("y", prompt="[长度？ 0 0 底色？]", parameterless=[Depends(parse_key("y"))])
+@update_img.got("img_list", prompt="图呢图呢图呢图呢？GKD！", parameterless=[Depends(parse_key("img_list"))])
+async def _(
+    event: MessageEvent,
+    state: T_State,
+    method: str = ArgStr("method"),
+    x: str = ArgStr("x"),
+    y: str = ArgStr("y"),
+    img_list: Message = Arg("img_list"),
+):
+    x = x or ""
+    y = y or ""
+    img_list = get_message_img(img_list)
     if is_number(x):
         x = float(x)
     if is_number(y):
@@ -205,7 +190,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     result = ""
     for img_url in img_list:
         if await AsyncHttpx.download_file(
-            img_url, Path(IMAGE_PATH) / "temp" / f"{event.user_id}_{index}_update.png"
+            img_url, TEMP_PATH / f"{event.user_id}_{index}_update.png"
         ):
             index += 1
         else:
@@ -214,14 +199,14 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         return
     if method in ["修改尺寸", "1"]:
         for i in range(index):
-            img = Image.open(IMAGE_PATH + f"temp/{event.user_id}_{i}_update.png")
+            img = Image.open(TEMP_PATH / f"{event.user_id}_{i}_update.png")
             img = img.convert("RGB")
             img = img.resize((int(x), int(y)), Image.ANTIALIAS)
             result += image(b64=pic2b64(img))
         await update_img.finish(result, at_sender=True)
     if method in ["等比压缩", "2"]:
         for i in range(index):
-            img = Image.open(IMAGE_PATH + f"temp/{event.user_id}_{i}_update.png")
+            img = Image.open(TEMP_PATH / f"{event.user_id}_{i}_update.png")
             width, height = img.size
             img = img.convert("RGB")
             if width * x < 8000 and height * x < 8000:
@@ -231,43 +216,43 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 await update_img.finish(f"{NICKNAME}不支持图片压缩后宽或高大于8000的存在！！")
     if method in ["旋转图片", "3"]:
         for i in range(index):
-            img = Image.open(IMAGE_PATH + f"temp/{event.user_id}_{i}_update.png")
+            img = Image.open(TEMP_PATH / f"{event.user_id}_{i}_update.png")
             img = img.rotate(x)
             result += image(b64=pic2b64(img))
     if method in ["水平翻转", "4"]:
         for i in range(index):
-            img = Image.open(IMAGE_PATH + f"temp/{event.user_id}_{i}_update.png")
+            img = Image.open(TEMP_PATH / f"{event.user_id}_{i}_update.png")
             img = img.transpose(Image.FLIP_LEFT_RIGHT)
             result += image(b64=pic2b64(img))
     if method in ["铅笔滤镜", "5"]:
         for i in range(index):
-            img = Image.open(
-                IMAGE_PATH + f"temp/{event.user_id}_{i}_update.png"
-            ).filter(ImageFilter.CONTOUR)
+            img = Image.open(TEMP_PATH / f"{event.user_id}_{i}_update.png").filter(
+                ImageFilter.CONTOUR
+            )
             result += image(b64=pic2b64(img))
     if method in ["模糊效果", "6"]:
         for i in range(index):
-            img = Image.open(
-                IMAGE_PATH + f"temp/{event.user_id}_{i}_update.png"
-            ).filter(ImageFilter.BLUR)
+            img = Image.open(TEMP_PATH / f"temp/{event.user_id}_{i}_update.png").filter(
+                ImageFilter.BLUR
+            )
             result += image(b64=pic2b64(img))
     if method in ["锐化效果", "7"]:
         for i in range(index):
-            img = Image.open(
-                IMAGE_PATH + f"temp/{event.user_id}_{i}_update.png"
-            ).filter(ImageFilter.EDGE_ENHANCE)
+            img = Image.open(TEMP_PATH / f"{event.user_id}_{i}_update.png").filter(
+                ImageFilter.EDGE_ENHANCE
+            )
             result += image(b64=pic2b64(img))
     if method in ["高斯模糊", "8"]:
         for i in range(index):
-            img = Image.open(
-                IMAGE_PATH + f"temp/{event.user_id}_{i}_update.png"
-            ).filter(ImageFilter.GaussianBlur)
+            img = Image.open(TEMP_PATH / f"{event.user_id}_{i}_update.png").filter(
+                ImageFilter.GaussianBlur
+            )
             result += image(b64=pic2b64(img))
     if method in ["边缘检测", "9"]:
         for i in range(index):
-            img = Image.open(
-                IMAGE_PATH + f"temp/{event.user_id}_{i}_update.png"
-            ).filter(ImageFilter.FIND_EDGES)
+            img = Image.open(TEMP_PATH / f"{event.user_id}_{i}_update.png").filter(
+                ImageFilter.FIND_EDGES
+            )
             result += image(b64=pic2b64(img))
     if method in ["底色替换", "10"]:
         if x in ["蓝色", "蓝"]:
@@ -287,7 +272,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         if y in ["黄色", "黄"]:
             color = (0, 255, 255)
         for k in range(index):
-            img = cv2.imread(IMAGE_PATH + f"temp/{event.user_id}_{k}_update.png")
+            img = cv2.imread(TEMP_PATH / f"{event.user_id}_{k}_update.png")
             img = cv2.resize(img, None, fx=0.3, fy=0.3)
             rows, cols, channels = img.shape
             hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -298,7 +283,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
                 for j in range(cols):
                     if dilate[i, j] == 255:
                         img[i, j] = color
-            cv2.imwrite(IMAGE_PATH + f"temp/{event.user_id}_{k}_ok_update.png", img)
+            cv2.imwrite(TEMP_PATH / f"{event.user_id}_{k}_ok_update.png", img)
         for i in range(index):
             result += image(f"{event.user_id}_{i}_ok_update.png", "temp")
     if is_number(method):

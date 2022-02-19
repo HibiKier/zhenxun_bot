@@ -2,8 +2,7 @@ from utils.image_utils import BuildImage
 from configs.path_config import IMAGE_PATH
 from services.log import logger
 from utils.utils import get_matchers
-from nonebot.adapters.cqhttp import Bot
-from pathlib import Path
+from nonebot.adapters.onebot.v11 import Bot
 from nonebot import Driver
 import asyncio
 import nonebot
@@ -11,9 +10,9 @@ import nonebot
 
 driver: Driver = nonebot.get_driver()
 
-background = Path(IMAGE_PATH) / "background" / "0.png"
+background = IMAGE_PATH / "background" / "0.png"
 
-superuser_help_image = Path(IMAGE_PATH) / "superuser_help.png"
+superuser_help_image = IMAGE_PATH / "superuser_help.png"
 
 
 @driver.on_bot_connect
@@ -36,7 +35,7 @@ def _create_help_image():
     for matcher in _matchers:
         plugin_name = ""
         try:
-            _plugin = nonebot.plugin.get_plugin(matcher.module)
+            _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
             _module = _plugin.module
             try:
                 plugin_name = _module.__getattribute__("__zx_plugin_name__")
@@ -68,7 +67,7 @@ def _create_help_image():
                 width = width if width > x else x
         except Exception as e:
             logger.warning(
-                f"获取超级用户插件 {matcher.module}: {plugin_name} 设置失败... {type(e)}：{e}"
+                f"获取超级用户插件 {matcher.plugin_name}: {plugin_name} 设置失败... {type(e)}：{e}"
             )
     height = len(help_str.split("\n")) * 33
     width += 500

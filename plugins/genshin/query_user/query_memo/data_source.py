@@ -1,5 +1,5 @@
 from typing import Optional, Union
-from nonebot.adapters.cqhttp import MessageSegment
+from nonebot.adapters.onebot.v11 import MessageSegment
 from configs.config import Config
 from asyncio.exceptions import TimeoutError
 from services.log import logger
@@ -8,10 +8,9 @@ from utils.image_utils import BuildImage
 from utils.http_utils import AsyncHttpx
 from utils.utils import get_user_avatar
 from utils.message_builder import image
-from ..utils import get_ds
-from ..models import Genshin
+from .._utils import get_ds
+from .._models import Genshin
 from io import BytesIO
-from pathlib import Path
 from nonebot import Driver
 import asyncio
 import nonebot
@@ -20,7 +19,7 @@ import nonebot
 driver: Driver = nonebot.get_driver()
 
 
-memo_path = Path(IMAGE_PATH) / "genshin" / "genshin_memo"
+memo_path = IMAGE_PATH / "genshin" / "genshin_memo"
 memo_path.mkdir(exist_ok=True, parents=True)
 
 

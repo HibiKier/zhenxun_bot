@@ -1,9 +1,8 @@
 from nonebot import on_command
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent
 from services.log import logger
 from .data_source import get_user_memo, get_memo
-from ..models import Genshin
+from .._models import Genshin
 from nonebot.plugin import export
 
 
@@ -37,7 +36,7 @@ query_memo_matcher = on_command("原神便签查询", aliases={"原神便笺查�
 
 
 @query_memo_matcher.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent):
     uid = await Genshin.get_user_uid(event.user_id)
     if not uid or not await Genshin.get_user_cookie(uid, True):
         await query_memo_matcher.finish("请先绑定uid和cookie！")

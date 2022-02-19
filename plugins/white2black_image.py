@@ -1,13 +1,12 @@
-from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
 from nonebot import on_command
-from utils.utils import get_message_img, get_message_text, is_chinese
+from nonebot.params import CommandArg
+from utils.utils import get_message_img, is_chinese
 from utils.message_builder import image
 from configs.path_config import TEMP_PATH
 from utils.image_utils import BuildImage
 from services.log import logger
 from utils.http_utils import AsyncHttpx
-from pathlib import Path
 
 # ZH_CN2EN 中文　»　英语
 # ZH_CN2JA 中文　»　日语
@@ -45,19 +44,19 @@ w2b_img = on_command("黑白草图", aliases={"黑白图"}, priority=5, block=Tr
 
 
 @w2b_img.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent, arg: Message = CommandArg()):
     # try:
     img = get_message_img(event.json())
-    msg = get_message_text(event.json())
+    msg = arg.extract_plain_text().strip()
     if not img or not msg:
         await w2b_img.finish(f"格式错误：\n" + __plugin_usage__)
     img = img[0]
     if not await AsyncHttpx.download_file(
-        img, Path(TEMP_PATH) / f"{event.user_id}_w2b.png"
+        img, TEMP_PATH / f"{event.user_id}_w2b.png"
     ):
         await w2b_img.finish("下载图片失败...请稍后再试...")
     msg = await get_translate(msg)
-    w2b = BuildImage(0, 0, background=Path(TEMP_PATH) / f"{event.user_id}_w2b.png")
+    w2b = BuildImage(0, 0, background=TEMP_PATH / f"{event.user_id}_w2b.png")
     w2b.convert("L")
     msg_sp = msg.split("<|>")
     w, h = w2b.size

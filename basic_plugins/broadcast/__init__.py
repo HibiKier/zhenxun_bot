@@ -1,13 +1,14 @@
+from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent
 from nonebot import on_command
-from nonebot.typing import T_State
-from nonebot.adapters import Bot, Event
 from nonebot.permission import SUPERUSER
-import asyncio
-from utils.utils import get_message_text, get_message_img
+from nonebot.params import CommandArg
+from utils.utils import get_message_img
 from services.log import logger
 from utils.message_builder import image
 from utils.manager import group_manager
 from configs.config import Config
+import asyncio
+
 
 __zx_plugin_name__ = "广播 [Superuser]"
 __plugin_usage__ = """
@@ -33,14 +34,13 @@ broadcast = on_command("广播-", priority=1, permission=SUPERUSER, block=True)
 
 
 @broadcast.handle()
-async def _(bot: Bot, event: Event, state: T_State):
-    msg = get_message_text(event.json())
-    imgs = get_message_img(event.json())
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
+    img_list = get_message_img(event.json())
     rst = ""
-    for img in imgs:
+    for img in img_list:
         rst += image(img)
-    sid = bot.self_id
-    gl = await bot.get_group_list(self_id=sid)
+    gl = await bot.get_group_list()
     gl = [
         g["group_id"]
         for g in gl
@@ -56,7 +56,7 @@ async def _(bot: Bot, event: Event, state: T_State):
             await broadcast.send(f"已播报至 {int(cnt / g_cnt * 100)}% 的群聊")
             x += 0.25
         try:
-            await bot.send_group_msg(self_id=sid, group_id=g, message=msg + rst)
+            await bot.send_group_msg(group_id=g, message=msg + rst)
             logger.info(f"GROUP {g} 投递广播成功")
         except Exception as e:
             logger.error(f"GROUP {g} 投递广播失败：{type(e)}")

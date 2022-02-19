@@ -1,5 +1,5 @@
-from configs.path_config import IMAGE_PATH, VOICE_PATH
-from nonebot.adapters.cqhttp.message import MessageSegment
+from configs.path_config import IMAGE_PATH, RECORD_PATH
+from nonebot.adapters.onebot.v11.message import MessageSegment
 from configs.config import NICKNAME
 from services.log import logger
 from typing import Union, List
@@ -8,9 +8,9 @@ import os
 
 
 def image(
-    img_name: Union[str, Path] = None,
+    file: Union[str, Path, bytes] = None,
     path: str = None,
-    abspath: str = None,
+    abspath: Union[str, Path] = None,
     b64: str = None,
 ) -> Union[MessageSegment, str]:
     """
@@ -18,36 +18,40 @@ def image(
         生成一个 MessageSegment.image 消息
         生成顺序：绝对路径(abspath) > base64(b64) > img_name
     参数：
-        :param img_name: 图片文件名称，默认在 resource/img 目录下
+        :param file: 图片文件名称，默认在 resource/img 目录下
         :param path: 图片所在路径，默认在 resource/img 目录下
         :param abspath: 图片绝对路径
         :param b64: 图片base64
     """
     if abspath:
+        if isinstance(abspath, Path):
+            return MessageSegment.image(file)
         return (
             MessageSegment.image("file:///" + abspath)
             if os.path.exists(abspath)
             else ""
         )
-    elif isinstance(img_name, Path):
-        if img_name.exists():
-            return MessageSegment.image(f"file:///{img_name.absolute()}")
-        logger.warning(f"图片 {img_name.absolute()}缺失...")
+    elif isinstance(file, Path):
+        if file.exists():
+            return MessageSegment.image(file)
+        logger.warning(f"图片 {file.absolute()}缺失...")
         return ""
+    elif isinstance(file, bytes):
+        return MessageSegment.image(file)
     elif b64:
         return MessageSegment.image(b64 if "base64://" in b64 else "base64://" + b64)
     else:
-        if "http" in img_name:
-            return MessageSegment.image(img_name)
-        if len(img_name.split(".")) == 1:
-            img_name += ".jpg"
+        if "http" in file:
+            return MessageSegment.image(file)
+        if len(file.split(".")) == 1:
+            file += ".jpg"
         file = (
-            Path(IMAGE_PATH) / path / img_name if path else Path(IMAGE_PATH) / img_name
+            IMAGE_PATH / path / file if path else IMAGE_PATH / file
         )
         if file.exists():
-            return MessageSegment.image(f"file:///{file.absolute()}")
+            return MessageSegment.image(file)
         else:
-            logger.warning(f"图片 {file.absolute()}缺失...")
+            logger.warning(f"图片 {file} 缺失...")
             return ""
 
 
@@ -72,7 +76,7 @@ def record(voice_name: str, path: str = None) -> MessageSegment or str:
     if len(voice_name.split(".")) == 1:
         voice_name += ".mp3"
     file = (
-        Path(VOICE_PATH) / path / voice_name if path else Path(VOICE_PATH) / voice_name
+        Path(RECORD_PATH) / path / voice_name if path else Path(RECORD_PATH) / voice_name
     )
     if "http" in voice_name:
         return MessageSegment.record(voice_name)

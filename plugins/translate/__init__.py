@@ -1,7 +1,7 @@
 from nonebot import on_command
-from utils.utils import get_message_text
+from nonebot.params import CommandArg
 from services.log import logger
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
 from nonebot.typing import T_State
 from .data_source import translate_msg
 
@@ -37,14 +37,14 @@ translate = on_command(
 
 
 @translate.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
+async def _(state: T_State, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
     if msg:
         state["msg"] = msg
 
 
 @translate.got("msg", prompt="你要翻译的消息是啥？")
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent, state: T_State):
     msg = state["msg"]
     if len(msg) > 150:
         await translate.finish("翻译过长！请不要超过150字", at_sender=True)

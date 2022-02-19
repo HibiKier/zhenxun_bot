@@ -181,7 +181,7 @@ class WordBank(db.Model):
         elif type_ == "delete":
             q = await q.with_for_update().gino.all()
             if q:
-                path = Path(DATA_PATH) / "word_bank" / f"{group_id}"
+                path = DATA_PATH / "word_bank" / f"{group_id}"
                 if index is not None:
                     _q = [x.problem for x in q]
                     _q.sort()

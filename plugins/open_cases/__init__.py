@@ -1,15 +1,15 @@
 from typing import Type
 from nonebot import on_command
 from nonebot.matcher import Matcher
-from utils.utils import scheduler, get_message_text, is_number
-from nonebot.adapters.cqhttp.permission import GROUP
+from utils.utils import scheduler, is_number
+from nonebot.adapters.onebot.v11.permission import GROUP
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, GroupMessageEvent, MessageEvent
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent, Message
 from nonebot.permission import SUPERUSER
 import random
 from nonebot.plugin import MatcherGroup
 from configs.path_config import IMAGE_PATH
-import re
+from nonebot.params import CommandArg
 from .open_cases_c import (
     open_case,
     total_open_statistics,
@@ -102,8 +102,8 @@ k_open_case = cases_matcher_group.on_command("开箱")
 
 
 @k_open_case.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    case_name = get_message_text(event.json())
+async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
+    case_name = arg.extract_plain_text().strip()
     case_name = case_name.replace("武器箱", "").strip()
     if case_name:
         result = await open_case(event.user_id, event.group_id, case_name)
@@ -120,7 +120,7 @@ total_case_data = cases_matcher_group.on_command(
 
 
 @total_case_data.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     await total_case_data.finish(
         await total_open_statistics(event.user_id, event.group_id),
         at_sender=True,
@@ -131,7 +131,7 @@ group_open_case_statistics = cases_matcher_group.on_command("群开箱统计")
 
 
 @group_open_case_statistics.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     await group_open_case_statistics.finish(await group_statistics(event.group_id))
 
 
@@ -139,45 +139,39 @@ my_kinfes = on_command("我的金色", priority=1, permission=GROUP, block=True)
 
 
 @my_kinfes.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
+async def _(event: GroupMessageEvent):
     await my_kinfes.finish(
         await my_knifes_name(event.user_id, event.group_id), at_sender=True
     )
 
 
-open_shilian: Type[Matcher] = cases_matcher_group.on_regex(".*连开箱")
+open_shilian: Type[Matcher] = cases_matcher_group.on_regex("(.*)连开箱(.*?)")
 
 
 @open_shilian.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    # if not _flmt.check(event.user_id):
-    #     await k_open_case.finish('着什么急啊，慢慢来！', at_sender=True)
-    # _flmt.start_cd(event.user_id)
-    msg = get_message_text(event.json())
-    rs = re.search(r"(.*)连开箱(.*)", msg)
-    if rs:
-        num = rs.group(1).strip()
-        if is_number(num) or num_dict.get(num):
-            try:
-                num = num_dict[num]
-            except KeyError:
-                num = int(num)
-            if num > 30:
-                await open_shilian.finish("开箱次数不要超过30啊笨蛋！", at_sender=True)
-            if num < 0:
-                await open_shilian.finish("再负开箱就扣你明天开箱数了！", at_sender=True)
-        else:
-            await open_shilian.finish("必须要是数字切不要超过30啊笨蛋！中文也可！", at_sender=True)
-        case_name = rs.group(2).strip()
-        case_name = case_name.replace("武器箱", "").strip()
-        if not case_name:
-            case_name = random.choice(cases_name)
-        elif case_name not in cases_name:
-            await open_shilian.finish("武器箱未收录！", at_sender=True)
-        await open_shilian.finish(
-            await open_shilian_case(event.user_id, event.group_id, case_name, num),
-            at_sender=True,
-        )
+async def _(event: GroupMessageEvent, state: T_State):
+    num = state["_matched_groups"][0].strip()
+    if is_number(num) or num_dict.get(num):
+        try:
+            num = num_dict[num]
+        except KeyError:
+            num = int(num)
+        if num > 30:
+            await open_shilian.finish("开箱次数不要超过30啊笨蛋！", at_sender=True)
+        if num < 0:
+            await open_shilian.finish("再负开箱就扣你明天开箱数了！", at_sender=True)
+    else:
+        await open_shilian.finish("必须要是数字切不要超过30啊笨蛋！中文也可！", at_sender=True)
+    case_name = state["_matched_groups"][1].strip()
+    case_name = case_name.replace("武器箱", "").strip()
+    if not case_name:
+        case_name = random.choice(cases_name)
+    elif case_name not in cases_name:
+        await open_shilian.finish("武器箱未收录！", at_sender=True)
+    await open_shilian.finish(
+        await open_shilian_case(event.user_id, event.group_id, case_name, num),
+        at_sender=True,
+    )
 
 
 num_dict = {
@@ -218,7 +212,7 @@ update_price = on_command("更新开箱价格", priority=1, permission=SUPERUSER
 
 
 @update_price.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _( event: MessageEvent):
     await update_price.send(await util_get_buff_price(str(event.get_message())))
 
 
@@ -226,7 +220,7 @@ update_img = on_command("更新开箱图片", priority=1, permission=SUPERUSER, 
 
 
 @update_img.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent):
     await update_img.send(await util_get_buff_img(str(event.get_message())))
 
 

@@ -11,7 +11,7 @@ from .init_plugins_limit import (
 )
 from .init import init
 from .check_plugin_status import check_plugin_status
-from nonebot.adapters.cqhttp import Bot
+from nonebot.adapters.onebot.v11 import Bot
 from configs.path_config import DATA_PATH
 from services.log import logger
 from pathlib import Path
@@ -33,7 +33,7 @@ def _():
     初始化数据
     """
     _flag = False
-    config_file = Path(DATA_PATH) / "configs" / "plugins2config.yaml"
+    config_file = DATA_PATH / "configs" / "plugins2config.yaml"
     if not config_file.exists():
         _flag = True
     init()

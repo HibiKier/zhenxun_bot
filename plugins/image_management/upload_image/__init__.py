@@ -1,10 +1,12 @@
 from nonebot import on_command
 from nonebot.rule import to_me
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
 from configs.config import Config
-from utils.utils import get_message_img, get_message_text
+from utils.utils import get_message_img
 from .data_source import upload_image_to_local
+from nonebot.params import CommandArg, Arg, ArgStr
+from typing import List
 
 
 __zx_plugin_name__ = "上传图片 [Admin]"
@@ -22,7 +24,9 @@ __plugin_des__ = "指定图库图片上传"
 __plugin_cmd__ = ["上传图片 [图库] [图片]", "连续上传图片 [图库]", "查看公开图库"]
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
-__plugin_settings__ = {"admin_level": Config.get_config("image_management", "UPLOAD_IMAGE_LEVEL")}
+__plugin_settings__ = {
+    "admin_level": Config.get_config("image_management", "UPLOAD_IMAGE_LEVEL")
+}
 
 upload_img = on_command("上传图片", rule=to_me(), priority=5, block=True)
 
@@ -32,48 +36,42 @@ show_gallery = on_command("查看公开图库", priority=1, block=True)
 
 
 @show_gallery.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    x = '公开图库列表：\n'
+async def _():
+    x = "公开图库列表：\n"
     for i, e in enumerate(Config.get_config("image_management", "IMAGE_DIR_LIST")):
-        x += f'\t{i+1}.{e}\n'
+        x += f"\t{i+1}.{e}\n"
     await show_gallery.send(x[:-1])
 
 
-@upload_img.args_parser
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    msg = get_message_text(event.json())
-    if msg in ["取消", "算了"]:
-        await upload_img.finish("已取消操作..", at_sender=True)
-    if state["_current_key"] in ["path"]:
-        if msg not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
-            await upload_img.reject("此目录不正确，请重新输入目录！")
-        state["path"] = msg
-    if state["_current_key"] in ["imgs"]:
-        if not get_message_img(event.json()):
-            await upload_img.reject("图呢图呢图呢图呢！GKD！")
-        state["imgs"] = get_message_img(event.json())
-
-
 @upload_img.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    raw_arg = get_message_text(event.json())
+async def _(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
+    args = arg.extract_plain_text().strip()
     img_list = get_message_img(event.json())
-    if raw_arg:
-        if raw_arg in Config.get_config("image_management", "IMAGE_DIR_LIST"):
-            state["path"] = raw_arg
-        if img_list:
-            state["imgs"] = img_list
+    if args:
+        if args in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+            state["path"] = args
+    if img_list:
+        state["img_list"] = arg
 
 
-@upload_img.got("path", prompt="要将图片上传至什么图库呢？")
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    pass
-
-
-@upload_img.got("imgs", prompt="图呢图呢图呢图呢！GKD！")
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    path = state["path"]
-    img_list = state["imgs"]
+@upload_img.got(
+    "path",
+    prompt=f"请选择要上传的图库\n- "
+    + "\n- ".join(Config.get_config("image_management", "IMAGE_DIR_LIST")),
+)
+@upload_img.got("img_list", prompt="图呢图呢图呢图呢！GKD！")
+async def _(
+    bot: Bot,
+    event: MessageEvent,
+    state: T_State,
+    path: str = ArgStr("path"),
+    img_list: Message = Arg("img_list"),
+):
+    if path not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+        await upload_img.reject_arg("path", "此目录不正确，请重新输入目录！")
+    if not get_message_img(img_list):
+        await upload_img.reject_arg("img_list", "图呢图呢图呢图呢！GKD！")
+    img_list = get_message_img(img_list)
     group_id = 0
     if isinstance(event, GroupMessageEvent):
         group_id = event.group_id
@@ -82,42 +80,35 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
     )
 
 
-@continuous_upload_img.args_parser
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    if str(event.get_message()) in ["取消", "算了"]:
-        await continuous_upload_img.finish("已取消操作..", at_sender=True)
-    if state["_current_key"] in ["path"]:
-        if str(event.get_message()) not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
-            await continuous_upload_img.reject("此目录不正确，请重新输入目录！")
-        state[state["_current_key"]] = str(event.get_message())
-    else:
-        if get_message_text(event.json()) not in ["stop"]:
-            img = get_message_img(event.json())
-            if img:
-                state["tmp"].extend(img)
-            await continuous_upload_img.reject("图再来！！")
-        else:
-            state["imgs"] = state["tmp"]
-
-
 @continuous_upload_img.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(event: MessageEvent, state: T_State):
     path = get_message_img(event.json())
     if path in Config.get_config("image_management", "IMAGE_DIR_LIST"):
         state["path"] = path
-        await continuous_upload_img.send("图来！！【停止请发送 ‘stop’ 开始上传】")
-    state["tmp"] = []
+    state["img_list"] = []
 
 
-@continuous_upload_img.got("path", prompt="要将图片上传至什么图库呢？")
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    pass
-
-
-@continuous_upload_img.got("imgs", prompt="图呢图呢图呢图呢！GKD！")
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    path = state["path"]
-    img_list = state["imgs"]
+@continuous_upload_img.got(
+    "path",
+    prompt=f"请选择要上传的图库\n- "
+    + "\n- ".join(Config.get_config("image_management", "IMAGE_DIR_LIST")),
+)
+@continuous_upload_img.got("img", prompt="图呢图呢图呢图呢！GKD！【发送‘stop’为停止】")
+async def _(
+    event: MessageEvent,
+    state: T_State,
+    img_list: List[str] = Arg("img_list"),
+    path: str = ArgStr("path"),
+    img: Message = Arg("img"),
+):
+    if path not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+        await upload_img.reject_arg("path", "此目录不正确，请重新输入目录！")
+    if not img.extract_plain_text() == "stop":
+        img = get_message_img(img)
+        if img:
+            for i in img:
+                img_list.append(i)
+        await upload_img.reject_arg("img", "图再来！！【发送‘stop’为停止】")
     group_id = 0
     if isinstance(event, GroupMessageEvent):
         group_id = event.group_id

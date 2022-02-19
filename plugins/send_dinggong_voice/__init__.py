@@ -1,9 +1,9 @@
 from nonebot import on_keyword
 from utils.message_builder import record
-from configs.path_config import VOICE_PATH
+from configs.path_config import RECORD_PATH
 from services.log import logger
 from nonebot.typing import T_State
-from nonebot.adapters.cqhttp import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent
 from nonebot.rule import to_me
 import random
 import os
@@ -37,7 +37,7 @@ dg_voice = on_keyword({"骂"}, rule=to_me(), priority=5, block=True)
 @dg_voice.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     if len(str((event.get_message()))) > 1:
-        voice = random.choice(os.listdir(VOICE_PATH + "dinggong/"))
+        voice = random.choice(os.listdir(RECORD_PATH / "dinggong"))
         result = record(voice, "dinggong")
         await dg_voice.send(result)
         await dg_voice.send(voice.split("_")[1])

@@ -262,7 +262,7 @@ class GroupManager(StaticData):
         """
         if not self._task:
             for matcher in get_matchers():
-                _plugin = nonebot.plugin.get_plugin(matcher.module)
+                _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
                 try:
                     _module = _plugin.module
                     plugin_task = _module.__getattribute__("__plugin_task__")
@@ -292,7 +292,6 @@ class GroupManager(StaticData):
                         self._data["group_manager"][group_id]["group_task_status"][
                             task
                         ] = Config.get_config('_task', f'DEFAULT_{task}', default=True)
-                        print(task, Config.get_config('_task', f'DEFAULT_{task}'))
                 for task in list(
                     self._data["group_manager"][group_id]["group_task_status"]
                 ):

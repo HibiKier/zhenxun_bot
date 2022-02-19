@@ -1,10 +1,8 @@
-
-from nonebot.adapters.cqhttp import MessageSegment
+from nonebot.adapters.onebot.v11 import MessageSegment
 import random
 from .update_game_requests_info import update_requests_info
 from .util import generate_img, init_star_rst, BaseData, set_list, get_star, max_card
-from .config import FGO_CARD_FOUR_P, FGO_CARD_FIVE_P, FGO_CARD_THREE_P, FGO_SERVANT_THREE_P, \
-    FGO_SERVANT_FIVE_P, FGO_SERVANT_FOUR_P, FGO_FLAG, DRAW_PATH
+from .config import DRAW_DATA_PATH, draw_config
 from dataclasses import dataclass
 from .init_card_pool import init_game_pool
 
@@ -45,11 +43,11 @@ async def update_fgo_info():
 
 async def init_fgo_data():
     global ALL_CHAR, ALL_CARD
-    if FGO_FLAG:
-        with open(DRAW_PATH + 'fgo.json', 'r', encoding='utf8') as f:
+    if draw_config.FGO_FLAG:
+        with (DRAW_DATA_PATH / 'fgo.json').open('r', encoding='utf8') as f:
             fgo_dict = json.load(f)
         ALL_CHAR = init_game_pool('fgo', fgo_dict, FgoChar)
-        with open(DRAW_PATH + 'fgo_card.json', 'r', encoding='utf8') as f:
+        with (DRAW_DATA_PATH / 'fgo_card.json').open('r', encoding='utf8') as f:
             fgo_dict = json.load(f)
         ALL_CARD = init_game_pool('fgo', fgo_dict, FgoChar)
 
@@ -57,21 +55,22 @@ async def init_fgo_data():
 # 抽取卡池
 def _get_fgo_card(mode: int = 1):
     global ALL_CHAR, ALL_CARD
+    fgo_config = draw_config.fgo
     if mode == 1:
-        star = get_star([8, 7, 6, 5, 4, 3], [FGO_SERVANT_FIVE_P, FGO_SERVANT_FOUR_P, FGO_SERVANT_THREE_P,
-                                             FGO_CARD_FIVE_P, FGO_CARD_FOUR_P, FGO_CARD_THREE_P])
+        star = get_star([8, 7, 6, 5, 4, 3], [fgo_config.FGO_SERVANT_FIVE_P, fgo_config.FGO_SERVANT_FOUR_P, fgo_config.FGO_SERVANT_THREE_P,
+                                             fgo_config.FGO_CARD_FIVE_P, fgo_config.FGO_CARD_FOUR_P, fgo_config.FGO_CARD_THREE_P])
     elif mode == 2:
-        star = get_star([5, 4], [FGO_CARD_FIVE_P, FGO_CARD_FOUR_P])
+        star = get_star([5, 4], [fgo_config.FGO_CARD_FIVE_P, fgo_config.FGO_CARD_FOUR_P])
     else:
-        star = get_star([8, 7, 6], [FGO_SERVANT_FIVE_P, FGO_SERVANT_FOUR_P, FGO_SERVANT_THREE_P])
+        star = get_star([8, 7, 6], [fgo_config.FGO_SERVANT_FIVE_P, fgo_config.FGO_SERVANT_FOUR_P, fgo_config.FGO_SERVANT_THREE_P])
     if star > 5:
-        itype = 'servant'
+        type_ = 'servant'
         star -= 3
         chars = [x for x in ALL_CHAR if x.star == star if not x.limited]
     else:
-        itype = 'card'
+        type_ = 'card'
         chars = [x for x in ALL_CARD if x.star == star if not x.limited]
-    return random.choice(chars), 5 - star, itype
+    return random.choice(chars), 5 - star, type_
 
 
 # 整理数据
@@ -88,18 +87,18 @@ def _format_card_information(count: int):
         card_count += 1
         # 四星卡片保底
         if card_count == 9:
-            obj, code, itype = _get_fgo_card(2)
+            obj, code, type_ = _get_fgo_card(2)
         # 三星从者保底
         elif servant_count == 10:
-            obj, code, itype = _get_fgo_card(3)
+            obj, code, type_ = _get_fgo_card(3)
             _count = 0
         # 普通抽
         else:
-            obj, code, itype = _get_fgo_card()
+            obj, code, type_ = _get_fgo_card()
         star_list[code] += 1
-        if itype == 'card' and code < 2:
+        if type_ == 'card' and code < 2:
             card_count = 0
-        if itype == 'servant':
+        if type_ == 'servant':
             servant_count = 0
         if code == 0:
             max_star_lst.append(obj.name)
