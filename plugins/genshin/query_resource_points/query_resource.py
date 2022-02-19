@@ -97,11 +97,13 @@ async def init(flag: bool = False):
         await download_resource_data(semaphore)
         await download_resource_type()
         if not CENTER_POINT:
-            CENTER_POINT = json.load(open(resource_label_file, "r", encoding="utf8"))[
-                "CENTER_POINT"
-            ]
-        with open(resource_type_file, "r", encoding="utf8") as f:
-            data = json.load(f)
+            if resource_label_file.exists():
+                CENTER_POINT = json.load(open(resource_label_file, "r", encoding="utf8"))[
+                    "CENTER_POINT"
+                ]
+        if resource_label_file.exists():
+            with open(resource_type_file, "r", encoding="utf8") as f:
+                data = json.load(f)
         for id_ in data:
             for x in data[id_]["children"]:
                 resource_name_list.append(x["name"])
@@ -114,7 +116,7 @@ async def download_resource_data(semaphore: Semaphore):
     icon_path.mkdir(parents=True, exist_ok=True)
     resource_label_file.parent.mkdir(parents=True, exist_ok=True)
     try:
-        response = await AsyncHttpx.get(POINT_LIST_URL, timeout=5)
+        response = await AsyncHttpx.get(POINT_LIST_URL, timeout=10)
         if response.status_code == 200:
             data = response.json()
             if data["message"] == "OK":
@@ -166,7 +168,7 @@ async def download_map_init(
     if _map.exists() and os.path.getsize(_map) > 1024 * 1024 * 30:
         _map.unlink()
     try:
-        response = await AsyncHttpx.get(MAP_URL, timeout=5)
+        response = await AsyncHttpx.get(MAP_URL, timeout=10)
         if response.status_code == 200:
             data = response.json()
             if data["message"] == "OK":
@@ -205,7 +207,7 @@ async def download_map_init(
 async def download_resource_type():
     resource_type_file.parent.mkdir(parents=True, exist_ok=True)
     try:
-        response = await AsyncHttpx.get(LABEL_URL, timeout=5)
+        response = await AsyncHttpx.get(LABEL_URL, timeout=10)
         if response.status_code == 200:
             data = response.json()
             if data["message"] == "OK":
@@ -251,7 +253,7 @@ async def download_image(
     async with semaphore:
         try:
             if not os.path.exists(path) or not is_valid or force_flag:
-                if await AsyncHttpx.download_file(img_url, path, timeout=5):
+                if await AsyncHttpx.download_file(img_url, path, timeout=10):
                     logger.info(f"下载原神资源图标：{img_url}")
                     if gen_flag:
                         gen_icon(path)
