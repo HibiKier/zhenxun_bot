@@ -18,7 +18,9 @@
 ## 声明
 此项目仅用于学习交流，请勿用于非法用途
 
-## Gitee：[Gitee](https://gitee.com/two_Dimension/zhenxun_bot)
+## Gitee
+
+# [Gitee](https://gitee.com/two_Dimension/zhenxun_bot)
 
 ## 未完成的文档
 
