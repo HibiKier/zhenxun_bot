@@ -9,6 +9,6 @@
       "configs/utils",
       "bot.py"
     ],
-    "add_file": [],
+    "add_file": ["poetry.lock", "pyproject.toml"],
     "delete_file": []
 }
