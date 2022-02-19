@@ -48,7 +48,7 @@ async def query_resource(resource_name: str) -> str:
         planning_route = True
     if not resource_name or resource_name not in resource_name_list:
         # return f"未查找到 {resource_name} 资源，可通过 “原神资源列表” 获取全部资源名称.."
-        return ''
+        return ""
     map_ = Map(
         resource_name, CENTER_POINT, planning_route=planning_route, ratio=MAP_RATIO
     )
@@ -84,7 +84,7 @@ def check_resource_exists(resource: str) -> bool:
     检查资源是否存在
     :param resource: 资源名称
     """
-    resource = resource.replace('路径', '').replace('路线', '')
+    resource = resource.replace("路径", "").replace("路线", "")
     return resource in resource_name_list
 
 
@@ -98,17 +98,17 @@ async def init(flag: bool = False):
         await download_resource_type()
         if not CENTER_POINT:
             if resource_label_file.exists():
-                CENTER_POINT = json.load(open(resource_label_file, "r", encoding="utf8"))[
-                    "CENTER_POINT"
-                ]
+                CENTER_POINT = json.load(
+                    open(resource_label_file, "r", encoding="utf8")
+                )["CENTER_POINT"]
         if resource_label_file.exists():
             with open(resource_type_file, "r", encoding="utf8") as f:
                 data = json.load(f)
-        for id_ in data:
-            for x in data[id_]["children"]:
-                resource_name_list.append(x["name"])
+            for id_ in data:
+                for x in data[id_]["children"]:
+                    resource_name_list.append(x["name"])
     except TimeoutError:
-        logger.warning('原神资源查询信息初始化超时....')
+        logger.warning("原神资源查询信息初始化超时....")
 
 
 # 图标及位置资源
@@ -159,9 +159,7 @@ async def download_resource_data(semaphore: Semaphore):
 
 
 # 下载原神地图并拼图
-async def download_map_init(
-    semaphore: Semaphore, flag: bool = False
-):
+async def download_map_init(semaphore: Semaphore, flag: bool = False):
     global CENTER_POINT, MAP_RATIO
     map_path.mkdir(exist_ok=True, parents=True)
     _map = map_path / "map.png"
@@ -178,20 +176,24 @@ async def download_map_init(
                     data = data["slices"]
                     idx = 0
                     for _map_data in data[0]:
-                        map_url = _map_data['url']
+                        map_url = _map_data["url"]
                         await download_image(
                             map_url,
                             f"{map_path}/{idx}.png",
                             semaphore,
                             force_flag=flag,
                         )
-                        BuildImage(0, 0, background=f"{map_path}/{idx}.png", ratio=MAP_RATIO).save()
+                        BuildImage(
+                            0, 0, background=f"{map_path}/{idx}.png", ratio=MAP_RATIO
+                        ).save()
                         idx += 1
                     _w, h = BuildImage(0, 0, background=f"{map_path}/0.png").size
                     w = _w * len(os.listdir(map_path))
                     map_file = BuildImage(w, h, _w, h, ratio=MAP_RATIO)
                     for i in range(idx):
-                        map_file.paste(BuildImage(0, 0, background=f"{map_path}/{i}.png"))
+                        map_file.paste(
+                            BuildImage(0, 0, background=f"{map_path}/{i}.png")
+                        )
                     map_file.save(f"{map_path}/map.png")
             else:
                 logger.warning(f'获取原神地图失败 msg: {data["message"]}')
