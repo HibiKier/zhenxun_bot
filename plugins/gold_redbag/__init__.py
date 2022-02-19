@@ -323,7 +323,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
             scheduler.add_job(
                 end_festive_redbag,
                 "date",
-                run_date=str(datetime.now() + timedelta(hours=24)).split(".")[0],
+                run_date=(datetime.now() + timedelta(hours=24)).replace(microsecond=0),
                 id=f"festive_redbag_{g}",
                 args=[bot, g],
             )

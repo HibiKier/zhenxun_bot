@@ -16,11 +16,18 @@ Config.add_plugin_config(
 
 Config.add_plugin_config(
     "genshin",
+    "n",
+    "h8w582wxwgqvahcdkpvdhbh2w9casgfl"
+)
+
+Config.add_plugin_config(
+    "genshin",
     "client_type",
     "5"
 )
 
 nonebot.load_plugins("plugins/genshin/query_user")
+
 
 
 

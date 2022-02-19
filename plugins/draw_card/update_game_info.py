@@ -179,6 +179,9 @@ async def _last_check(data: dict, game_name: str):
 
 # 对抓取每行数据是否需要额外处理？
 def intermediate_check(member_dict: dict, key: str, game_name: str, td: bs4.element.Tag):
+    if game_name == "genshin_arms":
+        if key == "稀有度":
+            member_dict["稀有度"] = td.find("img")["alt"].split('.')[0]
     if game_name == 'prts':
         if key == '获取途径':
             msg = re.search('<td.*?>([\\s\\S]*)</td>', str(td)).group(1).strip()

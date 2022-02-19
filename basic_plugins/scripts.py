@@ -93,6 +93,18 @@ async def _():
             "ALTER TABLE bag_users ADD property json NOT NULL DEFAULT '{}';",
             "bag_users",
         ),  # bag_users 新增字段 property 替代 props
+        (
+            "ALTER TABLE genshin ADD auto_sign_time timestamp with time zone;",
+            "genshin"
+        ),  # 新增原神自动签到字段
+        (
+            "ALTER TABLE genshin ADD resin_remind boolean DEFAULT False;",
+            "genshin"
+        ),  # 新增原神自动签到字段
+        (
+            "ALTER TABLE genshin ADD resin_recovery_time timestamp with time zone;",
+            "genshin"
+        ),  # 新增原神自动签到字段
     ]
     for sql in sql_str:
         try:

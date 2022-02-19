@@ -66,9 +66,11 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
                 await use_props.finish(f"该道具单次只能使用 {n} 个！")
             if await BagUser.delete_property(
                 event.user_id, event.group_id, name, num
-            ) and await effect(bot, event, name, num):
+            ):
                 if func_manager.check_send_success_message(name):
                     await use_props.send(f"使用道具 {name} {num} 次成功！", at_sender=True)
+                if msg := await effect(bot, event, name, num):
+                    await use_props.send(msg, at_sender=True)
                 logger.info(
                     f"USER {event.user_id} GROUP {event.group_id} 使用道具 {name} {num} 次成功"
                 )

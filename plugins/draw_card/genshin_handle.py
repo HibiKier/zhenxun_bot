@@ -109,18 +109,6 @@ async def update_genshin_info():
     data, code = await update_info(
         url,
         "genshin_arms",
-        [
-            "头像",
-            "名称",
-            "类型",
-            "稀有度.alt",
-            "获取途径",
-            "初始基础属性1",
-            "初始基础属性2",
-            "攻击力（MAX）",
-            "副属性（MAX）",
-            "技能",
-        ],
     )
     if code == 200:
         ALL_ARMS = init_game_pool("genshin_arms", data, GenshinChar)
@@ -177,7 +165,6 @@ def _get_genshin_card(mode: int = 1, pool_name: str = "", add: float = 0.0):
         if flag and star > 3 and pool_name:
             # 获取up角色列表
             up_char_lst = [x.operators for x in data_lst if x.star == star][0]
-            print(up_char_lst)
             # 成功获取up角色
             if random.random() < 0.5:
                 up_char_name = random.choice(up_char_lst)

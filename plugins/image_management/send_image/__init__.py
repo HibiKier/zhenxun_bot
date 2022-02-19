@@ -1,4 +1,4 @@
-from nonebot import on_command, on_keyword, on_regex
+from nonebot import on_message, on_keyword, on_regex
 from configs.path_config import IMAGE_PATH
 from utils.message_builder import image
 from utils.utils import get_message_text, is_number
@@ -9,6 +9,7 @@ from utils.utils import FreqLimiter, cn2py
 from pathlib import Path
 from configs.config import Config
 from utils.manager import group_manager, withdraw_message_manager
+from .rule import rule
 import random
 import os
 
@@ -50,9 +51,8 @@ Config.add_plugin_config(
 
 _flmt = FreqLimiter(1)
 
-cmd = set(Config.get_config("image_management", "IMAGE_DIR_LIST"))
 
-send_img = on_command("img", aliases=cmd, priority=5, block=True)
+send_img = on_message(priority=5, rule=rule, block=True)
 pa = on_keyword({"丢人爬", "爪巴"}, priority=5, block=True)
 pa_reg = on_regex("^爬$", priority=5, block=True)
 
@@ -62,18 +62,24 @@ _path = Path(IMAGE_PATH) / "image_management"
 
 @send_img.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State):
-    img_id = get_message_text(event.json())
-    path = _path / cn2py(state["_prefix"]["raw_command"])
-    if state["_prefix"]["raw_command"] in Config.get_config(
+    msg = get_message_text(event.json()).split()
+    gallery = msg[0]
+    if gallery not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+        return
+    img_id = None
+    if len(msg) > 1:
+        img_id = msg[1]
+    path = _path / cn2py(gallery)
+    if gallery in Config.get_config(
         "image_management", "IMAGE_DIR_LIST"
     ):
-        if not path.exists() and (path.parent.parent / cn2py(state["_prefix"]["raw_command"])).exists():
-            path = Path(IMAGE_PATH) / cn2py(state["_prefix"]["raw_command"])
+        if not path.exists() and (path.parent.parent / cn2py(gallery)).exists():
+            path = Path(IMAGE_PATH) / cn2py(gallery)
         else:
             path.mkdir(parents=True, exist_ok=True)
     length = len(os.listdir(path))
     if length == 0:
-        logger.warning(f'图库 {cn2py(state["_prefix"]["raw_command"])} 为空，调用取消！')
+        logger.warning(f'图库 {cn2py(gallery)} 为空，调用取消！')
         await send_img.finish("该图库中没有图片噢")
     index = img_id if img_id else str(random.randint(0, length - 1))
     if not is_number(index):
@@ -85,7 +91,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         logger.info(
             f"(USER {event.user_id}, GROUP "
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) "
-            f"发送{cn2py(state['_prefix']['raw_command'])}:"
+            f"发送{cn2py(gallery)}:"
             + result
         )
         msg_id = await send_img.send(
@@ -102,7 +108,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         logger.info(
             f"(USER {event.user_id}, GROUP "
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) "
-            f"发送 {cn2py(state['_prefix']['raw_command'])} 失败"
+            f"发送 {cn2py(gallery)} 失败"
         )
         await send_img.finish(f"不想给你看Ov|")
 
@@ -135,4 +141,4 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
         return
     if _flmt.check(event.user_id):
         _flmt.start_cd(event.user_id)
-        await pa.finish(image(random.choice(os.listdir(IMAGE_PATH + "pa")), "pa"))
+        await pa_reg.finish(image(random.choice(os.listdir(IMAGE_PATH + "pa")), "pa"))

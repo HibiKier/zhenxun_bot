@@ -40,6 +40,9 @@ __plugin_settings__ = {
     "limit_superuser": False,
     "cmd": ["原神资源查询", "原神资源列表"],
 }
+__plugin_block_limit__ = {
+    "rst": "您有资源正在查询！"
+}
 
 qr = on_command("原神资源查询", aliases={"原神资源查找"}, priority=5, block=True)
 qr_lst = on_command("原神资源列表", priority=5, block=True)

@@ -26,6 +26,7 @@ __plugin_settings__ = {
     "limit_superuser": False,
     "cmd": ["原神玩家查询"],
 }
+__plugin_block_limit__ = {}
 
 
 query_role_info_matcher = on_command("原神玩家查询", aliases={"原神玩家查找", "ys"}, priority=5, block=True)

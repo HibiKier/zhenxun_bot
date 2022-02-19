@@ -248,13 +248,13 @@ async def text2image(
                 for e in placeholder[2].split():
                     if e.startswith("font="):
                         _font = e.split("=")[-1]
-                    if e.startswith("font_size="):
+                    if e.startswith("font_size=") or e.startswith("fs="):
                         _font_size = int(e.split("=")[-1])
                         if _font_size > 1000:
                             _font_size = 1000
                         if _font_size < 1:
                             _font_size = 1
-                    if e.startswith("font_color"):
+                    if e.startswith("font_color") or e.startswith("fc="):
                         _font_color = e.split("=")[-1]
                 text_img = BuildImage(
                     0,

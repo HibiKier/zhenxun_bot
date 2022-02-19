@@ -131,8 +131,9 @@ async def retrieve_char_data(char: bs4.element.Tag, game_name: str, data: dict, 
             '名称': remove_prohibited_str(char.find('a')['title']),
             '星级': 3 - index}
     if game_name == 'azur':
-        char = char.find('div').find('div').find('div').find('div')
+        char = char.find('div').find('div').find('div')
         avatar_img = char.find('a').find('img')
+        char = char.find('div')
         try:
             member_dict['名称'] = remove_prohibited_str(char.find('a')['title'])
         except TypeError:

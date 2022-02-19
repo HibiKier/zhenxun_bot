@@ -18,6 +18,9 @@
 ## 声明
 此项目仅用于学习交流，请勿用于非法用途
 
+## Gitee同步
+# [Gitee](https://gitee.com/two_Dimension/zhenxun_bot)
+
 ## 未完成的文档
 
 # [传送门](https://hibikier.github.io/zhenxun_bot/)
@@ -67,6 +70,8 @@
 - [x] 原神资源查询  (借鉴[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
 - [x] 原神便笺查询
 - [x] 原神玩家查询
+- [x] 原神树脂提醒
+- [x] 原神签到/自动签到
 - [x] 金币红包
 - [x] 微博热搜
 - [x] B站主播/UP/番剧订阅
@@ -147,6 +152,7 @@
 - [x] 清理临时数据
 - [x] 增删群认证
 - [x] 同意/拒绝好友/群聊请求
+- [x] 配置重载
 
 #### 超级用户的被动技能
 - [x] 邀请入群提醒(别人邀请真寻入群)
@@ -171,6 +177,7 @@
 - [x] 群管理员监控，自动为新晋管理员增加权限，为失去群管理员的用户删除权限
 - [x] 群权限系统
 - [x] 定时更新权限
+- [x] 自动配置重载
 </details>
 
 ## 详细配置请前往文档，以下为最简部署和配置，如果你有基础并学习过nonebot2的话
@@ -225,6 +232,24 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 
 ## 更新
+
+### 2021/2/11
+
+* 修复pix不使用反代无法下载图片
+
+### 2021/2/10 \[v0.1.1]
+
+* 修复购买道具出错
+
+### 2021/2/9 \[v0.1]
+
+* 新增原神自动签到和手动签到
+* 新增原神树脂提醒
+* 新增手动重载Config.yaml命令以及重载配置定时任务（极少部分帮助或配置可能需要重启
+* 修改了发送本地图库的matcher，改为on_message
+* register_use可以通过返回值发送消息
+* 修复修改商品时限制时间出错
+* 修复超时商品依旧可以被购买
 
 ### 2021/1/16 \[v0.0.9.0]
 
@@ -316,5 +341,5 @@ __..... 更多更新信息请查看文档__
 [H-K-Y / Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot) ：原神bot，这是一个基于nonebot和HoshinoBot的原神娱乐及信息查询插件  
 [NothAmor / nonebot2_luxun_says](https://github.com/NothAmor/nonebot2_luxun_says) ：基于nonebot2机器人框架的鲁迅说插件  
 [Kyomotoi / AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus) ：一个~~特二刺螈~~（文爱）的适用于任何bot的词库  
-[Ailitonia / omega-miya](https://github.com/Ailitonia/omega-miya) ：基于nonebot2的qq机器人
+[Ailitonia / omega-miya](https://github.com/Ailitonia/omega-miya) ：基于nonebot2的qq机器人  
 [KimigaiiWuyi / GenshinUID]("https://github.com/KimigaiiWuyi/GenshinUID") ：一个基于HoshinoBot/NoneBot2的原神UID查询插件

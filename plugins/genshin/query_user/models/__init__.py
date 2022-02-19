@@ -1,5 +1,8 @@
 from services.db_context import db
-from typing import Optional, Union
+from typing import Optional, Union, List
+from datetime import datetime, timedelta
+import random
+import pytz
 
 
 class Genshin(db.Model):
@@ -11,7 +14,10 @@ class Genshin(db.Model):
     mys_id = db.Column(db.BigInteger())
     cookie = db.Column(db.String(), default="")
     today_query_uid = db.Column(db.String(), default="")  # 该cookie今日查询的uid
-    auto_sign = db.Column(db.Boolean(), default=False)  # 自动签到
+    auto_sign = db.Column(db.Boolean(), default=False)
+    auto_sign_time = db.Column(db.DateTime(timezone=True))
+    resin_remind = db.Column(db.Boolean(), default=False)   # 树脂提醒
+    resin_recovery_time = db.Column(db.DateTime(timezone=True))  # 满树脂提醒日期
 
     _idx1 = db.Index("genshin_uid_idx1", "user_qq", "uid", unique=True)
 
@@ -67,10 +73,74 @@ class Genshin(db.Model):
         return False
 
     @classmethod
+    async def set_resin_remind(cls, uid: int, flag: bool) -> bool:
+        """
+        说明：
+            设置体力提醒
+        参数：
+            :param uid: 原神uid
+            :param flag: 开关状态
+        """
+        query = cls.query.where(cls.uid == uid).with_for_update()
+        user = await query.gino.first()
+        if user:
+            await user.update(resin_remind=flag).apply()
+            return True
+        return False
+
+    @classmethod
+    async def set_user_resin_recovery_time(cls, uid: int, date: datetime):
+        """
+        说明：
+            设置体力完成时间
+        参数：
+            :param uid: uid
+            :param date: 提醒日期
+        """
+        u = await cls.query.where(cls.uid == uid).gino.first()
+        if u:
+            await u.update(resin_recovery_time=date).apply()
+
+    @classmethod
+    async def get_user_resin_recovery_time(cls, uid: int) -> Optional[datetime]:
+        """
+        说明：
+            获取体力完成时间
+        参数：
+            :param uid: uid
+        """
+        u = await cls.query.where(cls.uid == uid).gino.first()
+        if u:
+            return u.resin_recovery_time.astimezone(pytz.timezone("Asia/Shanghai"))
+        return None
+
+    @classmethod
+    async def get_all_resin_remind_user(cls) -> List["Genshin"]:
+        """
+        说明：
+            获取所有开启体力提醒的用户
+        """
+        return await cls.query.where(cls.resin_remind == True).gino.all()
+
+    @classmethod
+    async def clear_resin_remind_time(cls, uid: int) -> bool:
+        """
+        说明：
+            清空提醒日期
+        参数：
+            :param uid: uid
+        """
+        user = await cls.query.where(cls.uid == uid).gino.first()
+        if user:
+            await user.update(resin_recovery_time=None).apply()
+            return True
+        return False
+
+    @classmethod
     async def set_auto_sign(cls, uid: int, flag: bool) -> bool:
         """
         说明：
-            设置米游社自动签到
+            设置米游社/原神自动签到
         参数：
             :param uid: 原神uid
             :param flag: 开关状态
@@ -81,6 +151,66 @@ class Genshin(db.Model):
             await user.update(auto_sign=flag).apply()
             return True
         return False
+
+    @classmethod
+    async def get_all_auto_sign_user(cls) -> List["Genshin"]:
+        """
+        说明：
+            获取所有开启自动签到的用户
+        """
+        return await cls.query.where(cls.auto_sign == True).gino.all()
+
+    @classmethod
+    async def get_all_sign_user(cls) -> List["Genshin"]:
+        """
+        说明：
+            获取 原神 所有今日签到用户
+        """
+        return await cls.query.where(cls.auto_sign_time != None).gino.all()
+
+    @classmethod
+    async def clear_sign_time(cls, uid: int) -> bool:
+        """
+        说明：
+            清空签到日期
+        参数：
+            :param uid: uid
+        """
+        user = await cls.query.where(cls.uid == uid).gino.first()
+        if user:
+            await user.update(auto_sign_time=None).apply()
+            return True
+        return False
+
+    @classmethod
+    async def random_sign_time(cls, uid: int) -> Optional[datetime]:
+        """
+        说明：
+            随机签到时间
+        说明：
+            :param uid: uid
+        """
+        query = cls.query.where(cls.uid == uid).with_for_update()
+        user = await query.gino.first()
+        if user and user.cookie:
+            if user.auto_sign_time and user.auto_sign_time.astimezone(
+                    pytz.timezone("Asia/Shanghai")
+            ) - timedelta(seconds=2) >= datetime.now(pytz.timezone("Asia/Shanghai")):
+                return user.auto_sign_time.astimezone(pytz.timezone("Asia/Shanghai"))
+            hours = int(str(datetime.now()).split()[1].split(":")[0])
+            minutes = int(str(datetime.now()).split()[1].split(":")[1])
+            date = (
+                    datetime.now()
+                    + timedelta(days=1)
+                    - timedelta(hours=hours)
+                    - timedelta(minutes=minutes - 1)
+            )
+            random_hours = random.randint(0, 22)
+            random_minutes = random.randint(1, 59)
+            date += timedelta(hours=random_hours) + timedelta(minutes=random_minutes)
+            await user.update(auto_sign_time=date).apply()
+            return date
+        return None
 
     @classmethod
     async def get_query_cookie(cls, uid: int) -> Optional[str]:
@@ -95,7 +225,9 @@ class Genshin(db.Model):
         x = await query.gino.first()
         if x:
             return x.cookie
-        for u in [x for x in await cls.query.order_by(db.func.random()).gino.all() if x.cookie]:
+        for u in [
+            x for x in await cls.query.order_by(db.func.random()).gino.all() if x.cookie
+        ]:
             if not u.today_query_uid or len(u.today_query_uid[:-1].split()) < 30:
                 await cls._add_query_uid(uid, u.uid)
                 return u.cookie
@@ -114,6 +246,26 @@ class Genshin(db.Model):
         if not cookie and not flag:
             cookie = await cls.get_query_cookie(uid)
         return cookie
+
+    @classmethod
+    async def get_user_by_qq(cls, user_qq: int) -> Optional["Genshin"]:
+        """
+        说明：
+            通过qq获取用户对象
+        参数：
+            :param user_qq: qq
+        """
+        return await cls.query.where(cls.user_qq == user_qq).gino.first()
+
+    @classmethod
+    async def get_user_by_uid(cls, uid: int) -> Optional["Genshin"]:
+        """
+        说明：
+            通过uid获取用户对象
+        参数：
+            :param uid: qq
+        """
+        return await cls.query.where(cls.uid == uid).gino.first()
 
     @classmethod
     async def get_user_uid(cls, user_qq: int) -> Optional[int]:
@@ -178,7 +330,7 @@ class Genshin(db.Model):
 
     @classmethod
     async def _get_user_data(
-        cls, user_qq: Optional[int], uid: Optional[int], type_: str
+            cls, user_qq: Optional[int], uid: Optional[int], type_: str
     ) -> Optional[Union[int, str]]:
         """
         说明：
@@ -198,11 +350,10 @@ class Genshin(db.Model):
             return user.mys_id
         elif type_ == "cookie":
             return user.cookie
+        return None
 
     @classmethod
     async def reset_today_query_uid(cls):
         for u in await cls.query.with_for_update().gino.all():
             if u.today_query_uid:
-                await u.update(
-                    today_query_uid=""
-                ).apply()
+                await u.update(today_query_uid="").apply()
