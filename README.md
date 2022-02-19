@@ -238,6 +238,16 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ### 2022/2/19 \[v0.1.3] (nonebot beta2！)
 
+* 由于nonebot升级版本，提供更新建议
+  * 保证services，utils，configs，plugins，basic_plugins，文件夹均为最新
+  * 根目录有pyproject.toml与poetry.lock
+  * 执行命令：
+    * pip3 install poetry
+    * poetry install
+    * poetry shell
+    * playwright install chromium
+    * python3 bot.py
+
 * 适配nonebot.beta2
 * 删除图片搜索 nonebot_plugin_picsearcher
 * 新增图片搜索 search_image
