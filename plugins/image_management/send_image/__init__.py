@@ -1,13 +1,12 @@
 from nonebot import on_message, on_regex
 from configs.path_config import IMAGE_PATH
 from utils.message_builder import image
-from utils.utils import is_number
+from utils.utils import is_number, get_message_text
 from services.log import logger
-from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
+from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent
 from utils.utils import FreqLimiter, cn2py
 from configs.config import Config
 from utils.manager import withdraw_message_manager
-from nonebot.params import CommandArg
 from .rule import rule
 import random
 import os
@@ -58,8 +57,8 @@ _path = IMAGE_PATH / "image_management"
 
 
 @send_img.handle()
-async def _(event: MessageEvent, arg: Message = CommandArg()):
-    msg = arg.extract_plain_text().strip().split()
+async def _(event: MessageEvent):
+    msg = get_message_text(event.json()).split()
     gallery = msg[0]
     if gallery not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
         return

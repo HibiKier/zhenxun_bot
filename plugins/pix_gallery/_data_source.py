@@ -238,7 +238,7 @@ async def get_image(img_url: str, user_id: int) -> Optional[str]:
                 TEMP_PATH / f"pix_{user_id}_{img_url[-10:-4]}.jpg", "wb"
             ) as f:
                 await f.write(response.content)
-            return f"pix_{user_id}_{img_url[-10:-4]}.jpg"
+            return TEMP_PATH / f"pix_{user_id}_{img_url[-10:-4]}.jpg"
         except TimeoutError:
             logger.warning(f"PIX：{img_url} 图片下载超时...")
             pass

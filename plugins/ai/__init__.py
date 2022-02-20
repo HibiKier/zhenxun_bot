@@ -6,11 +6,10 @@ from nonebot.adapters.onebot.v11 import (
     MessageEvent,
 )
 from nonebot.rule import to_me
-from nonebot.params import CommandArg
 from models.friend_user import FriendUser
 from models.group_member_info import GroupInfoUser
 from services.log import logger
-from utils.utils import get_message_img
+from utils.utils import get_message_img, get_message_text
 from .data_source import get_chat_result, hello, no_result
 from configs.config import NICKNAME, Config
 
@@ -42,8 +41,8 @@ ai = on_message(rule=to_me(), priority=8)
 
 
 @ai.handle()
-async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
-    msg = arg.extract_plain_text().strip()
+async def _(bot: Bot, event: MessageEvent):
+    msg = get_message_text(event.json())
     img = get_message_img(event.json())
     if "CQ:xml" in str(event.get_message()):
         return

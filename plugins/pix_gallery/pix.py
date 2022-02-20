@@ -149,11 +149,11 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                         f"title：{title}\n"
                         f"author：{author}\n"
                         f"PID：{pid}\nUID：{uid}\n"
-                        f"{image(_img, 'temp')}"
+                        f"{image(_img)}"
                     )
                 )
             else:
-                msg_id = await pix.send(image(_img, 'temp'))
+                msg_id = await pix.send(image(_img))
             logger.info(
                 f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
                 f" 查看PIX图库PID: {pid}"

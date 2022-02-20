@@ -11,7 +11,14 @@ async def handle_api_call(bot: Bot, api: str, data: Dict[str, Any]):
     r = None
     if (
         (api == "send_msg" and data["message"] == "group_id" or api == "send_group_msg")
-        and (r := re.search("^\[\[_task\|(.*)]]", get_message_text(data["message"])))
+        and (
+            r := re.search(
+                "^\[\[_task\|(.*)]]",
+                data["message"]
+                if isinstance(data["message"], str)
+                else get_message_text(data["message"]),
+            )
+        )
         and r.group(1) in group_manager.get_task_data().keys()
     ):
         task = r.group(1)
@@ -19,6 +26,11 @@ async def handle_api_call(bot: Bot, api: str, data: Dict[str, Any]):
         if not await group_manager.check_group_task_status(group_id, task):
             raise MockApiException(f"被动技能 {task} 处于关闭状态...")
         else:
-            msg = str(data["message"][0])
-            msg = msg.replace(f"&#91;&#91;_task|{task}&#93;&#93;", "")
-            data["message"][0] = MessageSegment.text(msg)
+            if isinstance(data["message"], str):
+                msg = data["message"]
+                msg = msg.replace(f"[[_task|{task}]]", "")
+                data["message"] = msg
+            else:
+                msg = str(data["message"][0])
+                msg = msg.replace(f"&#91;&#91;_task|{task}&#93;&#93;", "")
+                data["message"][0] = MessageSegment.text(msg)

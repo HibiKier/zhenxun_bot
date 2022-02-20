@@ -1,7 +1,7 @@
 from httpx import AsyncClient
 from datetime import datetime
 from nonebot.log import logger
-from nonebot.adapters.cqhttp import Bot
+from nonebot.adapters.onebot.v11 import Bot
 from configs.config import NICKNAME
 
 
