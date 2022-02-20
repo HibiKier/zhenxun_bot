@@ -227,8 +227,8 @@ async def _(event: MessageEvent):
 # 重置开箱
 @scheduler.scheduled_job(
     "cron",
-    hour=10,
-    minute=22,
+    hour=0,
+    minute=1,
 )
 async def _():
     await update_count_daily()
