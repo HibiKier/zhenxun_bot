@@ -89,13 +89,13 @@ async def search_online_setu(
     ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
     if ws_url:
         url_ = url_.replace("i.pximg.net", ws_url).replace("i.pixiv.cat", ws_url)
+    index = random.randint(1, 100000) if id_ is None else id_
+    path_ = IMAGE_PATH / path_ if path_ else TEMP_PATH
+    file_name = f"{index}_temp_setu.jpg" if path_ == TEMP_PATH else f"{index}.jpg"
+    path_.mkdir(parents=True, exist_ok=True)
     for i in range(3):
         logger.info(f"search_online_setu --> {i}")
         try:
-            index = random.randint(1, 100000) if id_ is None else id_
-            path_ = IMAGE_PATH / path_ if path_ else TEMP_PATH
-            file_name = f"{index}_temp_setu.jpg" if not path_ == TEMP_PATH else f"{index}.jpg"
-            path_.mkdir(parents=True, exist_ok=True)
             if not await AsyncHttpx.download_file(
                 url_,
                 path_ / file_name,
@@ -104,14 +104,14 @@ async def search_online_setu(
                 continue
             if id_ is not None:
                 if (
-                    os.path.getsize(f"{IMAGE_PATH}/{path_}/{index}.jpg")
+                    os.path.getsize(path_ / f"{index}.jpg")
                     > 1024 * 1024 * 1.5
                 ):
                     compressed_image(
-                        f"{IMAGE_PATH}/{path_}/{index}.jpg",
+                        path_ / f"{index}.jpg",
                     )
             logger.info(f"下载 lolicon 图片 {url_} 成功， id：{index}")
-            return image(abspath=path_ / file_name), index
+            return image(path_ / file_name), index
         except TimeoutError:
             pass
         except Exception as e:

@@ -261,15 +261,20 @@ class GroupManager(StaticData):
             初始化群聊 被动技能 状态
         """
         if not self._task:
+            _m = []
             for matcher in get_matchers():
-                _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
-                try:
-                    _module = _plugin.module
-                    plugin_task = _module.__getattribute__("__plugin_task__")
-                    for key in plugin_task.keys():
-                        self._task[key] = plugin_task[key]
-                except AttributeError:
-                    pass
+                if matcher.plugin_name not in _m:
+                    _m.append(matcher.plugin_name)
+                    _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
+                    try:
+                        _module = _plugin.module
+                        plugin_task = _module.__getattribute__("__plugin_task__")
+                        for key in plugin_task.keys():
+                            if key in self._task.keys():
+                                raise ValueError(f"plugin_task：{key} 已存在！")
+                            self._task[key] = plugin_task[key]
+                    except AttributeError:
+                        pass
         bot = get_bot()
         if bot or group_id:
             if group_id:

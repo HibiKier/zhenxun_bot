@@ -72,6 +72,6 @@ async def _():
                 if msg_list and code == 200:
                     await bot.send_group_forward_msg(group_id=g, messages=msg_list)
                 else:
-                    bot.send_group_msg(group_id=g, messages=msg_list)
+                    await bot.send_group_msg(group_id=g)
             except Exception as e:
                 logger.error(f"GROUP {g} epic免费游戏推送错误 {type(e)}: {e}")

@@ -31,7 +31,7 @@ def switch_rule(event: Event) -> bool:
                         cmd.append(f"关闭 {x}")
                 except KeyError:
                     pass
-        msg = get_message_text(event.json())
+        msg = get_message_text(event.json()).split()
         msg = msg[0] if msg else ""
         return msg in cmd
     except Exception as e:

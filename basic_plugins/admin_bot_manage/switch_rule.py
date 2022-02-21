@@ -1,7 +1,6 @@
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent, GROUP, Message
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent, GROUP
 from nonebot import on_command, on_message, on_regex
-from nonebot.typing import T_State
-from nonebot.params import CommandArg
+from nonebot.params import RegexGroup
 from ._data_source import (
     change_group_switch,
     set_plugin_status,
@@ -13,6 +12,7 @@ from services.log import logger
 from configs.config import NICKNAME, Config
 from utils.utils import get_message_text, is_number
 from nonebot.permission import SUPERUSER
+from typing import Tuple, Any
 from .rule import switch_rule
 
 
@@ -65,14 +65,14 @@ group_status = on_regex("^(休息吧|醒来)$", permission=GROUP, priority=5, bl
 
 
 @switch_rule_matcher.handle()
-async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
-    _cmd = arg.extract_plain_text().strip().split()[0]
+async def _(bot: Bot, event: MessageEvent):
+    _cmd = get_message_text(event.json()).split()[0]
     if isinstance(event, GroupMessageEvent):
         await switch_rule_matcher.send(await change_group_switch(_cmd, event.group_id))
         logger.info(f"USER {event.user_id} GROUP {event.group_id} 使用群功能管理命令 {_cmd}")
     else:
         if str(event.user_id) in bot.config.superusers:
-            block_type = " ".join(arg.extract_plain_text().strip().split()[1:])
+            block_type = " ".join(get_message_text(event.json()).split()[1:])
             block_type = block_type if block_type else "a"
             if is_number(block_type):
                 if not int(block_type) in [
@@ -114,8 +114,8 @@ async def _(event: GroupMessageEvent):
 
 
 @group_status.handle()
-async def _(event: GroupMessageEvent, state: T_State):
-    cmd = state["_matched_groups"][0]
+async def _(event: GroupMessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
+    cmd = reg_group[0]
     if cmd == "休息吧":
         msg = set_group_bot_status(event.group_id, False)
     else:

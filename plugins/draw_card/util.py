@@ -182,7 +182,6 @@ def init_rst(
                     rst += f"第 {index} 抽获取UP {name}\n"
                 else:
                     rst += f"第 {index} 抽获取 {name}\n"
-    print(rst)
     return rst[:-1] if rst else ""
 
 

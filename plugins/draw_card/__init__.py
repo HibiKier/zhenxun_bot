@@ -122,7 +122,6 @@ onmyoji_update = on_keyword({'更新阴阳师信息'}, permission=SUPERUSER, pri
 @prts.handle()
 async def _(bot: Bot, event: MessageEvent, state: T_State, reg: Tuple[Any, ...] = RegexGroup()):
     msg = str(event.get_message()).strip()
-    print(reg)
     if msg in ['方舟一井', '方舟1井']:
         num = 300
     else:

@@ -4,14 +4,11 @@ from utils.image_utils import get_img_hash
 import random
 from utils.message_builder import image
 from nonebot import on_message
-from utils.utils import get_message_img
-from nonebot.params import CommandArg, Command
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
+from utils.utils import get_message_img, get_message_text
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from configs.config import Config
 from utils.http_utils import AsyncHttpx
-from utils.manager import group_manager
 from services.log import logger
-from typing import Tuple
 
 
 __zx_plugin_name__ = "复读"
@@ -81,18 +78,14 @@ fudu = on_message(permission=GROUP, priority=9)
 
 
 @fudu.handle()
-async def _(event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
-    if (
-        event.is_tome()
-        or cmd
-        or not await group_manager.check_group_task_status(event.group_id, "fudu")
-    ):
+async def _(event: GroupMessageEvent):
+    if event.is_tome():
         return
-    if arg.extract_plain_text().strip():
-        if arg.extract_plain_text().strip().find("@可爱的小真寻") != -1:
+    if get_message_text(event.json()):
+        if get_message_text(event.json()).find("@可爱的小真寻") != -1:
             await fudu.finish("复制粘贴的虚空艾特？", at_sender=True)
     img = get_message_img(event.json())
-    msg = arg.extract_plain_text().strip()
+    msg = get_message_text(event.json())
     if not img and not msg:
         return
     if img:
@@ -112,7 +105,7 @@ async def _(event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Mes
             "fudu", "FUDU_PROBABILITY"
         ) and not _fudu_list.is_repeater(event.group_id):
             if random.random() < 0.2:
-                await fudu.finish("打断施法！")
+                await fudu.finish("[[_task|fudu]]打断施法！")
             _fudu_list.set_repeater(event.group_id)
             if img and msg:
                 rst = msg + image(f"compare_{event.group_id}_img.jpg", "temp")
@@ -125,7 +118,7 @@ async def _(event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Mes
             if rst:
                 if rst.endswith("打断施法！"):
                     rst = "打断" + rst
-                await fudu.send(rst)
+                await fudu.send("[[_task|fudu]]" + rst)
 
 
 async def get_fudu_img_hash(url, group_id):

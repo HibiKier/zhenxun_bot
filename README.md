@@ -236,6 +236,15 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/2/21 \[v0.1.3.2]
+
+* 群权限为-1时，超级用户发送的命令依旧生效
+* 当群权限为-1时，被动技能也将不会发送
+* 修复功能开关，b站转发解析，复读 ignore无法使用
+* 修复色图下载文件名与路径错误
+* 修复被动技能提醒有时无法删除控制文本
+
+
 ### 2022/2/20 \[v0.1.3.1]
 
 * 修复pix下载临时文件目录错误
@@ -247,7 +256,6 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 由于nonebot升级版本，提供更新建议（__该次升级将会导致nonebot.beta1以下的插件无法使用__
   * 保证services，utils，configs，plugins，basic_plugins，文件夹均为最新
   * 根目录有pyproject.toml与poetry.lock
-  * gocq配置文件地址更改为 ws://127.0.0.1:8080/onebot/v11/ws/
   * 执行命令：
     * pip3 install poetry
     * poetry install
