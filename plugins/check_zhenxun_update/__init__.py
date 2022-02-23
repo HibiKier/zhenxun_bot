@@ -1,5 +1,4 @@
 from nonebot.adapters.onebot.v11 import Bot
-from nonebot.typing import T_State
 from nonebot.permission import SUPERUSER
 from nonebot import on_command
 from .data_source import check_update, get_latest_version_data
@@ -8,6 +7,7 @@ from utils.utils import scheduler, get_bot
 from pathlib import Path
 from configs.config import Config
 from nonebot.rule import to_me
+from nonebot.params import ArgStr
 import platform
 import os
 
@@ -73,8 +73,7 @@ async def _():
 
 
 @restart.got("flag", prompt="确定是否重启真寻？（重启失败咱们将失去联系，请谨慎！）")
-async def _(state: T_State):
-    flag = state["flag"]
+async def _(flag: str = ArgStr("flag")):
     if flag.lower() in ["true", "是", "好", "确定", "确定是"]:
         await restart.send("开始重启真寻..请稍等...")
         open("is_restart", "w")
