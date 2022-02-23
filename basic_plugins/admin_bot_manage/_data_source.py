@@ -3,7 +3,7 @@ from nonebot.adapters.onebot.v11.message import MessageSegment
 from services.log import logger
 from configs.path_config import DATA_PATH
 from utils.message_builder import image
-from utils.utils import get_bot
+from utils.utils import get_bot, get_matchers
 from pathlib import Path
 from models.group_member_info import GroupInfoUser
 from datetime import datetime
@@ -187,24 +187,28 @@ def _get_plugin_status() -> MessageSegment:
     """
     rst = "\t功能\n"
     flag_str = "状态".rjust(4) + "\n"
-    for module in plugins_manager.get_data():
-        flag = plugins_manager.get_plugin_block_type(module)
-        flag = flag.upper() + " CLOSE" if flag else "OPEN"
-        try:
-            plugin_name = plugins_manager.get(module)["plugin_name"]
-            if (
-                "[Hidden]" in plugin_name
-                or "[Admin]" in plugin_name
-                or "[Superuser]" in plugin_name
-            ):
-                continue
-            rst += f"{plugin_name}"
-        except KeyError:
-            rst += f"{module}"
-        if plugins_manager.get(module)["error"]:
-            rst += "[ERROR]"
-        rst += "\n"
-        flag_str += f"{flag}\n"
+    tmp_name = []
+    for matcher in get_matchers():
+        if matcher.plugin_name not in tmp_name:
+            tmp_name.append(matcher.plugin_name)
+            module = matcher.plugin_name
+            flag = plugins_manager.get_plugin_block_type(module)
+            flag = flag.upper() + " CLOSE" if flag else "OPEN"
+            try:
+                plugin_name = plugins_manager.get(module)["plugin_name"]
+                if (
+                    "[Hidden]" in plugin_name
+                    or "[Admin]" in plugin_name
+                    or "[Superuser]" in plugin_name
+                ):
+                    continue
+                rst += f"{plugin_name}"
+            except KeyError:
+                rst += f"{module}"
+            if plugins_manager.get(module)["error"]:
+                rst += "[ERROR]"
+            rst += "\n"
+            flag_str += f"{flag}\n"
     height = len(rst.split("\n")) * 24
     a = BuildImage(250, height, font_size=20)
     a.text((10, 10), rst)
