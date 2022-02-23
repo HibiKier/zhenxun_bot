@@ -17,7 +17,7 @@ from utils.utils import is_number, scheduler, get_bot
 from typing import Optional
 from services.log import logger
 from nonebot import Driver
-from nonebot.params import CommandArg, ArgPlainText
+from nonebot.params import CommandArg, ArgStr
 import nonebot
 
 __zx_plugin_name__ = "B站订阅"
@@ -112,14 +112,22 @@ async def _(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
         state["id"] = int(id_)
 
 
+@add_sub.got("sub_type")
+@add_sub.got("sub_user")
 @add_sub.got("id")
-async def _(event: MessageEvent, state: T_State, id_: str = ArgPlainText("id")):
-    season_data = state["season_data"]
-    if not is_number(id_) or int(id_) < 1 or int(id_) > len(season_data):
-        await add_sub.reject_arg("id", "Id必须为数字且在范围内！请重新输入...")
-    id_ = season_data[int(id_) - 1]["media_id"]
-    sub_type = state["sub_type"]
-    sub_user = state["sub_user"]
+async def _(
+    event: MessageEvent,
+    state: T_State,
+    id_: str = ArgStr("id"),
+    sub_type: str = ArgStr("sub_type"),
+    sub_user: str = ArgStr("sub_user"),
+):
+    if sub_type in ["season", "动漫", "番剧"] and state.get("season_data"):
+        season_data = state["season_data"]
+        if not is_number(id_) or int(id_) < 1 or int(id_) > len(season_data):
+            await add_sub.reject_arg("id", "Id必须为数字且在范围内！请重新输入...")
+        id_ = season_data[int(id_) - 1]["media_id"]
+    id_ = int(id_)
     if sub_type in ["主播", "直播"]:
         await add_sub.send(await add_live_sub(id_, sub_user))
     elif sub_type.lower() in ["up", "用户"]:
