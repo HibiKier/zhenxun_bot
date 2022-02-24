@@ -25,7 +25,7 @@ def image(
     """
     if abspath:
         if isinstance(abspath, Path):
-            return MessageSegment.image(file)
+            return MessageSegment.image(abspath)
         return (
             MessageSegment.image("file:///" + abspath)
             if os.path.exists(abspath)

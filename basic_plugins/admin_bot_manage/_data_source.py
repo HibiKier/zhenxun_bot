@@ -75,7 +75,7 @@ async def custom_group_welcome(
             await AsyncHttpx.download_file(
                 img, DATA_PATH / "custom_welcome_msg" / f"{group_id}.jpg"
             )
-            img_result = image(abspath=DATA_PATH / "custom_welcome_msg" / f"{group_id}.jpg")
+            img_result = image(DATA_PATH / "custom_welcome_msg" / f"{group_id}.jpg")
             logger.info(f"USER {user_id} GROUP {group_id} 更换群欢迎消息图片")
     except Exception as e:
         logger.error(f"GROUP {group_id} 替换群消息失败 e:{e}")

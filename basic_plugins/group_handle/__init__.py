@@ -129,7 +129,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
                         at_flag = True
             if (DATA_PATH / "custom_welcome_msg" / f"{event.group_id}.jpg").exists():
                 img = image(
-                    abspath=DATA_PATH / "custom_welcome_msg" / f"{event.group_id}.jpg"
+                    DATA_PATH / "custom_welcome_msg" / f"{event.group_id}.jpg"
                 )
             if msg or img:
                 msg = msg.strip() + img
