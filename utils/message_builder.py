@@ -10,7 +10,6 @@ import os
 def image(
     file: Union[str, Path, bytes] = None,
     path: str = None,
-    abspath: Union[str, Path] = None,
     b64: str = None,
 ) -> Union[MessageSegment, str]:
     """
@@ -20,18 +19,9 @@ def image(
     参数：
         :param file: 图片文件名称，默认在 resource/img 目录下
         :param path: 图片所在路径，默认在 resource/img 目录下
-        :param abspath: 图片绝对路径
         :param b64: 图片base64
     """
-    if abspath:
-        if isinstance(abspath, Path):
-            return MessageSegment.image(file)
-        return (
-            MessageSegment.image("file:///" + abspath)
-            if os.path.exists(abspath)
-            else ""
-        )
-    elif isinstance(file, Path):
+    if isinstance(file, Path):
         if file.exists():
             return MessageSegment.image(file)
         logger.warning(f"图片 {file.absolute()}缺失...")
@@ -41,14 +31,11 @@ def image(
     elif b64:
         return MessageSegment.image(b64 if "base64://" in b64 else "base64://" + b64)
     else:
-        if "http" in file:
+        if file.startswith("http"):
             return MessageSegment.image(file)
         if len(file.split(".")) == 1:
             file += ".jpg"
-        file = (
-            IMAGE_PATH / path / file if path else IMAGE_PATH / file
-        )
-        if file.exists():
+        if (file := IMAGE_PATH / path / file if path else IMAGE_PATH / file).exists():
             return MessageSegment.image(file)
         else:
             logger.warning(f"图片 {file} 缺失...")
