@@ -236,7 +236,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
-### 2022/2/24 \[v0.1.4]
+### 2022/2/25 \[v0.1.4]
 
 * PIX提供配置MAX_ONCE_NUM2FORWARD：当单次发送图片超过指定张数且在群聊时，将转为合并消息
 * 优化抽卡
