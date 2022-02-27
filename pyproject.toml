@@ -36,6 +36,8 @@ ujson = "^5.1.0"
 matplotlib = "^3.5.1"
 black = "^22.1.0"
 pypinyin = "^0.46.0"
+dateparser = "^1.1.0"
+cn2an = "^0.5.16"
 
 [tool.poetry.dev-dependencies]
 
