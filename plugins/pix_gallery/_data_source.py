@@ -235,10 +235,10 @@ async def get_image(img_url: str, user_id: int) -> Optional[str]:
                 img_url = old_img_url
                 continue
             async with aiofiles.open(
-                TEMP_PATH / f"pix_{user_id}_{img_url[-10:-4]}.jpg", "wb"
+                TEMP_PATH / f"pix_{user_id}_{img_url.split('/')[-1][:-4]}.jpg", "wb"
             ) as f:
                 await f.write(response.content)
-            return TEMP_PATH / f"pix_{user_id}_{img_url[-10:-4]}.jpg"
+            return TEMP_PATH / f"pix_{user_id}_{img_url.split('/')[-1][:-4]}.jpg"
         except TimeoutError:
             logger.warning(f"PIX：{img_url} 图片下载超时...")
             pass

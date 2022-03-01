@@ -367,7 +367,7 @@ class BuildImage:
 
     async def atext(
         self,
-        pos: Tuple[int, int],
+        pos: Union[Tuple[int, int], Tuple[float, float]],
         text: str,
         fill: Union[str, Tuple[int, int, int]] = (0, 0, 0),
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
@@ -385,7 +385,7 @@ class BuildImage:
 
     def text(
         self,
-        pos: Tuple[int, int],
+        pos: Union[Tuple[int, int], Tuple[float, float]],
         text: str,
         fill: Union[str, Tuple[int, int, int]] = (0, 0, 0),
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,

@@ -37,7 +37,7 @@ async def _(event: GroupMessageEvent):
     img = ""
     msg = ""
     if (DATA_PATH / "custom_welcome_msg" / f"{event.group_id}.jpg").exists():
-        img = image(abspath=DATA_PATH / "custom_welcome_msg" / f"{event.group_id}.jpg")
+        img = image(DATA_PATH / "custom_welcome_msg" / f"{event.group_id}.jpg")
     custom_welcome_msg_json = (
        DATA_PATH / "custom_welcome_msg" / "custom_welcome_msg.json"
     )

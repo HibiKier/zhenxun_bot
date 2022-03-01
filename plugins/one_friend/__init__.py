@@ -1,9 +1,8 @@
 from io import BytesIO
 from random import choice
 from nonebot import on_regex
-from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
-from utils.utils import get_message_at, get_user_avatar
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message
+from utils.utils import get_message_at, get_user_avatar, get_message_text
 from utils.message_builder import image
 from utils.image_utils import BuildImage
 from nonebot.params import RegexGroup
@@ -28,14 +27,14 @@ __plugin_settings__ = {
 }
 
 one_friend = on_regex(
-    "^我.*?朋友.*?(想问问|说|让我问问|想问|让我问|想知道|让我帮他问问|让我帮他问|让我帮忙问|让我帮忙问问|问)(.*)",
+    "^我.*?朋友.*?[想问问|说|让我问问|想问|让我问|想知道|让我帮他问问|让我帮他问|让我帮忙问|让我帮忙问问|问](.*)",
     priority=4,
     block=True,
 )
 
 
 @one_friend.handle()
-async def _(bot: Bot, event: GroupMessageEvent, state: T_State, reg_group: Tuple[Any, ...] = RegexGroup()):
+async def _(bot: Bot, event: GroupMessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
     qq = get_message_at(event.json())
     if not qq:
         qq = choice(
@@ -51,7 +50,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State, reg_group: Tuple
         qq = qq[0]
         at_user = await bot.get_group_member_info(group_id=event.group_id, user_id=qq)
         user_name = at_user["card"] or at_user["nickname"]
-    msg = reg_group[1]
+    msg = get_message_text(Message(reg_group[0])).strip()
     if not msg:
         msg = "都不知道问什么"
     msg = msg.replace("他", "我").replace("她", "我").replace("它", "我")

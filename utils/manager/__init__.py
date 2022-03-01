@@ -62,6 +62,5 @@ requests_manager: Optional[RequestManager] = RequestManager(
     DATA_PATH / "manager" / "requests_manager.json"
 )
 
-
 # 管理员命令管理器
 admin_manager = AdminManager()

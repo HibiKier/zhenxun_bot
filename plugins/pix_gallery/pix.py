@@ -1,15 +1,10 @@
 from utils.utils import is_number
 from configs.config import Config
 from ._model.omega_pixiv_illusts import OmegaPixivIllusts
-from utils.message_builder import image
+from utils.message_builder import image, custom_forward_msg
 from utils.manager import withdraw_message_manager
 from services.log import logger
-from nonebot.adapters.onebot.v11 import (
-    Bot,
-    MessageEvent,
-    GroupMessageEvent,
-    Message
-)
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
 from nonebot.params import CommandArg
 from ._data_source import get_image
 from ._model.pixiv import Pixiv
@@ -49,6 +44,13 @@ __plugin_settings__ = {
     "cmd": ["pix", "Pix", "PIX", "pIx"],
 }
 __plugin_block_limit__ = {"rst": "您有PIX图片正在处理，请稍等..."}
+__plugin_configs__ = {
+    "MAX_ONCE_NUM2FORWARD": {
+        "value": None,
+        "help": "单次发送的图片数量达到指定值时转发为合并消息",
+        "default_value": None,
+    }
+}
 
 
 pix = on_command("pix", aliases={"PIX", "Pix"}, priority=5, block=True)
@@ -64,12 +66,12 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     if PIX_RATIO is None:
         pix_omega_pixiv_ratio = Config.get_config("pix", "PIX_OMEGA_PIXIV_RATIO")
         PIX_RATIO = pix_omega_pixiv_ratio[0] / (
-                pix_omega_pixiv_ratio[0] + pix_omega_pixiv_ratio[1]
+            pix_omega_pixiv_ratio[0] + pix_omega_pixiv_ratio[1]
         )
         OMEGA_RATIO = 1 - PIX_RATIO
     num = 1
     keyword = arg.extract_plain_text().strip()
-    x = keyword.split(" ")
+    x = keyword.split()
     if "-s" in x:
         x.remove("-s")
         nsfw_tag = 1
@@ -80,12 +82,15 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         nsfw_tag = 0
     if nsfw_tag != 0 and str(event.user_id) not in bot.config.superusers:
         await pix.finish("你不能看这些噢，这些都是是留给管理员看的...")
-    if len(x) > 1:
+    if n := len(x) == 1 and is_number(x[0]):
+        num = int(x[-1])
+        keyword = ""
+    elif n > 1:
         if is_number(x[-1]):
             num = int(x[-1])
             if num > 10:
                 if str(event.user_id) not in bot.config.superusers or (
-                        str(event.user_id) in bot.config.superusers and num > 30
+                    str(event.user_id) in bot.config.superusers and num > 30
                 ):
                     num = random.randint(1, 10)
                     await pix.send(f"太贪心了，就给你发 {num}张 好了")
@@ -125,11 +130,12 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                 tmp_.append(x.pid)
     if not all_image:
         await pix.finish(f"未在图库中找到与 {keyword} 相关Tag/UID/PID的图片...", at_sender=True)
+    msg_list = []
     for _ in range(num):
         img_url = None
         author = None
-        if not all_image:
-            await pix.finish("坏了...发完了，没图了...")
+        # if not all_image:
+        #     await pix.finish("坏了...发完了，没图了...")
         img = random.choice(all_image)
         all_image.remove(img)
         if isinstance(img, OmegaPixivIllusts):
@@ -144,7 +150,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         _img = await get_image(img_url, event.user_id)
         if _img:
             if Config.get_config("pix", "SHOW_INFO"):
-                msg_id = await pix.send(
+                msg_list.append(
                     Message(
                         f"title：{title}\n"
                         f"author：{author}\n"
@@ -153,16 +159,31 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                     )
                 )
             else:
-                msg_id = await pix.send(image(_img))
+                msg_list.append(image(_img))
             logger.info(
                 f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
                 f" 查看PIX图库PID: {pid}"
             )
         else:
-            msg_id = await pix.send(f"下载图片似乎出了一点问题，PID：{pid}")
+            msg_list.append("这张图似乎下载失败了")
             logger.info(
                 f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
                 f" 查看PIX图库PID: {pid}，下载图片出错"
             )
-        withdraw_message_manager.withdraw_message(event, msg_id, Config.get_config("pix", "WITHDRAW_PIX_MESSAGE"))
-
+    if (
+        Config.get_config("pix", "MAX_ONCE_NUM2FORWARD")
+        and num >= Config.get_config("pix", "MAX_ONCE_NUM2FORWARD")
+        and isinstance(event, GroupMessageEvent)
+    ):
+        msg_id = await bot.send_group_forward_msg(
+            group_id=event.group_id, messages=custom_forward_msg(msg_list, bot.self_id)
+        )
+        withdraw_message_manager.withdraw_message(
+            event, msg_id, Config.get_config("pix", "WITHDRAW_PIX_MESSAGE")
+        )
+    else:
+        for msg in msg_list:
+            msg_id = await pix.send(msg)
+            withdraw_message_manager.withdraw_message(
+                event, msg_id, Config.get_config("pix", "WITHDRAW_PIX_MESSAGE")
+            )

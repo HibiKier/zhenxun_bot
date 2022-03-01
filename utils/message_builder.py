@@ -150,6 +150,10 @@ def poke(qq: int) -> MessageSegment:
     return MessageSegment("poke", {"qq": qq})
 
 
+def music(type_: str, id_: int) -> MessageSegment:
+    return MessageSegment.music(type_, id_)
+
+
 def custom_forward_msg(
     msg_list: List[str], uin: Union[int, str], name: str = f"这里是{NICKNAME}"
 ) -> List[dict]:

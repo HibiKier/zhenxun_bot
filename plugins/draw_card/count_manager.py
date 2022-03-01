@@ -160,7 +160,7 @@ class GenshinCountManager(DrawCountManager):
         # print(self._data)
         user: GenshinCountManager.UserCount = self._data[key]
         if user.count - user.five_index == 90:
-            user.five_index = user.count
+            user.five_index = 90
             return 5
         if user.count - user.four_index == 10:
             user.four_index = user.count
