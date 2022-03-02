@@ -5,6 +5,7 @@ from apscheduler.jobstores.base import ConflictingIdError
 from nonebot import Driver
 from .._models import Genshin
 from datetime import datetime, timedelta
+from apscheduler.jobstores.base import JobLookupError
 from services.log import logger
 from nonebot.plugin import require
 from configs.config import Config
@@ -108,6 +109,11 @@ async def _():
 
 
 def add_job(user_id: int, uid: int):
+    # 移除
+    try:
+        scheduler.remove_job(f"genshin_resin_remind_{uid}_{user_id}")
+    except JobLookupError:
+        pass
     date = datetime.now(pytz.timezone("Asia/Shanghai")) + timedelta(seconds=30)
     try:
         scheduler.add_job(

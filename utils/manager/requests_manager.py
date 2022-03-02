@@ -75,6 +75,13 @@ class RequestManager(StaticData):
                 break
         self.save()
 
+    def get_group_id(self, id_: int) -> Optional[int]:
+        """
+        通过id获取群号
+        :param id_: id
+        """
+        return self._data["group"].get(id_)
+
     async def approve(self, bot: Bot, id_: int, type_: str) -> Optional[int]:
         """
         同意请求

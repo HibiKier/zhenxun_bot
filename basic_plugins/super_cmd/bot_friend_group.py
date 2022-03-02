@@ -102,7 +102,7 @@ async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandAr
     if is_number(id_):
         id_ = int(id_)
         if cmd[:2] == "同意":
-            rid = await requests_manager.approve(bot, id_, "group")
+            rid = requests_manager.get_group_id(id_)
             if rid:
                 await friend_handle.send("同意群聊请求成功..")
                 if await GroupInfo.get_group_info(rid):
@@ -116,6 +116,7 @@ async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandAr
                         group_info["member_count"],
                         1
                     )
+                await requests_manager.approve(bot, id_, "group")
             else:
                 await friend_handle.send("同意群聊请求失败，可能是未找到此id的请求..")
         else:

@@ -132,4 +132,4 @@ async def get_fudu_img_hash(url, group_id):
             logger.warning(f"复读下载图片失败...")
     except Exception as e:
         logger.warning(f"复读读取图片Hash出错 {type(e)}：{e}")
-        return ""
+    return ""
