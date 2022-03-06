@@ -239,6 +239,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 ### 2022/3/7
 
 * 修复树脂提醒无法开启
+* 修复p搜图片路径错误
 
 ### 2022/3/3 \[v0.1.4.3]
 
