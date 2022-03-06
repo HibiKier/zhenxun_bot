@@ -84,7 +84,7 @@ async def _(event: MessageEvent, state: T_State, pid: str = Arg("pid")):
                     f"pid：{pid}\n"
                     f"author：{author}\n"
                     f"author_id：{author_id}\n"
-                    f'{image(f"pid_search_{event.user_id}.png", "temp")}'
+                    f'{image(TEMP_PATH / f"pid_search_{event.user_id}.png")}'
                     f"{tmp}"
                 )
             )
