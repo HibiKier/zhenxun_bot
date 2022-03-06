@@ -55,7 +55,7 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
         scheduler.remove_job(f"genshin_resin_remind_{uid}_{event.user_id}")
     except JobLookupError:
         pass
-    if cmd == "开":
+    if cmd[0] == "开":
         await Genshin.set_resin_remind(uid, True)
         add_job(event.user_id, uid)
         logger.info(
