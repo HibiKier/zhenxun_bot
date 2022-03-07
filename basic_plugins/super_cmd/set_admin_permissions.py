@@ -1,7 +1,7 @@
 from nonebot import on_command
 from nonebot.permission import SUPERUSER
 from models.level_user import LevelUser
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, Message, GroupMessageEvent
 from utils.utils import get_message_at, is_number
 from services.log import logger
 from utils.message_builder import at
@@ -37,41 +37,49 @@ super_cmd = on_command(
 
 
 @super_cmd.handle()
-async def _(bot: Bot, event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
-    cmd = cmd[0]
-    group_id = -1
-    level = 0
+async def _(
+    bot: Bot,
+    event: MessageEvent,
+    cmd: Tuple[str, ...] = Command(),
+    arg: Message = CommandArg(),
+):
+    group_id = event.group_id if isinstance(event, GroupMessageEvent) else -1
+    level = None
+    args = arg.extract_plain_text().strip().split()
+    qq = get_message_at(event.json())
+    flag = 2
     try:
-        args = arg.extract_plain_text().strip().split()
-        qq = get_message_at(event.json())
-        flag = -1
-        if not qq:
-            if len(args) > 2:
-                if is_number(args[0]) and is_number(args[1]) and is_number(args[2]):
+        if qq:
+            qq = qq[0]
+            if cmd[0][:2] == "添加" and args and is_number(args[0]):
+                level = int(args[0])
+        else:
+            if cmd[0][:2] == "添加":
+                if (
+                    len(args) > 2
+                    and is_number(args[0])
+                    and is_number(args[1])
+                    and is_number(args[2])
+                ):
                     qq = int(args[0])
                     group_id = int(args[1])
                     level = int(args[2])
-                    flag = 1
-                else:
-                    await super_cmd.finish("所有参数必须是数字！", at_sender=True)
             else:
-                await super_cmd.finish(
-                    "权限参数不完全\n\t格式：添加/删除权限 [at] [level]"
-                    "\n\t格式：添加/删除权限 [qq] [group_id] [level]",
-                    at_sender=True,
-                )
-        else:
-            if not is_number(args[0]):
-                await super_cmd.finish("所有参数必须是数字！", at_sender=True)
-            level = int(args[0])
-            qq = qq[0]
-            group_id = event.group_id
-            flag = 2
-        if cmd[:2] == "添加":
+                if len(args) > 1 and is_number(args[0]) and is_number(args[1]):
+                    qq = int(args[0])
+                    group_id = int(args[1])
+            flag = 1
+        level = -1 if cmd[0][:2] == "删除" else level
+        if group_id == -1 or not level or not qq:
+            raise IndexError()
+    except IndexError:
+        await super_cmd.finish(__plugin_usage__)
+    try:
+        if cmd[0][:2] == "添加":
             if await LevelUser.set_level(qq, group_id, level, 1):
-                result = "添加管理成功, 权限: " + str(level)
+                result = f"添加管理成功, 权限: {level}"
             else:
-                result = "管理已存在, 更新权限: " + str(level)
+                result = f"管理已存在, 更新权限: {level}"
         else:
             if await LevelUser.delete_level(qq, event.group_id):
                 result = "删除管理成功!"
@@ -82,7 +90,10 @@ async def _(bot: Bot, event: GroupMessageEvent, cmd: Tuple[str, ...] = Command()
         elif flag == 1:
             await bot.send_group_msg(
                 group_id=group_id,
-                message=Message(f"{at(qq)}管理员修改了你的权限" f"\n--------\n你当前的权限等级：{level}"),
+                message=Message(
+                    f"{at(qq)}管理员修改了你的权限"
+                    f"\n--------\n你当前的权限等级：{level if level != -1 else 0}"
+                ),
             )
             await super_cmd.send("修改成功")
     except Exception as e:
