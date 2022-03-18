@@ -236,6 +236,11 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/3/18 \[v0.1.4.4]
+
+* 修复戳一戳无法功能关闭与ban禁用
+* 新增图片搜索 search_image
+
 ### 2022/3/7
 
 * 优化增删权限插件
@@ -301,7 +306,6 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 * 适配nonebot.beta2
 * 删除图片搜索 nonebot_plugin_picsearcher
-* 新增图片搜索 search_image
 * 替换cos api
 * 原神签到树脂提醒新增绑定群里，在某群绑定uid就会在某群发送提醒信息（有好友则私聊，需要重新绑定uid
 * 修改update_info.json

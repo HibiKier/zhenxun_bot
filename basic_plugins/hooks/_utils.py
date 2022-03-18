@@ -2,6 +2,10 @@ from nonebot.adapters.onebot.v11 import GroupMessageEvent, PrivateMessageEvent
 from utils.manager import plugins2block_manager, StaticData
 import time
 
+ignore_rst_module = ["ai", "poke", "dialogue"]
+
+other_limit_plugins = ["poke"]
+
 
 class StatusMessageManager(StaticData):
 

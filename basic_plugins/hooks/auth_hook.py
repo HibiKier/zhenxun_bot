@@ -13,7 +13,12 @@ from utils.manager import (
     plugins2block_manager,
     plugins2count_manager,
 )
-from ._utils import set_block_limit_false, status_message_manager
+from ._utils import (
+    set_block_limit_false,
+    status_message_manager,
+    ignore_rst_module,
+    other_limit_plugins,
+)
 from nonebot.typing import T_State
 from typing import Optional
 from nonebot.adapters.onebot.v11 import (
@@ -37,12 +42,10 @@ _flmt_g = FreqLimiter(Config.get_config("hook", "CHECK_NOTICE_INFO_CD"))
 _flmt_s = FreqLimiter(Config.get_config("hook", "CHECK_NOTICE_INFO_CD"))
 _flmt_c = FreqLimiter(Config.get_config("hook", "CHECK_NOTICE_INFO_CD"))
 
-ignore_rst_module = ["ai", "poke", "dialogue"]
-
 
 # 权限检测
 @run_preprocessor
-async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
+async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
     module = matcher.plugin_name
     plugins2info_dict = plugins2settings_manager.get_data()
     # 功能的金币检测 #######################################
@@ -64,7 +67,7 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
             await BagUser.spend_gold(event.user_id, event.group_id, cost_gold)
     try:
         if (
-            (not isinstance(event, MessageEvent) and module != "poke")
+            (not isinstance(event, MessageEvent) and module not in other_limit_plugins)
             or await BanUser.is_ban(event.user_id)
             and str(event.user_id) not in bot.config.superusers
         ) or (
@@ -88,7 +91,7 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
     except AttributeError:
         pass
     # 群黑名单检测 群总开关检测
-    if isinstance(event, GroupMessageEvent) or matcher.plugin_name == "poke":
+    if isinstance(event, GroupMessageEvent) or matcher.plugin_name == other_limit_plugins:
         try:
             if (
                 group_manager.get_group_level(event.group_id) < 0
@@ -145,9 +148,7 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
                 raise IgnoredException("权限不足")
     if module in plugins2info_dict.keys() and matcher.priority not in [1, 9]:
         # 戳一戳单独判断
-        if isinstance(event, GroupMessageEvent) or (
-            isinstance(event, PokeNotifyEvent) and event.group_id
-        ):
+        if isinstance(event, GroupMessageEvent) or isinstance(event, PokeNotifyEvent) or matcher.plugin_name in other_limit_plugins:
             if status_message_manager.get(event.group_id) is None:
                 status_message_manager.delete(event.group_id)
             if plugins2info_dict[module]["level"] > group_manager.get_group_level(

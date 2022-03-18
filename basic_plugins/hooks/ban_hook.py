@@ -4,13 +4,16 @@ from nonebot.adapters.onebot.v11.exception import ActionFailed
 from nonebot.typing import T_State
 from nonebot.adapters.onebot.v11 import (
     Bot,
+    Event,
     MessageEvent,
+    PokeNotifyEvent,
     GroupMessageEvent,
 )
 from configs.config import Config
 from models.ban_user import BanUser
 from utils.utils import is_number, static_flmt, FreqLimiter
 from utils.message_builder import at
+from ._utils import ignore_rst_module, other_limit_plugins
 
 
 Config.add_plugin_config(
@@ -25,18 +28,19 @@ _flmt = FreqLimiter(300)
 
 # 检查是否被ban
 @run_preprocessor
-async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
-    try:
-        if (
-            await BanUser.is_super_ban(event.user_id)
-            and str(event.user_id) not in bot.config.superusers
-        ):
-            raise IgnoredException("用户处于超级黑名单中")
-    except AttributeError:
-        pass
-    if not isinstance(event, MessageEvent):
-        return
-    if matcher.type == "message" and matcher.priority not in [1, 9]:
+async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
+    if (
+        (isinstance(event, MessageEvent) or isinstance(event, PokeNotifyEvent))
+        and matcher.priority not in [1, 9]
+    ) or matcher.plugin_name in other_limit_plugins:
+        try:
+            if (
+                await BanUser.is_super_ban(event.user_id)
+                and str(event.user_id) not in bot.config.superusers
+            ):
+                raise IgnoredException("用户处于超级黑名单中")
+        except AttributeError:
+            pass
         if (
             await BanUser.is_ban(event.user_id)
             and str(event.user_id) not in bot.config.superusers
@@ -57,7 +61,11 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
                 if matcher.priority != 9:
                     try:
                         ban_result = Config.get_config("hook", "BAN_RESULT")
-                        if ban_result and _flmt.check(event.user_id):
+                        if (
+                            ban_result
+                            and _flmt.check(event.user_id)
+                            and matcher.plugin_name not in ignore_rst_module
+                        ):
                             _flmt.start_cd(event.user_id)
                             await bot.send_group_msg(
                                 group_id=event.group_id,
@@ -74,7 +82,7 @@ async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
                 if matcher.priority != 9:
                     try:
                         ban_result = Config.get_config("hook", "BAN_RESULT")
-                        if ban_result:
+                        if ban_result and matcher.plugin_name not in ignore_rst_module:
                             await bot.send_private_msg(
                                 user_id=event.user_id,
                                 message=at(event.user_id)
