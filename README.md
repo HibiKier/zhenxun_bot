@@ -236,6 +236,10 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/3/21
+
+* 修复statistics_handle.py乱码
+
 ### 2022/3/18 \[v0.1.4.4]
 
 * 修复戳一戳无法功能关闭与ban禁用
@@ -314,15 +318,15 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * epic restful 替换 [@pull/119](https://github.com/HibiKier/zhenxun_bot/pull/119)
 * fix: 修复远古时期残留的epic推送问题 [@pull/122](https://github.com/HibiKier/zhenxun_bot/pull/122)
 
-### 2021/2/11
+### 2022/2/11
 
 * 修复pix不使用反代无法下载图片
 
-### 2021/2/10 \[v0.1.1]
+### 2022/2/10 \[v0.1.1]
 
 * 修复购买道具出错
 
-### 2021/2/9 \[v0.1]
+### 2022/2/9 \[v0.1]
 
 * 新增原神自动签到和手动签到
 * 新增原神树脂提醒
@@ -332,7 +336,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 修复修改商品时限制时间出错
 * 修复超时商品依旧可以被购买
 
-### 2021/1/16 \[v0.0.9.0]
+### 2022/1/16 \[v0.0.9.0]
 
 * Ai提供文本敏感词过滤器
 * 疫情插件适配新版腾讯API
@@ -351,7 +355,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
       * “send_success_msg”(发送成功的交互信息->即：使用道具 {name} {num} 次成功)
       * “_max_num_limit”(该道具单次使用的最多个数，默认1)
 
-### 2021/1/5 \[v0.0.8.2]
+### 2022/1/5 \[v0.0.8.2]
 
 * 提供金币消费hook，可在plugins2settings.yaml中配置该功能需要消费的金币
 * 商店插件将作为内置插件移动至basic_plugins
