@@ -16,68 +16,68 @@ except ModuleNotFoundError:
     import json
 
 
-__zx_plugin_name__ = "¹¦ÄÜµ÷ÓÃÍ³¼Æ¿ÉÊÓ»¯"
+__zx_plugin_name__ = "åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡å¯è§†åŒ–"
 __plugin_usage__ = """
-usage£º
-    ¹¦ÄÜµ÷ÓÃÍ³¼Æ¿ÉÊÓ»¯
-    Ö¸Áî£º
-        ¹¦ÄÜµ÷ÓÃÍ³¼Æ
-        ÈÕ¹¦ÄÜµ÷ÓÃÍ³¼Æ
-        ÖÜ¹¦ÄÜµ÷ÓÃÍ³¼Æ ?[¹¦ÄÜ]
-        ÔÂ¹¦ÄÜµ÷ÓÃÍ³¼Æ ?[¹¦ÄÜ]
-        ÎÒµÄ¹¦ÄÜµ÷ÓÃÍ³¼Æ
-        ÎÒµÄÈÕ¹¦ÄÜµ÷ÓÃÍ³¼Æ ?[¹¦ÄÜ]
-        ÎÒµÄÖÜ¹¦ÄÜµ÷ÓÃÍ³¼Æ ?[¹¦ÄÜ]
-        ÎÒµÄÔÂ¹¦ÄÜµ÷ÓÃÍ³¼Æ ?[¹¦ÄÜ]
+usageï¼š
+    åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡å¯è§†åŒ–
+    æŒ‡ä»¤ï¼š
+        åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡
+        æ—¥åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡
+        å‘¨åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ ?[åŠŸèƒ½]
+        æœˆåŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ ?[åŠŸèƒ½]
+        æˆ‘çš„åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡
+        æˆ‘çš„æ—¥åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ ?[åŠŸèƒ½]
+        æˆ‘çš„å‘¨åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ ?[åŠŸèƒ½]
+        æˆ‘çš„æœˆåŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ ?[åŠŸèƒ½]
 """.strip()
 __plugin_superuser_usage__ = """
-usage£º
-    ¹¦ÄÜµ÷ÓÃÍ³¼Æ¿ÉÊÓ»¯
-    Ö¸Áî£º
-        È«¾Ö¹¦ÄÜµ÷ÓÃÍ³¼Æ
-        È«¾ÖÈÕ¹¦ÄÜµ÷ÓÃÍ³¼Æ
-        È«¾ÖÖÜ¹¦ÄÜµ÷ÓÃÍ³¼Æ ?[¹¦ÄÜ]
-        È«¾ÖÔÂ¹¦ÄÜµ÷ÓÃÍ³¼Æ ?[¹¦ÄÜ]
+usageï¼š
+    åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡å¯è§†åŒ–
+    æŒ‡ä»¤ï¼š
+        å…¨å±€åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡
+        å…¨å±€æ—¥åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡
+        å…¨å±€å‘¨åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ ?[åŠŸèƒ½]
+        å…¨å±€æœˆåŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ ?[åŠŸèƒ½]
 """.strip()
-__plugin_des__ = "¹¦ÄÜµ÷ÓÃÍ³¼Æ¿ÉÊÓ»¯"
+__plugin_des__ = "åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡å¯è§†åŒ–"
 __plugin_cmd__ = [
-    "¹¦ÄÜµ÷ÓÃÍ³¼Æ",
-    "È«¾Ö¹¦ÄÜµ÷ÓÃÍ³¼Æ [_superuser]",
-    "È«¾ÖÈÕ¹¦ÄÜµ÷ÓÃÍ³¼Æ [_superuser]",
-    "È«¾ÖÖÜ¹¦ÄÜµ÷ÓÃÍ³¼Æ ?[¹¦ÄÜ] [_superuser]",
-    "È«¾ÖÔÂ¹¦ÄÜµ÷ÓÃÍ³¼Æ ?[¹¦ÄÜ] [_superuser]",
-    "ÖÜ¹¦ÄÜµ÷ÓÃÍ³¼Æ ?[¹¦ÄÜ]",
-    "ÔÂ¹¦ÄÜµ÷ÓÃÍ³¼Æ ?[¹¦ÄÜ]",
-    "ÎÒµÄ¹¦ÄÜµ÷ÓÃÍ³¼Æ",
-    "ÎÒµÄÈÕ¹¦ÄÜµ÷ÓÃÍ³¼Æ ?[¹¦ÄÜ]",
-    "ÎÒµÄÖÜ¹¦ÄÜµ÷ÓÃÍ³¼Æ ?[¹¦ÄÜ]",
-    "ÎÒµÄÔÂ¹¦ÄÜµ÷ÓÃÍ³¼Æ ?[¹¦ÄÜ]",
+    "åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡",
+    "å…¨å±€åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ [_superuser]",
+    "å…¨å±€æ—¥åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ [_superuser]",
+    "å…¨å±€å‘¨åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ ?[åŠŸèƒ½] [_superuser]",
+    "å…¨å±€æœˆåŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ ?[åŠŸèƒ½] [_superuser]",
+    "å‘¨åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ ?[åŠŸèƒ½]",
+    "æœˆåŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ ?[åŠŸèƒ½]",
+    "æˆ‘çš„åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡",
+    "æˆ‘çš„æ—¥åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ ?[åŠŸèƒ½]",
+    "æˆ‘çš„å‘¨åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ ?[åŠŸèƒ½]",
+    "æˆ‘çš„æœˆåŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ ?[åŠŸèƒ½]",
 ]
-__plugin_type__ = ("¹¦ÄÜµ÷ÓÃÍ³¼Æ¿ÉÊÓ»¯", 1)
+__plugin_type__ = ("åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡å¯è§†åŒ–", 1)
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {
     "level": 5,
     "default_status": True,
     "limit_superuser": False,
-    "cmd": ["¹¦ÄÜµ÷ÓÃÍ³¼Æ"],
+    "cmd": ["åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡"],
 }
 
 
 statistics = on_command(
-    "¹¦ÄÜµ÷ÓÃÍ³¼Æ",
+    "åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡",
     aliases={
-        "È«¾Ö¹¦ÄÜµ÷ÓÃÍ³¼Æ",
-        "È«¾ÖÈÕ¹¦ÄÜµ÷ÓÃÍ³¼Æ",
-        "È«¾ÖÖÜ¹¦ÄÜµ÷ÓÃÍ³¼Æ",
-        "È«¾ÖÔÂ¹¦ÄÜµ÷ÓÃÍ³¼Æ",
-        "ÈÕ¹¦ÄÜµ÷ÓÃÍ³¼Æ",
-        "ÖÜ¹¦ÄÜµ÷ÓÃÍ³¼Æ",
-        "ÔÂ¹¦ÄÜµ÷ÓÃÍ³¼Æ",
-        "ÎÒµÄ¹¦ÄÜµ÷ÓÃÍ³¼Æ",
-        "ÎÒµÄÈÕ¹¦ÄÜµ÷ÓÃÍ³¼Æ",
-        "ÎÒµÄÖÜ¹¦ÄÜµ÷ÓÃÍ³¼Æ",
-        "ÎÒµÄÔÂ¹¦ÄÜµ÷ÓÃÍ³¼Æ",
+        "å…¨å±€åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡",
+        "å…¨å±€æ—¥åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡",
+        "å…¨å±€å‘¨åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡",
+        "å…¨å±€æœˆåŠŸèƒ½è°ƒç”¨ç»Ÿè®¡",
+        "æ—¥åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡",
+        "å‘¨åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡",
+        "æœˆåŠŸèƒ½è°ƒç”¨ç»Ÿè®¡",
+        "æˆ‘çš„åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡",
+        "æˆ‘çš„æ—¥åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡",
+        "æˆ‘çš„å‘¨åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡",
+        "æˆ‘çš„æœˆåŠŸèƒ½è°ƒç”¨ç»Ÿè®¡",
     },
     priority=5,
     block=True,
@@ -91,14 +91,14 @@ statistics_user_file = DATA_PATH / "statistics" / "_prefix_user_count.json"
 @statistics.handle()
 async def _(bot: Bot, event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip()
-    if cmd[0][:2] == "È«¾Ö":
+    if cmd[0][:2] == "å…¨å±€":
         if str(event.user_id) in bot.config.superusers:
             data: dict = json.load(open(statistics_group_file, "r", encoding="utf8"))
-            if cmd[0][2] == 'ÈÕ':
+            if cmd[0][2] == 'æ—¥':
                 _type = 'day_statistics'
-            elif cmd[0][2] == 'ÖÜ':
+            elif cmd[0][2] == 'å‘¨':
                 _type = 'week_statistics'
-            elif cmd[0][2] == 'ÔÂ':
+            elif cmd[0][2] == 'æœˆ':
                 _type = 'month_statistics'
             else:
                 _type = 'total_statistics'
@@ -121,26 +121,26 @@ async def _(bot: Bot, event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg
             await asyncio.get_event_loop().run_in_executor(None, bar_graph.gen_graph)
             await statistics.finish(image(b64=bar_graph.pic2bs4()))
         return
-    if cmd[0][:2] == "ÎÒµÄ":
+    if cmd[0][:2] == "æˆ‘çš„":
         _type = "user"
         key = str(event.user_id)
         cmd = list(cmd)
         cmd[0] = cmd[0][2:]
         if not statistics_user_file.exists():
-            await statistics.finish("Í³¼ÆÎÄ¼ş²»´æÔÚ...", at_sender=True)
+            await statistics.finish("ç»Ÿè®¡æ–‡ä»¶ä¸å­˜åœ¨...", at_sender=True)
     else:
         if not isinstance(event, GroupMessageEvent):
-            await statistics.finish("ÇëÔÚÈºÄÚµ÷ÓÃ´Ë¹¦ÄÜ...")
+            await statistics.finish("è¯·åœ¨ç¾¤å†…è°ƒç”¨æ­¤åŠŸèƒ½...")
         _type = "group"
         key = str(event.group_id)
         if not statistics_group_file.exists():
-            await statistics.finish("Í³¼ÆÎÄ¼ş²»´æÔÚ...", at_sender=True)
+            await statistics.finish("ç»Ÿè®¡æ–‡ä»¶ä¸å­˜åœ¨...", at_sender=True)
     plugin = ""
-    if cmd[0][0] == "ÈÕ":
+    if cmd[0][0] == "æ—¥":
         arg = "day_statistics"
-    elif cmd[0][0] == "ÖÜ":
+    elif cmd[0][0] == "å‘¨":
         arg = "week_statistics"
-    elif cmd[0][0] == "ÔÂ":
+    elif cmd[0][0] == "æœˆ":
         arg = "month_statistics"
     else:
         arg = "total_statistics"
@@ -148,15 +148,15 @@ async def _(bot: Bot, event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg
         plugin = plugins2settings_manager.get_plugin_module(msg)
         if not plugin:
             if arg not in ["day_statistics", "total_statistics"]:
-                await statistics.finish("Î´ÕÒµ½´Ë¹¦ÄÜµÄµ÷ÓÃ...", at_sender=True)
+                await statistics.finish("æœªæ‰¾åˆ°æ­¤åŠŸèƒ½çš„è°ƒç”¨...", at_sender=True)
     if _type == "group":
         data: dict = json.load(open(statistics_group_file, "r", encoding="utf8"))
         if not data[arg].get(str(event.group_id)):
-            await statistics.finish("¸ÃÈºÍ³¼ÆÊı¾İ²»´æÔÚ...", at_sender=True)
+            await statistics.finish("è¯¥ç¾¤ç»Ÿè®¡æ•°æ®ä¸å­˜åœ¨...", at_sender=True)
     else:
         data: dict = json.load(open(statistics_user_file, "r", encoding="utf8"))
         if not data[arg].get(str(event.user_id)):
-            await statistics.finish("¸ÃÓÃ»§Í³¼ÆÊı¾İ²»´æÔÚ...", at_sender=True)
+            await statistics.finish("è¯¥ç”¨æˆ·ç»Ÿè®¡æ•°æ®ä¸å­˜åœ¨...", at_sender=True)
     day_index = data["day_index"]
     data = data[arg][key]
     if _type == "group":
@@ -177,7 +177,7 @@ async def generate_statistics_img(
         pass
     bar_graph = None
     if arg == "day_statistics":
-        bar_graph = await init_bar_graph(data, f"{name} ÈÕ¹¦ÄÜµ÷ÓÃÍ³¼Æ")
+        bar_graph = await init_bar_graph(data, f"{name} æ—¥åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡")
     elif arg == "week_statistics":
         if plugin:
             current_week = day_index % 7
@@ -205,7 +205,7 @@ async def generate_statistics_img(
             bar_graph = BuildMat(
                 y=count,
                 mat_type="line",
-                title=f"{name} ÖÜ {plugin} ¹¦ÄÜµ÷ÓÃÍ³¼Æ¡¾Îª7ÌìÍ³¼Æ¡¿",
+                title=f"{name} å‘¨ {plugin} åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ã€ä¸º7å¤©ç»Ÿè®¡ã€‘",
                 x_index=week_lst,
                 display_num=True,
                 background=[
@@ -215,7 +215,7 @@ async def generate_statistics_img(
                 bar_color=["*"],
             )
         else:
-            bar_graph = await init_bar_graph(update_data(data), f"{name} ÖÜ¹¦ÄÜµ÷ÓÃÍ³¼Æ¡¾Îª7ÌìÍ³¼Æ¡¿")
+            bar_graph = await init_bar_graph(update_data(data), f"{name} å‘¨åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ã€ä¸º7å¤©ç»Ÿè®¡ã€‘")
     elif arg == "month_statistics":
         if plugin:
             day_index = day_index % 30
@@ -229,7 +229,7 @@ async def generate_statistics_img(
             bar_graph = BuildMat(
                 y=count,
                 mat_type="line",
-                title=f"{name} ÔÂ {plugin} ¹¦ÄÜµ÷ÓÃÍ³¼Æ¡¾Îª30ÌìÍ³¼Æ¡¿",
+                title=f"{name} æœˆ {plugin} åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ã€ä¸º30å¤©ç»Ÿè®¡ã€‘",
                 x_index=day_lst,
                 display_num=True,
                 background=[
@@ -239,9 +239,9 @@ async def generate_statistics_img(
                 bar_color=["*"],
             )
         else:
-            bar_graph = await init_bar_graph(update_data(data), f"{name} ÔÂ¹¦ÄÜµ÷ÓÃÍ³¼Æ¡¾Îª30ÌìÍ³¼Æ¡¿")
+            bar_graph = await init_bar_graph(update_data(data), f"{name} æœˆåŠŸèƒ½è°ƒç”¨ç»Ÿè®¡ã€ä¸º30å¤©ç»Ÿè®¡ã€‘")
     elif arg == "total_statistics":
-        bar_graph = await init_bar_graph(data, f"{name} ¹¦ÄÜµ÷ÓÃÍ³¼Æ")
+        bar_graph = await init_bar_graph(data, f"{name} åŠŸèƒ½è°ƒç”¨ç»Ÿè®¡")
     await asyncio.get_event_loop().run_in_executor(None, bar_graph.gen_graph)
     return bar_graph.pic2bs4()
 
@@ -270,7 +270,7 @@ def update_data(data: dict):
     tmp_dict = {}
     for day in data.keys():
         for plugin_name in data[day].keys():
-            # print(f'{day}£º{plugin_name} = {data[day][plugin_name]}')
+            # print(f'{day}ï¼š{plugin_name} = {data[day][plugin_name]}')
             if data[day][plugin_name] is not None:
                 if tmp_dict.get(plugin_name) is None:
                     tmp_dict[plugin_name] = 1
