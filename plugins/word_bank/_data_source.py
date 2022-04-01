@@ -5,7 +5,6 @@ from typing import Union
 class WordBankBuilder:
 
     def __init__(self, user_id: int, group_id: int, problem: str):
-
         self._data = {
             "user_id": user_id,
             "group_id": group_id,
@@ -37,16 +36,13 @@ class WordBankBuilder:
         placeholder = self._data.get("placeholder")
         await WordBank.add_problem_answer(user_id, group_id, problem, answer, placeholder)
 
+    async def update(self, index):
+        user_id = self._data["user_id"]
+        group_id = self._data["group_id"]
+        problem = self._data["problem"]
+        answer = self._data["answer"]
+        placeholder = self._data.get("placeholder")
+        return await WordBank.update_problem_answer(user_id, group_id, problem, answer, index, placeholder)
+
     def __str__(self):
         return str(self._data)
-
-
-
-
-
-
-
-
-
-
-
