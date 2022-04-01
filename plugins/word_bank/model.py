@@ -21,12 +21,12 @@ class WordBank(db.Model):
 
     @classmethod
     async def add_problem_answer(
-        cls,
-        user_id: int,
-        group_id: Optional[int],
-        problem: str,
-        answer: str,
-        format_: Optional[List[Tuple[int, Union[int, str]]]],
+            cls,
+            user_id: int,
+            group_id: Optional[int],
+            problem: str,
+            answer: str,
+            format_: Optional[List[Tuple[int, Union[int, str]]]],
     ) -> bool:
         """
         添加或新增一个问答
@@ -47,7 +47,7 @@ class WordBank(db.Model):
 
     @classmethod
     async def delete_problem_answer(
-        cls, user_id: int, group_id: Optional[int], problem: str, index: Optional[int]
+            cls, user_id: int, group_id: Optional[int], problem: str, index: Optional[int]
     ) -> str:
         """
         删除某问题一个或全部回答
@@ -61,8 +61,34 @@ class WordBank(db.Model):
         )
 
     @classmethod
+    async def update_problem_answer(
+            cls,
+            user_id: int,
+            group_id: Optional[int],
+            problem: str,
+            answer: str,
+            index: Optional[int],
+            format_: Optional[List[Tuple[int, Union[int, str]]]],
+    ) -> str:
+        """
+        修改某问题一个或全部回答
+        :param user_id: 用户id
+        :param group_id: 群号
+        :param problem: 问题
+        :param index: 回答下标
+        """
+        _str = None
+        if format_:
+            _str = ""
+            for x, y in format_:
+                _str += f"{x}<_s>{y}<format>"
+        return await cls._problem_answer_handle(
+            user_id, group_id, problem, "update", answer=answer,index=index, format_=_str
+        )
+
+    @classmethod
     async def get_problem_answer(
-        cls, user_id: int, group_id: Optional[int], problem: str
+            cls, user_id: int, group_id: Optional[int], problem: str
     ) -> List[str]:
         """
         获取问题的所有回答
@@ -135,15 +161,15 @@ class WordBank(db.Model):
 
     @classmethod
     async def _problem_answer_handle(
-        cls,
-        user_id: int,
-        group_id: Optional[int],
-        problem: str,
-        type_: str,
-        *,
-        answer: Optional[str] = None,
-        index: Optional[int] = None,
-        format_: Optional[str] = None,
+            cls,
+            user_id: int,
+            group_id: Optional[int],
+            problem: str,
+            type_: str,
+            *,
+            answer: Optional[str] = None,
+            index: Optional[int] = None,
+            format_: Optional[str] = None,
     ) -> Union[List[Union[str, Tuple[str, str]]], bool, str]:
         """
         添加或新增一个问答
@@ -174,8 +200,8 @@ class WordBank(db.Model):
                     problem=problem,
                     answer=answer,
                     format=format_,
-                    create_time=datetime.now().date(),
-                    update_time=datetime.now().date(),
+                    create_time=datetime.now().replace(microsecond=0),
+                    update_time=datetime.now().replace(microsecond=0),
                 )
             return True
         elif type_ == "delete":
@@ -204,9 +230,39 @@ class WordBank(db.Model):
                         & (cls.group_id == group_id)
                     ).gino.status()
                 return answer
+        elif type_ == "update":
+            new_format =format_
+            new_answer = answer
+            q = await q.with_for_update().gino.all()
+            if q:
+                path = DATA_PATH / "word_bank" / f"{group_id}"
+                if index is not None:
+                    _q = [x.problem for x in q]
+                    _q.sort()
+                    prob = _q[index]
+                    index = [x.problem for x in q].index(prob)
+                    q = [q[index]]
+                else:
+                    q = [q[0]]
+                for x in q:
+                    format_ = x.format
+                    if format_:
+                        for sp in format_.split("<format>")[:-1]:
+                            _, image_name = sp.split("<_s>")
+                            if image_name.endswith("jpg"):
+                                _path = path / image_name
+                                if _path.exists():
+                                    _path.unlink()
+                    await cls.update.values(answer=new_answer,
+                                            format=new_format,
+                                            update_time=datetime.now().replace(microsecond=0), ).where(
+                        (cls.problem == problem)
+                        & (cls.answer == x.answer)
+                        & (cls.group_id == group_id)
+                    ).gino.status()
+                return True
         elif type_ == "get":
             q = await q.gino.all()
             if q:
                 return [(x.answer, x.format.split("<format>")[:-1]) for x in q]
         return False
-
