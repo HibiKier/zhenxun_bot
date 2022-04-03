@@ -180,7 +180,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
             await show_word.finish("该群未收录任何词条..")
         _problem_list = [f"\t{i}. {x}" for i, x in enumerate(_problem_list)]
         long_problem_list = len(_problem_list)
-        max_line = 25
+        max_line = Config.get_config("word_bank", "WORD_BANK_MIX")
         if long_problem_list > max_line:
             pic_list = []
             mes_list = []
