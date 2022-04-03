@@ -7,6 +7,7 @@ from ._data_source import WordBankBuilder
 from configs.config import Config
 from utils.message_builder import image
 from utils.image_utils import text2image
+from .message_handle import get_one_answer
 from .model import WordBank
 from nonebot.adapters.onebot.v11 import (
     Bot,
@@ -18,6 +19,7 @@ from nonebot import on_command
 import random
 import os
 import re
+from configs.config import NICKNAME, Config
 
 __zx_plugin_name__ = "词库问答 [Admin]"
 __plugin_usage__ = """
@@ -50,7 +52,7 @@ __plugin_cmd__ = [
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {
-    "admin_level": Config.get_config("word_bank", "WORD_BANK_LEVEL"),
+    "admin_level": Config.get_config("word_bank", "WORD_BANK_LEVEL [LEVEL]"),
     "cmd": ["词库问答", "添加词条", "删除词条", "修改词条", "查看词条"],
 }
 
@@ -170,29 +172,78 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
 
 
 @show_word.handle()
-async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
+async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip()
     if not msg:
         _problem_list = await WordBank.get_group_all_problem(event.group_id)
         if not _problem_list:
             await show_word.finish("该群未收录任何词条..")
         _problem_list = [f"\t{i}. {x}" for i, x in enumerate(_problem_list)]
-        await show_word.send(
-            image(
-                b64=(await text2image(
-                    "该群已收录的词条：\n\n" + "\n".join(_problem_list),
-                    padding=10,
-                    color="#f9f6f2",
-                )).pic2bs4()
+        long_problem_list = len(_problem_list)
+        max_line = 25
+        if long_problem_list > max_line:
+            pic_list = []
+            mes_list = []
+            img_nu = long_problem_list // max_line
+            one_msg = "该群已收录的词条："
+            await show_word.send(one_msg)
+            for i in range(img_nu + 1):
+                if _problem_list:
+                    one_img = image(
+                        b64=(await text2image("\n".join(_problem_list[:max_line]),
+                                              padding=10,
+                                              color="#f9f6f2",
+                                              )).pic2bs4()
+                    )
+                    if img_nu > 2:
+                        pic_list.append(one_img)
+                    else:
+                        await show_word.send(one_img)
+                del _problem_list[:max_line]
+            if pic_list:
+                for img in pic_list:
+                    data = {
+                        "type": "node",
+                        "data": {"name": f"{NICKNAME}", "uin": f"{bot.self_id}", "content": img},
+                    }
+                    mes_list.append(data)
+                await bot.send_group_forward_msg(group_id=event.group_id, messages=mes_list)
+        else:
+            await show_word.send(
+                image(
+                    b64=(await text2image(
+                        "该群已收录的词条：\n\n" + "\n".join(_problem_list),
+                        padding=10,
+                        color="#f9f6f2",
+                    )).pic2bs4()
+                )
             )
-        )
     else:
         _answer_list = await WordBank.get_group_all_answer(event.group_id, msg)
         if not _answer_list:
             await show_word.send("未收录该词条...")
+
         else:
-            _answer_list = [f"{i}. {x}" for i, x in enumerate(_answer_list)]
-            await show_word.send(f"词条 {msg} 回答：\n" + "\n".join(_answer_list))
+
+            # 解析图片和@
+            _answer_img_nu_list = [await get_one_answer(event, format, answer, 0) for answer, format in _answer_list]
+            word_nu = len(_answer_img_nu_list)
+            img_nu = 0
+            answer = f"词条 {msg} 回答："
+            for i, x, in enumerate(_answer_img_nu_list):
+                r = re.findall(rf"\[CQ:image,file=", str(x))
+                if r:
+                    img_nu += len(r)
+                answer += "\n" + f"{i}." + x
+            if (img_nu > 2 and word_nu > 5) or word_nu > 10 or img_nu > 4:
+                data = {
+                    "type": "node",
+                    "data": {"name": f"{NICKNAME}", "uin": f"{bot.self_id}", "content": answer},
+                }
+                await bot.send_group_forward_msg(group_id=event.group_id, messages=data)
+            else:
+                await show_word.send(answer)
+            # await show_word.send(f"词条 {msg} 回答：\n" + "\n".join(_answer_list))
 
 
 async def get__builder(event, _problem, answer, idx):
