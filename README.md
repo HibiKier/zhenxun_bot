@@ -32,6 +32,10 @@
 ## 普通帮助图片
 ![x](https://github.com/HibiKier/zhenxun_bot/blob/0.0.8.2/docs_image/3238573864-836268675-E2FFBB2AC143EAF4DDDF150438508721.png)
 
+## Web UI
+
+[zhenxun_bot_webui](https://github.com/HibiKier/zhenxun_bot_webui)
+
 ## 提供符合真寻标准的插件仓库
 
 [AkashiCoin/nonebot_plugins_zhenxun_bot](https://github.com/AkashiCoin/nonebot_plugins_zhenxun_bot)
