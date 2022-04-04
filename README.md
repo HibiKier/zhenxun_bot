@@ -36,6 +36,10 @@
 
 [zhenxun_bot_webui](https://github.com/HibiKier/zhenxun_bot_webui)
 
+## 一键安装脚本
+
+[zhenxun_bot-deploy](https://github.com/AkashiCoin/zhenxun_bot-deploy)
+
 ## 提供符合真寻标准的插件仓库
 
 [AkashiCoin/nonebot_plugins_zhenxun_bot](https://github.com/AkashiCoin/nonebot_plugins_zhenxun_bot)
@@ -249,6 +253,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 修复同意群聊请求错误
 * 提供webui方面的api
 * 新增web-ui（前端简易管理页面插件）插件
+* Update word_bank plus
 
 ### 2022/3/21
 
@@ -423,9 +428,6 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 __..... 更多更新信息请查看文档__
 
-
-## Todo
-- [ ] web管理
 
 ## 感谢
 [botuniverse / onebot](https://github.com/botuniverse/onebot) ：超棒的机器人协议  
