@@ -38,6 +38,8 @@ black = "^22.1.0"
 pypinyin = "^0.46.0"
 dateparser = "^1.1.0"
 cn2an = "^0.5.16"
+python-jose = "^3.3.0"
+python-multipart = "^0.0.5"
 
 [tool.poetry.dev-dependencies]
 

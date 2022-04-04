@@ -56,15 +56,15 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             )
     if is_number(msg) and 0 < int(msg) <= 50:
         url = wbtop_data[int(msg) - 1]["url"]
-        try:
-            await wbtop.send("开始截取数据...")
-            img = await AsyncPlaywright.screenshot(
-                url,
-                f"{IMAGE_PATH}/temp/wbtop_{event.user_id}.png",
-                "#pl_feedlist_index",
-                sleep=5
-            )
+        await wbtop.send("开始截取数据...")
+        img = await AsyncPlaywright.screenshot(
+            url,
+            f"{IMAGE_PATH}/temp/wbtop_{event.user_id}.png",
+            "#pl_feedlist_index",
+            wait_time=5
+        )
+        if img:
             await wbtop.send(img)
-        except Exception as e:
-            logger.error(f"微博热搜截图出错... {type(e)}: {e}")
+        else:
             await wbtop.send("发生了一些错误.....")
+

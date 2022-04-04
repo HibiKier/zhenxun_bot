@@ -8,7 +8,8 @@
       "configs/path_config.py",
       "configs/utils",
       "poetry.lock",
-      "pyproject.toml"
+      "pyproject.toml",
+      "resources/font"
     ],
     "add_file": [],
     "delete_file": []

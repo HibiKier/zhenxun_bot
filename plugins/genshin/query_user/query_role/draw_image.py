@@ -296,9 +296,11 @@ def get_country_data_image(world_data_dict: Dict) -> BuildImage:
     画出国家探索供奉等图像
     :param world_data_dict: 国家数据字典
     """
-    region = BuildImage(790, 267 * len(world_data_dict), color="#F9F6F2")
+    # 层岩巨渊 和 地下矿区 算一个
+    region = BuildImage(790, 267 * (len(world_data_dict) - 1), color="#F9F6F2")
     height = 0
-    for country in ["蒙德", "龙脊雪山", "璃月", "稻妻", "渊下宫"]:
+
+    for country in ["蒙德", "龙脊雪山", "璃月", "璃月层岩巨渊", "稻妻", "渊下宫"]:
         x = BuildImage(790, 250, color="#3A4467")
         logo = BuildImage(180, 180, background=image_path / "logo" / f"{country}.png")
         tmp_bk = BuildImage(770, 230, color="#606779")
@@ -318,6 +320,25 @@ def get_country_data_image(world_data_dict: Dict) -> BuildImage:
             content_bk.text(
                 (450, 120),
                 f"Lv.{world_data_dict[country]['level']}",
+                fill=(255, 255, 255),
+            )
+        elif country in ["璃月层岩巨渊"]:
+            content_bk.text((300, 20), "层岩巨渊探索", fill=(239, 211, 114))
+            content_bk.text(
+                (570, 20),
+                f"{world_data_dict['璃月层岩巨渊']['exploration_percentage'] / 10}%",
+                fill=(255, 255, 255),
+            )
+            content_bk.text((300, 85), "地下矿区探索", fill=(239, 211, 114))
+            content_bk.text(
+                (570, 85),
+                f"{world_data_dict['璃月层岩巨渊·地下矿区']['exploration_percentage'] / 10}%",
+                fill=(255, 255, 255),
+            )
+            content_bk.text((300, 150), "流明石触媒", fill=(239, 211, 114))
+            content_bk.text(
+                (570, 150),
+                f"LV.{world_data_dict['璃月层岩巨渊·地下矿区']['offerings'][0]['level']}",
                 fill=(255, 255, 255),
             )
         elif country in ["龙脊雪山"]:

@@ -57,7 +57,7 @@ async def get_chat_result(text: str, img_url: str, user_id: int, nickname: str) 
                 if random.random() < 0.2:
                     if nickname.find("大人") == -1:
                         nickname += "大~人~"
-        rst = rst.replace("小主人", nickname).replace("小朋友", nickname)
+        rst = str(rst).replace("小主人", nickname).replace("小朋友", nickname)
     ai_message_manager.add_result(user_id, rst)
     return rst
 
