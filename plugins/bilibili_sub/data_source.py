@@ -311,28 +311,32 @@ async def get_user_dynamic(
         dynamic_upload_time = dynamic_info["cards"][0]["desc"]["timestamp"]
         if local_user.dynamic_upload_time < dynamic_upload_time:
             page = await browser.new_page()
-            await page.goto(
-                f"https://space.bilibili.com/{local_user.uid}/dynamic",
-                wait_until="networkidle",
-                timeout=10000,
-            )
-            await page.set_viewport_size({"width": 2560, "height": 1080})
-            # 删除置顶
-            await page.evaluate(
+            try:
+                await page.goto(
+                    f"https://space.bilibili.com/{local_user.uid}/dynamic",
+                    wait_until="networkidle",
+                    timeout=10000,
+                )
+                await page.set_viewport_size({"width": 2560, "height": 1080})
+                # 删除置顶
+                await page.evaluate(
+                    """
+                    xs = document.getElementsByClassName('first-card-with-title');
+                    for (x of xs) {
+                      x.remove();
+                    }
                 """
-                xs = document.getElementsByClassName('first-card-with-title');
-                for (x of xs) {
-                  x.remove();
-                }
-            """
-            )
-            card = await page.query_selector(".card")
-            # 截图并保存
-            await card.screenshot(
-                path=dynamic_path / f"{local_user.sub_id}_{dynamic_upload_time}.jpg",
-                timeout=100000,
-            )
-            await page.close()
+                )
+                card = await page.query_selector(".card")
+                # 截图并保存
+                await card.screenshot(
+                    path=dynamic_path / f"{local_user.sub_id}_{dynamic_upload_time}.jpg",
+                    timeout=100000,
+                )
+            except Exception as e:
+                logger.error(f"B站订阅：获取用户动态 发送错误 {type(e)}：{e}")
+            finally:
+                await page.close()
             return (
                 image(
                     f"{local_user.sub_id}_{dynamic_upload_time}.jpg",

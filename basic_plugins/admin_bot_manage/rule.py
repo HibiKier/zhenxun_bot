@@ -24,11 +24,17 @@ def switch_rule(event: Event) -> bool:
             _data = plugins2settings_manager.get_data()
             for key in _data:
                 try:
-                    for x in _data[key]["cmd"]:
-                        cmd.append(f"开启{x}")
-                        cmd.append(f"关闭{x}")
-                        cmd.append(f"开启 {x}")
-                        cmd.append(f"关闭 {x}")
+                    if isinstance(_data[key]["cmd"], list):
+                        for x in _data[key]["cmd"]:
+                            cmd.append(f"开启{x}")
+                            cmd.append(f"关闭{x}")
+                            cmd.append(f"开启 {x}")
+                            cmd.append(f"关闭 {x}")
+                    else:
+                        cmd.append(f"开启{key}")
+                        cmd.append(f"关闭{key}")
+                        cmd.append(f"开启 {key}")
+                        cmd.append(f"关闭 {key}")
                 except KeyError:
                     pass
         msg = get_message_text(event.json()).split()

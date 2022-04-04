@@ -9,7 +9,7 @@ if platform.system() == "Windows":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
-url = "http://www.eclzz.world"
+url = "http://www.eclzz.mobi"
 
 
 async def get_bt_info(keyword: str, page: int):

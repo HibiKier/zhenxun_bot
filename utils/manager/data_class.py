@@ -2,6 +2,7 @@ from typing import Union, Optional
 from pathlib import Path
 from ruamel.yaml import YAML
 import ujson as json
+import copy
 
 yaml = YAML(typ="safe")
 
@@ -47,7 +48,7 @@ class StaticData:
             del self._data[key]
 
     def get_data(self) -> dict:
-        return self._data
+        return copy.deepcopy(self._data)
 
     def save(self, path: Union[str, Path] = None):
         path = path if path else self.file

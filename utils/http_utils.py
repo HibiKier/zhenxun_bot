@@ -295,7 +295,7 @@ class AsyncPlaywright:
         path: Union[Path, str],
         element: Union[str, List[str]],
         *,
-        sleep: Optional[int] = None,
+        wait_time: Optional[int] = None,
         viewport_size: Dict[str, int] = None,
         wait_until: Optional[
             Literal["domcontentloaded", "load", "networkidle"]
@@ -311,7 +311,7 @@ class AsyncPlaywright:
             :param url: 网址
             :param path: 存储路径
             :param element: 元素选择
-            :param sleep: 延迟截取
+            :param wait_time: 等待截取超时时间
             :param viewport_size: 窗口大小
             :param wait_until: 等待类型
             :param timeout: 超时限制
@@ -325,14 +325,18 @@ class AsyncPlaywright:
         try:
             page = await cls.goto(url, wait_until=wait_until, **kwargs)
             await page.set_viewport_size(viewport_size)
-            if sleep:
-                await asyncio.sleep(sleep)
             if isinstance(element, str):
-                card = await page.query_selector(element)
+                if wait_time:
+                    card = await page.wait_for_selector(element, timeout=wait_time)
+                else:
+                    card = await page.query_selector(element)
             else:
                 card = page
                 for e in element:
-                    card = await card.query_selector(e)
+                    if wait_time:
+                        card = await card.wait_for_selector(e, timeout=wait_time)
+                    else:
+                        card = await card.query_selector(e)
             await card.screenshot(path=path, timeout=timeout, type=type_)
             return image(path)
         except Exception as e:

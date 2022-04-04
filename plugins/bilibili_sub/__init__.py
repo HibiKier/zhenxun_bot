@@ -211,7 +211,7 @@ async def _():
             await sub_manager.reload_sub_data()
             sub = await sub_manager.random_sub_data()
             if sub:
-                logger.info(f"Bilibili订阅开始检测：{sub.sub_id}")
+                logger.debug(f"Bilibili订阅开始检测：{sub.sub_id}")
                 rst = await get_sub_status(sub.sub_id, sub.sub_type)
                 await send_sub_msg(rst, sub, bot)
                 if sub.sub_type == "live":

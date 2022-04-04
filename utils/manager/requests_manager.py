@@ -2,7 +2,7 @@ from utils.manager.data_class import StaticData
 from nonebot.adapters.onebot.v11 import Bot
 from nonebot.adapters.onebot.v11.exception import ActionFailed
 from services.log import logger
-from typing import Optional
+from typing import Optional, Literal
 from utils.image_utils import BuildImage
 from utils.utils import get_user_avatar
 from pathlib import Path
@@ -80,7 +80,10 @@ class RequestManager(StaticData):
         通过id获取群号
         :param id_: id
         """
-        return self._data["group"].get(id_)
+        data = self._data["group"].get(str(id_))
+        if data:
+            return data["invite_group"]
+        return None
 
     async def approve(self, bot: Bot, id_: int, type_: str) -> Optional[int]:
         """
@@ -100,12 +103,27 @@ class RequestManager(StaticData):
         """
         return await self._set_add_request(bot, id_, type_, False)
 
-    def clear(self):
+    def clear(self, type_: Optional[str] = None):   # type_: Optional[Literal["group", "private"]] = None
         """
         清空所有请求信息，无视请求
+        :param type_: 类型
         """
-        self._data = {"private": {}, "group": {}}
+        if type_:
+            self._data[type_] = {}
+        else:
+            self._data = {"private": {}, "group": {}}
         self.save()
+
+    def delete_request(self, id_: int, type_: str):     # type_: Literal["group", "private"]
+        """
+        删除请求
+        :param id_: id
+        :param type_: 类型
+        """
+        id_ = str(id_)
+        if self._data[type_].get(id_):
+            del self._data[type_][id_]
+            self.save()
 
     def set_group_name(self, group_name: str, group_id: int):
         """
@@ -223,7 +241,7 @@ class RequestManager(StaticData):
         :param approve: 是否同意
         """
         id_ = str(id_)
-        if id_ in self._data[type_]:
+        if id_ in self._data[type_].keys():
             try:
                 if type_ == "private":
                     await bot.set_friend_add_request(
@@ -244,7 +262,7 @@ class RequestManager(StaticData):
                 )
                 return None
             logger.info(
-                f"同意{self._data[type_][id_]['nickname']}({self._data[type_][id_]['id']})"
+                f"{'同意' if approve else '拒绝'}{self._data[type_][id_]['nickname']}({self._data[type_][id_]['id']})"
                 f"的{'好友' if type_ == 'private' else '入群'}请求..."
             )
             del self._data[type_][id_]

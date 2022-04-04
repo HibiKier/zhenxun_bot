@@ -200,7 +200,7 @@ def _parse_data_and_draw(
         file_name = x["avatar_side_icon"].split("_")[-1]
         role_avatar = memo_path / "role_avatar" / file_name
         _ava_img = BuildImage(75, 75, background=role_avatar)
-        _ava_img.circle()
+        # _ava_img.circle()
         if x["status"] == "Finished":
             msg = "探索完成"
             font_color = (146, 188, 63)
@@ -218,10 +218,10 @@ def _parse_data_and_draw(
         a_circle.circle()
         b_circle = BuildImage(47, 47)
         b_circle.circle()
-        a_circle.paste(b_circle, (4, 4), alpha=True)
-        _circle_bk.paste(a_circle, (4, 4), alpha=True)
+        a_circle.paste(b_circle, (4, 4), True)
+        _circle_bk.paste(a_circle, (4, 4), True)
 
-        _bk.paste(_circle_bk, (25, 0), True, center_type="by_height")
+        _bk.paste(_circle_bk, (25, 0), True, "by_height")
         _bk.paste(_ava_img, (19, -13), True)
         _bk.text((100, 0), msg, font_color, "by_height")
         _bk.circle_corner(20)

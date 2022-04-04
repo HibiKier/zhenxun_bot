@@ -74,7 +74,7 @@ def init_plugins_settings(data_path: str):
                         if plugin_settings.get('cost_gold') is None:
                             plugin_settings['cost_gold'] = 0
                         if (
-                            plugin_settings["cmd"] is not None
+                            plugin_settings.get("cmd") is not None
                             and plugin_name not in plugin_settings["cmd"]
                         ):
                             plugin_settings["cmd"].append(plugin_name)
