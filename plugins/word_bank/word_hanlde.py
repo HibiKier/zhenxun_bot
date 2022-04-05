@@ -4,7 +4,6 @@ from services.log import logger
 from configs.path_config import DATA_PATH
 from utils.http_utils import AsyncHttpx
 from ._data_source import WordBankBuilder
-from configs.config import Config
 from utils.message_builder import image
 from utils.image_utils import text2image
 from .message_handle import get_one_answer
@@ -19,6 +18,7 @@ from nonebot import on_command
 import random
 import os
 import re
+from configs.config import NICKNAME, Config
 
 __zx_plugin_name__ = "词库问答 [Admin]"
 __plugin_usage__ = """
