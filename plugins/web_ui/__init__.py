@@ -1,5 +1,5 @@
 from configs.config import Config as gConfig
-from .manager import *
+from .api import *
 from .auth import *
 
 

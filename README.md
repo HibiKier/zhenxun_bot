@@ -32,14 +32,6 @@
 ## 普通帮助图片
 ![x](https://github.com/HibiKier/zhenxun_bot/blob/0.0.8.2/docs_image/3238573864-836268675-E2FFBB2AC143EAF4DDDF150438508721.png)
 
-## Web UI
-
-[zhenxun_bot_webui](https://github.com/HibiKier/zhenxun_bot_webui)
-
-## 一键安装脚本
-
-[zhenxun_bot-deploy](https://github.com/AkashiCoin/zhenxun_bot-deploy)
-
 ## 提供符合真寻标准的插件仓库
 
 [AkashiCoin/nonebot_plugins_zhenxun_bot](https://github.com/AkashiCoin/nonebot_plugins_zhenxun_bot)
@@ -244,6 +236,10 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/4/5 \[v0.1.4.6]
+
+* 修复web修改插件后帮助图片生成错误
+
 ### 2022/4/4 \[v0.1.4.5]
 
 * 替换了bt搜索URL
@@ -253,7 +249,6 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 修复同意群聊请求错误
 * 提供webui方面的api
 * 新增web-ui（前端简易管理页面插件）插件
-* Update word_bank plus
 
 ### 2022/3/21
 
@@ -337,15 +332,15 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * epic restful 替换 [@pull/119](https://github.com/HibiKier/zhenxun_bot/pull/119)
 * fix: 修复远古时期残留的epic推送问题 [@pull/122](https://github.com/HibiKier/zhenxun_bot/pull/122)
 
-### 2021/2/11
+### 2022/2/11
 
 * 修复pix不使用反代无法下载图片
 
-### 2021/2/10 \[v0.1.1]
+### 2022/2/10 \[v0.1.1]
 
 * 修复购买道具出错
 
-### 2021/2/9 \[v0.1]
+### 2022/2/9 \[v0.1]
 
 * 新增原神自动签到和手动签到
 * 新增原神树脂提醒
@@ -355,7 +350,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 修复修改商品时限制时间出错
 * 修复超时商品依旧可以被购买
 
-### 2021/1/16 \[v0.0.9.0]
+### 2022/1/16 \[v0.0.9.0]
 
 * Ai提供文本敏感词过滤器
 * 疫情插件适配新版腾讯API
@@ -374,7 +369,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
       * “send_success_msg”(发送成功的交互信息->即：使用道具 {name} {num} 次成功)
       * “_max_num_limit”(该道具单次使用的最多个数，默认1)
 
-### 2021/1/5 \[v0.0.8.2]
+### 2022/1/5 \[v0.0.8.2]
 
 * 提供金币消费hook，可在plugins2settings.yaml中配置该功能需要消费的金币
 * 商店插件将作为内置插件移动至basic_plugins
@@ -428,6 +423,9 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 __..... 更多更新信息请查看文档__
 
+
+## Todo
+- [ ] web管理
 
 ## 感谢
 [botuniverse / onebot](https://github.com/botuniverse/onebot) ：超棒的机器人协议  

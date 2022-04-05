@@ -67,8 +67,8 @@ def _(type_: Optional[str], user: User = Depends(token_to_user)) -> Result:
             if x := plugins2settings_manager.get(model):
                 if x.get("cmd") and isinstance(x.get("cmd"), list):
                     x["cmd"] = ",".join(x["cmd"])
-                if isinstance(x["plugin_type"], list):
-                    x["plugin_type"] = x["plugin_type"][0]
+                # if isinstance(x["plugin_type"], list):
+                #     x["plugin_type"] = x["plugin_type"][0]
                 data["plugin_settings"] = PluginSettings(**x)
             if x := plugins2cd_manager.get(model):
                 data["cd_limit"] = CdLimit(**x)
@@ -88,14 +88,11 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
     修改插件信息
     :param plugin: 插件内容
     """
-
-    print(plugin)
     if plugin.plugin_settings:
         for key, value in plugin.plugin_settings:
             plugins2settings_manager.set_module_data(plugin.model, key, value)
     if plugin.plugin_manager:
         for key, value in plugin.plugin_manager:
-            print(key, value)
             plugins_manager.set_module_data(plugin.model, key, value)
     return Result(code=200)
 

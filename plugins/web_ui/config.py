@@ -1,4 +1,4 @@
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Union
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import nonebot
@@ -54,7 +54,7 @@ class PluginSettings(BaseModel):
     limit_superuser: Optional[bool]  # 是否限制超级用户
     cmd: Optional[str]  # cmd别名
     cost_gold: Optional[int]  # 花费金币限制
-    plugin_type: Optional[str]  # 帮助类型
+    plugin_type: Optional[List[Union[str, int]]]  # 帮助类型
 
 
 class Plugin(BaseModel):
