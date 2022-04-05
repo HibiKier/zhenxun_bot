@@ -19,7 +19,6 @@ from nonebot import on_command
 import random
 import os
 import re
-from configs.config import NICKNAME, Config
 
 __zx_plugin_name__ = "词库问答 [Admin]"
 __plugin_usage__ = """
@@ -27,7 +26,7 @@ usage：
     对指定问题的随机回答，对相同问题可以设置多个不同回答
     删除词条后每个词条的id可能会变化，请查看后再删除
     指令：
-        添加词条问...答...：添加问答词条，可重复添加相同问题的不同回答
+        添加词条 ?[模糊/关键字]...答...：添加问答词条，可重复添加相同问题的不同回答
         删除词条 [问题/下标] ?[下标]：删除指定词条指定或全部回答
         修改词条 [问题/下标] ?[下标/新回答] [新回答]：修改指定词条指定回答默认修改为第一条
         查看词条 ?[问题/下标]：查看全部词条或对应词条回答
@@ -44,12 +43,12 @@ usage：
 """.strip()
 __plugin_des__ = "自定义词条内容随机回复"
 __plugin_cmd__ = [
-    "添加词条问...答..",
+    "添加词条 ?[模糊/关键字]问...答..",
     "删除词条 [问题/下标] ?[下标]",
     "修改词条 [问题/下标] ?[下标/新回答] [新回答]",
     "查看词条 ?[问题/下标]",
 ]
-__plugin_version__ = 0.1
+__plugin_version__ = 0.2
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {
     "admin_level": Config.get_config("word_bank", "WORD_BANK_LEVEL [LEVEL]"),
@@ -71,7 +70,7 @@ show_word = on_command("显示词条", aliases={"查看词条"}, priority=5, blo
 @add_word.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State, arg: Message = CommandArg()):
     msg = str(arg)
-    r = re.search(r"^问(.+)\s?答([\s\S]*)", msg)
+    r = re.search(r"问(.+)\s?答([\s\S]*)", msg)
     if not r:
         await add_word.finish("未检测到词条问题...")
     problem = r.group(1).strip()
@@ -87,10 +86,17 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State, arg: Message = C
             break
     else:
         _problem = problem
+    search_type = 0
+    if re.search("^关键字(.*)", msg):
+        search_type = 1
+    elif re.search("^模糊(.*)", msg):
+        search_type = 2
     _builder = await get__builder(event, _problem, answer, idx)
-    await _builder.save()
-    logger.info(f"已保存词条 问：{problem} 答：{msg}")
-    await add_word.send(f"已保存词条：{problem}")
+    if await _builder.save(search_type):
+        logger.info(f"已保存词条 问：{problem} 答：{msg}")
+        await add_word.send(f"已保存词条：{problem}")
+    else:
+        await delete_word.send("保存失败，可能是回答重复")
 
 
 @delete_word.handle()
