@@ -25,6 +25,7 @@ class WordBank(db.Model):
             cls,
             user_id: int,
             group_id: Optional[int],
+            search_type: [int],
             problem: str,
             answer: str,
             format_: Optional[List[Tuple[int, Union[int, str]]]],
@@ -33,6 +34,7 @@ class WordBank(db.Model):
         添加或新增一个问答
         :param user_id: 用户id
         :param group_id: 群号
+        :search_type: 问题类型,
         :param problem: 问题
         :param answer: 回答
         :param format_: 格式化数据
@@ -43,7 +45,7 @@ class WordBank(db.Model):
             for x, y in format_:
                 _str += f"{x}<_s>{y}<format>"
         return await cls._problem_answer_handle(
-            user_id, group_id, problem, "add", answer=answer, format_=_str
+            user_id, group_id, problem, "add", search_type=search_type, answer=answer, format_=_str
         )
 
     @classmethod
@@ -159,22 +161,25 @@ class WordBank(db.Model):
             if problem:
                 FUZZY = Config.get_config("word_bank", "WORD_BANK_FUZZY")
                 KEY = Config.get_config("word_bank", "WORD_BANK_KEY")
+                q = await cls.query.where(
+                    (cls.group_id == group_id) & (cls.problem == problem)
+                ).gino.all()
                 if KEY and FUZZY:
                     q_fuzzy = await cls.query.where(
-                        (cls.group_id == group_id) & (cls.problem.contains(f'{problem}'))).gino.all()
-                    q_key = await cls.query.where(cls.group_id == group_id).gino.all()
+                        (cls.group_id == group_id) & (cls.search_type == 2) & (
+                            cls.problem.contains(f'{problem}'))).gino.all()
+                    q_key = await cls.query.where((cls.group_id == group_id) & (cls.search_type == 1)).gino.all()
                     q_key = [x for x in q_key if str(x.problem) in (problem)]
-                    q = q_fuzzy + q_key
+                    q += q_fuzzy + q_key
                 elif FUZZY:
-                    q = await cls.query.where(
-                        (cls.group_id == group_id) & (cls.problem.contains(f'{problem}'))).gino.all()
+                    q_fuzzy = await cls.query.where(
+                        (cls.group_id == group_id) & (cls.search_type == 2) & (
+                            cls.problem.contains(f'{problem}'))).gino.all()
+                    q += q_fuzzy
                 elif KEY:
-                    q = await cls.query.where(cls.group_id == group_id).gino.all()
-                    q = [x for x in q if str(x.problem) in (problem)]
-                else:
-                    q = await cls.query.where(
-                        (cls.group_id == group_id) & (cls.problem == problem)
-                    ).gino.all()
+                    q_key = await cls.query.where((cls.group_id == group_id) & (cls.search_type == 1)).gino.all()
+                    q_key = [x for x in q_key if str(x.problem) in (problem)]
+                    q += q_key
             else:
                 return None
 
@@ -188,6 +193,7 @@ class WordBank(db.Model):
             problem: str,
             type_: str,
             *,
+            search_type: [int] = 0,
             answer: Optional[str] = None,
             index: Optional[int] = None,
             format_: Optional[str] = None,
@@ -213,17 +219,21 @@ class WordBank(db.Model):
         else:
             q = cls.query.where((cls.user_qq == user_id) & (cls.problem == problem))
         if type_ == "add":
-            q = await q.where(cls.answer == answer).gino.all()
-            if not q or ".jpg" in format_:
-                await cls.create(
-                    user_qq=user_id,
-                    group_id=group_id,
-                    problem=problem,
-                    answer=answer,
-                    format=format_,
-                    create_time=datetime.now().replace(microsecond=0),
-                    update_time=datetime.now().replace(microsecond=0),
-                )
+            q = await q.where((cls.answer == answer) & (cls.search_type == search_type)).gino.all()
+            try:
+                if not q or ".jpg" in format_:
+                    await cls.create(
+                        user_qq=user_id,
+                        group_id=group_id,
+                        search_type=search_type,
+                        problem=problem,
+                        answer=answer,
+                        format=format_,
+                        create_time=datetime.now().replace(microsecond=0),
+                        update_time=datetime.now().replace(microsecond=0),
+                    )
+            except:
+                return False
             return True
         elif type_ == "delete":
             q = await q.with_for_update().gino.all()

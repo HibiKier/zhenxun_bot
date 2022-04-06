@@ -28,13 +28,13 @@ class WordBankBuilder:
         """
         self._data["answer"] = answer
 
-    async def save(self):
+    async def save(self,search_type):
         user_id = self._data["user_id"]
         group_id = self._data["group_id"]
         problem = self._data["problem"]
         answer = self._data["answer"]
         placeholder = self._data.get("placeholder")
-        await WordBank.add_problem_answer(user_id, group_id, problem, answer, placeholder)
+        return await WordBank.add_problem_answer(user_id, group_id, search_type,problem, answer, placeholder)
 
     async def update(self, index):
         user_id = self._data["user_id"]
