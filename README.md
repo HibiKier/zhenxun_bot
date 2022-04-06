@@ -242,6 +242,10 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/4/6
+
+* update search_type [@pull/143](https://github.com/HibiKier/zhenxun_bot/pull/143)
+
 ### 2022/4/5 \[v0.1.4.6]
 
 * 修复web修改插件后帮助图片生成错误
