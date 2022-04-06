@@ -172,12 +172,14 @@ class WordBank(db.Model):
                     q_key = [x for x in q_key if str(x.problem) in (problem)]
                     q += q_fuzzy + q_key
                 elif FUZZY:
-                    q = await cls.query.where(
+                    q_fuzzy = await cls.query.where(
                         (cls.group_id == group_id) & (cls.search_type == 2) & (
                             cls.problem.contains(f'{problem}'))).gino.all()
+                    q += q_fuzzy
                 elif KEY:
-                    q = await cls.query.where((cls.group_id == group_id) & (cls.search_type == 1)).gino.all()
-                    q = [x for x in q if str(x.problem) in (problem)]
+                    q_key = await cls.query.where((cls.group_id == group_id) & (cls.search_type == 1)).gino.all()
+                    q_key = [x for x in q_key if str(x.problem) in (problem)]
+                    q += q_key
             else:
                 return None
 
