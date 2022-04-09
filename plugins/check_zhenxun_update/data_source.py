@@ -73,6 +73,7 @@ async def check_update(bot: Bot) -> 'int, str':
                 message=f"检测真寻已更新，当前版本：{_version}，最新版本：{latest_version}\n" f"开始更新.....",
             )
             logger.info(f"开始下载真寻最新版文件....")
+            tar_gz_url = (await AsyncHttpx.get(tar_gz_url)).headers.get('Location')
             if await AsyncHttpx.download_file(tar_gz_url, zhenxun_latest_tar_gz):
                 logger.info("下载真寻最新版文件完成....")
                 error = await asyncio.get_event_loop().run_in_executor(
