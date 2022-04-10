@@ -76,6 +76,7 @@ async def _(bot: Bot, event: MessageEvent):
         f"问题：{msg} ---- 回答：{result}"
     )
     if result:
+        result = str(result)
         for t in Config.get_config("ai", "TEXT_FILTER"):
             result = result.replace(t, "*")
         await ai.finish(Message(result))

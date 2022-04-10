@@ -11,14 +11,19 @@ class ConfigsManager:
 
     def __init__(self, file: Path):
         self._data: dict = {}
+        self._simple_data: dict = {}
         self._admin_level_data = []
+        self._simple_file = Path() / "configs" / "config.yaml"
         if file:
             file.parent.mkdir(exist_ok=True, parents=True)
             self.file = file
+            _yaml = YAML()
             if file.exists():
-                _yaml = YAML()
                 with open(file, "r", encoding="utf8") as f:
                     self._data = _yaml.load(f)
+            if self._simple_file.exists():
+                with open(self._simple_file, "r", encoding="utf8") as f:
+                    self._simple_data = _yaml.load(f)
 
     def add_plugin_config(
         self,
@@ -71,6 +76,7 @@ class ConfigsManager:
         """
         if module in self._data.keys():
             del self._data[module]
+        self.save()
 
     def set_config(self, module: str, key: str, value: str):
         """
@@ -80,8 +86,10 @@ class ConfigsManager:
         :param value: 值
         """
         if module in self._data.keys():
-            if self._data[module].get(key) is not None:
+            if self._data[module].get(key) is not None and self._data[module][key] != value:
                 self._data[module][key]["value"] = value
+                self._simple_data[module][key] = value
+                self.save()
 
     def set_help(self, module: str, key: str, help_: str):
         """
@@ -93,6 +101,7 @@ class ConfigsManager:
         if module in self._data.keys():
             if self._data[module].get(key) is not None:
                 self._data[module][key]["help"] = help_
+                self.save()
 
     def set_default_value(self, module: str, key: str, value: str):
         """
@@ -104,6 +113,7 @@ class ConfigsManager:
         if module in self._data.keys():
             if self._data[module].get(key) is not None:
                 self._data[module][key]["default_value"] = value
+                self.save()
 
     def get_config(self, module: str, key: str, default: Optional[Any] = None) -> Optional[Any]:
         """
@@ -142,11 +152,17 @@ class ConfigsManager:
         if key in self._data.keys():
             return self._data[key]
 
-    def save(self, path: Union[str, Path] = None):
+    def save(self, path: Union[str, Path] = None, save_simple_data: bool = False):
         """
         保存数据
         :param path: 路径
+        :param save_simple_data: 同时保存至config.yaml
         """
+        if save_simple_data:
+            with open(self._simple_file, "w", encoding="utf8") as f:
+                yaml.dump(
+                    self._simple_data, f, indent=2, Dumper=yaml.RoundTripDumper, allow_unicode=True
+                )
         path = path if path else self.file
         with open(path, "w", encoding="utf8") as f:
             yaml.dump(

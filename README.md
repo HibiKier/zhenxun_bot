@@ -242,6 +242,12 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/4/10 \[v0.1.4.7]
+
+* 新增消息记录模块
+* 丰富处理请求操作提示
+* web ui新增配置项修改
+
 ### 2022/4/9
 
 * fix: 更新问题，戳一戳图片路径问题 [@pull/144](https://github.com/HibiKier/zhenxun_bot/pull/144)

@@ -57,10 +57,19 @@ class PluginSettings(BaseModel):
     plugin_type: Optional[List[Union[str, int]]]  # 帮助类型
 
 
+class PluginConfig(BaseModel):
+    id: int
+    key: str
+    value: Optional[Any]
+    help_: Optional[str]
+    default_value: Optional[Any]
+
+
 class Plugin(BaseModel):
     model: str  # 模块
     plugin_settings: Optional[PluginSettings]
     plugin_manager: Optional[PluginManager]
+    plugin_config: Optional[List[PluginConfig]]
     cd_limit: Optional[CdLimit]
     block_limit: Optional[BlockLimit]
     count_limit: Optional[CountLimit]

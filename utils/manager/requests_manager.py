@@ -85,7 +85,7 @@ class RequestManager(StaticData):
             return data["invite_group"]
         return None
 
-    async def approve(self, bot: Bot, id_: int, type_: str) -> Optional[int]:
+    async def approve(self, bot: Bot, id_: int, type_: str) -> int:
         """
         同意请求
         :param bot: Bot
@@ -232,7 +232,7 @@ class RequestManager(StaticData):
 
     async def _set_add_request(
         self, bot: Bot, id_: int, type_: str, approve: bool
-    ) -> Optional[int]:
+    ) -> int:
         """
         处理请求
         :param bot: Bot
@@ -260,12 +260,13 @@ class RequestManager(StaticData):
                     f"同意{self._data[type_][id_]['nickname']}({self._data[type_][id_]['id']})"
                     f"的{'好友' if type_ == 'private' else '入群'}请求失败了..."
                 )
-                return None
-            logger.info(
-                f"{'同意' if approve else '拒绝'}{self._data[type_][id_]['nickname']}({self._data[type_][id_]['id']})"
-                f"的{'好友' if type_ == 'private' else '入群'}请求..."
-            )
+                return 1    # flag失效
+            else:
+                logger.info(
+                    f"{'同意' if approve else '拒绝'}{self._data[type_][id_]['nickname']}({self._data[type_][id_]['id']})"
+                    f"的{'好友' if type_ == 'private' else '入群'}请求..."
+                )
             del self._data[type_][id_]
             self.save()
             return rid
-        return None
+        return 2    # 未找到id

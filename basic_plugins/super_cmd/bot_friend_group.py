@@ -82,15 +82,16 @@ async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandAr
     if is_number(id_):
         id_ = int(id_)
         if cmd[:2] == "同意":
-            if await requests_manager.approve(bot, id_, "private"):
-                await friend_handle.send("同意好友请求成功..")
-            else:
-                await friend_handle.send("同意好友请求失败，可能是未找到此id的请求..")
+            flag = await requests_manager.approve(bot, id_, "private")
         else:
-            if await requests_manager.refused(bot, id_, "private"):
-                await friend_handle.send("拒绝好友请求成功..")
-            else:
-                await friend_handle.send("拒绝好友请求失败，可能是未找到此id的请求..")
+            flag = await requests_manager.refused(bot, id_, "private")
+        if flag == 1:
+            await friend_handle.send(f"{cmd[:2]}好友请求失败，该请求已失效..")
+            requests_manager.delete_request(id_, "private")
+        elif flag == 2:
+            await friend_handle.send(f"{cmd[:2]}好友请求失败，未找到此id的请求..")
+        else:
+            await friend_handle.send(f"{cmd[:2]}好友请求成功！")
     else:
         await friend_handle.send("id必须为纯数字！")
 
@@ -99,12 +100,12 @@ async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandAr
 async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
     cmd = cmd[0]
     id_ = arg.extract_plain_text().strip()
+    flag = None
     if is_number(id_):
         id_ = int(id_)
         if cmd[:2] == "同意":
             rid = requests_manager.get_group_id(id_)
             if rid:
-                await friend_handle.send("同意群聊请求成功..")
                 if await GroupInfo.get_group_info(rid):
                     await GroupInfo.set_group_flag(rid, 1)
                 else:
@@ -116,14 +117,18 @@ async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandAr
                         group_info["member_count"],
                         1
                     )
-                await requests_manager.approve(bot, id_, "group")
+                flag = await requests_manager.approve(bot, id_, "group")
             else:
-                await friend_handle.send("同意群聊请求失败，可能是未找到此id的请求..")
+                await friend_handle.send("同意群聊请求失败，未找到此id的请求..")
         else:
-            if await requests_manager.refused(bot, id_, "group"):
-                await friend_handle.send("拒绝群聊请求成功..")
-            else:
-                await friend_handle.send("拒绝群聊请求失败，可能是未找到此id的请求..")
+            flag = await requests_manager.refused(bot, id_, "group")
+        if flag == 1:
+            await friend_handle.send(f"{cmd[:2]}群聊请求失败，该请求已失效..")
+            requests_manager.delete_request(id_, "group")
+        elif flag == 2:
+            await friend_handle.send(f"{cmd[:2]}群聊请求失败，未找到此id的请求..")
+        else:
+            await friend_handle.send(f"{cmd[:2]}群聊请求成功！")
     else:
         await friend_handle.send("id必须为纯数字！")
 
