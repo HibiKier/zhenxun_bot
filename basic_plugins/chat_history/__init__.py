@@ -4,6 +4,10 @@ from ._rule import rule
 from configs.config import Config
 from nonebot import on_message
 
+__zx_plugin_name__ = "消息存储 [Hidden]"
+__plugin_version__ = 0.1
+__plugin_author__ = "HibiKier"
+
 
 Config.add_plugin_config(
     "chat_history",
@@ -15,7 +19,7 @@ Config.add_plugin_config(
 )
 
 
-chat_history = on_message(rule=rule)
+chat_history = on_message(rule=rule, priority=1, block=False)
 
 # test = on_command("aa")
 
