@@ -139,7 +139,7 @@ async def update_setu_img(flag: bool = False):
                             f"--> /{path}/{image.local_id}.jpg"
                         )
                         os.rename(
-                            TEMP_PATH / f"/{image.local_id}.jpg",
+                            TEMP_PATH / f"{image.local_id}.jpg",
                             path / f"{image.local_id}.jpg",
                         )
                 except FileNotFoundError:
