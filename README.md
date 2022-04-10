@@ -247,6 +247,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 新增消息记录模块
 * 丰富处理请求操作提示
 * web ui新增配置项修改
+* 修复chat_history阻断消息
 
 ### 2022/4/9
 
