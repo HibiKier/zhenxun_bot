@@ -10,7 +10,7 @@ async def handle_api_call(bot: Bot, api: str, data: Dict[str, Any]):
     r = None
     if (
         (
-            (api == "send_msg" and data["message_type"] == "group")
+            (api == "send_msg" and data.get("message_type") == "group")
             or api == "send_group_msg"
         )
         and (

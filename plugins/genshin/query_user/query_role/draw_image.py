@@ -299,7 +299,6 @@ def get_country_data_image(world_data_dict: Dict) -> BuildImage:
     # 层岩巨渊 和 地下矿区 算一个
     region = BuildImage(790, 267 * (len(world_data_dict) - 1), color="#F9F6F2")
     height = 0
-    print(world_data_dict)
     for country in ["蒙德", "龙脊雪山", "璃月", "层岩巨渊", "稻妻", "渊下宫"]:
         x = BuildImage(790, 250, color="#3A4467")
         logo = BuildImage(180, 180, background=image_path / "logo" / f"{country}.png")

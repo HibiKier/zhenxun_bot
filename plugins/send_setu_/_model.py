@@ -144,7 +144,6 @@ class Setu(db.Model):
             return _tmp_local_id
         return -1
 
-
     @classmethod
     async def update_setu_data(
         cls,

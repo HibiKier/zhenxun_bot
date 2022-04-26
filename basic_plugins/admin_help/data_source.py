@@ -5,7 +5,6 @@ from utils.utils import get_matchers
 from utils.manager import group_manager
 from nonebot.adapters.onebot.v11 import Bot
 from nonebot import Driver
-import asyncio
 import nonebot
 
 
@@ -27,12 +26,10 @@ async def create_help_image():
     """
     创建管理员帮助图片
     """
-    await asyncio.get_event_loop().run_in_executor(
-        None, _create_help_image
-    )
+    await _create_help_image()
 
 
-def _create_help_image():
+async def _create_help_image():
     """
     创建管理员帮助图片
     """
@@ -85,9 +82,9 @@ def _create_help_image():
     height = len(help_str.split("\n")) * 33
     A = BuildImage(width, height, font_size=24)
     _background = BuildImage(width, height, background=background)
-    A.text((150, 110), help_str)
-    A.paste(_background, alpha=True)
-    A.save(admin_help_image)
+    await A.apaste(_background, alpha=True)
+    await A.atext((150, 110), help_str)
+    await A.asave(admin_help_image)
     logger.info(f'已成功加载 {len(_plugin_name_list)} 条管理员命令')
 
 

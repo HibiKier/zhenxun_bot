@@ -136,7 +136,7 @@ async def _():
 @manager_group_whitelist.handle()
 async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
     cmd = cmd[0]
-    msg = arg.extract_plain_text().strip()
+    msg = arg.extract_plain_text().strip().split()
     all_group = [
         g["group_id"] for g in await bot.get_group_list()
     ]

@@ -20,6 +20,9 @@ driver: Driver = nonebot.get_driver()
 get_memo = require("query_memo").get_memo
 
 
+global_map = {}
+
+
 class UserManager:
     def __init__(self, max_error_count: int = 3):
         self._data = []
@@ -146,8 +149,8 @@ async def _remind(user_id: int, uid: str):
         if current_resin < max_resin:
             user_manager.remove(uid)
             user_manager.remove_overflow(uid)
-        if max_resin - 40 <= current_resin <= max_resin - 20:
-            next_time = now + timedelta(minutes=(max_resin - 20 - current_resin) * 8, seconds=10)
+        if max_resin - 40 < current_resin <= max_resin - 20:
+            next_time = now + timedelta(minutes=(max_resin - 20 - current_resin + 1) * 8, seconds=10)
         elif current_resin < max_resin:
             next_time = now + timedelta(minutes=(max_resin - current_resin) * 8, seconds=10)
         elif current_resin == max_resin:
@@ -189,6 +192,7 @@ async def _remind(user_id: int, uid: str):
         user_manager.remove_error_count(uid)
     await Genshin.set_user_resin_recovery_time(int(uid), next_time)
     scheduler.add_job(
+        _remind,
         _remind,
         "date",
         run_date=next_time,

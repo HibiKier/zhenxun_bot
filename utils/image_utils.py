@@ -1,17 +1,18 @@
 import asyncio
-from configs.path_config import IMAGE_PATH, FONT_PATH
-from PIL import Image, ImageFile, ImageDraw, ImageFont, ImageFilter
-from imagehash import ImageHash
-from io import BytesIO
-from matplotlib import pyplot as plt
-from typing import Tuple, Optional, Union, List, Literal
-from pathlib import Path
-from math import ceil
-import random
-import cv2
 import base64
-import imagehash
+import random
 import re
+from io import BytesIO
+from math import ceil
+from pathlib import Path
+from typing import List, Literal, Optional, Tuple, Union
+
+import cv2
+import imagehash
+from configs.path_config import FONT_PATH, IMAGE_PATH
+from imagehash import ImageHash
+from matplotlib import pyplot as plt
+from PIL import Image, ImageDraw, ImageFile, ImageFilter, ImageFont
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 Image.MAX_IMAGE_PIXELS = None
@@ -65,9 +66,7 @@ def compressed_image(
     """
     in_file = IMAGE_PATH / in_file if isinstance(in_file, str) else in_file
     if out_file:
-        out_file = (
-            IMAGE_PATH / out_file if isinstance(out_file, str) else out_file
-        )
+        out_file = IMAGE_PATH / out_file if isinstance(out_file, str) else out_file
     else:
         out_file = in_file
     h, w, d = cv2.imread(str(in_file.absolute())).shape
@@ -673,9 +672,11 @@ class BuildImage:
         ellipse_box = [0, 0, r2 - 2, r2 - 2]
         mask = Image.new(
             size=[int(dim * antialias) for dim in self.markImg.size],
-            mode='L', color='black')
+            mode="L",
+            color="black",
+        )
         draw = ImageDraw.Draw(mask)
-        for offset, fill in (width / -2.0, 'black'), (width / 2.0, 'white'):
+        for offset, fill in (width / -2.0, "black"), (width / 2.0, "white"):
             left, top = [(value + offset) * antialias for value in ellipse_box[:2]]
             right, bottom = [(value - offset) * antialias for value in ellipse_box[2:]]
             draw.ellipse([left, top, right, bottom], fill=fill)
@@ -1490,6 +1491,7 @@ async def text2image(
         height = 0
         _tmp = BuildImage(0, 0, font_size=font_size)
         for x in text.split("\n"):
+            x = x if x.strip() else "正"
             w, h = _tmp.getsize(x)
             height += h
             width = width if width > w else w

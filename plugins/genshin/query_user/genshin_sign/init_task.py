@@ -23,17 +23,17 @@ async def _():
     g_list = await Genshin.get_all_auto_sign_user()
     for u in g_list:
         if u.auto_sign_time:
-            date = await Genshin.random_sign_time(u.uid)
-            scheduler.add_job(
-                _sign,
-                "date",
-                run_date=date.replace(microsecond=0),
-                id=f"genshin_auto_sign_{u.uid}_{u.user_qq}_0",
-                args=[u.user_qq, u.uid, 0],
-            )
-            logger.info(
-                f"genshin_sign add_job：USER：{u.user_qq} UID：{u.uid} " f"{date} 原神自动签到"
-            )
+            if date := await Genshin.random_sign_time(u.uid):
+                scheduler.add_job(
+                    _sign,
+                    "date",
+                    run_date=date.replace(microsecond=0),
+                    id=f"genshin_auto_sign_{u.uid}_{u.user_qq}_0",
+                    args=[u.user_qq, u.uid, 0],
+                )
+                logger.info(
+                    f"genshin_sign add_job：USER：{u.user_qq} UID：{u.uid} " f"{date} 原神自动签到"
+                )
 
 
 def add_job(user_id: int, uid: int, date: datetime):

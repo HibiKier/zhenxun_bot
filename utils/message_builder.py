@@ -1,16 +1,16 @@
-from configs.path_config import IMAGE_PATH, RECORD_PATH
-from nonebot.adapters.onebot.v11.message import MessageSegment
-from configs.config import NICKNAME
-from services.log import logger
-from typing import Union, List
 from pathlib import Path
-import os
+from typing import List, Union
+
+from configs.config import NICKNAME
+from configs.path_config import IMAGE_PATH, RECORD_PATH
+from nonebot.adapters.onebot.v11.message import MessageSegment, Message
+from services.log import logger
 
 
 def image(
-    file: Union[str, Path, bytes] = None,
-    path: str = None,
-    b64: str = None,
+        file: Union[str, Path, bytes] = None,
+        path: str = None,
+        b64: str = None,
 ) -> Union[MessageSegment, str]:
     """
     说明：
@@ -63,7 +63,9 @@ def record(voice_name: str, path: str = None) -> MessageSegment or str:
     if len(voice_name.split(".")) == 1:
         voice_name += ".mp3"
     file = (
-        Path(RECORD_PATH) / path / voice_name if path else Path(RECORD_PATH) / voice_name
+        Path(RECORD_PATH) / path / voice_name
+        if path
+        else Path(RECORD_PATH) / voice_name
     )
     if "http" in voice_name:
         return MessageSegment.record(voice_name)
@@ -96,7 +98,7 @@ def contact_user(qq: int) -> MessageSegment:
 
 
 def share(
-    url: str, title: str, content: str = None, image_url: str = None
+        url: str, title: str, content: str = None, image_url: str = None
 ) -> MessageSegment:
     """
     说明：
@@ -155,7 +157,7 @@ def music(type_: str, id_: int) -> MessageSegment:
 
 
 def custom_forward_msg(
-    msg_list: List[str], uin: Union[int, str], name: str = f"这里是{NICKNAME}"
+        msg_list: List[str], uin: Union[int, str], name: str = f"这里是{NICKNAME}"
 ) -> List[dict]:
     """
     生成自定义合并消息
@@ -176,3 +178,35 @@ def custom_forward_msg(
         }
         mes_list.append(data)
     return mes_list
+
+
+class MessageBuilder:
+    """
+    MessageSegment构建工具
+    """
+
+    def __init__(self, msg: Union[str, MessageSegment, Message]):
+        if msg:
+            if isinstance(msg, str):
+                self._msg = text(msg)
+            else:
+                self._msg = msg
+        else:
+            self._msg = text("")
+
+    def text(self, msg: str):
+        return MessageBuilder(self._msg + text(msg))
+
+    def image(
+        self,
+        file: Union[str, Path, bytes] = None,
+        path: str = None,
+        b64: str = None,
+    ):
+        return MessageBuilder(self._msg + image(file, path, b64))
+
+    def at(self, qq: int):
+        return MessageBuilder(self._msg + at(qq))
+
+    def face(self, id_: int):
+        return MessageBuilder(self._msg + face(id_))

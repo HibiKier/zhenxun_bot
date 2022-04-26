@@ -256,9 +256,7 @@ class Genshin(db.Model):
         if x:
             await cls._add_query_uid(uid, uid)
             return x.cookie
-        for u in [
-            x for x in await cls.query.order_by(db.func.random()).gino.all() if x.cookie
-        ]:
+        for u in await cls.query.where(cls.cookie != "").order_by(db.func.random()).gino.all():
             if not u.today_query_uid or len(u.today_query_uid[:-1].split()) < 30:
                 await cls._add_query_uid(uid, u.uid)
                 return u.cookie

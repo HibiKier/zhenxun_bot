@@ -53,7 +53,7 @@ __plugin_cmd__ = [
     "我的周功能调用统计 ?[功能]",
     "我的月功能调用统计 ?[功能]",
 ]
-__plugin_type__ = ("功能调用统计可视化", 1)
+__plugin_type__ = ("数据统计", 1)
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {
