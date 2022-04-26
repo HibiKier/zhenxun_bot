@@ -50,7 +50,7 @@ async def _(event: GroupMessageEvent, reg_group: Tuple[Any, ...] = RegexGroup())
     gid = event.group_id
     date_scope = None
     date, order, num = reg_group
-    num = num.split("=")[-1] or 10
+    num = num.split("=")[-1] if num else 10
     if num and is_number(num) and 10 < int(num) < 50:
         num = int(num)
     if date in ["周"]:
