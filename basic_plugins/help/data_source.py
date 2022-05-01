@@ -277,7 +277,7 @@ def _create_help_img(
             0,
             plain_text=msg,
             font_size=24,
-            font="yuanshen.ttf",
+            font="HYWenHei-85W.ttf",
         )
         B.paste(text, (w, h), True)
         h += 50
@@ -289,7 +289,7 @@ def _create_help_img(
             0,
             plain_text="注: 红字代表功能被群管理员禁用，红线代表功能正在维护",
             font_size=24,
-            font="yuanshen.ttf",
+            font="HYWenHei-85W.ttf",
             font_color=(231, 74, 57)
         ),
         (300, 10),

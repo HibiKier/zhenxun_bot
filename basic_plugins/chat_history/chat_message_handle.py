@@ -42,7 +42,7 @@ __plugin_settings__ = {
 }
 
 
-msg_handler = on_regex(r"(周|月)?消息统计(des|DES)?(n=[0-9]{1,2})?", priority=5, block=True)
+msg_handler = on_regex(r"^(周|月)?消息统计(des|DES)?(n=[0-9]{1,2})?$", priority=5, block=True)
 
 
 @msg_handler.handle()

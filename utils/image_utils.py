@@ -1336,6 +1336,7 @@ async def text2image(
     font: str = "CJGaoDeGuo.otf",
     font_color: Union[str, Tuple[int, int, int]] = "black",
     padding: Union[int, Tuple[int, int, int, int]] = 0,
+    _add_height: float = 0,
 ) -> BuildImage:
     """
     说明：
@@ -1358,6 +1359,7 @@ async def text2image(
         :param font: 普通字体
         :param font_color: 普通字体颜色
         :param padding: 文本外边距，元组类型时为 （上，左，下，右）
+        :param _add_height: 由于get_size无法返回正确的高度，采用手动方式额外添加高度
     """
     pw = ph = top_padding = left_padding = 0
     if padding:
@@ -1489,17 +1491,17 @@ async def text2image(
     else:
         width = 0
         height = 0
-        _tmp = BuildImage(0, 0, font_size=font_size)
+        _tmp = BuildImage(0, 0, font=font, font_size=font_size)
         for x in text.split("\n"):
             x = x if x.strip() else "正"
             w, h = _tmp.getsize(x)
-            height += h
+            height += h + _add_height
             width = width if width > w else w
         width += pw
         height += ph
         A = BuildImage(
             width + left_padding,
-            height + top_padding,
+            height + top_padding + 2,
             font_size=font_size,
             color=color,
             font=font,

@@ -242,6 +242,11 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/5/1
+
+* 删除了`group_last_chat`插件（该功能可由`chat_history`替代
+* 新增敏感词检测（全新反击系统，是时候重拳出击了
+
 ### 2022/4/26
 
 * 修复了群白名单无法正确添加
