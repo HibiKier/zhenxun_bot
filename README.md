@@ -242,6 +242,10 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/5/
+
+* 商品使用函数可以添加参数ShopParam，从中获取user_id等以及自己提供的参数
+
 ### 2022/5/1
 
 * 删除了`group_last_chat`插件（该功能可由`chat_history`替代

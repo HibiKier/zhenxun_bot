@@ -1,3 +1,5 @@
+from typing import Tuple, Any
+
 from .group_user_checkin import (
     group_user_check_in,
     group_user_check,
@@ -8,9 +10,9 @@ from .group_user_checkin import (
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
 from nonebot.adapters.onebot.v11.permission import GROUP
 from utils.message_builder import image
-from nonebot import on_command
+from nonebot import on_command, on_regex
 from utils.utils import scheduler
-from nonebot.params import CommandArg
+from nonebot.params import CommandArg, RegexGroup
 from pathlib import Path
 from configs.path_config import DATA_PATH
 from services.log import logger
@@ -68,7 +70,7 @@ except (FileNotFoundError, ValueError, TypeError):
     data = {"0": []}
 
 
-sign = on_command("签到", priority=5, permission=GROUP, block=True)
+sign = on_regex("^签到(all)?$", priority=5, permission=GROUP, block=True)
 my_sign = on_command(
     cmd="我的签到", aliases={"好感度"}, priority=5, permission=GROUP, block=True
 )
@@ -85,13 +87,13 @@ total_sign_rank = on_command(
 
 
 @sign.handle()
-async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
+async def _(event: GroupMessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
     nickname = event.sender.card or event.sender.nickname
     await sign.send(
         await group_user_check_in(nickname, event.user_id, event.group_id),
         at_sender=True,
     )
-    if arg.extract_plain_text().strip() == "all":
+    if reg_group[0]:
         await check_in_all(nickname, event.user_id)
 
 

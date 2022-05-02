@@ -7,6 +7,7 @@ from typing import Optional, Union
 from configs.config import Config
 from nonebot import Driver
 from nonebot.plugin import require
+# from utils.decorator.shop import shop_register
 import nonebot
 import time
 
@@ -20,10 +21,14 @@ async def init_default_shop_goods():
     """
     导入内置的三个商品
     """
-    async def sign_card(**kwargs):
-        user_id = kwargs['user_id']
-        group_id = kwargs['group_id']
-        prob = kwargs["prob"]
+
+    # @shop_register(
+    #     name="好感度双倍加持卡Ⅰ",
+    #     price=30,
+    #     des="下次签到双倍好感度概率 + 10%（谁才是真命天子？）（同类商品将覆盖）",
+    #     ** {"prob": 0.1}
+    # )
+    async def sign_card(user_id: int, group_id: int, prob: float):
         user = await SignGroupUser.ensure(user_id, group_id)
         await user.update(add_probability=prob).apply()
 
@@ -151,12 +156,13 @@ async def register_goods(
         des = kwargs.get("des")
         discount = kwargs.get("discount")
         limit_time = kwargs.get("time_limit")
-    limit_time = float(limit_time) if limit_time else limit_time
-    discount = discount if discount is None else 1
-    limit_time = int(time.time() + limit_time * 60 * 60) if limit_time is not None and limit_time != 0 else 0
-    return await GoodsInfo.add_goods(
-        name, int(price), des, float(discount), limit_time
-    )
+    if await GoodsInfo.get_goods_info(name):
+        limit_time = float(limit_time) if limit_time else limit_time
+        discount = discount if discount is None else 1
+        limit_time = int(time.time() + limit_time * 60 * 60) if limit_time is not None and limit_time != 0 else 0
+        return await GoodsInfo.add_goods(
+            name, int(price), des, float(discount), limit_time
+        )
 
 
 # 删除商品
