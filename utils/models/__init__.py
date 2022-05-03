@@ -11,4 +11,4 @@ class ShopParam(BaseModel):
     event: MessageEvent
     num: int        # 道具单次使用数量
     send_success_msg: bool = True  # 是否发送使用成功信息
-    _max_num_limit: int = 1         # 单次使用最大次数
+    max_num_limit: int = 1         # 单次使用最大次数

@@ -34,7 +34,7 @@ class GoodsUseFuncManager:
         :param goods_name: 商品名称
         """
         if self.exists(goods_name):
-            return self._data[goods_name]["kwargs"]["_max_num_limit"]
+            return self._data[goods_name]["kwargs"]["max_num_limit"]
         return 1
 
     async def use(
@@ -159,7 +159,7 @@ def register_use(goods_name: str, func, **kwargs):
         raise ValueError("该商品使用函数已被注册！")
     # 发送使用成功信息
     kwargs["send_success_msg"] = kwargs.get("send_success_msg", True)
-    kwargs["_max_num_limit"] = kwargs.get("_max_num_limit", 1)
+    kwargs["max_num_limit"] = kwargs.get("max_num_limit", 1)
     func_manager.register_use(
         goods_name,
         **{

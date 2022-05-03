@@ -7,7 +7,7 @@ from typing import Optional, Union
 from configs.config import Config
 from nonebot import Driver
 from nonebot.plugin import require
-# from utils.decorator.shop import shop_register
+from utils.decorator.shop import shop_register
 import nonebot
 import time
 
@@ -22,27 +22,25 @@ async def init_default_shop_goods():
     导入内置的三个商品
     """
 
-    # @shop_register(
-    #     name="好感度双倍加持卡Ⅰ",
-    #     price=30,
-    #     des="下次签到双倍好感度概率 + 10%（谁才是真命天子？）（同类商品将覆盖）",
-    #     ** {"prob": 0.1}
-    # )
+    @shop_register(
+        name=("好感度双倍加持卡Ⅰ", "好感度双倍加持卡Ⅱ", "好感度双倍加持卡Ⅲ"),
+        price=(30, 150, 250),
+        des=(
+            "下次签到双倍好感度概率 + 10%（谁才是真命天子？）（同类商品将覆盖）",
+            "下次签到双倍好感度概率 + 20%（平平庸庸）（同类商品将覆盖）",
+            "下次签到双倍好感度概率 + 30%（金币才是真命天子！）（同类商品将覆盖）",
+        ),
+        load_status=Config.get_config("shop", "IMPORT_DEFAULT_SHOP_GOODS"),
+        ** {"好感度双倍加持卡Ⅰ_prob": 0.1, "好感度双倍加持卡Ⅱ_prob": 0.2, "好感度双倍加持卡Ⅲ_prob": 0.3},
+    )
     async def sign_card(user_id: int, group_id: int, prob: float):
         user = await SignGroupUser.ensure(user_id, group_id)
         await user.update(add_probability=prob).apply()
 
-    if Config.get_config("shop", "IMPORT_DEFAULT_SHOP_GOODS"):
-        await register_goods(
-            "好感度双倍加持卡Ⅰ", 30, "下次签到双倍好感度概率 + 10%（谁才是真命天子？）（同类商品将覆盖）"
-        )
-        use.register_use("好感度双倍加持卡Ⅰ", sign_card, **{"prob": 0.1})
-        await register_goods("好感度双倍加持卡Ⅱ", 150, "下次签到双倍好感度概率 + 20%（平平庸庸）（同类商品将覆盖）")
-        use.register_use("好感度双倍加持卡Ⅱ", sign_card, **{"prob": 0.2})
-        await register_goods(
-            "好感度双倍加持卡Ⅲ", 250, "下次签到双倍好感度概率 + 30%（金币才是真命天子！）（同类商品将覆盖）"
-        )
-        use.register_use("好感度双倍加持卡Ⅲ", sign_card, **{"prob": 0.3})
+
+@driver.on_bot_connect
+async def _():
+    await shop_register.load_register()
 
 
 # 创建商店界面
@@ -64,9 +62,7 @@ async def create_shop_help() -> str:
     A = BuildImage(1000, h, color="#f9f6f2")
     current_h = 0
     for goods in _list:
-        bk = BuildImage(
-            700, 80, font_size=15, color="#f9f6f2", font="CJGaoDeGuo.otf"
-        )
+        bk = BuildImage(700, 80, font_size=15, color="#f9f6f2", font="CJGaoDeGuo.otf")
         goods_image = BuildImage(
             600, 80, font_size=20, color="#a29ad6", font="CJGaoDeGuo.otf"
         )
@@ -97,10 +93,18 @@ async def create_shop_help() -> str:
         await bk.apaste(goods_image, alpha=True)
         # 添加限时图标和时间
         if goods.goods_limit_time > 0:
-            _limit_time_logo = BuildImage(40, 40, background=f"{IMAGE_PATH}/other/time.png")
+            _limit_time_logo = BuildImage(
+                40, 40, background=f"{IMAGE_PATH}/other/time.png"
+            )
             await bk.apaste(_limit_time_logo, (600, 0), True)
-            await bk.apaste(BuildImage(0, 0, plain_text="限时！", font_size=23, font="CJGaoDeGuo.otf"), (640, 10), True)
-            limit_time = time.strftime("%Y-%m-%d %H:%M", time.localtime(goods.goods_limit_time)).split()
+            await bk.apaste(
+                BuildImage(0, 0, plain_text="限时！", font_size=23, font="CJGaoDeGuo.otf"),
+                (640, 10),
+                True,
+            )
+            limit_time = time.strftime(
+                "%Y-%m-%d %H:%M", time.localtime(goods.goods_limit_time)
+            ).split()
             y_m_d = limit_time[0]
             _h_m = limit_time[1].split(":")
             h_m = _h_m[0] + "时 " + _h_m[1] + "分"
@@ -130,12 +134,12 @@ async def create_shop_help() -> str:
 
 
 async def register_goods(
-        name: str,
-        price: int,
-        des: str,
-        discount: Optional[float] = 1,
-        limit_time: Optional[int] = 0,
-        **kwargs,
+    name: str,
+    price: int,
+    des: str,
+    discount: Optional[float] = 1,
+    limit_time: Optional[int] = 0,
+    **kwargs,
 ):
     """
     添加商品
@@ -159,7 +163,11 @@ async def register_goods(
     if await GoodsInfo.get_goods_info(name):
         limit_time = float(limit_time) if limit_time else limit_time
         discount = discount if discount is None else 1
-        limit_time = int(time.time() + limit_time * 60 * 60) if limit_time is not None and limit_time != 0 else 0
+        limit_time = (
+            int(time.time() + limit_time * 60 * 60)
+            if limit_time is not None and limit_time != 0
+            else 0
+        )
         return await GoodsInfo.add_goods(
             name, int(price), des, float(discount), limit_time
         )
@@ -236,7 +244,11 @@ async def update_goods(**kwargs) -> "str, str, int":
                 int(price),
                 des,
                 float(discount),
-                int(time.time() + limit_time * 60 * 60 if limit_time != 0 and new_time else 0),
+                int(
+                    time.time() + limit_time * 60 * 60
+                    if limit_time != 0 and new_time
+                    else 0
+                ),
             ),
             name,
             tmp[:-1],
