@@ -242,7 +242,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
-### 2022/5/3 \[v0.1.5.1]
+### 2022/5/3 \[v0.1.5.2]
 
 * 商品使用函数可以添加特定参数，例如：user_id, group_id, ShopParam等以及自己提供的参数
 * 添加商品注册装饰器shop_register
