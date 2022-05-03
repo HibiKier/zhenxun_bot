@@ -246,6 +246,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 * 商品使用函数可以添加特定参数，例如：user_id, group_id, ShopParam等以及自己提供的参数
 * 添加商品注册装饰器shop_register
+* 修复商品函数kwargs无法获取参数值
 
 ### 2022/5/1
 
