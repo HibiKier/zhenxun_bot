@@ -242,7 +242,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
-### 2022/5/3
+### 2022/5/3 \[v0.1.5.1]
 
 * 商品使用函数可以添加特定参数，例如：user_id, group_id, ShopParam等以及自己提供的参数
 * 添加商品注册装饰器shop_register
@@ -252,7 +252,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 删除了`group_last_chat`插件（该功能可由`chat_history`替代
 * 新增敏感词检测（全新反击系统，是时候重拳出击了
 
-### 2022/4/26
+### 2022/4/26 \[v0.5.1.0]
 
 * 修复了群白名单无法正确添加
 * 优化了管理员帮助图片，背景图层将位于最下层
