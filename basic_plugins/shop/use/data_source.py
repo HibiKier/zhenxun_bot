@@ -61,9 +61,8 @@ class GoodsUseFuncManager:
             return param_list_
         goods_name = param.goods_name
         if self.exists(goods_name):
-            if args := inspect.signature(self._data[goods_name]["func"]).parameters:
-                print(parse_args(args))
-                print(kwargs)
+            args = inspect.signature(self._data[goods_name]["func"]).parameters
+            if args and list(args.keys())[0] != "kwargs":
                 if asyncio.iscoroutinefunction(self._data[goods_name]["func"]):
                     return await self._data[goods_name]["func"](
                         *parse_args(args)
