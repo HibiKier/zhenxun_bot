@@ -125,11 +125,13 @@ async def _(
     msg = arg.extract_plain_text().strip()
     if msg:
         if str(event.user_id) in bot.config.superusers:
-            if is_number(arg.extract_plain_text().strip().split()[0]):
-                qq = int(msg[0])
-                msg = msg[1:]
+            msg_splt = msg.split()
+            if is_number(msg_splt[0]):
+
+                qq = int(msg_splt[0])
+                msg = msg_splt[1:]
                 if cmd in [".ban", "/ban"]:
-                    time = parse_ban_time(msg)
+                    time = parse_ban_time(" ".join(msg))
                     if isinstance(time, str):
                         await ban.finish(time)
                     result = await a_ban(qq, time, str(qq), event, 9)

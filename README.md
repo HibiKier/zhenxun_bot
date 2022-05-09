@@ -242,6 +242,11 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/5/9
+
+* 替换了疫情API
+* 修复了私聊.ban/.unban出错
+
 ### 2022/5/5
 
 * 修改bilibili_sub插件在windows平台下报错 [@pull/153](https://github.com/HibiKier/zhenxun_bot/pull/153)
@@ -252,12 +257,13 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 添加商品注册装饰器shop_register
 * 修复商品函数kwargs无法获取参数值
 
+
 ### 2022/5/1
 
 * 删除了`group_last_chat`插件（该功能可由`chat_history`替代
 * 新增敏感词检测（全新反击系统，是时候重拳出击了
 
-### 2022/4/26 \[v0.5.1.0]
+### 2022/4/26
 
 * 修复了群白名单无法正确添加
 * 优化了管理员帮助图片，背景图层将位于最下层

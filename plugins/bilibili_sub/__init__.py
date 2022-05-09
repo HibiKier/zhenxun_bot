@@ -38,7 +38,7 @@ usage：
 __plugin_des__ = "非常便利的B站订阅通知"
 __plugin_cmd__ = ["添加订阅 [主播/UP/番剧] [id/链接/番名]", "删除订阅 [id]", "查看订阅"]
 __plugin_version__ = 0.1
-__plugin_author__ = "HibiKier"
+__plugin_author__ = "HibiKier & NumberSir"
 __plugin_settings__ = {
     "level": 5,
     "default_status": True,

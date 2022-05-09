@@ -69,7 +69,7 @@ class GoodsUseFuncManager:
                     )
                 else:
                     return self._data[goods_name]["func"](
-                        **kwargs,
+                        *parse_args(args)
                     )
             else:
                 if asyncio.iscoroutinefunction(self._data[goods_name]["func"]):

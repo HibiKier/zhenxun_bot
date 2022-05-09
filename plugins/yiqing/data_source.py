@@ -11,7 +11,7 @@ china_city = TEXT_PATH / "china_city.json"
 data = {}
 
 
-url = "https://view.inews.qq.com/g2/getOnsInfo?name=disease_h5"
+url = "https://api.inews.qq.com/newsqa/v1/query/inner/publish/modules/list?modules=diseaseh5Shelf"
 
 
 async def get_yiqing_data(area: str) -> Union[str, MessageSegment]:
@@ -37,7 +37,7 @@ async def get_yiqing_data(area: str) -> Union[str, MessageSegment]:
             if area in data[p]:
                 province = p
                 city = area
-    epidemic_data = json.loads((await AsyncHttpx.get(url)).json()["data"])
+    epidemic_data = (await AsyncHttpx.get(url)).json()["data"]["diseaseh5Shelf"]
     last_update_time = epidemic_data["lastUpdateTime"]
     if area == "中国":
         data_ = epidemic_data["areaTree"][0]
@@ -59,12 +59,12 @@ async def get_yiqing_data(area: str) -> Union[str, MessageSegment]:
     add_confirm = data_["today"]["confirm"]  # 新增确诊
     grade = ""
     _grade_color = ""
-    if data_["total"].get("grade"):
-        grade = data_["total"]["grade"]
-        if "中风险" in grade:
-            _grade_color = "#fa9424"
-        else:
-            _grade_color = "red"
+    # if data_["total"].get("grade"):
+    #     grade = data_["total"]["grade"]
+    #     if "中风险" in grade:
+    #         _grade_color = "#fa9424"
+    #     else:
+    #         _grade_color = "red"
 
     dead_rate = f"{dead / confirm * 100:.2f}"  # 死亡率
     heal_rate = f"{heal / confirm * 100:.2f}"  # 治愈率

@@ -25,7 +25,9 @@ def parse_ban_time(msg: str) -> Union[int, str]:
         return int(msg[0]) * 60 * 60 + int(msg[1]) * 60
 
 
-async def a_ban(qq: int, time: int, user_name: str, event: MessageEvent, ban_level: int = None) -> str:
+async def a_ban(
+    qq: int, time: int, user_name: str, event: MessageEvent, ban_level: int = None
+) -> str:
     """
     ban
     :param qq: qq
@@ -38,7 +40,8 @@ async def a_ban(qq: int, time: int, user_name: str, event: MessageEvent, ban_lev
         ban_level = await LevelUser.get_user_level(event.user_id, event.group_id)
     if await BanUser.ban(qq, ban_level, time):
         logger.info(
-            f"USER {event.user_id} GROUP {event.group_id} 将 USER {qq} 封禁 时长 {time / 60} 分钟"
+            f"USER {event.user_id} GROUP"
+            f" {event.group_id if isinstance(event, GroupMessageEvent) else ''} 将 USER {qq} 封禁 时长 {time / 60} 分钟"
         )
         result = f"已经将 {user_name} 加入{NICKNAME}的黑名单了！"
         if time != -1:
@@ -57,13 +60,3 @@ async def a_ban(qq: int, time: int, user_name: str, event: MessageEvent, ban_lev
             time += " 分钟"
         result = f"{user_name} 已在黑名单！预计 {time}后解封"
     return result
-
-
-
-
-
-
-
-
-
-

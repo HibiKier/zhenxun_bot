@@ -49,7 +49,7 @@ __plugin_cmd__ = [
     "查看词条 ?[问题/下标]",
 ]
 __plugin_version__ = 0.2
-__plugin_author__ = "HibiKier"
+__plugin_author__ = "HibiKier & yajiwa"
 __plugin_settings__ = {
     "admin_level": Config.get_config("word_bank", "WORD_BANK_LEVEL [LEVEL]"),
     "cmd": ["词库问答", "添加词条", "删除词条", "修改词条", "查看词条"],
