@@ -333,13 +333,13 @@ async def get_user_dynamic(
                 # 删除置顶
                 await page.evaluate(
                     """
-                    xs = document.getElementsByClassName('first-card-with-title');
+                    xs = document.getElementsByClassName('bili-dyn-item__tag');
                     for (x of xs) {
-                      x.remove();
+                      x.parentNode.remove();
                     }
                 """
                 )
-                card = await page.query_selector(".card")
+                card = await page.query_selector(".bili-dyn-list__item")
                 # 截图并保存
                 await card.screenshot(
                     path=dynamic_path / f"{local_user.sub_id}_{dynamic_upload_time}.jpg",
