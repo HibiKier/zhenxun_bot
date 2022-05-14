@@ -108,11 +108,6 @@ class WordBank(db.Model):
         :param group_id: 群号
         :param problem: 问题
         """
-        if problem.startswith("id:"):
-            problem_index = int(problem.split(":")[-1])
-            q = await cls.get_group_all_problem(group_id)
-            if len(q) > problem_index:
-                problem = q[problem_index]
         q = await cls.query.where(
             (cls.group_id == group_id) & (cls.problem == problem)
         ).gino.all()
