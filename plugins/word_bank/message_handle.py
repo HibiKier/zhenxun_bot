@@ -79,7 +79,6 @@ async def get_one_problem(event, problem):
                 rf",url={img}",
                 f"",
             )
-            print(_problem)
             problem += _p[: _p.find(f"[CQ:image,file={r.group(1)},url={img}]")] + image(img)
             _p = _p[
                  _p.find(f"[CQ:image,file={r.group(1)},url={img}]") + len(f"[CQ:image,file={r.group(1)},url={img}]"):]
@@ -100,7 +99,6 @@ async def get_one_image_problem(event, problem):
     idx = 0
     img_list = re.findall(rf"\[CQ:image,file=(.*?)]", problem)
     at_list = re.findall(rf"\[CQ:at,qq=(.*?)]", problem)
-    print(at_list)
     if img_list:
         for img in img_list:
             problem = problem.replace(f'[CQ:image,file={img}]', f'[__placeholder_{idx}]', 1)
@@ -112,7 +110,6 @@ async def get_one_image_problem(event, problem):
             placeholder_list.append([idx, ats])
             idx += 1
     _p = problem
-    print(_p)
     problem = ''
     if not placeholder_list:
         problem = _p
