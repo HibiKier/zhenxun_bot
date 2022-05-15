@@ -242,6 +242,11 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新s
 
+### 2022/5/15
+
+* 修复了商店商品无法正确添加
+* 修复了多张色图无法正确发送
+
 ### 2022/5/14
 
 * 修复B站动态生成失败的问题 [@pull/159](https://github.com/HibiKier/zhenxun_bot/pull/159)

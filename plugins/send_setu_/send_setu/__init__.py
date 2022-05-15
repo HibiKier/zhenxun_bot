@@ -4,7 +4,7 @@ from services.log import logger
 from models.sign_group_user import SignGroupUser
 from nonebot.message import run_postprocessor
 from nonebot.matcher import Matcher
-from typing import Optional, Type
+from typing import Optional, Type, Any
 from gino.exceptions import UninitializedError
 from utils.utils import (
     is_number,
@@ -33,7 +33,7 @@ from .data_source import (
 from nonebot.adapters.onebot.v11.exception import ActionFailed
 from configs.config import Config, NICKNAME
 from utils.manager import withdraw_message_manager
-from nonebot.params import CommandArg, Command
+from nonebot.params import CommandArg, Command, RegexGroup
 from typing import Tuple
 import re
 
@@ -190,7 +190,7 @@ num_key = {
 
 
 @setu_reg.handle()
-async def _(event: MessageEvent, arg: Message = CommandArg()):
+async def _(event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
     if isinstance(event, GroupMessageEvent):
         impression = (
             await SignGroupUser.ensure(event.user_id, event.group_id)
@@ -198,28 +198,15 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         luox = get_luoxiang(impression)
         if luox:
             await setu.finish(luox, at_sender=True)
-    msg = arg.extract_plain_text().strip()
-    num = 1
-    msg = re.search(r"(.*)[份发张个次点](.*)[瑟涩色]图", msg)
-    # 解析 tags 以及 num
-    if msg:
-        num = msg.group(1)
-        tags = msg.group(2)
-        if tags:
-            tags = tags[:-1] if tags[-1] == "的" else tags
-        if num:
-            num = num[-1]
-            if num_key.get(num):
-                num = num_key[num]
-            elif is_number(num):
-                try:
-                    num = int(num)
-                except ValueError:
-                    num = 1
-            else:
-                num = 1
-    else:
-        return
+    num, tags = reg_group
+    num = num or 1
+    tags = tags[:-1] if tags and tags[-1] == "的" else tags
+    if num_key.get(num):
+        num = num_key[num]
+    try:
+        num = int(num)
+    except ValueError:
+        num = 1
     await send_setu_handle(setu_reg, event, "色图", tags, num, 0)
 
 

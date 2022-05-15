@@ -139,8 +139,7 @@ async def register_goods(
     des: str,
     discount: Optional[float] = 1,
     limit_time: Optional[int] = 0,
-    **kwargs,
-):
+) -> bool:
     """
     添加商品
     例如：                                                  折扣：可选参数↓  限时时间:可选，单位为小时
@@ -151,16 +150,9 @@ async def register_goods(
     :param des: 商品简介
     :param discount: 商品折扣
     :param limit_time: 商品限时销售时间，单位为小时
-    :param kwargs: kwargs
     :return: 是否添加成功
     """
-    if kwargs:
-        name = kwargs.get("name")
-        price = kwargs.get("price")
-        des = kwargs.get("des")
-        discount = kwargs.get("discount")
-        limit_time = kwargs.get("time_limit")
-    if await GoodsInfo.get_goods_info(name):
+    if not await GoodsInfo.get_goods_info(name):
         limit_time = float(limit_time) if limit_time else limit_time
         discount = discount if discount is None else 1
         limit_time = (
@@ -171,6 +163,7 @@ async def register_goods(
         return await GoodsInfo.add_goods(
             name, int(price), des, float(discount), limit_time
         )
+    return False
 
 
 # 删除商品
