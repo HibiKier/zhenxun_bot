@@ -240,7 +240,11 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 
 
-## 更新s
+## 更新
+
+### 2022/5/16
+
+* 词条支持图片和@问题 [@pull/160](https://github.com/HibiKier/zhenxun_bot/pull/160)
 
 ### 2022/5/15
 
