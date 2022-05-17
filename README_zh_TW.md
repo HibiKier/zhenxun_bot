@@ -1,3 +1,6 @@
 ## 要不跑路吧
+
+![Status](https://img.shields.io/badge/Status-Run-inactive)
+
 代碼和人有一個能run就行了  
 已經坐船到柬埔寨了，馬上轉船到金三角了（
