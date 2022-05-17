@@ -1,4 +1,4 @@
-## I'D BETTER RUN AWAY
+## I'D BETTER RUN
 
 [中文](README.md) | EN
 
