@@ -4,7 +4,7 @@
 
 # 绪山真寻Bot
 ****
-此项目基于 Nonebot2 和 go-cqhttp 开发，以 postgresql 作为数据库的QQ群娱乐机器人
+此项目基于 Nonebot2 和 go-cqhttp 开发，以 postgresql 作为数据库的QQ群娱乐机器人  
 但是她是闭源的
 
 ## 声明
