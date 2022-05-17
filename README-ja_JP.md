@@ -1,6 +1,6 @@
 ## RUNたほうがいい
 
-[简体中文](README.md) | [EN](README_en-US.md) | [繁体中文](README_zh_TW.md) | **日本語**
+[简体中文](README.md) | [English](README-en_US.md) | [繁体中文](README-zh_TW.md) | **日本語**
 
 コードと私のどちらかがRUNできればいいのですが
 
