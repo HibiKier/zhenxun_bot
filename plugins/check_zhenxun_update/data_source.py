@@ -21,7 +21,7 @@ if str(platform.system()).lower() == "windows":
 
 driver = nonebot.get_driver()
 
-release_url = "https://api.github.com/repos/HibiKier/zhenxun_bot/releases/latest"
+release_url = "https://api.github.com/repos/sagirisense/zhenxun_bot/releases/latest"
 
 _version_file = Path() / "__version__"
 zhenxun_latest_tar_gz = Path() / "zhenxun_latest_file.tar.gz"
