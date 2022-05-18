@@ -78,7 +78,7 @@ async def draw_word_cloud(messages, config):
         except:
             return False
     if not wordcloud_stopwords_dir.exists():
-        stopword_url = 'https://github.com/HibiKier/zhenxun_bot/blob/main/resources/text/wordcloud/stopwords.txt'
+        stopword_url = 'https://ghproxy.com/https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/resources/text/wordcloud/stopwords.txt'
         try:
             await AsyncHttpx.download_file(stopword_url, wordcloud_stopwords_dir)
         except:
