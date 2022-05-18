@@ -40,14 +40,14 @@ self_introduction = on_command(
 
 @self_introduction.handle()
 async def _():
-    if NICKNAME.find('真寻') != -1:
+    if NICKNAME.find('格蕾修') != -1:
         result = (
-            "我叫绪山真寻\n"
-            "你们可以叫我真寻，小真寻，哪怕你们叫我小寻子我也能接受！\n"
-            "年龄的话我还是个**岁初中生(至少现在是)\n"
-            "身高保密！！！(也就比美波里(姐姐..(妹妹))矮一点)\n"
+            "我叫格蕾修\n"
+            "你们可以叫我格蕾修，小格蕾修！\n"
+            "我是逐火十三英桀第十一位，背负「繁星」之铭。\n"
+            "我爱画画\n"
             "我生日是在3月6号, 能记住的话我会很高兴的\n现在是自宅警备系的现役JC\n"
-            "最好的朋友是椛！\n" + image("zhenxun")
+            "最好的朋友是科斯魔！\n" + image("zhenxun")
         )
         await self_introduction.finish(result)
 

@@ -139,7 +139,7 @@ class WordBank(db.Model):
         检测词条并随机返回
         :param group_id: 群号
         :param problem: 问题
-        :param is_tome：是否at真寻
+        :param is_tome：是否at格蕾修
         """
         if is_tome:
             q = await cls.query.where(

@@ -115,7 +115,7 @@ class AiMessageManager(StaticData):
 
     async def _get_user_repeat_message_result(self, user_id: int) -> Optional[str]:
         """
-        复读真寻的消息回复
+        复读格蕾修的消息回复
         :param user_id: 用户id
         """
         msg = self._data[user_id]["message"][-1]

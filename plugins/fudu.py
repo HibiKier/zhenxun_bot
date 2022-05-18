@@ -82,7 +82,7 @@ async def _(event: GroupMessageEvent):
     if event.is_tome():
         return
     if get_message_text(event.json()):
-        if get_message_text(event.json()).find("@可爱的小真寻") != -1:
+        if get_message_text(event.json()).find("@可爱的小格蕾修") != -1:
             await fudu.finish("复制粘贴的虚空艾特？", at_sender=True)
     img = get_message_img(event.json())
     msg = get_message_text(event.json())

@@ -221,7 +221,7 @@ async def send_setu_handle(
     global setu_data_list
     # 非 id，在线搜索
     tags = msg.split()
-    # 真寻的色图？怎么可能
+    # 格蕾修的色图？怎么可能
     if f"{NICKNAME}" in tags:
         await matcher.finish("咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀")
     # 本地先拿图，下载失败补上去

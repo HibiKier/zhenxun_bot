@@ -4,7 +4,7 @@ from .utils import ConfigsManager
 
 
 # 回复消息名称
-NICKNAME: str = "小真寻"
+NICKNAME: str = "格蕾修"
 
 # 数据库（必要）
 # 如果填写了bind就不需要再填写后面的字段了#）

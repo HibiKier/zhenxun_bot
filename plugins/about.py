@@ -6,11 +6,11 @@ from pathlib import Path
 __zx_plugin_name__ = "关于"
 __plugin_usage__ = """
 usage：
-    想要更加了解真寻吗
+    想要更加了解格蕾修吗
     指令：
         关于
 """.strip()
-__plugin_des__ = "想要更加了解真寻吗"
+__plugin_des__ = "想要更加了解格蕾修吗"
 __plugin_cmd__ = ["关于"]
 __plugin_version__ = 0.1
 __plugin_type__ = ("其他",)
@@ -34,7 +34,7 @@ async def _():
         with open(ver_file, 'r', encoding='utf8') as f:
             version = f.read().split(':')[-1].strip()
     msg = f"""
-『绪山真寻Bot』
+『格蕾修Bot』
 版本：{version}
 简介：基于Nonebot2与go-cqhttp开发，是一个非常可爱的Bot呀，希望与大家要好好相处
 项目地址：https://github.com/HibiKier/zhenxun_bot
