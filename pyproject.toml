@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "zhenxun_bot"
 version = "0.1.1"
-description = "基于 Nonebot2 和 go-cqhttp 开发，以 postgresql 作为数据库，非常可爱的绪山格蕾修bot"
+description = "基于 Nonebot2 和 go-cqhttp 开发，以 postgresql 作为数据库，非常可爱的格蕾修bot"
 authors = ["HibiKier <775757368@qq.com>"]
 license = "AGPL"
 
