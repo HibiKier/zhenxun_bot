@@ -339,12 +339,12 @@ def generate_progress_bar_pic():
 
 def get_level_and_next_impression(impression: float):
     if impression == 0:
-        return lik2level[10], 10, 0
+        return lik2level[2], 2, 0
     keys = list(lik2level.keys())
     for i in range(len(keys)):
         if impression > keys[i]:
             return lik2level[keys[i]], keys[i - 1], keys[i]
-    return lik2level[10], 10, 0
+    return lik2level[2], 2, 0
 
 
 def clear_sign_data_pic():
