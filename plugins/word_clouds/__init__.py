@@ -1,19 +1,14 @@
 import re
 from datetime import datetime, timedelta
 from typing import Tuple, Union
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo  # type: ignore
-
+import pytz
 from nonebot import on_command, get_driver
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
 from nonebot.adapters.onebot.v11.event import GroupMessageEvent
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, Command, CommandArg, Depends
 from nonebot.typing import T_State
-from .data_source import  draw_word_cloud, get_list_msg
+from .data_source import draw_word_cloud, get_list_msg
 from configs.config import Config
 
 __zx_plugin_name__ = "词云"
@@ -191,11 +186,10 @@ async def handle_message(
         user_id = int(event.user_id)
     else:
         user_id = None
-
-    # 排除机器人自己发的消息
-    # 将时间转换到 UTC 时区
+    # 将时间转换到 东八 时区
     messages = await get_list_msg(user_id, int(event.group_id),
-                                  days=[start.astimezone(ZoneInfo("UTC")), stop.astimezone(ZoneInfo("UTC"))])
+                                  days=(start.astimezone(pytz.timezone("Asia/Shanghai")),
+                                        stop.astimezone(pytz.timezone("Asia/Shanghai"))))
     if messages:
         image_bytes = await draw_word_cloud(messages, get_driver().config)
         if image_bytes:
