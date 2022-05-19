@@ -19,6 +19,7 @@ from nonebot.adapters.onebot.v11 import (
     Message,
     Event,
 )
+from plugins.sign_in import utils
 from .data_source import (
     get_setu_list,
     get_luoxiang,
@@ -225,12 +226,16 @@ async def send_setu_handle(
     # 格蕾修的色图？怎么可能
     tags = [x.lower() for x in tags]
     test = [l for l in NICKNAMES if l in tags]
-    impression = (
-        await SignGroupUser.ensure(event.user_id, event.group_id)
-    ).impression
-    luox = get_luoxiang(impression)
-    if test and luox:
-        await matcher.finish(f"不可以对{NICKNAME}瑟瑟哦,哒咩哒咩", at_sender=True)
+
+    if isinstance(event, GroupMessageEvent):
+        impression = (
+            await SignGroupUser.ensure(event.user_id, event.group_id)
+        ).impression
+        level, next_impression, previous_impression = utils.get_level_and_next_impression(
+            impression
+        )
+        if test and level < 4:
+            await matcher.finish(f"不可以对{NICKNAME}瑟瑟哦,哒咩哒咩", at_sender=True)
     # 本地先拿图，下载失败补上去
     setu_list, code = None, 200
     setu_count = await get_setu_count(r18)
@@ -258,7 +263,7 @@ async def send_setu_handle(
                             f" 发送色图 {index}.png"
                         )
                         msg_id = await matcher.send(
-                            Message(f"{text_list[i]}\n{setu_img}")
+                            Message(f"{text_list[i]}\n{setu_img}", at_sender=True)
                         )
                     else:
                         if setu_list is None:

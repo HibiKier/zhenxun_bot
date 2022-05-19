@@ -11,7 +11,7 @@ from .._model import Setu
 import asyncio
 import os
 import random
-
+from plugins.sign_in import utils
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -193,10 +193,14 @@ def gen_message(setu_image: Setu, img_msg: bool = False) -> str:
 
 # 罗翔老师！
 def get_luoxiang(impression):
-    probability = (
-        impression + Config.get_config("send_setu", "INITIAL_SETU_PROBABILITY") * 100
+
+    level, next_impression, previous_impression = utils.get_level_and_next_impression(
+        impression
     )
-    if probability < random.randint(1, 101):
+    probability = (
+            level + Config.get_config("send_setu", "INITIAL_SETU_PROBABILITY") * 100
+    )
+    if probability < random.randint(1, 11):
         return (
             "我为什么要给你发这个？"
             + image(random.choice(os.listdir(IMAGE_PATH / "luoxiang")), "luoxiang")
