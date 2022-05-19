@@ -234,7 +234,7 @@ async def send_setu_handle(
         level, next_impression, previous_impression = utils.get_level_and_next_impression(
             impression
         )
-        if test and level < 4:
+        if test and int(level) < 4:
             await matcher.finish(f"不可以对{NICKNAME}瑟瑟哦,哒咩哒咩", at_sender=True)
     # 本地先拿图，下载失败补上去
     setu_list, code = None, 200

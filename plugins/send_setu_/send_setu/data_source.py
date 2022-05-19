@@ -198,7 +198,7 @@ def get_luoxiang(impression):
         impression
     )
     probability = (
-            level + Config.get_config("send_setu", "INITIAL_SETU_PROBABILITY") * 100
+            int(level) + Config.get_config("send_setu", "INITIAL_SETU_PROBABILITY") * 100
     )
     if probability < random.randint(1, 11):
         return (
