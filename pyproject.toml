@@ -41,6 +41,8 @@ cn2an = "^0.5.16"
 python-jose = "^3.3.0"
 python-multipart = "^0.0.5"
 bilireq = "^0.1.2"
+pydantic = "^1.5.0"
+webdav4 = "^0.9.3"
 
 [tool.poetry.dev-dependencies]
 

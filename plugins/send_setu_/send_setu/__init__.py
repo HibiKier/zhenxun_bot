@@ -38,6 +38,8 @@ from nonebot.params import CommandArg, Command, RegexGroup
 from typing import Tuple
 import re
 
+from .._model import Setu
+
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -137,6 +139,7 @@ async def _(
         event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()
 ):
     msg = arg.extract_plain_text().strip()
+
     if isinstance(event, GroupMessageEvent):
         impression = (
             await SignGroupUser.ensure(event.user_id, event.group_id)
@@ -158,13 +161,14 @@ async def _(
     if msg and is_number(msg):
         setu_list, code = await get_setu_list(int(msg), r18=r18)
         if code != 200:
-            await setu.finish(setu_list[0], at_sender=True)
+            await setu.finish(setu_list[0], at_sender=True if isinstance(event, GroupMessageEvent) else False)
         setu_img, code = await check_local_exists_or_download(setu_list[0])
-        msg_id = await setu.send(gen_message(setu_list[0]) + setu_img, at_sender=True)
+        msg_id = await setu.send(gen_message(setu_list[0]) + setu_img,
+                                 at_sender=True if isinstance(event, GroupMessageEvent) else False)
         logger.info(
             f"(USER {event.user_id}, GROUP "
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-            f" 发送色图 {setu_list[0].local_id}.png"
+            f" 发送色图 {setu_list[0].local_id}.jpg"
         )
         if msg_id:
             withdraw_message_manager.withdraw_message(
@@ -237,76 +241,78 @@ async def send_setu_handle(
         if test and int(level) < 4:
             await matcher.finish(f"不可以对{NICKNAME}瑟瑟哦,哒咩哒咩", at_sender=True)
     # 本地先拿图，下载失败补上去
-    setu_list, code = None, 200
-    setu_count = await get_setu_count(r18)
-    if (
-            not Config.get_config("send_setu", "ONLY_USE_LOCAL_SETU") and tags
-    ) or setu_count <= 0:
-        # 先尝试获取在线图片
-        urls, text_list, add_databases_list, code = await get_setu_urls(
-            tags, num, r18, command
-        )
-        for x in add_databases_list:
-            setu_data_list.append(x)
-        # 未找到符合的色图，想来本地应该也没有
-        if code == 401:
-            await setu.finish(urls[0], at_sender=True if isinstance(event, GroupMessageEvent) else False)
-        if code == 200:
-            for i in range(len(urls)):
-                try:
-                    setu_img, index = await search_online_setu(urls[i])
-                    # 下载成功的话
-                    if index != -1:
-                        logger.info(
-                            f"(USER {event.user_id}, GROUP "
-                            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-                            f" 发送色图 {index}.png"
-                        )
-                        msg_id = await matcher.send(
-                            Message(f"{text_list[i]}\n{setu_img}")
-                        )
-                    else:
-                        if setu_list is None:
-                            setu_list, code = await get_setu_list(tags=tags, r18=r18)
-                        if code != 200:
-                            await setu.finish(setu_list[0],
-                                              at_sender=True if isinstance(event, GroupMessageEvent) else False)
-                        if setu_list:
-                            setu_image = random.choice(setu_list)
-                            setu_list.remove(setu_image)
-                            msg_id = await matcher.send(
-                                Message(
-                                    gen_message(setu_image)
-                                    + (
-                                        await check_local_exists_or_download(setu_image)
-                                    )[0]
-                                )
-                            )
+    setu_list = await Setu.query_image(None, tags, r18)
+    if len(setu_list) < num:
+        setu_list, code = None, 200
+        setu_count = await get_setu_count(r18)
+        if (
+                not Config.get_config("send_setu", "ONLY_USE_LOCAL_SETU") and tags
+        ) or setu_count <= 0:
+            # 先尝试获取在线图片
+            urls, text_list, add_databases_list, code = await get_setu_urls(
+                tags, num, r18, command
+            )
+            for x in add_databases_list:
+                setu_data_list.append(x)
+            # 未找到符合的色图，想来本地应该也没有
+            if code == 401:
+                await setu.finish(urls[0], at_sender=True if isinstance(event, GroupMessageEvent) else False)
+            if code == 200:
+                for i in range(len(urls)):
+                    try:
+                        setu_img, index = await search_online_setu(urls[i])
+                        # 下载成功的话
+                        if index != -1:
                             logger.info(
                                 f"(USER {event.user_id}, GROUP "
                                 f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-                                f" 发送本地色图 {setu_image.local_id}.png"
+                                f" 发送色图 {index}.jpg"
+                            )
+                            msg_id = await matcher.send(
+                                Message(f"{text_list[i]}\n{setu_img}")
                             )
                         else:
-                            msg_id = await matcher.send(text_list[i] + "\n" + setu_img)
-                    if msg_id:
-                        withdraw_message_manager.withdraw_message(
-                            event,
-                            msg_id["message_id"],
-                            Config.get_config("send_setu", "WITHDRAW_SETU_MESSAGE"),
-                        )
-                except ActionFailed:
-                    await matcher.finish("坏了，这张图色过头了，我自己看看就行了！",
-                                         at_sender=True if isinstance(event, GroupMessageEvent) else False)
-            return
-    if code != 200:
-        await matcher.finish("网络连接失败...", at_sender=True if isinstance(event, GroupMessageEvent) else False)
-    # 本地无图
-    if setu_list is None:
-        setu_list, code = await get_setu_list(tags=tags, r18=r18)
+                            if setu_list is None:
+                                setu_list, code = await get_setu_list(tags=tags, r18=r18)
+                            if code != 200:
+                                await setu.finish(setu_list[0],
+                                                  at_sender=True if isinstance(event, GroupMessageEvent) else False)
+                            if setu_list:
+                                setu_image = random.choice(setu_list)
+                                setu_list.remove(setu_image)
+                                msg_id = await matcher.send(
+                                    Message(
+                                        gen_message(setu_image)
+                                        + (
+                                            await check_local_exists_or_download(setu_image)
+                                        )[0]
+                                    )
+                                )
+                                logger.info(
+                                    f"(USER {event.user_id}, GROUP "
+                                    f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+                                    f" 发送本地色图 {setu_image.local_id}.jpg"
+                                )
+                            else:
+                                msg_id = await matcher.send(text_list[i] + "\n" + setu_img)
+                        if msg_id:
+                            withdraw_message_manager.withdraw_message(
+                                event,
+                                msg_id["message_id"],
+                                Config.get_config("send_setu", "WITHDRAW_SETU_MESSAGE"),
+                            )
+                    except ActionFailed:
+                        await matcher.finish("坏了，这张图色过头了，我自己看看就行了！",
+                                             at_sender=True if isinstance(event, GroupMessageEvent) else False)
+                return
         if code != 200:
-            await matcher.finish(setu_list[0], at_sender=True if isinstance(event, GroupMessageEvent) else False)
-    # 开始发图
+            await matcher.finish("网络连接失败...", at_sender=True if isinstance(event, GroupMessageEvent) else False)
+        # 本地无图
+        if setu_list is None:
+            setu_list, code = await get_setu_list(tags=tags, r18=r18)
+            if code != 200:
+                await matcher.finish(setu_list[0], at_sender=True if isinstance(event, GroupMessageEvent) else False)
+        # 开始发图
     for _ in range(num):
         if not setu_list:
             await setu.finish("坏了，已经没图了，被榨干了！")
@@ -327,7 +333,7 @@ async def send_setu_handle(
             logger.info(
                 f"(USER {event.user_id}, GROUP "
                 f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-                f" 发送本地色图 {setu_image.local_id}.png"
+                f" 发送本地色图 {setu_image.local_id}.jpg"
             )
         except ActionFailed:
             await matcher.finish("坏了，这张图色过头了，我自己看看就行了！",
