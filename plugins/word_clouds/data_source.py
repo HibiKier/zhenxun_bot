@@ -3,7 +3,6 @@ import os
 import random
 import jieba.analyse
 import re
-from collections import Counter
 from typing import List
 from PIL import Image as IMG
 import jieba
@@ -12,18 +11,18 @@ from wordcloud import WordCloud, ImageColorGenerator
 import numpy as np
 import matplotlib.pyplot as plt
 from io import BytesIO
-from configs.path_config import IMAGE_PATH, FONT_PATH, TEXT_PATH
+from configs.path_config import IMAGE_PATH, FONT_PATH
 from utils.http_utils import AsyncHttpx
 from models.chat_history import ChatHistory
 from configs.config import Config
 
 
-async def pre_precess(msg: List[str], wordcloud_stopwords_dir: str, config) -> str:
+async def pre_precess(msg: List[str], config) -> str:
     return await asyncio.get_event_loop().run_in_executor(
-        None, _pre_precess, msg, wordcloud_stopwords_dir, config)
+        None, _pre_precess, msg,config)
 
 
-def _pre_precess(msg: List[str], wordcloud_stopwords_dir, config) -> str:
+def _pre_precess(msg: List[str],config) -> str:
     """对消息进行预处理"""
     # 过滤掉命令
     command_start = tuple([i for i in config.command_start if i])
@@ -33,26 +32,19 @@ def _pre_precess(msg: List[str], wordcloud_stopwords_dir, config) -> str:
     msg = re.sub(r"https?://[\w/:%#\$&\?\(\)~\.=\+\-]+", "", msg)
 
     # 去除 \u200b
-    msg = re.sub(r"\u200b", "", msg)
+    msg = re.sub(r"[\u200b]", "", msg)
 
     # 去除cq码
     msg = re.sub(r"\[CQ:.*?]", "", msg)
 
+    # 去除&#91&#93
+    msg = re.sub("[&#9(1|3);]", "", msg)
+
     # 去除 emoji
     # https://github.com/carpedm20/emoji
     msg = replace_emoji(msg)
-    # 分词
-    msg = "".join(cut_message(msg, wordcloud_stopwords_dir))
     return msg
 
-
-def cut_message(msg: str, wordcloud_stopwords_dir) -> List[str]:
-    """分词"""
-    with wordcloud_stopwords_dir.open("r", encoding="utf8") as f:
-        stopwords = [word.strip() for word in f.readlines()]
-    f.close()
-    words = jieba.lcut(msg)
-    return [word.strip() for word in words if word.strip() not in stopwords]
 
 
 async def draw_word_cloud(messages, config):
@@ -61,10 +53,6 @@ async def draw_word_cloud(messages, config):
     # 默认用真寻图片
     zx_logo_path = wordcloud_dir / "default.png"
     wordcloud_ttf = FONT_PATH / "STKAITI.TTF"
-
-    wordcloud_test_dir = TEXT_PATH / "wordcloud"
-    wordcloud_test_dir.mkdir(exist_ok=True, parents=True)
-    wordcloud_stopwords_dir = wordcloud_test_dir / "stopwords.txt"
     if not os.listdir(wordcloud_dir):
         url = "https://ghproxy.com/https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/resources/image/wordcloud/default.png"
         try:
@@ -77,15 +65,9 @@ async def draw_word_cloud(messages, config):
             await AsyncHttpx.download_file(ttf_url, wordcloud_ttf)
         except:
             return False
-    if not wordcloud_stopwords_dir.exists():
-        stopword_url = 'https://ghproxy.com/https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/resources/text/wordcloud/stopwords.txt'
-        try:
-            await AsyncHttpx.download_file(stopword_url, wordcloud_stopwords_dir)
-        except:
-            return False
 
     topK = min(int(len(messages)), 100000)
-    read_name = jieba.analyse.extract_tags(await pre_precess(messages, wordcloud_stopwords_dir, config), topK=topK,
+    read_name = jieba.analyse.extract_tags(await pre_precess(messages, config), topK=topK,
                                            withWeight=True,
                                            allowPOS=())
     name = []
