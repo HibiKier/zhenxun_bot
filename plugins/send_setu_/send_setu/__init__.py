@@ -101,15 +101,16 @@ __plugin_configs__ = {
 Config.add_plugin_config("pixiv", "PIXIV_NGINX_URL", "i.pixiv.re", help_="Pixiv反向代理")
 
 setu_data_list = []
+NICKNAMES = ["格蕾修", "小格蕾修", "格雷修", "小格雷修", "griseo"]
 
 
 @run_postprocessor
 async def do_something(
-    matcher: Matcher,
-    exception: Optional[Exception],
-    bot: Bot,
-    event: Event,
-    state: T_State,
+        matcher: Matcher,
+        exception: Optional[Exception],
+        bot: Bot,
+        event: Event,
+        state: T_State,
 ):
     global setu_data_list
     if isinstance(event, MessageEvent):
@@ -132,7 +133,7 @@ setu_reg = on_regex("(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图$", priori
 
 @setu.handle()
 async def _(
-    event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()
+        event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()
 ):
     msg = arg.extract_plain_text().strip()
     if isinstance(event, GroupMessageEvent):
@@ -150,7 +151,7 @@ async def _(
         num = 10
     elif cmd[0] == "色图r" and isinstance(event, GroupMessageEvent):
         await setu.finish(
-            random.choice(["这种不好意思的东西怎么可能给这么多人看啦", "羞羞脸！给我滚出克私聊！", "变态变态变态变态大变态！"])
+            random.choice(["这种不好意思的东西怎么可能给这么多人看啦", "羞羞脸！给我滚出克私聊！", "变态变态变态变态大变态！"]), at_sender=True
         )
     # 有 数字 的话先尝试本地色图id
     if msg and is_number(msg):
@@ -211,24 +212,30 @@ async def _(event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
 
 
 async def send_setu_handle(
-    matcher: Type[Matcher],
-    event: MessageEvent,
-    command: str,
-    msg: str,
-    num: int,
-    r18: int,
+        matcher: Type[Matcher],
+        event: MessageEvent,
+        command: str,
+        msg: str,
+        num: int,
+        r18: int,
 ):
     global setu_data_list
     # 非 id，在线搜索
     tags = msg.split()
     # 格蕾修的色图？怎么可能
-    if f"{NICKNAME}" in tags:
-        await matcher.finish("咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀")
+    tags = [x.lower() for x in tags]
+    test = [l for l in NICKNAMES if l in tags]
+    impression = (
+        await SignGroupUser.ensure(event.user_id, event.group_id)
+    ).impression
+    luox = get_luoxiang(impression)
+    if test and luox:
+        await matcher.finish(f"不可以对{NICKNAME}瑟瑟哦,哒咩哒咩", at_sender=True)
     # 本地先拿图，下载失败补上去
     setu_list, code = None, 200
     setu_count = await get_setu_count(r18)
     if (
-        not Config.get_config("send_setu", "ONLY_USE_LOCAL_SETU") and tags
+            not Config.get_config("send_setu", "ONLY_USE_LOCAL_SETU") and tags
     ) or setu_count <= 0:
         # 先尝试获取在线图片
         urls, text_list, add_databases_list, code = await get_setu_urls(
