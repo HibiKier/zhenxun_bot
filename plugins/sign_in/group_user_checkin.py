@@ -70,7 +70,7 @@ async def _handle_check_in(
     level, next_impression, previous_impression = utils.get_level_and_next_impression(
         impression
     )
-    up = level if level > 0 else 2
+    up = int(level) if int(level) > 0 else 2
     impression_added = (secrets.randbelow(99) + 1) * up / 100
     critx2 = random.random()
     add_probability = user.add_probability
