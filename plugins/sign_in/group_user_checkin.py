@@ -18,10 +18,11 @@ import math
 import asyncio
 import secrets
 import os
+from models.level_user import LevelUser
 
 
 async def group_user_check_in(
-    nickname: str, user_qq: int, group: int
+        nickname: str, user_qq: int, group: int
 ) -> MessageSegment:
     "Returns string describing the result of checking in"
     present = datetime.now()
@@ -30,7 +31,7 @@ async def group_user_check_in(
         user = await SignGroupUser.ensure(user_qq, group, for_update=True)
         # 如果同一天签到过，特殊处理
         if (
-            user.checkin_time_last + timedelta(hours=8)
+                user.checkin_time_last + timedelta(hours=8)
         ).date() >= present.date() or f"{user}_{group}_sign_{datetime.now().date()}" in os.listdir(
             SIGN_TODAY_CARD_PATH
         ):
@@ -52,18 +53,20 @@ async def check_in_all(nickname: str, user_qq: int):
         for u in await SignGroupUser.get_user_all_data(user_qq):
             group = u.group_id
             if not ((
-                u.checkin_time_last + timedelta(hours=8)
-            ).date() >= present.date() or f"{u}_{group}_sign_{datetime.now().date()}" in os.listdir(
+                            u.checkin_time_last + timedelta(hours=8)
+                    ).date() >= present.date() or f"{u}_{group}_sign_{datetime.now().date()}" in os.listdir(
                 SIGN_TODAY_CARD_PATH
             )):
                 await _handle_check_in(nickname, user_qq, group, present)
 
 
 async def _handle_check_in(
-    nickname: str, user_qq: int, group: int, present: datetime
+        nickname: str, user_qq: int, group: int, present: datetime
 ) -> MessageSegment:
     user = await SignGroupUser.ensure(user_qq, group, for_update=True)
-    impression_added = (secrets.randbelow(99)+1)/100
+    level_user = await LevelUser.get_user_level(user_qq, group)
+    up = level_user if level_user > 0 else 2
+    impression_added = (secrets.randbelow(99) + 1) / 100 * level_user
     critx2 = random.random()
     add_probability = user.add_probability
     specify_probability = user.specify_probability
