@@ -250,7 +250,7 @@ async def send_setu_handle(
             setu_data_list.append(x)
         # 未找到符合的色图，想来本地应该也没有
         if code == 401:
-            await setu.finish(urls[0], at_sender=True)
+            await setu.finish(urls[0], at_sender=True if isinstance(event, GroupMessageEvent) else False)
         if code == 200:
             for i in range(len(urls)):
                 try:
@@ -263,13 +263,14 @@ async def send_setu_handle(
                             f" 发送色图 {index}.png"
                         )
                         msg_id = await matcher.send(
-                            Message(f"{text_list[i]}\n{setu_img}", at_sender=True)
+                            Message(f"{text_list[i]}\n{setu_img}")
                         )
                     else:
                         if setu_list is None:
                             setu_list, code = await get_setu_list(tags=tags, r18=r18)
                         if code != 200:
-                            await setu.finish(setu_list[0], at_sender=True)
+                            await setu.finish(setu_list[0],
+                                              at_sender=True if isinstance(event, GroupMessageEvent) else False)
                         if setu_list:
                             setu_image = random.choice(setu_list)
                             setu_list.remove(setu_image)
@@ -295,15 +296,16 @@ async def send_setu_handle(
                             Config.get_config("send_setu", "WITHDRAW_SETU_MESSAGE"),
                         )
                 except ActionFailed:
-                    await matcher.finish("坏了，这张图色过头了，我自己看看就行了！", at_sender=True)
+                    await matcher.finish("坏了，这张图色过头了，我自己看看就行了！",
+                                         at_sender=True if isinstance(event, GroupMessageEvent) else False)
             return
     if code != 200:
-        await matcher.finish("网络连接失败...", at_sender=True)
+        await matcher.finish("网络连接失败...", at_sender=True if isinstance(event, GroupMessageEvent) else False)
     # 本地无图
     if setu_list is None:
         setu_list, code = await get_setu_list(tags=tags, r18=r18)
         if code != 200:
-            await matcher.finish(setu_list[0], at_sender=True)
+            await matcher.finish(setu_list[0], at_sender=True if isinstance(event, GroupMessageEvent) else False)
     # 开始发图
     for _ in range(num):
         if not setu_list:
@@ -328,4 +330,5 @@ async def send_setu_handle(
                 f" 发送本地色图 {setu_image.local_id}.png"
             )
         except ActionFailed:
-            await matcher.finish("坏了，这张图色过头了，我自己看看就行了！", at_sender=True)
+            await matcher.finish("坏了，这张图色过头了，我自己看看就行了！",
+                                 at_sender=True if isinstance(event, GroupMessageEvent) else False)
