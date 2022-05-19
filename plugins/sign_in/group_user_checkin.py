@@ -18,7 +18,7 @@ import math
 import asyncio
 import secrets
 import os
-from models.level_user import LevelUser
+from plugins.sign_in import utils
 
 
 async def group_user_check_in(
@@ -64,9 +64,14 @@ async def _handle_check_in(
         nickname: str, user_qq: int, group: int, present: datetime
 ) -> MessageSegment:
     user = await SignGroupUser.ensure(user_qq, group, for_update=True)
-    level_user = await LevelUser.get_user_level(user_qq, group)
-    up = level_user if level_user > 0 else 2
-    impression_added = (secrets.randbelow(99) + 1) / 100 * level_user
+    impression = (
+        await SignGroupUser.ensure(user_qq, group)
+    ).impression
+    level, next_impression, previous_impression = utils.get_level_and_next_impression(
+        impression
+    )
+    up = level if level > 0 else 2
+    impression_added = (secrets.randbelow(99) + 1) * up / 100
     critx2 = random.random()
     add_probability = user.add_probability
     specify_probability = user.specify_probability
