@@ -60,7 +60,7 @@ async def add_live_sub(live_id: int, sub_user: str) -> str:
                 live_status=live_status,
             ):
                 await _get_up_status(live_id)
-                uname = (await BilibiliSub.get_sub(live_id)).uname
+                uname = (await BilibiliSub.get_sub(uid)).uname
                 return (
                     "已成功订阅主播：\n"
                     f"\ttitle：{title}\n"
