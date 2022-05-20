@@ -128,7 +128,7 @@ async def get_character(
 ) -> Optional[dict]:
     try:
         req = await AsyncHttpx.post(
-            url="https://api-takumi.mihoyo.com/game_record/app/genshin/api/character",
+            url="https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/character",
             headers={
                 "Accept": "application/json, text/plain, */*",
                 "DS": get_ds(
@@ -232,7 +232,7 @@ async def get_mys_data(uid: str, mys_id: Optional[str]) -> Optional[List[Dict]]:
     if mys_id:
         try:
             req = await AsyncHttpx.get(
-                url=f"https://api-takumi.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={mys_id}",
+                url=f"https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={mys_id}",
                 headers={
                     "DS": get_ds(f"uid={mys_id}"),
                     "x-rpc-app_version": Config.get_config("genshin", "mhyVersion"),
