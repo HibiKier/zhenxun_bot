@@ -5,7 +5,7 @@ from pathlib import Path
 
 __zx_plugin_name__ = "关于"
 __plugin_usage__ = """
-usage：
+usage：  
     想要更加了解格蕾修吗
     指令：
         关于

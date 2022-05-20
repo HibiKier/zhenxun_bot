@@ -31,14 +31,16 @@ from .data_source import (
     add_data_to_database,
     get_setu_count,
 )
+from typing import List
 from nonebot.adapters.onebot.v11.exception import ActionFailed
 from configs.config import Config, NICKNAME
 from utils.manager import withdraw_message_manager
 from nonebot.params import CommandArg, Command, RegexGroup
 from typing import Tuple
 import re
-
+from utils.message_builder import image
 from .._model import Setu
+from utils.message_builder import custom_forward_msg
 
 try:
     import ujson as json
@@ -135,9 +137,9 @@ setu_reg = on_regex("(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图$", priori
 
 
 @setu.handle()
-async def _(
-        event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()
-):
+async def _(bot: Bot,
+            event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()
+            ):
     msg = arg.extract_plain_text().strip()
 
     if isinstance(event, GroupMessageEvent):
@@ -177,7 +179,7 @@ async def _(
                 Config.get_config("send_setu", "WITHDRAW_SETU_MESSAGE"),
             )
         return
-    await send_setu_handle(setu, event, cmd[0], msg, num, r18)
+    await send_setu_handle(bot, setu, event, cmd[0], msg, num, r18)
 
 
 num_key = {
@@ -196,7 +198,7 @@ num_key = {
 
 
 @setu_reg.handle()
-async def _(event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
+async def _(bot: Bot, event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
     if isinstance(event, GroupMessageEvent):
         impression = (
             await SignGroupUser.ensure(event.user_id, event.group_id)
@@ -213,10 +215,11 @@ async def _(event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
         num = int(num)
     except ValueError:
         num = 1
-    await send_setu_handle(setu_reg, event, "色图", tags, num, 0)
+    await send_setu_handle(bot, setu_reg, event, "色图", tags, num, 0)
 
 
 async def send_setu_handle(
+        bot: Bot,
         matcher: Type[Matcher],
         event: MessageEvent,
         command: str,
@@ -239,7 +242,7 @@ async def send_setu_handle(
             impression
         )
         if test and int(level) < 4:
-            await matcher.finish(f"不可以对{NICKNAME}瑟瑟哦,哒咩哒咩", at_sender=True)
+            await matcher.finish(image("0", "griseo"), at_sender=True)
     # 本地先拿图，下载失败补上去
     setu_list = await Setu.query_image(None, tags, r18)
     if len(setu_list) < num:
@@ -269,7 +272,8 @@ async def send_setu_handle(
                                 f" 发送色图 {index}.jpg"
                             )
                             msg_id = await matcher.send(
-                                Message(f"{text_list[i]}\n{setu_img}")
+                                Message(f"{text_list[i]}\n{setu_img}"
+                                        ), at_sender=True if isinstance(event, GroupMessageEvent) else False
                             )
                         else:
                             if setu_list is None:
@@ -313,28 +317,54 @@ async def send_setu_handle(
             if code != 200:
                 await matcher.finish(setu_list[0], at_sender=True if isinstance(event, GroupMessageEvent) else False)
         # 开始发图
-    for _ in range(num):
-        if not setu_list:
-            await setu.finish("坏了，已经没图了，被榨干了！")
-        setu_image = random.choice(setu_list)
-        setu_list.remove(setu_image)
-        try:
-            msg_id = await matcher.send(
-                Message(
-                    gen_message(setu_image)
-                    + (await check_local_exists_or_download(setu_image))[0]
+    failure_msg: int = 0
+    if isinstance(event, PrivateMessageEvent) or len(setu_list) <= 3:
+        for _ in range(num):
+            if not setu_list:
+                await setu.finish("坏了，已经没图了，被榨干了！")
+            setu_image = random.choice(setu_list)
+            setu_list.remove(setu_image)
+            try:
+                msg_id = await matcher.send(
+                    Message(
+                        gen_message(setu_image)
+                        + (await check_local_exists_or_download(setu_image))[0]
+                    ), at_sender=True if isinstance(event, GroupMessageEvent) else False
                 )
+                withdraw_message_manager.withdraw_message(
+                    event,
+                    msg_id["message_id"],
+                    Config.get_config("send_setu", "WITHDRAW_SETU_MESSAGE"),
+                )
+                logger.info(
+                    f"(USER {event.user_id}, GROUP "
+                    f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+                    f" 发送本地色图 {setu_image.local_id}.jpg"
+                )
+            except ActionFailed as e:
+                logger.warning(e)
+                failure_msg += 1
+
+    elif isinstance(event, GroupMessageEvent):
+        use_list = []
+        while num > 0:
+            setu_image = random.choice(setu_list)
+            setu_list.remove(setu_image)
+            num -= 1
+            use_list.append(setu_image)
+        logger.info(len(use_list))
+        message_list = [Message(
+            gen_message(i)
+            + (await check_local_exists_or_download(i))[0]
+        ) for i in use_list]
+        try:
+
+            await bot.send_group_forward_msg(
+                group_id=event.group_id, messages=custom_forward_msg(message_list, bot.self_id)
             )
-            withdraw_message_manager.withdraw_message(
-                event,
-                msg_id["message_id"],
-                Config.get_config("send_setu", "WITHDRAW_SETU_MESSAGE"),
-            )
-            logger.info(
-                f"(USER {event.user_id}, GROUP "
-                f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-                f" 发送本地色图 {setu_image.local_id}.jpg"
-            )
-        except ActionFailed:
-            await matcher.finish("坏了，这张图色过头了，我自己看看就行了！",
-                                 at_sender=True if isinstance(event, GroupMessageEvent) else False)
+        except ActionFailed as e:
+            logger.warning(e)
+            failure_msg = num
+    if failure_msg >= num / 2:
+        await matcher.finish("坏了，这张图色过头了，我自己看看就行了！",
+                             at_sender=True if isinstance(event, GroupMessageEvent) else False)
