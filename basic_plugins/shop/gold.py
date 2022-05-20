@@ -6,6 +6,7 @@ from utils.data_utils import init_rank
 from models.bag_user import BagUser
 from utils.message_builder import image
 from utils.utils import is_number
+from services.log import logger
 
 __zx_plugin_name__ = "商店 - 我的金币"
 __plugin_usage__ = """
@@ -26,7 +27,6 @@ __plugin_settings__ = {
     "cmd": ["商店", "我的金币"],
 }
 
-
 my_gold = on_command("我的金币", priority=5, block=True, permission=GROUP)
 
 gold_rank = on_command("金币排行", priority=5, block=True, permission=GROUP)
@@ -34,7 +34,8 @@ gold_rank = on_command("金币排行", priority=5, block=True, permission=GROUP)
 
 @my_gold.handle()
 async def _(event: GroupMessageEvent):
-    await my_gold.finish(await BagUser.get_user_total_gold(event.user_id, event.group_id))
+    msg = await BagUser.get_user_total_gold(event.user_id, event.group_id)
+    await my_gold.finish(msg, at_sender=True)
 
 
 @gold_rank.handle()
