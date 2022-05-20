@@ -14,8 +14,7 @@ from retrying import retry
 import asyncio
 import aiofiles
 import httpx
-
-
+import psutil
 class AsyncHttpx:
 
     proxy = {"http://": get_local_proxy(), "https://": get_local_proxy()}
@@ -154,6 +153,12 @@ class AsyncHttpx:
                             **kwargs,
                         )
                     ).content
+                    free_memory = psutil.virtual_memory().free
+                    need_memory = len(content)
+                    logger.warning(f"剩余内存{free_memory}需要内存{need_memory} ")
+                    if free_memory < need_memory:
+                        logger.warning(f"下载 {url} 失败，内存不足")
+                        return False
                     async with aiofiles.open(path, "wb") as wf:
                         await wf.write(content)
                         logger.info(f"下载 {url} 成功.. Path：{path.absolute()}")
