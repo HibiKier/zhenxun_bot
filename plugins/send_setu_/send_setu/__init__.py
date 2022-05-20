@@ -366,5 +366,5 @@ async def send_setu_handle(
             logger.warning(e)
             failure_msg = num
     if failure_msg >= num / 2:
-        await matcher.finish("坏了，这张图色过头了，我自己看看就行了！",
+        await matcher.finish("坏了，这张图色过头了，我自己看看就行了！" + image("1", "griseo"),
                              at_sender=True if isinstance(event, GroupMessageEvent) else False)
