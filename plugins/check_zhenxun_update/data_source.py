@@ -1,3 +1,5 @@
+import datetime
+
 from nonebot.adapters.onebot.v11 import Bot, Message
 from utils.image_utils import BuildImage
 from configs.path_config import IMAGE_PATH
@@ -17,7 +19,6 @@ import os
 if str(platform.system()).lower() == "windows":
     policy = asyncio.WindowsSelectorEventLoopPolicy()
     asyncio.set_event_loop_policy(policy)
-
 
 driver = nonebot.get_driver()
 
@@ -39,10 +40,10 @@ async def remind(bot: Bot):
                     f"pid=$(netstat -tunlp | grep "
                     + str(bot.config.port)
                     + " | awk '{print $7}')\n"
-                    "pid=${pid%/*}\n"
-                    "kill -9 $pid\n"
-                    "sleep 3\n"
-                    "python3 bot.py"
+                      "pid=${pid%/*}\n"
+                      "kill -9 $pid\n"
+                      "sleep 3\n"
+                      "python3 bot.py"
                 )
             os.system("chmod +x ./restart.sh")
             logger.info("已自动生成 restart.sh(重启) 文件，请检查脚本是否与本地指令符合...")
@@ -74,8 +75,11 @@ async def check_update(bot: Bot) -> 'int, str':
             )
             logger.info(f"开始下载格蕾修最新版文件....")
             tar_gz_url = (await AsyncHttpx.get(tar_gz_url)).headers.get('Location')
-            if await AsyncHttpx.download_file(tar_gz_url, zhenxun_latest_tar_gz):
-                logger.info("下载格蕾修最新版文件完成....")
+            begin_time = datetime.datetime.now()
+            if await AsyncHttpx.download_file(tar_gz_url, zhenxun_latest_tar_gz, timeout=3000):
+                end_time = datetime.datetime.now()
+                diff = (end_time - begin_time).seconds
+                logger.info(f"下载格蕾修最新版文件完成....用时{diff}s")
                 error = await asyncio.get_event_loop().run_in_executor(
                     None, _file_handle, latest_version
                 )
