@@ -334,8 +334,9 @@ async def get_user_dynamic(
                     }
                 """
                 )
-                card = await page.query_selector(".bili-dyn-list__item")
+                card = page.locator(".bili-dyn-list__item").first
                 # 截图并保存
+                await card.wait_for()
                 await card.screenshot(
                     path=dynamic_path / f"{local_user.sub_id}_{dynamic_upload_time}.jpg",
                     timeout=100000,
