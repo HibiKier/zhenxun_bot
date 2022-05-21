@@ -28,7 +28,7 @@ _version_file = Path() / "__version__"
 zhenxun_latest_tar_gz = Path() / "zhenxun_latest_file.tar.gz"
 temp_dir = Path() / "temp"
 backup_dir = Path() / "backup"
-
+github_proxy="https://ghproxy.com/"
 
 @driver.on_bot_connect
 async def remind(bot: Bot):
@@ -76,7 +76,7 @@ async def check_update(bot: Bot) -> 'int, str':
             logger.info(f"开始下载格蕾修最新版文件....")
             tar_gz_url = (await AsyncHttpx.get(tar_gz_url)).headers.get('Location')
             begin_time = datetime.datetime.now()
-            if await AsyncHttpx.download_file(tar_gz_url, zhenxun_latest_tar_gz, timeout=300):
+            if await AsyncHttpx.download_file(github_proxy+tar_gz_url, zhenxun_latest_tar_gz, timeout=300):
                 end_time = datetime.datetime.now()
                 diff = (end_time - begin_time).seconds
                 logger.info(f"下载格蕾修最新版文件完成....用时{diff}s")
