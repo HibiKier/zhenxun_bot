@@ -56,7 +56,7 @@ mute_setting = on_command(
 )
 
 
-def get_data() -> Dict[Any]:
+def get_data() -> Dict[Any, Any]:
     try:
         with open(DATA_PATH / "group_mute_data.json", "r", encoding="utf8") as f:
             data = json.load(f)
@@ -134,9 +134,10 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
 @mute_setting.handle()
 async def _(event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
+    global mute_data
     group_id = str(event.group_id)
     if not mute_data.get(group_id):
-        mute_data[group_id] = {"count": 10, "time": 7, "duration": 0}
+        mute_data[group_id] = {"count": Config.get_config("mute", "MUTE_DEFAULT_COUNT"), "time": Config.get_config("mute", "MUTE_DEFAULT_TIME"), "duration": Config.get_config("mute", "MUTE_DEFAULT_DURATION")}
     msg = arg.extract_plain_text().strip()
     if cmd[0] == "刷屏检测设置":
         await mute_setting.finish(
@@ -147,17 +148,18 @@ async def _(event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Mes
         )
     if not is_number(msg):
         await mute.finish("设置的参数必须是数字啊！", at_sender=True)
-    if cmd[0] == "设置检测时间":
+    if cmd[0] == "设置刷屏检测时间":
         mute_data[group_id]["time"] = int(msg)
         msg += "秒"
-    if cmd[0] == "设置检测次数":
+    if cmd[0] == "设置刷屏检测次数":
         mute_data[group_id]["count"] = int(msg)
         msg += " 次"
-    if cmd[0] == "设置禁言时长":
+    if cmd[0] == "设置刷屏禁言时长":
         mute_data[group_id]["duration"] = int(msg)
         msg += " 分钟"
     await mute_setting.send(f'刷屏检测：{cmd[0]}为 {msg}')
     logger.info(
         f'USER {event.user_id} GROUP {group_id} {cmd[0]}：{msg}'
     )
+    print(mute_data)
     save_data()
