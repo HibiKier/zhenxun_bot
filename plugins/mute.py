@@ -1,8 +1,7 @@
 from nonebot import on_message, on_command
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message
 from nonebot.adapters.onebot.v11.permission import GROUP
-from utils.utils import is_number, get_message_img
-from nonebot.typing import T_State
+from utils.utils import is_number, get_message_img, get_message_text
 from nonebot.adapters.onebot.v11.exception import ActionFailed
 from configs.path_config import DATA_PATH, TEMP_PATH
 from utils.image_utils import get_img_hash
@@ -10,7 +9,7 @@ from services.log import logger
 from configs.config import NICKNAME, Config
 from utils.http_utils import AsyncHttpx
 from nonebot.params import CommandArg, Command
-from typing import Tuple
+from typing import Tuple, Dict, Any
 import time
 
 try:
@@ -57,7 +56,7 @@ mute_setting = on_command(
 )
 
 
-def get_data():
+def get_data() -> Dict[Any]:
     try:
         with open(DATA_PATH / "group_mute_data.json", "r", encoding="utf8") as f:
             data = json.load(f)
@@ -72,7 +71,7 @@ def save_data():
         json.dump(mute_data, f, indent=4)
 
 
-async def download_img_and_hash(url, group_id):
+async def download_img_and_hash(url, group_id) -> str:
     if await AsyncHttpx.download_file(
         url, TEMP_PATH / f"mute_{group_id}_img.jpg"
     ):
@@ -85,9 +84,9 @@ mute_data = get_data()
 
 
 @mute.handle()
-async def _(bot: Bot, event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
+async def _(bot: Bot, event: GroupMessageEvent):
     group_id = str(event.group_id)
-    msg = arg.extract_plain_text().strip()
+    msg = get_message_text(event.json())
     img_list = get_message_img(event.json())
     img_hash = ""
     for img in img_list:
@@ -102,8 +101,6 @@ async def _(bot: Bot, event: GroupMessageEvent, cmd: Tuple[str, ...] = Command()
     if not mute_dict.get(event.user_id):
         mute_dict[event.user_id] = {"time": time.time(), "count": 1, "msg": msg}
     else:
-        if cmd or not msg:
-            return
         if msg and msg.find(mute_dict[event.user_id]["msg"]) != -1:
             mute_dict[event.user_id]["count"] += 1
         else:
@@ -123,7 +120,7 @@ async def _(bot: Bot, event: GroupMessageEvent, cmd: Tuple[str, ...] = Command()
                     await bot.set_group_ban(
                         group_id=event.group_id,
                         user_id=event.user_id,
-                        duration=mute_data[group_id]["duration"],
+                        duration=mute_data[group_id]["duration"] * 60,
                     )
                     await mute.send(f"检测到恶意刷屏，{NICKNAME}要把你关进小黑屋！", at_sender=True)
                     mute_dict[event.user_id]["count"] = 0

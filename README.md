@@ -238,7 +238,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
-### 2022/5/
+### 2022/5/21
 
 * 修复搜番无结果时报错无正确反馈
 * 解锁了windows上无法使用playwright的限制
@@ -248,6 +248,8 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 修复了bilibili订阅直播间订阅up名称不一致的问题
 * 修复原神玩家查询没开地图时报错
 * 最低priority修改为 999
+* 修复刷屏检测失效
+* 优化刷屏显示设置禁言时长显示，并改为分钟
 
 ### 2022/5/19
 
