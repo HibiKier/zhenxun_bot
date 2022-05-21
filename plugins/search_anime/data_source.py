@@ -3,18 +3,18 @@ import feedparser
 from urllib import parse
 from services.log import logger
 from utils.http_utils import AsyncHttpx
-from typing import List
+from typing import List, Union
 import time
 
 
-async def from_anime_get_info(key_word: str, max_: int) -> List[str]:
+async def from_anime_get_info(key_word: str, max_: int) -> Union[str, List[str]]:
     s_time = time.time()
-    repass = ""
     url = "https://share.dmhy.org/topics/rss/rss.xml?keyword=" + parse.quote(key_word)
     try:
         repass = await get_repass(url, max_)
     except Exception as e:
-        logger.error("Timeout! {}".format(e))
+        logger.error(f"发生了一些错误 {type(e)}：{e}")
+        return "发生了一些错误！"
     repass.insert(0, f"搜索 {key_word} 结果（耗时 {int(time.time() - s_time)} 秒）：\n")
     return repass
 

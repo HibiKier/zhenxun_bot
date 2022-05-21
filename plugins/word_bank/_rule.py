@@ -14,7 +14,6 @@ async def check(bot: Bot, event: Event, state: T_State) -> bool:
             for img_file in list_img:
                 strinfo = re.compile(f"{img_file},subType=\d*]")
                 msg = strinfo.sub(f'{img_file}]', msg)
-        print(msg)
         return bool(
             await WordBank.check(event.group_id, msg, event.is_tome())
         )

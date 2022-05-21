@@ -16,6 +16,7 @@ try:
 except ModuleNotFoundError:
     import json
 
+
 scheduler = require("nonebot_plugin_apscheduler").scheduler
 
 
@@ -107,8 +108,8 @@ class BanCheckLimiter:
             self.mint[key] = 0
             return False
         if (
-                self.mint[key] >= self.default_count
-                and time.time() - self.mtime[key] < self.default_check_time
+            self.mint[key] >= self.default_count
+            and time.time() - self.mtime[key] < self.default_check_time
         ):
             self.mtime[key] = time.time()
             self.mint[key] = 0
@@ -202,7 +203,10 @@ def get_message_at(data: Union[str, Message]) -> List[int]:
         for msg in data["message"]:
             if msg["type"] == "at":
                 qq_list.append(int(msg["data"]["qq"]))
-
+    else:
+        for seg in data:
+            if seg.type == "at":
+                qq_list.append(seg.data["qq"])
     return qq_list
 
 
@@ -370,7 +374,7 @@ def cn2py(word: str) -> str:
 
 
 def change_pixiv_image_links(
-        url: str, size: Optional[str] = None, nginx_url: Optional[str] = None
+    url: str, size: Optional[str] = None, nginx_url: Optional[str] = None
 ):
     """
     说明：
@@ -388,7 +392,7 @@ def change_pixiv_image_links(
     if nginx_url:
         url = (
             url.replace("i.pximg.net", nginx_url)
-                .replace("i.pixiv.cat", nginx_url)
-                .replace("_webp", "")
+            .replace("i.pixiv.cat", nginx_url)
+            .replace("_webp", "")
         )
     return url

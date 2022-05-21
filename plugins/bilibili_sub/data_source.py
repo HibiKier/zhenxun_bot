@@ -1,15 +1,10 @@
-# from bilibili_api.exceptions.ResponseCodeException import ResponseCodeException
 from bilireq.exceptions import ResponseCodeError
 from utils.manager import resources_manager
 from asyncio.exceptions import TimeoutError
 from .model import BilibiliSub
-# from bilibili_api.live import LiveRoom
 from bilireq.live import get_room_info_by_id
-# from bilibili_api import bangumi
 from .utils import get_meta
 from utils.message_builder import image
-# from bilibili_api import user
-# from bilibili_api.user import User
 from bilireq.user import get_user_info
 from bilireq import dynamic
 from .utils import get_videos
@@ -60,7 +55,7 @@ async def add_live_sub(live_id: int, sub_user: str) -> str:
                 live_status=live_status,
             ):
                 await _get_up_status(live_id)
-                uname = (await BilibiliSub.get_sub(uid)).uname
+                uname = (await BilibiliSub.get_sub(live_id)).uname
                 return (
                     "已成功订阅主播：\n"
                     f"\ttitle：{title}\n"
@@ -248,7 +243,7 @@ async def _get_up_status(id_: int) -> Optional[str]:
     """
     _user = await BilibiliSub.get_sub(id_)
     """bilibili_api.user库中User类的get_user_info改为bilireq.user库的get_user_info方法"""
-    user_info = await get_user_info(id_)
+    user_info = await get_user_info(_user.uid)
     uname = user_info["name"]
     """bilibili_api.user库中User类的get_videos改为bilireq.user库的get_videos方法"""
     video_info = await get_videos(id_)
