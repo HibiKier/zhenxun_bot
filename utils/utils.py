@@ -229,6 +229,25 @@ def get_message_img(data: Union[str, Message]) -> List[str]:
     return img_list
 
 
+def get_message_img_file(data: Union[str, Message]) -> List[str]:
+    """
+    说明：
+        获取消息中所有的 图片file
+    参数：
+        :param data: event.json()
+    """
+    file_list = []
+    if isinstance(data, str):
+        data = json.loads(data)
+        for msg in data["message"]:
+            if msg["type"] == "image":
+                file_list.append(msg["data"]["file"])
+    else:
+        for seg in data["image"]:
+            file_list.append(seg.data["file"])
+    return file_list
+
+
 def get_message_text(data: Union[str, Message]) -> str:
     """
     说明：
