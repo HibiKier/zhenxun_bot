@@ -1,4 +1,4 @@
-from nonebot import on_request, on_command
+from nonebot import on_request, on_message
 from nonebot.adapters.onebot.v11 import (
     Bot,
     FriendRequestEvent,
@@ -25,7 +25,7 @@ __plugin_configs__ = {
 
 friend_req = on_request(priority=5, block=True)
 group_req = on_request(priority=5, block=True)
-x = on_command("[[test_invite_manager]]", priority=999, block=False)
+x = on_message(priority=999, block=False)
 
 exists_data = {"private": {}, "group": {}}
 

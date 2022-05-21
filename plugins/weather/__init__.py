@@ -12,7 +12,7 @@ __plugin_usage__ = """
 usage：
     普普通通的查天气吧
     指令：
-        [城市]天气/天气[城市]
+        [城市]天气
 """.strip()
 __plugin_des__ = "出门要看看天气，不要忘了带伞"
 __plugin_cmd__ = ["[城市]天气/天气[城市]"]
@@ -27,13 +27,13 @@ __plugin_settings__ = {
 }
 
 
-weather = on_regex(r".{0,10}?(.*)的?天气.*?.{0,10}", priority=5, block=True)
+weather = on_regex(r".{0,10}?(.*)的?天气.{0,10}", priority=5, block=True)
 
 
 @weather.handle()
 async def _(event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
     msg = reg_group[0]
-    if msg[-1] != "市":
+    if msg and msg[-1] != "市":
         msg += "市"
     city = ""
     if msg:
