@@ -338,8 +338,7 @@ async def get_user_dynamic(
                 # 截图并保存
                 await card.wait_for()
                 await card.screenshot(
-                    path=dynamic_path / f"{local_user.sub_id}_{dynamic_upload_time}.jpg",
-                    timeout=100000,
+                    path=dynamic_path / f"{local_user.sub_id}_{dynamic_upload_time}.jpg"
                 )
             except Exception as e:
                 logger.error(f"B站订阅：获取用户动态 发送错误 {type(e)}：{e}")
