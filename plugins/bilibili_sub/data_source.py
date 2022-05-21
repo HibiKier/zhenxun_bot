@@ -324,7 +324,7 @@ async def get_user_dynamic(
                     wait_until="networkidle",
                     timeout=10000,
                 )
-                await page.set_viewport_size({"width": 2560, "height": 1080})
+                await page.set_viewport_size({"width": 2560, "height": 1080, "timeout": 10000*20})  # timeout: 200s
                 # 删除置顶
                 await page.evaluate(
                     """
