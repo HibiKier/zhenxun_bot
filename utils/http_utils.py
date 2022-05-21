@@ -327,14 +327,14 @@ class AsyncPlaywright:
             await page.set_viewport_size(viewport_size)
             if isinstance(element, str):
                 if wait_time:
-                    card = await page.wait_for_selector(element, timeout=wait_time)
+                    card = await page.wait_for_selector(element, timeout=wait_time * 1000)
                 else:
                     card = await page.query_selector(element)
             else:
                 card = page
                 for e in element:
                     if wait_time:
-                        card = await card.wait_for_selector(e, timeout=wait_time)
+                        card = await card.wait_for_selector(e, timeout=wait_time * 1000)
                     else:
                         card = await card.query_selector(e)
             await card.screenshot(path=path, timeout=timeout, type=type_)

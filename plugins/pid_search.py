@@ -68,6 +68,8 @@ async def _g(event: MessageEvent, state: T_State, pid: str = Arg("pid")):
         except Exception as e:
             await pid_search.finish(f"发生了一些错误..{type(e)}：{e}")
         else:
+            if data.get("error"):
+                await pid_search.finish(data["error"]["user_message"], at_sender=True)
             data = data["illust"]
             if not data["width"] and not data["height"]:
                 await pid_search.finish(f"没有搜索到 PID：{pid} 的图片", at_sender=True)
