@@ -96,7 +96,7 @@ async def _(
     global _prefix_count_dict
     if (
         matcher.type == "message"
-        and matcher.priority not in [1, 9]
+        and matcher.priority not in [1, 999]
         and matcher.plugin_name not in ["update_info", "statistics_handle"]
     ):
         module = matcher.plugin_name

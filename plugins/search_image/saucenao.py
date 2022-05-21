@@ -25,7 +25,7 @@ async def get_saucenao_image(url: str) -> Union[str, List[str]]:
     }
     data = (await AsyncHttpx.post(API_URL_SAUCENAO, params=params)).json()
     if data["header"]["status"] != 0:
-        return "Saucenao识图失败.."
+        return f"Saucenao识图失败..status：{data['header']['status']}"
     data = data["results"]
     data = (
         data

@@ -1,3 +1,5 @@
+from nonebot.adapters.onebot.v11 import ActionFailed
+
 from utils.utils import get_bot, scheduler
 from utils.message_builder import at
 from models.group_member_info import GroupInfoUser
@@ -178,10 +180,13 @@ async def _remind(user_id: int, uid: str):
                         group_list = await GroupInfoUser.get_user_all_group(user_id)
                         if group_list:
                             group_id = group_list[0]
-                    await bot.send_group_msg(
-                        group_id=group_id,
-                        message=at(user_id) + msg
-                    )
+                    try:
+                        await bot.send_group_msg(
+                            group_id=group_id,
+                            message=at(user_id) + msg
+                        )
+                    except ActionFailed as e:
+                        logger.error(f"树脂提醒推送发生错误 {type(e)}：{e}")
     if not next_time:
         if user_manager.check(uid) and Config.get_config("resin_remind", "AUTO_CLOSE_QUERY_FAIL_RESIN_REMIND"):
             await Genshin.set_resin_remind(int(uid), False)

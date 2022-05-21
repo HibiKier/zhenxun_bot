@@ -9,6 +9,7 @@ from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from configs.config import Config
 from utils.http_utils import AsyncHttpx
 from services.log import logger
+from configs.config import NICKNAME
 
 
 __zx_plugin_name__ = "复读"
@@ -74,15 +75,15 @@ class Fudu:
 _fudu_list = Fudu()
 
 
-fudu = on_message(permission=GROUP, priority=9)
+fudu = on_message(permission=GROUP, priority=999)
 
 
 @fudu.handle()
 async def _(event: GroupMessageEvent):
     if event.is_tome():
         return
-    if get_message_text(event.json()):
-        if get_message_text(event.json()).find("@可爱的小格蕾修") != -1:
+    if msg := get_message_text(event.json()):
+        if msg.startswith(f"@可爱的{NICKNAME}"):
             await fudu.finish("复制粘贴的虚空艾特？", at_sender=True)
     img = get_message_img(event.json())
     msg = get_message_text(event.json())
