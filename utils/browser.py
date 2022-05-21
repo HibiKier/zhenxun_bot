@@ -15,8 +15,6 @@ _browser: Optional[Browser] = None
 
 async def init(**kwargs) -> Optional[Browser]:
     global _browser
-    if platform.system() == "Windows":
-        return None
     try:
         browser = await async_playwright().start()
         _browser = await browser.chromium.launch(**kwargs)

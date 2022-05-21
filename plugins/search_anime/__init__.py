@@ -49,6 +49,8 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, key_word: str = ArgSt
         Config.get_config("search_anime", "SEARCH_ANIME_MAX_INFO"),
     )
     if anime_report:
+        if isinstance(anime_report, str):
+            await search_anime.finish(anime_report)
         if isinstance(event, GroupMessageEvent):
             mes_list = custom_forward_msg(anime_report, bot.self_id)
             await bot.send_group_forward_msg(group_id=event.group_id, messages=mes_list)

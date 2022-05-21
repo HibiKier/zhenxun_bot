@@ -1,8 +1,10 @@
 from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message, Bot
+from nonebot.internal.params import ArgStr, Arg
+from nonebot.params import CommandArg
+
 from .data_source import get_anime
 from nonebot import on_command
 from nonebot.typing import T_State
-from nonebot.params import Arg
 from utils.utils import get_message_img
 from services.log import logger
 
@@ -31,10 +33,10 @@ what_anime = on_command("识番", priority=5, block=True)
 
 
 @what_anime.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(bot: Bot, event: MessageEvent, state: T_State, args: Message = CommandArg()):
     img_url = get_message_img(event.json())
     if img_url:
-        state["img_url"] = img_url[0]
+        state["img_url"] = args
 
 
 @what_anime.got("img_url", prompt="虚空识番？来图来图GKD")

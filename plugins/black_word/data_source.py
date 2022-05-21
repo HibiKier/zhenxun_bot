@@ -77,7 +77,7 @@ async def show_black_text_image(
         (punish_level_str, "等级"),
         (create_time_str, "记录日期"),
     ]:
-        img = await text2image(s, color="#f9f6f2", _add_height=3.32)
+        img = await text2image(s, color="#f9f6f2", _add_height=2.1)
         w = _tmp_img.getsize(type_)[0] if _tmp_img.getsize(type_)[0] > img.w else img.w
         A = BuildImage(w + 11, img.h + 50, color="#f9f6f2", font_size=35, font="CJGaoDeGuo.otf")
         await A.atext((10, 10), type_)

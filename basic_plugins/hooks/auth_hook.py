@@ -106,7 +106,7 @@ async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
                     raise IgnoredException("功能总开关关闭状态")
         except AttributeError:
             pass
-    if module in admin_manager.keys() and matcher.priority not in [1, 9]:
+    if module in admin_manager.keys() and matcher.priority not in [1, 999]:
         if isinstance(event, GroupMessageEvent):
             # 个人权限
             if (
@@ -146,7 +146,7 @@ async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
                 if event.is_tome():
                     status_message_manager.add(event.user_id)
                 raise IgnoredException("权限不足")
-    if module in plugins2info_dict.keys() and matcher.priority not in [1, 9]:
+    if module in plugins2info_dict.keys() and matcher.priority not in [1, 999]:
         # 戳一戳单独判断
         if isinstance(event, GroupMessageEvent) or isinstance(event, PokeNotifyEvent) or matcher.plugin_name in other_limit_plugins:
             if status_message_manager.get(event.group_id) is None:

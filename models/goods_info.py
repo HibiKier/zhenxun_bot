@@ -114,8 +114,7 @@ class GoodsInfo(db.Model):
         参数：
             :param goods_name: 商品名称
         """
-        query = await cls.query.where(cls.goods_name == goods_name).gino.first()
-        return query
+        return await cls.query.where(cls.goods_name == goods_name).gino.first()
 
     @classmethod
     async def get_all_goods(cls) -> List["GoodsInfo"]:
