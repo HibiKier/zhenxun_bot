@@ -15,23 +15,24 @@ import asyncio
 import aiofiles
 import httpx
 import psutil
-class AsyncHttpx:
 
+
+class AsyncHttpx:
     proxy = {"http://": get_local_proxy(), "https://": get_local_proxy()}
 
     @classmethod
     @retry(stop_max_attempt_number=3)
     async def get(
-        cls,
-        url: str,
-        *,
-        params: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
-        cookies: Optional[Dict[str, str]] = None,
-        use_proxy: bool = True,
-        proxy: Dict[str, str] = None,
-        timeout: Optional[int] = 30,
-        **kwargs,
+            cls,
+            url: str,
+            *,
+            params: Optional[Dict[str, Any]] = None,
+            headers: Optional[Dict[str, str]] = None,
+            cookies: Optional[Dict[str, str]] = None,
+            use_proxy: bool = True,
+            proxy: Dict[str, str] = None,
+            timeout: Optional[int] = 30,
+            **kwargs,
     ) -> Response:
         """
         说明：
@@ -60,20 +61,20 @@ class AsyncHttpx:
 
     @classmethod
     async def post(
-        cls,
-        url: str,
-        *,
-        data: Optional[Dict[str, str]] = None,
-        content: Any = None,
-        files: Any = None,
-        use_proxy: bool = True,
-        proxy: Dict[str, str] = None,
-        json: Optional[Dict[str, Union[Any]]] = None,
-        params: Optional[Dict[str, str]] = None,
-        headers: Optional[Dict[str, str]] = None,
-        cookies: Optional[Dict[str, str]] = None,
-        timeout: Optional[int] = 30,
-        **kwargs,
+            cls,
+            url: str,
+            *,
+            data: Optional[Dict[str, str]] = None,
+            content: Any = None,
+            files: Any = None,
+            use_proxy: bool = True,
+            proxy: Dict[str, str] = None,
+            json: Optional[Dict[str, Union[Any]]] = None,
+            params: Optional[Dict[str, str]] = None,
+            headers: Optional[Dict[str, str]] = None,
+            cookies: Optional[Dict[str, str]] = None,
+            timeout: Optional[int] = 30,
+            **kwargs,
     ) -> Response:
         """
         说明：
@@ -110,17 +111,17 @@ class AsyncHttpx:
 
     @classmethod
     async def download_file(
-        cls,
-        url: str,
-        path: Union[str, Path],
-        *,
-        params: Optional[Dict[str, str]] = None,
-        use_proxy: bool = True,
-        proxy: Dict[str, str] = None,
-        headers: Optional[Dict[str, str]] = None,
-        cookies: Optional[Dict[str, str]] = None,
-        timeout: Optional[int] = 30,
-        **kwargs,
+            cls,
+            url: str,
+            path: Union[str, Path],
+            *,
+            params: Optional[Dict[str, str]] = None,
+            use_proxy: bool = True,
+            proxy: Dict[str, str] = None,
+            headers: Optional[Dict[str, str]] = None,
+            cookies: Optional[Dict[str, str]] = None,
+            timeout: Optional[int] = 30,
+            **kwargs,
     ) -> bool:
         """
         说明：
@@ -153,10 +154,7 @@ class AsyncHttpx:
                             **kwargs,
                         )
                     ).content
-                    free_memory = psutil.virtual_memory().free
-                    need_memory = len(content)
-                    logger.warning(f"剩余内存{free_memory}需要内存{need_memory} ")
-                    if free_memory < need_memory:
+                    if psutil.virtual_memory().percent > 95:
                         logger.warning(f"下载 {url} 失败，内存不足")
                         return False
                     async with aiofiles.open(path, "wb") as wf:
@@ -173,18 +171,18 @@ class AsyncHttpx:
 
     @classmethod
     async def gather_download_file(
-        cls,
-        url_list: List[str],
-        path_list: List[Union[str, Path]],
-        *,
-        limit_async_number: Optional[int] = None,
-        params: Optional[Dict[str, str]] = None,
-        use_proxy: bool = True,
-        proxy: Dict[str, str] = None,
-        headers: Optional[Dict[str, str]] = None,
-        cookies: Optional[Dict[str, str]] = None,
-        timeout: Optional[int] = 30,
-        **kwargs,
+            cls,
+            url_list: List[str],
+            path_list: List[Union[str, Path]],
+            *,
+            limit_async_number: Optional[int] = None,
+            params: Optional[Dict[str, str]] = None,
+            use_proxy: bool = True,
+            proxy: Dict[str, str] = None,
+            headers: Optional[Dict[str, str]] = None,
+            cookies: Optional[Dict[str, str]] = None,
+            timeout: Optional[int] = 30,
+            **kwargs,
     ) -> List[bool]:
         """
         说明：
@@ -236,7 +234,7 @@ class AsyncHttpx:
                             use_proxy=use_proxy,
                             timeout=timeout,
                             proxy=proxy,
-                            ** kwargs,
+                            **kwargs,
                         )
                     )
                 )
@@ -263,15 +261,15 @@ class AsyncPlaywright:
 
     @classmethod
     async def goto(
-        cls,
-        url: str,
-        *,
-        timeout: Optional[float] = 100000,
-        wait_until: Optional[
-            Literal["domcontentloaded", "load", "networkidle"]
-        ] = "networkidle",
-        referer: str = None,
-        **kwargs
+            cls,
+            url: str,
+            *,
+            timeout: Optional[float] = 100000,
+            wait_until: Optional[
+                Literal["domcontentloaded", "load", "networkidle"]
+            ] = "networkidle",
+            referer: str = None,
+            **kwargs
     ) -> Optional[Page]:
         """
         说明：
@@ -295,19 +293,19 @@ class AsyncPlaywright:
 
     @classmethod
     async def screenshot(
-        cls,
-        url: str,
-        path: Union[Path, str],
-        element: Union[str, List[str]],
-        *,
-        wait_time: Optional[int] = None,
-        viewport_size: Dict[str, int] = None,
-        wait_until: Optional[
-            Literal["domcontentloaded", "load", "networkidle"]
-        ] = "networkidle",
-        timeout: float = None,
-        type_: Literal["jpeg", "png"] = None,
-        **kwargs
+            cls,
+            url: str,
+            path: Union[Path, str],
+            element: Union[str, List[str]],
+            *,
+            wait_time: Optional[int] = None,
+            viewport_size: Dict[str, int] = None,
+            wait_until: Optional[
+                Literal["domcontentloaded", "load", "networkidle"]
+            ] = "networkidle",
+            timeout: float = None,
+            type_: Literal["jpeg", "png"] = None,
+            **kwargs
     ) -> Optional[MessageSegment]:
         """
         说明：
