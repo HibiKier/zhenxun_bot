@@ -2,6 +2,7 @@ from nonebot import on_command, on_notice
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, GROUP, GroupIncreaseNoticeEvent
 from ._data_source import update_member_info
 
+
 __zx_plugin_name__ = "更新群组成员列表 [Admin]"
 __plugin_usage__ = """
 usage：

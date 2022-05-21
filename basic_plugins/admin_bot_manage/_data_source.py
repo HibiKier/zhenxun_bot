@@ -232,10 +232,7 @@ async def update_member_info(group_id: int, remind_superuser: bool = False) -> b
     _exist_member_list = []
     # try:
     for user_info in _group_user_list:
-        if user_info["card"] == "":
-            nickname = user_info["nickname"]
-        else:
-            nickname = user_info["card"]
+        nickname = user_info["card"] or user_info["nickname"]
         async with db.transaction():
             # 更新权限
             if (
@@ -321,3 +318,4 @@ def set_group_bot_status(group_id: int, status: bool) -> str:
         # for x in group_manager.get_task_data():
         #     group_manager.close_group_task(group_id, x)
         return "那我先睡觉了..."
+

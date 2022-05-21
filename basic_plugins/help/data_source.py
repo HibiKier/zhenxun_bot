@@ -56,6 +56,9 @@ def _create_help_img(
     for matcher in _matchers:
         plugin_name = None
         _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
+        if not _plugin:
+            logger.warning(f"获取 功能：{matcher.plugin_name} 失败...")
+            continue
         _module = _plugin.module
         try:
             plugin_name = _module.__getattribute__("__zx_plugin_name__")
