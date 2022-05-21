@@ -60,8 +60,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         img = await AsyncPlaywright.screenshot(
             url,
             f"{IMAGE_PATH}/temp/wbtop_{event.user_id}.png",
-            "#pl_feedlist_index",
-            wait_time=5
+            "#pl_feed_main",
+            wait_time=12
         )
         if img:
             await wbtop.send(img)
