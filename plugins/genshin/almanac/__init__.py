@@ -35,7 +35,7 @@ Config.add_plugin_config(
     default_value=True,
 )
 
-almanac = on_command("原神黄历", priority=5, block=True)
+almanac = on_command("原神黄历", priority=15, block=True)
 
 
 ALC_PATH = IMAGE_PATH / "genshin" / "alc"

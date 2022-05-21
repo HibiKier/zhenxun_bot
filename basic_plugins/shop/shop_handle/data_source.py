@@ -154,7 +154,7 @@ async def register_goods(
     """
     if not await GoodsInfo.get_goods_info(name):
         limit_time = float(limit_time) if limit_time else limit_time
-        discount = discount if discount is None else 1
+        discount = discount if discount is not None else 1
         limit_time = (
             int(time.time() + limit_time * 60 * 60)
             if limit_time is not None and limit_time != 0

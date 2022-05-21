@@ -1,6 +1,5 @@
 from typing import Tuple, Optional, List
 from configs.path_config import IMAGE_PATH, TEXT_PATH
-from PIL.Image import UnidentifiedImageError
 from utils.message_builder import image
 from services.log import logger
 from utils.image_utils import BuildImage
@@ -261,8 +260,8 @@ async def download_image(
                         gen_icon(path)
                 else:
                     logger.info(f"下载原神资源图标：{img_url} 失败，等待下次更新...")
-        except UnidentifiedImageError:
-            logger.warning(f"原神图片打开错误..已删除，等待下次更新... file: {path}")
+        except Exception as e:
+            logger.warning(f"原神图片错误..已删除，等待下次更新... file: {path} {type(e)}：{e}")
             if os.path.exists(path):
                 os.remove(path)
 

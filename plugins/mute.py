@@ -145,7 +145,7 @@ async def _(event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Mes
         await mute_setting.finish(
             f'最大次数：{mute_data[group_id]["count"]} 次\n'
             f'规定时间：{mute_data[group_id]["time"]} 秒\n'
-            f'禁言时长：{mute_data[group_id]["duration"] / 60} 分钟\n'
+            f'禁言时长：{mute_data[group_id]["duration"]:.2f} 分钟\n'
             f"【在规定时间内发送相同消息超过最大次数则禁言\n当禁言时长为0时关闭此功能】"
         )
     if not is_number(msg):
@@ -157,7 +157,7 @@ async def _(event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Mes
         mute_data[group_id]["count"] = int(msg)
         msg += " 次"
     if cmd[0] == "设置禁言时长":
-        mute_data[group_id]["duration"] = int(msg) * 60
+        mute_data[group_id]["duration"] = int(msg)
         msg += " 分钟"
     await mute_setting.send(f'刷屏检测：{cmd[0]}为 {msg}')
     logger.info(

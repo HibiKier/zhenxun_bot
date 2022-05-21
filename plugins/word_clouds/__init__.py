@@ -17,26 +17,22 @@ __plugin_usage__ = """
 usage：
     词云
     指令：
-        获取今天的词云
-        今日词云
-        获取昨天的词云
-        昨日词云
-        获取本周词云
-        本周词云
-        获取本月词云
-        本月词云
-        获取年度词云
-        年度词云
+        今日词云：获取今天的词云
+        昨日词云：获取昨天的词云
+        本周词云：获取本周词云
+        本月词云：获取本月词云
+        年度词云：获取年度词云
         
         历史词云(支持 ISO8601 格式的日期与时间，如 2022-02-22T22:22:22)
         获取某日的词云
         历史词云 2022-01-01
         获取指定时间段的词云
         历史词云
-        历史词云 2022-01-01~2022-02-22
-        历史词云 2022-02-22T11:11:11~2022-02-22T22:22:22
+        示例：历史词云 2022-01-01~2022-02-22
+        示例：历史词云 2022-02-22T11:11:11~2022-02-22T22:22:22
+        
         如果想要获取自己的发言，可在命令前添加 我的
-        我的今日词云
+        示例：我的今日词云
 """.strip()
 __plugin_des__ = "词云"
 __plugin_cmd__ = ["今日词云", "昨日词云", "本周词云"]
@@ -80,12 +76,12 @@ def parse_datetime(key: str):
     async def _key_parser(
             matcher: Matcher,
             state: T_State,
-            input: Union[datetime, Message] = Arg(key),
+            input_: Union[datetime, Message] = Arg(key),
     ):
-        if isinstance(input, datetime):
+        if isinstance(input_, datetime):
             return
 
-        plaintext = input.extract_plain_text()
+        plaintext = input_.extract_plain_text()
         try:
             state[key] = get_datetime_fromisoformat_with_timezone(plaintext)
         except ValueError:

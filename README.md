@@ -238,6 +238,23 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/5/
+
+* 修复搜番无结果时报错无正确反馈
+* 解锁了windows上无法使用playwright的限制
+* 修复p搜对应pid有多张图时出错，改为连续发送图片
+* 修复p搜对数字的错误判断
+* 修复添加商品折扣无法正确添加
+* 修复了bilibili订阅直播间订阅up名称不一致的问题
+* 修复原神玩家查询没开地图时报错
+* 最低priority修改为 999
+
+### 2022/5/19
+
+* fix: mihoyo bbs api changed [@pull/357](https://github.com/HibiKier/zhenxun_bot/pull/357)
+* Add word_clouds [@pull/265](https://github.com/HibiKier/zhenxun_bot/pull/265)
+* Fix wrong live streamer name [@pull/284](https://github.com/HibiKier/zhenxun_bot/pull/284)
+
 ### 2022/5/16
 
 * 词条支持图片和@问题 [@pull/160](https://github.com/HibiKier/zhenxun_bot/pull/160)
@@ -511,4 +528,4 @@ __..... 更多更新信息请查看文档__
 [NothAmor / nonebot2_luxun_says](https://github.com/NothAmor/nonebot2_luxun_says) ：基于nonebot2机器人框架的鲁迅说插件  
 [Kyomotoi / AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus) ：一个~~特二刺螈~~（文爱）的适用于任何bot的词库  
 [Ailitonia / omega-miya](https://github.com/Ailitonia/omega-miya) ：基于nonebot2的qq机器人  
-[KimigaiiWuyi / GenshinUID]("https://github.com/KimigaiiWuyi/GenshinUID") ：一个基于HoshinoBot/NoneBot2的原神UID查询插件
+[KimigaiiWuyi / GenshinUID](https://github.com/KimigaiiWuyi/GenshinUID) ：一个基于HoshinoBot/NoneBot2的原神UID查询插件

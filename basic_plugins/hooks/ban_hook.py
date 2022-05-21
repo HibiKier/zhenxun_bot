@@ -31,7 +31,7 @@ _flmt = FreqLimiter(300)
 async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
     if (
         (isinstance(event, MessageEvent) or isinstance(event, PokeNotifyEvent))
-        and matcher.priority not in [1, 9]
+        and matcher.priority not in [1, 999]
     ) or matcher.plugin_name in other_limit_plugins:
         try:
             if (
@@ -58,7 +58,7 @@ async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
                 if not static_flmt.check(event.user_id):
                     raise IgnoredException("用户处于黑名单中")
                 static_flmt.start_cd(event.user_id)
-                if matcher.priority != 9:
+                if matcher.priority != 999:
                     try:
                         ban_result = Config.get_config("hook", "BAN_RESULT")
                         if (
@@ -79,7 +79,7 @@ async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
                 if not static_flmt.check(event.user_id):
                     raise IgnoredException("用户处于黑名单中")
                 static_flmt.start_cd(event.user_id)
-                if matcher.priority != 9:
+                if matcher.priority != 999:
                     try:
                         ban_result = Config.get_config("hook", "BAN_RESULT")
                         if ban_result and matcher.plugin_name not in ignore_rst_module:

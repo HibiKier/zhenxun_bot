@@ -300,6 +300,8 @@ def get_country_data_image(world_data_dict: Dict) -> BuildImage:
     region = BuildImage(790, 267 * (len(world_data_dict) - 1), color="#F9F6F2")
     height = 0
     for country in ["蒙德", "龙脊雪山", "璃月", "层岩巨渊", "稻妻", "渊下宫"]:
+        if not world_data_dict.get(country):
+            continue
         x = BuildImage(790, 250, color="#3A4467")
         logo = BuildImage(180, 180, background=image_path / "logo" / f"{country}.png")
         tmp_bk = BuildImage(770, 230, color="#606779")
