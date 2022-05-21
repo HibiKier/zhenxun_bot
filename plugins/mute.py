@@ -161,5 +161,4 @@ async def _(event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Mes
     logger.info(
         f'USER {event.user_id} GROUP {group_id} {cmd[0]}：{msg}'
     )
-    print(mute_data)
     save_data()
