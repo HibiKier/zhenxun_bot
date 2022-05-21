@@ -6,9 +6,9 @@ authors = ["HibiKier <775757368@qq.com>"]
 license = "AGPL"
 
 [[tool.poetry.source]]
-name = "tsinghua"
+name = "ali"
 default = true
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+url = "https://mirrors.aliyun.com/pypi/simple/"
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -41,6 +41,8 @@ cn2an = "^0.5.16"
 python-jose = "^3.3.0"
 python-multipart = "^0.0.5"
 bilireq = "^0.1.2"
+emoji = "^1.7.0"
+wordcloud = "^1.8.1"
 
 [tool.poetry.dev-dependencies]
 
