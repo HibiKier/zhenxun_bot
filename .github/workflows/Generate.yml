@@ -21,17 +21,18 @@ jobs:
       - name: poetry lock
         run: |
           rm -f poetry.lock
-          sed -i "8,11d" pyproject.toml
+          sed -i.bak "8,11d" pyproject.toml
           poetry lock
+          mv pyproject.toml.bak pyproject.toml
       # commit
       - name: commit file
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add poetry.lock
-          git commit -m "${date}n: Auto generate poetry.lock" -a
+          git commit -m "Auto generate poetry.lock" -a
       # push 
       - name: push changes
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.ACCESS_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
