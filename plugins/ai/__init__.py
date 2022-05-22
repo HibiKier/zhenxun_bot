@@ -37,7 +37,7 @@ Config.add_plugin_config(
     "alapi", "ALAPI_TOKEN", None, help_="在 https://admin.alapi.cn/user/login 登录后获取token"
 )
 
-ai = on_message(rule=to_me(), priority=8)
+ai = on_message(rule=to_me(), priority=998)
 
 
 @ai.handle()

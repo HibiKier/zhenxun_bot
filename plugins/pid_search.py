@@ -1,7 +1,7 @@
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent, Message, GroupMessageEvent
 from nonebot.typing import T_State
-from utils.utils import is_number
+from utils.utils import is_number, change_pixiv_image_links
 from utils.message_builder import image
 from services.log import logger
 from asyncio.exceptions import TimeoutError
@@ -68,6 +68,8 @@ async def _g(event: MessageEvent, state: T_State, pid: str = Arg("pid")):
         except Exception as e:
             await pid_search.finish(f"发生了一些错误..{type(e)}：{e}")
         else:
+            if data.get("error"):
+                await pid_search.finish(data["error"]["user_message"], at_sender=True)
             data = data["illust"]
             if not data["width"] and not data["height"]:
                 await pid_search.finish(f"没有搜索到 PID：{pid} 的图片", at_sender=True)
@@ -82,6 +84,7 @@ async def _g(event: MessageEvent, state: T_State, pid: str = Arg("pid")):
                 for image_url in data["meta_pages"]:
                     image_list.append(image_url["image_urls"]["original"])
             for i, img_url in enumerate(image_list):
+                img_url = change_pixiv_image_links(img_url)
                 if not await AsyncHttpx.download_file(
                     img_url,
                     IMAGE_PATH / "temp" / f"pid_search_{event.user_id}_{i}.png",

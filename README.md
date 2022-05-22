@@ -238,6 +238,11 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/5/22
+
+* 使用action自动更新poetry.lock
+* fix(bilibili_sub): card is None and timeout
+
 ### 2022/5/21
 
 * 修复搜番无结果时报错无正确反馈
