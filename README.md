@@ -288,7 +288,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 * fix: 更改p搜api，解决p搜无法使用的问题 [@pull/155](https://github.com/HibiKier/zhenxun_bot/pull/155)
 
-### 2022/5/9
+### 2022/5/9 \[v0.1.5.3]
 
 * 替换了疫情API
 * 修复了私聊.ban/.unban出错
