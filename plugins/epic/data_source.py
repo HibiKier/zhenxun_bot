@@ -1,58 +1,34 @@
-from httpx import AsyncClient
 from datetime import datetime
 from nonebot.log import logger
 from nonebot.adapters.onebot.v11 import Bot
 from configs.config import NICKNAME
+from utils.http_utils import AsyncHttpx
 
 
 # 获取所有 Epic Game Store 促销游戏
 # 方法参考：RSSHub /epicgames 路由
 # https://github.com/DIYgod/RSSHub/blob/master/lib/routes/epicgames/index.js
 async def get_epic_game():
-    # 现在没用 graphql 辣
-    """prv_graphql Code
-    epic_url = "https://www.epicgames.com/store/backend/graphql-proxy"
-    headers = {
-        "Referer": "https://www.epicgames.com/store/zh-CN/",
-        "Content-Type": "application/json; charset=utf-8",
-    }
-    data = {
-        "query": "query searchStoreQuery($allowCountries: String, $category: String, $count: Int, $country: String!, $keywords: String, $locale: String, $namespace: String, $sortBy: String, $sortDir: String, $start: Int, $tag: String, $withPrice: Boolean = false, $withPromotions: Boolean = false) {\n Catalog {\n searchStore(allowCountries: $allowCountries, category: $category, count: $count, country: $country, keywords: $keywords, locale: $locale, namespace: $namespace, sortBy: $sortBy, sortDir: $sortDir, start: $start, tag: $tag) {\n elements {\n title\n id\n namespace\n description\n effectiveDate\n keyImages {\n type\n url\n }\n seller {\n id\n name\n }\n productSlug\n urlSlug\n url\n items {\n id\n namespace\n }\n customAttributes {\n key\n value\n }\n categories {\n path\n }\n price(country: $country) @include(if: $withPrice) {\n totalPrice {\n discountPrice\n originalPrice\n voucherDiscount\n discount\n currencyCode\n currencyInfo {\n decimals\n }\n fmtPrice(locale: $locale) {\n originalPrice\n discountPrice\n intermediatePrice\n }\n }\n lineOffers {\n appliedRules {\n id\n endDate\n discountSetting {\n discountType\n }\n }\n }\n }\n promotions(category: $category) @include(if: $withPromotions) {\n promotionalOffers {\n promotionalOffers {\n startDate\n endDate\n discountSetting {\n discountType\n discountPercentage\n }\n }\n }\n upcomingPromotionalOffers {\n promotionalOffers {\n startDate\n endDate\n discountSetting {\n discountType\n discountPercentage\n }\n }\n }\n }\n }\n paging {\n count\n total\n }\n }\n }\n}\n",
-        "variables": {
-            "allowCountries": "CN",
-            "category": "freegames",
-            "count": 1000,
-            "country": "CN",
-            "locale": "zh-CN",
-            "sortBy": "effectiveDate",
-            "sortDir": "asc",
-            "withPrice": True,
-            "withPromotions": True,
-        },
-    }
-    """
-
     epic_url = "https://store-site-backend-static-ipv4.ak.epicgames.com/freeGamesPromotions?locale=zh-CN&country=CN&allowCountries=CN"
     headers = {
         "Referer": "https://www.epicgames.com/store/zh-CN/",
         "Content-Type": "application/json; charset=utf-8",
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
     }
-    async with AsyncClient(headers=headers) as client:
-        try:
-            res = await client.get(epic_url, timeout=10.0)
-            res_json = res.json()
-            games = res_json["data"]["Catalog"]["searchStore"]["elements"]
-            return games
-        except Exception as e:
-            logger.error(str(e))
-            return None
+    try:
+        res = await AsyncHttpx.get(epic_url, headers=headers, timeout=10)
+        res_json = res.json()
+        games = res_json["data"]["Catalog"]["searchStore"]["elements"]
+        return games
+    except Exception as e:
+        logger.error(f"Epic 访问接口错误 {type(e)}：{e}")
+    return None
 
 
 # 获取 Epic Game Store 免费游戏信息
 # 处理免费游戏的信息方法借鉴 pip 包 epicstore_api 示例
 # https://github.com/SD4RK/epicstore_api/blob/master/examples/free_games_example.py
-async def get_epic_free(bot: Bot, Type_Event: str):
+async def get_epic_free(bot: Bot, type_event: str):
     games = await get_epic_game()
     if not games:
         return "Epic 可能又抽风啦，请稍后再试（", 404
@@ -81,7 +57,7 @@ async def get_epic_free(bot: Bot, Type_Event: str):
                     end_date = datetime.fromisoformat(end_date_iso).strftime(
                         "%b.%d %H:%M"
                     )
-                    if Type_Event == "Group":
+                    if type_event == "Group":
                         _message = "\n由 {} 公司发行的游戏 {} ({}) 在 UTC 时间 {} 即将推出免费游玩，预计截至 {}。".format(
                             game_corp, game_name, game_price, start_date, end_date
                         )
@@ -101,8 +77,19 @@ async def get_epic_free(bot: Bot, Type_Event: str):
                         msg_list.append(msg)
                 else:
                     for image in game["keyImages"]:
-                        if image["type"] == "Thumbnail":
+                        if (
+                            image.get("url")
+                            and not game_thumbnail
+                            and image["type"]
+                            in [
+                                "Thumbnail",
+                                "VaultOpened",
+                                "DieselStoreFrontWide",
+                                "OfferImageWide",
+                            ]
+                        ):
                             game_thumbnail = image["url"]
+                            break
                     for pair in game["customAttributes"]:
                         if pair["key"] == "developerName":
                             game_dev = pair["value"]
@@ -127,7 +114,7 @@ async def get_epic_free(bot: Bot, Type_Event: str):
                     game_url = "https://www.epicgames.com/store/zh-CN/p/{}".format(
                         game_url_part
                     )
-                    if Type_Event == "Group":
+                    if type_event == "Group":
                         _message = "[CQ:image,file={}]\n\nFREE now :: {} ({})\n{}\n此游戏由 {} 开发、{} 发行，将在 UTC 时间 {} 结束免费游玩，戳链接速度加入你的游戏库吧~\n{}\n".format(
                             game_thumbnail,
                             game_name,

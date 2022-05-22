@@ -1,6 +1,8 @@
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent, Message, GroupMessageEvent
 from nonebot.typing import T_State
+
+from configs.config import Config
 from utils.utils import is_number, change_pixiv_image_links
 from utils.message_builder import image
 from services.log import logger
@@ -31,8 +33,6 @@ __plugin_settings__ = {
 
 pid_search = on_command("p搜", aliases={"pixiv搜", "P搜"}, priority=5, block=True)
 
-url = "https://api.obfs.dev/api/pixiv/"
-
 
 @pid_search.handle()
 async def _h(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
@@ -50,6 +50,7 @@ headers = {
 
 @pid_search.got("pid", prompt="需要查询的图片PID是？")
 async def _g(event: MessageEvent, state: T_State, pid: str = Arg("pid")):
+    url = Config.get_config("hibiapi", "HIBIAPI") + "/api/pixiv/"
     if pid in ["取消", "算了"]:
         await pid_search.finish("已取消操作...")
     if not is_number(pid):

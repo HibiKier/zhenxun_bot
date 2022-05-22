@@ -240,8 +240,9 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ### 2022/5/22
 
-* 使用action自动更新poetry.lock
-* fix(bilibili_sub): card is None and timeout
+* 使用action自动更新poetry.lock [@pull/515](https://github.com/HibiKier/zhenxun_bot/pull/515)
+* fix(bilibili_sub): card is None and timeout [@pull/516](https://github.com/HibiKier/zhenxun_bot/pull/516)
+* 修复了epic有时获取新免费游戏消息时获取不到图片
 
 ### 2022/5/21
 
