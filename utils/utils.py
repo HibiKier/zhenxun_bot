@@ -1,7 +1,7 @@
 from datetime import datetime
 from collections import defaultdict
 from nonebot import require
-from configs.config import SYSTEM_PROXY
+from configs.config import SYSTEM_PROXY, Config
 from typing import List, Union, Optional, Type, Any
 from nonebot.adapters.onebot.v11 import Bot, Message
 from nonebot.matcher import matchers, Matcher
@@ -389,6 +389,8 @@ def change_pixiv_image_links(
         url = img_sp[0]
         img_type = img_sp[1]
         url = url.replace("original", "master") + f"_master1200.{img_type}"
+    if not nginx_url:
+        nginx_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
     if nginx_url:
         url = (
             url.replace("i.pximg.net", nginx_url)

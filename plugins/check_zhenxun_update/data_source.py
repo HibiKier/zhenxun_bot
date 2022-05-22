@@ -14,9 +14,9 @@ import tarfile
 import shutil
 import os
 
-if str(platform.system()).lower() == "windows":
-    policy = asyncio.WindowsSelectorEventLoopPolicy()
-    asyncio.set_event_loop_policy(policy)
+# if str(platform.system()).lower() == "windows":
+#     policy = asyncio.WindowsSelectorEventLoopPolicy()
+#     asyncio.set_event_loop_policy(policy)
 
 
 driver = nonebot.get_driver()

@@ -3,10 +3,10 @@ from configs.config import Config
 from bs4 import BeautifulSoup
 import platform
 
-if platform.system() == "Windows":
-    import asyncio
-
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+# if platform.system() == "Windows":
+#     import asyncio
+#
+#     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 url = "http://www.eclzz.mobi"
