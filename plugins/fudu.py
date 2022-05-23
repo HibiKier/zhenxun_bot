@@ -1,5 +1,5 @@
 from nonebot.adapters.onebot.v11.permission import GROUP
-from configs.path_config import TEMP_PATH
+from configs.path_config import IMAGE_PATH
 from utils.image_utils import get_img_hash
 import random
 from utils.message_builder import image
@@ -106,7 +106,10 @@ async def _(event: GroupMessageEvent):
             "fudu", "FUDU_PROBABILITY"
         ) and not _fudu_list.is_repeater(event.group_id):
             if random.random() < 0.2:
-                await fudu.finish("[[_task|fudu]]打断施法！")
+                if msg.endswith("打断施法！"):
+                    await fudu.finish("[[_task|fudu]]打断" + msg)        
+                else:
+                    await fudu.finish("[[_task|fudu]]打断施法！")
             _fudu_list.set_repeater(event.group_id)
             if img and msg:
                 rst = msg + image(f"compare_{event.group_id}_img.jpg", "temp")
@@ -117,17 +120,15 @@ async def _(event: GroupMessageEvent):
             else:
                 rst = ""
             if rst:
-                if rst.endswith("打断施法！"):
-                    rst = "打断" + rst
-                await fudu.send("[[_task|fudu]]" + rst)
+                await fudu.finish("[[_task|fudu]]" + rst)
 
 
 async def get_fudu_img_hash(url, group_id):
     try:
         if await AsyncHttpx.download_file(
-            url, TEMP_PATH / f"compare_{group_id}_img.jpg"
+            url, IMAGE_PATH / "temp" / f"compare_{group_id}_img.jpg"
         ):
-            img_hash = get_img_hash(TEMP_PATH / f"compare_{group_id}_img.jpg")
+            img_hash = get_img_hash(IMAGE_PATH / "temp" / f"compare_{group_id}_img.jpg")
             return str(img_hash)
         else:
             logger.warning(f"复读下载图片失败...")
