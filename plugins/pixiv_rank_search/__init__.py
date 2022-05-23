@@ -163,7 +163,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     info_list = None
     num = 10
     page = 1
-    if (n := len(msg)) >= 1:
+    if (n := len(msg)) > 0:
         keyword = msg[0].replace("#"," ")
     if n > 1:
         if not is_number(msg[1]):
