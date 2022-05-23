@@ -10,6 +10,7 @@ from services.log import logger
 
 class Check:
     def __init__(self):
+        self.disklist = None
         self.cpu = None
         self.memory = None
         self.disk = None
@@ -23,10 +24,21 @@ class Check:
         self.check_system()
         self.check_user()
 
+    def get_disk_list(self):
+        self.disklist = []  # 先定义一个空的列表，用于追加磁盘符
+        for i in psutil.disk_partitions():
+            self.disklist.append(i.device)  # i.device为磁盘符，并加入磁盘列表
+
     def check_system(self):
         self.cpu = psutil.cpu_percent()
         self.memory = psutil.virtual_memory().percent
-        self.disk = psutil.disk_usage("/").percent
+        self.get_disk_list()
+        disk_all = 0
+        disk_usage_all = 0
+        for i in self.disklist:
+            disk_all += psutil.disk_usage(i).total / 1024 / 1024
+            disk_usage_all += psutil.disk_usage(i).used
+        self.disk = int(disk_usage_all / disk_all * 100)
 
     async def check_network(self):
         try:
