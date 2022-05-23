@@ -238,7 +238,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
-### 2022/5/23 \[v1.5.6]
+### 2022/5/23 \[v0.1.5.6]
 
 * 修复"清除已删除插件数据" [@pull/545](https://github.com/HibiKier/zhenxun_bot/pull/545)
 * 修复有置顶的up主B站动态获取失败 [@pull/552](https://github.com/HibiKier/zhenxun_bot/pull/552)
