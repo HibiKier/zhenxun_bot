@@ -330,7 +330,7 @@ async def get_user_dynamic(
                     """
                     xs = document.getElementsByClassName('bili-dyn-item__tag');
                     for (x of xs) {
-                      x.parentNode.remove();
+                      x.parentNode.parentNode.remove();
                     }
                 """
                 )
