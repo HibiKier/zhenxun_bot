@@ -47,26 +47,17 @@ class Plugins2settingsManager(StaticData):
         :param plugin_type: 插件类型
         :param cost_gold: 需要消费的金币
         """
-        if kwargs:
-            level = kwargs.get("level") if kwargs.get("level") is not None else 5
-            default_status = (
-                kwargs.get("default_status")
-                if kwargs.get("default_status") is not None
-                else True
-            )
-            limit_superuser = (
-                kwargs.get("limit_superuser")
-                if kwargs.get("limit_superuser") is not None
-                else False
-            )
-            cmd = kwargs.get("cmd") if kwargs.get("cmd") is not None else []
-            cost_gold = cost_gold if kwargs.get("cost_gold") else 0
+        level = level or 5
+        cmd = cmd or []
+        cost_gold = cost_gold or 0
         self._data[plugin] = {
             "level": level if level is not None else 5,
             "default_status": default_status if default_status is not None else True,
-            "limit_superuser": limit_superuser
-            if limit_superuser is not None
-            else False,
+            "limit_superuser": (
+                limit_superuser
+                if limit_superuser is not None
+                else False
+            ),
             "cmd": cmd,
             "plugin_type": list(
                 plugin_type if plugin_type is not None else ("normal",)
