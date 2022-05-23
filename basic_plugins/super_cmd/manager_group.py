@@ -92,7 +92,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     level = 0
     if not msg:
         await add_group_level.finish("用法：修改群权限 [group] [level]")
-    msg = msg.split(" ")
+    msg = msg.split()
     if len(msg) < 2:
         await add_group_level.finish("参数不完全..[group] [level]")
     if is_number(msg[0]) and is_number(msg[1]):

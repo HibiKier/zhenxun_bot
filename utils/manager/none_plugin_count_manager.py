@@ -4,7 +4,6 @@ from pathlib import Path
 
 
 class NonePluginCountManager(StaticData):
-
     """
     插件加载容忍管理器，当连续 max_count 次插件加载，视为删除插件，清楚数据
     """
@@ -15,6 +14,8 @@ class NonePluginCountManager(StaticData):
         :param max_count: 容忍最大次数
         """
         super().__init__(file)
+        if not self._data:
+            self._data = {}
         self._max_count = max_count
 
     def add_count(self, module: str, count: int = 1):
@@ -42,10 +43,5 @@ class NonePluginCountManager(StaticData):
         :param module: 模块
         """
         if module in self._data.keys():
-            return self._data.keys() > self._max_count
+            return self._data[module] >= self._max_count
         return False
-
-
-
-
-
