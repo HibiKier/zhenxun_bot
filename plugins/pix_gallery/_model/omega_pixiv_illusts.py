@@ -139,15 +139,14 @@ class OmegaPixivIllusts(db.Model):
         data = await cls.select('pid').gino.all()
         return [x[0] for x in data]
 
-    @classmethod
-    async def test(cls, nsfw_tag: int = 1):
-        if nsfw_tag is not None:
-            query = cls.query.where(cls.nsfw_tag == nsfw_tag)
-        else:
-            query = cls.query
-        query = query.where((cls.width - cls.height) < 50)
-        for x in await query.gino.all():
-            print(x.pid)
+    # async def test(cls, nsfw_tag: int = 1):
+    #     if nsfw_tag is not None:
+    #         query = cls.query.where(cls.nsfw_tag == nsfw_tag)
+    #     else:
+    #         query = cls.query
+    #     query = query.where((cls.width - cls.height) < 50)
+    #     for x in await query.gino.all():
+    #         print(x.pid)
 
 
 

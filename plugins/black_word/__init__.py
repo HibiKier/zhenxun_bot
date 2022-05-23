@@ -241,7 +241,6 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     uid = int(msg[0])
     id_ = int(msg[1])
     punish_level = int(msg[2])
-    print(uid, id_, punish_level)
     rst = await set_user_punish(uid, id_, punish_level)
     await set_punish.send(rst)
     logger.info(

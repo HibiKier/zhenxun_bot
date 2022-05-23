@@ -11,12 +11,13 @@ class ChatHistory(db.Model):
     user_qq = db.Column(db.BigInteger(), nullable=False)
     group_id = db.Column(db.BigInteger())
     text = db.Column(db.Text())
+    plain_text = db.Column(db.Text())
     create_time = db.Column(db.DateTime(timezone=True), nullable=False)
 
     @classmethod
-    async def add_chat_msg(cls, user_qq: int, group_id: Optional[int], text: str):
+    async def add_chat_msg(cls, user_qq: int, group_id: Optional[int], text: str, plain_text: str):
         await cls.create(
-            user_qq=user_qq, group_id=group_id, text=text, create_time=datetime.now()
+            user_qq=user_qq, group_id=group_id, text=text, plain_text=plain_text, create_time=datetime.now()
         )
 
     @classmethod
@@ -97,7 +98,6 @@ class ChatHistory(db.Model):
         if date_scope:
             sql += f"AND create_time BETWEEN '{date_scope[0]}' AND '{date_scope[1]}' "
         sql += f"GROUP BY user_qq ORDER BY sum {order if order and order.upper() != 'DES' else ''} LIMIT {limit}"
-        print(sql)
         return await db.all(db.text(sql))
 
     @classmethod

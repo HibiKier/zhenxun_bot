@@ -97,6 +97,7 @@ __plugin_configs__ = {
     },
     "TIMEOUT": {"value": 10, "help": "色图下载超时限制(秒)", "default_value": 10},
     "SHOW_INFO": {"value": True, "help": "是否显示色图的基本信息，如PID等", "default_value": True},
+    "ALLOW_GROUP_R18": {"value": False, "help": "在群聊中启用R18权限", "default_value": False},
 }
 Config.add_plugin_config("pixiv", "PIXIV_NGINX_URL", "i.pixiv.re", help_="Pixiv反向代理")
 
@@ -148,10 +149,16 @@ async def _(
     if cmd[0] == "色图r" and isinstance(event, PrivateMessageEvent):
         r18 = 1
         num = 10
-    elif cmd[0] == "色图r" and isinstance(event, GroupMessageEvent):
-        await setu.finish(
-            random.choice(["这种不好意思的东西怎么可能给这么多人看啦", "羞羞脸！给我滚出克私聊！", "变态变态变态变态大变态！"])
-        )
+    elif (
+        cmd[0] == "色图r"
+        and isinstance(event, GroupMessageEvent)
+    ):
+        if not Config.get_config("send_setu", "ALLOW_GROUP_R18"):
+            await setu.finish(
+                random.choice(["这种不好意思的东西怎么可能给这么多人看啦", "羞羞脸！给我滚出克私聊！", "变态变态变态变态大变态！"])
+            )
+        else:
+            r18 = 1
     # 有 数字 的话先尝试本地色图id
     if msg and is_number(msg):
         setu_list, code = await get_setu_list(int(msg), r18=r18)

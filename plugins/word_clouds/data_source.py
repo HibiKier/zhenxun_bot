@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from io import BytesIO
 from configs.path_config import IMAGE_PATH, FONT_PATH
+from services import logger
 from utils.http_utils import AsyncHttpx
 from models.chat_history import ChatHistory
 from configs.config import Config
@@ -19,10 +20,11 @@ from configs.config import Config
 
 async def pre_precess(msg: List[str], config) -> str:
     return await asyncio.get_event_loop().run_in_executor(
-        None, _pre_precess, msg,config)
+        None, _pre_precess, msg, config
+    )
 
 
-def _pre_precess(msg: List[str],config) -> str:
+def _pre_precess(msg: List[str], config) -> str:
     """对消息进行预处理"""
     # 过滤掉命令
     command_start = tuple([i for i in config.command_start if i])
@@ -46,7 +48,6 @@ def _pre_precess(msg: List[str],config) -> str:
     return msg
 
 
-
 async def draw_word_cloud(messages, config):
     wordcloud_dir = IMAGE_PATH / "wordcloud"
     wordcloud_dir.mkdir(exist_ok=True, parents=True)
@@ -57,19 +58,21 @@ async def draw_word_cloud(messages, config):
         url = "https://ghproxy.com/https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/resources/image/wordcloud/default.png"
         try:
             await AsyncHttpx.download_file(url, zx_logo_path)
-        except:
+        except Exception as e:
+            logger.error(f"词云图片资源下载发生错误 {type(e)}：{e}")
             return False
     if not wordcloud_ttf.exists():
-        ttf_url = 'https://ghproxy.com/https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/resources/font/STKAITI.TTF'
+        ttf_url = "https://ghproxy.com/https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/resources/font/STKAITI.TTF"
         try:
             await AsyncHttpx.download_file(ttf_url, wordcloud_ttf)
-        except:
+        except Exception as e:
+            logger.error(f"词云字体资源下载发生错误 {type(e)}：{e}")
             return False
 
     topK = min(int(len(messages)), 100000)
-    read_name = jieba.analyse.extract_tags(await pre_precess(messages, config), topK=topK,
-                                           withWeight=True,
-                                           allowPOS=())
+    read_name = jieba.analyse.extract_tags(
+        await pre_precess(messages, config), topK=topK, withWeight=True, allowPOS=()
+    )
     name = []
     value = []
     for t in read_name:
@@ -79,10 +82,11 @@ async def draw_word_cloud(messages, config):
         name[i] = str(name[i])
     dic = dict(zip(name, value))
     if Config.get_config("word_clouds", "WORD_CLOUDS_TEMPLATE") == 1:
+
         def random_pic(base_path: str) -> str:
             path_dir = os.listdir(base_path)
             path = random.sample(path_dir, 1)[0]
-            return (str(base_path) + "/" + str(path))
+            return str(base_path) + "/" + str(path)
 
         mask = np.array(IMG.open(random_pic(wordcloud_dir)))
         wc = WordCloud(
@@ -113,7 +117,11 @@ async def draw_word_cloud(messages, config):
 
 
 async def get_list_msg(user_id, group_id, days):
-    messages_list = await ChatHistory()._get_msg(uid=user_id, gid=group_id, type_="group", days=days).gino.all()
+    messages_list = (
+        await ChatHistory()
+        ._get_msg(uid=user_id, gid=group_id, type_="group", days=days)
+        .gino.all()
+    )
     if messages_list:
         messages = [i.text for i in messages_list]
         return messages
