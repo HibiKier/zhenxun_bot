@@ -238,9 +238,16 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
-### 2022/5/23
+### 2022/5/23 \[v0.1.5.6]
 
 * 修复"清除已删除插件数据" [@pull/545](https://github.com/HibiKier/zhenxun_bot/pull/545)
+* 修复有置顶的up主B站动态获取失败 [@pull/552](https://github.com/HibiKier/zhenxun_bot/pull/552)
+* 添加pixiv搜图多关键词支持;修复p站搜图数量参数问题 [@pull/441](https://github.com/HibiKier/zhenxun_bot/pull/441)
+* 修复开箱更新价格错误传参
+* 修复pix无法正确查询uid
+* 新增色图插件添加配置项ALLOW_GROUP_R18：允许群聊中使用色图r
+* 新增PIX插件添加配置项ALLOW_GROUP_SETU：允许非超级用户使用-s参数
+* 新增PIX插件添加配置项ALLOW_GROUP_R18：允许非超级用户使用-r参数
 
 ### 2022/5/22 \[v0.1.5.4]
 
