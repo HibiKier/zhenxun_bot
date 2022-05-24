@@ -42,9 +42,9 @@ python-multipart = "^0.0.5"
 bilireq = "^0.1.2"
 emoji = "^1.7.0"
 wordcloud = "^1.8.1"
+rich = "^12.4.3"
 
 [tool.poetry.dev-dependencies]
-rich = "^12.4.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
