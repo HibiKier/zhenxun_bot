@@ -68,7 +68,6 @@ class BlackWord(db.Model):
             user = await query.where(cls.black_word == black_word).order_by(cls.id.desc()).gino.first()
         elif id_:
             user_list = await query.gino.all()
-            print(len(user_list))
             if len(user_list) == 0 or (id_ < 0 or id_ > len(user_list)):
                 return False
             user = user_list[id_]

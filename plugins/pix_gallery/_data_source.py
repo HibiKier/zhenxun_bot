@@ -20,9 +20,9 @@ try:
 except ModuleNotFoundError:
     import json
 
-if str(platform.system()).lower() == "windows":
-    policy = asyncio.WindowsSelectorEventLoopPolicy()
-    asyncio.set_event_loop_policy(policy)
+# if str(platform.system()).lower() == "windows":
+#     policy = asyncio.WindowsSelectorEventLoopPolicy()
+#     asyncio.set_event_loop_policy(policy)
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6;"

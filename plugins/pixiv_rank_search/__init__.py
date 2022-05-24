@@ -44,6 +44,8 @@ usage：
             搜图 樱岛麻衣
             搜图 樱岛麻衣 5
             搜图 樱岛麻衣 5 r18
+            搜图 樱岛麻衣#1000users 5
+        【多个关键词用#分割】
         【默认为 热度排序】
         【注意空格！！】【在线搜索会较慢】【数量可能不符？可能该页数量不够，也可能被R-18屏蔽】
 """.strip()
@@ -161,8 +163,8 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     info_list = None
     num = 10
     page = 1
-    if (n := len(msg)) == 1:
-        keyword = msg[0]
+    if (n := len(msg)) > 0:
+        keyword = msg[0].replace("#"," ")
     if n > 1:
         if not is_number(msg[1]):
             await pixiv_keyword.finish("图片数量必须是数字！", at_sender=True)

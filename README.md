@@ -238,6 +238,34 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/5/24
+
+* fix: 修正了签到时日期时间的显示不补齐零的bug （符合日期时间表示法 ISO 8601）[@pull/600](https://github.com/HibiKier/zhenxun_bot/pull/600)
+* 更新"微博热搜"接口 [@pull/579](https://github.com/HibiKier/zhenxun_bot/pull/579)
+* refactor&fix(manager): modify argument [@pull/576](https://github.com/HibiKier/zhenxun_bot/pull/576)
+* 修复复读不能复读图片的问题 [@pull/573](https://github.com/HibiKier/zhenxun_bot/pull/573)
+* 修复抽卡插件：方舟抽卡的抽取和显示问题 [@pull/581](https://github.com/HibiKier/zhenxun_bot/pull/581)
+
+### 2022/5/23 \[v0.1.5.6]
+
+* 修复"清除已删除插件数据" [@pull/545](https://github.com/HibiKier/zhenxun_bot/pull/545)
+* 修复有置顶的up主B站动态获取失败 [@pull/552](https://github.com/HibiKier/zhenxun_bot/pull/552)
+* 添加pixiv搜图多关键词支持;修复p站搜图数量参数问题 [@pull/441](https://github.com/HibiKier/zhenxun_bot/pull/441)
+* 修复开箱更新价格错误传参
+* 修复pix无法正确查询uid
+* 新增色图插件添加配置项ALLOW_GROUP_R18：允许群聊中使用色图r
+* 新增PIX插件添加配置项ALLOW_GROUP_SETU：允许非超级用户使用-s参数
+* 新增PIX插件添加配置项ALLOW_GROUP_R18：允许非超级用户使用-r参数
+
+### 2022/5/22 \[v0.1.5.4]
+
+* 使用action自动更新poetry.lock [@pull/515](https://github.com/HibiKier/zhenxun_bot/pull/515)
+* fix(bilibili_sub): card is None and timeout [@pull/516](https://github.com/HibiKier/zhenxun_bot/pull/516)
+* 修复了epic有时获取新免费游戏消息时获取不到图片
+* 修复好感度满时签到出错（虽然是不可能满的
+* 修复原神资源图标下载路径错误
+* 修复自动更新群组可能失败
+
 ### 2022/5/21
 
 * 修复搜番无结果时报错无正确反馈
@@ -279,7 +307,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 * fix: 更改p搜api，解决p搜无法使用的问题 [@pull/155](https://github.com/HibiKier/zhenxun_bot/pull/155)
 
-### 2022/5/9
+### 2022/5/9 \[v0.1.5.3]
 
 * 替换了疫情API
 * 修复了私聊.ban/.unban出错

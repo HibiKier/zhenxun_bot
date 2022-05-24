@@ -5,8 +5,8 @@ import asyncio
 import platform
 import os
 
-if platform.system() == "Windows":
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+# if platform.system() == "Windows":
+#     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 url = "https://github.com/Mrs4s/go-cqhttp/releases"

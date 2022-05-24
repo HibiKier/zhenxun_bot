@@ -45,6 +45,7 @@ async def _():
             group_info["group_name"],
             group_info["max_member_count"],
             group_info["member_count"],
+            1
         ):
             num += 1
             logger.info(f"自动更新群组 {g} 信息成功")

@@ -324,21 +324,21 @@ async def get_user_dynamic(
                     wait_until="networkidle",
                     timeout=10000,
                 )
-                await page.set_viewport_size({"width": 2560, "height": 1080})
+                await page.set_viewport_size({"width": 2560, "height": 1080, "timeout": 10000*20}) # timeout: 200s
                 # 删除置顶
                 await page.evaluate(
                     """
                     xs = document.getElementsByClassName('bili-dyn-item__tag');
                     for (x of xs) {
-                      x.parentNode.remove();
+                      x.parentNode.parentNode.remove();
                     }
                 """
                 )
-                card = await page.query_selector(".bili-dyn-list__item")
+                card = page.locator(".bili-dyn-list__item").first
+                await card.wait_for()
                 # 截图并保存
                 await card.screenshot(
                     path=dynamic_path / f"{local_user.sub_id}_{dynamic_upload_time}.jpg",
-                    timeout=100000,
                 )
             except Exception as e:
                 logger.error(f"B站订阅：获取用户动态 发送错误 {type(e)}：{e}")

@@ -34,7 +34,7 @@ class Plugins2cdManager(StaticData):
         check_type: Optional[str] = "all",
         limit_type: Optional[str] = "user",
         rst: Optional[str] = None,
-        data_dict: Optional[dict] = None,
+        **kwargs  # 用于接收额外实参
     ):
         """
         添加插件调用 cd 限制
@@ -44,18 +44,11 @@ class Plugins2cdManager(StaticData):
         :param check_type: 检查类型 'private'/'group'/'all'，限制私聊/群聊/全部
         :param limit_type: 限制类型 监听对象，以user_id或group_id作为键来限制，'user'：用户id，'group'：群id
         :param rst: 回复的话，为空则不回复
-        :param data_dict: 封装好的字典数据
         """
-        if data_dict:
-            cd = data_dict.get("cd")
-            status = data_dict.get("status")
-            check_type = data_dict.get("check_type")
-            limit_type = data_dict.get("limit_type")
-            rst = data_dict.get("rst")
-            cd = cd if cd is not None else 5
-            status = status if status is not None else True
-            check_type = check_type if check_type else "all"
-            limit_type = limit_type if limit_type else "user"
+        cd = cd or 5
+        status = status or True
+        check_type = check_type or "all"
+        limit_type = limit_type or "user"
         if check_type not in ["all", "group", "private"]:
             raise ValueError(
                 f"{plugin} 添加cd限制错误，‘check_type‘ 必须为 'private'/'group'/'all'"

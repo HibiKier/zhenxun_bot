@@ -106,20 +106,21 @@ async def _(event: GroupMessageEvent):
             "fudu", "FUDU_PROBABILITY"
         ) and not _fudu_list.is_repeater(event.group_id):
             if random.random() < 0.2:
-                await fudu.finish("[[_task|fudu]]打断施法！")
+                if msg.endswith("打断施法！"):
+                    await fudu.finish("[[_task|fudu]]打断" + msg)        
+                else:
+                    await fudu.finish("[[_task|fudu]]打断施法！")
             _fudu_list.set_repeater(event.group_id)
             if img and msg:
-                rst = msg + image(f"compare_{event.group_id}_img.jpg", "temp")
+                rst = msg + image(TEMP_PATH / f"compare_{event.group_id}_img.jpg")
             elif img:
-                rst = image(f"compare_{event.group_id}_img.jpg", "temp")
+                rst = image(TEMP_PATH / f"compare_{event.group_id}_img.jpg")
             elif msg:
                 rst = msg
             else:
                 rst = ""
             if rst:
-                if rst.endswith("打断施法！"):
-                    rst = "打断" + rst
-                await fudu.send("[[_task|fudu]]" + rst)
+                await fudu.finish("[[_task|fudu]]" + rst)
 
 
 async def get_fudu_img_hash(url, group_id):
