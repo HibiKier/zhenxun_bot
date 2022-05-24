@@ -1,5 +1,5 @@
 from nonebot.adapters.onebot.v11.permission import GROUP
-from configs.path_config import IMAGE_PATH
+from configs.path_config import TEMP_PATH
 from utils.image_utils import get_img_hash
 import random
 from utils.message_builder import image
@@ -112,9 +112,9 @@ async def _(event: GroupMessageEvent):
                     await fudu.finish("[[_task|fudu]]打断施法！")
             _fudu_list.set_repeater(event.group_id)
             if img and msg:
-                rst = msg + image(f"compare_{event.group_id}_img.jpg", "temp")
+                rst = msg + image(TEMP_PATH / f"compare_{event.group_id}_img.jpg")
             elif img:
-                rst = image(f"compare_{event.group_id}_img.jpg", "temp")
+                rst = image(TEMP_PATH / f"compare_{event.group_id}_img.jpg")
             elif msg:
                 rst = msg
             else:
@@ -126,9 +126,9 @@ async def _(event: GroupMessageEvent):
 async def get_fudu_img_hash(url, group_id):
     try:
         if await AsyncHttpx.download_file(
-            url, IMAGE_PATH / "temp" / f"compare_{group_id}_img.jpg"
+            url, TEMP_PATH / f"compare_{group_id}_img.jpg"
         ):
-            img_hash = get_img_hash(IMAGE_PATH / "temp" / f"compare_{group_id}_img.jpg")
+            img_hash = get_img_hash(TEMP_PATH / f"compare_{group_id}_img.jpg")
             return str(img_hash)
         else:
             logger.warning(f"复读下载图片失败...")
