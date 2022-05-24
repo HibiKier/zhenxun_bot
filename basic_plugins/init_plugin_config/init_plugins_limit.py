@@ -28,7 +28,7 @@ def init_plugins_cd_limit(data_path):
                 _module = _plugin.module
                 plugin_cd_limit = _module.__getattribute__("__plugin_cd_limit__")
                 plugins2cd_manager.add_cd_limit(
-                    matcher.plugin_name, data_dict=plugin_cd_limit
+                    matcher.plugin_name, **plugin_cd_limit
                 )
             except AttributeError:
                 pass
@@ -76,7 +76,7 @@ def init_plugins_block_limit(data_path):
                 _module = _plugin.module
                 plugin_block_limit = _module.__getattribute__("__plugin_block_limit__")
                 plugins2block_manager.add_block_limit(
-                    matcher.plugin_name, data_dict=plugin_block_limit
+                    matcher.plugin_name, **plugin_block_limit
                 )
             except AttributeError:
                 pass
@@ -124,7 +124,7 @@ def init_plugins_count_limit(data_path):
                 _module = _plugin.module
                 plugin_count_limit = _module.__getattribute__("__plugin_count_limit__")
                 plugins2count_manager.add_count_limit(
-                    matcher.plugin_name, data_dict=plugin_count_limit
+                    matcher.plugin_name, **plugin_count_limit
                 )
             except AttributeError:
                 pass
