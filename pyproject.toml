@@ -44,6 +44,7 @@ emoji = "^1.7.0"
 wordcloud = "^1.8.1"
 
 [tool.poetry.dev-dependencies]
+rich = "^12.4.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
