@@ -24,6 +24,8 @@ from io import BytesIO
 import asyncio
 import random
 import nonebot
+import time
+import locale
 import os
 
 
@@ -260,15 +262,12 @@ def _generate_card(
         today_data.text((0, 25), f"金币 + {gold}")
         _type = "sign"
     current_date = datetime.now()
-    week = current_date.isoweekday()
+    current_datetime_str = current_date.strftime("%Y-%m-%d %a %H:%M:%S")
     data = current_date.date()
-    hour = current_date.hour
-    minute = current_date.minute
-    second = current_date.second
     data_img = BuildImage(
         0,
         0,
-        plain_text=f"时间：{data} {weekdays[week]} {hour}:{minute}:{second}",
+        plain_text=f"时间：{current_datetime_str}",
         color=(255, 255, 255, 0),
         font_size=20,
     )
