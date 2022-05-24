@@ -19,7 +19,7 @@ except ModuleNotFoundError:
     import json
 
 from .base_handle import BaseHandle, BaseData, UpChar, UpEvent
-from ..config import draw_config
+from ..config import draw_config, DRAW_PATH
 from ..util import remove_prohibited_str, cn2py, load_font
 from utils.image_utils import BuildImage
 
@@ -106,8 +106,6 @@ class PrtsHandle(BaseHandle[Operator]):
 
     async def draw(self, count: int, **kwargs) -> Message:
         return await asyncio.get_event_loop().run_in_executor(None, self._draw, count)
-    
-    
 
     def _draw(self, count: int, **kwargs) -> Message:
         index2card = self.get_cards(count)
@@ -164,8 +162,9 @@ class PrtsHandle(BaseHandle[Operator]):
 
     def load_up_char(self):
         try:
-            data = self.load_data(f"draw_card_up/{self.game_name}_up_char.json")
-            self.UP_EVENT = UpEvent.parse_obj(data.get("char", {}))
+            if (DRAW_PATH / "draw_card_up" / f"{self.game_name}_up_char.json").exists():
+                data = self.load_data(f"draw_card_up/{self.game_name}_up_char.json")
+                self.UP_EVENT = UpEvent.parse_obj(data.get("char", {}))
         except ValidationError:
             logger.warning(f"{self.game_name}_up_char 解析出错")
 
