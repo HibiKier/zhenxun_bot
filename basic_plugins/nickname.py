@@ -24,7 +24,7 @@ __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_configs__ = {
     "BLACK_WORD": {
-        "value": ["爸", "爹", "爷"],
+        "value": ["爸", "爹", "爷", "父亲"],
         "help": "昵称所屏蔽的关键词，会被替换为 *",
         "default_value": None
     }
@@ -73,7 +73,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
                         f"好啦好啦，我知道啦，{msg}，以后就这么叫你吧",
                         f"嗯嗯，{NICKNAME}记住你的昵称了哦，{msg}",
                         f"好突然，突然要叫你昵称什么的...{msg}..",
-                        f"{NICKNAME}会好好记住的{msg}的，放心吧",
+                        f"{NICKNAME}会好好记住{msg}的，放心吧",
                         f"好..好.，那窝以后就叫你{msg}了.",
                     ]
                 )
@@ -90,7 +90,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
                         f"好啦好啦，我知道啦，{msg}，以后就这么叫你吧",
                         f"嗯嗯，{NICKNAME}记住你的昵称了哦，{msg}",
                         f"好突然，突然要叫你昵称什么的...{msg}..",
-                        f"{NICKNAME}会好好记住的{msg}的，放心吧",
+                        f"{NICKNAME}会好好记住{msg}的，放心吧",
                         f"好..好.，那窝以后就叫你{msg}了.",
                     ]
                 )

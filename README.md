@@ -18,6 +18,11 @@
 ## 声明
 此项目仅用于学习交流，请勿用于非法用途
 
+# Nonebot2
+<img style="height: 200px;width: 200px;" src="https://camo.githubusercontent.com/0ef71e86056da694c540790aa4a4e314396884d6c4fdb95362a7538b27a1b034/68747470733a2f2f76322e6e6f6e65626f742e6465762f6c6f676f2e706e67">
+
+非常 [ **[NICE](https://github.com/nonebot/nonebot2)** ] 的OneBot框架
+
 ## 未完成的文档
 
 # [传送门](https://hibikier.github.io/zhenxun_bot/)
@@ -237,6 +242,10 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 
 ## 更新
+
+### 2022/5/25
+
+* 修复webui中CountLimit字段limit_type类型错误
 
 ### 2022/5/24
 

@@ -23,6 +23,7 @@ from .handles.onmyoji_handle import OnmyojiHandle
 from .handles.pcr_handle import PcrHandle
 from .handles.pretty_handle import PrettyHandle
 from .handles.prts_handle import PrtsHandle
+from .handles.ba_handle import BaHandle
 
 from .config import draw_config
 
@@ -30,7 +31,7 @@ from .config import draw_config
 __zx_plugin_name__ = "游戏抽卡"
 __plugin_usage__ = """
 usage：
-    模拟赛马娘，原神，明日方舟，坎公骑冠剑，公主连结(国/台)，碧蓝航线，FGO，阴阳师进行抽卡
+    模拟赛马娘，原神，明日方舟，坎公骑冠剑，公主连结(国/台)，碧蓝航线，FGO，阴阳师，碧蓝档案进行抽卡
     指令：
         原神[1-180]抽: 原神常驻池
         原神角色[1-180]抽: 原神角色UP池子
@@ -43,6 +44,7 @@ usage：
         碧蓝航线/碧蓝[重型/轻型/特型/活动][1-300]抽: 碧蓝航线重型/轻型/特型/活动卡池
         fgo[1-300]抽: fgo卡池
         阴阳师[1-300]抽: 阴阳师卡池
+        ba/碧蓝档案[1-200]抽：碧蓝档案卡池
     * 以上指令可以通过 XX一井 来指定最大抽取数量 *
     * 示例：原神一井 *
 """.strip()
@@ -73,6 +75,7 @@ __plugin_cmd__ = [
     "pcr/公主连接[1-300]抽",
     "fgo[1-300]抽",
     "阴阳师[1-300]抽",
+    "碧蓝档案[1-200]抽",
     "更新方舟信息 [_superuser]",
     "重载方舟卡池 [_superuser]",
     "更新原神信息 [_superuser]",
@@ -83,6 +86,7 @@ __plugin_cmd__ = [
     "更新碧蓝航线信息 [_superuser]",
     "更新fgo信息 [_superuser]",
     "更新阴阳师信息 [_superuser]",
+    "更新碧蓝档案信息 [_superuser]",
 ]
 __plugin_type__ = ("抽卡相关", 1)
 __plugin_version__ = 0.1
@@ -105,7 +109,7 @@ class Game:
 
 
 games = (
-    Game({"azur", "碧蓝", "碧蓝航线"}, AzurHandle(), draw_config.AZUR_FLAG),
+    Game({"azur", "碧蓝航线"}, AzurHandle(), draw_config.AZUR_FLAG),
     Game({"fgo", "命运冠位指定"}, FgoHandle(), draw_config.FGO_FLAG),
     Game(
         {"genshin", "原神"},
@@ -130,6 +134,11 @@ games = (
         reload_time=4,
     ),
     Game({"prts", "方舟", "明日方舟"}, PrtsHandle(), draw_config.PRTS_FLAG, reload_time=4),
+    Game(
+        {"ba","碧蓝档案"},BaHandle(),
+        draw_config.BA_FLAG,
+        max_count=200,
+    ),
 )
 
 
