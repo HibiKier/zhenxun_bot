@@ -1,0 +1,38 @@
+name: Generate poetry.lock
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - 'pyproject.toml'
+
+jobs:
+  poetry_lock:
+    name: Generate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: he0119/setup-python@main
+        with:
+          python-version: "3.9"
+      - name: poetry lock
+        run: |
+          rm -f poetry.lock
+          sed -i.bak "8,11d" pyproject.toml
+          poetry lock
+          mv pyproject.toml.bak pyproject.toml
+      # commit
+      - name: commit file
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add poetry.lock
+          git commit -m "Auto generate poetry.lock" -a
+      # push 
+      - name: push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
