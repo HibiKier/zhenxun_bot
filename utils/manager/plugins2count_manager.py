@@ -33,7 +33,7 @@ class Plugins2countManager(StaticData):
         status: Optional[bool] = True,
         limit_type: Optional[str] = "user",
         rst: Optional[str] = None,
-        data_dict: Optional[dict] = None,
+        **kwargs  # 用于接收额外实参
     ):
         """
         添加插件调用 次数 限制
@@ -42,16 +42,10 @@ class Plugins2countManager(StaticData):
         :param status: 默认开关状态
         :param limit_type: 限制类型 监听对象，以user_id或group_id作为键来限制，'user'：用户id，'group'：群id
         :param rst: 回复的话，为空则不回复
-        :param data_dict: 封装好的字典数据
         """
-        if data_dict:
-            max_count = data_dict.get("max_count")
-            status = data_dict.get("status")
-            limit_type = data_dict.get("limit_type")
-            rst = data_dict.get("rst")
-            status = status if status is not None else True
-            limit_type = limit_type if limit_type else "user"
-            max_count = max_count if max_count is not None else 5
+        max_count = max_count or 5
+        status = status or True
+        limit_type = limit_type or "user"
         if limit_type not in ["user", "group"]:
             raise ValueError(f"{plugin} 添加count限制错误，‘limit_type‘ 必须为 'user'/'group'")
         self._data[plugin] = {
