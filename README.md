@@ -15,13 +15,13 @@
 
 如果希望有个地方讨论绪山真寻Bot，或者有问题或建议，可以发送issues或加入[ <strong>[是真寻酱哒](https://jq.qq.com/?_wv=1027&k=u8PgBkMZ) </strong>]
 
+## 声明
+此项目仅用于学习交流，请勿用于非法用途
+
 # Nonebot2
 <img style="height: 200px;width: 200px;" src="https://camo.githubusercontent.com/0ef71e86056da694c540790aa4a4e314396884d6c4fdb95362a7538b27a1b034/68747470733a2f2f76322e6e6f6e65626f742e6465762f6c6f676f2e706e67">
 
 非常 [ **[NICE](https://github.com/nonebot/nonebot2)** ] 的OneBot框架
-
-## 声明
-此项目仅用于学习交流，请勿用于非法用途
 
 ## 未完成的文档
 
