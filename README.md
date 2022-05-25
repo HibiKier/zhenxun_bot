@@ -114,7 +114,7 @@
 - [x] 获取b站视频封面
 - [x] 通过PID获取图片
 - [x] 功能统计可视化
-
+- [x] 词云
 - [x] 关于
 
 ### 已实现的管理员功能
@@ -246,6 +246,11 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 ### 2022/5/25
 
 * 修复webui中CountLimit字段limit_type类型错误
+* 修改nickname插件：一处文案错误，添加敏感词 [@pull/624](https://github.com/HibiKier/zhenxun_bot/pull/624)
+* gamedraw的ba卡池搬运了过来并且进行了真寻的适配 [@pull/617](https://github.com/HibiKier/zhenxun_bot/pull/617)
+* feat: stream downloading and progress [@pull/607](https://github.com/HibiKier/zhenxun_bot/pull/607)
+* 修改翻译插件，添加缺失的冒号 [@pull/602](https://github.com/HibiKier/zhenxun_bot/pull/602)
+* 修复碧蓝航线/明日方舟up池解析出错的问题 [@pull/610](https://github.com/HibiKier/zhenxun_bot/pull/602)
 
 ### 2022/5/24
 
