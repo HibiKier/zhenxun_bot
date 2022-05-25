@@ -45,7 +45,7 @@ class CountLimit(BaseModel):
     """
     max_count: int
     status: bool
-    limit_type: bool
+    limit_type: str
     rst: Optional[str]
 
 
