@@ -16,7 +16,7 @@ async def translate_msg(language_type, msg):
     }
     data = (await AsyncHttpx.post(url, data=data)).json()
     if data["errorCode"] == 0:
-        return f'原文：{msg}\n翻译{data["translateResult"][0][0]["tgt"]}'
+        return f'原文：{msg}\n翻译：{data["translateResult"][0][0]["tgt"]}'
     return "翻译惜败.."
 
 
