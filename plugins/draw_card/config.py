@@ -87,6 +87,12 @@ class OnmyojiConfig(BaseModel, extra=Extra.ignore):
     ONMYOJI_SR: float = 0.2
     ONMYOJI_R: float = 0.7875
 
+#碧蓝档案
+class BaConfig(BaseModel, extra=Extra.ignore):
+    BA_THREE_P: float = 0.025
+    BA_TWO_P: float = 0.185
+    BA_ONE_P: float = 0.79
+    BA_G_TWO_P: float = 0.975
 
 class Config(BaseModel, extra=Extra.ignore):
     # 开关
@@ -98,6 +104,7 @@ class Config(BaseModel, extra=Extra.ignore):
     AZUR_FLAG: bool = AConfig.get_config("draw_card", "AZUR_FLAG")
     FGO_FLAG: bool = AConfig.get_config("draw_card", "FGO_FLAG")
     ONMYOJI_FLAG: bool = AConfig.get_config("draw_card", "ONMYOJI_FLAG")
+    BA_FLAG: bool = AConfig.get_config("draw_card", "BA_FLAG")
 
     # 其他配置
     PCR_TAI: bool = AConfig.get_config("draw_card", "PCR_TAI")
@@ -112,6 +119,7 @@ class Config(BaseModel, extra=Extra.ignore):
     azur: AzurConfig = AzurConfig()
     fgo: FgoConfig = FgoConfig()
     onmyoji: OnmyojiConfig = OnmyojiConfig()
+    ba: BaConfig = BaConfig()
 
 
 driver = nonebot.get_driver()
@@ -133,8 +141,9 @@ for game_flag, game_name in zip(
         "FGO_FLAG",
         "ONMYOJI_FLAG",
         "PCR_TAI",
+        "BA_FLAG"
     ],
-    ["明日方舟", "原神", "赛马娘", "坎公骑冠剑", "公主连结", "碧蓝航线", "命运-冠位指定（FGO）", "阴阳师", "pcr台服卡池"],
+    ["明日方舟", "原神", "赛马娘", "坎公骑冠剑", "公主连结", "碧蓝航线", "命运-冠位指定（FGO）", "阴阳师", "pcr台服卡池","碧蓝档案"],
 ):
     AConfig.add_plugin_config(
         "draw_card",
