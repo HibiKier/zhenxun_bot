@@ -236,7 +236,7 @@ python bot.py
 
 ## 使用Docker
 __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
-#### GitHub：[Sakuracio/zxenv](https://github.com/Sakuracio/zxenv)
+#### GitHub：[Sakuracio/zhenxun_bot_docker](https://github.com/Sakuracio/zhenxun_bot_docker)
 #### DockerHub：[hibikier/zhenxun_bot](https://hub.docker.com/r/hibikier/zhenxun_bot)
 
 
