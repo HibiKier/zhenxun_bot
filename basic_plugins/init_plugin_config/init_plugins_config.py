@@ -56,7 +56,9 @@ def init_plugins_config(data_path):
                         _override=True,
                     )
                 else:
-                    Config.add_plugin_config(matcher.plugin_name, key, plugin_configs[key])
+                    Config.add_plugin_config(
+                        matcher.plugin_name, key, plugin_configs[key]
+                    )
         else:
             plugin_configs = _data[matcher.plugin_name]
             for key in plugin_configs:
@@ -96,14 +98,25 @@ def init_plugins_config(data_path):
         for plugin in Config.keys():
             _tmp_data[plugin] = {}
             for k in Config[plugin].keys():
-                if _data.get(plugin) and k in _data[plugin].keys():
-                    Config.set_config(plugin, k, _data[plugin][k])
-                    if level2module := Config.get_level2module(plugin, k):
-                        try:
-                            admin_manager.set_admin_level(level2module, _data[plugin][k])
-                        except KeyError:
-                            logger.warning(f"{level2module} 设置权限等级失败：{_data[plugin][k]}")
-                _tmp_data[plugin][k] = Config.get_config(plugin, k)
+                try:
+                    if _data.get(plugin) and k in _data[plugin].keys():
+                        Config.set_config(plugin, k, _data[plugin][k])
+                        if level2module := Config.get_level2module(plugin, k):
+                            try:
+                                admin_manager.set_admin_level(
+                                    level2module, _data[plugin][k]
+                                )
+                            except KeyError:
+                                logger.warning(
+                                    f"{level2module} 设置权限等级失败：{_data[plugin][k]}"
+                                )
+                    _tmp_data[plugin][k] = Config.get_config(plugin, k)
+                except AttributeError as e:
+                    raise AttributeError(
+                        f"{e}\n**********************************************\n"
+                        f"****** 可能为config.yaml配置文件填写不规范 ******\n"
+                        f"**********************************************"
+                    )
         Config.save()
         temp_file = Path() / "configs" / "temp_config.yaml"
         try:
