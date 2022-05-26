@@ -131,10 +131,10 @@ async def do_something(
 
 
 setu = on_command(
-    "色图", aliases={"涩图", "不够色", "来一发", "再来点", "色图r"}, priority=5, block=True
+    "色图", aliases={"涩图", "不够色", "来一发", "再来点", "色图r"}, priority=8, block=True
 )
 
-setu_reg = on_regex("(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图$", priority=5, block=True)
+setu_reg = on_regex("(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图$", priority=8, block=True)
 
 
 @setu.handle()
@@ -157,8 +157,8 @@ async def _(bot: Bot,
         r18 = 1
         num = 10
     elif (
-        cmd[0] == "色图r"
-        and isinstance(event, GroupMessageEvent)
+            cmd[0] == "色图r"
+            and isinstance(event, GroupMessageEvent)
     ):
         if not Config.get_config("send_setu", "ALLOW_GROUP_R18"):
             await setu.finish(
@@ -266,6 +266,7 @@ async def send_setu_handle(
                 setu_data_list.append(x)
             # 未找到符合的色图，想来本地应该也没有
             if code == 401:
+                logger.info("1没找到符合条件的色图...")
                 await setu.finish(urls[0], at_sender=True if isinstance(event, GroupMessageEvent) else False)
             if code == 200:
                 for i in range(len(urls)):
@@ -317,7 +318,8 @@ async def send_setu_handle(
                                              at_sender=True if isinstance(event, GroupMessageEvent) else False)
                 return
         if code != 200:
-            await matcher.finish("网络连接失败...", at_sender=True if isinstance(event, GroupMessageEvent) else False)
+            await matcher.finish("网络连接失败..." + image("1", "griseo"),
+                                 at_sender=True if isinstance(event, GroupMessageEvent) else False)
         # 本地无图
         if setu_list is None:
             setu_list, code = await get_setu_list(tags=tags, r18=r18)
@@ -325,7 +327,7 @@ async def send_setu_handle(
                 await matcher.finish(setu_list[0], at_sender=True if isinstance(event, GroupMessageEvent) else False)
         # 开始发图
     failure_msg: int = 0
-    if isinstance(event, PrivateMessageEvent) or len(setu_list) <= 3:
+    if isinstance(event, PrivateMessageEvent) or num <= 3:
         for _ in range(num):
             if not setu_list:
                 await setu.finish("坏了，已经没图了，被榨干了！")
@@ -335,7 +337,6 @@ async def send_setu_handle(
                 msg_id = await matcher.send(
                     Message(
                         gen_message(setu_image)
-                        + (await check_local_exists_or_download(setu_image))[0]
                     ), at_sender=True if isinstance(event, GroupMessageEvent) else False
                 )
                 withdraw_message_manager.withdraw_message(
@@ -348,28 +349,27 @@ async def send_setu_handle(
                     f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
                     f" 发送本地色图 {setu_image.local_id}.jpg"
                 )
-            except ActionFailed as e:
+            except Exception as e:
                 logger.warning(e)
                 failure_msg += 1
 
     elif isinstance(event, GroupMessageEvent):
         use_list = []
-        while num > 0:
+        num_local = num
+        while num_local > 0:
             setu_image = random.choice(setu_list)
             setu_list.remove(setu_image)
-            num -= 1
+            num_local -= 1
             use_list.append(setu_image)
-        logger.info(len(use_list))
-        message_list = [Message(
-            gen_message(i)
-            + (await check_local_exists_or_download(i))[0]
-        ) for i in use_list]
+            message_list = [Message(
+                gen_message(i)
+            ) for i in use_list]
         try:
 
             await bot.send_group_forward_msg(
                 group_id=event.group_id, messages=custom_forward_msg(message_list, bot.self_id)
             )
-        except ActionFailed as e:
+        except Exception as e:
             logger.warning(e)
             failure_msg = num
     if failure_msg >= num / 2:

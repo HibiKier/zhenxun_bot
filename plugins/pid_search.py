@@ -12,7 +12,6 @@ from utils.manager import withdraw_message_manager
 from utils.http_utils import AsyncHttpx
 from nonebot.params import CommandArg, Arg
 
-
 __zx_plugin_name__ = "pid搜索"
 __plugin_usage__ = """
 usage：
@@ -31,7 +30,7 @@ __plugin_settings__ = {
     "cmd": ["p搜"],
 }
 
-pid_search = on_command("p搜", aliases={"pixiv搜", "P搜"}, priority=5, block=True)
+pid_search = on_command("p搜", aliases={"pixiv搜", "P站搜", "P搜", "p站搜"}, priority=5, block=True)
 
 
 @pid_search.handle()
@@ -43,7 +42,7 @@ async def _h(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6;"
-    " rv:2.0.1) Gecko/20100101 Firefox/4.0.1",
+                  " rv:2.0.1) Gecko/20100101 Firefox/4.0.1",
     "Referer": "https://www.pixiv.net",
 }
 
@@ -87,9 +86,9 @@ async def _g(event: MessageEvent, state: T_State, pid: str = Arg("pid")):
             for i, img_url in enumerate(image_list):
                 img_url = change_pixiv_image_links(img_url)
                 if not await AsyncHttpx.download_file(
-                    img_url,
-                    IMAGE_PATH / "temp" / f"pid_search_{event.user_id}_{i}.png",
-                    headers=headers,
+                        img_url,
+                        IMAGE_PATH / "temp" / f"pid_search_{event.user_id}_{i}.png",
+                        headers=headers,
                 ):
                     await pid_search.send("图片下载失败了....", at_sender=True)
                 tmp = ""

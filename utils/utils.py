@@ -10,7 +10,7 @@ import nonebot
 import pytz
 import pypinyin
 import time
-
+from services.log import logger
 try:
     import ujson as json
 except ModuleNotFoundError:
@@ -391,10 +391,13 @@ def change_pixiv_image_links(
         url = url.replace("original", "master") + f"_master1200.{img_type}"
     if not nginx_url:
         nginx_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
+
     if nginx_url:
         url = (
             url.replace("i.pximg.net", nginx_url)
             .replace("i.pixiv.cat", nginx_url)
             .replace("_webp", "")
         )
+    else:
+        logger.info("未启用pixiv代理")
     return url

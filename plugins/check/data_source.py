@@ -1,3 +1,6 @@
+import shutil
+from pathlib import Path
+
 import psutil
 import time
 from datetime import datetime
@@ -26,7 +29,7 @@ class Check:
     def check_system(self):
         self.cpu = psutil.cpu_percent()
         self.memory = psutil.virtual_memory().percent
-        self.disk = psutil.disk_usage("/").percent
+        self.disk = psutil.disk_usage(Path()).percent
 
     async def check_network(self):
         try:

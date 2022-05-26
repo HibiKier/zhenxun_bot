@@ -19,9 +19,9 @@ __plugin_task__ = {'zwa': '早晚安'}
 Config.add_plugin_config(
     "_task",
     "DEFAULT_ZWA",
-    True,
+    False,
     help_="被动 早晚安 进群默认开关状态",
-    default_value=True,
+    default_value=False,
 )
 
 Config.add_plugin_config(
