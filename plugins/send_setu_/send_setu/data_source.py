@@ -12,20 +12,21 @@ import asyncio
 import os
 import random
 from plugins.sign_in import utils
+
 try:
     import ujson as json
 except ModuleNotFoundError:
     import json
 
-
 url = "https://api.lolicon.app/setu/v2"
 path = "_setu"
 r18_path = "_r18"
+temp = "temp"
 
 
 # 获取url
 async def get_setu_urls(
-    tags: List[str], num: int = 1, r18: int = 0, command: str = ""
+        tags: List[str], num: int = 1, r18: int = 0, command: str = ""
 ) -> "List[str], List[str], List[tuple], int":
     tags = tags[:3] if len(tags) > 3 else tags
     params = {
@@ -72,13 +73,13 @@ async def get_setu_urls(
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6;"
-    " rv:2.0.1) Gecko/20100101 Firefox/4.0.1",
+                  " rv:2.0.1) Gecko/20100101 Firefox/4.0.1",
     "Referer": "https://www.pixiv.net",
 }
 
 
 async def search_online_setu(
-    url_: str, id_: Optional[int] = None, path_: Optional[str] = None
+        url_: str, id_: Optional[int] = None, path_: Optional[str] = None
 ) -> "MessageSegment, int":
     """
     下载色图
@@ -97,15 +98,15 @@ async def search_online_setu(
         logger.info(f"search_online_setu --> {i}")
         try:
             if not await AsyncHttpx.download_file(
-                url_,
-                path_ / file_name,
-                timeout=Config.get_config("send_setu", "TIMEOUT"),
+                    url_,
+                    path_ / file_name,
+                    timeout=Config.get_config("send_setu", "TIMEOUT"),
             ):
                 continue
             if id_ is not None:
                 if (
-                    os.path.getsize(path_ / f"{index}.jpg")
-                    > 1024 * 1024 * 1.5
+                        os.path.getsize(path_ / f"{index}.jpg")
+                        > 1024 * 1024 * 1.5
                 ):
                     compressed_image(
                         path_ / f"{index}.jpg",
@@ -158,7 +159,7 @@ async def add_data_to_database(lst: List[tuple]):
 
 # 拿到本地色图列表
 async def get_setu_list(
-    index: Optional[int] = None, tags: Optional[List[str]] = None, r18: int = 0
+        index: Optional[int] = None, tags: Optional[List[str]] = None, r18: int = 0
 ) -> "list, int":
     if index:
         image_count = await Setu.get_image_count(r18) - 1
@@ -175,25 +176,32 @@ async def get_setu_list(
 
 
 # 初始化消息
-def gen_message(setu_image: Setu, img_msg: bool = False) -> str:
+async def gen_message(setu_image: Setu, img_msg: bool = False) -> str:
     local_id = setu_image.local_id
     title = setu_image.title
     author = setu_image.author
     pid = setu_image.pid
+    hash_obfuscation = Config.get_config("send_setu", "HASH_OBFUSCATION")
+    if hash_obfuscation:
+        compressed_image(IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{local_id}.jpg',
+                         IMAGE_PATH / temp / f"{local_id}.jpg",
+                         random.uniform(0.6, 1.0))
+
     if Config.get_config("send_setu", "SHOW_INFO"):
         return (
             f"id：{local_id}\n"
             f"title：{title}\n"
             f"author：{author}\n"
             f"PID：{pid}\n"
+            f"{image(f'{local_id}', temp) if img_msg else ''}" if hash_obfuscation else
             f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}"
         )
-    return f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}"
+    return (f"{image(f'{local_id}', temp) if img_msg else ''}" if hash_obfuscation else
+            f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}")
 
 
 # 罗翔老师！
 def get_luoxiang(impression):
-
     level, next_impression, previous_impression = utils.get_level_and_next_impression(
         impression
     )
@@ -202,9 +210,9 @@ def get_luoxiang(impression):
     )
     if probability < random.randint(1, 11):
         return (
-            "我为什么要给你发这个？"
-            + image(random.choice(os.listdir(IMAGE_PATH / "luoxiang")), "luoxiang")
-            + f"\n(快向{NICKNAME}签到提升好感度吧！)"
+                "我为什么要给你发这个？"
+                + image(random.choice(os.listdir(IMAGE_PATH / "luoxiang")), "luoxiang")
+                + f"\n(快向{NICKNAME}签到提升好感度吧！)"
         )
     return None
 
@@ -219,9 +227,9 @@ async def get_setu_count(r18: int) -> int:
 
 async def find_img_index(img_url, user_id):
     if not await AsyncHttpx.download_file(
-        img_url,
-        TEMP_PATH / f"{user_id}_find_setu_index.jpg",
-        timeout=Config.get_config("send_setu", "TIMEOUT"),
+            img_url,
+            TEMP_PATH / f"{user_id}_find_setu_index.jpg",
+            timeout=Config.get_config("send_setu", "TIMEOUT"),
     ):
         return "检索图片下载上失败..."
     img_hash = str(get_img_hash(TEMP_PATH / f"{user_id}_find_setu_index.jpg"))

@@ -100,6 +100,11 @@ __plugin_configs__ = {
         "help": "是否存储下载的色图，使用本地色图可以加快图片发送速度",
         "default_value": True,
     },
+    "HASH_OBFUSCATION": {
+        "value": False,
+        "help": "是否混淆图片hash，可能解决图片被风控，发不出的情况，但会占用更多系统资源并减慢发送速度",
+        "default_value": False,
+    },
     "TIMEOUT": {"value": 10, "help": "色图下载超时限制(秒)", "default_value": 10},
     "SHOW_INFO": {"value": True, "help": "是否显示色图的基本信息，如PID等", "default_value": True},
     "ALLOW_GROUP_R18": {"value": False, "help": "在群聊中启用R18权限", "default_value": False},
@@ -336,7 +341,7 @@ async def send_setu_handle(
             try:
                 msg_id = await matcher.send(
                     Message(
-                        gen_message(setu_image)
+                        await gen_message(setu_image, True)
                     ), at_sender=True if isinstance(event, GroupMessageEvent) else False
                 )
                 withdraw_message_manager.withdraw_message(
@@ -362,10 +367,9 @@ async def send_setu_handle(
             num_local -= 1
             use_list.append(setu_image)
             message_list = [Message(
-                gen_message(i)
+                await gen_message(i, True)
             ) for i in use_list]
         try:
-
             await bot.send_group_forward_msg(
                 group_id=event.group_id, messages=custom_forward_msg(message_list, bot.self_id)
             )
