@@ -245,7 +245,10 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ### 2022/5/26
 
-* 修复[滴滴滴]会被转义成&#91;滴滴滴&#93;导致无法触发的问题
+* 修复\[滴滴滴]会被转义成&#91;滴滴滴&#93;导致无法触发的问题
+* 将一些错误以中文提示输出
+* 更新BT搜索源地址 [@pull/668](https://github.com/HibiKier/zhenxun_bot/pull/668)
+* 更新抽卡插件 [@pull/667](https://github.com/HibiKier/zhenxun_bot/pull/667)
 
 ### 2022/5/25
 
