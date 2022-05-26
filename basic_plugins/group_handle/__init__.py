@@ -1,5 +1,6 @@
 from nonebot import on_notice, on_request
 from configs.path_config import IMAGE_PATH, DATA_PATH
+from models.level_user import LevelUser
 from utils.message_builder import image
 from models.group_member_info import GroupInfoUser
 from datetime import datetime
@@ -96,6 +97,23 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
             for plugin in data.keys():
                 if not data[plugin]["default_status"]:
                     group_manager.block_plugin(plugin, event.group_id)
+            # 即刻刷新权限
+            for user_info in await bot.get_group_member_list(group_id=event.group_id):
+                if user_info["role"] in [
+                    "owner",
+                    "admin",
+                ] and not await LevelUser.is_group_flag(
+                    user_info["user_id"], event.group_id
+                ):
+                    await LevelUser.set_level(
+                        user_info["user_id"],
+                        user_info["group_id"],
+                        Config.get_config("admin_bot_manage", "ADMIN_DEFAULT_AUTH"),
+                    )
+                if str(user_info["user_id"]) in bot.config.superusers:
+                    await LevelUser.set_level(
+                        user_info["user_id"], user_info["group_id"], 9
+                    )
     else:
         join_time = datetime.now()
         user_info = await bot.get_group_member_info(
@@ -128,9 +146,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
                         msg = msg.replace("[at]", "")
                         at_flag = True
             if (DATA_PATH / "custom_welcome_msg" / f"{event.group_id}.jpg").exists():
-                img = image(
-                    DATA_PATH / "custom_welcome_msg" / f"{event.group_id}.jpg"
-                )
+                img = image(DATA_PATH / "custom_welcome_msg" / f"{event.group_id}.jpg")
             if msg or img:
                 msg = msg.strip() + img
                 msg = "\n" + msg if at_flag else msg

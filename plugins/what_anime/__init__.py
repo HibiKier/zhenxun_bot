@@ -1,5 +1,6 @@
 from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message, Bot
-from nonebot.internal.params import ArgStr
+from nonebot.internal.params import ArgStr, Arg
+from nonebot.params import CommandArg
 
 from .data_source import get_anime
 from nonebot import on_command
@@ -32,16 +33,18 @@ what_anime = on_command("识番", priority=5, block=True)
 
 
 @what_anime.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
+async def _(bot: Bot, event: MessageEvent, state: T_State, args: Message = CommandArg()):
     img_url = get_message_img(event.json())
     if img_url:
-        state["img_url"] = img_url[0]
+        state["img_url"] = args
 
 
 @what_anime.got("img_url", prompt="虚空识番？来图来图GKD")
-async def _(bot: Bot, event: MessageEvent, state: T_State, img_url: str = ArgStr("img_url")):
+async def _(bot: Bot, event: MessageEvent, state: T_State, img_url: Message = Arg("img_url")):
+    img_url = get_message_img(img_url)
     if not img_url:
         await what_anime.reject_arg("img_url", "发送的必须是图片！")
+    img_url = img_url[0]
     await what_anime.send("开始识别.....")
     anime_data_report = await get_anime(img_url)
     if anime_data_report:

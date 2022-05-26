@@ -19,7 +19,7 @@ except ModuleNotFoundError:
     import json
 
 from .base_handle import BaseHandle, BaseData, UpChar, UpEvent
-from ..config import draw_config
+from ..config import draw_config, DRAW_PATH
 from ..util import remove_prohibited_str, cn2py, load_font
 from utils.image_utils import BuildImage
 
@@ -53,7 +53,7 @@ class PrtsHandle(BaseHandle[Operator]):
         all_operators = [
             x
             for x in self.ALL_OPERATOR
-            if x.star == star and not any([x.limited, x.event_only, x.recruit_only])
+            if x.star == star and not any([x.limited, x.recruit_only, x.event_only])
         ]
         acquire_operator = None
 
@@ -109,7 +109,8 @@ class PrtsHandle(BaseHandle[Operator]):
 
     def _draw(self, count: int, **kwargs) -> Message:
         index2card = self.get_cards(count)
-        cards = [card[0] for card in self.get_cards(count)]
+        """这里cards修复了抽卡图文不符的bug"""
+        cards = [card[0] for card in index2card]
         up_list = [x.name for x in self.UP_EVENT.up_char] if self.UP_EVENT else []
         result = self.format_result(index2card, up_list=up_list)
         pool_info = self.format_pool_info()
@@ -161,8 +162,9 @@ class PrtsHandle(BaseHandle[Operator]):
 
     def load_up_char(self):
         try:
-            data = self.load_data(f"draw_card_up/{self.game_name}_up_char.json")
-            self.UP_EVENT = UpEvent.parse_obj(data.get("char", {}))
+            if (DRAW_PATH / "draw_card_up" / f"{self.game_name}_up_char.json").exists():
+                data = self.load_data(f"draw_card_up/{self.game_name}_up_char.json")
+                self.UP_EVENT = UpEvent.parse_obj(data.get("char", {}))
         except ValidationError:
             logger.warning(f"{self.game_name}_up_char 解析出错")
 
@@ -185,14 +187,15 @@ class PrtsHandle(BaseHandle[Operator]):
                 avatar = char.xpath("./td[1]/div/div/div/a/img/@srcset")[0]
                 name = char.xpath("./td[2]/a/text()")[0]
                 star = char.xpath("./td[5]/text()")[0]
-                sources = str(char.xpath("./td[8]/text()")[0]).split("\n")
+                """这里sources修好了干员获取标签有问题的bug，如三星只能抽到卡缇就是这个原因"""
+                sources = [_.strip('\n') for _ in char.xpath("./td[8]/text()")]
             except IndexError:
                 continue
             member_dict = {
                 "头像": unquote(str(avatar).split(" ")[-2]),
                 "名称": remove_prohibited_str(str(name).strip()),
                 "星级": int(str(star).strip()),
-                "获取途径": [s for s in sources if s],
+                "获取途径": sources,
             }
             info[member_dict["名称"]] = member_dict
         self.dump_data(info)
@@ -245,6 +248,10 @@ class PrtsHandle(BaseHandle[Operator]):
                         if match:
                             time = match.group(1)
                         if "★" in line:
+                            """这里修复了某些池子六星名称显示错误的问题(如奔崖号角)"""
+                            if line[0] != '★':
+                                idx = line.find('★')
+                                line = line[idx:]
                             chars.append(line)
                     if not time:
                         continue

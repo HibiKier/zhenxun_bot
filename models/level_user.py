@@ -1,3 +1,5 @@
+from asyncpg import UniqueViolationError
+
 from services.db_context import db
 
 
@@ -44,16 +46,19 @@ class LevelUser(db.Model):
         query = cls.query.where((cls.user_qq == user_qq) & (cls.group_id == group_id))
         query = query.with_for_update()
         user = await query.gino.first()
-        if user is None:
-            await cls.create(
-                user_qq=user_qq,
-                group_id=group_id,
-                user_level=level,
-                group_flag=group_flag,
-            )
-            return True
-        else:
-            await user.update(user_level=level, group_flag=group_flag).apply()
+        try:
+            if not user:
+                await cls.create(
+                    user_qq=user_qq,
+                    group_id=group_id,
+                    user_level=level,
+                    group_flag=group_flag,
+                )
+                return True
+            else:
+                await user.update(user_level=level, group_flag=group_flag).apply()
+                return False
+        except UniqueViolationError:
             return False
 
     @classmethod

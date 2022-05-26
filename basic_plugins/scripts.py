@@ -108,6 +108,10 @@ async def _():
             "ALTER TABLE genshin ADD bind_group Integer;",
             "genshin"
         ),  # 新增原神群号绑定字段
+        (
+            "ALTER TABLE chat_history ADD plain_text Text;",
+            "chat_history"
+        ),  # 新增纯文本
     ]
     for sql in sql_str:
         try:

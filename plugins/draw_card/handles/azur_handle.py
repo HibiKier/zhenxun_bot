@@ -293,7 +293,7 @@ class AzurHandle(BaseHandle[AzurChar]):
                 type_ = ship.xpath("./tbody/tr/td[2]/p/small/text()")[0]        # 舰船类型
                 try:
                     p = float(str(ship.xpath(".//sup/text()")[0]).strip("%"))
-                except IndexError:
+                except (IndexError, ValueError):
                     p = 0
                 star = self.parse_star(
                     ship.xpath("./tbody/tr/td[1]/div/div/div/a/img/@alt")[0]

@@ -121,7 +121,7 @@ def fig2b64(plt_: plt) -> str:
     return "base64://" + base64_str
 
 
-def is_valid(file: str) -> bool:
+def is_valid(file: Union[str, Path]) -> bool:
     """
     说明：
         判断图片是否损坏

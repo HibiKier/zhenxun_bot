@@ -88,9 +88,7 @@ class BlackWordManager:
         :param group_id: 群号
         :param message: 消息
         """
-        print(user_id, group_id, message)
         if data := self._check(message):
-            print(data)
             if data[0]:
                 await _add_user_black_word(
                     user_id, group_id, data[0], message, int(data[1])

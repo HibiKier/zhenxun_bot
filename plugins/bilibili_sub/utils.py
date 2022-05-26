@@ -38,7 +38,6 @@ async def create_live_des_image(uid: int, title: str, cover: str, tags: str, des
     ava = BuildImage(100, 100, background=BytesIO(await get_pic(face)))
     ava.circle()
     cover = BuildImage(470, 265, background=BytesIO(await get_pic(cover)))
-    print()
 
 
 def _create_live_des_image(

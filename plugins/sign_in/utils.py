@@ -24,6 +24,8 @@ from io import BytesIO
 import asyncio
 import random
 import nonebot
+import time
+import locale
 import os
 
 
@@ -55,13 +57,10 @@ async def get_card(
     date = datetime.now().date()
     _type = "view" if is_card_view else "sign"
     card_file = (
-        Path(SIGN_TODAY_CARD_PATH)
-        / f"{user_id}_{user.group_id}_{_type}_{date}.png"
+        Path(SIGN_TODAY_CARD_PATH) / f"{user_id}_{user.group_id}_{_type}_{date}.png"
     )
     if card_file.exists():
-        return image(
-            f"{user_id}_{user.group_id}_{_type}_{date}.png", "sign/today_card"
-        )
+        return image(f"{user_id}_{user.group_id}_{_type}_{date}.png", "sign/today_card")
     else:
         if add_impression == -1:
             card_file = (
@@ -75,9 +74,7 @@ async def get_card(
                 )
             is_card_view = True
         ava = BytesIO(await get_user_avatar(user_id))
-        uid = await GroupInfoUser.get_group_member_uid(
-            user.user_qq, user.group_id
-        )
+        uid = await GroupInfoUser.get_group_member_uid(user.user_qq, user.group_id)
         impression_list = None
         if is_card_view:
             _, impression_list, _ = await SignGroupUser.get_all_impression(
@@ -128,9 +125,13 @@ def _generate_card(
     level, next_impression, previous_impression = get_level_and_next_impression(
         user.impression
     )
+    interpolation = next_impression - user.impression
+    if level == "9":
+        level = "8"
+        interpolation = 0
     info_img.text((0, 0), f"· 好感度等级：{level} [{lik2relation[level]}]")
     info_img.text((0, 20), f"· {NICKNAME}对你的态度：{level2attitude[level]}")
-    info_img.text((0, 40), f"· 距离升级还差 {next_impression - user.impression:.2f} 好感度")
+    info_img.text((0, 40), f"· 距离升级还差 {interpolation:.2f} 好感度")
 
     bar_bk = BuildImage(220, 20, background=SIGN_RESOURCE_PATH / "bar_white.png")
     bar = BuildImage(220, 20, background=SIGN_RESOURCE_PATH / "bar.png")
@@ -240,7 +241,9 @@ def _generate_card(
             f"上次签到日期：{'从未' if user.checkin_time_last == datetime.min else user.checkin_time_last.date()}",
         )
         today_data.text((0, 25), f"总金币：{gold}")
-        default_setu_prob = Config.get_config("send_setu", "INITIAL_SETU_PROBABILITY") * 100
+        default_setu_prob = (
+            Config.get_config("send_setu", "INITIAL_SETU_PROBABILITY") * 100
+        )
         today_data.text(
             (0, 50),
             f"色图概率：{(default_setu_prob + user.impression if user.impression < 100 else 100):.2f}%",
@@ -259,15 +262,12 @@ def _generate_card(
         today_data.text((0, 25), f"金币 + {gold}")
         _type = "sign"
     current_date = datetime.now()
-    week = current_date.isoweekday()
+    current_datetime_str = current_date.strftime("%Y-%m-%d %a %H:%M:%S")
     data = current_date.date()
-    hour = current_date.hour
-    minute = current_date.minute
-    second = current_date.second
     data_img = BuildImage(
         0,
         0,
-        plain_text=f"时间：{data} {weekdays[week]} {hour}:{minute}:{second}",
+        plain_text=f"时间：{current_datetime_str}",
         color=(255, 255, 255, 0),
         font_size=20,
     )
@@ -286,12 +286,8 @@ def _generate_card(
     bk.paste(today_sign_text_img, (550, 180), True)
     bk.paste(today_data, (580, 220), True)
     bk.paste(watermark, (15, 400), True)
-    bk.save(
-        SIGN_TODAY_CARD_PATH / f"{user_id}_{user.group_id}_{_type}_{data}.png"
-    )
-    return image(
-        f"{user_id}_{user.group_id}_{_type}_{data}.png", "sign/today_card"
-    )
+    bk.save(SIGN_TODAY_CARD_PATH / f"{user_id}_{user.group_id}_{_type}_{data}.png")
+    return image(f"{user_id}_{user.group_id}_{_type}_{data}.png", "sign/today_card")
 
 
 def generate_progress_bar_pic():
