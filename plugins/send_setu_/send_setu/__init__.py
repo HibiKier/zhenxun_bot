@@ -131,10 +131,10 @@ async def do_something(
 
 
 setu = on_command(
-    "色图", aliases={"涩图", "不够色", "来一发", "再来点", "色图r"}, priority=5, block=True
+    "色图", aliases={"涩图", "不够色", "来一发", "再来点", "色图r"}, priority=8, block=True
 )
 
-setu_reg = on_regex("(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图$", priority=5, block=True)
+setu_reg = on_regex("(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图$", priority=8, block=True)
 
 
 @setu.handle()
@@ -157,12 +157,12 @@ async def _(bot: Bot,
         r18 = 1
         num = 10
     elif (
-        cmd[0] == "色图r"
-        and isinstance(event, GroupMessageEvent)
+            cmd[0] == "色图r"
+            and isinstance(event, GroupMessageEvent)
     ):
         if not Config.get_config("send_setu", "ALLOW_GROUP_R18"):
             await setu.finish(
-                random.choice(["这种不好意思的东西怎么可能给这么多人看啦", "羞羞脸！给我滚出克私聊！", "变态变态变态变态大变态！"])， at_sender=True
+                random.choice(["这种不好意思的东西怎么可能给这么多人看啦", "羞羞脸！给我滚出克私聊！", "变态变态变态变态大变态！"]), at_sender=True
             )
         else:
             r18 = 1
@@ -337,7 +337,6 @@ async def send_setu_handle(
                 msg_id = await matcher.send(
                     Message(
                         gen_message(setu_image)
-                        + (await check_local_exists_or_download(setu_image))[0]
                     ), at_sender=True if isinstance(event, GroupMessageEvent) else False
                 )
                 withdraw_message_manager.withdraw_message(
@@ -362,10 +361,9 @@ async def send_setu_handle(
             setu_list.remove(setu_image)
             num_local -= 1
             use_list.append(setu_image)
-        message_list = [Message(
-            gen_message(i)
-            + (await check_local_exists_or_download(i))[0]
-        ) for i in use_list]
+            message_list = [Message(
+                gen_message(i)
+            ) for i in use_list]
         try:
 
             await bot.send_group_forward_msg(
