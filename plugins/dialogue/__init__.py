@@ -53,7 +53,7 @@ __plugin_settings__ = {
 dialogue_data = {}
 
 
-dialogue = on_command("[滴滴滴]", aliases={"滴滴滴-"}, priority=5, block=True)
+dialogue = on_command("&#91;滴滴滴&#93;", aliases={"滴滴滴-"}, priority=5, block=True)
 reply = on_command("/t", priority=1, permission=SUPERUSER, block=True)
 
 
