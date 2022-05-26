@@ -51,6 +51,7 @@ _flmt = FreqLimiter(1)
 
 send_img = on_message(priority=5, rule=rule, block=True)
 pa_reg = on_regex("^(爬|丢人爬|爪巴)$", priority=5, block=True)
+kawai_reg = on_regex("^(可爱|可爱滴捏|阔爱|阔爱滴捏)$", priority=5, block=True)
 
 
 _path = IMAGE_PATH / "image_management"
@@ -114,3 +115,9 @@ async def _(event: MessageEvent):
     if _flmt.check(event.user_id):
         _flmt.start_cd(event.user_id)
         await pa_reg.finish(image(random.choice(os.listdir(IMAGE_PATH / "pa")), "pa"))
+        
+@kawai_reg.handle()
+async def _(event: MessageEvent):
+    if _flmt.check(event.user_id):
+        _flmt.start_cd(event.user_id)
+        await pa_reg.finish(image(random.choice(os.listdir(IMAGE_PATH / "kawai")), "kawai"))
