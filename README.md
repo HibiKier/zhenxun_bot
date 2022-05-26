@@ -243,6 +243,10 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/5/26
+
+* 修复[滴滴滴]会被转义成&#91;滴滴滴&#93;导致无法触发的问题
+
 ### 2022/5/25
 
 * 修复webui中CountLimit字段limit_type类型错误
