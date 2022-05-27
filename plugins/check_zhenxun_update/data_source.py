@@ -77,7 +77,7 @@ async def check_update(bot: Bot) -> 'int, str':
             logger.info(f"开始下载格蕾修最新版文件....")
             # tar_gz_url = (await AsyncHttpx.get(tar_gz_url)).headers.get('Location')
             begin_time = datetime.datetime.now()
-            if await AsyncHttpx.download_file(tar_gz_url, zhenxun_latest_tar_gz, timeout=300,stream=True):
+            if await AsyncHttpx.download_file(tar_gz_url, zhenxun_latest_tar_gz, timeout=300):
                 end_time = datetime.datetime.now()
                 diff = (end_time - begin_time).seconds
                 logger.info(f"下载格蕾修最新版文件完成....用时{diff}s")
