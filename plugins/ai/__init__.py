@@ -57,7 +57,7 @@ async def _(bot: Bot, event: MessageEvent):
         "你好",
         "在",
     ]:
-        await ai.finish(hello())
+        await ai.finish(hello(), at_sender=True)
     img = img[0] if img else ""
     if isinstance(event, GroupMessageEvent):
         nickname = await GroupInfoUser.get_group_member_nickname(
@@ -79,6 +79,6 @@ async def _(bot: Bot, event: MessageEvent):
         result = str(result)
         for t in Config.get_config("ai", "TEXT_FILTER"):
             result = result.replace(t, "*")
-        await ai.finish(Message(result))
+        await ai.finish(Message(result), at_sender=True)
     else:
         await ai.finish(no_result())
