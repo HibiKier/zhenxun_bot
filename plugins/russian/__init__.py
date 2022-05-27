@@ -314,12 +314,12 @@ async def _(
         "index": 0,
         "time": time.time(),
     }
-    msg = ("咔 " * bullet_num)[:-1]
+    msg1 = ("咔 " * bullet_num)[:-1]
     await russian.send(
         Message(
-            f"{msg}" + f"，装填完毕\n挑战金额：{money}\n"
-                       f"第一枪的概率为：{str(float(bullet_num) / 7.0 * 100)[:5]}%\n"
-                       f"{msg}"
+            f"{msg1}，装填完毕\n挑战金额：{money}\n"
+            f"第一枪的概率为：{str(float(bullet_num) / 7.0 * 100)[:5]}%\n"
+            f"{msg}"
         )
     )
 
@@ -379,9 +379,9 @@ async def _(bot: Bot, event: GroupMessageEvent):
         await shot.send(
             Message(
                 f"{msg}"
-                + f"\n下一枪中弹的概率"
-                  f'：{str(float((rs_player[event.group_id]["bullet_num"])) / float(rs_player[event.group_id]["null_bullet_num"] - 1 + rs_player[event.group_id]["bullet_num"]) * 100)[:5]}%\n'
-                  f"轮到 {at(rs_player[event.group_id][1] if event.user_id == rs_player[event.group_id][2] else rs_player[event.group_id][2])}了"
+                f"\n下一枪中弹的概率"
+                f'：{str(float((rs_player[event.group_id]["bullet_num"])) / float(rs_player[event.group_id]["null_bullet_num"] - 1 + rs_player[event.group_id]["bullet_num"]) * 100)[:5]}%\n'
+                f"轮到 {at(rs_player[event.group_id][1] if event.user_id == rs_player[event.group_id][2] else rs_player[event.group_id][2])}了"
             )
         )
         rs_player[event.group_id]["null_bullet_num"] -= 1
@@ -402,7 +402,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         )
         await shot.send(
             f"{msg}"
-            + f'\n第 {rs_player[event.group_id]["index"] + 1} 发子弹送走了你...',
+            f'\n第 {rs_player[event.group_id]["index"] + 1} 发子弹送走了你...',
             at_sender=True,
         )
         win_name = (

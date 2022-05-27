@@ -112,6 +112,9 @@ async def search_online_setu(
                         path_ / f"{index}.jpg",
                     )
             logger.info(f"下载 lolicon 图片 {url_} 成功， id：{index}")
+            hash_obfuscation = Config.get_config("send_setu", "HASH_OBFUSCATION")
+            if hash_obfuscation:
+                compressed_image(path_ / file_name, ratio=random.uniform(0.6, 1.0))
             return image(path_ / file_name), index
         except TimeoutError:
             pass
