@@ -15,7 +15,6 @@ import random
 import asyncio
 import time
 
-
 __zx_plugin_name__ = "俄罗斯轮盘"
 __plugin_usage__ = """
 usage：
@@ -95,12 +94,13 @@ async def _(event: GroupMessageEvent):
     try:
         if rs_player[event.group_id][1] == 0:
             await accept.finish("目前没有发起对决，你接受个啥？速速装弹！", at_sender=True)
+
     except KeyError:
         await accept.finish("目前没有进行的决斗，请发送 装弹 开启决斗吧！", at_sender=True)
     if rs_player[event.group_id][2] != 0:
         if (
-            rs_player[event.group_id][1] == event.user_id
-            or rs_player[event.group_id][2] == event.user_id
+                rs_player[event.group_id][1] == event.user_id
+                or rs_player[event.group_id][2] == event.user_id
         ):
             await accept.finish(f"你已经身处决斗之中了啊，给我认真一点啊！", at_sender=True)
         else:
@@ -108,8 +108,8 @@ async def _(event: GroupMessageEvent):
     if rs_player[event.group_id][1] == event.user_id:
         await accept.finish("请不要自己枪毙自己！换人来接受对决...", at_sender=True)
     if (
-        rs_player[event.group_id]["at"] != 0
-        and rs_player[event.group_id]["at"] != event.user_id
+            rs_player[event.group_id]["at"] != 0
+            and rs_player[event.group_id]["at"] != event.user_id
     ):
         await accept.finish(
             Message(f'这场对决是邀请 {at(rs_player[event.group_id]["at"])}的，不要捣乱！'),
@@ -122,8 +122,8 @@ async def _(event: GroupMessageEvent):
     user_money = await BagUser.get_gold(event.user_id, event.group_id)
     if user_money < rs_player[event.group_id]["money"]:
         if (
-            rs_player[event.group_id]["at"] != 0
-            and rs_player[event.group_id]["at"] == event.user_id
+                rs_player[event.group_id]["at"] != 0
+                and rs_player[event.group_id]["at"] == event.user_id
         ):
             rs_player[event.group_id] = {}
             await accept.finish("你的金币不足以接受这场对决！对决还未开始便结束了，请重新装弹！", at_sender=True)
@@ -150,8 +150,8 @@ async def _(event: GroupMessageEvent):
     except KeyError:
         await refuse.finish("目前没有进行的决斗，请发送 装弹 开启决斗吧！", at_sender=True)
     if (
-        rs_player[event.group_id]["at"] != 0
-        and event.user_id != rs_player[event.group_id]["at"]
+            rs_player[event.group_id]["at"] != 0
+            and event.user_id != rs_player[event.group_id]["at"]
     ):
         await accept.finish("又不是找你决斗，你拒绝什么啊！气！", at_sender=True)
     if rs_player[event.group_id]["at"] == event.user_id:
@@ -168,14 +168,14 @@ async def _(event: GroupMessageEvent):
 async def _(bot: Bot, event: GroupMessageEvent):
     global rs_player
     if (
-        not rs_player.get(event.group_id)
-        or rs_player[event.group_id][1] == 0
-        or rs_player[event.group_id][2] == 0
+            not rs_player.get(event.group_id)
+            or rs_player[event.group_id][1] == 0
+            or rs_player[event.group_id][2] == 0
     ):
         await settlement.finish("比赛并没有开始...无法结算...", at_sender=True)
     if (
-        event.user_id != rs_player[event.group_id][1]
-        and event.user_id != rs_player[event.group_id][2]
+            event.user_id != rs_player[event.group_id][1]
+            and event.user_id != rs_player[event.group_id][2]
     ):
         await settlement.finish("吃瓜群众不要捣乱！黄牌警告！", at_sender=True)
     if time.time() - rs_player[event.group_id]["time"] <= 30:
@@ -194,38 +194,38 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
 @russian.handle()
 async def _(
-    bot: Bot, event: GroupMessageEvent, state: T_State, arg: Message = CommandArg()
+        bot: Bot, event: GroupMessageEvent, state: T_State, arg: Message = CommandArg()
 ):
     global rs_player
     msg = arg.extract_plain_text().strip()
     try:
         if (
-            rs_player[event.group_id][1]
-            and not rs_player[event.group_id][2]
-            and time.time() - rs_player[event.group_id]["time"] <= 30
+                rs_player[event.group_id][1]
+                and not rs_player[event.group_id][2]
+                and time.time() - rs_player[event.group_id]["time"] <= 30
         ):
             await russian.finish(
                 f'现在是 {rs_player[event.group_id]["player1"]} 发起的对决\n请等待比赛结束后再开始下一轮...'
             )
         if (
-            rs_player[event.group_id][1]
-            and rs_player[event.group_id][2]
-            and time.time() - rs_player[event.group_id]["time"] <= 30
+                rs_player[event.group_id][1]
+                and rs_player[event.group_id][2]
+                and time.time() - rs_player[event.group_id]["time"] <= 30
         ):
             await russian.finish(
                 f'{rs_player[event.group_id]["player1"]} 和'
                 f' {rs_player[event.group_id]["player2"]}的对决还未结束！'
             )
         if (
-            rs_player[event.group_id][1]
-            and rs_player[event.group_id][2]
-            and time.time() - rs_player[event.group_id]["time"] > 30
+                rs_player[event.group_id][1]
+                and rs_player[event.group_id][2]
+                and time.time() - rs_player[event.group_id]["time"] > 30
         ):
             await russian.send("决斗已过时，强行结算...")
             await end_game(bot, event)
         if (
-            not rs_player[event.group_id][2]
-            and time.time() - rs_player[event.group_id]["time"] > 30
+                not rs_player[event.group_id][2]
+                and time.time() - rs_player[event.group_id]["time"] > 30
         ):
             rs_player[event.group_id][1] = 0
             rs_player[event.group_id][2] = 0
@@ -244,7 +244,7 @@ async def _(
             if is_number(msg) and not (int(msg) < 1 or int(msg) > 6):
                 state["bullet_num"] = int(msg)
             if is_number(money) and 0 < int(money) <= Config.get_config(
-                "russian", "MAX_RUSSIAN_BET_GOLD"
+                    "russian", "MAX_RUSSIAN_BET_GOLD"
             ):
                 state["money"] = int(money)
             else:
@@ -257,7 +257,7 @@ async def _(
 
 @russian.got("bullet_num", prompt="请输入装填子弹的数量！(最多6颗)")
 async def _(
-    event: GroupMessageEvent, state: T_State, bullet_num: str = ArgStr("bullet_num")
+        event: GroupMessageEvent, state: T_State, bullet_num: str = ArgStr("bullet_num")
 ):
     global rs_player
     if bullet_num in ["取消", "算了"]:
@@ -314,12 +314,12 @@ async def _(
         "index": 0,
         "time": time.time(),
     }
-
+    msg = ("咔 " * bullet_num)[:-1]
     await russian.send(
         Message(
-            ("咔 " * bullet_num)[:-1] + f"，装填完毕\n挑战金额：{money}\n"
-            f"第一枪的概率为：{str(float(bullet_num) / 7.0 * 100)[:5]}%\n"
-            f"{msg}"
+            f"{msg}" + f"，装填完毕\n挑战金额：{money}\n"
+                       f"第一枪的概率为：{str(float(bullet_num) / 7.0 * 100)[:5]}%\n"
+                       f"{msg}"
         )
     )
 
@@ -331,28 +331,28 @@ async def _(bot: Bot, event: GroupMessageEvent):
         if time.time() - rs_player[event.group_id]["time"] > 30:
             if rs_player[event.group_id][2] == 0:
                 rs_player[event.group_id][1] = 0
-                await shot.finish("这场对决已经过时了，请重新装弹吧！", at_sender=True)
+                await shot.finish(f"这场对决已经过时了，请重新装弹吧！", at_sender=True)
             else:
-                await shot.send("决斗已过时，强行结算...")
+                await shot.send(f"决斗已过时，强行结算...")
                 await end_game(bot, event)
                 return
     except KeyError:
-        await shot.finish("目前没有进行的决斗，请发送 装弹 开启决斗吧！", at_sender=True)
+        await shot.finish(f"目前没有进行的决斗，请发送 装弹 开启决斗吧！", at_sender=True)
     if rs_player[event.group_id][1] == 0:
-        await shot.finish("没有对决，也还没装弹呢，请先输入 装弹 吧！", at_sender=True)
+        await shot.finish(f"没有对决，也还没装弹呢，请先输入 装弹 吧！", at_sender=True)
     if (
-        rs_player[event.group_id][1] == event.user_id
-        and rs_player[event.group_id][2] == 0
+            rs_player[event.group_id][1] == event.user_id
+            and rs_player[event.group_id][2] == 0
     ):
-        await shot.finish("baka，你是要枪毙自己嘛笨蛋！", at_sender=True)
+        await shot.finish(f"baka，你是要枪毙自己嘛笨蛋！", at_sender=True)
     if rs_player[event.group_id][2] == 0:
-        await shot.finish("请这位勇士先发送 接受对决 来站上擂台...", at_sender=True)
+        await shot.finish(f"请这位勇士先发送 接受对决 来站上擂台...", at_sender=True)
     player1_name = rs_player[event.group_id]["player1"]
     player2_name = rs_player[event.group_id]["player2"]
     if rs_player[event.group_id]["next"] != event.user_id:
         if (
-            event.user_id != rs_player[event.group_id][1]
-            and event.user_id != rs_player[event.group_id][2]
+                event.user_id != rs_player[event.group_id][1]
+                and event.user_id != rs_player[event.group_id][2]
         ):
             await shot.finish(
                 random.choice(
@@ -369,18 +369,19 @@ async def _(bot: Bot, event: GroupMessageEvent):
             f'{(await GroupInfoUser.get_member_info(int(rs_player[event.group_id]["next"]), event.group_id)).user_name} 开枪了'
         )
     if rs_player[event.group_id]["bullet"][rs_player[event.group_id]["index"]] != 1:
+        msg = random.choice(
+            [
+                "呼呼，没有爆裂的声响，你活了下来",
+                "虽然黑洞洞的枪口很恐怖，但好在没有子弹射出来，你活下来了",
+                '"咔"，你没死，看来运气不错',
+            ]
+        )
         await shot.send(
             Message(
-                random.choice(
-                    [
-                        "呼呼，没有爆裂的声响，你活了下来",
-                        "虽然黑洞洞的枪口很恐怖，但好在没有子弹射出来，你活下来了",
-                        '"咔"，你没死，看来运气不错',
-                    ]
-                )
+                f"{msg}"
                 + f"\n下一枪中弹的概率"
-                f'：{str(float((rs_player[event.group_id]["bullet_num"])) / float(rs_player[event.group_id]["null_bullet_num"] - 1 + rs_player[event.group_id]["bullet_num"]) * 100)[:5]}%\n'
-                f"轮到 {at(rs_player[event.group_id][1] if event.user_id == rs_player[event.group_id][2] else rs_player[event.group_id][2])}了"
+                  f'：{str(float((rs_player[event.group_id]["bullet_num"])) / float(rs_player[event.group_id]["null_bullet_num"] - 1 + rs_player[event.group_id]["bullet_num"]) * 100)[:5]}%\n'
+                  f"轮到 {at(rs_player[event.group_id][1] if event.user_id == rs_player[event.group_id][2] else rs_player[event.group_id][2])}了"
             )
         )
         rs_player[event.group_id]["null_bullet_num"] -= 1
@@ -392,14 +393,15 @@ async def _(bot: Bot, event: GroupMessageEvent):
         rs_player[event.group_id]["time"] = time.time()
         rs_player[event.group_id]["index"] += 1
     else:
+        msg = random.choice(
+            [
+                '"嘭！"，你直接去世了',
+                "眼前一黑，你直接穿越到了异世界...(死亡)",
+                "终究还是你先走一步...",
+            ]
+        )
         await shot.send(
-            random.choice(
-                [
-                    '"嘭！"，你直接去世了',
-                    "眼前一黑，你直接穿越到了异世界...(死亡)",
-                    "终究还是你先走一步...",
-                ]
-            )
+            f"{msg}"
             + f'\n第 {rs_player[event.group_id]["index"] + 1} 发子弹送走了你...',
             at_sender=True,
         )
@@ -450,18 +452,18 @@ async def end_game(bot: Bot, event: GroupMessageEvent):
     await bot.send(
         event,
         message=f"结算：\n"
-        f"\t胜者：{win_name}\n"
-        f"\t赢取金币：{money - fee}\n"
-        f"\t累计胜场：{win_user.win_count}\n"
-        f"\t累计赚取金币：{win_user.make_money}\n"
-        f"-------------------\n"
-        f"\t败者：{lose_name}\n"
-        f"\t输掉金币：{money}\n"
-        f"\t累计败场：{lose_user.fail_count}\n"
-        f"\t累计输掉金币：{lose_user.lose_money}\n"
-        f"-------------------\n"
-        f"哼哼，{NICKNAME}从中收取了 {float(rand)}%({fee}金币) 作为手续费！\n"
-        f"子弹排列：{bullet_str[:-1]}",
+                f"\t胜者：{win_name}\n"
+                f"\t赢取金币：{money - fee}\n"
+                f"\t累计胜场：{win_user.win_count}\n"
+                f"\t累计赚取金币：{win_user.make_money}\n"
+                f"-------------------\n"
+                f"\t败者：{lose_name}\n"
+                f"\t输掉金币：{money}\n"
+                f"\t累计败场：{lose_user.fail_count}\n"
+                f"\t累计输掉金币：{lose_user.lose_money}\n"
+                f"-------------------\n"
+                f"哼哼，{NICKNAME}从中收取了 {float(rand)}%({fee}金币) 作为手续费！\n"
+                f"子弹排列：{bullet_str[:-1]}",
     )
 
 
@@ -484,9 +486,9 @@ async def _(event: GroupMessageEvent):
 
 @russian_rank.handle()
 async def _(
-    event: GroupMessageEvent,
-    cmd: Tuple[str, ...] = Command(),
-    arg: Message = CommandArg(),
+        event: GroupMessageEvent,
+        cmd: Tuple[str, ...] = Command(),
+        arg: Message = CommandArg(),
 ):
     num = arg.extract_plain_text().strip()
     if is_number(num) and 51 > int(num) > 10:

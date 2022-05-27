@@ -59,7 +59,7 @@ async def _():
         for g in gl:
             result = image("zao.jpg", "zhenxun")
             try:
-                await bot.send_group_msg(group_id=g, message="[[_task|zwa]]早上好" + result)
+                await bot.send_group_msg(group_id=g, message=f"[[_task|zwa]]早上好" + result)
             except ActionFailed:
                 logger.warning(f"{g} 群被禁言中，无法发送早安")
     except Exception as e:
