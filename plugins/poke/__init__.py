@@ -64,8 +64,11 @@ async def _poke_event(event: PokeNotifyEvent):
         rand = random.random()
         if rand <= 0.3:
             path = random.choice(["luoli", "meitu"])
-            index = random.randint(0, len(os.listdir(IMAGE_PATH / "image_management" / path)))
-            result = f"id：{index}" + image(f"{index}.jpg", "image_management/" + path)
+            if len(os.listdir(IMAGE_PATH / "image_management" / path)) == 0:
+                logger.info(f"\\resources\\image\\image_management\\{path}中没有文件，图片发送失败")
+                await poke_.finish(f"{path}图库为空，图片发不出来啦w(ﾟДﾟ)w")
+            index = random.randint(0, len(os.listdir(IMAGE_PATH / "image_management" / path))-1)
+            result = f"好啦给你看就是啦o(≧口≦)o\nid：{index}" + image(f"{index}.jpg", "image_management/" + path)
             await poke_.send(result)
             logger.info(f"USER {event.user_id} 戳了戳我 回复: {result} \n {result}")
         elif 0.3 < rand < 0.6:
@@ -73,8 +76,6 @@ async def _poke_event(event: PokeNotifyEvent):
             result = record(voice, "dinggong")
             await poke_.send(result)
             await poke_.send(voice.split("_")[1])
-            logger.info(
-                f'USER {event.user_id} 戳了戳我 回复: {result} \n {voice.split("_")[1]}'
-            )
+            logger.info(f'USER {event.user_id} 戳了戳我 回复: {result} \n {voice.split("_")[1]}')
         else:
             await poke_.send(poke(event.user_id))
