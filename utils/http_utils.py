@@ -181,6 +181,7 @@ class AsyncHttpx:
                             ) as response:
                                 logger.info(f"开始下载 {path.name}.. Path: {path.absolute()}")
                                 async with aiofiles.open(path, "wb") as wf:
+                                    logger.info(response)
                                     total = int(response.headers["Content-Length"])
                                     with rich.progress.Progress(
                                         rich.progress.TextColumn(path.name),
