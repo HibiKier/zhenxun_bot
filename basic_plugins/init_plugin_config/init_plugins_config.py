@@ -82,7 +82,10 @@ def init_plugins_config(data_path):
             _data[plugin].yaml_set_start_comment(plugin_name, indent=2)
         # 初始化未设置的管理员权限等级
         for k, v in Config.get_admin_level_data():
-            admin_manager.set_admin_level(k, v)
+            try:
+                admin_manager.set_admin_level(k, v)
+            except KeyError as e:
+                raise KeyError(f"{e} ****** 请检查是否有插件加载失败 ******")
         # 存完插件基本设置
         with open(plugins2config_file, "w", encoding="utf8") as wf:
             round_trip_dump(
