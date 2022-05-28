@@ -251,6 +251,8 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 当图库无图片时，戳一戳将略过发送图片
 * 新增搜图提供配置项```ALLOW_GROUP_R18```：允许在群聊中使用r18参数
 * 新增自动更新插件```UPDATE_REMIND```：新版本提醒，原配置项```AUTO_UPDATE_ZHENXUN```改为自动更新升级
+* black_word新增当群权限为-1时不再检测该群
+* 修复非超级用户绑定原神cookie会被black_word阻拦
 
 ### 2022/5/26
 
