@@ -255,6 +255,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 修复非超级用户绑定原神cookie会被black_word阻拦
 * 修复webui中plugins2setting修改时会改变plugins2setting.cmd为字符串
 * 修复微博热搜报错,发红包小bug [@pull/688](https://github.com/HibiKier/zhenxun_bot/pull/688)
+* 更多的中文提示
 
 ### 2022/5/26
 
