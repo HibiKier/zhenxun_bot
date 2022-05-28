@@ -254,6 +254,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * black_word新增当群权限为-1时不再检测该群
 * 修复非超级用户绑定原神cookie会被black_word阻拦
 * 修复webui中plugins2setting修改时会改变plugins2setting.cmd为字符串
+* 修复微博热搜报错,发红包小bug [@pull/688](https://github.com/HibiKier/zhenxun_bot/pull/688)
 
 ### 2022/5/26
 
