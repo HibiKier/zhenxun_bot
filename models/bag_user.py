@@ -36,9 +36,9 @@ class BagUser(db.Model):
                 group_id=group_id,
             )
         return (
-            f"当前金币：{user.gold}\n今日获取金币：{user.get_today_gold}\n今日花费金币：{user.spend_today_gold}"
-            f"\n今日收益：{user.get_today_gold - user.spend_today_gold}"
-            f"\n总赚取金币：{user.get_total_gold}\n总花费金币：{user.spend_total_gold}"
+            f"当前金币:{user.gold}\n今日获取金币:{user.get_today_gold}\n今日花费金币:{user.spend_today_gold}"
+            f"\n今日收益:{user.get_today_gold - user.spend_today_gold}"
+            f"\n总赚取金币:{user.get_total_gold}\n总花费金币:{user.spend_total_gold}"
         )
 
     @classmethod
