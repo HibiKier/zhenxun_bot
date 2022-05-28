@@ -249,7 +249,8 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 修复原神玩家查询层岩巨渊地下矿区没开时报错
 * 修复 ```休息吧``` 无法阻断戳一戳
 * 当图库无图片时，戳一戳将略过发送图片
-* 新增搜图提供配置项ALLOW_GROUP_R18：允许在群聊中使用r18参数
+* 新增搜图提供配置项```ALLOW_GROUP_R18```：允许在群聊中使用r18参数
+* 新增自动更新插件```UPDATE_REMIND```：新版本提醒，原配置项```AUTO_UPDATE_ZHENXUN```改为自动更新升级
 
 ### 2022/5/26
 
@@ -282,9 +283,9 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 添加pixiv搜图多关键词支持;修复p站搜图数量参数问题 [@pull/441](https://github.com/HibiKier/zhenxun_bot/pull/441)
 * 修复开箱更新价格错误传参
 * 修复pix无法正确查询uid
-* 新增色图插件添加配置项ALLOW_GROUP_R18：允许群聊中使用色图r
-* 新增PIX插件添加配置项ALLOW_GROUP_SETU：允许非超级用户使用-s参数
-* 新增PIX插件添加配置项ALLOW_GROUP_R18：允许非超级用户使用-r参数
+* 新增色图插件添加配置项```ALLOW_GROUP_R18```：允许群聊中使用色图r
+* 新增PIX插件添加配置项```ALLOW_GROUP_SETU```：允许非超级用户使用-s参数
+* 新增PIX插件添加配置项```ALLOW_GROUP_R18```：允许非超级用户使用-r参数
 
 ### 2022/5/22 \[v0.1.5.4]
 
