@@ -91,7 +91,7 @@ async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
     except AttributeError:
         pass
     # 群黑名单检测 群总开关检测
-    if isinstance(event, GroupMessageEvent) or matcher.plugin_name == other_limit_plugins:
+    if isinstance(event, GroupMessageEvent) or matcher.plugin_name in other_limit_plugins:
         try:
             if (
                 group_manager.get_group_level(event.group_id) < 0

@@ -3,6 +3,7 @@ from ruamel.yaml import round_trip_load, round_trip_dump, YAML
 from utils.manager import admin_manager, plugins_manager
 from configs.config import Config
 from services.log import logger
+from utils.text_utils import prompt2cn
 from utils.utils import get_matchers
 from ruamel import yaml
 import nonebot
@@ -113,9 +114,7 @@ def init_plugins_config(data_path):
                     _tmp_data[plugin][k] = Config.get_config(plugin, k)
                 except AttributeError as e:
                     raise AttributeError(
-                        f"{e}\n**********************************************\n"
-                        f"****** 可能为config.yaml配置文件填写不规范 ******\n"
-                        f"**********************************************"
+                        f"{e}\n" + prompt2cn("可能为config.yaml配置文件填写不规范", 46)
                     )
         Config.save()
         temp_file = Path() / "configs" / "temp_config.yaml"

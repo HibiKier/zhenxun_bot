@@ -71,6 +71,11 @@ __plugin_configs__ = {
         "value": 20,
         "help": "作品最大页数限制，超过的作品会被略过",
         "default_value": 20
+    },
+    "ALLOW_GROUP_R18": {
+        "value": False,
+        "help": "允许群聊中使用 r18 参数",
+        "default_value": False
     }
 }
 Config.add_plugin_config(
@@ -154,7 +159,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
 async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip()
     if isinstance(event, GroupMessageEvent):
-        if "r18" in msg.lower():
+        if "r18" in msg.lower() and not Config.get_config("pixiv_rank_search", "ALLOW_GROUP_R18"):
             await pixiv_keyword.finish("(脸红#) 你不会害羞的 八嘎！", at_sender=True)
     r18 = 0 if "r18" in msg else 1
     msg = msg.replace("r18", "").strip().split()

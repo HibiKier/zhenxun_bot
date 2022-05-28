@@ -212,7 +212,7 @@ update_price = on_command("更新开箱价格", priority=1, permission=SUPERUSER
 
 @update_price.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
-    await update_price.send(await util_get_buff_price(arg.extract_plain_text().strip()))
+    await update_price.send(await util_get_buff_price(arg.extract_plain_text().strip() or "狂牙大行动"))
 
 
 update_img = on_command("更新开箱图片", priority=1, permission=SUPERUSER, block=True)
@@ -220,7 +220,7 @@ update_img = on_command("更新开箱图片", priority=1, permission=SUPERUSER, 
 
 @update_img.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
-    await update_img.send(await util_get_buff_img(str(arg.extract_plain_text().strip())))
+    await update_img.send(await util_get_buff_img(arg.extract_plain_text().strip() or "狂牙大行动"))
 
 
 # 重置开箱
