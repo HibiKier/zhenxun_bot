@@ -71,6 +71,11 @@ async def install_plugin(name: str) -> str:
                 os.system(
                     f"poetry run pip install -r {(extensive_plugin_path / f'{name}' / 'pyproject.toml').absolute()}"
                 )
+            elif "requirements.txt" in os.listdir(extensive_plugin_path / f"{name}"):
+                tmp = "检测到该插件含有额外依赖，当前安装无法保证依赖完全安装成功。"
+                os.system(
+                    f"poetry run pip install -r {(extensive_plugin_path / f'{name}' / 'requirements.txt').absolute()}"
+                )
             with open(extensive_plugin_path / f'{name}' / "plugin_info.json", 'w') as f:
                 json.dump(data[name], f, ensure_ascii=False, indent=4)
             logger.debug("移动插件文件夹完成...")
