@@ -71,6 +71,8 @@ async def install_plugin(name: str) -> str:
                 os.system(
                     f"poetry run pip install -r {(extensive_plugin_path / f'{name}' / 'pyproject.toml').absolute()}"
                 )
+            with open(extensive_plugin_path / f'{name}' / "plugin_info.json", 'w') as f:
+                json.dump(data[name], f, ensure_ascii=False, indent=4)
             logger.debug("移动插件文件夹完成...")
             logger.info(f"成功安装插件 {name} 成功！\n{tmp}")
         return f"成功安装插件 {name}，请重启bot！"

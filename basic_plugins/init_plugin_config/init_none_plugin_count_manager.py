@@ -40,7 +40,7 @@ def init_none_plugin_count_manager():
                     plugins2block_manager.save()
                     plugins_manager.delete(module)
                     plugins_manager.save()
-                    resources_manager.remove_resource(module)
+                    # resources_manager.remove_resource(module)
                     none_plugin_count_manager.delete(module)
                     logger.info(f"{module}:{plugin_name} 插件疑似已删除，清除对应插件数据...")
                 except Exception as e:
