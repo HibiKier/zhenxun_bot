@@ -27,7 +27,7 @@ __plugin_author__ = "HibiKier"
 __plugin_configs__ = {
     "UPDATE_REMIND": {
         "value": True,
-        "help": "真寻是否自动检查更新",
+        "help": "真寻是否检测版本状态",
         "default": True,
     },
     "AUTO_UPDATE_ZHENXUN": {
