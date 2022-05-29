@@ -243,6 +243,10 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/5/30
+
+* 商店插件判断是否有requirements.txt文件
+
 ### 2022/5/29 \[v0.1.5.8]
 
 * 提供了真寻适配仓库的插件 安装/卸载 操作
