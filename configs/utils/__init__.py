@@ -2,6 +2,7 @@ from typing import Optional, Any, Union
 from pathlib import Path
 from ruamel.yaml import YAML
 from ruamel import yaml
+from ruamel.yaml.scanner import ScannerError
 
 
 class ConfigsManager:
@@ -21,9 +22,24 @@ class ConfigsManager:
             if file.exists():
                 with open(file, "r", encoding="utf8") as f:
                     self._data = _yaml.load(f)
+                if not self._data:
+                    self.file.unlink()
+                    raise ValueError(
+                        "配置文件为空！\n"
+                        "***********************************************************\n"
+                        "****** 配置文件 plugins2config.yaml 为空，已删除，请重启 ******\n"
+                        "***********************************************************"
+                    )
             if self._simple_file.exists():
-                with open(self._simple_file, "r", encoding="utf8") as f:
-                    self._simple_data = _yaml.load(f)
+                try:
+                    with open(self._simple_file, "r", encoding="utf8") as f:
+                        self._simple_data = _yaml.load(f)
+                except ScannerError as e:
+                    raise ScannerError(
+                        f"{e}\n**********************************************\n"
+                        f"****** 可能为config.yaml配置文件填写不规范 ******\n"
+                        f"**********************************************"
+                    )
 
     def add_plugin_config(
         self,
@@ -86,7 +102,10 @@ class ConfigsManager:
         :param value: 值
         """
         if module in self._data.keys():
-            if self._data[module].get(key) is not None and self._data[module][key] != value:
+            if (
+                self._data[module].get(key) is not None
+                and self._data[module][key] != value
+            ):
                 self._data[module][key]["value"] = value
                 self._simple_data[module][key] = value
                 self.save()
@@ -115,7 +134,9 @@ class ConfigsManager:
                 self._data[module][key]["default_value"] = value
                 self.save()
 
-    def get_config(self, module: str, key: str, default: Optional[Any] = None) -> Optional[Any]:
+    def get_config(
+        self, module: str, key: str, default: Optional[Any] = None
+    ) -> Optional[Any]:
         """
         获取指定配置值
         :param module: 模块名
@@ -161,7 +182,11 @@ class ConfigsManager:
         if save_simple_data:
             with open(self._simple_file, "w", encoding="utf8") as f:
                 yaml.dump(
-                    self._simple_data, f, indent=2, Dumper=yaml.RoundTripDumper, allow_unicode=True
+                    self._simple_data,
+                    f,
+                    indent=2,
+                    Dumper=yaml.RoundTripDumper,
+                    allow_unicode=True,
                 )
         path = path if path else self.file
         with open(path, "w", encoding="utf8") as f:

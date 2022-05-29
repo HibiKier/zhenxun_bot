@@ -330,18 +330,19 @@ def get_country_data_image(world_data_dict: Dict) -> BuildImage:
                 f"{world_data_dict['层岩巨渊']['exploration_percentage'] / 10}%",
                 fill=(255, 255, 255),
             )
-            content_bk.text((300, 85), "地下矿区探索", fill=(239, 211, 114))
-            content_bk.text(
-                (570, 85),
-                f"{world_data_dict['层岩巨渊·地下矿区']['exploration_percentage'] / 10}%",
-                fill=(255, 255, 255),
-            )
-            content_bk.text((300, 150), "流明石触媒", fill=(239, 211, 114))
-            content_bk.text(
-                (570, 150),
-                f"LV.{world_data_dict['层岩巨渊·地下矿区']['offerings'][0]['level']}",
-                fill=(255, 255, 255),
-            )
+            if world_data_dict.get('层岩巨渊·地下矿区'):
+                content_bk.text((300, 85), "地下矿区探索", fill=(239, 211, 114))
+                content_bk.text(
+                    (570, 85),
+                    f"{world_data_dict['层岩巨渊·地下矿区']['exploration_percentage'] / 10}%",
+                    fill=(255, 255, 255),
+                )
+                content_bk.text((300, 150), "流明石触媒", fill=(239, 211, 114))
+                content_bk.text(
+                    (570, 150),
+                    f"LV.{world_data_dict['层岩巨渊·地下矿区']['offerings'][0]['level']}",
+                    fill=(255, 255, 255),
+                )
         elif country in ["龙脊雪山"]:
             content_bk.text((300, 40), "探索", fill=(239, 211, 114))
             content_bk.text(

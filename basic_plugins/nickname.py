@@ -1,4 +1,4 @@
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, PrivateMessageEvent, Message
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, PrivateMessageEvent, Message, MessageEvent
 from nonebot import on_command
 from nonebot.typing import T_State
 from nonebot.rule import to_me
@@ -47,7 +47,7 @@ cancel_nickname = on_command("取消昵称", rule=to_me(), priority=5, block=Tru
 
 
 @nickname.handle()
-async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip()
     if not msg:
         await nickname.finish("叫你空白？叫你虚空？叫你无名？？", at_sender=True)

@@ -127,6 +127,8 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
         else:
             if plugin.plugin_settings:
                 for key, value in plugin.plugin_settings:
+                    if plugin.plugin_settings.cmd:
+                        plugin.plugin_settings.cmd = plugin.plugin_settings.cmd.split(',')
                     plugins2settings_manager.set_module_data(plugin.model, key, value)
             if plugin.plugin_manager:
                 for key, value in plugin.plugin_manager:

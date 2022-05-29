@@ -3,6 +3,7 @@ from ruamel.yaml import round_trip_load, round_trip_dump, YAML
 from utils.manager import admin_manager, plugins_manager
 from configs.config import Config
 from services.log import logger
+from utils.text_utils import prompt2cn
 from utils.utils import get_matchers
 from ruamel import yaml
 import nonebot
@@ -56,7 +57,9 @@ def init_plugins_config(data_path):
                         _override=True,
                     )
                 else:
-                    Config.add_plugin_config(matcher.plugin_name, key, plugin_configs[key])
+                    Config.add_plugin_config(
+                        matcher.plugin_name, key, plugin_configs[key]
+                    )
         else:
             plugin_configs = _data[matcher.plugin_name]
             for key in plugin_configs:
@@ -79,7 +82,10 @@ def init_plugins_config(data_path):
             _data[plugin].yaml_set_start_comment(plugin_name, indent=2)
         # 初始化未设置的管理员权限等级
         for k, v in Config.get_admin_level_data():
-            admin_manager.set_admin_level(k, v)
+            try:
+                admin_manager.set_admin_level(k, v)
+            except KeyError as e:
+                raise KeyError(f"{e} ****** 请检查是否有插件加载失败 ******")
         # 存完插件基本设置
         with open(plugins2config_file, "w", encoding="utf8") as wf:
             round_trip_dump(
@@ -96,14 +102,23 @@ def init_plugins_config(data_path):
         for plugin in Config.keys():
             _tmp_data[plugin] = {}
             for k in Config[plugin].keys():
-                if _data.get(plugin) and k in _data[plugin].keys():
-                    Config.set_config(plugin, k, _data[plugin][k])
-                    if level2module := Config.get_level2module(plugin, k):
-                        try:
-                            admin_manager.set_admin_level(level2module, _data[plugin][k])
-                        except KeyError:
-                            logger.warning(f"{level2module} 设置权限等级失败：{_data[plugin][k]}")
-                _tmp_data[plugin][k] = Config.get_config(plugin, k)
+                try:
+                    if _data.get(plugin) and k in _data[plugin].keys():
+                        Config.set_config(plugin, k, _data[plugin][k])
+                        if level2module := Config.get_level2module(plugin, k):
+                            try:
+                                admin_manager.set_admin_level(
+                                    level2module, _data[plugin][k]
+                                )
+                            except KeyError:
+                                logger.warning(
+                                    f"{level2module} 设置权限等级失败：{_data[plugin][k]}"
+                                )
+                    _tmp_data[plugin][k] = Config.get_config(plugin, k)
+                except AttributeError as e:
+                    raise AttributeError(
+                        f"{e}\n" + prompt2cn("可能为config.yaml配置文件填写不规范", 46)
+                    )
         Config.save()
         temp_file = Path() / "configs" / "temp_config.yaml"
         try:

@@ -9,7 +9,7 @@ import platform
 #     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
-url = "http://www.eclzz.mobi"
+url = "http://www.eclzz.win"
 
 
 async def get_bt_info(keyword: str, page: int):
@@ -19,7 +19,7 @@ async def get_bt_info(keyword: str, page: int):
     :param page: 页数
     """
     text = (await AsyncHttpx.get(f"{url}/s/{keyword}_rel_{page}.html", timeout=5)).text
-    if text.find("大约0条结果") != -1:
+    if "大约0条结果" in text:
         return
     soup = BeautifulSoup(text, "lxml")
     item_lst = soup.find_all("div", {"class": "search-item"})
