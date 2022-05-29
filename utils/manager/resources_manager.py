@@ -1,4 +1,6 @@
 from typing import Union, List, Optional
+
+from configs.path_config import IMAGE_PATH, DATA_PATH, RECORD_PATH, TEXT_PATH, FONT_PATH, LOG_PATH
 from .data_class import StaticData
 from pathlib import Path
 from ruamel.yaml import YAML
@@ -47,19 +49,21 @@ class ResourcesManager(StaticData):
             if module in self._data.keys():
                 for x in self._data[module].keys():
                     move_file = Path(self._data[module][x])
-                    if move_file.exists():
-                        shutil.rmtree(move_file.absolute(), ignore_errors=True)
-                        logger.info(f"已清除插件 {module} 资源路径：{self._data[module][x]}")
-                        del self._data[module][x]
+                    if move_file not in [IMAGE_PATH, DATA_PATH, RECORD_PATH, TEXT_PATH, FONT_PATH, LOG_PATH]:
+                        if move_file.exists():
+                            shutil.rmtree(move_file.absolute(), ignore_errors=True)
+                            logger.info(f"已清除插件 {module} 资源路径：{self._data[module][x]}")
+                            del self._data[module][x]
         else:
             if isinstance(source_file, Path):
                 source_file = str(source_file.absolute())
             if source_file:
                 if module in self._data.keys() and source_file in self._data[module].keys():
                     move_file = Path(self._data[module][source_file])
-                    if move_file.exists():
-                        shutil.rmtree(move_file.absolute(), ignore_errors=True)
-                    del self._data[module][source_file]
+                    if move_file not in [IMAGE_PATH, DATA_PATH, RECORD_PATH, TEXT_PATH, FONT_PATH, LOG_PATH]:
+                        if move_file.exists():
+                            shutil.rmtree(move_file.absolute(), ignore_errors=True)
+                        del self._data[module][source_file]
         self.save()
 
     def start_move(self):
@@ -97,7 +101,6 @@ class ResourcesManager(StaticData):
         """
         添加临时清理文件夹
         :param path: 路径
-        :param recursive: 是否将该目录下的所有目录也添加为临时文件夹
         """
         if isinstance(path, str):
             path = Path(path)

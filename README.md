@@ -243,6 +243,11 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/5/29 \[v0.1.5.7]
+
+* 修复错误的resource路径会删除IMAGE_PATH等重要文件夹
+* 提供了真寻适配仓库的插件 安装/卸载 操作
+
 ### 2022/5/28
 
 * 修复私聊无法添加昵称
