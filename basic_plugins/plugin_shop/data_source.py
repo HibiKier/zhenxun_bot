@@ -135,10 +135,10 @@ async def show_plugin_repo() -> Union[int, str]:
         w = w if w > img.w else img.w
         h += img.h + line_height
         image_list.append(img)
-    A = BuildImage(w + 100, h + 100, color="#f9f6f2")
-    cur_h = 50
+    A = BuildImage(w + 50, h + 50, color="#f9f6f2")
+    cur_h = 25
     for img in image_list:
-        await A.apaste(img, (50, cur_h))
+        await A.apaste(img, (25, cur_h))
         cur_h += img.h + line_height
     return A.pic2bs4()
 
