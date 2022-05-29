@@ -1,6 +1,6 @@
 from nonebot import on_command, on_regex
 
-from .data_source import show_plugin_repo, install_plugin, uninstall_plugin
+from .data_source import show_plugin_repo, install_plugin, uninstall_plugin, download_json
 from services.log import logger
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent
 from nonebot.params import CommandArg
@@ -15,6 +15,7 @@ usage：
     下载安装插件
     指令：
         查看插件仓库
+        更新插件仓库
         安装插件 [name/id]
         卸载插件 [name/id]
 """.strip()
@@ -24,6 +25,8 @@ __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 
 show_repo = on_regex("^查看插件仓库$", priority=1, block=True, permission=SUPERUSER)
+
+update_repo = on_regex("^更新插件仓库$", priority=1, block=True, permission=SUPERUSER)
 
 install_plugin_matcher = on_command("安装插件", priority=1, block=True, permission=SUPERUSER)
 
@@ -43,6 +46,14 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     msg = await uninstall_plugin(arg)
     await install_plugin_matcher.send(msg)
 
+
+@update_repo.handle()
+async def _(bot: Bot, event: MessageEvent):
+    code = await download_json()
+    if code == 200:
+        await update_repo.finish("更新插件仓库信息成功！")
+    await update_repo.send("更新插件仓库信息失败！")
+    
 
 @show_repo.handle()
 async def _(bot: Bot, event: MessageEvent):
