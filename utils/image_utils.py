@@ -1508,7 +1508,7 @@ async def text2image(
             font=font,
         )
         await A.atext((left_padding, top_padding), text, font_color)
-    # A.show()
+        # A.show()
     return A
 
 

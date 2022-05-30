@@ -9,7 +9,8 @@
       "configs/utils",
       "poetry.lock",
       "pyproject.toml",
-      "resources/font"
+      "resources/font",
+      "bot.py"
     ],
     "add_file": [],
     "delete_file": []
