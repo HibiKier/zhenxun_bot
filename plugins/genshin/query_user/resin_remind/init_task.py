@@ -198,7 +198,6 @@ async def _remind(user_id: int, uid: str):
     await Genshin.set_user_resin_recovery_time(int(uid), next_time)
     scheduler.add_job(
         _remind,
-        _remind,
         "date",
         run_date=next_time,
         id=f"genshin_resin_remind_{uid}_{user_id}",
