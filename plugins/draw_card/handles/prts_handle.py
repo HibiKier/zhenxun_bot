@@ -288,7 +288,10 @@ class PrtsHandle(BaseHandle[Operator]):
                             up_chars.append(
                                 UpChar(name=name, star=star, limited=False, zoom=zoom)
                             )
-                    break  # 这里break会导致个问题：如果一个公告里有两个池子，会漏掉下面的池子，比如 5.19 的定向寻访。但目前我也没啥好想法解决
+                    if start_time <= datetime.now() <= end_time: # 跳过过时的卡池
+                        break  # 这里break会导致个问题：如果一个公告里有两个池子，会漏掉下面的池子，比如 5.19 的定向寻访。但目前我也没啥好想法解决
+                    chars: List[str] = [] # 查找下一个卡池之前清空 chars
+                    up_chars = [] # 查找下一个卡池之前清空 up_chars
             if title and start_time and end_time:
                 if start_time <= datetime.now() <= end_time:
                     self.UP_EVENT = UpEvent(
