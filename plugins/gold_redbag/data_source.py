@@ -70,13 +70,13 @@ async def _generate_open_redbag_pic(user_id: int, send_user_nickname: str, amoun
     ava_bk.text((100, 7), send_user_nickname)
     # ava_bk.show()
     ava_bk_w, ava_bk_h = ava_bk.size
-    head.paste(ava_bk, (int((1000 - ava_bk_w) / 2), 300))
+    head.paste(ava_bk, (int((1000 - ava_bk_w) / 2), 300), alpha=True)
     # 金额
     size = BuildImage(0, 0, font_size=150).getsize(amount)
     price = BuildImage(size[0], size[1], is_alpha=True, font_size=150)
     price.text((0, 0), amount, fill=(209, 171, 108))
     # 金币中文
-    head.paste(price, (int((1000 - size[0]) / 2) - 50, 460))
+    head.paste(price, (int((1000 - size[0]) / 2) - 50, 460), alpha=True)
     head.text((int((1000 - size[0]) / 2 + size[0]) - 50, 500 + size[1] - 70), '金币', fill=(209, 171, 108))
     # 剩余数量和金额
     head.text((350, 900), text, (198, 198, 198))
