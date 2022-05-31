@@ -243,9 +243,15 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
-### 2022/5/30
+### 2022/5/31
 
-* 商店插件判断是否有requirements.txt文件
+* 修复开启/关闭全部功能时帮助图片未重绘 [@pull/721](https://github.com/HibiKier/zhenxun_bot/pull/721)
+* bot_friend_group将group_handle.修改为friend_handle. [@pull/711](https://github.com/HibiKier/zhenxun_bot/pull/711)
+* 修复发红包图片背景未透明化;修复原神树脂提醒参数错误 [@pull/712](https://github.com/HibiKier/zhenxun_bot/pull/712)
+* 修复抽卡插件：方舟更新UP池信息时，若公告的第一个池子过期会导致无法更新UP池信息 [@pull/707](https://github.com/HibiKier/zhenxun_bot/pull/707)
+* 商店插件判断是否有requirements.txt文件 [@pull/705](https://github.com/HibiKier/zhenxun_bot/pull/705)
+* 删除原神玩家查询api返回变更的多余键值
+* 优化了text2image方法
 
 ### 2022/5/29 \[v0.1.5.8]
 

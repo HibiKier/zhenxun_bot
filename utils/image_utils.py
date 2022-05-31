@@ -1492,23 +1492,25 @@ async def text2image(
         width = 0
         height = 0
         _tmp = BuildImage(0, 0, font=font, font_size=font_size)
+        _, h = _tmp.getsize("正")
+        line_height = int(font_size / 3)
+        image_list = []
         for x in text.split("\n"):
-            if x:
-                w, _ = _tmp.getsize(x)
-                _, h = _tmp.getsize("正")
-                height += h + _add_height
-                width = width if width > w else w
+            w, _ = _tmp.getsize(x.strip() or "正")
+            height += h + line_height
+            width = width if width > w else w
+            image_list.append(BuildImage(w, h, font=font, font_size=font_size, plain_text=x.strip()))
         width += pw
         height += ph
         A = BuildImage(
             width + left_padding,
             height + top_padding + 2,
-            font_size=font_size,
             color=color,
-            font=font,
         )
-        await A.atext((left_padding, top_padding), text, font_color)
-        # A.show()
+        cur_h = ph
+        for img in image_list:
+            await A.apaste(img, (pw, cur_h + ph), True)
+            cur_h += img.h + line_height
     return A
 
 
