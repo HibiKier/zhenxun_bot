@@ -64,7 +64,7 @@ async def _poke_event(event: PokeNotifyEvent):
         rand = random.random()
         path = random.choice(["luoli", "meitu"])
         if rand <= 0.3 and len(os.listdir(IMAGE_PATH / "image_management" / path)) > 0:
-            index = random.randint(0, len(os.listdir(IMAGE_PATH / "image_management" / path)))
+            index = random.randint(0, len(os.listdir(IMAGE_PATH / "image_management" / path)) - 1)
             result = f"id：{index}" + image(f"{index}.jpg", "image_management/" + path)
             await poke_.send(result)
             logger.info(f"USER {event.user_id} 戳了戳我 回复: {result}  {result}")
