@@ -144,8 +144,8 @@ async def _remind(user_id: int, uid: str):
     now = datetime.now(pytz.timezone("Asia/Shanghai"))
     next_time = None
     if code == 200:
-        current_resin = data["current_resin"]  # 当前树脂
-        max_resin = data["max_resin"]  # 最大树脂
+        current_resin = int(data["current_resin"])  # 当前树脂
+        max_resin = int(data["max_resin"])  # 最大树脂
         msg = f"你的已经存了 {current_resin} 个树脂了！不要忘记刷掉！"
         # resin_recovery_time = data["resin_recovery_time"]  # 树脂全部回复时间
         if current_resin < max_resin:
