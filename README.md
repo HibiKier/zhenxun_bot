@@ -247,6 +247,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 * 修复了webUI插件相关API问题
 * 插件仓库在已安装插件边上会提示\[已安装]
+* 修复ShopRegister kwargs某些字段无效
 
 ### 2022/5/31
 
