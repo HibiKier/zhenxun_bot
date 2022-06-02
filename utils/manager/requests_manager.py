@@ -158,7 +158,7 @@ class RequestManager(StaticData):
             )
             ava.circle()
             age_bk = BuildImage(
-                len(str(age)) * 10 - 5,
+                len(str(age)) * 6 + 6,
                 15,
                 color="#04CAF7" if sex == "male" else "#F983C1",
             )
