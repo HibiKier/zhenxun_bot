@@ -108,7 +108,7 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
                 if str(c.value).lower() in ["true", "false"] and (
                     c.default_value is None or isinstance(c.default_value, bool)
                 ):
-                    c.value = True if str(c.value).lower() == "true" else False
+                    c.value = str(c.value).lower() == "true"
                 elif isinstance(
                     Config.get_config(plugin.model, c.key, c.value), int
                 ) or isinstance(c.default_value, int):
@@ -127,8 +127,6 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
         else:
             if plugin.plugin_settings:
                 for key, value in plugin.plugin_settings:
-                    if plugin.plugin_settings.cmd:
-                        plugin.plugin_settings.cmd = plugin.plugin_settings.cmd.split(',')
                     plugins2settings_manager.set_module_data(plugin.model, key, value)
             if plugin.plugin_manager:
                 for key, value in plugin.plugin_manager:

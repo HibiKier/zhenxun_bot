@@ -243,6 +243,11 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/6/3
+
+* 修复了webUI插件相关API问题
+* 插件仓库在已安装插件边上会提示\[已安装]
+
 ### 2022/5/31
 
 * 修复开启/关闭全部功能时帮助图片未重绘 [@pull/721](https://github.com/HibiKier/zhenxun_bot/pull/721)
