@@ -150,4 +150,4 @@ async def _():
 @clear_request.handle()
 async def _():
     requests_manager.clear()
-    await cls_request.send("已清空所有好友/群聊请求..")
+    await clear_request.send("已清空所有好友/群聊请求..")
