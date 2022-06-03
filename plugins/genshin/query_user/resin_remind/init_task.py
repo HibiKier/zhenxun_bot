@@ -153,7 +153,7 @@ async def _remind(user_id: int, uid: str):
             next_time = now + timedelta(minutes=(max_resin - 40 - current_resin + 1) * 8, seconds=10)
         elif max_resin - 40 < current_resin <= max_resin - 20:
             next_time = now + timedelta(minutes=(max_resin - 20 - current_resin + 1) * 8, seconds=10)
-        elif max_resin - 20 < current_resin <= max_resin:
+        elif max_resin - 20 < current_resin < max_resin:
             next_time = now + timedelta(minutes=(max_resin - current_resin) * 8, seconds=10)
         elif current_resin == max_resin:
             custom_overflow_resin = Config.get_config("resin_remind", "CUSTOM_RESIN_OVERFLOW_REMIND")
