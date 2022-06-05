@@ -61,7 +61,8 @@ async def generate_open_redbag_pic(user_id: int, send_user_nickname: str, amount
 async def _generate_open_redbag_pic(user_id: int, send_user_nickname: str, amount: int, text: str):
     send_user_nickname += '的红包'
     amount = str(amount)
-    head = BuildImage(1000, 980, font_size=30, background=f'{IMAGE_PATH}/prts/redbag_12.png')
+    random_redbag = random.choice(os.listdir(f"{IMAGE_PATH}/prts/redbag_1"))
+    head = BuildImage(1000, 980, font_size=30, background=f'{IMAGE_PATH}/prts/redbag_1/{random_redbag}')
     size = BuildImage(0, 0, font_size=50).getsize(send_user_nickname)
     # QQ头像
     ava_bk = BuildImage(100 + size[0], 66, is_alpha=True, font_size=50)
