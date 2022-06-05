@@ -252,7 +252,6 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ### 2022/6/3
 
-* 修复了webUI插件相关API问题
 * 插件仓库在已安装插件边上会提示\[已安装]
 * 修复ShopRegister kwargs某些字段无效
 * 调整了一下查看所有请求中的年龄绘制 [@pull/745](https://github.com/HibiKier/zhenxun_bot/pull/745)
