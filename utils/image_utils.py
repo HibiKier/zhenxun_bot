@@ -1509,7 +1509,7 @@ async def text2image(
         )
         cur_h = ph
         for img in image_list:
-            await A.apaste(img, (pw, cur_h + ph), True)
+            await A.apaste(img, (pw, cur_h), True)
             cur_h += img.h + line_height
     return A
 

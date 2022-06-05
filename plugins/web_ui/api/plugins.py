@@ -121,7 +121,17 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
                     isinstance(Config.get_config(plugin.model, c.key, c.value), list)
                     or isinstance(c.default_value, list)
                 ):
+                    default_value = Config.get_config(plugin.model, c.key, c.value)
                     c.value = c.value.split(",")
+                    if default_value and isinstance(default_value[0], int):
+                        c.value = [int(x) for x in c.value]
+                    elif default_value and isinstance(default_value[0], float):
+                        c.value = [float(x) for x in c.value]
+                    elif default_value and isinstance(default_value[0], bool):
+                        temp = []
+                        for x in c.value:
+                            temp.append(x.lower() == "true")
+                        c.value = temp
                 Config.set_config(plugin.model, c.key, c.value)
             Config.save(None, True)
         else:
@@ -139,4 +149,4 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
             code=500,
             data=f"WEB_UI POST /webui/plugins model：{plugin.model} 发生错误 {type(e)}：{e}",
         )
-    return Result(code=200)
+    return Result(code=200, data="修改成功！")

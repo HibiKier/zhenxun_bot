@@ -7,7 +7,7 @@ import nonebot
 
 app = nonebot.get_app()
 
-origins = ["http://localhost"]
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,

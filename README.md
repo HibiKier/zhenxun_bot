@@ -243,6 +243,13 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/6/5 \[v0.1.5.9]
+
+* webui修复plugin2setting中cmd从list转变为str
+* 当命令`我的金币`被风控时将以图片形式发送
+* fix gold_redbag [@pull/763](https://github.com/HibiKier/zhenxun_bot/pull/763)
+* 金币红包功能增加更多封面 [@pull/764](https://github.com/HibiKier/zhenxun_bot/pull/764)
+
 ### 2022/6/3
 
 * 修复了webUI插件相关API问题

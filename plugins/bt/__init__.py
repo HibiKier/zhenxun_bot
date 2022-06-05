@@ -80,8 +80,8 @@ async def _(
     except TimeoutError:
         await bt.finish(f"搜索 {keyword} 超时...")
     except Exception as e:
-        await bt.finish(f"bt 其他未知错误..")
         logger.error(f"bt 错误 {type(e)}：{e}")
+        await bt.finish(f"bt 其他未知错误..")
     if not send_flag:
         await bt.send(f"{keyword} 未搜索到...")
     logger.info(f"USER {event.user_id} BT搜索 {keyword} 第 {page} 页")

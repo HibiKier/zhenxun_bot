@@ -189,6 +189,9 @@ def _file_handle(latest_version: str) -> str:
         local_update_info_file.unlink()
     with open(_version_file, "w", encoding="utf8") as f:
         f.write(f"__version__: {latest_version}")
+    os.system(
+        f"poetry run pip install -r {(Path() / 'pyproject.toml').absolute()}"
+    )
     return error
 
 
