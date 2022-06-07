@@ -178,7 +178,7 @@ class BuildImage:
         self.paste_image_height = int(paste_image_height)
         self.current_w = 0
         self.current_h = 0
-        self.font = ImageFont.truetype(str(FONT_PATH / font), font_size)
+        self.font = ImageFont.truetype(str(FONT_PATH / font), int(font_size))
         if not plain_text and not color:
             color = (255, 255, 255)
         self.background = background
