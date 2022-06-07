@@ -6,7 +6,7 @@ from configs.config import Config
 from pathlib import Path
 from services.log import logger
 from models.ban_user import BanUser
-from nonebot.adapters.onebot.v11.exception import ActionFailed
+from nonebot.adapters.onebot.v11 import ActionFailed
 from models.group_member_info import GroupInfoUser
 from utils.http_utils import AsyncHttpx
 import random

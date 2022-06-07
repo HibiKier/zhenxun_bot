@@ -7,7 +7,7 @@ from .models.open_cases_user import OpenCasesUser
 from services.log import logger
 from utils.utils import get_bot, cn2py
 from asyncio.exceptions import TimeoutError
-from nonebot.adapters.onebot.v11.exception import ActionFailed
+from nonebot.adapters.onebot.v11 import ActionFailed
 from configs.config import Config
 from utils.manager import group_manager
 from .config import *

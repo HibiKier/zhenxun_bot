@@ -1,4 +1,11 @@
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GROUP, GroupMessageEvent, Message
+from nonebot.adapters.onebot.v11 import (
+    Bot,
+    MessageEvent,
+    GROUP,
+    GroupMessageEvent,
+    Message,
+    ActionFailed,
+)
 from nonebot import on_command, on_regex
 from nonebot.permission import SUPERUSER
 from nonebot.typing import T_State
@@ -8,7 +15,6 @@ from utils.manager import group_manager, plugins2settings_manager
 from models.group_info import GroupInfo
 from services.log import logger
 from configs.config import NICKNAME
-from nonebot.adapters.onebot.v11.exception import ActionFailed
 from nonebot.params import Command, CommandArg
 from typing import Tuple
 
@@ -137,9 +143,7 @@ async def _():
 async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
     cmd = cmd[0]
     msg = arg.extract_plain_text().strip().split()
-    all_group = [
-        g["group_id"] for g in await bot.get_group_list()
-    ]
+    all_group = [g["group_id"] for g in await bot.get_group_list()]
     group_list = []
     for group in msg:
         if is_number(group) and int(group) in all_group:
@@ -151,9 +155,7 @@ async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandAr
             else:
                 group_manager.delete_group_white_list(group)
         group_list = [str(x) for x in group_list]
-        await manager_group_whitelist.send(
-            "已成功将 " + "\n".join(group_list) + " " + cmd
-        )
+        await manager_group_whitelist.send("已成功将 " + "\n".join(group_list) + " " + cmd)
     else:
         await manager_group_whitelist.send(f"添加失败，请检查{NICKNAME}是否已加入这些群聊或重复添加/删除群白单名")
 
@@ -199,6 +201,4 @@ async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandAr
         else:
             if await GroupInfo.get_group_info(group_id):
                 await GroupInfo.set_group_flag(group_id, 0)
-        await group_auth.send(
-            f'已为 {group_id} {cmd[:2]}群认证..'
-        )
+        await group_auth.send(f"已为 {group_id} {cmd[:2]}群认证..")
