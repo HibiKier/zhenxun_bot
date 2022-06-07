@@ -1,9 +1,10 @@
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message, ActionFailed
 from nonebot.params import CommandArg
 from nonebot.adapters.onebot.v11.permission import GROUP
 from utils.data_utils import init_rank
 from models.bag_user import BagUser
+from utils.image_utils import text2image
 from utils.message_builder import image
 from utils.utils import is_number
 
@@ -34,7 +35,11 @@ gold_rank = on_command("金币排行", priority=5, block=True, permission=GROUP)
 
 @my_gold.handle()
 async def _(event: GroupMessageEvent):
-    await my_gold.finish(await BagUser.get_user_total_gold(event.user_id, event.group_id))
+    msg = await BagUser.get_user_total_gold(event.user_id, event.group_id)
+    try:
+        await my_gold.send(msg)
+    except ActionFailed:
+        await my_gold.send(image(b64=(await text2image(msg, color="#f9f6f2", padding=10)).pic2bs4()))
 
 
 @gold_rank.handle()

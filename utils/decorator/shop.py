@@ -31,6 +31,8 @@ class ShopRegister(dict):
                     for key, value in kwargs.items():
                         if key.startswith(f"{n}_"):
                             _temp_kwargs[key.split("_", maxsplit=1)[-1]] = value
+                        else:
+                            _temp_kwargs[key] = value
                     self._data[n] = {
                         "price": p,
                         "des": d,

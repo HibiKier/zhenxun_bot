@@ -124,7 +124,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
                 redbag_data[event.group_id]["amount"]
                 - redbag_data[event.group_id]["open_amount"]
             )
-            await return_gold(event.user_id, event.group_id, amount)
+            await return_gold(redbag_data[event.group_id]["user_id"], event.group_id, amount)
             await gold_redbag.send(
                 f'{redbag_data[event.group_id]["nickname"]}的红包过时未开完，退还{amount}金币...'
             )

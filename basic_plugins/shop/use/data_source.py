@@ -26,7 +26,7 @@ class GoodsUseFuncManager:
         判断商品使用方法是否被注册
         :param goods_name: 商品名称
         """
-        return bool(self._data.get(goods_name))
+        return bool(self ._data.get(goods_name))
 
     def get_max_num_limit(self, goods_name: str) -> int:
         """

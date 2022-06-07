@@ -243,6 +243,20 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/6/5 \[v0.1.5.9] (__需要更新WebUI!__)
+
+* webui修复plugin2setting中cmd从list转变为str
+* 当命令`我的金币`被风控时将以图片形式发送
+* fix gold_redbag [@pull/763](https://github.com/HibiKier/zhenxun_bot/pull/763)
+* 金币红包功能增加更多封面 [@pull/764](https://github.com/HibiKier/zhenxun_bot/pull/764)
+
+### 2022/6/3
+
+* 插件仓库在已安装插件边上会提示\[已安装]
+* 修复ShopRegister kwargs某些字段无效
+* 调整了一下查看所有请求中的年龄绘制 [@pull/745](https://github.com/HibiKier/zhenxun_bot/pull/745)
+* 修复原神树脂提醒bug [@pull/756](https://github.com/HibiKier/zhenxun_bot/pull/756)
+
 ### 2022/5/31
 
 * 修复开启/关闭全部功能时帮助图片未重绘 [@pull/721](https://github.com/HibiKier/zhenxun_bot/pull/721)

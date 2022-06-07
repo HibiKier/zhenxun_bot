@@ -1,4 +1,6 @@
+import json
 from datetime import datetime, timedelta
+from configs.path_config import DATA_PATH
 from typing import Optional
 from starlette import status
 from fastapi import Depends, HTTPException
@@ -8,6 +10,8 @@ from configs.config import Config
 from jose import JWTError, jwt
 import nonebot
 
+from ..config import Result
+
 app = nonebot.get_app()
 
 
@@ -16,6 +20,13 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="webui/login")
+
+
+token_file = DATA_PATH / "web_ui" / "token.json"
+token_file.parent.mkdir(parents=True, exist_ok=True)
+token_data = {"token": []}
+if token_file.exists():
+    token_data = json.load(open(token_file, 'r', encoding='utf8'))
 
 
 class User(BaseModel):
@@ -62,6 +73,9 @@ async def login_get_token(form_data: OAuth2PasswordRequestForm = Depends()):
     if not user or user.password != form_data.password:
         raise form_exception
     access_token = create_token(user=user, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    token_data["token"].append(access_token)
+    if len(token_data["token"]) > 3:
+        token_data["token"] = token_data["token"][1:]
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -72,16 +86,18 @@ credentials_exception = HTTPException(
 )
 
 
+@app.post("/webui/auth")
 def token_to_user(token: str = Depends(oauth2_scheme)):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username, expire = payload.get("sub"), payload.get("exp")
-        user = get_user(username)
-        if user is None:
-            raise JWTError
-    except JWTError:
-        raise credentials_exception
-    return user
+    if token not in token_data["token"]:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            username, expire = payload.get("sub"), payload.get("exp")
+            user = get_user(username)
+            if user is None:
+                raise JWTError
+        except JWTError:
+            return Result(code=401)
+    return Result(code=200, data="ok")
 
 
 if __name__ == '__main__':
