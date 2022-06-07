@@ -351,6 +351,7 @@ async def send_setu_handle(
                 failure_msg += 1
 
     elif isinstance(event, GroupMessageEvent):
+        await matcher.send("数据量较大,正在处理", at_sender=True)
         use_list = []
         num_local = num
         while num_local > 0:
