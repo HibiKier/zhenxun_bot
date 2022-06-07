@@ -3,6 +3,7 @@ import shutil
 import zipfile
 from pathlib import Path
 from typing import Union, Tuple
+from utils.manager import plugins_manager
 
 import ujson as json
 
@@ -76,7 +77,7 @@ async def install_plugin(name: str) -> str:
                 os.system(
                     f"poetry run pip install -r {(extensive_plugin_path / f'{name}' / 'requirements.txt').absolute()}"
                 )
-            with open(extensive_plugin_path / f'{name}' / "plugin_info.json", 'w') as f:
+            with open(extensive_plugin_path / f"{name}" / "plugin_info.json", "w") as f:
                 json.dump(data[name], f, ensure_ascii=False, indent=4)
             logger.debug("移动插件文件夹完成...")
             logger.info(f"成功安装插件 {name} 成功！\n{tmp}")
@@ -115,6 +116,7 @@ async def show_plugin_repo() -> Union[int, str]:
         if code != 200:
             return code
     plugin_info = json.load(open(plugin_json, "r", encoding="utf8"))
+    load_plugin_list = plugins_manager.get_data().keys()
     image_list = []
     w, h = 0, 0
     line_height = 10
@@ -129,8 +131,9 @@ async def show_plugin_repo() -> Union[int, str]:
             "github_url": plugin_info[key]["github_url"],
         }
         s = (
-            f'id：{i+1}\n名称：{plugin_info[key]["plugin_name"]}\n'
-            f'模块：{key}\n'
+            f'id：{i+1}\n名称：{plugin_info[key]["plugin_name"]}'
+            f' \t\t{"<f font_color=#1a7e30>[已安装]</f>" if key in load_plugin_list else ""}\n'
+            f"模块：{key}\n"
             f'作者：{plugin_info[key]["author"]}\n'
             f'版本：{plugin_info[key]["version"]}\n'
             f'简介：{plugin_info[key]["introduction"]}\n'

@@ -118,6 +118,8 @@ async def change_group_switch(cmd: str, group_id: int, is_super: bool = False):
                 group_manager.unblock_plugin(f, group_id)
             else:
                 group_manager.block_plugin(f, group_id)
+        if group_help_file.exists():
+            group_help_file.unlink()
         return f"已 {status} 全部功能！"
     if cmd in [task_data[x] for x in task_data.keys()]:
         type_ = "task"
