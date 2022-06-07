@@ -257,7 +257,9 @@ async def send_setu_handle(
     # 格蕾修的色图？怎么可能
     tags = [x.lower() for x in tags]
     test = [l for l in NICKNAMES if l in tags]
-
+    if num > 30:
+        await matcher.finish(f"你也太贪心了吧",
+                             at_sender=True if isinstance(event, GroupMessageEvent) else False)
     if isinstance(event, GroupMessageEvent):
         impression = (
             await SignGroupUser.ensure(event.user_id, event.group_id)
@@ -300,8 +302,8 @@ async def send_setu_handle(
                             )
                         else:
                             if setu_list is None:
-                                await setu.finish(f"没找到符合条件的色图...",
-                                                  at_sender=True if isinstance(event, GroupMessageEvent) else False)
+                                await matcher.finish(f"没找到符合条件的色图...",
+                                                     at_sender=True if isinstance(event, GroupMessageEvent) else False)
                         if msg_id:
                             withdraw_message_manager.withdraw_message(
                                 event,
