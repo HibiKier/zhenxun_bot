@@ -17,7 +17,7 @@ async def init(**kwargs) -> Optional[Browser]:
     global _browser
     try:
         browser = await async_playwright().start()
-        _browser = await browser.chromium.launch(**kwargs)
+        _browser = await browser.chromium.launch(**kwargs, slow_mo=1000)
         return _browser
     except NotImplementedError:
         logger.warning("win环境下 初始化playwright失败，相关功能将被限制....")
