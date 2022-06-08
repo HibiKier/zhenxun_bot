@@ -61,6 +61,7 @@ class Setu(db.Model):
             r18: int = 0,
             limit: int = 50,
             img_url: Optional[str] = None,
+            hash_not_none: bool = False
     ):
         """
         说明：
@@ -71,6 +72,7 @@ class Setu(db.Model):
             :param r18: 是否 r18，0：非r18  1：r18  2：混合
             :param limit: 获取数量
             :param img_url: 图片链接
+            :param hash_not_none: hash不为空
         """
         if local_id:
             flag = True if r18 == 1 else False
@@ -88,6 +90,8 @@ class Setu(db.Model):
                 query = query.where(cls.tags.contains(tag) | cls.title.contains(tag) | cls.author.contains(tag))
         if img_url:
             query = query.where(cls.img_url == img_url)
+        if hash_not_none:
+            query = query.where(cls.img_hash != '')
         query = query.order_by(db.func.random()).limit(limit)
         return await query.gino.all()
 

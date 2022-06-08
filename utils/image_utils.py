@@ -19,7 +19,7 @@ Image.MAX_IMAGE_PIXELS = None
 
 
 def compare_image_with_hash(
-    image_file1: str, image_file2: str, max_dif: int = 1.5
+        image_file1: str, image_file2: str, max_dif: int = 1.5
 ) -> bool:
     """
     说明：
@@ -53,8 +53,8 @@ def get_img_hash(image_file: Union[str, Path]) -> ImageHash:
     return hash_value
 
 
-def compressed_image(
-    in_file: Union[str, Path], out_file: Union[str, Path] = None, ratio: float = 0.9
+async def compressed_image(
+        in_file: Union[str, Path], out_file: Union[str, Path] = None, ratio: float = 0.9
 ):
     """
     说明：
@@ -142,20 +142,20 @@ class BuildImage:
     """
 
     def __init__(
-        self,
-        w: int,
-        h: int,
-        paste_image_width: int = 0,
-        paste_image_height: int = 0,
-        color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]] = None,
-        image_mode: str = "RGBA",
-        font_size: int = 10,
-        background: Union[Optional[str], BytesIO, Path] = None,
-        font: str = "yz.ttf",
-        ratio: float = 1,
-        is_alpha: bool = False,
-        plain_text: Optional[str] = None,
-        font_color: Optional[Union[str, Tuple[int, int, int]]] = None,
+            self,
+            w: int,
+            h: int,
+            paste_image_width: int = 0,
+            paste_image_height: int = 0,
+            color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]] = None,
+            image_mode: str = "RGBA",
+            font_size: int = 10,
+            background: Union[Optional[str], BytesIO, Path] = None,
+            font: str = "yz.ttf",
+            ratio: float = 1,
+            is_alpha: bool = False,
+            plain_text: Optional[str] = None,
+            font_color: Optional[Union[str, Tuple[int, int, int]]] = None,
     ):
         """
         参数：
@@ -229,11 +229,11 @@ class BuildImage:
             self.loop = asyncio.get_event_loop()
 
     async def apaste(
-        self,
-        img: "BuildImage" or Image,
-        pos: Tuple[int, int] = None,
-        alpha: bool = False,
-        center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
+            self,
+            img: "BuildImage" or Image,
+            pos: Tuple[int, int] = None,
+            alpha: bool = False,
+            center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
     ):
         """
         说明：
@@ -247,11 +247,11 @@ class BuildImage:
         await self.loop.run_in_executor(None, self.paste, img, pos, alpha, center_type)
 
     def paste(
-        self,
-        img: "BuildImage" or Image,
-        pos: Tuple[int, int] = None,
-        alpha: bool = False,
-        center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
+            self,
+            img: "BuildImage" or Image,
+            pos: Tuple[int, int] = None,
+            alpha: bool = False,
+            center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
     ):
         """
         说明：
@@ -307,7 +307,7 @@ class BuildImage:
         return self.font.getsize(msg)
 
     async def apoint(
-        self, pos: Tuple[int, int], fill: Optional[Tuple[int, int, int]] = None
+            self, pos: Tuple[int, int], fill: Optional[Tuple[int, int, int]] = None
     ):
         """
         说明：
@@ -329,11 +329,11 @@ class BuildImage:
         self.draw.point(pos, fill=fill)
 
     async def aellipse(
-        self,
-        pos: Tuple[int, int, int, int],
-        fill: Optional[Tuple[int, int, int]] = None,
-        outline: Optional[Tuple[int, int, int]] = None,
-        width: int = 1,
+            self,
+            pos: Tuple[int, int, int, int],
+            fill: Optional[Tuple[int, int, int]] = None,
+            outline: Optional[Tuple[int, int, int]] = None,
+            width: int = 1,
     ):
         """
         说明：
@@ -347,11 +347,11 @@ class BuildImage:
         await self.loop.run_in_executor(None, self.ellipse, pos, fill, outline, width)
 
     def ellipse(
-        self,
-        pos: Tuple[int, int, int, int],
-        fill: Optional[Tuple[int, int, int]] = None,
-        outline: Optional[Tuple[int, int, int]] = None,
-        width: int = 1,
+            self,
+            pos: Tuple[int, int, int, int],
+            fill: Optional[Tuple[int, int, int]] = None,
+            outline: Optional[Tuple[int, int, int]] = None,
+            width: int = 1,
     ):
         """
         说明：
@@ -365,11 +365,11 @@ class BuildImage:
         self.draw.ellipse(pos, fill, outline, width)
 
     async def atext(
-        self,
-        pos: Union[Tuple[int, int], Tuple[float, float]],
-        text: str,
-        fill: Union[str, Tuple[int, int, int]] = (0, 0, 0),
-        center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
+            self,
+            pos: Union[Tuple[int, int], Tuple[float, float]],
+            text: str,
+            fill: Union[str, Tuple[int, int, int]] = (0, 0, 0),
+            center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
     ):
         """
         说明：
@@ -383,11 +383,11 @@ class BuildImage:
         await self.loop.run_in_executor(None, self.text, pos, text, fill, center_type)
 
     def text(
-        self,
-        pos: Union[Tuple[int, int], Tuple[float, float]],
-        text: str,
-        fill: Union[str, Tuple[int, int, int]] = (0, 0, 0),
-        center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
+            self,
+            pos: Union[Tuple[int, int], Tuple[float, float]],
+            text: str,
+            fill: Union[str, Tuple[int, int, int]] = (0, 0, 0),
+            center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
     ):
         """
         说明：
@@ -551,11 +551,11 @@ class BuildImage:
         self.markImg = self.markImg.convert(type_)
 
     async def arectangle(
-        self,
-        xy: Tuple[int, int, int, int],
-        fill: Optional[Tuple[int, int, int]] = None,
-        outline: str = None,
-        width: int = 1,
+            self,
+            xy: Tuple[int, int, int, int],
+            fill: Optional[Tuple[int, int, int]] = None,
+            outline: str = None,
+            width: int = 1,
     ):
         """
         说明：
@@ -569,11 +569,11 @@ class BuildImage:
         await self.loop.run_in_executor(None, self.rectangle, xy, fill, outline, width)
 
     def rectangle(
-        self,
-        xy: Tuple[int, int, int, int],
-        fill: Optional[Tuple[int, int, int]] = None,
-        outline: str = None,
-        width: int = 1,
+            self,
+            xy: Tuple[int, int, int, int],
+            fill: Optional[Tuple[int, int, int]] = None,
+            outline: str = None,
+            width: int = 1,
     ):
         """
         说明：
@@ -587,10 +587,10 @@ class BuildImage:
         self.draw.rectangle(xy, fill, outline, width)
 
     async def apolygon(
-        self,
-        xy: List[Tuple[int, int]],
-        fill: Tuple[int, int, int] = (0, 0, 0),
-        outline: int = 1,
+            self,
+            xy: List[Tuple[int, int]],
+            fill: Tuple[int, int, int] = (0, 0, 0),
+            outline: int = 1,
     ):
         """
         说明:
@@ -603,10 +603,10 @@ class BuildImage:
         await self.loop.run_in_executor(None, self.polygon, xy, fill, outline)
 
     def polygon(
-        self,
-        xy: List[Tuple[int, int]],
-        fill: Tuple[int, int, int] = (0, 0, 0),
-        outline: int = 1,
+            self,
+            xy: List[Tuple[int, int]],
+            fill: Tuple[int, int, int] = (0, 0, 0),
+            outline: int = 1,
     ):
         """
         说明:
@@ -619,10 +619,10 @@ class BuildImage:
         self.draw.polygon(xy, fill, outline)
 
     async def aline(
-        self,
-        xy: Tuple[int, int, int, int],
-        fill: Optional[Union[str, Tuple[int, int, int]]] = None,
-        width: int = 1,
+            self,
+            xy: Tuple[int, int, int, int],
+            fill: Optional[Union[str, Tuple[int, int, int]]] = None,
+            width: int = 1,
     ):
         """
         说明：
@@ -635,10 +635,10 @@ class BuildImage:
         await self.loop.run_in_executor(None, self.line, xy, fill, width)
 
     def line(
-        self,
-        xy: Tuple[int, int, int, int],
-        fill: Optional[Union[Tuple[int, int, int], str]] = None,
-        width: int = 1,
+            self,
+            xy: Tuple[int, int, int, int],
+            fill: Optional[Union[Tuple[int, int, int], str]] = None,
+            width: int = 1,
     ):
         """
         说明：
@@ -789,11 +789,11 @@ class BuildImage:
         self.draw = ImageDraw.Draw(self.markImg)
 
     async def areplace_color_tran(
-        self,
-        src_color: Union[
-            Tuple[int, int, int], Tuple[Tuple[int, int, int], Tuple[int, int, int]]
-        ],
-        replace_color: Tuple[int, int, int],
+            self,
+            src_color: Union[
+                Tuple[int, int, int], Tuple[Tuple[int, int, int], Tuple[int, int, int]]
+            ],
+            replace_color: Tuple[int, int, int],
     ):
         """
         说明：
@@ -807,11 +807,11 @@ class BuildImage:
         )
 
     def replace_color_tran(
-        self,
-        src_color: Union[
-            Tuple[int, int, int], Tuple[Tuple[int, int, int], Tuple[int, int, int]]
-        ],
-        replace_color: Tuple[int, int, int],
+            self,
+            src_color: Union[
+                Tuple[int, int, int], Tuple[Tuple[int, int, int], Tuple[int, int, int]]
+            ],
+            replace_color: Tuple[int, int, int],
     ):
         """
         说明：
@@ -834,9 +834,9 @@ class BuildImage:
                         self.markImg.putpixel((i, j), replace_color)
                 else:
                     if (
-                        start_[0] <= r <= end_[0]
-                        and start_[1] <= g <= end_[1]
-                        and start_[2] <= b <= end_[2]
+                            start_[0] <= r <= end_[0]
+                            and start_[1] <= g <= end_[1]
+                            and start_[2] <= b <= end_[2]
                     ):
                         self.markImg.putpixel((i, j), replace_color)
 
@@ -852,24 +852,24 @@ class BuildMat:
     """
 
     def __init__(
-        self,
-        y: List[int],
-        mat_type: str = "line",
-        *,
-        x_name: Optional[str] = None,
-        y_name: Optional[str] = None,
-        x_index: List[Union[str, int, float]] = None,
-        y_index: List[Union[str, int, float]] = None,
-        x_rotate: int = 0,
-        title: Optional[str] = None,
-        size: Tuple[int, int] = (1000, 1000),
-        font: str = "msyh.ttf",
-        font_size: Optional[int] = None,
-        display_num: bool = False,
-        is_grid: bool = False,
-        background: Optional[List[str]] = None,
-        background_filler_type: Optional[str] = "center",
-        bar_color: Optional[List[Union[str, Tuple[int, int, int]]]] = None,
+            self,
+            y: List[int],
+            mat_type: str = "line",
+            *,
+            x_name: Optional[str] = None,
+            y_name: Optional[str] = None,
+            x_index: List[Union[str, int, float]] = None,
+            y_index: List[Union[str, int, float]] = None,
+            x_rotate: int = 0,
+            title: Optional[str] = None,
+            size: Tuple[int, int] = (1000, 1000),
+            font: str = "msyh.ttf",
+            font_size: Optional[int] = None,
+            display_num: bool = False,
+            is_grid: bool = False,
+            background: Optional[List[str]] = None,
+            background_filler_type: Optional[str] = "center",
+            bar_color: Optional[List[Union[str, Tuple[int, int, int]]]] = None,
     ):
         """
         说明：
@@ -1002,7 +1002,7 @@ class BuildMat:
             self._color["title"] = color
 
     def set_background(
-        self, background: Optional[List[str]], type_: Optional[str] = None
+            self, background: Optional[List[str]], type_: Optional[str] = None
     ):
         """
         说明：
@@ -1047,10 +1047,10 @@ class BuildMat:
         self.markImg.save(path)
 
     def _check_value(
-        self,
-        y: List[int],
-        y_index: List[Union[str, int, float]] = None,
-        x_index: List[Union[str, int, float]] = None,
+            self,
+            y: List[int],
+            y_index: List[Union[str, int, float]] = None,
+            x_index: List[Union[str, int, float]] = None,
     ):
         """
         说明:
@@ -1072,9 +1072,9 @@ class BuildMat:
                     raise ValueError("y轴坐标值必须有序...")
 
     def _gen_line_graph(
-        self,
-        y: List[Union[int, float]],
-        display_num: bool = False,
+            self,
+            y: List[Union[int, float]],
+            display_num: bool = False,
     ):
         """
         说明:
@@ -1120,10 +1120,10 @@ class BuildMat:
             current_w += x_interval
 
     def _gen_bar_graph(
-        self,
-        y: List[Union[int, float]],
-        display_num: bool = False,
-        is_barh: bool = False,
+            self,
+            y: List[Union[int, float]],
+            display_num: bool = False,
+            is_barh: bool = False,
     ):
         """
         说明：
@@ -1199,13 +1199,13 @@ class BuildMat:
                 current_w += _interval
 
     def _init_graph(
-        self,
-        x_name: Optional[str] = None,
-        y_name: Optional[str] = None,
-        x_index: List[Union[str, int, float]] = None,
-        y_index: List[Union[str, int, float]] = None,
-        font_size: Optional[int] = None,
-        is_grid: bool = False,
+            self,
+            x_name: Optional[str] = None,
+            y_name: Optional[str] = None,
+            x_index: List[Union[str, int, float]] = None,
+            y_index: List[Union[str, int, float]] = None,
+            font_size: Optional[int] = None,
+            is_grid: bool = False,
     ) -> BuildImage:
         """
         说明：
@@ -1329,14 +1329,14 @@ class BuildMat:
 
 
 async def text2image(
-    text: str,
-    auto_parse: bool = True,
-    font_size: int = 20,
-    color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]] = "white",
-    font: str = "CJGaoDeGuo.otf",
-    font_color: Union[str, Tuple[int, int, int]] = "black",
-    padding: Union[int, Tuple[int, int, int, int]] = 0,
-    _add_height: float = 0,
+        text: str,
+        auto_parse: bool = True,
+        font_size: int = 20,
+        color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]] = "white",
+        font: str = "CJGaoDeGuo.otf",
+        font_color: Union[str, Tuple[int, int, int]] = "black",
+        padding: Union[int, Tuple[int, int, int, int]] = 0,
+        _add_height: float = 0,
 ) -> BuildImage:
     """
     说明：
@@ -1466,8 +1466,8 @@ async def text2image(
                 current_width += text_img.w
                 s = s[
                     s.index(f"[placeholder_{current_placeholder_index}]")
-                    + len(f"[placeholder_{current_placeholder_index}]") :
-                ]
+                    + len(f"[placeholder_{current_placeholder_index}]"):
+                    ]
                 current_placeholder_index += 1
             if s:
                 slice_ = s.split(f"[placeholder_{current_placeholder_index}]")

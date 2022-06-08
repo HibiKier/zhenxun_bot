@@ -129,7 +129,7 @@ async def update_setu_img(flag: bool = False):
                         )
                         > 1024 * 1024 * 1.5
                     ):
-                        compressed_image(
+                        await compressed_image(
                             TEMP_PATH / f"{image.local_id}.jpg",
                             path / f"{image.local_id}.jpg",
                         )

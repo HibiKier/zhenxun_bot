@@ -108,13 +108,13 @@ async def search_online_setu(
                         os.path.getsize(path_ / f"{index}.jpg")
                         > 1024 * 1024 * 1.5
                 ):
-                    compressed_image(
+                    await compressed_image(
                         path_ / f"{index}.jpg",
                     )
             logger.info(f"下载 lolicon 图片 {url_} 成功， id：{index}")
             hash_obfuscation = Config.get_config("send_setu", "HASH_OBFUSCATION")
             if hash_obfuscation:
-                compressed_image(path_ / file_name, ratio=random.uniform(0.6, 1.0))
+                await compressed_image(path_ / file_name, ratio=random.uniform(0.6, 1.0))
             return image(path_ / file_name), index
         except TimeoutError:
             pass
@@ -133,7 +133,7 @@ async def check_local_exists_or_download(setu_image: Setu, mix: bool = False) ->
         file = IMAGE_PATH / path_ / f"{setu_image.local_id}.jpg"
         if file.exists():
             if mix and Config.get_config("send_setu", "HASH_OBFUSCATION"):
-                compressed_image(IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{setu_image.local_id}.jpg',
+                await compressed_image(IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{setu_image.local_id}.jpg',
                                  IMAGE_PATH / temp / f"{setu_image.local_id}.jpg",
                                  random.uniform(0.6, 1.0))
                 return image(f"{setu_image.local_id}.jpg", temp), 200
@@ -194,13 +194,14 @@ async def gen_message(setu_image: Setu, img_msg: bool = False) -> str:
     pid = setu_image.pid
     hash_obfuscation = Config.get_config("send_setu", "HASH_OBFUSCATION")
     file = IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{local_id}.jpg'
+    path_ = r18_path if setu_image.is_r18 else path
     if not file.exists():
-        await check_local_exists_or_download(setu_image)
-
-    if hash_obfuscation:
-        compressed_image(IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{local_id}.jpg',
-                         IMAGE_PATH / temp / f"{local_id}.jpg",
-                         random.uniform(0.6, 1.0))
+        await search_online_setu(setu_image.img_url, path_=path_ if not hash_obfuscation else None)
+    else:
+        if hash_obfuscation:
+            await compressed_image(IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{local_id}.jpg',
+                             IMAGE_PATH / temp / f"{local_id}.jpg",
+                             random.uniform(0.6, 1.0))
 
     if Config.get_config("send_setu", "SHOW_INFO"):
         return (
