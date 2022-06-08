@@ -31,7 +31,7 @@ async def get_alc_image(path: Path) -> Optional[MessageSegment]:
             logger.warning("获取 browser 失败，请部署至 linux 环境....")
             return False
         page = await browser.new_page()
-        await page.goto(url)
+        await page.goto(url, timeout=0)  # 取消等待限制
         await page.wait_for_timeout(2000)
         await page.locator('//*[@id="next"]/a/button').click()
         await page.locator('.GSAlmanacs_gs_almanacs__3qT_A').screenshot(path=f"{path}/{date}.png")
