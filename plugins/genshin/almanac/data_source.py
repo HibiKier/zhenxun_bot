@@ -25,23 +25,25 @@ async def get_alc_image(path: Path) -> Optional[MessageSegment]:
         return image(f"{date}.png", "genshin/alc")
         
     page = None
-    try:
-        browser = await get_browser()
-        if not browser:
-            logger.warning("获取 browser 失败，请部署至 linux 环境....")
-            return False
-        page = await browser.new_page()
-        await page.goto(url, timeout=0)  # 取消等待限制
-        await page.wait_for_timeout(2000)
-        await page.locator('//*[@id="next"]/a/button').click()
-        await page.locator('.GSAlmanacs_gs_almanacs__3qT_A').screenshot(path=f"{path}/{date}.png")
-        await page.close()
-        return image(f"{date}.png", "genshin/alc")
-    except Exception as e:
-        logger.error(f"原神黄历更新出错... {type(e)}: {e}")
-        if page:
-            await page.close()
+    browser = await get_browser()
+    if not browser:
+        logger.warning("获取 browser 失败，请部署至 linux 环境....")
         return False
+    page = await browser.new_page()
+    i = 1
+    while i <= 3:  # 重新尝试的次数
+        try:
+            await page.goto(url)
+            await page.wait_for_timeout(2000)
+            await page.locator('//*[@id="next"]/a/button').click()
+            await page.locator('.GSAlmanacs_gs_almanacs__3qT_A').screenshot(path=f"{path}/{date}.png")
+            await page.close()
+            return image(f"{date}.png", "genshin/alc")
+        except Exception as e:
+            logger.error(f"原神黄历更新出错{i}次...重新尝试中... {type(e)}: {e}")
+    if page:
+        await page.close()
+    return False
 
     # return await AsyncPlaywright.screenshot(
     #     url, path / f"{date}.png", ".GSAlmanacs_gs_almanacs__3qT_A"
