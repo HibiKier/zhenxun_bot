@@ -1,6 +1,5 @@
 from nonebot.matcher import Matcher
 from nonebot.message import run_preprocessor, run_postprocessor, IgnoredException
-from nonebot.adapters.onebot.v11.exception import ActionFailed
 from models.friend_user import FriendUser
 from models.group_member_info import GroupInfoUser
 from models.bag_user import BagUser
@@ -23,6 +22,7 @@ from nonebot.typing import T_State
 from typing import Optional
 from nonebot.adapters.onebot.v11 import (
     Bot,
+    ActionFailed,
     MessageEvent,
     GroupMessageEvent,
     PokeNotifyEvent,

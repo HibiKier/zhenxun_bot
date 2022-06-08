@@ -13,6 +13,7 @@ from utils.utils import (
 from nonebot.typing import T_State
 from nonebot.adapters.onebot.v11 import (
     Bot,
+    ActionFailed,
     MessageEvent,
     GroupMessageEvent,
     PrivateMessageEvent,
@@ -30,7 +31,6 @@ from .data_source import (
     add_data_to_database,
     get_setu_count,
 )
-from nonebot.adapters.onebot.v11.exception import ActionFailed
 from configs.config import Config, NICKNAME
 from utils.manager import withdraw_message_manager
 from nonebot.params import CommandArg, Command, RegexGroup

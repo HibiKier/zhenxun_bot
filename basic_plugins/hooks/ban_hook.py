@@ -1,11 +1,11 @@
 from nonebot.matcher import Matcher
 from nonebot.message import run_preprocessor, IgnoredException
-from nonebot.adapters.onebot.v11.exception import ActionFailed
 from nonebot.typing import T_State
 from nonebot.adapters.onebot.v11 import (
     Bot,
     Event,
     MessageEvent,
+    ActionFailed,
     PokeNotifyEvent,
     GroupMessageEvent,
 )
