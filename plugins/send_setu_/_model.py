@@ -20,14 +20,14 @@ class Setu(db.Model):
 
     @classmethod
     async def add_setu_data(
-        cls,
-        local_id: int,
-        title: str,
-        author: str,
-        pid: int,
-        img_hash: str,
-        img_url: str,
-        tags: str,
+            cls,
+            local_id: int,
+            title: str,
+            author: str,
+            pid: int,
+            img_hash: str,
+            img_url: str,
+            tags: str,
     ):
         """
         说明：
@@ -55,11 +55,12 @@ class Setu(db.Model):
 
     @classmethod
     async def query_image(
-        cls,
-        local_id: Optional[int] = None,
-        tags: Optional[List[str]] = None,
-        r18: int = 0,
-        limit: int = 50,
+            cls,
+            local_id: Optional[int] = None,
+            tags: Optional[List[str]] = None,
+            r18: int = 0,
+            limit: int = 50,
+            img_url: Optional[str] = None,
     ):
         """
         说明：
@@ -69,6 +70,7 @@ class Setu(db.Model):
             :param tags: tags
             :param r18: 是否 r18，0：非r18  1：r18  2：混合
             :param limit: 获取数量
+            :param img_url: 图片链接
         """
         if local_id:
             flag = True if r18 == 1 else False
@@ -84,6 +86,8 @@ class Setu(db.Model):
         if tags:
             for tag in tags:
                 query = query.where(cls.tags.contains(tag) | cls.title.contains(tag) | cls.author.contains(tag))
+        if img_url:
+            query = query.where(cls.img_url == img_url)
         query = query.order_by(db.func.random()).limit(limit)
         return await query.gino.all()
 
@@ -146,15 +150,15 @@ class Setu(db.Model):
 
     @classmethod
     async def update_setu_data(
-        cls,
-        pid: int,
-        *,
-        local_id: Optional[int] = None,
-        title: Optional[str] = None,
-        author: Optional[str] = None,
-        img_hash: Optional[str] = None,
-        img_url: Optional[str] = None,
-        tags: Optional[str] = None,
+            cls,
+            pid: int,
+            *,
+            local_id: Optional[int] = None,
+            title: Optional[str] = None,
+            author: Optional[str] = None,
+            img_hash: Optional[str] = None,
+            img_url: Optional[str] = None,
+            tags: Optional[str] = None,
     ) -> bool:
         """
         说明：
@@ -194,4 +198,3 @@ class Setu(db.Model):
             获取所有图片对象
         """
         return await cls.query.gino.all()
-

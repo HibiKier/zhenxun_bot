@@ -124,7 +124,7 @@ async def search_online_setu(
 
 
 # 检测本地是否有id涩图，无的话则下载
-async def check_local_exists_or_download(setu_image: Setu) -> "MessageSegment, int":
+async def check_local_exists_or_download(setu_image: Setu, mix: bool = False) -> "MessageSegment, int":
     path_ = None
     id_ = None
     if Config.get_config("send_setu", "DOWNLOAD_SETU"):
@@ -132,6 +132,11 @@ async def check_local_exists_or_download(setu_image: Setu) -> "MessageSegment, i
         path_ = r18_path if setu_image.is_r18 else path
         file = IMAGE_PATH / path_ / f"{setu_image.local_id}.jpg"
         if file.exists():
+            if mix and Config.get_config("send_setu", "HASH_OBFUSCATION"):
+                compressed_image(IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{setu_image.local_id}.jpg',
+                                 IMAGE_PATH / temp / f"{setu_image.local_id}.jpg",
+                                 random.uniform(0.6, 1.0))
+                return image(f"{setu_image.local_id}.jpg", temp), 200
             return image(f"{setu_image.local_id}.jpg", path_), 200
     return await search_online_setu(setu_image.img_url, id_, path_)
 
@@ -162,7 +167,7 @@ async def add_data_to_database(lst: List[tuple]):
 
 # 拿到本地色图列表
 async def get_setu_list(
-        index: Optional[int] = None, tags: Optional[List[str]] = None, r18: int = 0
+        index: Optional[int] = None, tags: Optional[List[str]] = None, r18: int = 0, img_url: Optional[str] = None
 ) -> "list, int":
     if index:
         image_count = await Setu.get_image_count(r18) - 1
@@ -171,8 +176,11 @@ async def get_setu_list(
         image_list = [await Setu.query_image(index, r18=r18)]
     elif tags:
         image_list = await Setu.query_image(tags=tags, r18=r18)
+    elif img_url:
+        image_list = await Setu.query_image(img_url=img_url, r18=r18)
     else:
         image_list = await Setu.query_image(r18=r18)
+
     if not image_list:
         return ["没找到符合条件的色图..."], 998
     return image_list, 200
@@ -185,6 +193,10 @@ async def gen_message(setu_image: Setu, img_msg: bool = False) -> str:
     author = setu_image.author
     pid = setu_image.pid
     hash_obfuscation = Config.get_config("send_setu", "HASH_OBFUSCATION")
+    file = IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{local_id}.jpg'
+    if not file.exists():
+        await check_local_exists_or_download(setu_image)
+
     if hash_obfuscation:
         compressed_image(IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{local_id}.jpg',
                          IMAGE_PATH / temp / f"{local_id}.jpg",
