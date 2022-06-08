@@ -5,10 +5,10 @@ description = "基于 Nonebot2 和 go-cqhttp 开发，以 postgresql 作为数�
 authors = ["HibiKier <775757368@qq.com>"]
 license = "AGPL"
 
-# [[tool.poetry.source]]
-# name = "ali"
-# default = true
-# url = "https://mirrors.aliyun.com/pypi/simple/"
+[[tool.poetry.source]]
+name = "ali"
+default = true
+url = "https://mirrors.aliyun.com/pypi/simple/"
 
 [tool.poetry.dependencies]
 python = "^3.8"
