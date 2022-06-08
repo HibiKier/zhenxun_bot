@@ -243,6 +243,10 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/6/8
+
+* chore(deps): update `nonebot-adapter-onebot`
+
 ### 2022/6/5 \[v0.1.5.9] (__需要更新WebUI!__)
 
 * webui修复plugin2setting中cmd从list转变为str
