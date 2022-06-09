@@ -30,7 +30,8 @@ async def get_alc_image(path: Path) -> Optional[MessageSegment]:
         logger.warning("获取 browser 失败，请部署至 linux 环境....")
         return False
     i = 1
-    while i <= 3:  # 重新尝试的次数
+    max = 20
+    while i <= max:  # 重新尝试的次数,往往需要很多次
         try:
             page = await browser.new_page()
             await page.goto(url)
@@ -40,7 +41,8 @@ async def get_alc_image(path: Path) -> Optional[MessageSegment]:
             await page.close()
             return image(f"{date}.png", "genshin/alc")
         except Exception as e:
-            logger.error(f"原神黄历更新出错{i}次...重新尝试中... {type(e)}: {e}")
+            logger.error(f"原神黄历更新出错{i}次...重新尝试中...最大尝试次数:{max} {type(e)}: {e}")
+            i += 1
             if page:
                 await page.close()
     return False
