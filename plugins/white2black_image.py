@@ -61,7 +61,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     msg_sp = msg.split("<|>")
     w, h = w2b.size
     add_h, font_size = init_h_font_size(h)
-    bg = BuildImage(w, h + add_h, color="black", font_size=font_size)
+    bg = BuildImage(w, h + add_h, color="black", font_size=int(font_size))
     bg.paste(w2b)
     chinese_msg = formalization_msg(msg)
     if not bg.check_font_size(chinese_msg):
