@@ -347,7 +347,7 @@ async def send_setu_handle(
             setu_image = random.choice(setu_list)
             setu_list.remove(setu_image)
             try:
-                msg1 = await gen_message(setu_image, True)
+                msg1 = await gen_message(setu_image, True, msg)
                 msg_id = await matcher.send(
                     Message(msg1)
                     , at_sender=True if isinstance(event, GroupMessageEvent) else False
@@ -363,7 +363,7 @@ async def send_setu_handle(
                     f" 发送本地色图 {setu_image.local_id}.jpg"
                 )
             except Exception as e:
-                logger.warning(e)
+                logger.error(e)
                 failure_msg += 1
 
     elif isinstance(event, GroupMessageEvent) and len(setu_list) > 0:
@@ -377,18 +377,18 @@ async def send_setu_handle(
                 num_local -= 1
                 use_list.append(setu_image)
             message_list = [Message(
-                await gen_message(i, True)
+                await gen_message(i, True, msg)
             ) for i in use_list]
         else:
             message_list = [Message(
-                await gen_message(i, True)
+                await gen_message(i, True, msg)
             ) for i in setu_list]
         try:
             await bot.send_group_forward_msg(
                 group_id=event.group_id, messages=custom_forward_msg(message_list, bot.self_id)
             )
         except Exception as e:
-            logger.warning(e)
+            logger.error(e)
             failure_msg = num
     if failure_msg >= num / 2:
         await matcher.finish("坏了，这张图色过头了，我自己看看就行了！" + image("1", "griseo"),

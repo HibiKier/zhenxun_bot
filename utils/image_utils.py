@@ -53,7 +53,7 @@ def get_img_hash(image_file: Union[str, Path]) -> ImageHash:
     return hash_value
 
 
-async def compressed_image(
+def compressed_image(
         in_file: Union[str, Path], out_file: Union[str, Path] = None, ratio: float = 0.9
 ):
     """

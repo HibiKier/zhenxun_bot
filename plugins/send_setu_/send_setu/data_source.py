@@ -108,13 +108,13 @@ async def search_online_setu(
                         os.path.getsize(path_ / f"{index}.jpg")
                         > 1024 * 1024 * 1.5
                 ):
-                    await compressed_image(
+                    compressed_image(
                         path_ / f"{index}.jpg",
                     )
             logger.info(f"下载 lolicon 图片 {url_} 成功， id：{index}")
             hash_obfuscation = Config.get_config("send_setu", "HASH_OBFUSCATION")
             if hash_obfuscation:
-                await compressed_image(path_ / file_name, ratio=random.uniform(0.6, 1.0))
+                compressed_image(path_ / file_name, ratio=random.uniform(0.6, 1.0))
             return image(path_ / file_name), index
         except TimeoutError:
             pass
@@ -133,9 +133,10 @@ async def check_local_exists_or_download(setu_image: Setu, mix: bool = False) ->
         file = IMAGE_PATH / path_ / f"{setu_image.local_id}.jpg"
         if file.exists():
             if mix and Config.get_config("send_setu", "HASH_OBFUSCATION"):
-                await compressed_image(IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{setu_image.local_id}.jpg',
-                                 IMAGE_PATH / temp / f"{setu_image.local_id}.jpg",
-                                 random.uniform(0.6, 1.0))
+                compressed_image(
+                    IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{setu_image.local_id}.jpg',
+                    IMAGE_PATH / temp / f"{setu_image.local_id}.jpg",
+                    random.uniform(0.6, 1.0))
                 return image(f"{setu_image.local_id}.jpg", temp), 200
             return image(f"{setu_image.local_id}.jpg", path_), 200
     return await search_online_setu(setu_image.img_url, id_, path_)
@@ -187,11 +188,12 @@ async def get_setu_list(
 
 
 # 初始化消息
-async def gen_message(setu_image: Setu, img_msg: bool = False) -> str:
+async def gen_message(setu_image: Setu, img_msg: bool = False, tags: Optional[str] = None) -> str:
     local_id = setu_image.local_id
     title = setu_image.title
     author = setu_image.author
     pid = setu_image.pid
+    match_keywords = None
     hash_obfuscation = Config.get_config("send_setu", "HASH_OBFUSCATION")
     file = IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{local_id}.jpg'
     path_ = r18_path if setu_image.is_r18 else path
@@ -199,16 +201,18 @@ async def gen_message(setu_image: Setu, img_msg: bool = False) -> str:
         await search_online_setu(setu_image.img_url, path_=path_ if not hash_obfuscation else None)
     else:
         if hash_obfuscation:
-            await compressed_image(IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{local_id}.jpg',
+            compressed_image(IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{local_id}.jpg',
                              IMAGE_PATH / temp / f"{local_id}.jpg",
                              random.uniform(0.6, 1.0))
-
+    if tags is not None:
+        match_keywords = _search_match_keywords(setu_image, tags)
     if Config.get_config("send_setu", "SHOW_INFO"):
         return (
             f"id：{local_id}\n"
             f"title：{title}\n"
             f"author：{author}\n"
             f"PID：{pid}\n"
+            f"{match_keywords if not None else ''}"
             f"{image(f'{local_id}', temp) if img_msg else ''}" if hash_obfuscation else
             f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}"
         )
@@ -294,3 +298,30 @@ def _setu_data_process(data: dict, command: str) -> "list, list, list":
             )
         )
     return urls, text_list, add_databases_list
+
+
+# 获取匹配到的关键词
+def _search_match_keywords(send_setu: Setu, tags: Optional[str]):
+    msg = ""
+    title = ""
+    author = ""
+    match_tags = ""
+    for tag in tags.split():
+        if tag in send_setu.title:
+            title += send_setu.title
+        elif tag in send_setu.author:
+            author += send_setu.author
+        elif tag in send_setu.tags:
+            setu_tag_list = send_setu.tags.split(",")
+            tags_list = [x for i, x in enumerate(setu_tag_list) if x.find(tag) != -1]
+            match_tags += "、".join(tags_list)
+    if title != "":
+        msg += "标题:" + title + "\n"
+    if author != "":
+        msg += "作者:" + author + "\n"
+    if match_tags != "":
+        msg += "标签:" + match_tags + "\n"
+    if msg != "":
+        return "匹配关键词为:\n" + msg
+    else:
+        return None
