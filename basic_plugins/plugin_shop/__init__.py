@@ -20,7 +20,7 @@ usage：
         卸载插件 [name/id]
 """.strip()
 __plugin_des__ = "从真寻适配仓库中下载插件"
-__plugin_cmd__ = [""]
+__plugin_cmd__ = ["查看插件仓库", "更新插件仓库", "安装插件 [name/id]", "卸载插件 [name/id]"]
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 
