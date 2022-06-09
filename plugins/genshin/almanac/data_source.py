@@ -46,7 +46,3 @@ async def get_alc_image(path: Path) -> Optional[MessageSegment]:
             if page:
                 await page.close()
     return False
-
-    # return await AsyncPlaywright.screenshot(
-    #     url, path / f"{date}.png", ".GSAlmanacs_gs_almanacs__3qT_A"
-    # )
