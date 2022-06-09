@@ -60,9 +60,9 @@ async def _(event: MessageEvent):
         #     + "\n※ 每日素材数据来源于 genshin.pub"
         # )
         Message(
-                    image(f"{file_name}.png", "genshin/material")
-                    + "\n※ 数据来源于米游社"
-                )
+            image(f"{file_name}.png", "genshin/material")
+            + "\n※ 数据来源于米游社"
+        )
     )
     logger.info(
         f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
