@@ -66,7 +66,7 @@ Config.add_plugin_config(
     "word_clouds",
     "WORD_CLOUDS_TEMPLATE",
     1,
-    help_="词云模板 参1：图片生成，默认使用真寻图片，可在项目路径resources/image/wordcloud下配置图片，多张则随机 | 参2/其他：黑底图片"
+    help_="词云模板 参1：图片生成，默认使用格蕾修图片，可在项目路径resources/image/wordcloud下配置图片，多张则随机 | 参2/其他：黑底图片"
 )
 
 

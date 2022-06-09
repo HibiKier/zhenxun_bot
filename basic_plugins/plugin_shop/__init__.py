@@ -19,7 +19,7 @@ usage：
         安装插件 [name/id] （重新安装等同于更新）
         卸载插件 [name/id]
 """.strip()
-__plugin_des__ = "从真寻适配仓库中下载插件"
+__plugin_des__ = "从格蕾修适配仓库中下载插件"
 __plugin_cmd__ = [""]
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"

@@ -27,7 +27,7 @@ __plugin_author__ = "HibiKier"
 __plugin_configs__ = {
     "UPDATE_REMIND": {
         "value": True,
-        "help": "真寻是否检测版本状态",
+        "help": "格蕾修是否检测版本状态",
         "default": True,
     },
     "AUTO_UPDATE_ZHENXUN": {
@@ -78,7 +78,7 @@ async def _():
 
 
 
-@restart.got("flag", prompt="确定是否重启真寻？确定请回复[是|好|确定]（重启失败咱们将失去联系，请谨慎！）")
+@restart.got("flag", prompt="确定是否重启格蕾修？确定请回复[是|好|确定]（重启失败咱们将失去联系，请谨慎！）")
 async def _(flag: str = ArgStr("flag")):
     if flag.lower() in ["true", "是", "好", "确定", "确定是"]:
         await restart.send("开始重启格蕾修..请稍等...")
@@ -118,15 +118,15 @@ async def _():
                     try:
                         code = await check_update(bot)
                     except Exception as e:
-                        logger.error(f"更新真寻未知错误 {type(e)}：{e}")
+                        logger.error(f"更新格蕾修未知错误 {type(e)}：{e}")
                         await bot.send_private_msg(
                             user_id=int(list(bot.config.superusers)[0]),
-                            message=f"更新真寻未知错误 {type(e)}：{e}\n",
+                            message=f"更新格蕾修未知错误 {type(e)}：{e}\n",
                         )
                     else:
                         if code == 200:
                             await bot.send_private_msg(
                                 user_id=int(list(bot.config.superusers)[0]),
-                                message=f"更新完毕，请重启真寻....",
+                                message=f"更新完毕，请重启格蕾修....",
                             )
 
