@@ -7,10 +7,10 @@ from datetime import datetime
 from services.log import logger
 from nonebot.adapters.onebot.v11 import (
     Bot,
+    ActionFailed,
     GroupIncreaseNoticeEvent,
     GroupDecreaseNoticeEvent,
 )
-from nonebot.adapters.onebot.v11.exception import ActionFailed
 from utils.manager import group_manager, plugins2settings_manager, requests_manager
 from configs.config import NICKNAME
 from models.group_info import GroupInfo

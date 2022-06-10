@@ -13,6 +13,7 @@ from utils.utils import (
 from nonebot.typing import T_State
 from nonebot.adapters.onebot.v11 import (
     Bot,
+    ActionFailed,
     MessageEvent,
     GroupMessageEvent,
     PrivateMessageEvent,

@@ -1,11 +1,10 @@
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message, NetworkError
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
 from nonebot import on_command
 from utils.utils import is_number
 from .data_source import get_pixiv_urls, download_pixiv_imgs, search_pixiv_urls
 from services.log import logger
-from nonebot.adapters.onebot.v11.exception import NetworkError
 from asyncio.exceptions import TimeoutError
 from utils.message_builder import custom_forward_msg
 from configs.config import Config

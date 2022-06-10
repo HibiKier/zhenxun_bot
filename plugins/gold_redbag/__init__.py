@@ -1,6 +1,7 @@
 from nonebot import on_command, on_notice
 from nonebot.adapters.onebot.v11 import (
     Bot,
+    ActionFailed,
     GroupMessageEvent,
     PokeNotifyEvent,
     Message
@@ -24,7 +25,6 @@ from nonebot.rule import to_me
 from datetime import datetime, timedelta
 from configs.config import NICKNAME
 from apscheduler.jobstores.base import JobLookupError
-from nonebot.adapters.onebot.v11.exception import ActionFailed
 from nonebot.params import CommandArg
 import random
 import time

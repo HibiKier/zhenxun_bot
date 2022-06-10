@@ -81,7 +81,7 @@ async def install_plugin(name: str) -> str:
                 json.dump(data[name], f, ensure_ascii=False, indent=4)
             logger.debug("移动插件文件夹完成...")
             logger.info(f"成功安装插件 {name} 成功！\n{tmp}")
-        return f"成功安装插件 {name}，请重启bot！"
+        return f"成功安装插件 {name}，请重启真寻！"
     except Exception as e:
         logger.error(f"安装插件 {name} 失败 {type(e)}：{e}")
         return f"安装插件 {name} 失败 {type(e)}：{e}"
@@ -130,12 +130,17 @@ async def show_plugin_repo() -> Union[int, str]:
             "download_url": plugin_info[key]["download_url"],
             "github_url": plugin_info[key]["github_url"],
         }
+        status = ""
+        version = ""
+        if key in load_plugin_list:
+            status = "<f font_color=#1a7e30>[已安装]</f>"
+            version = f"<f font_color=#1a7e30>[{plugins_manager.get_data()[key]['version']}]</f>"
         s = (
             f'id：{i+1}\n名称：{plugin_info[key]["plugin_name"]}'
-            f' \t\t{"<f font_color=#1a7e30>[已安装]</f>" if key in load_plugin_list else ""}\n'
+            f' \t\t{status}\n'
             f"模块：{key}\n"
             f'作者：{plugin_info[key]["author"]}\n'
-            f'版本：{plugin_info[key]["version"]}\n'
+            f'版本：{plugin_info[key]["version"]} \t\t{version}\n'
             f'简介：{plugin_info[key]["introduction"]}\n'
             f"-------------------"
         )

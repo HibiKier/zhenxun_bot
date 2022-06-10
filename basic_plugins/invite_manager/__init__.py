@@ -1,6 +1,7 @@
 from nonebot import on_request, on_message
 from nonebot.adapters.onebot.v11 import (
     Bot,
+    ActionFailed,
     FriendRequestEvent,
     GroupRequestEvent,
     MessageEvent,
@@ -8,7 +9,6 @@ from nonebot.adapters.onebot.v11 import (
 from models.friend_user import FriendUser
 from datetime import datetime
 from configs.config import NICKNAME, Config
-from nonebot.adapters.onebot.v11.exception import ActionFailed
 from utils.manager import requests_manager
 from models.group_info import GroupInfo
 from utils.utils import scheduler

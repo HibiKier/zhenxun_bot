@@ -22,6 +22,12 @@ __plugin_des__ = "区区昵称，才不想叫呢！"
 __plugin_cmd__ = ["以后叫我 [昵称]", f"{NICKNAME}我是谁"]
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
+__plugin_settings__ = {
+    "level": 5,
+    "default_status": True,
+    "limit_superuser": False,
+    "cmd": ["昵称", "昵称系统"],
+}
 __plugin_configs__ = {
     "BLACK_WORD": {
         "value": ["爸", "爹", "爷", "父亲"],

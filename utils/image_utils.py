@@ -681,7 +681,10 @@ class BuildImage:
             right, bottom = [(value - offset) * antialias for value in ellipse_box[2:]]
             draw.ellipse([left, top, right, bottom], fill=fill)
         mask = mask.resize(self.markImg.size, Image.LANCZOS)
-        self.markImg.putalpha(mask)
+        try:
+            self.markImg.putalpha(mask)
+        except ValueError:
+            pass
 
     async def acircle_corner(self, radii: int = 30):
         """

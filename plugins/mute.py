@@ -1,8 +1,7 @@
 from nonebot import on_message, on_command
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, ActionFailed
 from nonebot.adapters.onebot.v11.permission import GROUP
 from utils.utils import is_number, get_message_img, get_message_text
-from nonebot.adapters.onebot.v11.exception import ActionFailed
 from configs.path_config import DATA_PATH, TEMP_PATH
 from utils.image_utils import get_img_hash
 from services.log import logger
@@ -72,9 +71,7 @@ def save_data():
 
 
 async def download_img_and_hash(url, group_id) -> str:
-    if await AsyncHttpx.download_file(
-        url, TEMP_PATH / f"mute_{group_id}_img.jpg"
-    ):
+    if await AsyncHttpx.download_file(url, TEMP_PATH / f"mute_{group_id}_img.jpg"):
         return str(get_img_hash(TEMP_PATH / f"mute_{group_id}_img.jpg"))
     return ""
 
@@ -133,11 +130,19 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
 
 @mute_setting.handle()
-async def _(event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
+async def _(
+    event: GroupMessageEvent,
+    cmd: Tuple[str, ...] = Command(),
+    arg: Message = CommandArg(),
+):
     global mute_data
     group_id = str(event.group_id)
     if not mute_data.get(group_id):
-        mute_data[group_id] = {"count": Config.get_config("mute", "MUTE_DEFAULT_COUNT"), "time": Config.get_config("mute", "MUTE_DEFAULT_TIME"), "duration": Config.get_config("mute", "MUTE_DEFAULT_DURATION")}
+        mute_data[group_id] = {
+            "count": Config.get_config("mute", "MUTE_DEFAULT_COUNT"),
+            "time": Config.get_config("mute", "MUTE_DEFAULT_TIME"),
+            "duration": Config.get_config("mute", "MUTE_DEFAULT_DURATION"),
+        }
     msg = arg.extract_plain_text().strip()
     if cmd[0] == "刷屏检测设置":
         await mute_setting.finish(
@@ -157,8 +162,6 @@ async def _(event: GroupMessageEvent, cmd: Tuple[str, ...] = Command(), arg: Mes
     if cmd[0] == "设置刷屏禁言时长":
         mute_data[group_id]["duration"] = int(msg)
         msg += " 分钟"
-    await mute_setting.send(f'刷屏检测：{cmd[0]}为 {msg}')
-    logger.info(
-        f'USER {event.user_id} GROUP {group_id} {cmd[0]}：{msg}'
-    )
+    await mute_setting.send(f"刷屏检测：{cmd[0]}为 {msg}")
+    logger.info(f"USER {event.user_id} GROUP {group_id} {cmd[0]}：{msg}")
     save_data()

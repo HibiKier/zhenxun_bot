@@ -228,12 +228,14 @@ async def send_sub_msg(rst: str, sub: BilibiliSub, bot: Bot):
     :param sub: BilibiliSub
     :param bot: Bot
     """
+    temp_group = []
     if rst:
         for x in sub.sub_users.split(",")[:-1]:
             try:
-                if ":" in x:
+                if ":" in x and x.split(":")[1] not in temp_group:
+                    temp_group.append(x.split(":")[1])
                     await bot.send_group_msg(
-                        group_id=int(x.split(":")[1]), message=Message(rst)
+                            group_id=int(x.split(":")[1]), message=Message(rst)
                     )
                 else:
                     await bot.send_private_msg(user_id=int(x), message=Message(rst))

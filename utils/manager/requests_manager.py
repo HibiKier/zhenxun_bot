@@ -1,6 +1,5 @@
 from utils.manager.data_class import StaticData
-from nonebot.adapters.onebot.v11 import Bot
-from nonebot.adapters.onebot.v11.exception import ActionFailed
+from nonebot.adapters.onebot.v11 import Bot, ActionFailed
 from services.log import logger
 from typing import Optional, Literal
 from utils.image_utils import BuildImage
