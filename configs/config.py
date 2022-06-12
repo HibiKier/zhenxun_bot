@@ -11,14 +11,14 @@ NICKNAME: str = "小真寻"
 # 示例："bind": "postgresql://user:password@127.0.0.1:5432/database"
 bind: str = ""  # 数据库连接链接
 sql_name: str = "postgresql"
-user: str = ""  # 数据用户名
-password: str = ""  # 数据库密码
-address: str = ""  # 数据库地址
-port: str = ""  # 数据库端口
-database: str = ""  # 数据库名称
+user: str = "uname"  # 数据用户名
+password: str = "zhenxun"  # 数据库密码
+address: str = "127.0.0.1"  # 数据库地址
+port: str = "5432"  # 数据库端口
+database: str = "postgres"  # 数据库名称
 
 # 代理，例如 "http://127.0.0.1:7890"
-SYSTEM_PROXY: Optional[str] = None  # 全局代理
+SYSTEM_PROXY: Optional[str] = "http://127.0.0.1:7890"  # 全局代理
 
 
 Config = ConfigsManager(Path() / "data" / "configs" / "plugins2config.yaml")

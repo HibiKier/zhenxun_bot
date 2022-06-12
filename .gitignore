@@ -8,6 +8,12 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+.vscode
+data
+resources
+configs
+.env.dev
+*.env.dev
 .Python
 build/
 develop-eggs/
