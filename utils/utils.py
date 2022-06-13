@@ -400,7 +400,7 @@ def change_pixiv_image_links(
     return url
 
 
-def change_img_md5(path_file) -> bool:
+def change_img_md5(path_file: str) -> bool:
     """
     说明：
         改变图片MD5
@@ -410,7 +410,6 @@ def change_img_md5(path_file) -> bool:
     try:
         with open(path_file, "a") as f:
             f.write(str(int(time.time() * 1000)))
-        f.close()
         return True
     except:
         return False
