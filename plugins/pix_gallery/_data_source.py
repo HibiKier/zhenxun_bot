@@ -4,7 +4,7 @@ from asyncio.locks import Semaphore
 from asyncio.exceptions import TimeoutError
 from ._model.pixiv import Pixiv
 from typing import List, Optional
-from utils.utils import change_pixiv_image_links
+from utils.utils import change_pixiv_image_links, change_img_md5
 from utils.image_utils import BuildImage
 from utils.http_utils import AsyncHttpx
 from services.log import logger
@@ -238,6 +238,7 @@ async def get_image(img_url: str, user_id: int) -> Optional[str]:
                 TEMP_PATH / f"pix_{user_id}_{img_url.split('/')[-1][:-4]}.jpg", "wb"
             ) as f:
                 await f.write(response.content)
+            change_img_md5(TEMP_PATH / f"pix_{user_id}_{img_url.split('/')[-1][:-4]}.jpg")
             return TEMP_PATH / f"pix_{user_id}_{img_url.split('/')[-1][:-4]}.jpg"
         except TimeoutError:
             logger.warning(f"PIX：{img_url} 图片下载超时...")
