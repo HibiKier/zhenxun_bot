@@ -5,6 +5,7 @@ from configs.config import SYSTEM_PROXY, Config
 from typing import List, Union, Optional, Type, Any
 from nonebot.adapters.onebot.v11 import Bot, Message
 from nonebot.matcher import matchers, Matcher
+from services.log import logger
 from pathlib import Path
 import httpx
 import nonebot
@@ -412,5 +413,6 @@ def change_img_md5(path_file: Union[str, Path]) -> bool:
         with open(path_file, "a") as f:
             f.write(str(int(time.time() * 1000)))
         return True
-    except:
+    except Exception as e:
+        logger.warning(f"改变图片MD5发生错误 {type(e)}：{e} Path：{path_file}")
         return False
