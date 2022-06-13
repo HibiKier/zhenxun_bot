@@ -5,7 +5,7 @@ from .data_source import check_update, get_latest_version_data
 from services.log import logger
 from utils.utils import scheduler, get_bot
 from pathlib import Path
-from configs.config import Config
+from configs.config import NICKNAME, Config
 from nonebot.rule import to_me
 from nonebot.params import ArgStr
 import platform
@@ -71,18 +71,18 @@ async def _(bot: Bot):
             )
 
 
-@restart.handle()
-async def _():
-    if str(platform.system()).lower() == "windows":
-        await restart.finish("暂无windows重启脚本...")
 
-
-@restart.got("flag", prompt="确定是否重启真寻？确定请回复[是|好|确定]（重启失败咱们将失去联系，请谨慎！）")
+@restart.got("flag", prompt=f"确定是否重启{NICKNAME}？确定请回复[是|好|确定]（重启失败咱们将失去联系，请谨慎！）")
 async def _(flag: str = ArgStr("flag")):
     if flag.lower() in ["true", "是", "好", "确定", "确定是"]:
-        await restart.send("开始重启真寻..请稍等...")
+        await restart.send(f"开始重启{NICKNAME}..请稍等...")
         open("is_restart", "w")
-        os.system("./restart.sh")
+        if str(platform.system()).lower() == "windows":
+            import sys
+            python = sys.executable
+            os.execl(python, python, *sys.argv)
+        else:
+            os.system("./restart.sh")
     else:
         await restart.send("已取消操作...")
 
@@ -126,5 +126,5 @@ async def _():
                         if code == 200:
                             await bot.send_private_msg(
                                 user_id=int(list(bot.config.superusers)[0]),
-                                message=f"更新完毕，请重启真寻....",
+                                message=f"更新完毕，请重启{NICKNAME}....",
                             )
