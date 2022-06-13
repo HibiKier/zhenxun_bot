@@ -71,18 +71,18 @@ async def _(bot: Bot):
             )
 
 
-@restart.handle()
-async def _():
-    if str(platform.system()).lower() == "windows":
-        await restart.finish("暂无windows重启脚本...")
-
 
 @restart.got("flag", prompt="确定是否重启真寻？确定请回复[是|好|确定]（重启失败咱们将失去联系，请谨慎！）")
 async def _(flag: str = ArgStr("flag")):
     if flag.lower() in ["true", "是", "好", "确定", "确定是"]:
         await restart.send("开始重启真寻..请稍等...")
         open("is_restart", "w")
-        os.system("./restart.sh")
+        if str(platform.system()).lower() == "windows":
+            import sys
+            python = sys.executable
+            os.execl(python, python, *sys.argv)
+        else:
+            os.system("./restart.sh")
     else:
         await restart.send("已取消操作...")
 
