@@ -243,6 +243,11 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/6/13
+
+* 色图等提供修改md5方法
+* webui中token.json文件写入补充
+
 ### 2022/6/11
 
 * pix当只有一个tag时且为数字时可以通过添加'#'防止判定为数量
