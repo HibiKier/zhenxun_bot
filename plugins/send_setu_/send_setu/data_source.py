@@ -2,6 +2,7 @@ from configs.path_config import IMAGE_PATH, TEMP_PATH
 from utils.message_builder import image
 from services.log import logger
 from utils.image_utils import get_img_hash, compressed_image
+from utils.utils import change_img_md5
 from asyncpg.exceptions import UniqueViolationError
 from asyncio.exceptions import TimeoutError
 from typing import List, Optional
@@ -111,6 +112,7 @@ async def search_online_setu(
                         path_ / f"{index}.jpg",
                     )
             logger.info(f"下载 lolicon 图片 {url_} 成功， id：{index}")
+            change_img_md5(path_ / file_name)
             return image(path_ / file_name), index
         except TimeoutError:
             pass
@@ -128,6 +130,7 @@ async def check_local_exists_or_download(setu_image: Setu) -> "MessageSegment, i
         path_ = r18_path if setu_image.is_r18 else path
         file = IMAGE_PATH / path_ / f"{setu_image.local_id}.jpg"
         if file.exists():
+            change_img_md5(file)
             return image(f"{setu_image.local_id}.jpg", path_), 200
     return await search_online_setu(setu_image.img_url, id_, path_)
 
