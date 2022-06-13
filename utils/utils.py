@@ -398,3 +398,19 @@ def change_pixiv_image_links(
             .replace("_webp", "")
         )
     return url
+
+
+def change_img_md5(path_file) -> bool:
+    """
+    说明：
+        改变图片MD5
+    参数：
+    :param path_file: 图片路径
+    """
+    try:
+        with open(path_file, "a") as f:
+            f.write(str(int(time.time() * 1000)))
+        f.close()
+        return True
+    except:
+        return False
