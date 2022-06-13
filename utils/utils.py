@@ -5,6 +5,7 @@ from configs.config import SYSTEM_PROXY, Config
 from typing import List, Union, Optional, Type, Any
 from nonebot.adapters.onebot.v11 import Bot, Message
 from nonebot.matcher import matchers, Matcher
+from pathlib import Path
 import httpx
 import nonebot
 import pytz
@@ -400,7 +401,7 @@ def change_pixiv_image_links(
     return url
 
 
-def change_img_md5(path_file: str) -> bool:
+def change_img_md5(path_file: Union[str, Path]) -> bool:
     """
     说明：
         改变图片MD5
