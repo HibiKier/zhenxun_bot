@@ -245,8 +245,10 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ### 2022/6/13
 
-* 色图等提供修改md5方法
-* webui中token.json文件写入补充
+* Windows 重启适配 [@pull/804](https://github.com/HibiKier/zhenxun_bot/pull/804)
+* 色图等提供修改md5方法 [@pull/800](https://github.com/HibiKier/zhenxun_bot/pull/800)
+* webui中token.json文件写入补充 [@pull/798](https://github.com/HibiKier/zhenxun_bot/pull/798)
+* 修复识图某些图片可能会出错
 
 ### 2022/6/11
 
