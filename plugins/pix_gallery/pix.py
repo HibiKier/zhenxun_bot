@@ -93,7 +93,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
             nsfw_tag == 2 and not Config.get_config("pix", "ALLOW_GROUP_R18")
         ):
             await pix.finish("你不能看这些噢，这些都是是留给管理员看的...")
-    if n := len(x) == 1:
+    if (n := len(x)) == 1:
         if is_number(x[0]) and int(x[0]) < 100:
             num = int(x[0])
             keyword = ""

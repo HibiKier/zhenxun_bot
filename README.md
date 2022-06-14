@@ -243,6 +243,13 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/6/14
+
+* AsyncHttpx提供可关闭 ssl 验证参数 [@pull/812](https://github.com/HibiKier/zhenxun_bot/pull/812)
+* fix: 自动更新群组 [@pull/810](https://github.com/HibiKier/zhenxun_bot/pull/810)
+* fix: 修复添加词条时对answer中图片的处理 [@pull/806](https://github.com/HibiKier/zhenxun_bot/pull/806)
+* 修复pix中指定num无法生效
+
 ### 2022/6/13
 
 * Windows 重启适配 [@pull/804](https://github.com/HibiKier/zhenxun_bot/pull/804)
