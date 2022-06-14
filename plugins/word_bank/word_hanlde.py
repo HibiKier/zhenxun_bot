@@ -94,7 +94,7 @@ async def _(bot: Bot, event: GroupMessageEvent, state: T_State, arg: Message = C
         search_type = 2
     _builder = await get__builder(event, _problem, answer, idx)
     if await _builder.save(search_type):
-        logger.info(f"已保存词条 问：{_builder.problem} 答：{msg}")
+        logger.info(f"已保存词条 问：{_builder.problem} 答：{answer}")
         await add_word.send("已保存词条：" + _builder.problem)
     else:
         await delete_word.send("保存失败，可能是回答重复")
@@ -293,7 +293,7 @@ async def get__builder(event, _problem, answer, idx):
                 if f"__placeholder_{rand}_{idx}.jpg" not in os.listdir(data_dir / f"{event.group_id}"):
                     break
                 rand = random.randint(1, 10000) + random.randint(1, 114514)
-            strinfo = re.compile(f"\[CQ:image,file={r.group(1)},url={_x_list[0]}\?{_x_list[1]},subType=\d*?]")
+            strinfo = re.compile(f"\[CQ:image,file={r.group(1)},.*url={_x_list[0]}\?{_x_list[1]}.*\]")
             answer = strinfo.sub(f"[__placeholder_{idx}]", answer)
             await AsyncHttpx.download_file(
                 img, data_dir / f"{event.group_id}" / f"__placeholder_{rand}_{idx}.jpg"
