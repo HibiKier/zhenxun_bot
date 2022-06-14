@@ -249,6 +249,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * fix: 自动更新群组 [@pull/810](https://github.com/HibiKier/zhenxun_bot/pull/810)
 * fix: 修复添加词条时对answer中图片的处理 [@pull/806](https://github.com/HibiKier/zhenxun_bot/pull/806)
 * 修复pix中指定num无法生效
+* 替换了bt URL
 
 ### 2022/6/13
 
