@@ -300,9 +300,9 @@ async def get__builder(event, _problem, answer, idx):
             )
             _builder.set_placeholder(idx, f"__placeholder_{rand}_{idx}.jpg")
             idx += 1
-        r_problem = re.search(rf"\[CQ:image,file=(.*?),url={_x}.*?]", _p)
+        r_problem = re.search(rf"\[CQ:image,file=(.*?)(,subType=\d)?,url={_x}.*?]", _p)
         if r_problem:
-            strinfo = re.compile(f",url={_x_list[0]}\?{_x_list[1]},subType=\d*?]")
+            strinfo = re.compile(f"(,subType=\d)?,url={_x_list[0]}\?{_x_list[1]}.*?]")
             _problem = strinfo.sub(f"]", _problem)
             _p = strinfo.sub(f"]", _p)
             problem += _p[: _p.find(f"[CQ:image,file={r_problem.group(1)}]")] + image(img)
