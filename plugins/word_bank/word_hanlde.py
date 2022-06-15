@@ -293,7 +293,7 @@ async def get__builder(event, _problem, answer, idx):
                 if f"__placeholder_{rand}_{idx}.jpg" not in os.listdir(data_dir / f"{event.group_id}"):
                     break
                 rand = random.randint(1, 10000) + random.randint(1, 114514)
-            strinfo = re.compile(f"\[CQ:image,file={r.group(1)},.*url={_x_list[0]}\?{_x_list[1]}.*\]")
+            strinfo = re.compile(f"\[CQ:image,file={r.group(1)},.*url={_x_list[0]}\?{_x_list[1]}.*?]")
             answer = strinfo.sub(f"[__placeholder_{idx}]", answer)
             await AsyncHttpx.download_file(
                 img, data_dir / f"{event.group_id}" / f"__placeholder_{rand}_{idx}.jpg"
