@@ -218,7 +218,7 @@ async def gen_message(setu_image: Setu, img_msg: bool = False, tags: Optional[st
             f"title：{title}\n"
             f"author：{author}\n"
             f"PID：{pid}\n"
-            f"{match_keywords if not None else ''}"
+            f"{match_keywords if match_keywords is not None else ''}"
             # f"{image(f'{local_id}', temp) if img_msg else ''}" if hash_obfuscation else
             f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}"
         )
