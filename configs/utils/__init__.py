@@ -94,7 +94,7 @@ class ConfigsManager:
             del self._data[module]
         self.save()
 
-    def set_config(self, module: str, key: str, value: str):
+    def set_config(self, module: str, key: str, value:  Any):
         """
         设置配置值
         :param module: 模块名
@@ -122,7 +122,7 @@ class ConfigsManager:
                 self._data[module][key]["help"] = help_
                 self.save()
 
-    def set_default_value(self, module: str, key: str, value: str):
+    def set_default_value(self, module: str, key: str, value:  Any):
         """
         设置配置默认值
         :param module: 模块名
