@@ -31,8 +31,7 @@ __plugin_configs__ = {
     },
 }
 
-coser = on_regex("^(cos|COS|coser|括丝)$", priority=5, block=True)
-
+coser = on_regex("^(cos|COS|coser|括丝|COSER)$", priority=5, block=True)
 
 url = "https://api.iyk0.com/cos"
 

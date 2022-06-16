@@ -21,7 +21,7 @@ __plugin_settings__ = {
     "cmd": ["来个猫猫"],
 }
 
-miao = on_command("来个猫猫", block=True, priority=5)
+miao = on_command("来个猫猫", aliases={"猫猫", "喵喵"}, block=True, priority=5)
 
 
 @miao.handle()
