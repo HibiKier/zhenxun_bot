@@ -24,16 +24,17 @@ class AsyncHttpx:
     @classmethod
     @retry(stop_max_attempt_number=3)
     async def get(
-            cls,
-            url: str,
-            *,
-            params: Optional[Dict[str, Any]] = None,
-            headers: Optional[Dict[str, str]] = None,
-            cookies: Optional[Dict[str, str]] = None,
-            use_proxy: bool = True,
-            proxy: Dict[str, str] = None,
-            timeout: Optional[int] = 30,
-            **kwargs,
+        cls,
+        url: str,
+        *,
+        params: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        cookies: Optional[Dict[str, str]] = None,
+        verify: bool = True,
+        use_proxy: bool = True,
+        proxy: Dict[str, str] = None,
+        timeout: Optional[int] = 30,
+        **kwargs,
     ) -> Response:
         """
         说明：
@@ -50,7 +51,7 @@ class AsyncHttpx:
         if not headers:
             headers = get_user_agent()
         proxy = proxy if proxy else cls.proxy if use_proxy else None
-        async with httpx.AsyncClient(proxies=proxy) as client:
+        async with httpx.AsyncClient(proxies=proxy, verify=verify) as client:
             return await client.get(
                 url,
                 params=params,
@@ -62,20 +63,21 @@ class AsyncHttpx:
 
     @classmethod
     async def post(
-            cls,
-            url: str,
-            *,
-            data: Optional[Dict[str, str]] = None,
-            content: Any = None,
-            files: Any = None,
-            use_proxy: bool = True,
-            proxy: Dict[str, str] = None,
-            json: Optional[Dict[str, Union[Any]]] = None,
-            params: Optional[Dict[str, str]] = None,
-            headers: Optional[Dict[str, str]] = None,
-            cookies: Optional[Dict[str, str]] = None,
-            timeout: Optional[int] = 30,
-            **kwargs,
+        cls,
+        url: str,
+        *,
+        data: Optional[Dict[str, str]] = None,
+        content: Any = None,
+        files: Any = None,
+        verify: bool = True,
+        use_proxy: bool = True,
+        proxy: Dict[str, str] = None,
+        json: Optional[Dict[str, Union[Any]]] = None,
+        params: Optional[Dict[str, str]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        cookies: Optional[Dict[str, str]] = None,
+        timeout: Optional[int] = 30,
+        **kwargs,
     ) -> Response:
         """
         说明：
@@ -96,7 +98,7 @@ class AsyncHttpx:
         if not headers:
             headers = get_user_agent()
         proxy = proxy if proxy else cls.proxy if use_proxy else None
-        async with httpx.AsyncClient(proxies=proxy) as client:
+        async with httpx.AsyncClient(proxies=proxy, verify=verify) as client:
             return await client.post(
                 url,
                 content=content,
@@ -117,6 +119,7 @@ class AsyncHttpx:
         path: Union[str, Path],
         *,
         params: Optional[Dict[str, str]] = None,
+        verify: bool = True,
         use_proxy: bool = True,
         proxy: Dict[str, str] = None,
         headers: Optional[Dict[str, str]] = None,
@@ -169,7 +172,7 @@ class AsyncHttpx:
                         headers = get_user_agent()
                     proxy = proxy if proxy else cls.proxy if use_proxy else None
                     try:
-                        async with httpx.AsyncClient(proxies=proxy) as client:
+                        async with httpx.AsyncClient(proxies=proxy, verify=verify) as client:
                             async with client.stream(
                                 "GET",
                                 url,

@@ -1,3 +1,4 @@
+from services import logger
 from utils.http_utils import AsyncHttpx
 from configs.config import Config
 from configs.path_config import TEMP_PATH
@@ -39,12 +40,18 @@ async def get_saucenao_image(url: str) -> Union[str, List[str]]:
     ):
         msg_list.append(image(TEMP_PATH / f"saucenao_search_{index}.jpg"))
     for info in data:
-        similarity = info["header"]["similarity"]
-        tmp = f"相似度：{similarity}%\n"
-        for x in info["data"].keys():
-            if x != "ext_urls":
-                tmp += f"{x}：{info['data'][x]}\n"
-        if "source" not in info["data"].keys():
-            tmp += f'source：{info["data"]["ext_urls"][0]}\n'
-        msg_list.append(tmp[:-1])
+        try:
+            similarity = info["header"]["similarity"]
+            tmp = f"相似度：{similarity}%\n"
+            for x in info["data"].keys():
+                if x != "ext_urls":
+                    tmp += f"{x}：{info['data'][x]}\n"
+            try:
+                if "source" not in info["data"].keys():
+                    tmp += f'source：{info["data"]["ext_urls"][0]}\n'
+            except KeyError:
+                tmp += f'source：{info["header"]["thumbnail"]}\n'
+            msg_list.append(tmp[:-1])
+        except Exception as e:
+            logger.warning(f"识图获取图片信息发生错误 {type(e)}：{e}")
     return msg_list

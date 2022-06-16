@@ -76,6 +76,8 @@ async def login_get_token(form_data: OAuth2PasswordRequestForm = Depends()):
     token_data["token"].append(access_token)
     if len(token_data["token"]) > 3:
         token_data["token"] = token_data["token"][1:]
+    with open(token_file, 'w', encoding="utf8") as f:
+        json.dump(token_data, f, ensure_ascii=False, indent=4)
     return {"access_token": access_token, "token_type": "bearer"}
 
 

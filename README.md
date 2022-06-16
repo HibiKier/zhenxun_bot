@@ -243,6 +243,25 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/6/14
+
+* AsyncHttpx提供可关闭 ssl 验证参数 [@pull/812](https://github.com/HibiKier/zhenxun_bot/pull/812)
+* fix: 自动更新群组 [@pull/810](https://github.com/HibiKier/zhenxun_bot/pull/810)
+* fix: 修复添加词条时对answer中图片的处理 [@pull/806](https://github.com/HibiKier/zhenxun_bot/pull/806)
+* 修复pix中指定num无法生效
+* 替换了bt URL
+
+### 2022/6/13
+
+* Windows 重启适配 [@pull/804](https://github.com/HibiKier/zhenxun_bot/pull/804)
+* 色图等提供修改md5方法 [@pull/800](https://github.com/HibiKier/zhenxun_bot/pull/800)
+* webui中token.json文件写入补充 [@pull/798](https://github.com/HibiKier/zhenxun_bot/pull/798)
+* 修复识图某些图片可能会出错
+
+### 2022/6/11
+
+* pix当只有一个tag时且为数字时可以通过添加'#'防止判定为数量
+
 ### 2022/6/9
 
 * 修复b站订阅同群二人以上相同订阅时发送多次信息

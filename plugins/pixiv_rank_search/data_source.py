@@ -1,5 +1,6 @@
 from configs.path_config import IMAGE_PATH
 from utils.message_builder import image
+from utils.utils import change_img_md5
 from asyncio.exceptions import TimeoutError
 from configs.config import Config
 from utils.http_utils import AsyncHttpx
@@ -143,6 +144,7 @@ async def download_pixiv_imgs(
                         file,
                         timeout=Config.get_config("pixiv_rank_search", "TIMEOUT"),
                     ):
+                        change_img_md5(file)
                         if forward_msg_index is not None:
                             result += image(
                                 f"{user_id}_{forward_msg_index}_{index}_pixiv.jpg",
