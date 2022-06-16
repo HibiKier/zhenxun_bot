@@ -206,9 +206,10 @@ async def gen_message(setu_image: Setu, img_msg: bool = False, tags: Optional[st
         await search_online_setu(setu_image.img_url, path_=path_ if not hash_obfuscation else None)
     else:
         if hash_obfuscation:
-            compressed_image(IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{local_id}.jpg',
-                             IMAGE_PATH / temp / f"{local_id}.jpg",
-                             random.uniform(0.6, 1.0))
+            # compressed_image(IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{local_id}.jpg',
+            #                  IMAGE_PATH / temp / f"{local_id}.jpg",
+            #                  random.uniform(0.6, 1.0))
+            change_img_md5(file)
     if tags is not None:
         match_keywords = _search_match_keywords(setu_image, tags)
     if Config.get_config("send_setu", "SHOW_INFO"):
@@ -218,10 +219,11 @@ async def gen_message(setu_image: Setu, img_msg: bool = False, tags: Optional[st
             f"author：{author}\n"
             f"PID：{pid}\n"
             f"{match_keywords if not None else ''}"
-            f"{image(f'{local_id}', temp) if img_msg else ''}" if hash_obfuscation else
+            # f"{image(f'{local_id}', temp) if img_msg else ''}" if hash_obfuscation else
             f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}"
         )
-    return (f"{image(f'{local_id}', temp) if img_msg else ''}" if hash_obfuscation else
+    return (
+            # f"{image(f'{local_id}', temp) if img_msg else ''}" if hash_obfuscation else
             f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}")
 
 
@@ -328,5 +330,3 @@ def _search_match_keywords(send_setu: Setu, tags: Optional[str]):
         msg += "标签:" + match_tags + "\n"
     if msg != "":
         return "匹配关键词为:\n" + msg
-    else:
-        return None
