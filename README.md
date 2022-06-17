@@ -245,7 +245,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ### 2022/6/17
 
-* 修复wordbank的一些小问题
+* 修复wordbank的一些小问题 [@pull/820](https://github.com/HibiKier/zhenxun_bot/pull/820)
 
 ### 2022/6/14
 
