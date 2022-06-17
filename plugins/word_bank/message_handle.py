@@ -23,7 +23,7 @@ async def _(event: GroupMessageEvent):
     list_img = get_message_img_file(event.json())
     if list_img:
         for img_file in list_img:
-            strinfo = re.compile(f"{img_file},subType=\d*]")
+            strinfo = re.compile(f"{img_file},.*?]")
             msg = strinfo.sub(f'{img_file}]', msg)
     q = await WordBank.check(
         event.group_id, msg, event.is_tome()
