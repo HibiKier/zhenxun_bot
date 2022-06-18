@@ -243,9 +243,14 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/6/18
+
+* 修复webui中plugins2setting修改时会改变plugins2setting.cmd为字符串
+* 优化browser
+
 ### 2022/6/17
 
-* 修复wordbank的一些小问题 [@pull/820](https://github.com/HibiKier/zhenxun_bot/pull/820)
+* 修复wordbank的一些小问题 @pull/820
 
 ### 2022/6/14
 
@@ -312,7 +317,6 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 新增自动更新插件```UPDATE_REMIND```：新版本提醒，原配置项```AUTO_UPDATE_ZHENXUN```改为自动更新升级
 * black_word新增当群权限为-1时不再检测该群
 * 修复非超级用户绑定原神cookie会被black_word阻拦
-* 修复webui中plugins2setting修改时会改变plugins2setting.cmd为字符串
 * 修复微博热搜报错,发红包小bug [@pull/688](https://github.com/HibiKier/zhenxun_bot/pull/688)
 * 更多的中文提示
 
