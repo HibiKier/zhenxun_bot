@@ -1507,7 +1507,7 @@ async def text2image(
             w, _ = _tmp.getsize(x.strip() or "正")
             height += h + line_height
             width = width if width > w else w
-            image_list.append(BuildImage(w, h, font=font, font_size=font_size, plain_text=x.strip()))
+            image_list.append(BuildImage(w, h, font=font, font_size=font_size, plain_text=x.strip(), color=color))
         width += pw
         height += ph
         A = BuildImage(
