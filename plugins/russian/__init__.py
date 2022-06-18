@@ -6,7 +6,6 @@ from nonebot.params import CommandArg, Command, ArgStr
 from models.group_member_info import GroupInfoUser
 from utils.message_builder import at, image
 from .model import RussianUser
-from models.ban_user import BanUser
 from models.bag_user import BagUser
 from services.log import logger
 from .data_source import rank
@@ -32,7 +31,7 @@ usage：
         示例：装弹 3 100 @sdd
         * 注：同一时间群内只能有一场对决 *
 """.strip()
-__plugin_des__ = "虽然是运气游戏，但这可是战场啊少年\n败者会被{NICKNAME}ban掉一会"
+__plugin_des__ = "虽然是运气游戏，但这可是战场啊少年"
 __plugin_cmd__ = [
     "装弹 [子弹数] ?[金额=200] ?[at]",
     "接受对决",
@@ -443,8 +442,6 @@ async def end_game(bot: Bot, event: GroupMessageEvent):
     await BagUser.spend_gold(lose_user_id, event.group_id, money)
     win_user = await RussianUser.ensure(win_user_id, event.group_id)
     lose_user = await RussianUser.ensure(lose_user_id, event.group_id)
-    #ban掉被击毙的人一段时间
-    await BanUser.ban(lose_user_id,2,1800)
     bullet_str = ""
     for x in rs_player[event.group_id]["bullet"]:
         bullet_str += "__ " if x == 0 else "| "
