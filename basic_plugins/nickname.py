@@ -63,8 +63,9 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         await nickname.finish("笨蛋！休想占用我的名字！#", at_sender=True)
     _tmp = ""
     black_word = Config.get_config("nickname", "BLACK_WORD")
-    for x in msg:
-        _tmp += "*" if x in black_word else x
+    if black_word:
+        for x in msg:
+            _tmp += "*" if x in black_word else x
     msg = _tmp
     if isinstance(event, GroupMessageEvent):
         if await GroupInfoUser.set_group_member_nickname(
