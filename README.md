@@ -248,6 +248,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 修复webui中plugins2setting修改时会改变plugins2setting.cmd为字符串
 * 修复昵称系统`BLACK_WORD`为空时造成报错
 * 优化webUI，当有插件出错时不会影响其他插件显示
+* 优化Config类型注释 [@pull/830](https://github.com/HibiKier/zhenxun_bot/pull/830)
 * 优化browser
 
 ### 2022/6/17
