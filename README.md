@@ -243,7 +243,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
-### 2022/6/19
+### 2022/6/19 \[v0.1.6.0]
 
 * 暂时使用hook修复webui中plugins2setting修改时会改变plugins2setting.cmd为字符串
 * 修复原神树脂重复提醒的bug [@pull/828](https://github.com/HibiKier/zhenxun_bot/pull/828)
