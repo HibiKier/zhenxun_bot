@@ -42,7 +42,7 @@ async def remind(bot: Bot):
                     "pid=${pid%/*}\n"
                     "kill -9 $pid\n"
                     "sleep 3\n"
-                    "python3 bot.py"
+                    "python3.9 bot.py"
                 )
             os.system("chmod +x ./restart.sh")
             logger.info("已自动生成 restart.sh(重启) 文件，请检查脚本是否与本地指令符合...")
