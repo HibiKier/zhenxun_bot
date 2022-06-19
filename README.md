@@ -243,9 +243,12 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/6/19
+
+* 暂时使用hook修复webui中plugins2setting修改时会改变plugins2setting.cmd为字符串
+
 ### 2022/6/18
 
-* 修复webui中plugins2setting修改时会改变plugins2setting.cmd为字符串
 * 修复昵称系统`BLACK_WORD`为空时造成报错
 * 修复特殊头像时背景透明化出错
 * 修复text2image纯文本时换行时颜色不统一
