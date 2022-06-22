@@ -663,7 +663,7 @@ __..... 更多更新信息请查看文档__
 
 ## 爱发电
 
-<img width="300px" height="450px" src=https://user-images.githubusercontent.com/45528451/174619339-ea59ab4b-a59e-4eb6-b552-330791400883.jpg>
+<img width="365px" height="450px" src="https://user-images.githubusercontent.com/45528451/175059389-cfeb8174-fa07-4939-80ab-a039087a50f6.png">
 
 ## 感谢
 [botuniverse / onebot](https://github.com/botuniverse/onebot) ：超棒的机器人协议  
