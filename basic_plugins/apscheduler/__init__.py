@@ -6,7 +6,6 @@ from models.group_info import GroupInfo
 from models.friend_user import FriendUser
 from nonebot.adapters.onebot.v11 import ActionFailed
 from configs.config import NICKNAME, Config
-from utils.manager import group_manager
 from pathlib import Path
 import shutil
 

@@ -20,12 +20,15 @@ class ShopRegister(dict):
         discount: Tuple[float, ...],
         limit_time: Tuple[int, ...],
         load_status: Tuple[bool, ...],
+        daily_limit: Tuple[int, ...],
         **kwargs,
     ):
         def add_register_item(func: Callable):
             if name in self._data.keys():
                 raise ValueError("该商品已注册，请替换其他名称！")
-            for n, p, d, dd, l, s in zip(name, price, des, discount, limit_time, load_status):
+            for n, p, d, dd, l, s, dl in zip(
+                name, price, des, discount, limit_time, load_status, daily_limit
+            ):
                 if s:
                     _temp_kwargs = {}
                     for key, value in kwargs.items():
@@ -38,6 +41,7 @@ class ShopRegister(dict):
                         "des": d,
                         "discount": dd,
                         "limit_time": l,
+                        "daily_limit": dl,
                         "func": func,
                         "kwargs": _temp_kwargs,
                     }
@@ -52,7 +56,12 @@ class ShopRegister(dict):
             self._flag = False
             for name in self._data.keys():
                 await shop.register_goods(
-                    name, self._data[name]["price"], self._data[name]["des"], self._data[name]["discount"], self._data[name]["limit_time"]
+                    name,
+                    self._data[name]["price"],
+                    self._data[name]["des"],
+                    self._data[name]["discount"],
+                    self._data[name]["limit_time"],
+                    self._data[name]["daily_limit"],
                 )
                 use.register_use(
                     name, self._data[name]["func"], **self._data[name]["kwargs"]
@@ -66,6 +75,7 @@ class ShopRegister(dict):
         discount: Union[float, Tuple[float, ...]] = 1,
         limit_time: Union[int, Tuple[int, ...]] = 0,
         load_status: Union[bool, Tuple[bool, ...]] = True,
+        daily_limit: Union[int, Tuple[int, ...]] = 0,
         **kwargs,
     ):
         _tuple_list = []
@@ -75,7 +85,9 @@ class ShopRegister(dict):
                 if _current_len == -1:
                     _current_len = len(x)
                 if _current_len != len(x):
-                    raise ValueError(f"注册商品 {name} 中 name，price，des，discount，limit_time，load_status 数量不符！")
+                    raise ValueError(
+                        f"注册商品 {name} 中 name，price，des，discount，limit_time，load_status，daily_limit 数量不符！"
+                    )
         _current_len = _current_len if _current_len > -1 else 1
         _name = name if isinstance(name, tuple) else (name,)
         _price = (
@@ -101,7 +113,21 @@ class ShopRegister(dict):
             if isinstance(load_status, tuple)
             else tuple([load_status for _ in range(_current_len)])
         )
-        return self.register(_name, _price, _des, _discount, _limit_time, _load_status, **kwargs)
+        _daily_limit = (
+            daily_limit
+            if isinstance(daily_limit, tuple)
+            else tuple([daily_limit for _ in range(_current_len)])
+        )
+        return self.register(
+            _name,
+            _price,
+            _des,
+            _discount,
+            _limit_time,
+            _load_status,
+            _daily_limit,
+            **kwargs,
+        )
 
     def __setitem__(self, key, value):
         self._data[key] = value

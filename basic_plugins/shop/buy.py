@@ -77,7 +77,11 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
             await BagUser.get_gold(event.user_id, event.group_id)
         ) < goods.goods_price * num * goods.goods_discount:
             await buy.finish("您的金币好像不太够哦", at_sender=True)
+        flag, n = await GoodsInfo.check_user_daily_purchase(goods, event.user_id, event.group_id, num)
+        if flag:
+            await buy.finish(f"该次购买将超过每日次数限制，目前该道具还可以购买{n}次哦", at_sender=True)
         if await BagUser.buy_property(event.user_id, event.group_id, goods, num):
+            await GoodsInfo.add_user_daily_purchase(goods, event.user_id, event.group_id, num)
             await buy.send(
                 f"花费 {goods.goods_price * num * goods.goods_discount} 金币购买 {goods.goods_name} ×{num} 成功！",
                 at_sender=True,
