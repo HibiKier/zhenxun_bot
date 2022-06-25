@@ -243,9 +243,17 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/6/26
+
+* 替换了bt URL
+
+### 2022/6/24
+
+* 对WSL虚拟机 代理 添加写法 [@pull/847](https://github.com/HibiKier/zhenxun_bot/pull/847)
+
 ### 2022/6/21
 
-* update parse_bilibili
+* update parse_bilibili [@pull/840](https://github.com/HibiKier/zhenxun_bot/pull/840)
 
 ### 2022/6/19 \[v0.1.6.0]
 
