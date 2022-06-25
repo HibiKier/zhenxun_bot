@@ -68,16 +68,27 @@ def init_plugins_settings(data_path: str):
                 else:
                     try:
                         _tmp_module[matcher.plugin_name] = plugin_name
-                        plugin_settings = _module.__getattribute__(
-                            "__plugin_settings__"
-                        )
+                        try:
+                            plugin_settings = _module.__getattribute__(
+                                "__plugin_settings__"
+                            )
+                        except AttributeError:
+                            plugin_settings = {}
                         if plugin_settings.get('cost_gold') is None:
                             plugin_settings['cost_gold'] = 0
-                        if (
-                            plugin_settings.get("cmd") is not None
-                            and plugin_name not in plugin_settings["cmd"]
-                        ):
+                        if "cmd" not in plugin_settings:
+                            plugin_settings["cmd"] = []
+                        if plugin_name not in plugin_settings["cmd"]:
                             plugin_settings["cmd"].append(plugin_name)
+                        try:
+                            plugin_cmd = _module.__getattribute__(
+                                "__plugin_cmd__"
+                            )
+                        except AttributeError:
+                            plugin_cmd = []
+                        for cmd in plugin_cmd:
+                            if cmd not in plugin_settings["cmd"]:
+                                plugin_settings["cmd"].append(cmd)
                         if plugins2settings_manager.get(
                             matcher.plugin_name
                         ) and plugins2settings_manager[matcher.plugin_name].get(
