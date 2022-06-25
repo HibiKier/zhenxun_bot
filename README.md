@@ -246,6 +246,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 ### 2022/6/26
 
 * 替换了bt URL
+* PIX当使用pid查询图片时，会发送该pid下所有图片
 
 ### 2022/6/24
 
