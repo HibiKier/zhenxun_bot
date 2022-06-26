@@ -157,8 +157,8 @@ class GoodsInfo(db.Model):
         if goods and goods.daily_limit and goods.daily_limit > 0:
             if not goods.daily_purchase_limit.get(group_id):
                 goods.daily_purchase_limit[group_id] = {}
-                if not goods.daily_purchase_limit[group_id].get(user_id):
-                    goods.daily_purchase_limit[group_id][user_id] = 0
+            if not goods.daily_purchase_limit[group_id].get(user_id):
+                goods.daily_purchase_limit[group_id][user_id] = 0
             goods.daily_purchase_limit[group_id][user_id] += num
             await goods.update(daily_purchase_limit=goods.daily_purchase_limit).apply()
 
