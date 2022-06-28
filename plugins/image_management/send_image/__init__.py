@@ -36,7 +36,7 @@ __plugin_settings__ = {
     "limit_superuser": False,
     "cmd": ["发送图片"] + Config.get_config("image_management", "IMAGE_DIR_LIST"),
 }
-__plugin_resources__ = {"pa": IMAGE_PATH}
+__plugin_resources__ = {"pa": IMAGE_PATH / "pa"}
 
 Config.add_plugin_config(
     "_task",

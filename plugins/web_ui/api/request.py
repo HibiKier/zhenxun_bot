@@ -34,7 +34,7 @@ async def _(parma: RequestParma, user: User = Depends(token_to_user)) -> Result:
     操作请求
     :param parma: 参数
     """
-    result = "ok"
+    result = "操作成功！"
     flag = 3
     if bot := get_bot():
         if parma.handle == "approve":

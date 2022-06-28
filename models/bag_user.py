@@ -209,7 +209,7 @@ class BagUser(db.Model):
             return True
         except Exception as e:
             logger.error(f"buy_property 发生错误 {type(e)}：{e}")
-            return False
+        return False
 
     @classmethod
     async def get_all_users(cls, group_id: Optional[int] = None) -> List["BagUser"]:

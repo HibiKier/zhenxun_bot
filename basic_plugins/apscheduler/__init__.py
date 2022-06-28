@@ -4,9 +4,8 @@ from nonebot import on_message
 from services.log import logger
 from models.group_info import GroupInfo
 from models.friend_user import FriendUser
-from nonebot.adapters.onebot.v11.exception import ActionFailed
+from nonebot.adapters.onebot.v11 import ActionFailed
 from configs.config import NICKNAME, Config
-from utils.manager import group_manager
 from pathlib import Path
 import shutil
 
@@ -107,6 +106,7 @@ async def _():
                 group_info["group_name"],
                 group_info["max_member_count"],
                 group_info["member_count"],
+                1
             )
             logger.info(f"自动更新群组 {g} 信息成功")
     except Exception as e:

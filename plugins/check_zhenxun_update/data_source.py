@@ -162,7 +162,7 @@ def _file_handle(latest_version: str) -> str:
                 if backup_file.exists():
                     backup_file.unlink()
                 if file not in [config_file, config_path_file]:
-                    os.rename(file.absolute(), backup_file.absolute())
+                    shutil.move(file.absolute(), backup_file.absolute())
                 else:
                     with open(file, "r", encoding="utf8") as rf:
                         data = rf.read()
@@ -174,7 +174,7 @@ def _file_handle(latest_version: str) -> str:
         old_file = Path() / file
         if old_file not in [config_file, config_path_file] and file != "configs":
             if not old_file.exists() and new_file.exists():
-                os.rename(new_file.absolute(), old_file.absolute())
+                shutil.move(new_file.absolute(), old_file.absolute())
                 logger.info(f"已更新文件：{file}")
     # except Exception as e:
     #     error = f'{type(e)}：{e}'
@@ -189,6 +189,9 @@ def _file_handle(latest_version: str) -> str:
         local_update_info_file.unlink()
     with open(_version_file, "w", encoding="utf8") as f:
         f.write(f"__version__: {latest_version}")
+    os.system(
+        f"poetry run pip install -r {(Path() / 'pyproject.toml').absolute()}"
+    )
     return error
 
 

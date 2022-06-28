@@ -112,6 +112,14 @@ async def _():
             "ALTER TABLE chat_history ADD plain_text Text;",
             "chat_history"
         ),  # 新增纯文本
+        (
+            "ALTER TABLE goods_info ADD daily_limit Integer DEFAULT 0;",
+            "goods_info"
+        ),  # 新增纯文本
+        (
+            "ALTER TABLE goods_info ADD daily_purchase_limit Json DEFAULT '{}';",
+            "goods_info"
+        ),  # 新增纯文本
     ]
     for sql in sql_str:
         try:

@@ -1,3 +1,5 @@
+from pydantic import ValidationError
+
 from configs.config import Config
 from services.log import logger
 from utils.manager import (plugins2block_manager, plugins2cd_manager,
@@ -85,6 +87,10 @@ def _(type_: Optional[str], user: User = Depends(token_to_user)) -> Result:
                         id_ += 1
                     data["plugin_config"] = tmp
                 plugin_list.append(Plugin(**data))
+            except (AttributeError, ValidationError) as e:
+                logger.error(
+                    f"WEB_UI GET /webui/plugins model：{model} 发生错误 {type(e)}：{e}"
+                )
             except Exception as e:
                 logger.error(
                     f"WEB_UI GET /webui/plugins model：{model} 发生错误 {type(e)}：{e}"
@@ -108,7 +114,7 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
                 if str(c.value).lower() in ["true", "false"] and (
                     c.default_value is None or isinstance(c.default_value, bool)
                 ):
-                    c.value = True if str(c.value).lower() == "true" else False
+                    c.value = str(c.value).lower() == "true"
                 elif isinstance(
                     Config.get_config(plugin.model, c.key, c.value), int
                 ) or isinstance(c.default_value, int):
@@ -121,12 +127,24 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
                     isinstance(Config.get_config(plugin.model, c.key, c.value), list)
                     or isinstance(c.default_value, list)
                 ):
+                    default_value = Config.get_config(plugin.model, c.key, c.value)
                     c.value = c.value.split(",")
+                    if default_value and isinstance(default_value[0], int):
+                        c.value = [int(x) for x in c.value]
+                    elif default_value and isinstance(default_value[0], float):
+                        c.value = [float(x) for x in c.value]
+                    elif default_value and isinstance(default_value[0], bool):
+                        temp = []
+                        for x in c.value:
+                            temp.append(x.lower() == "true")
+                        c.value = temp
                 Config.set_config(plugin.model, c.key, c.value)
             Config.save(None, True)
         else:
             if plugin.plugin_settings:
                 for key, value in plugin.plugin_settings:
+                    if key == "cmd":
+                        value = value.split(",")
                     plugins2settings_manager.set_module_data(plugin.model, key, value)
             if plugin.plugin_manager:
                 for key, value in plugin.plugin_manager:
@@ -139,4 +157,4 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
             code=500,
             data=f"WEB_UI POST /webui/plugins model：{plugin.model} 发生错误 {type(e)}：{e}",
         )
-    return Result(code=200)
+    return Result(code=200, data="修改成功！")

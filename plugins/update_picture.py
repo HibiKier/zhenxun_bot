@@ -232,7 +232,7 @@ async def _(
             result += image(b64=pic2b64(img))
     if method in ["模糊效果", "6"]:
         for i in range(index):
-            img = Image.open(TEMP_PATH / f"temp/{event.user_id}_{i}_update.png").filter(
+            img = Image.open(TEMP_PATH / f"{event.user_id}_{i}_update.png").filter(
                 ImageFilter.BLUR
             )
             result += image(b64=pic2b64(img))

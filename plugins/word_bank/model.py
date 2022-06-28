@@ -1,9 +1,7 @@
 from services.db_context import db
 from typing import Optional, List, Union, Tuple
 from datetime import datetime
-from pathlib import Path
 from configs.path_config import DATA_PATH
-import re
 import random
 from configs.config import Config
 
@@ -125,58 +123,40 @@ class WordBank(db.Model):
         q.sort()
         _tmp = []
         for problem in q:
-            if "[_to_me" in problem:
-                r = re.search(r"\[_to_me\|(.*?)](.*)", problem)
-                if r:
-                    bot_name = r.group(1)
-                    problem = problem.replace(f"[_to_me|{bot_name}]", bot_name)
             _tmp.append(problem)
         return list(set(_tmp))
 
     @classmethod
-    async def check(cls, group_id: int, problem: str, is_tome: bool = False) -> Optional["WordBank"]:
+    async def check(cls, group_id: int, problem: str) -> Optional["WordBank"]:
         """
         检测词条并随机返回
         :param group_id: 群号
         :param problem: 问题
-        :param is_tome：是否at真寻
         """
-        if is_tome:
+        if problem:
+            FUZZY = Config.get_config("word_bank", "WORD_BANK_FUZZY")
+            KEY = Config.get_config("word_bank", "WORD_BANK_KEY")
             q = await cls.query.where(
-                (cls.group_id == group_id)
+                (cls.group_id == group_id) & (cls.problem == problem)
             ).gino.all()
-            q = [x for x in q if "[_to_me" in x.problem]
-            if q:
-                for x in q:
-                    r = re.search(r"\[_to_me\|(.*?)](.*)", x.problem)
-                    if r and r.group(2) == problem:
-                        return x
-            return None
+            if KEY and FUZZY:
+                q_fuzzy = await cls.query.where(
+                    (cls.group_id == group_id) & (cls.search_type == 2) & (
+                        cls.problem.contains(f'{problem}'))).gino.all()
+                q_key = await cls.query.where((cls.group_id == group_id) & (cls.search_type == 1)).gino.all()
+                q_key = [x for x in q_key if str(x.problem) in (problem)]
+                q += q_fuzzy + q_key
+            elif FUZZY:
+                q_fuzzy = await cls.query.where(
+                    (cls.group_id == group_id) & (cls.search_type == 2) & (
+                        cls.problem.contains(f'{problem}'))).gino.all()
+                q += q_fuzzy
+            elif KEY:
+                q_key = await cls.query.where((cls.group_id == group_id) & (cls.search_type == 1)).gino.all()
+                q_key = [x for x in q_key if str(x.problem) in (problem)]
+                q += q_key
         else:
-            if problem:
-                FUZZY = Config.get_config("word_bank", "WORD_BANK_FUZZY")
-                KEY = Config.get_config("word_bank", "WORD_BANK_KEY")
-                q = await cls.query.where(
-                    (cls.group_id == group_id) & (cls.problem == problem)
-                ).gino.all()
-                if KEY and FUZZY:
-                    q_fuzzy = await cls.query.where(
-                        (cls.group_id == group_id) & (cls.search_type == 2) & (
-                            cls.problem.contains(f'{problem}'))).gino.all()
-                    q_key = await cls.query.where((cls.group_id == group_id) & (cls.search_type == 1)).gino.all()
-                    q_key = [x for x in q_key if str(x.problem) in (problem)]
-                    q += q_fuzzy + q_key
-                elif FUZZY:
-                    q_fuzzy = await cls.query.where(
-                        (cls.group_id == group_id) & (cls.search_type == 2) & (
-                            cls.problem.contains(f'{problem}'))).gino.all()
-                    q += q_fuzzy
-                elif KEY:
-                    q_key = await cls.query.where((cls.group_id == group_id) & (cls.search_type == 1)).gino.all()
-                    q_key = [x for x in q_key if str(x.problem) in (problem)]
-                    q += q_key
-            else:
-                return None
+            return None
 
         return random.choice(q) if q else None
 

@@ -182,7 +182,7 @@ def parsed_data(
     role_data = {
         "active_day_number": data["stats"]["active_day_number"],  # 活跃天数
         "achievement_number": data["stats"]["achievement_number"],  # 达成成就数量
-        "win_rate": data["stats"]["win_rate"],
+        # "win_rate": data["stats"]["win_rate"],
         "anemoculus_number": data["stats"]["anemoculus_number"],  # 风神瞳已收集
         "geoculus_number": data["stats"]["geoculus_number"],  # 岩神瞳已收集
         "avatar_number": data["stats"]["avatar_number"],  # 获得角色数量

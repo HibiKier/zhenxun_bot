@@ -1,6 +1,7 @@
 from nonebot import on_command, on_notice
 from nonebot.adapters.onebot.v11 import (
     Bot,
+    ActionFailed,
     GroupMessageEvent,
     PokeNotifyEvent,
     Message
@@ -24,7 +25,6 @@ from nonebot.rule import to_me
 from datetime import datetime, timedelta
 from configs.config import NICKNAME
 from apscheduler.jobstores.base import JobLookupError
-from nonebot.adapters.onebot.v11.exception import ActionFailed
 from nonebot.params import CommandArg
 import random
 import time
@@ -124,7 +124,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
                 redbag_data[event.group_id]["amount"]
                 - redbag_data[event.group_id]["open_amount"]
             )
-            await return_gold(event.user_id, event.group_id, amount)
+            await return_gold(redbag_data[event.group_id]["user_id"], event.group_id, amount)
             await gold_redbag.send(
                 f'{redbag_data[event.group_id]["nickname"]}的红包过时未开完，退还{amount}金币...'
             )

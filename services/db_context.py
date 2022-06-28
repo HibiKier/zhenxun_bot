@@ -1,6 +1,7 @@
 
 from gino import Gino
 from .log import logger
+from utils.text_utils import prompt2cn
 from configs.config import bind, sql_name, user, password, address, port, database
 
 
@@ -9,6 +10,8 @@ db = Gino()
 
 
 async def init():
+    if not bind and (not user and not password and not address and not port and not database):
+        raise ValueError("\n" + prompt2cn("数据库配置未填写", 28))
     i_bind = bind
     if not i_bind:
         i_bind = f"{sql_name}://{user}:{password}@{address}:{port}/{database}"

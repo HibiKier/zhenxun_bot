@@ -61,22 +61,23 @@ async def generate_open_redbag_pic(user_id: int, send_user_nickname: str, amount
 async def _generate_open_redbag_pic(user_id: int, send_user_nickname: str, amount: int, text: str):
     send_user_nickname += '的红包'
     amount = str(amount)
-    head = BuildImage(1000, 980, font_size=30, background=f'{IMAGE_PATH}/prts/redbag_12.png')
+    random_redbag = random.choice(os.listdir(f"{IMAGE_PATH}/prts/redbag_1"))
+    head = BuildImage(1000, 980, font_size=30, background=f'{IMAGE_PATH}/prts/redbag_1/{random_redbag}')
     size = BuildImage(0, 0, font_size=50).getsize(send_user_nickname)
     # QQ头像
-    ava_bk = BuildImage(100 + size[0], 66, color='white', font_size=50)
-    ava = BuildImage(66, 66, background=BytesIO(await get_user_avatar(user_id)))
+    ava_bk = BuildImage(100 + size[0], 66, is_alpha=True, font_size=50)
+    ava = BuildImage(66, 66, is_alpha=True, background=BytesIO(await get_user_avatar(user_id)))
     ava_bk.paste(ava)
     ava_bk.text((100, 7), send_user_nickname)
     # ava_bk.show()
     ava_bk_w, ava_bk_h = ava_bk.size
-    head.paste(ava_bk, (int((1000 - ava_bk_w) / 2), 300))
+    head.paste(ava_bk, (int((1000 - ava_bk_w) / 2), 300), alpha=True)
     # 金额
     size = BuildImage(0, 0, font_size=150).getsize(amount)
-    price = BuildImage(size[0], size[1], font_size=150)
+    price = BuildImage(size[0], size[1], is_alpha=True, font_size=150)
     price.text((0, 0), amount, fill=(209, 171, 108))
     # 金币中文
-    head.paste(price, (int((1000 - size[0]) / 2) - 50, 460))
+    head.paste(price, (int((1000 - size[0]) / 2) - 50, 460), alpha=True)
     head.text((int((1000 - size[0]) / 2 + size[0]) - 50, 500 + size[1] - 70), '金币', fill=(209, 171, 108))
     # 剩余数量和金额
     head.text((350, 900), text, (198, 198, 198))

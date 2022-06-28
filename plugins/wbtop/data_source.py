@@ -52,7 +52,7 @@ def gen_wbtop_pic(data: dict) -> MessageSegment:
     text_bk = BuildImage(700, 32 * 50, 700, 32, color="#797979")
     for i, data in enumerate(data):
         title = f"{i + 1}. {data['hot_word']}"
-        hot = data["hot_word_num"]
+        hot = str(data["hot_word_num"])
         img = BuildImage(700, 30, font_size=20)
         w, h = img.getsize(title)
         img.text((10, int((30 - h) / 2)), title)

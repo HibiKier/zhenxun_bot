@@ -58,4 +58,4 @@ async def _(group: GroupResult, user: User = Depends(token_to_user)) -> Result:
         group_manager.turn_on_group_bot_status(group_id)
     else:
         group_manager.shutdown_group_bot_status(group_id)
-    return Result(code=200)
+    return Result(code=200, data="修改成功！")

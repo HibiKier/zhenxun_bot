@@ -243,6 +243,107 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/6/26
+
+* 替换了bt URL
+* PIX当使用pid查询图片时，会发送该pid下所有图片
+* 商店提供了每日购买次数限制
+
+### 2022/6/24
+
+* 对WSL虚拟机 代理 添加写法 [@pull/847](https://github.com/HibiKier/zhenxun_bot/pull/847)
+
+### 2022/6/21
+
+* update parse_bilibili [@pull/840](https://github.com/HibiKier/zhenxun_bot/pull/840)
+
+### 2022/6/19 \[v0.1.6.0]
+
+* 暂时使用hook修复webui中plugins2setting修改时会改变plugins2setting.cmd为字符串
+* 修复原神树脂重复提醒的bug [@pull/828](https://github.com/HibiKier/zhenxun_bot/pull/828)
+* 词条优化问题展示,修改含机器人昵称和@逻辑 [@pull/835](https://github.com/HibiKier/zhenxun_bot/pull/835)
+
+### 2022/6/18
+
+* 修复昵称系统`BLACK_WORD`为空时造成报错
+* 修复特殊头像时背景透明化出错
+* 修复text2image纯文本时换行时颜色不统一
+* 优化webUI，当有插件出错时不会影响其他插件显示
+* 优化Config类型注释 [@pull/830](https://github.com/HibiKier/zhenxun_bot/pull/830)
+* 优化browser
+
+### 2022/6/17
+
+* 修复wordbank的一些小问题 @pull/820
+
+### 2022/6/14
+
+* AsyncHttpx提供可关闭 ssl 验证参数 [@pull/812](https://github.com/HibiKier/zhenxun_bot/pull/812)
+* fix: 自动更新群组 [@pull/810](https://github.com/HibiKier/zhenxun_bot/pull/810)
+* fix: 修复添加词条时对answer中图片的处理 [@pull/806](https://github.com/HibiKier/zhenxun_bot/pull/806)
+* 修复pix中指定num无法生效
+* 替换了bt URL
+
+### 2022/6/13
+
+* Windows 重启适配 [@pull/804](https://github.com/HibiKier/zhenxun_bot/pull/804)
+* 色图等提供修改md5方法 [@pull/800](https://github.com/HibiKier/zhenxun_bot/pull/800)
+* webui中token.json文件写入补充 [@pull/798](https://github.com/HibiKier/zhenxun_bot/pull/798)
+* 修复识图某些图片可能会出错
+
+### 2022/6/11
+
+* pix当只有一个tag时且为数字时可以通过添加'#'防止判定为数量
+
+### 2022/6/9
+
+* 修复b站订阅同群二人以上相同订阅时发送多次信息
+* 修复超级用户帮助中缺少了 ‘插件商店’ 相关帮助
+* 昵称系统提供了详细帮助
+
+### 2022/6/5 \[v0.1.5.9]
+
+* webui修复plugin2setting中cmd从list转变为str
+* 当命令`我的金币`被风控时将以图片形式发送
+* fix gold_redbag [@pull/763](https://github.com/HibiKier/zhenxun_bot/pull/763)
+* 金币红包功能增加更多封面 [@pull/764](https://github.com/HibiKier/zhenxun_bot/pull/764)
+
+### 2022/6/3
+
+* 插件仓库在已安装插件边上会提示\[已安装]
+* 修复ShopRegister kwargs某些字段无效
+* 调整了一下查看所有请求中的年龄绘制 [@pull/745](https://github.com/HibiKier/zhenxun_bot/pull/745)
+* 修复原神树脂提醒bug [@pull/756](https://github.com/HibiKier/zhenxun_bot/pull/756)
+
+### 2022/5/31
+
+* 修复开启/关闭全部功能时帮助图片未重绘 [@pull/721](https://github.com/HibiKier/zhenxun_bot/pull/721)
+* bot_friend_group将group_handle.修改为friend_handle. [@pull/711](https://github.com/HibiKier/zhenxun_bot/pull/711)
+* 修复发红包图片背景未透明化;修复原神树脂提醒参数错误 [@pull/712](https://github.com/HibiKier/zhenxun_bot/pull/712)
+* 修复抽卡插件：方舟更新UP池信息时，若公告的第一个池子过期会导致无法更新UP池信息 [@pull/707](https://github.com/HibiKier/zhenxun_bot/pull/707)
+* 商店插件判断是否有requirements.txt文件 [@pull/705](https://github.com/HibiKier/zhenxun_bot/pull/705)
+* 删除原神玩家查询api返回变更的多余键值
+* 优化了text2image方法
+
+### 2022/5/29 \[v0.1.5.8]
+
+* 提供了真寻适配仓库的插件 安装/卸载 操作
+* 暂时关闭了插件资源清空
+* 通过指令安装插件时会在插件目录下生成plugin_info.json记录当前插件信息
+
+### 2022/5/28
+
+* 修复私聊无法添加昵称
+* 修复原神玩家查询层岩巨渊地下矿区没开时报错
+* 修复 ```休息吧``` 无法阻断戳一戳
+* 当图库无图片时，戳一戳将略过发送图片
+* 新增搜图提供配置项```ALLOW_GROUP_R18```：允许在群聊中使用r18参数
+* 新增自动更新插件```UPDATE_REMIND```：新版本提醒，原配置项```AUTO_UPDATE_ZHENXUN```改为自动更新升级
+* black_word新增当群权限为-1时不再检测该群
+* 修复非超级用户绑定原神cookie会被black_word阻拦
+* 修复微博热搜报错,发红包小bug [@pull/688](https://github.com/HibiKier/zhenxun_bot/pull/688)
+* 更多的中文提示
+
 ### 2022/5/26
 
 * 修复\[滴滴滴]会被转义成&#91;滴滴滴&#93;导致无法触发的问题
@@ -274,9 +375,9 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 添加pixiv搜图多关键词支持;修复p站搜图数量参数问题 [@pull/441](https://github.com/HibiKier/zhenxun_bot/pull/441)
 * 修复开箱更新价格错误传参
 * 修复pix无法正确查询uid
-* 新增色图插件添加配置项ALLOW_GROUP_R18：允许群聊中使用色图r
-* 新增PIX插件添加配置项ALLOW_GROUP_SETU：允许非超级用户使用-s参数
-* 新增PIX插件添加配置项ALLOW_GROUP_R18：允许非超级用户使用-r参数
+* 新增色图插件添加配置项```ALLOW_GROUP_R18```：允许群聊中使用色图r
+* 新增PIX插件添加配置项```ALLOW_GROUP_SETU```：允许非超级用户使用-s参数
+* 新增PIX插件添加配置项```ALLOW_GROUP_R18```：允许非超级用户使用-r参数
 
 ### 2022/5/22 \[v0.1.5.4]
 
@@ -567,9 +668,12 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 __..... 更多更新信息请查看文档__
 
-
 ## Todo
 - [ ] web管理
+
+## 爱发电
+
+<img width="365px" height="450px" src="https://user-images.githubusercontent.com/45528451/175059389-cfeb8174-fa07-4939-80ab-a039087a50f6.png">
 
 ## 感谢
 [botuniverse / onebot](https://github.com/botuniverse/onebot) ：超棒的机器人协议  

@@ -2,6 +2,10 @@ from typing import Optional
 from pathlib import Path
 from .utils import ConfigsManager
 
+import platform
+if platform.system() == "Linux":
+    import os
+    hostip = os.popen("cat /etc/resolv.conf | grep nameserver | awk '{ print $2 }'").read().replace("\n","")
 
 # 回复消息名称
 NICKNAME: str = "小真寻"
@@ -18,6 +22,7 @@ port: str = ""  # 数据库端口
 database: str = ""  # 数据库名称
 
 # 代理，例如 "http://127.0.0.1:7890"
+# 如果是WLS 可以 f"http://{hostip}:7890" 使用寄主机的代理
 SYSTEM_PROXY: Optional[str] = None  # 全局代理
 
 

@@ -62,12 +62,12 @@ async def _poke_event(event: PokeNotifyEvent):
                 rst = "气死我了！"
             await poke_.finish(rst + random.choice(poke__reply), at_sender=True)
         rand = random.random()
-        if rand <= 0.3:
-            path = random.choice(["luoli", "meitu"])
-            index = random.randint(0, len(os.listdir(IMAGE_PATH / "image_management" / path)))
+        path = random.choice(["luoli", "meitu"])
+        if rand <= 0.3 and len(os.listdir(IMAGE_PATH / "image_management" / path)) > 0:
+            index = random.randint(0, len(os.listdir(IMAGE_PATH / "image_management" / path)) - 1)
             result = f"id：{index}" + image(f"{index}.jpg", "image_management/" + path)
             await poke_.send(result)
-            logger.info(f"USER {event.user_id} 戳了戳我 回复: {result} \n {result}")
+            logger.info(f"USER {event.user_id} 戳了戳我 回复: {result}  {result}")
         elif 0.3 < rand < 0.6:
             voice = random.choice(os.listdir(RECORD_PATH / "dinggong"))
             result = record(voice, "dinggong")
