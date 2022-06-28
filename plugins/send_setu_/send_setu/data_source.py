@@ -32,7 +32,7 @@ async def get_setu_urls(
     params = {
         "r18": r18,  # 添加r18参数 0为否，1为是，2为混合
         "tag": tags,  # 若指定tag
-        "num": 100,  # 一次返回的结果数量
+        "num": 20,  # 一次返回的结果数量
         "size": ["original"],
     }
     for count in range(3):
