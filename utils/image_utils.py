@@ -14,6 +14,8 @@ from imagehash import ImageHash
 from matplotlib import pyplot as plt
 from PIL import Image, ImageDraw, ImageFile, ImageFilter, ImageFont
 
+from services import logger
+
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 Image.MAX_IMAGE_PIXELS = None
 
@@ -209,13 +211,16 @@ class BuildImage:
                     (self.w, self.h), Image.ANTIALIAS
                 )
         if is_alpha:
-            array = self.markImg.load()
-            for i in range(w):
-                for j in range(h):
-                    pos = array[i, j]
-                    is_edit = sum([1 for x in pos[0:3] if x > 240]) == 3
-                    if is_edit:
-                        array[i, j] = (255, 255, 255, 0)
+            try:
+                array = self.markImg.load()
+                for i in range(w):
+                    for j in range(h):
+                        pos = array[i, j]
+                        is_edit = sum([1 for x in pos[0:3] if x > 240]) == 3
+                        if is_edit:
+                            array[i, j] = (255, 255, 255, 0)
+            except Exception as e:
+                logger.warning(f"背景透明化发生错误..{type(e)}：{e}")
         self.draw = ImageDraw.Draw(self.markImg)
         self.size = self.w, self.h
         if plain_text:
@@ -1502,7 +1507,7 @@ async def text2image(
             w, _ = _tmp.getsize(x.strip() or "正")
             height += h + line_height
             width = width if width > w else w
-            image_list.append(BuildImage(w, h, font=font, font_size=font_size, plain_text=x.strip()))
+            image_list.append(BuildImage(w, h, font=font, font_size=font_size, plain_text=x.strip(), color=color))
         width += pw
         height += ph
         A = BuildImage(

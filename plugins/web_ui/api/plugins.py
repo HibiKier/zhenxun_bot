@@ -1,3 +1,5 @@
+from pydantic import ValidationError
+
 from configs.config import Config
 from services.log import logger
 from utils.manager import (plugins2block_manager, plugins2cd_manager,
@@ -85,6 +87,10 @@ def _(type_: Optional[str], user: User = Depends(token_to_user)) -> Result:
                         id_ += 1
                     data["plugin_config"] = tmp
                 plugin_list.append(Plugin(**data))
+            except (AttributeError, ValidationError) as e:
+                logger.error(
+                    f"WEB_UI GET /webui/plugins model：{model} 发生错误 {type(e)}：{e}"
+                )
             except Exception as e:
                 logger.error(
                     f"WEB_UI GET /webui/plugins model：{model} 发生错误 {type(e)}：{e}"
@@ -137,6 +143,8 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
         else:
             if plugin.plugin_settings:
                 for key, value in plugin.plugin_settings:
+                    if key == "cmd":
+                        value = value.split(",")
                     plugins2settings_manager.set_module_data(plugin.model, key, value)
             if plugin.plugin_manager:
                 for key, value in plugin.plugin_manager:
