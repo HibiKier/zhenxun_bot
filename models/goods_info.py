@@ -1,5 +1,5 @@
 from services.db_context import db
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from services.log import logger
 
 
@@ -12,6 +12,10 @@ class GoodsInfo(db.Model):
     goods_description = db.Column(db.TEXT(), nullable=False)  # 商品描述
     goods_discount = db.Column(db.Numeric(scale=3, asdecimal=False), default=1)  # 打折
     goods_limit_time = db.Column(db.BigInteger(), default=0)  # 限时
+    daily_limit = db.Column(db.Integer(), nullable=False, default=0)  # 每日购买限制
+    daily_purchase_limit = db.Column(
+        db.JSON(), nullable=False, default={}
+    )  # 每日购买限制数据存储
 
     _idx1 = db.Index("goods_group_users_idx1", "goods_name", unique=True)
 
@@ -23,6 +27,7 @@ class GoodsInfo(db.Model):
         goods_description: str,
         goods_discount: float = 1,
         goods_limit_time: int = 0,
+        daily_limit: int = 0,
     ) -> bool:
         """
         说明：
@@ -33,6 +38,7 @@ class GoodsInfo(db.Model):
             :param goods_description: 商品简介
             :param goods_discount: 商品折扣
             :param goods_limit_time: 商品限时
+            :param daily_limit: 每日购买限制
         """
         try:
             if not await cls.get_goods_info(goods_name):
@@ -42,6 +48,7 @@ class GoodsInfo(db.Model):
                     goods_description=goods_description,
                     goods_discount=goods_discount,
                     goods_limit_time=goods_limit_time,
+                    daily_limit=daily_limit,
                 )
                 return True
         except Exception as e:
@@ -74,6 +81,7 @@ class GoodsInfo(db.Model):
         goods_description: Optional[str] = None,
         goods_discount: Optional[float] = None,
         goods_limit_time: Optional[int] = None,
+        daily_limit: Optional[int] = None
     ) -> bool:
         """
         说明：
@@ -84,6 +92,7 @@ class GoodsInfo(db.Model):
             :param goods_description: 商品简介
             :param goods_discount: 商品折扣
             :param goods_limit_time: 商品限时时间
+            :param daily_limit: 每日次数限制
         """
         try:
             query = (
@@ -93,18 +102,17 @@ class GoodsInfo(db.Model):
             )
             if not query:
                 return False
-            if goods_price:
-                await query.update(goods_price=goods_price).apply()
-            if goods_description:
-                await query.update(goods_description=goods_description).apply()
-            if goods_discount:
-                await query.update(goods_discount=goods_discount).apply()
-            if goods_limit_time:
-                await query.update(goods_limit_time=goods_limit_time).apply()
+            await query.update(
+                goods_price=goods_price or query.goods_price,
+                goods_description=goods_description or query.goods_description,
+                goods_discount=goods_discount or query.goods_discount,
+                goods_limit_time=goods_limit_time or query.goods_limit_time,
+                daily_limit=daily_limit or query.daily_limit,
+            ).apply()
             return True
         except Exception as e:
             logger.error(f"GoodsInfo update_goods 发生错误 {type(e)}：{e}")
-            return False
+        return False
 
     @classmethod
     async def get_goods_info(cls, goods_name: str) -> "GoodsInfo":
@@ -130,3 +138,63 @@ class GoodsInfo(db.Model):
             goods_lst.append([x for x in query if x.id == min_id][0])
             id_lst.remove(min_id)
         return goods_lst
+
+    @classmethod
+    async def add_user_daily_purchase(
+        cls, goods: "GoodsInfo", user_id: int, group_id: int, num: int = 1
+    ):
+        """
+        说明：
+            添加用户明日购买限制
+        参数：
+            :param goods: 商品
+            :param user_id: 用户id
+            :param group_id: 群号
+            :param num: 数量
+        """
+        user_id = str(user_id)
+        group_id = str(group_id)
+        if goods and goods.daily_limit and goods.daily_limit > 0:
+            if not goods.daily_purchase_limit.get(group_id):
+                goods.daily_purchase_limit[group_id] = {}
+            if not goods.daily_purchase_limit[group_id].get(user_id):
+                goods.daily_purchase_limit[group_id][user_id] = 0
+            goods.daily_purchase_limit[group_id][user_id] += num
+            await goods.update(daily_purchase_limit=goods.daily_purchase_limit).apply()
+
+    @classmethod
+    async def check_user_daily_purchase(
+        cls, goods: "GoodsInfo", user_id: int, group_id: int, num: int = 1
+    ) -> Tuple[bool, int]:
+        """
+        说明：
+            检测用户每日购买上限
+        参数：
+            :param goods: 商品
+            :param user_id: 用户id
+            :param group_id: 群号
+            :param num: 数量
+        """
+        user_id = str(user_id)
+        group_id = str(group_id)
+        if goods:
+            if (
+                not goods.daily_limit
+                or not goods.daily_purchase_limit.get(group_id)
+                or not goods.daily_purchase_limit[group_id].get(user_id)
+            ):
+                return goods.daily_limit - num < 0, goods.daily_limit
+            if goods.daily_purchase_limit[group_id][user_id] + num > goods.daily_limit:
+                return (
+                    True,
+                    goods.daily_limit - goods.daily_purchase_limit[group_id][user_id],
+                )
+        return False, 0
+
+    @classmethod
+    async def reset_daily_purchase(cls):
+        """
+        重置每次次数限制
+        """
+        await cls.update.values(daily_purchase_limit={}).gino.status()
+

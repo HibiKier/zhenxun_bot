@@ -1,10 +1,11 @@
 from typing import Union, Optional
 from pathlib import Path
 from ruamel.yaml import YAML
+from ruamel import yaml
 import ujson as json
 import copy
 
-yaml = YAML(typ="safe")
+_yaml = YAML(typ="safe")
 
 
 class StaticData:
@@ -26,16 +27,17 @@ class StaticData:
                             if f.read().strip():
                                 raise ValueError(f"{file} 文件加载错误，请检查文件内容格式.")
                     elif file.name.endswith("yaml"):
-                        self._data = yaml.load(f)
+                        self._data = _yaml.load(f)
 
     def set(self, key, value):
         self._data[key] = value
         self.save()
 
-    def set_module_data(self, module, key, value):
+    def set_module_data(self, module, key, value, auto_save: bool = True):
         if module in self._data.keys():
             self._data[module][key] = value
-        self.save()
+            if auto_save:
+                self.save()
 
     def get(self, key):
         return self._data.get(key)
@@ -51,19 +53,22 @@ class StaticData:
         return copy.deepcopy(self._data)
 
     def save(self, path: Union[str, Path] = None):
-        path = path if path else self.file
+        path = path or self.file
         if isinstance(path, str):
             path = Path(path)
         if path:
             with open(path, "w", encoding="utf8") as f:
-                json.dump(self._data, f, ensure_ascii=False, indent=4)
+                if path.name.endswith("yaml"):
+                    yaml.dump(self._data, f, indent=2, Dumper=yaml.RoundTripDumper, allow_unicode=True)
+                else:
+                    json.dump(self._data, f, ensure_ascii=False, indent=4)
 
     def reload(self):
         if self.file.exists():
             if self.file.name.endswith("json"):
                 self._data: dict = json.load(open(self.file, "r", encoding="utf8"))
             elif self.file.name.endswith("yaml"):
-                self._data: dict = yaml.load(open(self.file, "r", encoding="utf8"))
+                self._data: dict = _yaml.load(open(self.file, "r", encoding="utf8"))
 
     def is_exists(self):
         return self.file.exists()

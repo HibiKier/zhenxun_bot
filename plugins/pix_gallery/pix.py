@@ -132,6 +132,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
             all_image = await OmegaPixivIllusts.query_images(
                 pid=int(pid), nsfw_tag=nsfw_tag
             )
+        num = len(all_image)
     else:
         tmp = await Pixiv.query_images(
             x, r18=1 if nsfw_tag == 2 else 0, num=pix_num

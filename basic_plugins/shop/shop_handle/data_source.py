@@ -3,7 +3,7 @@ from utils.image_utils import BuildImage
 from models.sign_group_user import SignGroupUser
 from utils.utils import is_number
 from configs.path_config import IMAGE_PATH
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 from configs.config import Config
 from nonebot import Driver
 from nonebot.plugin import require
@@ -32,6 +32,7 @@ async def init_default_shop_goods():
             "下次签到双倍好感度概率 + 30%（金币才是真命天子！）（同类商品将覆盖）",
         ),
         load_status=Config.get_config("shop", "IMPORT_DEFAULT_SHOP_GOODS"),
+        daily_limit=(10, 20, 30),
         ** {"好感度双倍加持卡Ⅰ_prob": 0.1, "好感度双倍加持卡Ⅱ_prob": 0.2, "好感度双倍加持卡Ⅲ_prob": 0.3},
     )
     async def sign_card(user_id: int, group_id: int, prob: float):
@@ -140,6 +141,7 @@ async def register_goods(
     des: str,
     discount: Optional[float] = 1,
     limit_time: Optional[int] = 0,
+    daily_limit: Optional[int] = 0,
 ) -> bool:
     """
     添加商品
@@ -151,6 +153,7 @@ async def register_goods(
     :param des: 商品简介
     :param discount: 商品折扣
     :param limit_time: 商品限时销售时间，单位为小时
+    :param daily_limit: 每日购买次数限制
     :return: 是否添加成功
     """
     if not await GoodsInfo.get_goods_info(name):
@@ -162,7 +165,7 @@ async def register_goods(
             else 0
         )
         return await GoodsInfo.add_goods(
-            name, int(price), des, float(discount), limit_time
+            name, int(price), des, float(discount), limit_time, daily_limit
         )
     return False
 
@@ -192,7 +195,7 @@ async def delete_goods(name: str, id_: int) -> "str, str, int":
 
 
 # 更新商品信息
-async def update_goods(**kwargs) -> "str, str, int":
+async def update_goods(**kwargs) -> Tuple[bool, str, str]:
     """
     更新商品信息
     :param kwargs: kwargs
@@ -202,17 +205,18 @@ async def update_goods(**kwargs) -> "str, str, int":
         goods_lst = await GoodsInfo.get_all_goods()
         if is_number(kwargs["name"]):
             if int(kwargs["name"]) < 1 or int(kwargs["name"]) > len(goods_lst):
-                return "序号错误，没有该序号的商品...", "", 999
+                return False, "序号错误，没有该序号的商品...", ""
             goods = goods_lst[int(kwargs["name"]) - 1]
         else:
             goods = await GoodsInfo.get_goods_info(kwargs["name"])
             if not goods:
-                return "名称错误，没有该名称的商品...", "", 999
-        name = goods.goods_name
+                return False, "名称错误，没有该名称的商品...", ""
+        name: str = goods.goods_name
         price = goods.goods_price
         des = goods.goods_description
         discount = goods.goods_discount
         limit_time = goods.goods_limit_time
+        daily_limit = goods.daily_limit
         new_time = 0
         tmp = ""
         if kwargs.get("price"):
@@ -232,21 +236,22 @@ async def update_goods(**kwargs) -> "str, str, int":
             )
             tmp += f"限时至： {new_time}\n"
             limit_time = kwargs["limit_time"]
-        return (
-            await GoodsInfo.update_goods(
-                name,
-                int(price),
-                des,
-                float(discount),
-                int(
-                    time.time() + limit_time * 60 * 60
-                    if limit_time != 0 and new_time
-                    else 0
-                ),
-            ),
+        if kwargs.get("daily_limit"):
+            tmp += f'每日购买限制：{daily_limit} --> {kwargs["daily_limit"]}\n'
+            daily_limit = int(kwargs["daily_limit"])
+        await GoodsInfo.update_goods(
             name,
-            tmp[:-1],
+            int(price),
+            des,
+            float(discount),
+            int(
+                time.time() + limit_time * 60 * 60
+                if limit_time != 0 and new_time
+                else 0
+            ),
+            daily_limit
         )
+        return True, name, tmp[:-1],
 
 
 def parse_goods_info(msg: str) -> Union[dict, str]:
@@ -276,6 +281,10 @@ def parse_goods_info(msg: str) -> Union[dict, str]:
                 data["discount"] = sp[1]
             elif sp[0] == "limit_time":
                 if not is_number(sp[1]) or float(sp[1]) < 0:
-                    return "limit_time参数不合法，必须大于0！"
+                    return "limit_time参数不合法，必须为数字且大于0！"
                 data["limit_time"] = sp[1]
+            elif sp[0] == "daily_limit":
+                if not is_number(sp[1]) or float(sp[1]) < 0:
+                    return "daily_limit参数不合法，必须为数字且大于0！"
+                data["daily_limit"] = sp[1]
     return data
