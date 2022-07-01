@@ -25,12 +25,14 @@ async def get_setu_score(setu: str) -> "str,int":
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         resp = await AsyncHttpx.post(request_url, data=params, headers=headers)
         resp_json = resp.json()
+        logger.info(resp_json)
         if "error_code" in resp_json:
             err_code = resp_json['error_code']
             err_msg = resp_json['error_msg']
             logger.warning(f"错误代码{err_code},错误原因{err_msg}")
             return f"发生了点错误", 500
         if "data" not in resp_json:
+            logger.warning(f"请检查策略组中疑似区间是否拉满")
             return f"请检查策略组中疑似区间是否拉满", 500
         data = resp_json["data"]
         porn_0 = 0

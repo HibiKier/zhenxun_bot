@@ -43,23 +43,15 @@ __plugin_configs__ = {
     },
 }
 __plugin_block_limit__ = {
-    "check_type": "all",  # 'private'/'group'/'all'，限制私聊/群聊/全部
-    "limit_type": "user",  # 监听对象，以user_id或group_id作为键来限制，'user'：用户id，'group'：群id
     "rst": "正在评分中……",  # 回复的话，为None时不回复，可以添加[at]，[uname]，[nickname]来对应艾特，用户群名称，昵称系统昵称
-    "status": True  # 此限制的开关状态
 }
 __plugin_count_limit__ = {
-    "max_count": 5,  # 每日次数限制数量
-    "limit_type": "user",  # 监听对象，以user_id或group_id作为键来限制，'user'：用户id，'group'：群id
+    "max_count": 1,  # 每日次数限制数量
     "rst": "今日已无可调用次数",  # 回复的话，为None时不回复，可以添加[at]，[uname]，[nickname]来对应艾特，用户群名称，昵称系统昵称
-    "status": True  # 此限制的开关状态
 }
 __plugin_cd_limit__ = {
     "cd": 60,  # 限制 cd 时长
-    "check_type": "all",  # 'private'/'group'/'all'，限制私聊/群聊/全部
-    "limit_type": "user",  # 监听对象，以user_id或group_id作为键来限制，'user'：用户id，'group'：群id
-    "rst": "  ",  # 回复的话，为None时不回复，可以添加[at]，[uname]，[nickname]来对应艾特，用户群名称，昵称系统昵称
-    "status": True  # 此限制的开关状态
+    "rst": "你冲太快了，一会再试吧",  # 回复的话，为None时不回复，可以添加[at]，[uname]，[nickname]来对应艾特，用户群名称，昵称系统昵称
 }
 
 setu_score = on_regex("[瑟|色|涩]图[评|打]分", block=True, priority=5)
@@ -78,10 +70,10 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, img_url: Message = Ar
     if not img_url:
         await setu_score.reject_arg("img_url", "发送的必须是图片！")
     img_url = img_url[0]
-    await setu_score.send("开始识别.....")
+    await setu_score.send("开始评分.....")
     score, code = await get_setu_score(img_url)
     if code == 200:
-        await setu_score.send(f"{image(img_url)}色图评分:{score}", at_sender=True)
+        await setu_score.send(image(img_url)+f"色图评分:{score}", at_sender=True)
         logger.info(
             f"USER {event.user_id} GROUP "
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}"
@@ -90,6 +82,6 @@ async def _(bot: Bot, event: MessageEvent, state: T_State, img_url: Message = Ar
     else:
         logger.warning(
             f"USER {event.user_id} GROUP "
-            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'} 识番 {img_url} 未找到"
+            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'} 色图评分 {img_url} 错误"
         )
         await setu_score.send(f"{score}"+image("1", "griseo"), at_sender=True)
