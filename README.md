@@ -243,6 +243,16 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/7/3
+
+* BagUser提供方法`check_props`方法，用于判断用户是否含有该道具并是否使用
+* 优化商品显示图片，提供限制，限购，折扣提示
+* 修复图库内图片无法被连续删除的问题 [@pull/879](https://github.com/HibiKier/zhenxun_bot/pull/879)
+
+### 2022/6/28
+
+* 修复色图插件api修改无法搜索图片 [@pull/866](https://github.com/HibiKier/zhenxun_bot/pull/866)
+
 ### 2022/6/26
 
 * 替换了bt URL
