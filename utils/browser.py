@@ -2,12 +2,7 @@ import asyncio
 from typing import Optional
 from nonebot.log import logger
 from playwright.async_api import Browser, async_playwright
-import nonebot
-from nonebot import Driver
 from services.log import logger
-
-
-driver: Driver = nonebot.get_driver()
 
 
 _browser: Optional[Browser] = None
@@ -20,8 +15,8 @@ async def init(**kwargs) -> Optional[Browser]:
         _browser = await browser.chromium.launch(**kwargs)
         return _browser
     except Exception as e:
-        logger.warning(f"启动chromium发生错误 {type(e)}：{e}")
-        asyncio.get_event_loop().run_in_executor(None, install)
+        # logger.warning(f"启动chromium发生错误 {type(e)}：{e}")
+        await asyncio.get_event_loop().run_in_executor(None, install)
         _browser = await browser.chromium.launch(**kwargs)
     return None
 

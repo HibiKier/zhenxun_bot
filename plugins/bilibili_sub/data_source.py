@@ -1,4 +1,6 @@
 from bilireq.exceptions import ResponseCodeError
+from nonebot.adapters.onebot.v11 import MessageSegment
+
 from utils.manager import resources_manager
 from asyncio.exceptions import TimeoutError
 from .model import BilibiliSub
@@ -8,7 +10,7 @@ from utils.message_builder import image
 from bilireq.user import get_user_info
 from bilireq import dynamic
 from .utils import get_videos
-from typing import Optional
+from typing import Optional, Tuple
 from configs.path_config import IMAGE_PATH
 from datetime import datetime
 from utils.browser import get_browser
@@ -304,7 +306,7 @@ async def _get_season_status(id_) -> Optional[str]:
 
 async def get_user_dynamic(
     uid: int, local_user: BilibiliSub
-) -> "Optional[MessageSegment], int":
+) -> Tuple[Optional[MessageSegment], int]:
     """
     获取用户动态
     :param uid: 用户uid
@@ -317,14 +319,15 @@ async def get_user_dynamic(
     if dynamic_info.get("cards") and browser:
         dynamic_upload_time = dynamic_info["cards"][0]["desc"]["timestamp"]
         if local_user.dynamic_upload_time < dynamic_upload_time:
-            page = await browser.new_page()
+            context = await browser.new_context()
+            page = await context.new_page()
             try:
                 await page.goto(
                     f"https://space.bilibili.com/{local_user.uid}/dynamic",
                     wait_until="networkidle",
                     timeout=10000,
                 )
-                await page.set_viewport_size({"width": 2560, "height": 1080, "timeout": 10000*20}) # timeout: 200s
+                # await page.set_viewport_size({"width": 2560, "height": 1080, "timeout": 10000*20}) # timeout: 200s
                 # 删除置顶
                 await page.evaluate(
                     """
@@ -334,15 +337,30 @@ async def get_user_dynamic(
                     }
                 """
                 )
-                card = page.locator(".bili-dyn-list__item").first
+                async with page.expect_popup() as popup_info:
+                    await page.locator(".bili-rich-text__content").click()
+                details_page = await popup_info.value
+                await details_page.set_viewport_size(
+                    {"width": 2560, "height": 1080, "timeout": 10000 * 20}
+                )
+                await details_page.wait_for_selector(".panel-area")
+                await details_page.evaluate(
+                    """
+                    xs = document.getElementById('internationalHeader');
+                    xs.remove();
+                    xs = document.getElementsByClassName('panel-area')
+                    xs[0].remove();
+                """
+                )
+                card = details_page.locator(".detail-card")
                 await card.wait_for()
-                # 截图并保存
                 await card.screenshot(
                     path=dynamic_path / f"{local_user.sub_id}_{dynamic_upload_time}.jpg",
                 )
             except Exception as e:
                 logger.error(f"B站订阅：获取用户动态 发送错误 {type(e)}：{e}")
             finally:
+                await context.close()
                 await page.close()
             return (
                 image(
@@ -351,7 +369,7 @@ async def get_user_dynamic(
                 ),
                 dynamic_upload_time,
             )
-    return None, None
+    return None, 0
 
 
 class SubManager:

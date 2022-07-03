@@ -6,7 +6,7 @@ from pathlib import Path
 from httpx import Response
 from asyncio.exceptions import TimeoutError
 from nonebot.adapters.onebot.v11 import MessageSegment
-from playwright.async_api import Page
+from playwright.async_api import Page, BrowserContext
 from .message_builder import image
 from httpx import ConnectTimeout
 from .browser import get_browser
@@ -135,6 +135,7 @@ class AsyncHttpx:
             :param url: url
             :param path: 存储路径
             :param params: params
+            :param verify: verify
             :param use_proxy: 使用代理
             :param proxy: 指定代理
             :param headers: 请求头
@@ -295,6 +296,19 @@ class AsyncPlaywright:
         browser = await get_browser()
         if browser:
             return await browser.new_page(user_agent=user_agent, **kwargs)
+        raise BrowserIsNone("获取Browser失败...")
+
+    @classmethod
+    async def new_context(cls, user_agent: Optional[str] = None, **kwargs) -> BrowserContext:
+        """
+        说明：
+            获取一个新上下文
+        参数：
+            :param user_agent: 请求头
+        """
+        browser = await get_browser()
+        if browser:
+            return await browser.new_context(user_agent=user_agent, **kwargs)
         raise BrowserIsNone("获取Browser失败...")
 
     @classmethod

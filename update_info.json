@@ -10,7 +10,8 @@
       "poetry.lock",
       "pyproject.toml",
       "resources/font",
-      "bot.py"
+      "resources/image/zhenxun",
+      "resources/image/other"
     ],
     "add_file": [],
     "delete_file": []
