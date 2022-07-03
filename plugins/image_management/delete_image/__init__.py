@@ -65,8 +65,8 @@ async def arg_handle(
     if int(img_id) > max_id or int(img_id) < 0:
         await delete_img.finish(f"Id超过上下限，上限：{max_id}", at_sender=True)
     try:
-        if (TEMP_PATH / "delete.jpg").exists():
-            (TEMP_PATH / "delete.jpg").unlink()
+        if (TEMP_PATH / f"{event.user_id}_delete.jpg").exists():
+            (TEMP_PATH / f"{event.user_id}_delete.jpg").unlink()
         logger.info(f"删除{cn2py(state['path'])}图片 {img_id}.jpg 成功")
     except Exception as e:
         logger.warning(f"删除图片 delete.jpg 失败 e{e}")
