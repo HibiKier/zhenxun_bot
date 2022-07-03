@@ -288,11 +288,11 @@ async def update_goods(**kwargs) -> Tuple[bool, str, str]:
             new_time = time.strftime(
                 "%Y-%m-%d %H:%M:%S",
                 time.localtime(time.time() + kwargs["limit_time"] * 60 * 60),
-            )
-            tmp += f"限时至： {new_time}\n"
+            ) if kwargs["limit_time"] != 0 else 0
+            tmp += f"限时至： {new_time}\n" if new_time else "取消了限时\n"
             limit_time = kwargs["limit_time"]
         if kwargs.get("daily_limit"):
-            tmp += f'每日购买限制：{daily_limit} --> {kwargs["daily_limit"]}\n'
+            tmp += f'每日购买限制：{daily_limit} --> {kwargs["daily_limit"]}\n' if daily_limit else "取消了购买限制\n"
             daily_limit = int(kwargs["daily_limit"])
         await GoodsInfo.update_goods(
             name,
