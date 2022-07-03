@@ -157,7 +157,7 @@ def music(type_: str, id_: int) -> MessageSegment:
 
 
 def custom_forward_msg(
-        msg_list: List[str], uin: Union[int, str], name: str = f"这里是{NICKNAME}"
+        msg_list: List[Union[str, Message]], uin: Union[int, str], name: str = f"这里是{NICKNAME}"
 ) -> List[dict]:
     """
     生成自定义合并消息
