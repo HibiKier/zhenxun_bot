@@ -243,6 +243,11 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/7/4
+
+* 修复商品未设置限购时无法购买
+* 修复B站订阅UP动态 [@pull/886](https://github.com/HibiKier/zhenxun_bot/pull/886)
+
 ### 2022/7/3 \[v0.1.6.1]
 
 * BagUser提供方法`check_props`方法，用于判断用户是否含有该道具并是否使用
