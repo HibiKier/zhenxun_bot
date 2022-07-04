@@ -247,6 +247,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 * 修复商品未设置限购时无法购买
 * 修复B站订阅UP动态 [@pull/886](https://github.com/HibiKier/zhenxun_bot/pull/886)
+* 修复色图命令带tag时配置项`MAX_ONCE_NUM2FORWARD`无法生效
 
 ### 2022/7/3 \[v0.1.6.1]
 
