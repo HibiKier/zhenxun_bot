@@ -243,7 +243,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
-### 2022/7/3
+### 2022/7/3 \[v0.1.6.1]
 
 * BagUser提供方法`check_props`方法，用于判断用户是否含有该道具并是否使用
 * 优化商品显示图片，提供限制，限购，折扣提示
