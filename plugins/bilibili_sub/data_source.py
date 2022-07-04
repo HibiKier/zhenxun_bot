@@ -318,33 +318,34 @@ async def get_user_dynamic(
     browser = await get_browser()
     if dynamic_info.get("cards") and browser:
         dynamic_upload_time = dynamic_info["cards"][0]["desc"]["timestamp"]
+        dynamic_id = dynamic_info["cards"][0]["desc"]["dynamic_id"]
         if local_user.dynamic_upload_time < dynamic_upload_time:
             context = await browser.new_context()
             page = await context.new_page()
             try:
                 await page.goto(
-                    f"https://space.bilibili.com/{local_user.uid}/dynamic",
+                    f"https://t.bilibili.com/{dynamic_id}",
                     wait_until="networkidle",
                     timeout=10000,
                 )
                 # await page.set_viewport_size({"width": 2560, "height": 1080, "timeout": 10000*20}) # timeout: 200s
                 # 删除置顶
-                await page.evaluate(
-                    """
-                    xs = document.getElementsByClassName('bili-dyn-item__tag');
-                    for (x of xs) {
-                      x.parentNode.parentNode.remove();
-                    }
-                """
-                )
-                async with page.expect_popup() as popup_info:
-                    await page.locator(".bili-rich-text__content").click()
-                details_page = await popup_info.value
-                await details_page.set_viewport_size(
+                # await page.evaluate(
+                #     """
+                #     xs = document.getElementsByClassName('bili-dyn-item__tag');
+                #     for (x of xs) {
+                #       x.parentNode.parentNode.remove();
+                #     }
+                # """
+                # )
+                # async with page.expect_popup() as popup_info:
+                #     await page.locator(".bili-rich-text__content").click()
+                # details_page = await popup_info.value
+                await page.set_viewport_size(
                     {"width": 2560, "height": 1080, "timeout": 10000 * 20}
                 )
-                await details_page.wait_for_selector(".panel-area")
-                await details_page.evaluate(
+                await page.wait_for_selector(".panel-area")
+                await page.evaluate(
                     """
                     xs = document.getElementById('internationalHeader');
                     xs.remove();
@@ -352,7 +353,7 @@ async def get_user_dynamic(
                     xs[0].remove();
                 """
                 )
-                card = details_page.locator(".detail-card")
+                card = page.locator(".detail-card")
                 await card.wait_for()
                 await card.screenshot(
                     path=dynamic_path / f"{local_user.sub_id}_{dynamic_upload_time}.jpg",
