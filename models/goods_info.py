@@ -21,13 +21,13 @@ class GoodsInfo(db.Model):
 
     @classmethod
     async def add_goods(
-        cls,
-        goods_name: str,
-        goods_price: int,
-        goods_description: str,
-        goods_discount: float = 1,
-        goods_limit_time: int = 0,
-        daily_limit: int = 0,
+            cls,
+            goods_name: str,
+            goods_price: int,
+            goods_description: str,
+            goods_discount: float = 1,
+            goods_limit_time: int = 0,
+            daily_limit: int = 0,
     ) -> bool:
         """
         说明：
@@ -65,8 +65,8 @@ class GoodsInfo(db.Model):
         """
         query = (
             await cls.query.where(cls.goods_name == goods_name)
-            .with_for_update()
-            .gino.first()
+                .with_for_update()
+                .gino.first()
         )
         if not query:
             return False
@@ -75,13 +75,13 @@ class GoodsInfo(db.Model):
 
     @classmethod
     async def update_goods(
-        cls,
-        goods_name: str,
-        goods_price: Optional[int] = None,
-        goods_description: Optional[str] = None,
-        goods_discount: Optional[float] = None,
-        goods_limit_time: Optional[int] = None,
-        daily_limit: Optional[int] = None
+            cls,
+            goods_name: str,
+            goods_price: Optional[int] = None,
+            goods_description: Optional[str] = None,
+            goods_discount: Optional[float] = None,
+            goods_limit_time: Optional[int] = None,
+            daily_limit: Optional[int] = None
     ) -> bool:
         """
         说明：
@@ -97,8 +97,8 @@ class GoodsInfo(db.Model):
         try:
             query = (
                 await cls.query.where(cls.goods_name == goods_name)
-                .with_for_update()
-                .gino.first()
+                    .with_for_update()
+                    .gino.first()
             )
             if not query:
                 return False
@@ -106,8 +106,8 @@ class GoodsInfo(db.Model):
                 goods_price=goods_price or query.goods_price,
                 goods_description=goods_description or query.goods_description,
                 goods_discount=goods_discount or query.goods_discount,
-                goods_limit_time=goods_limit_time or query.goods_limit_time,
-                daily_limit=daily_limit or query.daily_limit,
+                goods_limit_time=goods_limit_time if goods_limit_time is not None else query.goods_limit_time,
+                daily_limit=daily_limit if daily_limit is not None else query.daily_limit,
             ).apply()
             return True
         except Exception as e:
@@ -141,7 +141,7 @@ class GoodsInfo(db.Model):
 
     @classmethod
     async def add_user_daily_purchase(
-        cls, goods: "GoodsInfo", user_id: int, group_id: int, num: int = 1
+            cls, goods: "GoodsInfo", user_id: int, group_id: int, num: int = 1
     ):
         """
         说明：
@@ -164,7 +164,7 @@ class GoodsInfo(db.Model):
 
     @classmethod
     async def check_user_daily_purchase(
-        cls, goods: "GoodsInfo", user_id: int, group_id: int, num: int = 1
+            cls, goods: "GoodsInfo", user_id: int, group_id: int, num: int = 1
     ) -> Tuple[bool, int]:
         """
         说明：
@@ -179,9 +179,9 @@ class GoodsInfo(db.Model):
         group_id = str(group_id)
         if goods:
             if (
-                not goods.daily_limit
-                or not goods.daily_purchase_limit.get(group_id)
-                or not goods.daily_purchase_limit[group_id].get(user_id)
+                    not goods.daily_limit
+                    or not goods.daily_purchase_limit.get(group_id)
+                    or not goods.daily_purchase_limit[group_id].get(user_id)
             ):
                 return goods.daily_limit - num < 0, goods.daily_limit
             if goods.daily_purchase_limit[group_id][user_id] + num > goods.daily_limit:
@@ -197,4 +197,3 @@ class GoodsInfo(db.Model):
         重置每次次数限制
         """
         await cls.update.values(daily_purchase_limit={}).gino.status()
-

@@ -6,9 +6,10 @@ from nonebot.message import run_postprocessor
 from nonebot.matcher import Matcher
 from typing import Optional, Type, Any
 from gino.exceptions import UninitializedError
+
+from utils.message_builder import custom_forward_msg
 from utils.utils import (
     is_number,
-    get_message_img,
 )
 from nonebot.typing import T_State
 from nonebot.adapters.onebot.v11 import (
@@ -114,6 +115,11 @@ __plugin_configs__ = {
     "TIMEOUT": {"value": 10, "help": "色图下载超时限制(秒)", "default_value": 10},
     "SHOW_INFO": {"value": True, "help": "是否显示色图的基本信息，如PID等", "default_value": True},
     "ALLOW_GROUP_R18": {"value": False, "help": "在群聊中启用R18权限", "default_value": False},
+    "MAX_ONCE_NUM2FORWARD": {
+        "value": None,
+        "help": "单次发送的图片数量达到指定值时转发为合并消息",
+        "default_value": None,
+    },
 }
 Config.add_plugin_config("pixiv", "PIXIV_NGINX_URL", "i.pixiv.re", help_="Pixiv反向代理")
 
@@ -149,9 +155,13 @@ setu_reg = on_regex("(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图$", priori
 
 
 @setu.handle()
-async def _(bot: Bot,
-            event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()
-            ):
+
+async def _(
+    bot: Bot,
+    event: MessageEvent,
+    cmd: Tuple[str, ...] = Command(),
+    arg: Message = CommandArg(),
+):
     msg = arg.extract_plain_text().strip()
 
     if isinstance(event, GroupMessageEvent):
@@ -172,10 +182,7 @@ async def _(bot: Bot,
     if cmd[0] == "色图r" and isinstance(event, PrivateMessageEvent):
         r18 = 1
         num = 10
-    elif (
-            cmd[0] == "色图r"
-            and isinstance(event, GroupMessageEvent)
-    ):
+    elif cmd[0] == "色图r" and isinstance(event, GroupMessageEvent):
         if not Config.get_config("send_setu", "ALLOW_GROUP_R18"):
             await setu.finish(
                 random.choice(["这种不好意思的东西怎么可能给这么多人看啦", "羞羞脸！给我滚出克私聊！", "变态变态变态变态大变态！"]),
@@ -246,13 +253,13 @@ async def _(bot: Bot, event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGro
 
 
 async def send_setu_handle(
-        bot: Bot,
-        matcher: Type[Matcher],
-        event: MessageEvent,
-        command: str,
-        msg: str,
-        num: int,
-        r18: int,
+    bot: Bot,
+    matcher: Type[Matcher],
+    event: MessageEvent,
+    command: str,
+    msg: str,
+    num: int,
+    r18: int,
 ):
     count = 0
     global setu_data_list
