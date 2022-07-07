@@ -243,6 +243,10 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/7/7
+
+* 微博热搜选择单条热搜时也会检测时效性 [@pull/891](https://github.com/HibiKier/zhenxun_bot/pull/891)
+
 ### 2022/7/4
 
 * 修复商品未设置限购时无法购买
