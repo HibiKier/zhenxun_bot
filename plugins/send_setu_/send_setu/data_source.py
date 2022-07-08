@@ -1,7 +1,7 @@
 from configs.path_config import IMAGE_PATH, TEMP_PATH
 from utils.message_builder import image
 from services.log import logger
-from utils.image_utils import get_img_hash, compressed_image
+from utils.image_utils import get_img_hash, compressed_image, convert_to_origin_type
 from utils.utils import change_img_md5
 from asyncpg.exceptions import UniqueViolationError
 from asyncio.exceptions import TimeoutError
@@ -104,20 +104,21 @@ async def search_online_setu(
                     timeout=Config.get_config("send_setu", "TIMEOUT"),
             ):
                 continue
+            if path_:
+                file_name = convert_to_origin_type(path_ / file_name)
             if id_ is not None:
                 if (
-                        os.path.getsize(path_ / f"{index}.jpg")
+                        os.path.getsize(path_ / file_name)
                         > 1024 * 1024 * 1.5
                 ):
                     compressed_image(
-                        path_ / f"{index}.jpg",
+                        path_ / file_name,
                     )
             logger.info(f"下载 lolicon 图片 {url_} 成功， id：{index}")
 
             hash_obfuscation = Config.get_config("send_setu", "HASH_OBFUSCATION")
             if hash_obfuscation:
                 change_img_md5(path_ / file_name)
-                # compressed_image(path_ / file_name, ratio=random.uniform(0.6, 1.0))
             return image(path_ / file_name), index
         except TimeoutError:
             pass
@@ -133,17 +134,12 @@ async def check_local_exists_or_download(setu_image: Setu, mix: bool = False) ->
     if Config.get_config("send_setu", "DOWNLOAD_SETU"):
         id_ = setu_image.local_id
         path_ = r18_path if setu_image.is_r18 else path
-        file = IMAGE_PATH / path_ / f"{setu_image.local_id}.jpg"
+        file = IMAGE_PATH / path_ / f"{setu_image.local_id}.{setu_image.prefix}"
         if file.exists():
 
             if mix and Config.get_config("send_setu", "HASH_OBFUSCATION"):
-                # compressed_image(
-                #     IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{setu_image.local_id}.jpg',
-                #     IMAGE_PATH / temp / f"{setu_image.local_id}.jpg",
-                #     random.uniform(0.6, 1.0))
-                # return image(f"{setu_image.local_id}.jpg", temp), 200
                 change_img_md5(file)
-            return image(f"{setu_image.local_id}.jpg", path_), 200
+            return image(f"{setu_image.local_id}.{setu_image.prefix}", path_), 200
     return await search_online_setu(setu_image.img_url, id_, path_)
 
 
@@ -158,6 +154,7 @@ async def add_data_to_database(lst: List[tuple]):
             try:
                 r18 = 1 if "R-18" in x[5] else 0
                 idx = await Setu.get_image_count(r18)
+                prefix = "jpg"
                 await Setu.add_setu_data(
                     idx,
                     x[0],
@@ -166,6 +163,7 @@ async def add_data_to_database(lst: List[tuple]):
                     x[3],
                     x[4],
                     x[5],
+                    prefix
                 )
             except UniqueViolationError:
                 pass
@@ -198,17 +196,15 @@ async def gen_message(setu_image: Setu, img_msg: bool = False, tags: Optional[st
     title = setu_image.title
     author = setu_image.author
     pid = setu_image.pid
+    prefix = setu_image.prefix
     match_keywords = None
     hash_obfuscation = Config.get_config("send_setu", "HASH_OBFUSCATION")
-    file = IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{local_id}.jpg'
+    file = IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{local_id}.{prefix}'
     path_ = r18_path if setu_image.is_r18 else path
     if not file.exists():
         await search_online_setu(setu_image.img_url, path_=path_ if not hash_obfuscation else None)
     else:
         if hash_obfuscation:
-            # compressed_image(IMAGE_PATH / f'{r18_path if setu_image.is_r18 else path}/{local_id}.jpg',
-            #                  IMAGE_PATH / temp / f"{local_id}.jpg",
-            #                  random.uniform(0.6, 1.0))
             change_img_md5(file)
     if tags is not None:
         match_keywords = _search_match_keywords(setu_image, tags)
@@ -223,8 +219,8 @@ async def gen_message(setu_image: Setu, img_msg: bool = False, tags: Optional[st
             f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}"
         )
     return (
-            # f"{image(f'{local_id}', temp) if img_msg else ''}" if hash_obfuscation else
-            f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}")
+        # f"{image(f'{local_id}', temp) if img_msg else ''}" if hash_obfuscation else
+        f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}")
 
 
 # 罗翔老师！
