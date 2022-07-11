@@ -73,6 +73,8 @@ def compressed_image(
         out_file = IMAGE_PATH / out_file if isinstance(out_file, str) else out_file
     else:
         out_file = in_file
+    if Image.open(in_file).format.lower() == "png":
+        Image.open(in_file).convert("RGB").save(in_file)
     h, w, d = cv2.imread(str(in_file.absolute())).shape
     img = cv2.resize(
         cv2.imread(str(in_file.absolute())), (int(w * ratio), int(h * ratio))

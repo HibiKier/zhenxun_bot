@@ -314,12 +314,10 @@ async def send_setu_handle(
                             setu_img, index = await search_online_setu(urls[i])
                             # 下载成功的话
                             if index != -1:
-                                logger.info(setu_img)
-                                filename = os.path.basename(setu_img)
                                 logger.info(
                                     f"(USER {event.user_id}, GROUP "
                                     f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-                                    f" 发送色图 {filename}"
+                                    f" 发送色图 {index}"
                                 )
                                 msg_id = await matcher.send(
                                     Message(f"{text_list[i]}\n{setu_img}"
