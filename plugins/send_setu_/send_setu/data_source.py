@@ -27,7 +27,7 @@ temp = "temp"
 
 # 获取url
 async def get_setu_urls(
-        tags: List[str], num: int = 1, r18: int = 0, command: str = ""
+        tags: List[str], num: int = 1, r18: int = 0, command: str = "", msg: Optional[str] = None
 ) -> "List[str], List[str], List[tuple], int":
     tags = tags[:3] if len(tags) > 3 else tags
     params = {
@@ -51,7 +51,7 @@ async def get_setu_urls(
                         text_list,
                         add_databases_list,
                     ) = await asyncio.get_event_loop().run_in_executor(
-                        None, _setu_data_process, data, command
+                        None, _setu_data_process, data, command, msg
                     )
                     num = num if num < len(data) else len(data)
                     random_idx = random.sample(range(len(data)), num)
@@ -268,7 +268,7 @@ async def find_img_index(img_url, user_id):
 
 
 # 处理色图数据
-def _setu_data_process(data: dict, command: str) -> "list, list, list":
+def _setu_data_process(data: dict, command: str, msg: Optional[str] = None) -> "list, list, list":
     urls = []
     text_list = []
     add_databases_list = []
@@ -283,13 +283,22 @@ def _setu_data_process(data: dict, command: str) -> "list, list, list":
         author = data[i]["author"]
         pid = data[i]["pid"]
         urls.append(img_url)
-        text_list.append(f"title：{title}\nauthor：{author}\nPID：{pid}")
         tags = []
         for j in range(len(data[i]["tags"])):
             tags.append(data[i]["tags"][j])
         if command != "色图r":
             if "R-18" in tags:
                 tags.remove("R-18")
+        setu = Setu()
+        setu.title = title
+        setu.author = author
+        setu.tags = ",".join(tags)
+        match_keywords = None
+        if tags is not None:
+            match_keywords = _search_match_keywords(setu, msg)
+        text_list.append(
+            f"title：{title}\nauthor：{author}\nPID：{pid}\n{match_keywords if match_keywords is not None else ''}")
+
         add_databases_list.append(
             (
                 title,

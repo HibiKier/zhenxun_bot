@@ -150,7 +150,7 @@ async def update_setu_img(flag: bool = False):
                             path / f"{filename}",
                         )
                 except FileNotFoundError:
-                    logger.warning(f"文件 {image.local_id}.jpg 不存在，跳过...")
+                    logger.warning(f"文件 {image.local_id}.{image.prefix} 不存在，跳过...")
                     continue
                 img_hash = str(get_img_hash(f"{path}/{filename}"))
                 await Setu.update_setu_data(image.pid, img_hash=img_hash, prefix=filename.split(".")[-1])
