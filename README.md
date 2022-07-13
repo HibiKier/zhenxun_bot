@@ -246,11 +246,13 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 ### 2022/7/13
 
 * B站订阅提供配置项`LIVE_MSG_AT_ALL`,`UP_MSG_AT_ALL`：控制UP动态投稿和直播是否AT全体
-
-### 2022/7/9
-
 * 修改了Omega图库检测的数据库文件名
 * game_utils提供了Game类
+
+### 2022/7/7
+
+* 微博热搜选择单条热搜时也会检测时效性 [@pull/891](https://github.com/HibiKier/zhenxun_bot/pull/891)
+
 
 ### 2022/7/4
 
