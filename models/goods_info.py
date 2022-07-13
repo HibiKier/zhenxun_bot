@@ -177,11 +177,11 @@ class GoodsInfo(db.Model):
         """
         user_id = str(user_id)
         group_id = str(group_id)
-        if goods:
+        if goods and goods.daily_limit > 0:
             if (
-                    not goods.daily_limit
-                    or not goods.daily_purchase_limit.get(group_id)
-                    or not goods.daily_purchase_limit[group_id].get(user_id)
+                not goods.daily_limit
+                or not goods.daily_purchase_limit.get(group_id)
+                or not goods.daily_purchase_limit[group_id].get(user_id)
             ):
                 return goods.daily_limit - num < 0, goods.daily_limit
             if goods.daily_purchase_limit[group_id][user_id] + num > goods.daily_limit:
