@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import os
 import random
 import re
 from io import BytesIO
@@ -67,10 +68,13 @@ def compressed_image(
         :param ratio: 压缩率，宽高 * 压缩率
     """
     in_file = IMAGE_PATH / in_file if isinstance(in_file, str) else in_file
+    logger.info(in_file)
     if out_file:
         out_file = IMAGE_PATH / out_file if isinstance(out_file, str) else out_file
     else:
         out_file = in_file
+    if Image.open(in_file).format.lower() == "png":
+        Image.open(in_file).convert("RGB").save(in_file)
     h, w, d = cv2.imread(str(in_file.absolute())).shape
     img = cv2.resize(
         cv2.imread(str(in_file.absolute())), (int(w * ratio), int(h * ratio))
@@ -1520,6 +1524,18 @@ async def text2image(
             await A.apaste(img, (pw, cur_h), True)
             cur_h += img.h + line_height
     return A
+
+
+def convert_to_origin_type(file_path: Union[str, Path]):
+    img = Image.open(file_path)
+    ext = os.path.splitext(file_path)
+    new_path = ext[0] + "." + img.format.lower()
+    if ext[0].lower() != img.format.lower():
+        try:
+            os.rename(file_path, new_path)
+        except Exception as e:
+            logger.warning(f"图片重命名失败..{type(e)}：{e}")
+    return os.path.basename(new_path)
 
 
 if __name__ == "__main__":

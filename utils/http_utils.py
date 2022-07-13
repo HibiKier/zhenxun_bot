@@ -150,8 +150,7 @@ class AsyncHttpx:
             for _ in range(3):
                 if not stream:
                     try:
-                        content = (
-                            await cls.get(
+                        response = await cls.get(
                                 url,
                                 params=params,
                                 headers=headers,
@@ -161,11 +160,14 @@ class AsyncHttpx:
                                 timeout=timeout,
                                 **kwargs,
                             )
-                        ).content
-                        async with aiofiles.open(path, "wb") as wf:
-                            await wf.write(content)
-                            logger.info(f"下载 {url} 成功.. Path：{path.absolute()}")
-                        return True
+                        if response.status_code == 200:
+                            content = response.content
+                            async with aiofiles.open(path, "wb") as wf:
+                                await wf.write(content)
+                                logger.info(f"下载 {url} 成功.. Path：{path.absolute()}")
+                            return True
+                        else:
+                            return False
                     except (TimeoutError, ConnectTimeout):
                         pass
                 else:

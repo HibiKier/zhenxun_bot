@@ -1,7 +1,7 @@
 from configs.path_config import IMAGE_PATH, TEXT_PATH, TEMP_PATH
 from services.log import logger
 from datetime import datetime
-from utils.image_utils import compressed_image, get_img_hash
+from utils.image_utils import compressed_image, get_img_hash, convert_to_origin_type
 from utils.utils import get_bot
 from PIL import UnidentifiedImageError
 from .._model import Setu
@@ -84,7 +84,7 @@ shutil.rmtree(IMAGE_PATH / "rar", ignore_errors=True)
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6;"
-    " rv:2.0.1) Gecko/20100101 Firefox/4.0.1",
+                  " rv:2.0.1) Gecko/20100101 Firefox/4.0.1",
     "Referer": "https://www.pixiv.net",
 }
 
@@ -103,11 +103,14 @@ async def update_setu_img(flag: bool = False):
     for image in image_list:
         count += 1
         path = _path / "_r18" if image.is_r18 else _path / "_setu"
-        local_image = path / f"{image.local_id}.jpg"
+        local_image = path / f"{image.local_id}.{image.prefix}"
+        if local_image.exists():
+            filename = convert_to_origin_type(local_image)
+            local_image = path / filename
         path.mkdir(exist_ok=True, parents=True)
         TEMP_PATH.mkdir(exist_ok=True, parents=True)
         if not local_image.exists() or not image.img_hash:
-            temp_file = TEMP_PATH / f"{image.local_id}.jpg"
+            temp_file = TEMP_PATH / f"{image.local_id}.{image.prefix}"
             if temp_file.exists():
                 temp_file.unlink()
             url_ = image.img_url
@@ -118,54 +121,58 @@ async def update_setu_img(flag: bool = False):
                 )
             try:
                 if not await AsyncHttpx.download_file(
-                    url_, TEMP_PATH / f"{image.local_id}.jpg"
+                        url_, TEMP_PATH / f"{image.local_id}.{image.prefix}"
                 ):
                     continue
                 _success += 1
+                filename = convert_to_origin_type(TEMP_PATH / f"{image.local_id}.{image.prefix}")
                 try:
                     if (
-                        os.path.getsize(
-                            TEMP_PATH / f"{image.local_id}.jpg",
-                        )
-                        > 1024 * 1024 * 1.5
+                            os.path.getsize(
+                                TEMP_PATH / filename,
+                            )
+                            > 1024 * 1024 * 1.5
                     ):
+                        logger.info(
+                            f"压缩图片{TEMP_PATH}/{filename} "
+                        )
                         compressed_image(
-                            TEMP_PATH / f"{image.local_id}.jpg",
-                            path / f"{image.local_id}.jpg",
+                            TEMP_PATH / filename,
+                            path / filename,
                         )
                     else:
                         logger.info(
-                            f"不需要压缩，移动图片{TEMP_PATH}/{image.local_id}.jpg "
-                            f"--> /{path}/{image.local_id}.jpg"
+                            f"不需要压缩，移动图片{TEMP_PATH}/{filename} "
+                            f"--> /{path}/{filename}"
                         )
                         os.rename(
-                            TEMP_PATH / f"{image.local_id}.jpg",
-                            path / f"{image.local_id}.jpg",
+                            TEMP_PATH / f"{filename}",
+                            path / f"{filename}",
                         )
                 except FileNotFoundError:
                     logger.warning(f"文件 {image.local_id}.jpg 不存在，跳过...")
                     continue
-                img_hash = str(get_img_hash(f"{path}/{image.local_id}.jpg"))
-                await Setu.update_setu_data(image.pid, img_hash=img_hash)
+                img_hash = str(get_img_hash(f"{path}/{filename}"))
+                await Setu.update_setu_data(image.pid, img_hash=img_hash, prefix=filename.split(".")[-1])
             except UnidentifiedImageError:
                 # 图片已删除
                 with open(local_image, 'r') as f:
                     if '404 Not Found' in f.read():
                         max_num = await Setu.delete_image(image.pid)
                         local_image.unlink()
-                        os.rename(path / f"{max_num}.jpg", local_image)
+                        os.rename(path / f"{max_num}.{image.prefix}", local_image)
                         logger.warning(f"更新色图 PID：{image.pid} 404，已删除并替换")
             except Exception as e:
                 _success -= 1
-                logger.error(f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}")
+                logger.error(f"更新色图 {local_image} 错误 {type(e)}: {e}")
                 if type(e) not in error_type:
                     error_type.append(type(e))
-                    error_info.append(f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}")
+                    error_info.append(f"更新色图 {local_image} 错误 {type(e)}: {e}")
         else:
-            logger.info(f"更新色图 {image.local_id}.jpg 已存在")
+            logger.info(f"更新色图 {local_image} 已存在")
     if _success or error_info or flag:
         await get_bot().send_private_msg(
             user_id=int(list(get_bot().config.superusers)[0]),
             message=f'{str(datetime.now()).split(".")[0]} 更新 色图 完成，本地存在 {count} 张，实际更新 {_success} 张，'
-            f"以下为更新时未知错误：\n" + "\n".join(error_info),
+                    f"以下为更新时未知错误：\n" + "\n".join(error_info),
         )

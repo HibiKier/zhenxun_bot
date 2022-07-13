@@ -1,3 +1,4 @@
+import os
 import random
 from nonebot import on_command, on_regex
 from services.log import logger
@@ -155,12 +156,11 @@ setu_reg = on_regex("(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图$", priori
 
 
 @setu.handle()
-
 async def _(
-    bot: Bot,
-    event: MessageEvent,
-    cmd: Tuple[str, ...] = Command(),
-    arg: Message = CommandArg(),
+        bot: Bot,
+        event: MessageEvent,
+        cmd: Tuple[str, ...] = Command(),
+        arg: Message = CommandArg(),
 ):
     msg = arg.extract_plain_text().strip()
 
@@ -204,7 +204,7 @@ async def _(
         logger.info(
             f"(USER {event.user_id}, GROUP "
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-            f" 发送色图 {setu_list[0].local_id}.jpg"
+            f" 发送色图 {setu_list[0].local_id}.{setu_list[0].prefix}"
         )
         if msg_id:
             withdraw_message_manager.withdraw_message(
@@ -253,13 +253,13 @@ async def _(bot: Bot, event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGro
 
 
 async def send_setu_handle(
-    bot: Bot,
-    matcher: Type[Matcher],
-    event: MessageEvent,
-    command: str,
-    msg: str,
-    num: int,
-    r18: int,
+        bot: Bot,
+        matcher: Type[Matcher],
+        event: MessageEvent,
+        command: str,
+        msg: str,
+        num: int,
+        r18: int,
 ):
     count = 0
     global setu_data_list
@@ -317,7 +317,7 @@ async def send_setu_handle(
                                 logger.info(
                                     f"(USER {event.user_id}, GROUP "
                                     f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-                                    f" 发送色图 {index}.jpg"
+                                    f" 发送色图 {index}"
                                 )
                                 msg_id = await matcher.send(
                                     Message(f"{text_list[i]}\n{setu_img}"
@@ -371,7 +371,7 @@ async def send_setu_handle(
                     logger.info(
                         f"(USER {event.user_id}, GROUP "
                         f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-                        f" 发送本地色图 {setu_image.local_id}.jpg"
+                        f" 发送本地色图 {setu_image.local_id}.{setu_image.prefix}"
                     )
                 except Exception as e:
                     logger.error(e)

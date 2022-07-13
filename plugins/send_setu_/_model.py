@@ -15,7 +15,7 @@ class Setu(db.Model):
     img_url = db.Column(db.String(), nullable=False)
     is_r18 = db.Column(db.Boolean(), nullable=False)
     tags = db.Column(db.String())
-
+    prefix = db.Column(db.String(), nullable=False)
     _idx1 = db.Index("setu_pid_img_url_idx1", "pid", "img_url", unique=True)
 
     @classmethod
@@ -28,6 +28,7 @@ class Setu(db.Model):
             img_hash: str,
             img_url: str,
             tags: str,
+            prefix: str,
     ):
         """
         说明：
@@ -40,6 +41,7 @@ class Setu(db.Model):
             :param img_hash: 图片hash值
             :param img_url: 图片链接
             :param tags: 图片标签
+            :param prefix: 后缀
         """
         if not await cls._check_exists(pid, img_url):
             await cls.create(
@@ -51,6 +53,7 @@ class Setu(db.Model):
                 img_url=img_url,
                 is_r18=True if "R-18" in tags else False,
                 tags=tags,
+                prefix=prefix,
             )
 
     @classmethod
@@ -163,6 +166,7 @@ class Setu(db.Model):
             img_hash: Optional[str] = None,
             img_url: Optional[str] = None,
             tags: Optional[str] = None,
+            prefix: Optional[str] = None,
     ) -> bool:
         """
         说明：
@@ -175,6 +179,7 @@ class Setu(db.Model):
             :param img_hash: 图片hash值
             :param img_url: 图片链接
             :param tags: 图片标签
+            :param prefix: 后缀
         """
         query = cls.query.where(cls.pid == pid).with_for_update()
         image_list = await query.gino.all()
@@ -192,6 +197,8 @@ class Setu(db.Model):
                     await image.update(img_url=img_url).apply()
                 if tags:
                     await image.update(tags=tags).apply()
+                if prefix:
+                    await image.update(prefix=prefix).apply()
             return True
         return False
 
