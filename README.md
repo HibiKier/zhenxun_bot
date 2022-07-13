@@ -243,6 +243,15 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 
 ## 更新
 
+### 2022/7/13
+
+* B站订阅提供配置项`LIVE_MSG_AT_ALL`,`UP_MSG_AT_ALL`：控制UP动态投稿和直播是否AT全体
+
+### 2022/7/9
+
+* 修改了Omega图库检测的数据库文件名
+* game_utils提供了Game类
+
 ### 2022/7/4
 
 * 修复商品未设置限购时无法购买
@@ -550,7 +559,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 修复点歌无法正确发送
 * 修复我有一个朋友有时文本会包含CQ码
 * 修复群欢消息被动控制文本未删除 [@pull/124](https://github.com/HibiKier/zhenxun_bot/pull/124)
-* message_builder.image不再提供参数：abspath
+* message_builder.image不再提供参数:abspath
 
 ### 2022/2/23
 
