@@ -246,6 +246,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 ### 2022/7/16
 
 * cos提供连发命令
+* 修复B站视频解析中b23解析错误
 
 ### 2022/7/13
 
