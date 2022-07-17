@@ -1,4 +1,7 @@
+from typing import Tuple, Any
+
 from nonebot import on_regex
+from nonebot.params import RegexGroup
 from nonebot.typing import T_State
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent
 from utils.message_builder import image
@@ -11,7 +14,9 @@ __plugin_usage__ = """
 usage：
     三次元也不戳，嘿嘿嘿
     指令：
-        cos/coser
+        ?N连cos/coser
+        示例：cos
+        示例：5连cos （单次请求张数小于9）
 """.strip()
 __plugin_des__ = "三次元也不戳，嘿嘿嘿"
 __plugin_cmd__ = ["cos/coser"]
@@ -31,21 +36,23 @@ __plugin_configs__ = {
     },
 }
 
-coser = on_regex("^(cos|COS|coser|括丝)$", priority=5, block=True)
+coser = on_regex(r"^(\d)连?(cos|COS|coser|括丝)$", priority=5, block=True)
 
 
 url = "https://api.iyk0.com/cos"
 
 
 @coser.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State):
-    try:
-        msg_id = await coser.send(image(url))
-        withdraw_message_manager.withdraw_message(
-            event,
-            msg_id["message_id"],
-            Config.get_config("coser", "WITHDRAW_COS_MESSAGE"),
-        )
-    except Exception as e:
-        await coser.send("你cos给我看！")
-        logger.error(f"coser 发送了未知错误 {type(e)}：{e}")
+async def _(bot: Bot, event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
+    num = reg_group[0] or 1
+    for _ in range(int(num)):
+        try:
+            msg_id = await coser.send(image(url))
+            withdraw_message_manager.withdraw_message(
+                event,
+                msg_id["message_id"],
+                Config.get_config("coser", "WITHDRAW_COS_MESSAGE"),
+            )
+        except Exception as e:
+            await coser.send("你cos给我看！")
+            logger.error(f"coser 发送了未知错误 {type(e)}：{e}")
