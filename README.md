@@ -235,13 +235,29 @@ python bot.py
 
 
 ## 使用Docker
-__Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
-#### GitHub：[Sakuracio/zhenxun_bot_docker](https://github.com/Sakuracio/zhenxun_bot_docker)
-#### DockerHub：[hibikier/zhenxun_bot](https://hub.docker.com/r/hibikier/zhenxun_bot)
-
-
+__Docker 单机版（仅真寻Bot）__  
+**点击下方的 GitHub 徽标查看教程**  
+[![Github](https://shields.io/badge/GITHUB-Sakuracio-4476AF?logo=github&style=for-the-badge)](https://github.com/Sakuracio/zhenxun_bot_docker)  
+[![DOCKER](https://shields.io/badge/docker-hibikier/zhenxun_bot-4476AF?logo=docker&style=for-the-badge)](https://hub.docker.com/r/hibikier/zhenxun_bot)  
+__Docker 全量版（包含 真寻Bot PostgreSQL数据库 go-cqhttp webui等）__  
+[![Github](https://shields.io/badge/GITHUB-SinKy--Yan-4476AF?logo=github&style=for-the-badge)](https://github.com/SinKy-Yan/zhenxunbot-docker)  
+[![DOCKER](https://shields.io/badge/docker-jyishit/zhenxun_bot-4476AF?logo=docker&style=for-the-badge)](https://hub.docker.com/r/jyishit/zhenxun_bot)  
+**点击上方的 GitHub 徽标查看教程**  
+PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能无法正常启动全量版容器**
 
 ## 更新
+
+
+### 2022/7/16
+
+* cos提供连发命令
+* 修复B站视频解析中b23解析错误
+
+### 2022/7/13
+
+* B站订阅提供配置项`LIVE_MSG_AT_ALL`,`UP_MSG_AT_ALL`：控制UP动态投稿和直播是否AT全体
+* 修改了Omega图库检测的数据库文件名
+* game_utils提供了Game类
 
 ### 2022/7/7
 
@@ -554,7 +570,7 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 * 修复点歌无法正确发送
 * 修复我有一个朋友有时文本会包含CQ码
 * 修复群欢消息被动控制文本未删除 [@pull/124](https://github.com/HibiKier/zhenxun_bot/pull/124)
-* message_builder.image不再提供参数：abspath
+* message_builder.image不再提供参数:abspath
 
 ### 2022/2/23
 

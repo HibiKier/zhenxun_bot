@@ -56,18 +56,11 @@ async def _(event: GroupMessageEvent):
                 ) as session:
                     async with session.get(
                             data["meta"]["detail_1"]["qqdocurl"],
-                            proxy=get_local_proxy(),
                             timeout=7,
                     ) as response:
                         url = str(response.url).split("?")[0]
                         bvid = url.split("/")[-1]
                         vd_info = await video.get_video_base_info(bvid)
-                # response = await AsyncHttpx.get(
-                #     data["meta"]["detail_1"]["qqdocurl"], timeout=7
-                # )
-                # url = str(response.url).split("?")[0]
-                # bvid = url.split("/")[-1]
-                # vd_info = await video.Video(bvid=bvid).get_info()
             # 转发专栏
             if (
                 data.get("meta")
@@ -123,11 +116,17 @@ async def _(event: GroupMessageEvent):
                     url = f"https://www.bilibili.com/video/{msg}"
                     vd_info = await video.get_video_base_info(msg)
         elif "https://b23.tv" in msg:
-            url = "https://" + msg[msg.find("b23.tv") : msg.find("b23.tv") + 13]
-            res = await AsyncHttpx.get(url, timeout=7)
-            url = str(res.url).split("?")[0]
-            bvid = url.split("/")[-1]
-            vd_info = await video.get_video_base_info(bvid)
+            url = "https://" + msg[msg.find("b23.tv"): msg.find("b23.tv") + 14]
+            async with aiohttp.ClientSession(
+                    headers=get_user_agent()
+            ) as session:
+                async with session.get(
+                        url,
+                        timeout=7,
+                ) as response:
+                    url = str(response.url).split("?")[0]
+                    bvid = url.split("/")[-1]
+                    vd_info = await video.get_video_base_info(bvid)
     if vd_info:
         if (
             url in _tmp.keys() and time.time() - _tmp[url] > 30
