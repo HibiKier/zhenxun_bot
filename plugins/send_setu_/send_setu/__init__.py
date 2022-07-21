@@ -302,12 +302,31 @@ async def send_setu_handle(
             for i in range(len(urls)):
                 setu_list1 = await Setu.query_image(img_url=urls[i], hash_not_none=True)
                 if len(setu_list1) != 0:
-                    forward_list.append(Message(
-                        await gen_message(setu_list1[0], True, msg)
-                    ))
-                    logger.info(f"(USER {event.user_id}, GROUP "
-                                f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-                                f" 发送本地色图 {setu_list1[0].local_id}.{setu_list1[0].prefix}")
+                    if (
+                            Config.get_config("send_setu", "MAX_ONCE_NUM2FORWARD")
+                            and num
+                            >= Config.get_config("send_setu", "MAX_ONCE_NUM2FORWARD")
+                            and isinstance(event, GroupMessageEvent)
+                    ):
+                        forward_list.append(Message(
+                            await gen_message(setu_list1[0], True, msg)
+                        ))
+                        logger.info(f"(USER {event.user_id}, GROUP "
+                                    f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+                                    f" 发送本地色图 {setu_list1[0].local_id}.{setu_list1[0].prefix}")
+                    else:
+                        msg_id = await matcher.send(
+                            Message(
+                                await gen_message(setu_list1[0], True, msg)
+                            ), at_sender=True if isinstance(event, GroupMessageEvent) else False
+                        )
+                        if msg_id:
+                            withdraw_message_manager.withdraw_message(
+                                event,
+                                msg_id["message_id"],
+                                Config.get_config("send_setu", "WITHDRAW_SETU_MESSAGE"),
+                            )
+
                 else:
                     try:
                         msg_id = None
