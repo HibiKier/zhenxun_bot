@@ -1,6 +1,8 @@
 from nonebot import on_command
 from nonebot.typing import T_State
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
+
+from utils.message_builder import at
 from .data_source import (
     add_live_sub,
     delete_sub,
@@ -50,7 +52,17 @@ __plugin_configs__ = {
         "value": 5,
         "help": "群内bilibili订阅需要管理的权限",
         "default_value": 5,
-    }
+    },
+    "LIVE_MSG_AT_ALL": {
+        "value": False,
+        "help": "直播提醒是否AT全体（仅在真寻是管理员时生效）",
+        "default_value": False,
+    },
+    "UP_MSG_AT_ALL": {
+        "value": False,
+        "help": "UP动态投稿提醒是否AT全体（仅在真寻是管理员时生效）",
+        "default_value": False,
+    },
 }
 
 add_sub = on_command("添加订阅", priority=5, block=True)
@@ -233,10 +245,22 @@ async def send_sub_msg(rst: str, sub: BilibiliSub, bot: Bot):
         for x in sub.sub_users.split(",")[:-1]:
             try:
                 if ":" in x and x.split(":")[1] not in temp_group:
-                    temp_group.append(x.split(":")[1])
-                    await bot.send_group_msg(
-                            group_id=int(x.split(":")[1]), message=Message(rst)
-                    )
+                    group_id = int(x.split(":")[1])
+                    temp_group.append(group_id)
+                    if (
+                        await bot.get_group_member_info(
+                            group_id=group_id, user_id=int(bot.self_id), no_cache=True
+                        )
+                    )["role"] in ["owner", "admin"]:
+                        if (
+                            sub.sub_type == "live"
+                            and Config.get_config("bilibili_sub", "LIVE_MSG_AT_ALL")
+                        ) or (
+                            sub.sub_type == "up"
+                            and Config.get_config("bilibili_sub", "UP_MSG_AT_ALL")
+                        ):
+                            rst = "[CQ:at,qq=all]\n" + rst
+                    await bot.send_group_msg(group_id=group_id, message=Message(rst))
                 else:
                     await bot.send_private_msg(user_id=int(x), message=Message(rst))
             except Exception as e:
