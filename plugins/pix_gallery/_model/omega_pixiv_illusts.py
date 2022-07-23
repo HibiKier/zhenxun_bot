@@ -38,9 +38,9 @@ class OmegaPixivIllusts(db.Model):
             updated_at: datetime,
     ):
         """
-        说明：
+        说明:
             添加图片信息
-        参数：
+        参数:
             :param pid: pid
             :param title: 标题
             :param width: 宽度
@@ -78,9 +78,9 @@ class OmegaPixivIllusts(db.Model):
             num: int = 100
     ) -> List[Optional["OmegaPixivIllusts"]]:
         """
-        说明：
+        说明:
             查找符合条件的图片
-        参数：
+        参数:
             :param keywords: 关键词
             :param uid: 画师uid
             :param pid: 图片pid
@@ -104,9 +104,9 @@ class OmegaPixivIllusts(db.Model):
     @classmethod
     async def check_exists(cls, pid: int) -> bool:
         """
-        说明：
+        说明:
             检测pid是否已存在
-        参数：
+        参数:
             :param pid: 图片PID
         """
         query = await cls.query.where(cls.pid == pid).gino.all()
@@ -115,9 +115,9 @@ class OmegaPixivIllusts(db.Model):
     @classmethod
     async def get_keyword_num(cls, tags: List[str] = None) -> "int, int, int":
         """
-        说明：
+        说明:
             获取相关关键词(keyword, tag)在图库中的数量
-        参数：
+        参数:
             :param tags: 关键词/Tag
         """
         setattr(OmegaPixivIllusts, 'count', db.func.count(cls.pid).label('count'))
@@ -133,7 +133,7 @@ class OmegaPixivIllusts(db.Model):
     @classmethod
     async def get_all_pid(cls) -> List[int]:
         """
-        说明：
+        说明:
             获取所有图片PID
         """
         data = await cls.select('pid').gino.all()

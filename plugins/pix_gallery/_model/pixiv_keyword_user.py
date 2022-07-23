@@ -19,9 +19,9 @@ class PixivKeywordUser(db.Model):
         cls, user_qq: int, group_id: int, keyword: str, superusers: Set[str]
     ) -> bool:
         """
-        说明：
+        说明:
             添加搜图的关键词
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 群号
             :param keyword: 关键词
@@ -38,9 +38,9 @@ class PixivKeywordUser(db.Model):
     @classmethod
     async def delete_keyword(cls, keyword: str) -> bool:
         """
-        说明：
+        说明:
             删除关键词
-        参数：
+        参数:
             :param keyword: 关键词
         """
         if await cls._check_keyword_exists(keyword):
@@ -53,9 +53,9 @@ class PixivKeywordUser(db.Model):
     @classmethod
     async def set_keyword_pass(cls, keyword: str, is_pass: bool) -> "int, int":
         """
-        说明：
+        说明:
             通过或禁用关键词
-        参数：
+        参数:
             :param keyword: 关键词
             :param is_pass: 通过状态
         """
@@ -71,7 +71,7 @@ class PixivKeywordUser(db.Model):
     @classmethod
     async def get_all_user_dict(cls) -> dict:
         """
-        说明：
+        说明:
             获取关键词数据库各个用户贡献的关键词字典
         """
         tmp = {}
@@ -85,7 +85,7 @@ class PixivKeywordUser(db.Model):
     @classmethod
     async def get_current_keyword(cls) -> "List[str], List[str]":
         """
-        说明：
+        说明:
             获取当前通过与未通过的关键词
         """
         pass_keyword = []
@@ -101,7 +101,7 @@ class PixivKeywordUser(db.Model):
     @classmethod
     async def get_black_pid(cls) -> List[str]:
         """
-        说明：
+        说明:
             获取黑名单PID
         """
         black_pid = []
@@ -113,9 +113,9 @@ class PixivKeywordUser(db.Model):
     @classmethod
     async def _check_keyword_exists(cls, keyword: str) -> bool:
         """
-        说明：
+        说明:
             检测关键词是否已存在
-        参数：
+        参数:
             :param keyword: 关键词
         """
         current_keyword = []

@@ -3,6 +3,8 @@ from nonebot.adapters.onebot.v11 import MessageSegment
 
 from utils.manager import resources_manager
 from asyncio.exceptions import TimeoutError
+
+from utils.utils import get_bot
 from .model import BilibiliSub
 from bilireq.live import get_room_info_by_id
 from .utils import get_meta
@@ -229,6 +231,7 @@ async def _get_live_status(id_: int) -> Optional[str]:
         await BilibiliSub.update_sub_info(id_, live_status=live_status)
     if sub.live_status == 0 and live_status == 1:
         return (
+            f""
             f"{image(cover)}\n"
             f"{sub.uname} 开播啦！\n"
             f"标题：{title}\n"

@@ -15,9 +15,9 @@ class BanUser(db.Model):
     @classmethod
     async def check_ban_level(cls, user_qq: int, level: int) -> bool:
         """
-        说明：
+        说明:
             检测ban掉目标的用户与unban用户的权限等级大小
-        参数：
+        参数:
             :param user_qq: unban用户的qq号
             :param level: ban掉目标用户的权限等级
         """
@@ -31,9 +31,9 @@ class BanUser(db.Model):
     @classmethod
     async def check_ban_time(cls, user_qq: int) -> str:
         """
-        说明：
+        说明:
             检测用户被ban时长
-        参数：
+        参数:
             :param user_qq: qq号
         """
         query = cls.query.where((cls.user_qq == user_qq))
@@ -49,9 +49,9 @@ class BanUser(db.Model):
     @classmethod
     async def is_ban(cls, user_qq: int) -> bool:
         """
-        说明：
+        说明:
             判断用户是否被ban
-        参数：
+        参数:
             :param user_qq: qq号
         """
         if await cls.check_ban_time(user_qq):
@@ -63,9 +63,9 @@ class BanUser(db.Model):
     @classmethod
     async def is_super_ban(cls, user_qq: int) -> bool:
         """
-        说明：
+        说明:
             判断用户是否被ban
-        参数：
+        参数:
             :param user_qq: qq号
         """
         user = await cls.query.where((cls.user_qq == user_qq)).gino.first()
@@ -77,9 +77,9 @@ class BanUser(db.Model):
     @classmethod
     async def ban(cls, user_qq: int, ban_level: int, duration: int) -> bool:
         """
-        说明：
+        说明:
             ban掉目标用户
-        参数：
+        参数:
             :param user_qq: 目标用户qq号
             :param ban_level: 使用ban命令用户的权限
             :param duration:  ban时长，秒
@@ -104,9 +104,9 @@ class BanUser(db.Model):
     @classmethod
     async def unban(cls, user_qq: int) -> bool:
         """
-        说明：
+        说明:
             unban用户
-        参数：
+        参数:
             :param user_qq: qq号
         """
         query = cls.query.where((cls.user_qq == user_qq))

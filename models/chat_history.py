@@ -28,9 +28,9 @@ class ChatHistory(db.Model):
         days: Optional[int] = None,
     ) -> List["ChatHistory"]:
         """
-        说明：
+        说明:
             获取用户消息
-        参数：
+        参数:
             :param uid: 用户qq
             :param msg_type: 消息类型，私聊或群聊
             :param days: 限制日期
@@ -46,9 +46,9 @@ class ChatHistory(db.Model):
         date_scope: Tuple[datetime, datetime] = None,
     ) -> List["ChatHistory"]:
         """
-        说明：
+        说明:
             获取群聊指定用户聊天记录
-        参数：
+        参数:
             :param uid: qq
             :param gid: 群号
             :param limit: 获取数量
@@ -63,9 +63,9 @@ class ChatHistory(db.Model):
     @classmethod
     async def get_group_user_msg_count(cls, uid: int, gid: int) -> Optional[int]:
         """
-        说明：
+        说明:
              查询群聊指定用户的聊天记录数量
-        参数：
+        参数:
             :param uid: qq
             :param gid: 群号
         """
@@ -86,9 +86,9 @@ class ChatHistory(db.Model):
         date_scope: Optional[Tuple[datetime, datetime]] = None,
     ) -> Optional[Tuple[int, int]]:
         """
-        说明：
+        说明:
             获取排行数据
-        参数：
+        参数:
             :param gid: 群号
             :param limit: 获取数量
             :param order: 排序类型，desc，des
@@ -103,9 +103,9 @@ class ChatHistory(db.Model):
     @classmethod
     async def get_group_first_msg_datetime(cls, gid: int) -> Optional[datetime]:
         """
-        说明：
+        说明:
             获取群第一条记录消息时间
-        参数：
+        参数:
             :param gid:
         """
         if (
@@ -124,9 +124,9 @@ class ChatHistory(db.Model):
         days: Optional[int] = None,
     ) -> int:
         """
-        说明：
+        说明:
             获取用户消息数量
-        参数：
+        参数:
             :param uid: 用户qq
             :param msg_type: 消息类型，私聊或群聊
             :param days: 限制日期
@@ -142,9 +142,9 @@ class ChatHistory(db.Model):
         days: Optional[int] = None,
     ) -> List["ChatHistory"]:
         """
-        说明：
+        说明:
             获取群聊消息
-        参数：
+        参数:
             :param gid: 用户qq
             :param days: 限制日期
         """
@@ -157,9 +157,9 @@ class ChatHistory(db.Model):
         days: Optional[int] = None,
     ) -> List["ChatHistory"]:
         """
-        说明：
+        说明:
             获取群聊消息数量
-        参数：
+        参数:
             :param gid: 用户qq
             :param days: 限制日期
         """
@@ -178,9 +178,9 @@ class ChatHistory(db.Model):
         is_select_count: bool = False,
     ):
         """
-        说明：
+        说明:
             获取消息查询query
-        参数：
+        参数:
             :param uid: 用户qq
             :param gid: 群号
             :param type_: 类型，私聊或群聊

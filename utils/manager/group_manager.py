@@ -31,9 +31,9 @@ class GroupManager(StaticData):
 
     def block_plugin(self, module: str, group_id: int):
         """
-        说明：
+        说明:
             锁定插件
-        参数：
+        参数:
             :param module: 功能模块名
             :param group_id: 群组，None时为超级用户禁用
         """
@@ -41,9 +41,9 @@ class GroupManager(StaticData):
 
     def unblock_plugin(self, module: str, group_id: int):
         """
-        说明：
+        说明:
             解锁插件
-        参数：
+        参数:
             :param module: 功能模块名
             :param group_id: 群组
         """
@@ -51,27 +51,27 @@ class GroupManager(StaticData):
 
     def turn_on_group_bot_status(self, group_id: int):
         """
-        说明：
+        说明:
             开启群bot开关
-        参数：
+        参数:
             :param group_id: 群号
         """
         self._set_group_bot_status(group_id, True)
 
     def shutdown_group_bot_status(self, group_id: int):
         """
-        说明：
+        说明:
             关闭群bot开关
-        参数：
+        参数:
             :param group_id: 群号
         """
         self._set_group_bot_status(group_id, False)
 
     def check_group_bot_status(self, group_id: int) -> bool:
         """
-        说明：
+        说明:
             检查群聊bot总开关状态
-        参数：
+        参数:
             :param group_id: 说明
         """
         group_id = str(group_id)
@@ -86,9 +86,9 @@ class GroupManager(StaticData):
 
     def set_group_level(self, group_id: int, level: int):
         """
-        说明：
+        说明:
             设置群权限
-        参数：
+        参数:
             :param group_id: 群组
             :param level: 权限等级
         """
@@ -100,9 +100,9 @@ class GroupManager(StaticData):
 
     def get_plugin_status(self, module: str, group_id: int) -> bool:
         """
-        说明：
+        说明:
             获取插件状态
-        参数：
+        参数:
             :param module: 功能模块名
             :param group_id: 群组
         """
@@ -116,9 +116,9 @@ class GroupManager(StaticData):
 
     def get_group_level(self, group_id: int) -> int:
         """
-        说明：
+        说明:
             获取群等级
-        参数：
+        参数:
             :param group_id: 群号
         """
         group_id = str(group_id)
@@ -128,18 +128,18 @@ class GroupManager(StaticData):
 
     def check_group_is_white(self, group_id: int) -> bool:
         """
-        说明：
+        说明:
             检测群聊是否在白名单
-        参数：
+        参数:
             :param group_id: 群号
         """
         return group_id in self._data["super"]["white_group_list"]
 
     def add_group_white_list(self, group_id: int):
         """
-        说明：
+        说明:
             将群聊加入白名单
-        参数：
+        参数:
             :param group_id: 群号
         """
         if group_id not in self._data["super"]["white_group_list"]:
@@ -147,9 +147,9 @@ class GroupManager(StaticData):
 
     def delete_group_white_list(self, group_id: int):
         """
-        说明：
+        说明:
             将群聊从白名单中删除
-        参数：
+        参数:
             :param group_id: 群号
         """
         if group_id in self._data["super"]["white_group_list"]:
@@ -157,16 +157,16 @@ class GroupManager(StaticData):
 
     def get_group_white_list(self) -> List[str]:
         """
-        说明：
+        说明:
             获取所有群白名单
         """
         return self._data["super"]["white_group_list"]
 
     def delete_group(self, group_id: int):
         """
-        说明：
+        说明:
             删除群配置
-        参数：
+        参数:
             :param group_id: 群号
         """
         if group_id in self._data["group_manager"]:
@@ -177,9 +177,9 @@ class GroupManager(StaticData):
 
     async def open_group_task(self, group_id: int, task: str):
         """
-        说明：
+        说明:
             开启群被动技能
-        参数：
+        参数:
             :param group_id: 群号
             :param task: 被动技能名称
         """
@@ -187,9 +187,9 @@ class GroupManager(StaticData):
 
     async def close_group_task(self, group_id: int, task: str):
         """
-        说明：
+        说明:
             关闭群被动技能
-        参数：
+        参数:
             :param group_id: 群号
             :param task: 被动技能名称
         """
@@ -197,9 +197,9 @@ class GroupManager(StaticData):
 
     async def check_group_task_status(self, group_id: int, task: str) -> bool:
         """
-        说明：
+        说明:
             查看群被动技能状态
-        参数：
+        参数:
             :param group_id: 群号
             :param task: 被动技能名称
         """
@@ -214,16 +214,16 @@ class GroupManager(StaticData):
 
     def get_task_data(self) -> Dict[str, str]:
         """
-        说明：
+        说明:
             获取所有被动任务
         """
         return self._task
 
     async def group_task_status(self, group_id: int) -> str:
         """
-        说明：
+        说明:
             查看群被全部动技能状态
-        参数：
+        参数:
             :param group_id: 群号
         """
         x = "[群被动技能]:\n"
@@ -236,9 +236,9 @@ class GroupManager(StaticData):
 
     async def _set_group_task_status(self, group_id: int, task: str, status: bool):
         """
-        说明：
+        说明:
             管理群被动技能状态
-        参数：
+        参数:
             :param group_id: 群号
             :param task: 被动技能
             :param status: 状态
@@ -257,7 +257,7 @@ class GroupManager(StaticData):
 
     async def init_group_task(self, group_id: Optional[Union[int, str]] = None):
         """
-        说明：
+        说明:
             初始化群聊 被动技能 状态
         """
         if not self._task:
@@ -313,9 +313,9 @@ class GroupManager(StaticData):
         group_id: int,
     ):
         """
-        说明：
+        说明:
             设置功能开关状态
-        参数：
+        参数:
             :param module: 功能模块名
             :param status: 功能状态
             :param group_id: 群组
@@ -333,9 +333,9 @@ class GroupManager(StaticData):
 
     def _init_group(self, group_id: str):
         """
-        说明：
+        说明:
             初始化群数据
-        参数：
+        参数:
             :param group_id: 群号
         """
         default_group_level = Config.get_config("group_manager", "DEFAULT_GROUP_LEVEL")
@@ -354,9 +354,9 @@ class GroupManager(StaticData):
 
     def _set_group_bot_status(self, group_id: Union[int, str], status: bool):
         """
-        说明：
+        说明:
             设置群聊bot总开关
-        参数：
+        参数:
             :param group_id: 群号
             :param status: 开关状态
         """
@@ -368,7 +368,7 @@ class GroupManager(StaticData):
 
     def get_super_old_data(self) -> Optional[dict]:
         """
-        说明：
+        说明:
             获取旧数据，平时使用请不要调用
         """
         if self._data["super"].get("close_plugins"):

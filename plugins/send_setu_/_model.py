@@ -30,9 +30,9 @@ class Setu(db.Model):
         tags: str,
     ):
         """
-        说明：
+        说明:
             添加一份色图数据
-        参数：
+        参数:
             :param local_id: 本地存储id
             :param title: 标题
             :param author: 作者
@@ -62,9 +62,9 @@ class Setu(db.Model):
         limit: int = 50,
     ):
         """
-        说明：
+        说明:
             通过tag查找色图
-        参数：
+        参数:
             :param local_id: 本地色图 id
             :param tags: tags
             :param r18: 是否 r18，0：非r18  1：r18  2：混合
@@ -90,7 +90,7 @@ class Setu(db.Model):
     @classmethod
     async def get_image_count(cls, r18: int = 0) -> int:
         """
-        说明：
+        说明:
             查询图片数量
         """
         flag = False if r18 == 0 else True
@@ -101,9 +101,9 @@ class Setu(db.Model):
     @classmethod
     async def get_image_in_hash(cls, img_hash: str) -> "Setu":
         """
-        说明：
+        说明:
             通过图像hash获取图像信息
-        参数：
+        参数:
             :param img_hash: = 图像hash值
         """
         query = await cls.query.where(cls.img_hash == img_hash).gino.first()
@@ -112,9 +112,9 @@ class Setu(db.Model):
     @classmethod
     async def _check_exists(cls, pid: int, img_url: str) -> bool:
         """
-        说明：
+        说明:
             检测图片是否存在
-        参数：
+        参数:
             :param pid: 图片pid
             :param img_url: 图片链接
         """
@@ -127,9 +127,9 @@ class Setu(db.Model):
     @classmethod
     async def delete_image(cls, pid: int) -> int:
         """
-        说明：
+        说明:
             删除图片并替换
-        参数：
+        参数:
             :param pid: 图片pid
         """
         query = await cls.query.where(cls.pid == pid).gino.first()
@@ -157,9 +157,9 @@ class Setu(db.Model):
         tags: Optional[str] = None,
     ) -> bool:
         """
-        说明：
+        说明:
             根据PID修改图片数据
-        参数：
+        参数:
             :param local_id: 本地id
             :param pid: 图片pid
             :param title: 标题
@@ -190,7 +190,7 @@ class Setu(db.Model):
     @classmethod
     async def get_all_setu(cls) -> List["Setu"]:
         """
-        说明：
+        说明:
             获取所有图片对象
         """
         return await cls.query.gino.all()

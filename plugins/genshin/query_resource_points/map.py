@@ -30,7 +30,7 @@ class Map:
         ratio: float = 1,
     ):
         """
-        参数：
+        参数:
             :param resource_name: 资源名称
             :param center_point: 中心点
             :param deviation: 坐标误差
