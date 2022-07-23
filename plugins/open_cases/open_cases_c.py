@@ -31,7 +31,7 @@ async def open_case(user_qq: int, group: int, case_name: str = "狂牙大行动"
     async with db.transaction():
         user = await OpenCasesUser.ensure(user_qq, group, for_update=True)
         # 一天次数上限
-        if user.today_open_total == int(
+        if user.today_open_total > int(
             Config.get_config("open_cases", "INITIAL_OPEN_CASE_COUNT")
             + int(impression)
             / Config.get_config("open_cases", "EACH_IMPRESSION_ADD_COUNT")

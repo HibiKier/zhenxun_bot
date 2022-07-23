@@ -22,9 +22,9 @@ class BagUser(db.Model):
     @classmethod
     async def get_user_total_gold(cls, user_qq: int, group_id: int) -> str:
         """
-        说明：
+        说明:
             获取金币概况
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 所在群号
         """
@@ -44,9 +44,9 @@ class BagUser(db.Model):
     @classmethod
     async def get_gold(cls, user_qq: int, group_id: int) -> int:
         """
-        说明：
+        说明:
             获取当前金币
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 所在群号
         """
@@ -64,9 +64,9 @@ class BagUser(db.Model):
     @classmethod
     async def get_property(cls, user_qq: int, group_id: int) -> Dict[str, int]:
         """
-        说明：
+        说明:
             获取当前道具
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 所在群号
         """
@@ -84,9 +84,9 @@ class BagUser(db.Model):
     @classmethod
     async def add_gold(cls, user_qq: int, group_id: int, num: int):
         """
-        说明：
+        说明:
             增加金币
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 所在群号
             :param num: 金币数量
@@ -112,9 +112,9 @@ class BagUser(db.Model):
     @classmethod
     async def spend_gold(cls, user_qq: int, group_id: int, num: int):
         """
-        说明：
+        说明:
             花费金币
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 所在群号
             :param num: 金币数量
@@ -140,9 +140,9 @@ class BagUser(db.Model):
     @classmethod
     async def add_property(cls, user_qq: int, group_id: int, name: str):
         """
-        说明：
+        说明:
             增加道具
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 所在群号
             :param name: 道具名称
@@ -165,9 +165,9 @@ class BagUser(db.Model):
         cls, user_qq: int, group_id: int, name: str, num: int = 1
     ) -> bool:
         """
-        说明：
+        说明:
             使用/删除 道具
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 所在群号
             :param name: 道具名称
@@ -192,9 +192,9 @@ class BagUser(db.Model):
         cls, user_qq: int, group_id: int, goods: "GoodsInfo", goods_num: int
     ) -> bool:
         """
-        说明：
+        说明:
             购买道具
-        参数：
+        参数:
             :param user_qq: 用户qq
             :param group_id: 所在群聊
             :param goods: 商品
@@ -214,9 +214,9 @@ class BagUser(db.Model):
     @classmethod
     async def get_all_users(cls, group_id: Optional[int] = None) -> List["BagUser"]:
         """
-        说明：
+        说明:
             获取所有用户数据
-        参数：
+        参数:
             :param group_id: 群号
         """
         if not group_id:

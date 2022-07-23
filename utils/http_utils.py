@@ -37,9 +37,9 @@ class AsyncHttpx:
         **kwargs,
     ) -> Response:
         """
-        说明：
+        说明:
             Get
-        参数：
+        参数:
             :param url: url
             :param params: params
             :param headers: 请求头
@@ -80,9 +80,9 @@ class AsyncHttpx:
         **kwargs,
     ) -> Response:
         """
-        说明：
+        说明:
             Post
-        参数：
+        参数:
             :param url: url
             :param data: data
             :param content: content
@@ -129,9 +129,9 @@ class AsyncHttpx:
         **kwargs,
     ) -> bool:
         """
-        说明：
+        说明:
             下载文件
-        参数：
+        参数:
             :param url: url
             :param path: 存储路径
             :param params: params
@@ -224,9 +224,9 @@ class AsyncHttpx:
         **kwargs,
     ) -> List[bool]:
         """
-        说明：
+        说明:
             分组同时下载文件
-        参数：
+        参数:
             :param url_list: url列表
             :param path_list: 存储路径列表
             :param limit_async_number: 限制同时请求数量
@@ -288,9 +288,9 @@ class AsyncPlaywright:
     @classmethod
     async def _new_page(cls, user_agent: Optional[str] = None, **kwargs) -> Page:
         """
-        说明：
+        说明:
             获取一个新页面
-        参数：
+        参数:
             :param user_agent: 请求头
         """
         browser = await get_browser()
@@ -301,9 +301,9 @@ class AsyncPlaywright:
     @classmethod
     async def new_context(cls, user_agent: Optional[str] = None, **kwargs) -> BrowserContext:
         """
-        说明：
+        说明:
             获取一个新上下文
-        参数：
+        参数:
             :param user_agent: 请求头
         """
         browser = await get_browser()
@@ -324,9 +324,9 @@ class AsyncPlaywright:
         **kwargs
     ) -> Optional[Page]:
         """
-        说明：
+        说明:
             goto
-        参数：
+        参数:
             :param url: 网址
             :param timeout: 超时限制
             :param wait_until: 等待类型
@@ -360,9 +360,9 @@ class AsyncPlaywright:
         **kwargs
     ) -> Optional[MessageSegment]:
         """
-        说明：
+        说明:
             截图，该方法仅用于简单快捷截图，复杂截图请操作 page
-        参数：
+        参数:
             :param url: 网址
             :param path: 存储路径
             :param element: 元素选择
