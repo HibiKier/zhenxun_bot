@@ -24,9 +24,9 @@ def compare_image_with_hash(
     image_file1: str, image_file2: str, max_dif: int = 1.5
 ) -> bool:
     """
-    说明：
+    说明:
         比较两张图片的hash值是否相同
-    参数：
+    参数:
         :param image_file1: 图片文件路径
         :param image_file2: 图片文件路径
         :param max_dif: 允许最大hash差值, 越小越精确,最小为0
@@ -45,9 +45,9 @@ def compare_image_with_hash(
 
 def get_img_hash(image_file: Union[str, Path]) -> ImageHash:
     """
-    说明：
+    说明:
         获取图片的hash值
-    参数：
+    参数:
         :param image_file: 图片文件路径
     """
     with open(image_file, "rb") as fp:
@@ -59,9 +59,9 @@ def compressed_image(
     in_file: Union[str, Path], out_file: Union[str, Path] = None, ratio: float = 0.9
 ):
     """
-    说明：
+    说明:
         压缩图片
-    参数：
+    参数:
         :param in_file: 被压缩的文件路径
         :param out_file: 压缩后输出的文件路径
         :param ratio: 压缩率，宽高 * 压缩率
@@ -80,9 +80,9 @@ def compressed_image(
 
 def alpha2white_pil(pic: Image) -> Image:
     """
-    说明：
+    说明:
         将图片透明背景转化为白色
-    参数：
+    参数:
         :param pic: 通过PIL打开的图片文件
     """
     img = pic.convert("RGBA")
@@ -99,9 +99,9 @@ def alpha2white_pil(pic: Image) -> Image:
 
 def pic2b64(pic: Image) -> str:
     """
-    说明：
+    说明:
         PIL图片转base64
-    参数：
+    参数:
         :param pic: 通过PIL打开的图片文件
     """
     buf = BytesIO()
@@ -112,9 +112,9 @@ def pic2b64(pic: Image) -> str:
 
 def fig2b64(plt_: plt) -> str:
     """
-    说明：
+    说明:
         matplotlib图片转base64
-    参数：
+    参数:
         :param plt_: matplotlib生成的图片
     """
     buf = BytesIO()
@@ -125,9 +125,9 @@ def fig2b64(plt_: plt) -> str:
 
 def is_valid(file: Union[str, Path]) -> bool:
     """
-    说明：
+    说明:
         判断图片是否损坏
-    参数：
+    参数:
         :param file: 图片文件路径
     """
     valid = True
@@ -160,7 +160,7 @@ class BuildImage:
         font_color: Optional[Union[str, Tuple[int, int, int]]] = None,
     ):
         """
-        参数：
+        参数:
             :param w: 自定义图片的宽度，w=0时为图片原本宽度
             :param h: 自定义图片的高度，h=0时为图片原本高度
             :param paste_image_width: 当图片做为背景图时，设置贴图的宽度，用于贴图自动换行
@@ -241,9 +241,9 @@ class BuildImage:
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
     ):
         """
-        说明：
+        说明:
             异步 贴图
-        参数：
+        参数:
             :param img: 已打开的图片文件，可以为 BuildImage 或 Image
             :param pos: 贴图位置（左上角）
             :param alpha: 图片背景是否为透明
@@ -259,9 +259,9 @@ class BuildImage:
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
     ):
         """
-        说明：
+        说明:
             贴图
-        参数：
+        参数:
             :param img: 已打开的图片文件，可以为 BuildImage 或 Image
             :param pos: 贴图位置（左上角）
             :param alpha: 图片背景是否为透明
@@ -304,9 +304,9 @@ class BuildImage:
 
     def getsize(self, msg: str) -> Tuple[int, int]:
         """
-        说明：
+        说明:
             获取文字在该图片 font_size 下所需要的空间
-        参数：
+        参数:
             :param msg: 文字内容
         """
         return self.font.getsize(msg)
@@ -315,9 +315,9 @@ class BuildImage:
         self, pos: Tuple[int, int], fill: Optional[Tuple[int, int, int]] = None
     ):
         """
-        说明：
+        说明:
             异步 绘制多个或单独的像素
-        参数：
+        参数:
             :param pos: 坐标
             :param fill: 填错颜色
         """
@@ -325,9 +325,9 @@ class BuildImage:
 
     def point(self, pos: Tuple[int, int], fill: Optional[Tuple[int, int, int]] = None):
         """
-        说明：
+        说明:
             绘制多个或单独的像素
-        参数：
+        参数:
             :param pos: 坐标
             :param fill: 填错颜色
         """
@@ -341,9 +341,9 @@ class BuildImage:
         width: int = 1,
     ):
         """
-        说明：
+        说明:
             异步 绘制圆
-        参数：
+        参数:
             :param pos: 坐标范围
             :param fill: 填充颜色
             :param outline: 描线颜色
@@ -359,9 +359,9 @@ class BuildImage:
         width: int = 1,
     ):
         """
-        说明：
+        说明:
             绘制圆
-        参数：
+        参数:
             :param pos: 坐标范围
             :param fill: 填充颜色
             :param outline: 描线颜色
@@ -377,9 +377,9 @@ class BuildImage:
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
     ):
         """
-        说明：
+        说明:
             异步 在图片上添加文字
-        参数：
+        参数:
             :param pos: 文字位置
             :param text: 文字内容
             :param fill: 文字颜色
@@ -395,9 +395,9 @@ class BuildImage:
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
     ):
         """
-        说明：
+        说明:
             在图片上添加文字
-        参数：
+        参数:
             :param pos: 文字位置
             :param text: 文字内容
             :param fill: 文字颜色
@@ -424,18 +424,18 @@ class BuildImage:
 
     async def asave(self, path: Optional[Union[str, Path]] = None):
         """
-        说明：
+        说明:
             异步 保存图片
-        参数：
+        参数:
             :param path: 图片路径
         """
         await self.loop.run_in_executor(None, self.save, path)
 
     def save(self, path: Optional[Union[str, Path]] = None):
         """
-        说明：
+        说明:
             保存图片
-        参数：
+        参数:
             :param path: 图片路径
         """
         if not path:
@@ -444,16 +444,16 @@ class BuildImage:
 
     def show(self):
         """
-        说明：
+        说明:
             显示图片
         """
         self.markImg.show(self.markImg)
 
     async def aresize(self, ratio: float = 0, w: int = 0, h: int = 0):
         """
-        说明：
+        说明:
             异步 压缩图片
-        参数：
+        参数:
             :param ratio: 压缩倍率
             :param w: 压缩图片宽度至 w
             :param h: 压缩图片高度至 h
@@ -462,9 +462,9 @@ class BuildImage:
 
     def resize(self, ratio: float = 0, w: int = 0, h: int = 0):
         """
-        说明：
+        说明:
             压缩图片
-        参数：
+        参数:
             :param ratio: 压缩倍率
             :param w: 压缩图片宽度至 w
             :param h: 压缩图片高度至 h
@@ -481,18 +481,18 @@ class BuildImage:
 
     async def acrop(self, box: Tuple[int, int, int, int]):
         """
-        说明：
+        说明:
             异步 裁剪图片
-        参数：
+        参数:
             :param box: 左上角坐标，右下角坐标 (left, upper, right, lower)
         """
         await self.loop.run_in_executor(None, self.crop, box)
 
     def crop(self, box: Tuple[int, int, int, int]):
         """
-        说明：
+        说明:
             裁剪图片
-        参数：
+        参数:
             :param box: 左上角坐标，右下角坐标 (left, upper, right, lower)
         """
         self.markImg = self.markImg.crop(box)
@@ -502,18 +502,18 @@ class BuildImage:
 
     def check_font_size(self, word: str) -> bool:
         """
-        说明：
+        说明:
             检查文本所需宽度是否大于图片宽度
-        参数：
+        参数:
             :param word: 文本内容
         """
         return self.font.getsize(word)[0] > self.w
 
     async def atransparent(self, alpha_ratio: float = 1, n: int = 0):
         """
-        说明：
+        说明:
             异步 图片透明化
-        参数：
+        参数:
             :param alpha_ratio: 透明化程度
             :param n: 透明化大小内边距
         """
@@ -521,9 +521,9 @@ class BuildImage:
 
     def transparent(self, alpha_ratio: float = 1, n: int = 0):
         """
-        说明：
+        说明:
             图片透明化
-        参数：
+        参数:
             :param alpha_ratio: 透明化程度
             :param n: 透明化大小内边距
         """
@@ -538,7 +538,7 @@ class BuildImage:
 
     def pic2bs4(self) -> str:
         """
-        说明：
+        说明:
             BuildImage 转 base64
         """
         buf = BytesIO()
@@ -548,9 +548,9 @@ class BuildImage:
 
     def convert(self, type_: str):
         """
-        说明：
+        说明:
             修改图片类型
-        参数：
+        参数:
             :param type_: 类型
         """
         self.markImg = self.markImg.convert(type_)
@@ -563,9 +563,9 @@ class BuildImage:
         width: int = 1,
     ):
         """
-        说明：
+        说明:
             异步 画框
-        参数：
+        参数:
             :param xy: 坐标
             :param fill: 填充颜色
             :param outline: 轮廓颜色
@@ -581,9 +581,9 @@ class BuildImage:
         width: int = 1,
     ):
         """
-        说明：
+        说明:
             画框
-        参数：
+        参数:
             :param xy: 坐标
             :param fill: 填充颜色
             :param outline: 轮廓颜色
@@ -600,7 +600,7 @@ class BuildImage:
         """
         说明:
             异步 画多边形
-        参数：
+        参数:
             :param xy: 坐标
             :param fill: 颜色
             :param outline: 线宽
@@ -616,7 +616,7 @@ class BuildImage:
         """
         说明:
             画多边形
-        参数：
+        参数:
             :param xy: 坐标
             :param fill: 颜色
             :param outline: 线宽
@@ -630,9 +630,9 @@ class BuildImage:
         width: int = 1,
     ):
         """
-        说明：
+        说明:
             异步 画线
-        参数：
+        参数:
             :param xy: 坐标
             :param fill: 填充
             :param width: 线宽
@@ -646,9 +646,9 @@ class BuildImage:
         width: int = 1,
     ):
         """
-        说明：
+        说明:
             画线
-        参数：
+        参数:
             :param xy: 坐标
             :param fill: 填充
             :param width: 线宽
@@ -657,14 +657,14 @@ class BuildImage:
 
     async def acircle(self):
         """
-        说明：
+        说明:
             异步 将 BuildImage 图片变为圆形
         """
         await self.loop.run_in_executor(None, self.circle)
 
     def circle(self):
         """
-        说明：
+        说明:
             使图像变圆
         """
         self.markImg.convert("RGBA")
@@ -693,18 +693,18 @@ class BuildImage:
 
     async def acircle_corner(self, radii: int = 30):
         """
-        说明：
+        说明:
             异步 矩形四角变圆
-        参数：
+        参数:
             :param radii: 半径
         """
         await self.loop.run_in_executor(None, self.circle_corner, radii)
 
     def circle_corner(self, radii: int = 30):
         """
-        说明：
+        说明:
             矩形四角变圆
-        参数：
+        参数:
             :param radii: 半径
         """
         # 画圆（用于分离4个角）
@@ -724,9 +724,9 @@ class BuildImage:
 
     async def arotate(self, angle: int, expand: bool = False):
         """
-        说明：
+        说明:
             异步 旋转图片
-        参数：
+        参数:
             :param angle: 角度
             :param expand: 放大图片适应角度
         """
@@ -734,9 +734,9 @@ class BuildImage:
 
     def rotate(self, angle: int, expand: bool = False):
         """
-        说明：
+        说明:
             旋转图片
-        参数：
+        参数:
             :param angle: 角度
             :param expand: 放大图片适应角度
         """
@@ -744,27 +744,27 @@ class BuildImage:
 
     async def atranspose(self, angle: int):
         """
-        说明：
+        说明:
             异步 旋转图片(包括边框)
-        参数：
+        参数:
             :param angle: 角度
         """
         await self.loop.run_in_executor(None, self.transpose, angle)
 
     def transpose(self, angle: int):
         """
-        说明：
+        说明:
             旋转图片(包括边框)
-        参数：
+        参数:
             :param angle: 角度
         """
         self.markImg.transpose(angle)
 
     async def afilter(self, filter_: str, aud: int = None):
         """
-        说明：
+        说明:
             异步 图片变化
-        参数：
+        参数:
             :param filter_: 变化效果
             :param aud: 利率
         """
@@ -772,9 +772,9 @@ class BuildImage:
 
     def filter(self, filter_: str, aud: int = None):
         """
-        说明：
+        说明:
             图片变化
-        参数：
+        参数:
             :param filter_: 变化效果
             :param aud: 利率
         """
@@ -804,9 +804,9 @@ class BuildImage:
         replace_color: Tuple[int, int, int],
     ):
         """
-        说明：
+        说明:
             异步 颜色替换
-        参数：
+        参数:
             :param src_color: 目标颜色，或者使用列表，设置阈值
             :param replace_color: 替换颜色
         """
@@ -822,9 +822,9 @@ class BuildImage:
         replace_color: Tuple[int, int, int],
     ):
         """
-        说明：
+        说明:
             颜色替换
-        参数：
+        参数:
             :param src_color: 目标颜色，或者使用元祖，设置阈值
             :param replace_color: 替换颜色
         """
@@ -880,9 +880,9 @@ class BuildMat:
         bar_color: Optional[List[Union[str, Tuple[int, int, int]]]] = None,
     ):
         """
-        说明：
+        说明:
             初始化 BuildMat
-        参数：
+        参数:
             :param y: 坐标值
             :param mat_type: 图像类型 可能的值：[line]: 折线图，[bar]: 柱状图，[barh]: 横向柱状图
             :param x_name: 横坐标名称
@@ -981,7 +981,7 @@ class BuildMat:
         """
         说明:
             给坐标点设置新值
-        参数：
+        参数:
             :param y: 坐标点
         """
         self._check_value(y, self.y_index)
@@ -991,7 +991,7 @@ class BuildMat:
         """
         说明:
             设置y轴坐标值
-        参数：
+        参数:
             :param y_index: y轴坐标值
         """
         self._check_value(self.y, y_index)
@@ -999,9 +999,9 @@ class BuildMat:
 
     def set_title(self, title: str, color: Optional[Union[str, Tuple[int, int, int]]]):
         """
-        说明：
+        说明:
             设置标题
-        参数：
+        参数:
             :param title: 标题
             :param color: 字体颜色
         """
@@ -1013,9 +1013,9 @@ class BuildMat:
         self, background: Optional[List[str]], type_: Optional[str] = None
     ):
         """
-        说明：
+        说明:
             设置背景图片
-        参数：
+        参数:
             :param background: 图片路径列表
             :param type_: 填充类型
         """
@@ -1024,32 +1024,32 @@ class BuildMat:
 
     def show(self):
         """
-        说明：
+        说明:
             展示图像
         """
         self.markImg.show()
 
     def pic2bs4(self) -> str:
         """
-        说明：
+        说明:
             转base64
         """
         return self.markImg.pic2bs4()
 
     def resize(self, ratio: float = 0.9):
         """
-        说明：
+        说明:
             调整图像大小
-        参数：
+        参数:
             :param ratio: 比例
         """
         self.markImg.resize(ratio)
 
     def save(self, path: Union[str, Path]):
         """
-        说明：
+        说明:
             保存图片
-        参数：
+        参数:
             :param path: 路径
         """
         self.markImg.save(path)
@@ -1063,7 +1063,7 @@ class BuildMat:
         """
         说明:
             检查值合法性
-        参数：
+        参数:
             :param y: 坐标值
             :param y_index: y轴坐标值
             :param x_index: x轴坐标值
@@ -1087,7 +1087,7 @@ class BuildMat:
         """
         说明:
             生成折线图
-        参数：
+        参数:
             :param y: 坐标点
             :param display_num: 显示该点的值
         """
@@ -1134,9 +1134,9 @@ class BuildMat:
         is_barh: bool = False,
     ):
         """
-        说明：
+        说明:
             生成柱状图
-        参数：
+        参数:
             :param y: 坐标值
             :param display_num: 是否显示数值
             :param is_barh: 横柱状图
@@ -1216,9 +1216,9 @@ class BuildMat:
         is_grid: bool = False,
     ) -> BuildImage:
         """
-        说明：
+        说明:
             初始化图像，生成xy轴
-        参数：
+        参数:
             :param x_name: x轴名称
             :param y_name: y轴名称
             :param x_index: x轴坐标值
@@ -1347,7 +1347,7 @@ async def text2image(
     _add_height: float = 0,
 ) -> BuildImage:
     """
-    说明：
+    说明:
         解析文本并转为图片
         使用标签
             <f> </f>
@@ -1359,7 +1359,7 @@ async def text2image(
             在不在，<f font=YSHaoShenTi-2.ttf font_size=30 font_color=red>HibiKi小姐</f>，
             你最近还好吗，<f font_size=15 font_color=black>我非常想你</f>，这段时间我非常不好过，
             <f font_size=25>抽卡抽不到金色</f>，这让我很痛苦
-    参数：
+    参数:
         :param text: 文本
         :param auto_parse: 是否自动解析，否则原样发送
         :param font_size: 普通字体大小

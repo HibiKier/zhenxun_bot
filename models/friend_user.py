@@ -15,9 +15,9 @@ class FriendUser(db.Model):
     @classmethod
     async def get_user_name(cls, user_id: int) -> str:
         """
-        说明：
+        说明:
             获取好友用户名称
-        参数：
+        参数:
             :param user_id: qq号
         """
         query = cls.query.where(cls.user_id == user_id)
@@ -30,9 +30,9 @@ class FriendUser(db.Model):
     @classmethod
     async def add_friend_info(cls, user_id: int, user_name: str) -> bool:
         """
-        说明：
+        说明:
             添加好友信息
-        参数：
+        参数:
             :param user_id: qq号
             :param user_name: 用户名称
         """
@@ -55,9 +55,9 @@ class FriendUser(db.Model):
     @classmethod
     async def delete_friend_info(cls, user_id: int) -> bool:
         """
-        说明：
+        说明:
             删除好友信息
-        参数：
+        参数:
             :param user_id: qq号
         """
         try:
@@ -72,9 +72,9 @@ class FriendUser(db.Model):
     @classmethod
     async def get_friend_nickname(cls, user_id: int) -> str:
         """
-        说明：
+        说明:
             获取用户昵称
-        参数：
+        参数:
             :param user_id: qq号
         """
         query = cls.query.where(cls.user_id == user_id)
@@ -92,9 +92,9 @@ class FriendUser(db.Model):
     @classmethod
     async def set_friend_nickname(cls, user_id: int, nickname: str) -> bool:
         """
-        说明：
+        说明:
             设置用户昵称
-        参数：
+        参数:
             :param user_id: qq号
             :param nickname: 昵称
         """

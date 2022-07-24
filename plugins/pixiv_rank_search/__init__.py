@@ -17,7 +17,7 @@ __zx_plugin_name__ = "P站排行/搜图"
 __plugin_usage__ = """
 usage：
     P站排行：
-        可选参数：
+        可选参数:
         类型：
             1. 日排行
             2. 周排行

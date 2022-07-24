@@ -80,9 +80,9 @@ class SignGroupUser(db.Model):
     @classmethod
     async def get_all_impression(cls, group_id: int) -> "list, list, list":
         """
-        说明：
+        说明:
             获取该群所有用户 id 及对应 好感度
-        参数：
+        参数:
             :param group_id: 群号
         """
         impression_list = []

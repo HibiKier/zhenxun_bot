@@ -38,9 +38,9 @@ class Pixiv(db.Model):
         tags: str,
     ):
         """
-        说明：
+        说明:
             添加图片信息
-        参数：
+        参数:
             :param pid: pid
             :param title: 标题
             :param width: 宽度
@@ -74,9 +74,9 @@ class Pixiv(db.Model):
     @classmethod
     async def remove_image_data(cls, pid: int, img_p: str) -> bool:
         """
-        说明：
+        说明:
             删除图片数据
-        参数：
+        参数:
             :param pid: 图片pid
             :param img_p: 图片pid的张数，如：p0，p1
         """
@@ -94,7 +94,7 @@ class Pixiv(db.Model):
     @classmethod
     async def get_all_pid(cls) -> List[int]:
         """
-        说明：
+        说明:
             获取所有PID
         """
         query = await cls.query.select("pid").gino.first()
@@ -112,9 +112,9 @@ class Pixiv(db.Model):
         num: int = 100
     ) -> List[Optional["Pixiv"]]:
         """
-        说明：
+        说明:
             查找符合条件的图片
-        参数：
+        参数:
             :param keywords: 关键词
             :param uid: 画师uid
             :param pid: 图片pid
@@ -140,9 +140,9 @@ class Pixiv(db.Model):
     @classmethod
     async def check_exists(cls, pid: int, img_p: str) -> bool:
         """
-        说明：
+        说明:
             检测pid是否已存在
-        参数：
+        参数:
             :param pid: 图片PID
             :param img_p: 张数
         """
@@ -154,9 +154,9 @@ class Pixiv(db.Model):
     @classmethod
     async def get_keyword_num(cls, tags: List[str] = None) -> "int, int":
         """
-        说明：
+        说明:
             获取相关关键词(keyword, tag)在图库中的数量
-        参数：
+        参数:
             :param tags: 关键词/Tag
         """
         setattr(Pixiv, 'count', db.func.count(cls.pid).label('count'))

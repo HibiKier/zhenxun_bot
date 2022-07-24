@@ -30,9 +30,9 @@ class GoodsInfo(db.Model):
             daily_limit: int = 0,
     ) -> bool:
         """
-        说明：
+        说明:
             添加商品
-        参数：
+        参数:
             :param goods_name: 商品名称
             :param goods_price: 商品价格
             :param goods_description: 商品简介
@@ -58,9 +58,9 @@ class GoodsInfo(db.Model):
     @classmethod
     async def delete_goods(cls, goods_name: str) -> bool:
         """
-        说明：
+        说明:
             删除商品
-        参数：
+        参数:
             :param goods_name: 商品名称
         """
         query = (
@@ -84,9 +84,9 @@ class GoodsInfo(db.Model):
             daily_limit: Optional[int] = None
     ) -> bool:
         """
-        说明：
+        说明:
             更新商品信息
-        参数：
+        参数:
             :param goods_name: 商品名称
             :param goods_price: 商品价格
             :param goods_description: 商品简介
@@ -117,9 +117,9 @@ class GoodsInfo(db.Model):
     @classmethod
     async def get_goods_info(cls, goods_name: str) -> "GoodsInfo":
         """
-        说明：
+        说明:
             获取商品对象
-        参数：
+        参数:
             :param goods_name: 商品名称
         """
         return await cls.query.where(cls.goods_name == goods_name).gino.first()
@@ -127,7 +127,7 @@ class GoodsInfo(db.Model):
     @classmethod
     async def get_all_goods(cls) -> List["GoodsInfo"]:
         """
-        说明：
+        说明:
             获得全部有序商品对象
         """
         query = await cls.query.gino.all()
@@ -144,9 +144,9 @@ class GoodsInfo(db.Model):
             cls, goods: "GoodsInfo", user_id: int, group_id: int, num: int = 1
     ):
         """
-        说明：
+        说明:
             添加用户明日购买限制
-        参数：
+        参数:
             :param goods: 商品
             :param user_id: 用户id
             :param group_id: 群号
@@ -167,9 +167,9 @@ class GoodsInfo(db.Model):
             cls, goods: "GoodsInfo", user_id: int, group_id: int, num: int = 1
     ) -> Tuple[bool, int]:
         """
-        说明：
+        说明:
             检测用户每日购买上限
-        参数：
+        参数:
             :param goods: 商品
             :param user_id: 用户id
             :param group_id: 群号

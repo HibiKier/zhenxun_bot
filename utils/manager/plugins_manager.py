@@ -48,9 +48,9 @@ class PluginsManager(StaticData):
         self, module: str, group_id: Optional[int] = None, block_type: str = "all"
     ):
         """
-        说明：
+        说明:
             锁定插件
-        参数：
+        参数:
             :param module: 功能模块名
             :param group_id: 群组，None时为超级用户禁用
             :param block_type: 限制类型
@@ -59,9 +59,9 @@ class PluginsManager(StaticData):
 
     def unblock_plugin(self, module: str, group_id: Optional[int] = None):
         """
-        说明：
+        说明:
             解锁插件
-        参数：
+        参数:
             :param module: 功能模块名
             :param group_id: 群组
         """
@@ -71,9 +71,9 @@ class PluginsManager(StaticData):
         self, module: str, block_type: str = "all"
     ) -> bool:
         """
-        说明：
+        说明:
             获取插件状态
-        参数：
+        参数:
             :param module: 功能模块名
             :param block_type: 限制类型
         """
@@ -86,9 +86,9 @@ class PluginsManager(StaticData):
 
     def get_plugin_block_type(self, module: str) -> str:
         """
-        说明：
+        说明:
             获取功能限制类型
-        参数：
+        参数:
             :param module: 模块名称
         """
         if module in self._data.keys():
@@ -112,9 +112,9 @@ class PluginsManager(StaticData):
         block_type: str = "all",
     ):
         """
-        说明：
+        说明:
             设置功能开关状态
-        参数：
+        参数:
             :param module: 功能模块名
             :param status: 功能状态
             :param group_id: 群组

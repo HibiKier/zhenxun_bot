@@ -184,7 +184,7 @@ async def _():
             logger.info(f"添加OmegaPixivIllusts图库数据已存在 ---> pid：{pid}")
     omega_pixiv_illusts = None
     for file in os.listdir("."):
-        if "omega_pixiv_illusts" in file and ".sql" in file:
+        if "omega_pixiv_artwork" in file and ".sql" in file:
             omega_pixiv_illusts = Path() / file
     if omega_pixiv_illusts:
         with open(omega_pixiv_illusts, "r", encoding="utf8") as f:

@@ -235,13 +235,25 @@ python bot.py
 
 
 ## 使用Docker
-__Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
-#### GitHub：[Sakuracio/zhenxun_bot_docker](https://github.com/Sakuracio/zhenxun_bot_docker)
-#### DockerHub：[hibikier/zhenxun_bot](https://hub.docker.com/r/hibikier/zhenxun_bot)
-
-
+__Docker 单机版（仅真寻Bot）__  
+**点击下方的 GitHub 徽标查看教程**  
+[![Github](https://shields.io/badge/GITHUB-Sakuracio-4476AF?logo=github&style=for-the-badge)](https://github.com/Sakuracio/zhenxun_bot_docker)  
+[![DOCKER](https://shields.io/badge/docker-hibikier/zhenxun_bot-4476AF?logo=docker&style=for-the-badge)](https://hub.docker.com/r/hibikier/zhenxun_bot)  
+__Docker 全量版（包含 真寻Bot PostgreSQL数据库 go-cqhttp webui等）__  
+[![Github](https://shields.io/badge/GITHUB-SinKy--Yan-4476AF?logo=github&style=for-the-badge)](https://github.com/SinKy-Yan/zhenxunbot-docker)  
+[![DOCKER](https://shields.io/badge/docker-jyishit/zhenxun_bot-4476AF?logo=docker&style=for-the-badge)](https://hub.docker.com/r/jyishit/zhenxun_bot)  
+**点击上方的 GitHub 徽标查看教程**  
+PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能无法正常启动全量版容器**
 
 ## 更新
+
+### 2022/7/24
+
+* 订阅up动态提供直链
+
+### 2022/7/23
+
+* 优化开箱次数判断
 
 ### 2022/7/16
 
@@ -257,7 +269,6 @@ __Docker 最新版本由 [Sakuracio](https://github.com/Sakuracio) 提供__
 ### 2022/7/7
 
 * 微博热搜选择单条热搜时也会检测时效性 [@pull/891](https://github.com/HibiKier/zhenxun_bot/pull/891)
-
 
 ### 2022/7/4
 

@@ -18,9 +18,9 @@ class RedbagUser(db.Model):
     @classmethod
     async def add_redbag_data(cls, user_qq: int, group_id: int, itype: str, money: int):
         """
-        说明：
+        说明:
             添加收发红包数据
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 群号
             :param itype: 收或发
@@ -45,9 +45,9 @@ class RedbagUser(db.Model):
     @classmethod
     async def ensure(cls, user_qq: int, group_id: int) -> bool:
         """
-        说明：
+        说明:
             获取用户对象
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 群号
         """
@@ -61,9 +61,9 @@ class RedbagUser(db.Model):
     @classmethod
     async def get_user_all(cls, group_id: int = None) -> List["RedbagUser"]:
         """
-        说明：
+        说明:
             获取所有用户对象
-        参数：
+        参数:
             :param group_id: 群号
         """
         if not group_id:
