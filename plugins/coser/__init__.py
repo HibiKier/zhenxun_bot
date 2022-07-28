@@ -40,7 +40,7 @@ __plugin_configs__ = {
 coser = on_regex(r"^(\d)连?(cos|COS|coser|括丝|COSER)$", priority=5, block=True)
 
 
-url = "https://api.iyk0.com/cos"
+url = "https://api.jrsgslb.cn/cos/url.php?return=img"
 
 
 @coser.handle()
