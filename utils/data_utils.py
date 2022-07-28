@@ -10,9 +10,9 @@ async def init_rank(
     title: str, all_user_id: List[int], all_user_data: List[int], group_id: int, total_count: int = 10
 ) -> BuildMat:
     """
-    说明：
+    说明:
         初始化通用的数据排行榜
-    参数：
+    参数:
         :param title: 排行榜标题
         :param all_user_id: 所有用户的qq号
         :param all_user_data: 所有用户需要排行的对应数据

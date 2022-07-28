@@ -27,9 +27,9 @@ class GroupInfoUser(db.Model):
         uid: Optional[int] = None,
     ) -> bool:
         """
-        说明：
+        说明:
             添加群内用户信息
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 群号
             :param user_name: 用户名称
@@ -57,9 +57,9 @@ class GroupInfoUser(db.Model):
         cls, user_qq: int, group_id: int
     ) -> "GroupInfoUser":
         """
-        说明：
+        说明:
             查询群员信息
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 群号
         """
@@ -71,9 +71,9 @@ class GroupInfoUser(db.Model):
     @classmethod
     async def delete_member_info(cls, user_qq: int, group_id: int) -> bool:
         """
-        说明：
+        说明:
             删除群员信息
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 群号
         """
@@ -96,9 +96,9 @@ class GroupInfoUser(db.Model):
     @classmethod
     async def get_group_member_id_list(cls, group_id: int) -> List[int]:
         """
-        说明：
+        说明:
             获取该群所有用户qq
-        参数：
+        参数:
             :param group_id: 群号
         """
         member_list = []
@@ -112,9 +112,9 @@ class GroupInfoUser(db.Model):
         cls, user_qq: int, group_id: int, nickname: str
     ) -> bool:
         """
-        说明：
+        说明:
             设置群员在该群内的昵称
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 群号
             :param nickname: 昵称
@@ -131,9 +131,9 @@ class GroupInfoUser(db.Model):
     @classmethod
     async def get_user_all_group(cls, user_qq: int) -> List[int]:
         """
-        说明：
+        说明:
             获取该用户所在的所有群聊
-        参数：
+        参数:
             :param user_qq: 用户qq
         """
         query = await cls.query.where(cls.user_qq == user_qq).gino.all()
@@ -144,9 +144,9 @@ class GroupInfoUser(db.Model):
     @classmethod
     async def get_group_member_nickname(cls, user_qq: int, group_id: int) -> str:
         """
-        说明：
+        说明:
             获取用户在该群的昵称
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 群号
         """

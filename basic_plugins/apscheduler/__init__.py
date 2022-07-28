@@ -41,7 +41,7 @@ Config.add_plugin_config(
 )
 
 
-cx = on_message(priority=9, block=False)
+cx = on_message(priority=9999, block=False, rule=lambda: False)
 
 
 # 早上好

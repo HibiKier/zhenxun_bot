@@ -23,9 +23,9 @@ class RussianUser(db.Model):
     @classmethod
     async def ensure(cls, user_qq: int, group_id: int) -> "RussianUser":
         """
-        说明：
+        说明:
             获取用户对象
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 群号
         """
@@ -39,9 +39,9 @@ class RussianUser(db.Model):
     @classmethod
     async def add_count(cls, user_qq: int, group_id: int, itype: str) -> bool:
         """
-        说明：
+        说明:
             添加用户输赢次数
-        说明：
+        说明:
             :param user_qq: qq号
             :param group_id: 群号
             :param itype: 输或赢 'win' or 'lose'
@@ -87,9 +87,9 @@ class RussianUser(db.Model):
     @classmethod
     async def money(cls, user_qq: int, group_id: int, itype: str, count: int) -> bool:
         """
-        说明：
+        说明:
             添加用户输赢金钱
-        参数：
+        参数:
             :param user_qq: qq号
             :param group_id: 群号
             :param itype: 输或赢 'win' or 'lose'
@@ -120,9 +120,9 @@ class RussianUser(db.Model):
     @classmethod
     async def get_all_user(cls, group_id: int) -> List["RussianUser"]:
         """
-        说明：
+        说明:
             获取该群所有用户对象
-        参数：
+        参数:
         :param group_id: 群号
         """
         users = await cls.query.where((cls.group_id == group_id)).gino.all()

@@ -17,9 +17,9 @@ class GroupInfo(db.Model):
     @classmethod
     async def get_group_info(cls, group_id: int) -> "GroupInfo":
         """
-        说明：
+        说明:
             获取群信息
-        参数：
+        参数:
             :param group_id: 群号
         """
         query = cls.query.where(cls.group_id == group_id)
@@ -35,9 +35,9 @@ class GroupInfo(db.Model):
         group_flag: Optional[int] = None,
     ) -> bool:
         """
-        说明：
+        说明:
             添加群信息
-        参数：
+        参数:
             :param group_id: 群号
             :param group_name: 群名称
             :param max_member_count: 群员最大数量
@@ -74,9 +74,9 @@ class GroupInfo(db.Model):
     @classmethod
     async def delete_group_info(cls, group_id: int):
         """
-        说明：
+        说明:
             删除群信息
-        参数：
+        参数:
             :param group_id: 群号
         """
         await cls.delete.where(cls.group_id == group_id).gino.status()
@@ -84,7 +84,7 @@ class GroupInfo(db.Model):
     @classmethod
     async def get_all_group(cls) -> List["GroupInfo"]:
         """
-        说明：
+        说明:
             获取所有群对象
         """
         query = await cls.query.gino.all()

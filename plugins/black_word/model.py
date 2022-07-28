@@ -25,9 +25,9 @@ class BlackWord(db.Model):
         punish_level: int,
     ):
         """
-        说明：
+        说明:
             添加用户发送的敏感词
-        参数：
+        参数:
             :param user_qq: 用户id
             :param group_id: 群号
             :param black_word: 黑名单词汇
@@ -52,9 +52,9 @@ class BlackWord(db.Model):
         id_: Optional[int] = None,
     ) -> bool:
         """
-        说明：
+        说明:
             设置处罚
-        参数：
+        参数:
             :param user_qq: 用户id
             :param punish: 处罚
             :param black_word: 黑名单词汇
@@ -81,9 +81,9 @@ class BlackWord(db.Model):
         cls, user_qq: int, days: int = 7, punish_level: Optional[int] = None
     ) -> int:
         """
-        说明：
+        说明:
             获取用户规定周期内的犯事次数
-        参数：
+        参数:
             :param user_qq: 用户qq
             :param days: 周期天数
             :param punish_level: 惩罚等级
@@ -101,9 +101,9 @@ class BlackWord(db.Model):
     @classmethod
     async def get_user_punish_level(cls, user_qq: int, days: int = 7) -> Optional[int]:
         """
-        说明：
+        说明:
             获取用户最近一次的惩罚记录等级
-        参数：
+        参数:
             :param user_qq: 用户qq
             :param days: 周期天数
         """
@@ -125,9 +125,9 @@ class BlackWord(db.Model):
         date_type: str = "=",
     ) -> List["BlackWord"]:
         """
-        说明：
+        说明:
             通过指定条件查询数据
-        参数：
+        参数:
             :param user_qq: 用户qq
             :param group_id: 群号
             :param date: 日期
