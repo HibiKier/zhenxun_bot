@@ -1,6 +1,6 @@
 from typing import Tuple, Any
 
-from nonebot import on_regex
+from nonebot import on_regex, on_command
 from nonebot.params import RegexGroup
 from nonebot.typing import T_State
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent
@@ -36,10 +36,11 @@ __plugin_configs__ = {
     },
 }
 
-coser = on_regex(r"^(\d)连?(cos|COS|coser|括丝)$", priority=5, block=True)
+coser = on_regex(r"^(\d?)连?(cos|COS|coser|括丝)$", priority=5, block=True)
 
-
-url = "https://api.iyk0.com/cos"
+# 纯cos，较慢:https://picture.yinux.workers.dev
+# 比较杂，有福利姬，较快:https://api.jrsgslb.cn/cos/url.php?return=img
+url = "https://picture.yinux.workers.dev/"
 
 
 @coser.handle()
