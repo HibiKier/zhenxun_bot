@@ -1,6 +1,6 @@
 from typing import Tuple, Any
 
-from nonebot import on_regex, on_command
+from nonebot import on_regex
 from nonebot.params import RegexGroup
 from nonebot.typing import T_State
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent
