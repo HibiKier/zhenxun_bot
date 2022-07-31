@@ -50,8 +50,8 @@ def init_plugins_config(data_path):
                 plugin_configs = _module.__getattribute__("__plugin_configs__")
             except AttributeError:
                 continue
-        # 插件配置版本更新或为Version为None或不在存储配置内
-        if (
+        # 插件配置版本更新或为Version为None或不在存储配置内，当使用metadata时，必定更新
+        if isinstance(plugin_version, str) or (
             plugin_version is None
             or (
                 _data.get(matcher.plugin_name)

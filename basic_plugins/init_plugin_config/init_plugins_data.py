@@ -72,7 +72,8 @@ def init_plugins_data(data_path):
                     author=plugin_author,
                     version=plugin_version,
                 )
-            elif plugins_manager[matcher.plugin_name]["version"] is None or (
+                # metadata不检测version
+            elif isinstance(plugin_version, str) or plugins_manager[matcher.plugin_name]["version"] is None or (
                 plugin_version is not None
                 and plugin_version > plugins_manager[matcher.plugin_name]["version"]
             ):
