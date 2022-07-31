@@ -247,7 +247,17 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
-### 2022/7/24 \[v0.1.6.2]
+### 2022/7/31
+
+* 对nonebot.beta4中PluginMeta进行解析
+* 查看订阅以图片形式发送
+
+### 2022/7/30
+
+* 替换了cos和bt的url [@pull/951](https://github.com/HibiKier/zhenxun_bot/pull/951)
+* 发言记录统计添加日消息统计 [@pull/953](https://github.com/HibiKier/zhenxun_bot/pull/953)
+
+### 2022/7/24
 
 * 订阅up动态提供直链
 
