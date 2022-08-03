@@ -247,6 +247,11 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
+### 2022/8/3
+
+* 修复 bili动态链接在投稿视频时URL和分割线连在一起 [@pull/951](https://github.com/HibiKier/zhenxun_bot/pull/961)
+* 更新 Epic 免费游戏商城链接拼接规则 [@pull/957](https://github.com/HibiKier/zhenxun_bot/pull/957)
+
 ### 2022/7/31
 
 * 对nonebot.beta4中PluginMeta进行解析
