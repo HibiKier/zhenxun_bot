@@ -50,6 +50,7 @@ class UpEvent(BaseModel):
     start_time: Optional[datetime]  # 开始时间
     end_time: Optional[datetime]  # 结束时间
     up_char: List[UpChar]  # up对象
+    up_name: str = ""
 
 
 TC = TypeVar("TC", bound="BaseData")
