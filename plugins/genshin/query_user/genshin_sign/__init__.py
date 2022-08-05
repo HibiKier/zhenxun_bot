@@ -22,7 +22,7 @@ usage：
 __plugin_des__ = "原神懒人签到"
 __plugin_cmd__ = ["开启/关闭原神自动签到", "原神我硬签"]
 __plugin_type__ = ("原神相关",)
-__plugin_version__ = 0.1
+__plugin_version__ = 0.2
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {
     "level": 5,
@@ -33,7 +33,7 @@ __plugin_settings__ = {
 
 
 genshin_matcher = on_command(
-    "开原神自动签到", aliases={"关原神自动签到", "原神我硬签"}, priority=5, block=True
+    "开原神自动签到", aliases={"关原神自动签到", "原神我硬签", "查看我的cookie"}, priority=5, block=True
 )
 
 
@@ -41,10 +41,13 @@ genshin_matcher = on_command(
 async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
     cmd = cmd[0]
     uid = await Genshin.get_user_uid(event.user_id)
+    if cmd == "查看我的cookie":
+        my_cookie = await Genshin.get_user_cookie(uid, True)
+        await genshin_matcher.finish("您的cookie为" + my_cookie)
     if not uid or not await Genshin.get_user_cookie(uid, True):
         await genshin_matcher.finish("请先绑定uid和cookie！")
-    if "account_id" not in await Genshin.get_user_cookie(uid, True):
-        await genshin_matcher.finish("请更新cookie！")
+    # if "account_id" not in await Genshin.get_user_cookie(uid, True):
+    #     await genshin_matcher.finish("请更新cookie！")
     if cmd == "原神我硬签":
         try:
             msg = await genshin_sign(uid)

@@ -64,9 +64,13 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message 
         _x = f"已成功为uid：{uid} 设置米游社id：{msg}"
     else:
         if not msg:
-            await bind.finish(
-                "私聊发送！！\n打开 https://bbs.mihoyo.com/ys/\n登录后按F12点击控制台输入document.cookie复制输出的内容即可"
-            )
+            await bind.finish("""私聊发送！！
+            1.以无痕模式打开浏览器（Edge请新建InPrivate窗口）
+            2.打开http://bbs.mihoyo.com/ys/并登陆
+            3.登陆后打开http://user.mihoyo.com/进行登陆
+            4.按下F12，打开控制台，输入以下命令：
+            var cookie=document.cookie;var ask=confirm('Cookie:'+cookie+'\\n\\nDo you want to copy the cookie to the clipboard?');if(ask==true){copy(cookie);msg=cookie}else{msg='Cancel'}
+            5.私聊发送：原神绑定cookie 刚刚复制的cookie""")
         if isinstance(event, GroupMessageEvent):
             await bind.finish("请立即撤回你的消息并私聊发送！")
         uid = await Genshin.get_user_uid(event.user_id)
