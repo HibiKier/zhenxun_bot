@@ -372,7 +372,7 @@ class PrettyHandle(BaseHandle[PrettyData]):
                         for line in lines
                         if "★" in line and "【" in line and "】" in line
                     ]
-                    for char in chars:
+                    for char in set(chars):  # list去重
                         star = char.count("★")
                         name = re.split(r"[【】]", char)[-2].strip()
                         up_chars.append(
