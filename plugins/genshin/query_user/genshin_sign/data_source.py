@@ -8,7 +8,6 @@ import hashlib
 import random
 import string
 import uuid
-import requests
 import time
 
 
