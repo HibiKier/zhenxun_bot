@@ -14,13 +14,13 @@ __plugin_usage__ = """
 usage：
     米游社原神签到，需要uid以及cookie
     且在第二天自动排序签到时间
-    # 不听，就要手动签到！（使用命令 “原神我硬签 or 米游社我硬签”
+    # 不听，就要手动签到！（使用命令 “原神我硬签
     指令：
         开/关原神自动签到
         原神我硬签
 """.strip()
 __plugin_des__ = "原神懒人签到"
-__plugin_cmd__ = ["开启/关闭原神自动签到", "原神我硬签"]
+__plugin_cmd__ = ["开启/关闭原神自动签到", "原神我硬签", "查看我的cookie"]
 __plugin_type__ = ("原神相关",)
 __plugin_version__ = 0.2
 __plugin_author__ = "HibiKier"
