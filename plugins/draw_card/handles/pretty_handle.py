@@ -350,48 +350,52 @@ class PrettyHandle(BaseHandle[PrettyData]):
             char_img = ""
             card_img = ""
             up_chars = []
+            up_chars_name = []
             up_cards = []
+            up_cards_name = []            
             soup = BeautifulSoup(result, "lxml")
             heads = soup.find_all("span", {"class": "mw-headline"})
             for head in heads:
-                if "时间" in head.text:
+                if "时间" in head.text or "期间" in head.text:
                     time = head.find_next("p").text.split("\n")[0]
                     if "～" in time:
                         start, end = time.split("～")
                         start_time = dateparser.parse(start)
                         end_time = dateparser.parse(end)
                 elif "赛马娘" in head.text:
-                    char_img = head.find_next("a", {"class": "image"}).find("img")[
+                    char_img = head.find_next("center").find("img")[
                         "src"
                     ]
                     lines = str(head.find_next("p").text).split("\n")
                     chars = [
                         line
                         for line in lines
-                        if "★" in line and "（" in line and "）" in line
+                        if "★" in line and "【" in line and "】" in line
                     ]
-                    for char in chars:
+                    for char in set(chars):  # list去重
                         star = char.count("★")
-                        name = re.split(r"[（）]", char)[-2].strip()
+                        name = re.split(r"[【】]", char)[-2].strip()
                         up_chars.append(
                             UpChar(name=name, star=star, limited=False, zoom=70)
                         )
+                        up_chars_name.append(name)
                 elif "支援卡" in head.text:
-                    card_img = head.find_next("a", {"class": "image"}).find("img")[
+                    card_img = head.find_next("center").find("img")[
                         "src"
                     ]
                     lines = str(head.find_next("p").text).split("\n")
                     cards = [
                         line
                         for line in lines
-                        if "R" in line and "（" in line and "）" in line
+                        if "R" in line and "【" in line and "】" in line
                     ]
                     for card in cards:
                         star = 3 if "SSR" in card else 2 if "SR" in card else 1
-                        name = re.split(r"[（）]", card)[-2].strip()
+                        name = re.split(r"[【】]", card)[-2].strip()
                         up_cards.append(
                             UpChar(name=name, star=star, limited=False, zoom=70)
                         )
+                        up_cards_name.append(name)
             if start_time and end_time:
                 if start_time <= datetime.now() <= end_time:
                     self.UP_CHAR = UpEvent(
@@ -400,6 +404,7 @@ class PrettyHandle(BaseHandle[PrettyData]):
                         start_time=start_time,
                         end_time=end_time,
                         up_char=up_chars,
+                        up_name=up_chars_name,
                     )
                     self.UP_CARD = UpEvent(
                         title=title,
@@ -407,6 +412,7 @@ class PrettyHandle(BaseHandle[PrettyData]):
                         start_time=start_time,
                         end_time=end_time,
                         up_char=up_cards,
+                        up_name=up_cards_name,
                     )
                     self.dump_up_char()
                     logger.info(f"成功获取{self.game_name_cn}当前up信息...当前up池: {title}")
@@ -418,9 +424,10 @@ class PrettyHandle(BaseHandle[PrettyData]):
         self.load_up_char()
         if self.UP_CHAR and self.UP_CARD:
             return Message(
-                Message.template("重载成功！\n当前UP池子：{}{:image}{:image}").format(
-                    self.UP_CHAR.title,
+                Message.template("重载成功！\n当前UP池子：{}{:image}\n当前支援卡池子：{}{:image}").format(
+                    self.UP_CHAR.up_name,
                     self.UP_CHAR.pool_img,
+                    self.UP_CARD.up_name,
                     self.UP_CARD.pool_img,
                 )
             )
