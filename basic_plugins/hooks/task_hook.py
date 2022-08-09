@@ -6,7 +6,7 @@ import re
 
 
 @Bot.on_calling_api
-async def handle_api_call(bot: Bot, api: str, data: Dict[str, Any]):
+async def _(bot: Bot, api: str, data: Dict[str, Any]):
     r = None
     if (
         (

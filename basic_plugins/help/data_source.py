@@ -44,7 +44,7 @@ def _create_help_img(
     :param help_image: 图片路径
     :param simple_help_image: 简易帮助图片路径
     """
-    _matchers = get_matchers()
+    _matchers = get_matchers(True)
     width = 0
     matchers_data = {}
     _des_tmp = {}
@@ -55,15 +55,16 @@ def _create_help_img(
     # 插件分类
     for matcher in _matchers:
         plugin_name = None
-        _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
+        _plugin = matcher.plugin
+        metadata = _plugin.metadata
         if not _plugin:
             logger.warning(f"获取 功能：{matcher.plugin_name} 失败...")
             continue
         _module = _plugin.module
         try:
-            plugin_name = _module.__getattribute__("__zx_plugin_name__")
+            plugin_name = metadata.name if metadata else _module.__getattribute__("__zx_plugin_name__")
             try:
-                plugin_des = _module.__getattribute__("__plugin_des__")
+                plugin_des = metadata.description if metadata else _module.__getattribute__("__plugin_des__")
             except AttributeError:
                 plugin_des = "_"
             if (
@@ -343,13 +344,14 @@ def get_plugin_help(msg: str, is_super: bool = False) -> Optional[str]:
     if module:
         try:
             plugin = nonebot.plugin.get_plugin(module)
+            metadata = plugin.metadata
             if plugin:
                 if is_super:
                     result = plugin.module.__getattribute__(
                         "__plugin_superuser_usage__"
                     )
                 else:
-                    result = plugin.module.__getattribute__("__plugin_usage__")
+                    result = metadata.usage if metadata else plugin.module.__getattribute__("__plugin_usage__")
                 if result:
                     width = 0
                     for x in result.split("\n"):

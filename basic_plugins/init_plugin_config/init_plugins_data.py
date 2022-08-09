@@ -22,9 +22,10 @@ def init_plugins_data(data_path):
     _data = {}
     if plugin2data_file.exists():
         _data = json.load(open(plugin2data_file, "r", encoding="utf8"))
-    _matchers = get_matchers()
+    _matchers = get_matchers(True)
     for matcher in _matchers:
-        _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
+        _plugin = matcher.plugin
+        metadata = _plugin.metadata
         try:
             _module = _plugin.module
         except AttributeError:
@@ -40,18 +41,28 @@ def init_plugins_data(data_path):
                         matcher.plugin_name, "version", plugin_data.get("version")
                     )
         else:
-            try:
-                plugin_version = _module.__getattribute__("__plugin_version__")
-            except AttributeError:
-                plugin_version = None
-            try:
-                plugin_name = _module.__getattribute__("__zx_plugin_name__")
-            except AttributeError:
-                plugin_name = matcher.plugin_name
+            plugin_version = None
+            if metadata:
+                plugin_version = metadata.extra.get("version")
+            if not plugin_version:
+                try:
+                    plugin_version = _module.__getattribute__("__plugin_version__")
+                except AttributeError:
+                    pass
+            if metadata:
+                plugin_name = metadata.name
+            else:
+                try:
+                    plugin_name = _module.__getattribute__("__zx_plugin_name__")
+                except AttributeError:
+                    plugin_name = matcher.plugin_name
+            plugin_author = None
+            if metadata:
+                plugin_author = metadata.extra.get('author')
             try:
                 plugin_author = _module.__getattribute__("__plugin_author__")
             except AttributeError:
-                plugin_author = None
+                pass
             if matcher.plugin_name in plugins_manager.keys():
                 plugins_manager.set_module_data(matcher.plugin_name, "error", False)
             if matcher.plugin_name not in plugins_manager.keys():
@@ -61,7 +72,8 @@ def init_plugins_data(data_path):
                     author=plugin_author,
                     version=plugin_version,
                 )
-            elif plugins_manager[matcher.plugin_name]["version"] is None or (
+                # metadata不检测version
+            elif isinstance(plugin_version, str) or plugins_manager[matcher.plugin_name]["version"] is None or (
                 plugin_version is not None
                 and plugin_version > plugins_manager[matcher.plugin_name]["version"]
             ):

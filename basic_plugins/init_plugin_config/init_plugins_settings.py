@@ -16,28 +16,33 @@ def init_plugins_settings(data_path: str):
     """
     plugins2settings_file = data_path / "configs" / "plugins2settings.yaml"
     plugins2settings_file.parent.mkdir(exist_ok=True, parents=True)
-    _matchers = get_matchers()
+    _matchers = get_matchers(True)
     _tmp_module = {}
     _tmp = []
     for x in plugins2settings_manager.keys():
         try:
             _plugin = nonebot.plugin.get_plugin(x)
             _module = _plugin.module
-            plugin_name = _module.__getattribute__("__zx_plugin_name__")
+            metadata = _plugin.metadata
+            plugin_name = metadata.name if metadata else _module.__getattribute__("__zx_plugin_name__")
             _tmp_module[x] = plugin_name
         except (KeyError, AttributeError) as e:
             logger.warning(f"配置文件 模块：{x} 获取 plugin_name 失败...{e}")
             _tmp_module[x] = ""
     for matcher in _matchers:
         if matcher.plugin_name not in plugins2settings_manager.keys():
-            _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
+            _plugin = matcher.plugin
+            metadata = _plugin.metadata
             try:
                 _module = _plugin.module
             except AttributeError:
                 logger.warning(f"插件 {matcher.plugin_name} 加载失败...，插件控制未加载.")
             else:
                 try:
-                    plugin_name = _module.__getattribute__("__zx_plugin_name__")
+                    if metadata:
+                        plugin_name = metadata.name
+                    else:
+                        plugin_name = _module.__getattribute__("__zx_plugin_name__")
                     if "[admin]" in plugin_name.lower():
                         try:
                             admin_settings = _module.__getattribute__(
@@ -66,43 +71,45 @@ def init_plugins_settings(data_path: str):
                             f"获取插件 {matcher.plugin_name} __zx_plugin_name__ 失败...，插件控制未加载."
                         )
                 else:
+                    _tmp_module[matcher.plugin_name] = plugin_name
                     try:
-                        _tmp_module[matcher.plugin_name] = plugin_name
                         plugin_settings = _module.__getattribute__(
                             "__plugin_settings__"
                         )
-                        if plugin_settings.get('cost_gold') is None:
-                            plugin_settings['cost_gold'] = 0
-                        if (
-                            plugin_settings.get("cmd") is not None
-                            and plugin_name not in plugin_settings["cmd"]
-                        ):
-                            plugin_settings["cmd"].append(plugin_name)
-                        if plugins2settings_manager.get(
-                            matcher.plugin_name
-                        ) and plugins2settings_manager[matcher.plugin_name].get(
-                            "plugin_type"
-                        ):
-                            plugin_type = tuple(
-                                plugins2settings_manager.get_plugin_data(
-                                    matcher.plugin_name
-                                )["plugin_type"]
-                            )
-                        else:
-                            try:
-                                plugin_type = _module.__getattribute__(
-                                    "__plugin_type__"
-                                )
-                            except AttributeError:
-                                plugin_type = ("normal",)
-                        if plugin_settings and matcher.plugin_name:
-                            plugins2settings_manager.add_plugin_settings(
-                                matcher.plugin_name,
-                                plugin_type=plugin_type,
-                                **plugin_settings,
-                            )
                     except AttributeError:
-                        pass
+                        plugin_settings = {
+                            "cmd": [matcher.plugin_name, plugin_name]
+                        }
+                    if not plugin_settings.get('cost_gold'):
+                        plugin_settings['cost_gold'] = 0
+                    if (
+                        plugin_settings.get("cmd") is not None
+                        and plugin_name not in plugin_settings["cmd"]
+                    ):
+                        plugin_settings["cmd"].append(plugin_name)
+                    if plugins2settings_manager.get(
+                        matcher.plugin_name
+                    ) and plugins2settings_manager[matcher.plugin_name].get(
+                        "plugin_type"
+                    ):
+                        plugin_type = tuple(
+                            plugins2settings_manager.get_plugin_data(
+                                matcher.plugin_name
+                            )["plugin_type"]
+                        )
+                    else:
+                        try:
+                            plugin_type = _module.__getattribute__(
+                                "__plugin_type__"
+                            )
+                        except AttributeError:
+                            plugin_type = ("normal",)
+                    if plugin_settings and matcher.plugin_name:
+                        plugins2settings_manager.add_plugin_settings(
+                            matcher.plugin_name,
+                            plugin_type=plugin_type,
+                            **plugin_settings,
+                        )
         _tmp.append(matcher.plugin_name)
     _tmp_data = {"PluginSettings": plugins2settings_manager.get_data()}
     with open(plugins2settings_file, "w", encoding="utf8") as wf:

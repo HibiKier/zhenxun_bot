@@ -247,6 +247,31 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
+### 2022/8/8
+
+* 修复赛马娘重载卡池失败的问题 [@pull/969](https://github.com/HibiKier/zhenxun_bot/pull/969)
+
+### 2022/8/3
+
+* 修复 bili动态链接在投稿视频时URL和分割线连在一起 [@pull/951](https://github.com/HibiKier/zhenxun_bot/pull/961)
+* 更新 Epic 免费游戏商城链接拼接规则 [@pull/957](https://github.com/HibiKier/zhenxun_bot/pull/957)
+
+### 2022/8/6
+
+* 修复了原神自动签到返回invalid request的问题，新增查看我的cookie命令 [@pull/971](https://github.com/HibiKier/zhenxun_bot/pull/971)
+
+### 2022/7/31
+
+* 对nonebot.beta4中PluginMeta进行解析
+* 修改webui元祖类型无法正确转换类型
+* 查看订阅以图片形式发送
+* 修复pix无图时不会提醒而是出错
+
+### 2022/7/30
+
+* 替换了cos和bt的url [@pull/951](https://github.com/HibiKier/zhenxun_bot/pull/951)
+* 发言记录统计添加日消息统计 [@pull/953](https://github.com/HibiKier/zhenxun_bot/pull/953)
+
 ### 2022/7/24
 
 * 订阅up动态提供直链

@@ -21,23 +21,37 @@ def init_plugins_config(data_path):
     _data = {}
     if plugins2config_file.exists():
         _data = _yaml.load(open(plugins2config_file, "r", encoding="utf8"))
-    _matchers = get_matchers()
+    _matchers = get_matchers(True)
+    # 优先使用 metadata 数据
     for matcher in _matchers:
-        _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
+        _plugin = matcher.plugin
+        metadata = _plugin.metadata
         try:
             _module = _plugin.module
         except AttributeError:
             continue
-        try:
-            plugin_version = _module.__getattribute__("__plugin_version__")
-        except AttributeError:
-            plugin_version = None
-        try:
-            plugin_configs = _module.__getattribute__("__plugin_configs__")
-        except AttributeError:
-            continue
-        # 插件配置版本更新或为Version为None或不在存储配置内
-        if (
+        plugin_version = None
+        if metadata:
+            plugin_version = metadata.extra.get("version")
+        if not plugin_version:
+            try:
+                plugin_version = _module.__getattribute__("__plugin_version__")
+            except AttributeError:
+                pass
+        if metadata and metadata.config:
+            plugin_configs = {}
+            for key, value in metadata.config.__fields__.items():
+                plugin_configs[key.upper()] = {
+                    "value": value.default,
+                    "default_value": value.default
+                }
+        else:
+            try:
+                plugin_configs = _module.__getattribute__("__plugin_configs__")
+            except AttributeError:
+                continue
+        # 插件配置版本更新或为Version为None或不在存储配置内，当使用metadata时，必定更新
+        if isinstance(plugin_version, str) or (
             plugin_version is None
             or (
                 _data.get(matcher.plugin_name)

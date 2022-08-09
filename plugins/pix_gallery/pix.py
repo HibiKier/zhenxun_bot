@@ -149,8 +149,8 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     for _ in range(num):
         img_url = None
         author = None
-        # if not all_image:
-        #     await pix.finish("坏了...发完了，没图了...")
+        if not all_image:
+            await pix.finish("坏了...发完了，没图了...")
         img = random.choice(all_image)
         all_image.remove(img)
         if isinstance(img, OmegaPixivIllusts):

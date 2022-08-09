@@ -111,6 +111,9 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
     try:
         if plugin.plugin_config:
             for c in plugin.plugin_config:
+                if not c.value:
+                    Config.set_config(plugin.model, c.key, None)
+                    continue
                 if str(c.value).lower() in ["true", "false"] and (
                     c.default_value is None or isinstance(c.default_value, bool)
                 ):
@@ -124,8 +127,8 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
                 ) or isinstance(c.default_value, float):
                     c.value = float(c.value)
                 elif isinstance(c.value, str) and (
-                    isinstance(Config.get_config(plugin.model, c.key, c.value), list)
-                    or isinstance(c.default_value, list)
+                    isinstance(Config.get_config(plugin.model, c.key, c.value), (list, tuple))
+                    or isinstance(c.default_value, (list, tuple))
                 ):
                     default_value = Config.get_config(plugin.model, c.key, c.value)
                     c.value = c.value.split(",")
