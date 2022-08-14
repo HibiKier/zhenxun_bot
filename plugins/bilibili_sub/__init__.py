@@ -234,7 +234,7 @@ async def _():
                 rst = await get_sub_status(sub.sub_id, sub.sub_type)
                 await send_sub_msg(rst, sub, bot)
                 if sub.sub_type == "live":
-                    rst = await get_sub_status(sub.sub_id, "up")
+                    rst = await get_sub_status(sub.uid, "up")
                     await send_sub_msg(rst, sub, bot)
         except Exception as e:
             logger.error(f"B站订阅推送发生错误 sub_id：{sub.sub_id if sub else 0} {type(e)}：{e}")
