@@ -245,6 +245,32 @@ __Docker 全量版（包含 真寻Bot PostgreSQL数据库 go-cqhttp webui等）_
 **点击上方的 GitHub 徽标查看教程**  
 PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能无法正常启动全量版容器**
 
+## [爱发电](https://afdian.net/@HibiKier)
+<details>
+<summary>爱发电 以及 感谢投喂 </summary>
+<img width="365px" height="450px" src="https://user-images.githubusercontent.com/45528451/175059389-cfeb8174-fa07-4939-80ab-a039087a50f6.png">
+
+### 感谢名单
+(可以告诉我你的 __github__ 地址，我偷偷换掉0v|)  
+[爱发电用户_b9S4](https://afdian.net/u/3d8f30581a2911edba6d52540025c377) 
+[爱发电用户_c58s](https://afdian.net/u/a6ad8dda195e11ed9a4152540025c377) 
+[爱发电用户_eNr9](https://afdian.net/u/05fdb41c0c9a11ed814952540025c377)   
+[MangataAkihi](https://github.com/Sakuracio)   
+[炀](https://afdian.net/u/69b76e9ec77b11ec874f52540025c377)   
+[爱发电用户_Bc6j](https://afdian.net/u/8546be24f44111eca64052540025c377)   
+[大魔王](https://github.com/xipesoy)   
+[CopilotLaLaLa](https://github.com/CopilotLaLaLa)  
+[嘿小欧](https://afdian.net/u/daa4bec4f24911ec82e552540025c377)   
+[回忆的秋千](https://afdian.net/u/e315d9c6f14f11ecbeef52540025c377)  
+[十年くん](https://afdian.net/@ZXYX10)  
+[哇](https://afdian.net/u/9b266244f23911eca19052540025c377)  
+[yajiwa](https://github.com/yajiwa)  
+[爆金币](https://afdian.net/u/0d78879ef23711ecb22452540025c377)  
+
+
+</details>
+
+
 ## 更新
 
 ### 2022/8/14
@@ -277,7 +303,7 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 * 替换了cos和bt的url [@pull/951](https://github.com/HibiKier/zhenxun_bot/pull/951)
 * 发言记录统计添加日消息统计 [@pull/953](https://github.com/HibiKier/zhenxun_bot/pull/953)
 
-### 2022/7/24
+### 2022/7/24 \[v0.1.6.2]
 
 * 订阅up动态提供直链
 
@@ -746,10 +772,6 @@ __..... 更多更新信息请查看文档__
 
 ## Todo
 - [ ] web管理
-
-## 爱发电
-
-<img width="365px" height="450px" src="https://user-images.githubusercontent.com/45528451/175059389-cfeb8174-fa07-4939-80ab-a039087a50f6.png">
 
 ## 感谢
 [botuniverse / onebot](https://github.com/botuniverse/onebot) ：超棒的机器人协议  
