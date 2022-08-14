@@ -33,7 +33,7 @@ async def genshin_sign(uid: int) -> Optional[str]:
                 ]["cnt"]
             get_im = f"本次签到获得：{get_reward}x{reward_num}"
             if status == "OK" and sign_info["is_sign"]:
-                return f"\n原神签到成功！\n{get_im}\n本月漏签次数：{sign_info['sign_cnt_missed']}"
+                return f"原神签到成功！\n{get_im}\n本月漏签次数：{sign_info['sign_cnt_missed']}"
     else:
         return status
     return None

@@ -5,6 +5,178 @@ import random
 import pytz
 
 
+class MiHoYoBBS(db.Model):
+    __tablename__ = "mihoyobbs"
+
+    id = db.Column(db.Integer(), primary_key=True)
+    user_qq = db.Column(db.BigInteger(), nullable=False)
+    uid = db.Column(db.BigInteger(), nullable=False)
+    cookie = db.Column(db.String(), default="")
+    login_ticket = db.Column(db.String(), default="")
+    stuid = db.Column(db.String(), default="")
+    stoken = db.Column(db.String(), default="")
+
+    _idx1 = db.Index("mihoyobbs_uid_idx1", "user_qq", "uid", unique=True)
+
+    @classmethod
+    async def set_stuid(cls, uid: int, stuid: str) -> bool:
+        """
+        说明:
+            设置stuid
+        参数:
+            :param uid: 原神uid
+            :param stuid: stuid
+        """
+        query = cls.query.where(cls.uid == uid).with_for_update()
+        user = await query.gino.first()
+        if user:
+            await user.update(stuid=stuid).apply()
+            return True
+        return False
+
+    @classmethod
+    async def set_stoken(cls, uid: int, stoken: str) -> bool:
+        """
+        说明:
+            设置stoken
+        参数:
+            :param uid: 原神uid
+            :param stoken: stoken
+        """
+        query = cls.query.where(cls.uid == uid).with_for_update()
+        user = await query.gino.first()
+        if user:
+            await user.update(stoken=stoken).apply()
+            return True
+        return False
+
+    @classmethod
+    async def set_login_ticket(cls, uid: int, login_ticket: str) -> bool:
+        """
+        说明:
+            设置login_ticket
+        参数:
+            :param uid: 原神uid
+            :param login_ticket: login_ticket
+        """
+        query = cls.query.where(cls.uid == uid).with_for_update()
+        user = await query.gino.first()
+        if user:
+            await user.update(login_ticket=login_ticket).apply()
+            return True
+        return False
+
+    @classmethod
+    async def add_uid(cls, user_qq: int, uid: int):
+        """
+        说明:
+            添加一个uid
+        参数:
+            :param user_qq： 用户qq
+            :param uid: 原神uid
+        """
+        query = cls.query.where((cls.user_qq == user_qq) & (cls.uid == uid))
+        user = await query.gino.first()
+        if not user:
+            await cls.create(
+                user_qq=user_qq,
+                uid=uid,
+            )
+            return True
+        return False
+
+    @classmethod
+    async def set_cookie(cls, uid: int, cookie: str) -> bool:
+        """
+        说明:
+            设置cookie
+        参数:
+            :param uid: 原神uid
+            :param cookie: 米游社id
+        """
+        query = cls.query.where(cls.uid == uid).with_for_update()
+        user = await query.gino.first()
+        if user:
+            await user.update(cookie=cookie).apply()
+            return True
+        return False
+
+    # 获取cookie
+    @classmethod
+    async def get_cookie(cls, uid: int) -> Optional[str]:
+        """
+        说明:
+            获取cookie
+        参数:
+            :param uid: 原神uid
+        """
+        query = cls.query.where(cls.uid == uid)
+        user = await query.gino.first()
+        if user:
+            return user.cookie
+        return None
+
+    # 获取login_ticket
+    @classmethod
+    async def get_login_ticket(cls, uid: int) -> Optional[str]:
+        """
+        说明:
+            获取login_ticket
+        参数:
+            :param uid: 原神uid
+        """
+        query = cls.query.where(cls.uid == uid)
+        user = await query.gino.first()
+        if user:
+            return user.login_ticket
+        return None
+
+    # 获取stuid
+    @classmethod
+    async def get_stuid(cls, uid: int) -> Optional[str]:
+        """
+        说明:
+            获取stuid
+        参数:
+            :param uid: 原神uid
+        """
+        query = cls.query.where(cls.uid == uid)
+        user = await query.gino.first()
+        if user:
+            return user.stuid
+        return None
+
+    # 获取stoken
+    @classmethod
+    async def get_stoken(cls, uid: int) -> Optional[str]:
+        """
+        说明:
+            获取stoken
+        参数:
+            :param uid: 原神uid
+        """
+        query = cls.query.where(cls.uid == uid)
+        user = await query.gino.first()
+        if user:
+            return user.stoken
+        return None
+
+    # 获取uid
+    @classmethod
+    async def get_uid(cls, user_qq: int) -> Optional[int]:
+        """
+        说明:
+            获取uid
+        参数:
+            :param user_qq: 用户qq
+        """
+        query = cls.query.where(cls.user_qq == user_qq)
+        user = await query.gino.first()
+        if user:
+            return user.uid
+        return None
+
+
 class Genshin(db.Model):
     __tablename__ = "genshin"
 
