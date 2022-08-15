@@ -107,7 +107,8 @@ async def _sign(user_id: int, uid: int, count: int):
     bot = get_bot()
     if bot:
         if user_id in [x["user_id"] for x in await bot.get_friend_list()]:
-            await bot.send_private_msg(user_id=user_id, message=msg + return_data)
+            await bot.send_private_msg(user_id=user_id, message=return_data)
+            await bot.send_private_msg(user_id=user_id, message=msg)
         else:
             if not (group_id := await Genshin.get_bind_group(uid)):
                 group_list = await GroupInfoUser.get_user_all_group(user_id)

@@ -53,11 +53,12 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
         try:
             msg = await genshin_sign(uid)
             return_data = await mihoyobbs_sign(event.user_id)
-            msg += "\n" + return_data + "\n"
+            await genshin_matcher.send(return_data)
             logger.info(
                 f"(USER {event.user_id}, "
                 f"GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) UID：{uid} 原神签到"
             )
+            logger.info(msg)
             # 硬签，移除定时任务
             try:
                 for i in range(3):

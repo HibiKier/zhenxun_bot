@@ -32,7 +32,7 @@ __plugin_settings__ = {
 }
 
 mihoyobbs_matcher = on_command(
-    "米游社签到", priority=5, block=True
+    "米游社签到", aliases={"米游社我硬签"}, priority=5, block=True
 )
 
 

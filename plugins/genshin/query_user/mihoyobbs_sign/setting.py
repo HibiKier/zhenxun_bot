@@ -72,8 +72,8 @@ headers = {
     'DS': "",
     'Origin': 'https://webstatic.mihoyo.com',
     'x-rpc-app_version': mihoyobbs_Version,
-    'User-Agent': 'Mozilla/5.0 (Linux; Android 9; Unspecified Device) AppleWebKit/537.36 (KHTML, like Gecko) '
-                  'Version/4.0 Chrome/39.0.0.0 Mobile Safari/537.36 miHoYoBBS/2.3.0',
+    'User-Agent': 'Mozilla/5.0 (Linux; Android 12; Unspecified Device) AppleWebKit/537.36 (KHTML, like Gecko) '
+                  f'Version/4.0 Chrome/103.0.5060.129 Mobile Safari/537.36 miHoYoBBS/{mihoyobbs_Version}',
     'x-rpc-client_type': mihoyobbs_Client_type_web,
     'Referer': '',
     'Accept-Encoding': 'gzip, deflate',
