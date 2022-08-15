@@ -262,7 +262,7 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 [CopilotLaLaLa](https://github.com/CopilotLaLaLa)  
 [嘿小欧](https://afdian.net/u/daa4bec4f24911ec82e552540025c377)   
 [回忆的秋千](https://afdian.net/u/e315d9c6f14f11ecbeef52540025c377)  
-[十年くん](https://afdian.net/@ZXYX10)  
+[十年くん](https://github.com/shinianj)
 [哇](https://afdian.net/u/9b266244f23911eca19052540025c377)  
 [yajiwa](https://github.com/yajiwa)  
 [爆金币](https://afdian.net/u/0d78879ef23711ecb22452540025c377)  
