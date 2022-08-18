@@ -3,6 +3,7 @@ from .error import CookieError
 from utils.http_utils import AsyncHttpx
 from .setting import *
 from .tools import *
+import json
 
 today_get_coins = 0
 today_have_get_coins = 0  # 这个变量以后可能会用上，先留着了
@@ -18,7 +19,7 @@ class Mihoyobbs:
             "x-rpc-client_type": mihoyobbs_Client_type,
             "x-rpc-app_version": mihoyobbs_Version,
             "x-rpc-sys_version": "6.0.1",
-            "x-rpc-channel": "mihoyo",
+            "x-rpc-channel": "miyousheluodi",
             "x-rpc-device_id": get_device_id(cookie=cookie),
             "x-rpc-device_name": random_text(random.randint(1, 10)),
             "x-rpc-device_model": "Mi 10",
@@ -121,8 +122,11 @@ class Mihoyobbs:
             logger.info("讨论区任务已经完成过了~")
         else:
             logger.info("正在签到......")
+            header = {}
+            header.update(self.headers)
             for i in mihoyobbs_List_Use:
-                req = await AsyncHttpx.post(url=bbs_Sign_url.format(i["id"]), data={}, headers=self.headers)
+                header["DS"] = get_ds2("", json.dumps({"gids": i["id"]}))
+                req = await AsyncHttpx.post(url=bbs_Sign_url, json={"gids": i["id"]}, headers=header)
                 data = req.json()
                 if "err" not in data["message"]:
                     logger.info(str(i["name"] + data["message"]))

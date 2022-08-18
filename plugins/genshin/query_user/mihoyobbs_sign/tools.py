@@ -35,6 +35,16 @@ def get_ds(web: bool) -> str:
     return f"{i},{r},{c}"
 
 
+# 获取请求Header里的DS(版本2) 这个版本ds之前见到都是查询接口里的
+def get_ds2(q: str, b: str) -> str:
+    n = mihoyobbs_Salt2
+    i = str(timestamp())
+    r = str(random.randint(100001, 200000))
+    add = f'&b={b}&q={q}'
+    c = md5("salt=" + n + "&t=" + i + "&r=" + r + add)
+    return f"{i},{r},{c}"
+
+
 # 生成一个device id
 def get_device_id(cookie) -> str:
     return str(uuid.uuid3(uuid.NAMESPACE_URL, cookie))

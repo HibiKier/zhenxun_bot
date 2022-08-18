@@ -1,5 +1,6 @@
 # 米游社的Salt
 mihoyobbs_Salt = "z8DRIUjNDT7IT5IZXvrUAxyupA1peND9"
+mihoyobbs_Salt2 = "t0qEgfub6cvueAPgR5m9aQWWVciEer7v"
 mihoyobbs_Salt_web = "9nQiU3AV0rJSIBWgdynfoGMGKaklfbM7"
 # 米游社的版本
 mihoyobbs_Version = "2.34.1"  # Slat和Version相互对应
@@ -92,7 +93,7 @@ account_Info_url = web_Api + "/binding/api/getUserGameRolesByCookie?game_biz="
 bbs_Cookie_url = "https://webapi.account.mihoyo.com/Api/cookie_accountinfo_by_loginticket?login_ticket={}"
 bbs_Cookie_url2 = web_Api + "/auth/api/getMultiTokenByLoginTicket?login_ticket={}&token_types=3&uid={}"
 bbs_Tasks_list = bbs_Api + "/apihub/sapi/getUserMissionsState"  # 获取任务列表
-bbs_Sign_url = bbs_Api + "/apihub/sapi/signIn?gids={}"  # post
+bbs_Sign_url = bbs_Api + "/apihub/app/api/signIn"  # post
 bbs_List_url = bbs_Api + "/post/api/getForumPostList?forum_id={}&is_good=false&is_hot=false&page_size=20&sort_type=1"
 bbs_Detail_url = bbs_Api + "/post/api/getPostFull?post_id={}"
 bbs_Share_url = bbs_Api + "/apihub/api/getShareConf?entity_id={}&entity_type=1"
