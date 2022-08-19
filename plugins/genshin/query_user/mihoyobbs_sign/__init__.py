@@ -3,7 +3,7 @@ from nonebot import on_command
 from services.log import logger
 # from .init_task import add_job, scheduler, _sign
 # from apscheduler.jobstores.base import JobLookupError
-from .._models import MiHoYoBBS
+from .._models import Genshin
 from nonebot.params import Command
 from typing import Tuple
 from .mihoyobbs import *
@@ -47,10 +47,10 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
 
 
 async def mihoyobbs_sign(user_id):
-    uid = await MiHoYoBBS.get_uid(user_id)
-    stuid = await MiHoYoBBS.get_stuid(uid)
-    stoken = await MiHoYoBBS.get_stoken(uid)
-    cookie = await MiHoYoBBS.get_cookie(uid)
+    uid = await Genshin.get_user_uid(user_id)
+    stuid = await Genshin.get_stuid(uid)
+    stoken = await Genshin.get_stoken(uid)
+    cookie = await Genshin.get_user_cookie(uid)
     bbs = mihoyobbs.Mihoyobbs(stuid=stuid, stoken=stoken, cookie=cookie)
     await bbs.init()
     return_data = ""
