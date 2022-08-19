@@ -112,6 +112,8 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message 
             await Genshin.set_login_ticket(uid, login_ticket)
         # except Exception as e:
         #     await bind.finish("获取登陆信息失败，请检查cookie是否正确或更新cookie")
+        elif data["data"]["msg"] == "登录信息已失效，请重新登录":
+            await bind.finish("登录信息失效，请重新获取最新cookie进行绑定")
         _x = f"已成功为uid：{uid} 设置cookie"
     if isinstance(event, GroupMessageEvent):
         await Genshin.set_bind_group(uid, event.group_id)
