@@ -96,12 +96,15 @@ async def get_epic_free(bot: Bot, type_event: str):
                         if pair["key"] == "publisherName":
                             game_pub = pair["value"]
                     game_desp = game["description"]
-                    end_date_iso = game["promotions"]["promotionalOffers"][0][
-                        "promotionalOffers"
-                    ][0]["endDate"][:-1]
-                    end_date = datetime.fromisoformat(end_date_iso).strftime(
-                        "%b.%d %H:%M"
-                    )
+                    try:
+                        end_date_iso = game["promotions"]["promotionalOffers"][0][
+                            "promotionalOffers"
+                        ][0]["endDate"][:-1]
+                        end_date = datetime.fromisoformat(end_date_iso).strftime(
+                            "%b.%d %H:%M"
+                        )
+                    except IndexError:
+                        end_date = '未知'
                     # API 返回不包含游戏商店 URL，此处自行拼接，可能出现少数游戏 404 请反馈
                     if game.get("productSlug"):
                         game_url = "https://store.epicgames.com/zh-CN/p/{}".format(
