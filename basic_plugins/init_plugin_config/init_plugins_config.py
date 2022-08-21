@@ -6,7 +6,6 @@ from services.log import logger
 from utils.text_utils import prompt2cn
 from utils.utils import get_matchers
 from ruamel import yaml
-import nonebot
 
 
 _yaml = YAML(typ="safe")

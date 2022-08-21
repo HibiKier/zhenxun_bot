@@ -1,18 +1,31 @@
-import re
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, Event
-from utils.utils import get_message_img_file
-from .model import WordBank
+import random
+
+from nonebot.adapters.onebot.v11 import MessageEvent
+
+from configs.path_config import TEMP_PATH
+from utils.image_utils import get_img_hash
+from utils.utils import get_message_text, get_message_img, get_message_at
+from ._model import WordBank
+from utils.http_utils import AsyncHttpx
 
 
-async def check(event: Event) -> bool:
-    if isinstance(event, GroupMessageEvent):
-        msg = event.raw_message
-        list_img = get_message_img_file(event.json())
-        if list_img:
-            for img_file in list_img:
-                strinfo = re.compile(f"{img_file},.*?]")
-                msg = strinfo.sub(f'{img_file}]', msg)
-        strinfo_face = re.compile(f",type=sticker]")
-        msg = strinfo_face.sub(f']', msg)
-        return bool(await WordBank.check(event.group_id, msg,))
+async def check(event: MessageEvent) -> bool:
+    text = get_message_text(event.message)
+    img = get_message_img(event.message)
+    at = get_message_at(event.message)
+    rand = random.randint(1, 100)
+    problem = text
+    if not text and len(img) == 1:
+        if await AsyncHttpx.download_file(img[0], TEMP_PATH / f"{event.user_id}_{rand}_word_bank_check.jpg"):
+            problem = str(get_img_hash(TEMP_PATH / f"{event.user_id}_{rand}_word_bank_check.jpg"))
+    if at:
+        temp = ''
+        for seg in event.message:
+            if seg.type == 'at':
+                temp += f"[at:{seg.data['qq']}]"
+            else:
+                temp += seg
+        problem = temp
+    if problem:
+        return await WordBank.check(event, problem) is not None
     return False

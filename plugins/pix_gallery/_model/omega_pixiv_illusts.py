@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from datetime import datetime
 from services.db_context import db
 
@@ -113,7 +113,7 @@ class OmegaPixivIllusts(db.Model):
         return bool(query)
 
     @classmethod
-    async def get_keyword_num(cls, tags: List[str] = None) -> "int, int, int":
+    async def get_keyword_num(cls, tags: List[str] = None) -> Tuple[int, int, int]:
         """
         说明:
             获取相关关键词(keyword, tag)在图库中的数量

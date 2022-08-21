@@ -1,4 +1,5 @@
 from .data_source import get_sign_reward_list, genshin_sign
+from ..mihoyobbs_sign import mihoyobbs_sign
 from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent
 from nonebot import on_command
 from services.log import logger
@@ -51,10 +52,13 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
     if cmd == "原神我硬签":
         try:
             msg = await genshin_sign(uid)
+            return_data = await mihoyobbs_sign(event.user_id)
+            await genshin_matcher.send(return_data)
             logger.info(
                 f"(USER {event.user_id}, "
                 f"GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) UID：{uid} 原神签到"
             )
+            logger.info(msg)
             # 硬签，移除定时任务
             try:
                 for i in range(3):
@@ -66,7 +70,7 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
                 await u.clear_sign_time(uid)
                 next_date = await Genshin.random_sign_time(uid)
                 add_job(event.user_id, uid, next_date)
-                msg += f"因开启自动签到\n下一次签到时间为：{next_date.replace(microsecond=0)}"
+                msg += f"\n因开启自动签到\n下一次签到时间为：{next_date.replace(microsecond=0)}"
         except Exception as e:
             msg = "原神签到失败..请尝试检查cookie或报告至管理员！"
             logger.info(

@@ -1,4 +1,5 @@
 from .data_source import genshin_sign
+from ..mihoyobbs_sign import mihoyobbs_sign
 from models.group_member_info import GroupInfoUser
 from utils.message_builder import at
 from services.log import logger
@@ -57,6 +58,11 @@ async def _sign(user_id: int, uid: int, count: int):
     :param uid: uid
     :param count: 执行次数
     """
+    try:
+        return_data = await mihoyobbs_sign(user_id)
+    except Exception as e:
+        logger.error(f"mihoyobbs_sign error：{e}")
+        return_data = "米游社签到失败，请尝试发送'米游社签到'进行手动签到"
     if count < 3:
         try:
             msg = await genshin_sign(uid)
@@ -101,6 +107,7 @@ async def _sign(user_id: int, uid: int, count: int):
     bot = get_bot()
     if bot:
         if user_id in [x["user_id"] for x in await bot.get_friend_list()]:
+            await bot.send_private_msg(user_id=user_id, message=return_data)
             await bot.send_private_msg(user_id=user_id, message=msg)
         else:
             if not (group_id := await Genshin.get_bind_group(uid)):

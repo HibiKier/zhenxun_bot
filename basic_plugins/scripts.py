@@ -109,6 +109,18 @@ async def _():
             "genshin"
         ),  # 新增原神群号绑定字段
         (
+            "ALTER TABLE genshin ADD login_ticket VARCHAR(255) DEFAULT '';",
+            "genshin"
+        ),  # 新增米游社login_ticket绑定字段
+        (
+            "ALTER TABLE genshin ADD stuid VARCHAR(255) DEFAULT '';",
+            "genshin"
+        ),  # 新增米游社stuid绑定字段
+        (
+            "ALTER TABLE genshin ADD stoken VARCHAR(255) DEFAULT '';",
+            "genshin"
+        ),  # 新增米游社stoken绑定字段
+        (
             "ALTER TABLE chat_history ADD plain_text Text;",
             "chat_history"
         ),  # 新增纯文本

@@ -128,7 +128,7 @@
 - [x] 移动图片  （同上）
 - [x] 删除图片  （同上）
 - [x] 群内B站订阅
-- [x] 群词条
+- [x] 词条设置
 - [x] 休息吧/醒来
 
 ### 已实现的超级用户功能
@@ -245,7 +245,50 @@ __Docker 全量版（包含 真寻Bot PostgreSQL数据库 go-cqhttp webui等）_
 **点击上方的 GitHub 徽标查看教程**  
 PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能无法正常启动全量版容器**
 
+## [爱发电](https://afdian.net/@HibiKier)
+<details>
+<summary>爱发电 以及 感谢投喂 </summary>
+<img width="365px" height="450px" src="https://user-images.githubusercontent.com/45528451/175059389-cfeb8174-fa07-4939-80ab-a039087a50f6.png">
+
+### 感谢名单
+(可以告诉我你的 __github__ 地址，我偷偷换掉0v|)  
+[爱发电用户_b9S4](https://afdian.net/u/3d8f30581a2911edba6d52540025c377) 
+[爱发电用户_c58s](https://afdian.net/u/a6ad8dda195e11ed9a4152540025c377) 
+[爱发电用户_eNr9](https://afdian.net/u/05fdb41c0c9a11ed814952540025c377)   
+[MangataAkihi](https://github.com/Sakuracio)   
+[炀](https://afdian.net/u/69b76e9ec77b11ec874f52540025c377)   
+[爱发电用户_Bc6j](https://afdian.net/u/8546be24f44111eca64052540025c377)   
+[大魔王](https://github.com/xipesoy)   
+[CopilotLaLaLa](https://github.com/CopilotLaLaLa)  
+[嘿小欧](https://afdian.net/u/daa4bec4f24911ec82e552540025c377)   
+[回忆的秋千](https://afdian.net/u/e315d9c6f14f11ecbeef52540025c377)  
+[十年くん](https://github.com/shinianj)
+[哇](https://afdian.net/u/9b266244f23911eca19052540025c377)  
+[yajiwa](https://github.com/yajiwa)  
+[爆金币](https://afdian.net/u/0d78879ef23711ecb22452540025c377)  
+
+
+</details>
+
+
 ## 更新
+
+### 2022/8/21
+
+* 重构群词条，改为词库Plus，增加 精准|模糊|正则 问题匹配，问题与回答均支持at，image，face，超级用户额外提供 全局|私聊 词库设置，数据迁移目前只提供了问题和回答都是纯文本的词条
+* 修复b站转发解析av号无法解析
+* 改进插件 `我有一个朋友`，避免触发过于频繁 [@pull/1001](https://github.com/HibiKier/zhenxun_bot/pull/1001)
+* 原神便笺新增洞天宝钱和参量质变仪提示 [@pull/1005](https://github.com/HibiKier/zhenxun_bot/pull/1005)
+* 新增米游社签到功能，自动领取（白嫖）米游币 [@pull/991](https://github.com/HibiKier/zhenxun_bot/pull/991)
+
+### 2022/8/14
+
+* 修复epic未获取到时间时出错
+* 修复订阅主播时动态获取的id是直播间id
+
+### 2022/8/8
+
+* 修复赛马娘重载卡池失败的问题 [@pull/969](https://github.com/HibiKier/zhenxun_bot/pull/969)
 
 ### 2022/8/3
 
@@ -268,7 +311,7 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 * 替换了cos和bt的url [@pull/951](https://github.com/HibiKier/zhenxun_bot/pull/951)
 * 发言记录统计添加日消息统计 [@pull/953](https://github.com/HibiKier/zhenxun_bot/pull/953)
 
-### 2022/7/24
+### 2022/7/24 \[v0.1.6.2]
 
 * 订阅up动态提供直链
 
@@ -737,10 +780,6 @@ __..... 更多更新信息请查看文档__
 
 ## Todo
 - [ ] web管理
-
-## 爱发电
-
-<img width="365px" height="450px" src="https://user-images.githubusercontent.com/45528451/175059389-cfeb8174-fa07-4939-80ab-a039087a50f6.png">
 
 ## 感谢
 [botuniverse / onebot](https://github.com/botuniverse/onebot) ：超棒的机器人协议  

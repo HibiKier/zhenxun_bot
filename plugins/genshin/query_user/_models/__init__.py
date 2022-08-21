@@ -19,6 +19,9 @@ class Genshin(db.Model):
     resin_remind = db.Column(db.Boolean(), default=False)   # 树脂提醒
     resin_recovery_time = db.Column(db.DateTime(timezone=True))  # 满树脂提醒日期
     bind_group = db.Column(db.BigInteger())
+    login_ticket = db.Column(db.String(), default="")
+    stuid = db.Column(db.String(), default="")
+    stoken = db.Column(db.String(), default="")
 
     _idx1 = db.Index("genshin_uid_idx1", "user_qq", "uid", unique=True)
 
@@ -386,3 +389,96 @@ class Genshin(db.Model):
         for u in await cls.query.with_for_update().gino.all():
             if u.today_query_uid:
                 await u.update(today_query_uid="").apply()
+
+    @classmethod
+    async def set_stuid(cls, uid: int, stuid: str) -> bool:
+        """
+        说明:
+            设置stuid
+        参数:
+            :param uid: 原神uid
+            :param stuid: stuid
+        """
+        query = cls.query.where(cls.uid == uid).with_for_update()
+        user = await query.gino.first()
+        if user:
+            await user.update(stuid=stuid).apply()
+            return True
+        return False
+
+    @classmethod
+    async def set_stoken(cls, uid: int, stoken: str) -> bool:
+        """
+        说明:
+            设置stoken
+        参数:
+            :param uid: 原神uid
+            :param stoken: stoken
+        """
+        query = cls.query.where(cls.uid == uid).with_for_update()
+        user = await query.gino.first()
+        if user:
+            await user.update(stoken=stoken).apply()
+            return True
+        return False
+
+    @classmethod
+    async def set_login_ticket(cls, uid: int, login_ticket: str) -> bool:
+        """
+        说明:
+            设置login_ticket
+        参数:
+            :param uid: 原神uid
+            :param login_ticket: login_ticket
+        """
+        query = cls.query.where(cls.uid == uid).with_for_update()
+        user = await query.gino.first()
+        if user:
+            await user.update(login_ticket=login_ticket).apply()
+            return True
+        return False
+
+    # 获取login_ticket
+    @classmethod
+    async def get_login_ticket(cls, uid: int) -> Optional[str]:
+        """
+        说明:
+            获取login_ticket
+        参数:
+            :param uid: 原神uid
+        """
+        query = cls.query.where(cls.uid == uid)
+        user = await query.gino.first()
+        if user:
+            return user.login_ticket
+        return None
+
+    # 获取stuid
+    @classmethod
+    async def get_stuid(cls, uid: int) -> Optional[str]:
+        """
+        说明:
+            获取stuid
+        参数:
+            :param uid: 原神uid
+        """
+        query = cls.query.where(cls.uid == uid)
+        user = await query.gino.first()
+        if user:
+            return user.stuid
+        return None
+
+    # 获取stoken
+    @classmethod
+    async def get_stoken(cls, uid: int) -> Optional[str]:
+        """
+        说明:
+            获取stoken
+        参数:
+            :param uid: 原神uid
+        """
+        query = cls.query.where(cls.uid == uid)
+        user = await query.gino.first()
+        if user:
+            return user.stoken
+        return None
