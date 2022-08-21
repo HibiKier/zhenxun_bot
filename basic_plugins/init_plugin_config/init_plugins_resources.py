@@ -26,18 +26,8 @@ def init_plugins_resources():
                 else:
                     path = Path(_module.__getattribute__("__file__")).parent
                     for resource in resources.keys():
-                        resources_manager.add_resource(matcher.plugin_name, path / resource, resources[resource])
+                        resources_manager.add_resource(
+                            matcher.plugin_name, path / resource, resources[resource]
+                        )
     resources_manager.save()
     resources_manager.start_move()
-
-
-
-
-
-
-
-
-
-
-
-

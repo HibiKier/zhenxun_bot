@@ -94,7 +94,7 @@ class ConfigsManager:
             del self._data[module]
         self.save()
 
-    def set_config(self, module: str, key: str, value:  Any , save_simple_data: bool = False):
+    def set_config(self, module: str, key: str, value: Any, save_simple_data: bool = False):
         """
         设置配置值
         :param module: 模块名
@@ -109,7 +109,7 @@ class ConfigsManager:
             ):
                 self._data[module][key]["value"] = value
                 self._simple_data[module][key] = value
-                self.save(save_simple_data = save_simple_data)
+                self.save(save_simple_data=save_simple_data)
 
     def set_help(self, module: str, key: str, help_: str):
         """
@@ -145,12 +145,18 @@ class ConfigsManager:
         :param default: 没有key值内容的默认返回值
         """
         key = key.upper()
-        if module in self._data.keys():
+        # 优先使用simple_data
+        if module in self._simple_data.keys():
             for key in [key, f"{key} [LEVEL]"]:
-                if self._data[module].get(key) is not None:
-                    if self._data[module][key]["value"] is None:
-                        return self._data[module][key]["default_value"]
-                    return self._data[module][key]["value"]
+                if self._simple_data[module].get(key) is not None:
+                    return self._simple_data[module][key]
+        # if module in self._data.keys():
+        #     if module in self._data.keys():
+        #         for key in [key, f"{key} [LEVEL]"]:
+        #             if self._data[module].get(key) is not None:
+        #                 if self._data[module][key]["value"] is None:
+        #                     return self._data[module][key]["value"]
+        #                 return self._data[module][key]["default_value"]
         if default is not None:
             return default
         return None
@@ -200,13 +206,12 @@ class ConfigsManager:
         重新加载配置文件
         """
         _yaml = YAML()
-        temp_file = Path() / "configs" / "config.yaml"
-        if temp_file.exists():
-            with open(temp_file, "r", encoding="utf8") as f:
-                temp = _yaml.load(f)
-        for key in temp.keys():
-            for k in temp[key].keys():
-                self._data[key][k]["value"] = temp[key][k]
+        if self._simple_file.exists():
+            with open(self._simple_file, "r", encoding="utf8") as f:
+                self._simple_data = _yaml.load(f)
+        for key in self._simple_data.keys():
+            for k in self._simple_data[key].keys():
+                self._data[key][k]["value"] = self._simple_data[key][k]
         self.save()
 
     def get_admin_level_data(self):

@@ -14,7 +14,6 @@ from .check_plugin_status import check_plugin_status
 from nonebot.adapters.onebot.v11 import Bot
 from configs.path_config import DATA_PATH
 from services.log import logger
-from pathlib import Path
 from nonebot import Driver
 import nonebot
 
@@ -28,7 +27,7 @@ driver: Driver = nonebot.get_driver()
 
 
 @driver.on_startup
-def _():
+async def _():
     """
     初始化数据
     """

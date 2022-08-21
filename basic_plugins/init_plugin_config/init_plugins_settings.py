@@ -24,7 +24,11 @@ def init_plugins_settings(data_path: str):
             _plugin = nonebot.plugin.get_plugin(x)
             _module = _plugin.module
             metadata = _plugin.metadata
-            plugin_name = metadata.name if metadata else _module.__getattribute__("__zx_plugin_name__")
+            plugin_name = (
+                metadata.name
+                if metadata
+                else _module.__getattribute__("__zx_plugin_name__")
+            )
             _tmp_module[x] = plugin_name
         except (KeyError, AttributeError) as e:
             logger.warning(f"配置文件 模块：{x} 获取 plugin_name 失败...{e}")
@@ -77,11 +81,9 @@ def init_plugins_settings(data_path: str):
                             "__plugin_settings__"
                         )
                     except AttributeError:
-                        plugin_settings = {
-                            "cmd": [matcher.plugin_name, plugin_name]
-                        }
-                    if not plugin_settings.get('cost_gold'):
-                        plugin_settings['cost_gold'] = 0
+                        plugin_settings = {"cmd": [matcher.plugin_name, plugin_name]}
+                    if not plugin_settings.get("cost_gold"):
+                        plugin_settings["cost_gold"] = 0
                     if (
                         plugin_settings.get("cmd") is not None
                         and plugin_name not in plugin_settings["cmd"]
@@ -99,9 +101,7 @@ def init_plugins_settings(data_path: str):
                         )
                     else:
                         try:
-                            plugin_type = _module.__getattribute__(
-                                "__plugin_type__"
-                            )
+                            plugin_type = _module.__getattribute__("__plugin_type__")
                         except AttributeError:
                             plugin_type = ("normal",)
                     if plugin_settings and matcher.plugin_name:
