@@ -117,8 +117,10 @@ async def _(
                 _problem[0] = str(_problem[0])[str(_problem).index('问')+1:]
                 temp = ''
                 for g in _problem:
-                    if isinstance(g, str) or g.type == 'text':
+                    if isinstance(g, str):
                         temp += g
+                    elif g.type == 'text':
+                        temp += g.data['text']
                     elif g.type == 'at':
                         temp += f"[at:{g.data['qq']}]"
                 problem = temp

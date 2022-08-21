@@ -23,8 +23,10 @@ async def check(event: MessageEvent) -> bool:
         for seg in event.message:
             if seg.type == 'at':
                 temp += f"[at:{seg.data['qq']}]"
-            else:
+            elif isinstance(seg, str):
                 temp += seg
+            elif seg.type == 'text':
+                temp += seg.data["text"]
         problem = temp
     if problem:
         return await WordBank.check(event, problem) is not None
