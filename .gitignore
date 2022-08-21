@@ -138,7 +138,6 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-configs/config.py
 demo.py
 test.py
 server_ip.py
@@ -156,3 +155,7 @@ data/
 .env
 .env.dev
 resources/
+!/configs/config.py
+!/configs/config.yaml
+!/.env
+!/.env.dev

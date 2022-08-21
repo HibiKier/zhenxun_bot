@@ -10,4 +10,4 @@ Config.add_plugin_config(
     default_value=5
 )
 
-nonebot.load_plugins("test/word_bank")
+nonebot.load_plugins("plugins/word_bank")
