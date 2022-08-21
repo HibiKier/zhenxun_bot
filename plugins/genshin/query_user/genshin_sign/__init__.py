@@ -51,9 +51,9 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
     #     await genshin_matcher.finish("请更新cookie！")
     if cmd == "原神我硬签":
         try:
+            await genshin_matcher.send("正在进行签到...", at_sender=True)
             msg = await genshin_sign(uid)
             return_data = await mihoyobbs_sign(event.user_id)
-            await genshin_matcher.send("正在进行签到...", at_sender=True)
             logger.info(
                 f"(USER {event.user_id}, "
                 f"GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) UID：{uid} 原神签到"
