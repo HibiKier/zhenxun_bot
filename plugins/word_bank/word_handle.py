@@ -1,3 +1,4 @@
+import re
 from typing import Tuple, Any, Optional
 
 from nonebot.internal.params import Arg, ArgStr
@@ -5,11 +6,12 @@ from nonebot.typing import T_State
 
 from utils.utils import get_message_at, is_number, get_message_img
 from nonebot.params import CommandArg, RegexGroup, Command
+from nonebot.exception import FinishedException
 from services.log import logger
 from configs.path_config import DATA_PATH
 from utils.message_builder import custom_forward_msg
 from ._model import WordBank
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent, PrivateMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent, PrivateMessageEvent, unescape
 from nonebot import on_command, on_regex
 from configs.config import Config
 from ._data_source import delete_word, update_word, show_word
@@ -126,7 +128,7 @@ async def _(
                         temp += f"[at:{g.data['qq']}]"
                 problem = temp
                 break
-    index = len((word_scope or "") + "添加词条" + (word_type or "") + problem) + 1
+    index = len((word_scope or "") + "添加词条" + (word_type or "") + unescape(problem)) + 1
     event.message[0] = event.message[0].data["text"][index + 1 :].strip()
     state["word_scope"] = word_scope
     state["word_type"] = word_type
@@ -144,6 +146,12 @@ async def _(
     problem_image: Message = Arg("problem_image"),
 ):
     try:
+        if word_type == "正则":
+            try:
+                problem = unescape(problem)
+                re.compile(problem)
+            except re.error:
+                await add_word.finish(f"添加词条失败，正则表达式 {problem} 非法！")
         await WordBank.add_problem_answer(
             event.user_id,
             event.group_id if isinstance(event, GroupMessageEvent) and (not word_scope or word_scope == '1') else 0,
@@ -153,6 +161,8 @@ async def _(
             answer,
         )
     except Exception as e:
+        if isinstance(e, FinishedException):
+            await add_word.finish()
         logger.error(
             f"(USER {event.user_id}, GROUP "
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
