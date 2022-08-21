@@ -43,6 +43,7 @@ usage：
 __plugin_superuser_usage__ = """
 usage：
     更新皮肤指令
+    重置开箱： 重置今日开箱所有次数
     指令：
         更新开箱图片 ?[武器箱]
         更新开箱价格 ?[武器箱]
@@ -99,6 +100,13 @@ cases_matcher_group = MatcherGroup(priority=5, permission=GROUP, block=True)
 
 
 k_open_case = cases_matcher_group.on_command("开箱")
+
+reload_count = cases_matcher_group.on_command("重置开箱")
+
+
+@reload_count.handle()
+async def _(event: GroupMessageEvent):
+    await update_count_daily()
 
 
 @k_open_case.handle()
