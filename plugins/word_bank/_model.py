@@ -238,14 +238,14 @@ class WordBank(db.Model):
             return query.where(cls.problem == problem)
         # 正则匹配
         if await db.first(
-            db.text(sql_text + f" and word_type = 2 and '{problem}' ~ problem;")
+            db.text(sql_text + f" and word_type = 2 and word_scope != 999 and '{problem}' ~ problem;")
         ):
-            return sql_text + f" and word_type = 2 and '{problem}' ~ problem;"
+            return sql_text + f" and word_type = 2 and word_scope != 999 and '{problem}' ~ problem;"
         # 模糊匹配
         if await db.first(
-            db.text(sql_text + f" and word_type = 1 and '{problem}' ~ problem;")
+            db.text(sql_text + f" and word_type = 1 and word_scope != 999 and '{problem}' ~ problem;")
         ):
-            return sql_text + f" and word_type = 1 and '{problem}' ~ problem;"
+            return sql_text + f" and word_type = 1 and word_scope != 999 and '{problem}' ~ problem;"
         return None
 
     @classmethod
