@@ -36,7 +36,7 @@ async def _():
             "https://patchwiki.biligame.com/images/ys/thumb/c/cc/6k6kuj1kte6m1n7hexqfrn92z6h4yhh.png/60px-委托任务logo.png",
             "https://patchwiki.biligame.com/images/ys/d/d9/t1hv6wpucbwucgkhjntmzroh90nmcdv.png",
             "https://s3.bmp.ovh/imgs/2022/07/24/28d9338c7da4bcb2.png",
-            "https://genshin.honeyhunterworld.com/img/gadget/i_3016.png",
+            "https://genshin.honeyhunterworld.com/img/i_3016.png",
         ],
     ):
         file = memo_path / name
