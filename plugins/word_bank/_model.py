@@ -234,10 +234,10 @@ class WordBank(db.Model):
                 query = query.where(cls.word_scope == word_type)
                 sql_text += f" and word_scope = {word_scope}"
         # 完全匹配
-        if await query.where(cls.problem == problem).gino.first():
+        if await query.where(((cls.word_type == 0) | (cls.word_type == 3)) & (cls.problem == problem)).gino.first():
             return query.where(cls.problem == problem)
         # 模糊匹配
-        if await query.where(cls.problem.contains(problem)).gino.first():
+        if await query.where((cls.word_type == 1) & (cls.problem.contains(problem))).gino.first():
             return query.where(cls.problem.contains(problem))
         # 正则匹配
         if await db.first(
