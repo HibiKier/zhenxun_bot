@@ -252,8 +252,10 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ### 感谢名单
 (可以告诉我你的 __github__ 地址，我偷偷换掉0v|)  
-[爱发电用户_b9S4](https://afdian.net/u/3d8f30581a2911edba6d52540025c377) 
-[爱发电用户_c58s](https://afdian.net/u/a6ad8dda195e11ed9a4152540025c377) 
+[烟寒若雨](https://afdian.net/u/067bd2161eec11eda62b52540025c377)  
+[ln](https://afdian.net/u/b51914ba1c6611ed8a4e52540025c377)  
+[爱发电用户_b9S4](https://afdian.net/u/3d8f30581a2911edba6d52540025c377)  
+[爱发电用户_c58s](https://afdian.net/u/a6ad8dda195e11ed9a4152540025c377)  
 [爱发电用户_eNr9](https://afdian.net/u/05fdb41c0c9a11ed814952540025c377)   
 [MangataAkihi](https://github.com/Sakuracio)   
 [炀](https://afdian.net/u/69b76e9ec77b11ec874f52540025c377)   
