@@ -1,4 +1,5 @@
 from configs.config import Config
+from utils.manager import GDict
 import nonebot
 
 
@@ -59,6 +60,8 @@ Config.add_plugin_config(
     help_="是否显示图片的基本信息，如PID等",
     default_value=True
 )
+
+GDict['run_sql'].append("ALTER TABLE omega_pixiv_illusts ADD classified Integer;")
 
 nonebot.load_plugins("plugins/pix_gallery")
 
