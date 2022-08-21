@@ -281,7 +281,7 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 * 开箱提供重置开箱命令，重置今日所有开箱数据（重置次数，并不会删除今日已开箱记录）
 * 提供全局字典GDict，通过from utils.manager import GDict导入
 * 适配omega 13w张图的数据结构表（建议删表重导）
-* 除首次启动外将配置替换加入单次定时任务，提高启动速度
+* 除首次启动外将配置替换加入单次定时任务，加快启动速度
 * fix: WordBank.check() [@pull/1008](https://github.com/HibiKier/zhenxun_bot/pull/1008)
 * 改进插件 `我有一个朋友`，避免触发过于频繁 [@pull/1001](https://github.com/HibiKier/zhenxun_bot/pull/1001)
 * 原神便笺新增洞天宝钱和参量质变仪提示 [@pull/1005](https://github.com/HibiKier/zhenxun_bot/pull/1005)
