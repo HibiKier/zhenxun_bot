@@ -113,8 +113,9 @@ async def _(
             if seg.type == 'text' and '答' in str(seg):
                 _problem = event.message[:index]
                 answer = event.message[index:]
-                answer[0] = str(answer[0])[str(answer).index('答')+1:]
-                _problem[0] = str(_problem[0])[str(_problem).index('问')+1:]
+                answer[0] = str(answer[0])[str(answer[0]).index('答')+1:]
+                _problem[0] = str(_problem[0])[str(_problem[0]).index('问')+1:]
+                _problem.append(seg.data['text'][:seg.data['text'].index('答')])
                 temp = ''
                 for g in _problem:
                     if isinstance(g, str):
