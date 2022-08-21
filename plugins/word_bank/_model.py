@@ -216,7 +216,7 @@ class WordBank(db.Model):
             :param word_type: 词条类型
         """
         query = cls.query
-        sql_text = "SELECT * FROM public.word_bank where 1 = 1"
+        sql_text = "SELECT * FROM public.word_bank2 where 1 = 1"
         # 救命！！没找到gino的正则表达式方法，暂时使用sql语句
         if isinstance(event, GroupMessageEvent):
             if word_scope:
