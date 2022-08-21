@@ -128,7 +128,8 @@ async def _(
                         temp += f"[at:{g.data['qq']}]"
                 problem = temp
                 break
-    index = len((word_scope or "") + "添加词条" + (word_type or "") + unescape(problem)) + 1
+    problem = unescape(problem)
+    index = len((word_scope or "") + "添加词条" + (word_type or "") + problem) + 1
     event.message[0] = event.message[0].data["text"][index + 1 :].strip()
     state["word_scope"] = word_scope
     state["word_type"] = word_type
@@ -148,7 +149,6 @@ async def _(
     try:
         if word_type == "正则":
             try:
-                problem = unescape(problem)
                 re.compile(problem)
             except re.error:
                 await add_word.finish(f"添加词条失败，正则表达式 {problem} 非法！")
