@@ -236,17 +236,19 @@ class WordBank(db.Model):
         # 完全匹配
         if await query.where(cls.problem == problem).gino.first():
             return query.where(cls.problem == problem)
+        # 模糊匹配
+        if await query.where(cls.problem.contains(problem)).gino.first():
+            return query.where(cls.problem.contains(problem))
         # 正则匹配
         if await db.first(
             db.text(sql_text + f" and word_type = 2 and word_scope != 999 and '{problem}' ~ problem;")
         ):
             return sql_text + f" and word_type = 2 and word_scope != 999 and '{problem}' ~ problem;"
-        # 模糊匹配
-        if await db.first(
-            db.text(sql_text + f" and word_type = 1 and word_scope != 999 and '{problem}' ~ problem;")
-        ):
-            return sql_text + f" and word_type = 1 and word_scope != 999 and '{problem}' ~ problem;"
-        return None
+        # if await db.first(
+        #     db.text(sql_text + f" and word_type = 1 and word_scope != 999 and '{problem}' ~ problem;")
+        # ):
+        #     return sql_text + f" and word_type = 1 and word_scope != 999 and '{problem}' ~ problem;"
+        # return None
 
     @classmethod
     async def get_answer(
