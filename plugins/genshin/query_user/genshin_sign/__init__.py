@@ -44,6 +44,8 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
     uid = await Genshin.get_user_uid(event.user_id)
     if cmd == "查看我的cookie":
         my_cookie = await Genshin.get_user_cookie(uid, True)
+        if isinstance(event, GroupMessageEvent):
+            await genshin_matcher.finish("请私聊查看您的cookie！")
         await genshin_matcher.finish("您的cookie为" + my_cookie)
     if not uid or not await Genshin.get_user_cookie(uid, True):
         await genshin_matcher.finish("请先绑定uid和cookie！")
