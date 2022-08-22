@@ -48,7 +48,7 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
 
 async def mihoyobbs_sign(user_id):
     uid = await Genshin.get_user_uid(user_id)
-    if not uid:
+    if not uid or not await Genshin.get_user_cookie(uid, True):
         await mihoyobbs_matcher.finish("请先绑定uid和cookie！", at_sender=True)
     stuid = await Genshin.get_stuid(uid)
     stoken = await Genshin.get_stoken(uid)
