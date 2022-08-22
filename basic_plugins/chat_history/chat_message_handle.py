@@ -16,11 +16,12 @@ __zx_plugin_name__ = "消息统计"
 __plugin_usage__ = """
 usage：
     发言记录统计
-    regex：(周|月)?消息排行(des|DES)?(n=[0-9]{1,2})?
+    regex：(周|月|日)?消息排行(des|DES)?(n=[0-9]{1,2})?
     指令：
         消息统计?(des)?(n=?)
         周消息统计?(des)?(n=?)
         月消息统计?(des)?(n=?)
+        日消息统计?(des)?(n=?)
     示例：
         消息统计
         消息统计des
@@ -31,7 +32,8 @@ __plugin_des__ = "发言消息排行"
 __plugin_cmd__ = [
     "消息统计",
     "周消息统计",
-    "月消息统计"
+    "月消息统计",
+    "日消息统计"
 ]
 __plugin_type__ = ("数据统计", 1)
 __plugin_version__ = 0.1
@@ -42,7 +44,7 @@ __plugin_settings__ = {
 }
 
 
-msg_handler = on_regex(r"^(周|月)?消息统计(des|DES)?(n=[0-9]{1,2})?$", priority=5, block=True)
+msg_handler = on_regex(r"^(周|月|日)?消息统计(des|DES)?(n=[0-9]{1,2})?$", priority=5, block=True)
 
 
 @msg_handler.handle()
@@ -53,10 +55,14 @@ async def _(event: GroupMessageEvent, reg_group: Tuple[Any, ...] = RegexGroup())
     num = num.split("=")[-1] if num else 10
     if num and is_number(num) and 10 < int(num) < 50:
         num = int(num)
-    if date in ["周"]:
-        date_scope = (datetime.now() - timedelta(days=7), datetime.now())
+    time_now = datetime.now()
+    zero_today = time_now - timedelta(hours=time_now.hour, minutes=time_now.minute, seconds=time_now.second)
+    if date in ["日"]:
+        date_scope = (zero_today, time_now)
+    elif date in ["周"]:
+        date_scope = (time_now - timedelta(days=7), time_now)
     elif date in ["月"]:
-        date_scope = (datetime.now() - timedelta(days=30), datetime.now())
+        date_scope = (time_now - timedelta(days=30), time_now)
     if rank_data := await ChatHistory.get_group_msg_rank(
         gid, num, order or "DESC", date_scope
     ):
@@ -79,7 +85,7 @@ async def _(event: GroupMessageEvent, reg_group: Tuple[Any, ...] = RegexGroup())
                     pytz.timezone("Asia/Shanghai")
                 ).replace(microsecond=0)
             else:
-                date_scope = datetime.now().replace(microsecond=0)
+                date_scope = time_now.replace(microsecond=0)
             date_str = f"日期：{date_scope} - 至今"
         else:
             date_str = f"日期：{date_scope[0].replace(microsecond=0)} - {date_scope[1].replace(microsecond=0)}"

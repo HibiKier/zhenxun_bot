@@ -181,13 +181,20 @@ def get_bot() -> Optional[Bot]:
         return None
 
 
-def get_matchers() -> List[Type[Matcher]]:
+def get_matchers(distinct: bool = False) -> List[Type[Matcher]]:
     """
-    获取所有插件
+    说明:
+        获取所有matcher
+    参数:
+        distinct: 去重
     """
     _matchers = []
+    temp = []
     for i in matchers.keys():
         for matcher in matchers[i]:
+            if distinct and matcher.plugin_name in temp:
+                continue
+            temp.append(matcher.plugin_name)
             _matchers.append(matcher)
     return _matchers
 

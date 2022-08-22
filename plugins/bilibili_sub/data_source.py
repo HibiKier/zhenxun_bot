@@ -254,6 +254,7 @@ async def _get_up_status(id_: int) -> Optional[str]:
     video_info = await get_videos(id_)
     latest_video_created = 0
     video = None
+    dividing_line = "\n-------------\n"
     if _user.uname != uname:
         await BilibiliSub.update_sub_info(id_, uname=uname)
     dynamic_img, dynamic_upload_time, link = await get_user_dynamic(id_, _user)
@@ -270,7 +271,7 @@ async def _get_up_status(id_: int) -> Optional[str]:
         and video
         and _user.latest_video_created < latest_video_created
     ):
-        rst = rst + "-------------\n" if rst else rst
+        rst = rst + dividing_line if rst else rst
         await BilibiliSub.update_sub_info(
             id_, latest_video_created=latest_video_created
         )
@@ -281,7 +282,7 @@ async def _get_up_status(id_: int) -> Optional[str]:
             f'Bvid：{video["bvid"]}\n'
             f'直链：https://www.bilibili.com/video/{video["bvid"]}'
         )
-    rst = None if rst == "-------------\n" else rst
+    rst = None if rst == dividing_line else rst
     return rst
 
 

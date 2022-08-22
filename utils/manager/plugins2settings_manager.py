@@ -37,7 +37,6 @@ class Plugins2settingsManager(StaticData):
         limit_superuser: Optional[bool] = False,
         plugin_type: Tuple[Union[str, int]] = ("normal",),
         cost_gold: int = 0,
-        **kwargs
     ):
         """
         添加一个插件设置

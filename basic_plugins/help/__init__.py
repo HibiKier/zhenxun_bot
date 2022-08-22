@@ -44,7 +44,7 @@ async def _(bot: Bot, event: MessageEvent, state: T_State):
 
 
 @simple_help.handle()
-async def _(bot: Bot, event: MessageEvent, state: T_State, arg: Message = CommandArg()):
+async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip()
     is_super = False
     if msg:

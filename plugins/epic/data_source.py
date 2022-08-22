@@ -7,7 +7,7 @@ from utils.http_utils import AsyncHttpx
 
 # 获取所有 Epic Game Store 促销游戏
 # 方法参考：RSSHub /epicgames 路由
-# https://github.com/DIYgod/RSSHub/blob/master/lib/routes/epicgames/index.js
+# https://github.com/DIYgod/RSSHub/blob/master/lib/v2/epicgames/index.js
 async def get_epic_game():
     epic_url = "https://store-site-backend-static-ipv4.ak.epicgames.com/freeGamesPromotions?locale=zh-CN&country=CN&allowCountries=CN"
     headers = {
@@ -39,7 +39,7 @@ async def get_epic_free(bot: Bot, type_event: str):
             game_corp = game["seller"]["name"]
             game_price = game["price"]["totalPrice"]["fmtPrice"]["originalPrice"]
             # 赋初值以避免 local variable referenced before assignment
-            game_dev, game_pub, game_thumbnail = (None, None, None)
+            game_thumbnail, game_dev, game_pub = None, game_corp, game_corp
             try:
                 game_promotions = game["promotions"]["promotionalOffers"]
                 upcoming_promotions = game["promotions"]["upcomingPromotionalOffers"]
@@ -95,9 +95,6 @@ async def get_epic_free(bot: Bot, type_event: str):
                             game_dev = pair["value"]
                         if pair["key"] == "publisherName":
                             game_pub = pair["value"]
-                    # 如 game['customAttributes'] 未找到则均使用 game_corp 值
-                    game_dev = game_dev if game_dev is not None else game_corp
-                    game_pub = game_pub if game_pub is not None else game_corp
                     game_desp = game["description"]
                     end_date_iso = game["promotions"]["promotionalOffers"][0][
                         "promotionalOffers"
@@ -106,14 +103,33 @@ async def get_epic_free(bot: Bot, type_event: str):
                         "%b.%d %H:%M"
                     )
                     # API 返回不包含游戏商店 URL，此处自行拼接，可能出现少数游戏 404 请反馈
-                    game_url_part = (
-                        (game["productSlug"].replace("/home", ""))
-                        if ("/home" in game["productSlug"])
-                        else game["productSlug"]
-                    )
-                    game_url = "https://www.epicgames.com/store/zh-CN/p/{}".format(
-                        game_url_part
-                    )
+                    if game.get("productSlug"):
+                        game_url = "https://store.epicgames.com/zh-CN/p/{}".format(
+                            game["productSlug"].replace("/home", "")
+                        )
+                    elif game.get("url"):
+                        game_url = game["url"]
+                    else:
+                        slugs = (
+                            [
+                                x["pageSlug"]
+                                for x in game.get("offerMappings", [])
+                                if x.get("pageType") == "productHome"
+                            ]
+                            + [
+                                x["pageSlug"]
+                                for x in game.get("catalogNs", {}).get("mappings", [])
+                                if x.get("pageType") == "productHome"
+                            ]
+                            + [
+                                x["value"]
+                                for x in game.get("customAttributes", [])
+                                if "productSlug" in x.get("key")
+                            ]
+                        )
+                        game_url = "https://store.epicgames.com/zh-CN{}".format(
+                            f"/p/{slugs[0]}" if len(slugs) else ""
+                        )
                     if type_event == "Group":
                         _message = "[CQ:image,file={}]\n\nFREE now :: {} ({})\n{}\n此游戏由 {} 开发、{} 发行，将在 UTC 时间 {} 结束免费游玩，戳链接速度加入你的游戏库吧~\n{}\n".format(
                             game_thumbnail,

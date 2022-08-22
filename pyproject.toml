@@ -12,7 +12,7 @@ url = "https://mirrors.aliyun.com/pypi/simple/"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-nonebot2 = "^2.0.0-beta.2"
+nonebot2 = "^2.0.0-beta.4"
 nonebot-adapter-onebot = "^2.0.0-beta.1"
 aiofiles = "^0.8.0"
 aiohttp = "3.7.4.post0"
