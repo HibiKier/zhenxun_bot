@@ -117,10 +117,11 @@ async def _(
                 answer = event.message[index:]
                 answer[0] = str(answer[0])[str(answer[0]).index('答')+1:]
                 _problem[0] = str(_problem[0])[str(_problem[0]).index('问')+1:]
-                if _problem[-1].type == 'at' and seg.data['text'][:seg.data['text'].index('答')].lstrip():
-                    _problem.append(seg.data['text'][:seg.data['text'].index('答')])
-                else:
-                    _problem.append(seg.data['text'][:seg.data['text'].index('答')].lstrip())
+                if _problem[-1].type == 'at':
+                    if seg.data['text'][:seg.data['text'].index('答')].lstrip():
+                        _problem.append(seg.data['text'][:seg.data['text'].index('答')])
+                    else:
+                        _problem.append(seg.data['text'][:seg.data['text'].index('答')].lstrip())
                 temp = ''
                 for g in _problem:
                     if isinstance(g, str):
