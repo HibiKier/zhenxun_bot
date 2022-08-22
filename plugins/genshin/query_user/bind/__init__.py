@@ -93,6 +93,8 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message 
         print(cookie)
         cookie_json = json.loads(cookie)
         print(cookie_json)
+        if 'login_ticket' not in cookie_json:
+            await bind.finish("请发送正确完整的cookie！")
         login_ticket = cookie_json['login_ticket']
         # try:
         res = await AsyncHttpx.get(url=bbs_Cookie_url.format(login_ticket))
