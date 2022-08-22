@@ -24,7 +24,7 @@ __plugin_settings__ = {
 }
 
 
-quotations = on_regex("^[语录|二次元]$", priority=5, block=True)
+quotations = on_regex("^(语录|二次元)$", priority=5, block=True)
 
 url = "https://international.v1.hitokoto.cn/?c=a"
 

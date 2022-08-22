@@ -44,6 +44,8 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
     uid = await Genshin.get_user_uid(event.user_id)
     if cmd == "查看我的cookie":
         my_cookie = await Genshin.get_user_cookie(uid, True)
+        if isinstance(event, GroupMessageEvent):
+            await genshin_matcher.finish("请私聊查看您的cookie！")
         await genshin_matcher.finish("您的cookie为" + my_cookie)
     if not uid or not await Genshin.get_user_cookie(uid, True):
         await genshin_matcher.finish("请先绑定uid和cookie！")
@@ -51,9 +53,9 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
     #     await genshin_matcher.finish("请更新cookie！")
     if cmd == "原神我硬签":
         try:
+            await genshin_matcher.send("正在进行签到...", at_sender=True)
             msg = await genshin_sign(uid)
             return_data = await mihoyobbs_sign(event.user_id)
-            await genshin_matcher.send(return_data)
             logger.info(
                 f"(USER {event.user_id}, "
                 f"GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) UID：{uid} 原神签到"
@@ -70,7 +72,7 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
                 await u.clear_sign_time(uid)
                 next_date = await Genshin.random_sign_time(uid)
                 add_job(event.user_id, uid, next_date)
-                msg += f"\n因开启自动签到\n下一次签到时间为：{next_date.replace(microsecond=0)}"
+                msg += f"\n{return_data}\n因开启自动签到\n下一次签到时间为：{next_date.replace(microsecond=0)}"
         except Exception as e:
             msg = "原神签到失败..请尝试检查cookie或报告至管理员！"
             logger.info(
