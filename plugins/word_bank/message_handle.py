@@ -1,10 +1,12 @@
-import random
+import imagehash
+from PIL import Image
+from io import BytesIO
+from httpx import TimeoutException
 
 from services import logger
-from utils.image_utils import get_img_hash
 from ._rule import check
 from ._model import WordBank
-from configs.path_config import DATA_PATH, TEMP_PATH
+from configs.path_config import DATA_PATH
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent
 from utils.utils import get_message_img, get_message_text, get_message_at
 from nonebot import on_message
@@ -25,9 +27,11 @@ async def _(event: MessageEvent):
     at = get_message_at(event.message)
     problem = None
     if not text and img and len(img) == 1:
-        rand = random.randint(1, 10000)
-        if await AsyncHttpx.download_file(img[0], TEMP_PATH / f"{event.user_id}_{rand}_word_bank.jpg"):
-            problem = str(get_img_hash(TEMP_PATH / f"{event.user_id}_{rand}_word_bank.jpg"))
+        try:
+            r = await AsyncHttpx.get(img[0])
+            problem = str(imagehash.average_hash(Image.open(BytesIO(r.content))))
+        except TimeoutException:
+            logger.error(f"下载 {img[0]} 下载超时..")
     elif at:
         temp = ''
         for seg in event.message:
