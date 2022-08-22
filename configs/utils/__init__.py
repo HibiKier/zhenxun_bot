@@ -94,13 +94,14 @@ class ConfigsManager:
             del self._data[module]
         self.save()
 
-    def set_config(self, module: str, key: str, value: Any, save_simple_data: bool = False):
+    def set_config(self, module: str, key: str, value: Any, auto_save: bool = False, save_simple_data: bool = True):
         """
         设置配置值
         :param module: 模块名
         :param key: 配置名称
         :param value: 值
-        :param save_simple_data: 同时保存至config.yaml
+        :param auto_save: 自动保存
+        :param save_simple_data: 保存至config.yaml
         """
         if module in self._data.keys():
             if (
@@ -109,6 +110,7 @@ class ConfigsManager:
             ):
                 self._data[module][key]["value"] = value
                 self._simple_data[module][key] = value
+            if auto_save:
                 self.save(save_simple_data=save_simple_data)
 
     def set_help(self, module: str, key: str, help_: str):
@@ -145,18 +147,12 @@ class ConfigsManager:
         :param default: 没有key值内容的默认返回值
         """
         key = key.upper()
-        # 优先使用simple_data
-        if module in self._simple_data.keys():
+        if module in self._data.keys():
             for key in [key, f"{key} [LEVEL]"]:
-                if self._simple_data[module].get(key) is not None:
-                    return self._simple_data[module][key]
-        # if module in self._data.keys():
-        #     if module in self._data.keys():
-        #         for key in [key, f"{key} [LEVEL]"]:
-        #             if self._data[module].get(key) is not None:
-        #                 if self._data[module][key]["value"] is None:
-        #                     return self._data[module][key]["value"]
-        #                 return self._data[module][key]["default_value"]
+                if self._data[module].get(key) is not None:
+                    if self._data[module][key]["value"] is None:
+                        return self._data[module][key]["default_value"]
+                    return self._data[module][key]["value"]
         if default is not None:
             return default
         return None
