@@ -252,6 +252,8 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ### 感谢名单
 (可以告诉我你的 __github__ 地址，我偷偷换掉0v|)  
+[爱发电用户_4jrf](https://afdian.net/u/6b2cdcc817c611ed949152540025c377)  
+[爱发电用户_TBsd](https://afdian.net/u/db638b60217911ed9efd52540025c377)  
 [烟寒若雨](https://afdian.net/u/067bd2161eec11eda62b52540025c377)  
 [ln](https://afdian.net/u/b51914ba1c6611ed8a4e52540025c377)  
 [爱发电用户_b9S4](https://afdian.net/u/3d8f30581a2911edba6d52540025c377)  
@@ -277,6 +279,7 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ### 2022/8/22
 
+* 修复首次安装时词条旧表出错（因为根本就没有这张表！）
 * 对米游社cookie进行判断，整合米游社签到信息 [@pull/1014](https://github.com/HibiKier/zhenxun_bot/pull/1014)
 * 修正尘歌壶和质变仪图片获取地址 [@pull/1010](https://github.com/HibiKier/zhenxun_bot/pull/1010)
 * 修复词库问答 **很多** 问题[@pull/1012](https://github.com/HibiKier/zhenxun_bot/pull/1012)
@@ -793,7 +796,7 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 __..... 更多更新信息请查看文档__
 
 ## Todo
-- [ ] web管理
+- [x] web管理
 
 ## 感谢
 [botuniverse / onebot](https://github.com/botuniverse/onebot) ：超棒的机器人协议  

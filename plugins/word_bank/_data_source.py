@@ -187,20 +187,23 @@ async def _():
     if await WordBank.get_group_all_problem(0):
         return
     logger.info('开始迁移词条 纯文本 数据')
-    word_list = await OldWordBank.get_all()
-    for word in word_list:
-        problem: str = word.problem
-        user_id = word.user_qq
-        group_id = word.group_id
-        format_ = word.format
-        answer = word.answer
-        # 仅对纯文本做处理
-        if '[CQ' not in problem and '[CQ' not in answer and '[_to_me' not in problem:
-            if not format_:
-                await WordBank.add_problem_answer(user_id, group_id, 1, 0, problem, answer)
-    await WordBank.add_problem_answer(0, 0, 999, 0, '_[OK', '_[OK')
-    logger.info('词条 纯文本 数据迁移完成')
-    (Path() / 'plugins' / 'word_bank' / '_old_model.py').unlink()
+    try:
+        word_list = await OldWordBank.get_all()
+        for word in word_list:
+            problem: str = word.problem
+            user_id = word.user_qq
+            group_id = word.group_id
+            format_ = word.format
+            answer = word.answer
+            # 仅对纯文本做处理
+            if '[CQ' not in problem and '[CQ' not in answer and '[_to_me' not in problem:
+                if not format_:
+                    await WordBank.add_problem_answer(user_id, group_id, 1, 0, problem, answer)
+        await WordBank.add_problem_answer(0, 0, 999, 0, '_[OK', '_[OK')
+        logger.info('词条 纯文本 数据迁移完成')
+        (Path() / 'plugins' / 'word_bank' / '_old_model.py').unlink()
+    except Exception as e:
+        logger.warning(f'迁移词条发生错误，如果为首次安装请无视 {type(e)}：{e}')
 
 
 
