@@ -1,3 +1,4 @@
+import re
 from typing import Tuple, Any, Optional
 
 from nonebot.internal.params import Arg, ArgStr
@@ -5,11 +6,12 @@ from nonebot.typing import T_State
 
 from utils.utils import get_message_at, is_number, get_message_img
 from nonebot.params import CommandArg, RegexGroup, Command
+from nonebot.exception import FinishedException
 from services.log import logger
 from configs.path_config import DATA_PATH
 from utils.message_builder import custom_forward_msg
 from ._model import WordBank
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent, PrivateMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent, PrivateMessageEvent, unescape
 from nonebot import on_command, on_regex
 from configs.config import Config
 from ._data_source import delete_word, update_word, show_word
@@ -23,7 +25,7 @@ usage：
     更推荐使用id方式删除
     问题回答支持的CQ：at, face, image
     查看词条命令：群聊时为 群词条+全局词条，私聊时为 私聊词条+全局词条
-    添加词条正则：添加词条(模糊|正则|图片)?问\s*?(\S*)\s*?答\s?(\S*)
+    添加词条正则：添加词条(模糊|正则|图片)?问\s*?(\S*\s?\S*)\s*?答\s?(\S*)
     指令：
         添加词条 ?[模糊|正则|图片]问...答...：添加问答词条，可重复添加相同问题的不同回答
         删除词条 [问题/下标] ?[下标]：删除指定词条指定或全部回答
@@ -47,7 +49,7 @@ __plugin_superuser_usage__ = r"""
 usage:
     在私聊中超级用户额外设置
     指令：
-        (全局|私聊)?添加词条\s*?(模糊|正则|图片)?问\s*?(\S*)\s*?答\s?(\S*)：添加问答词条，可重复添加相同问题的不同回答
+        (全局|私聊)?添加词条\s*?(模糊|正则|图片)?问\s*?(\S*\s?\S*)\s*?答\s?(\S*)：添加问答词条，可重复添加相同问题的不同回答
         全局添加词条
         私聊添加词条
         （私聊情况下）删除词条: 删除私聊词条
@@ -74,7 +76,7 @@ data_dir = DATA_PATH / "word_bank"
 data_dir.mkdir(parents=True, exist_ok=True)
 
 add_word = on_regex(
-    r"^(全局|私聊)?添加词条\s*?(模糊|正则|图片)?问\s*?(\S*)\s*?答\s?(\S*)", priority=5, block=True
+    r"^(全局|私聊)?添加词条\s*?(模糊|正则|图片)?问\s*?(\S*\s?\S*)\s*?答\s?(\S*)", priority=5, block=True
 )
 
 delete_word_matcher = on_command("删除词条", aliases={'删除全局词条'}, priority=5, block=True)
@@ -113,16 +115,21 @@ async def _(
             if seg.type == 'text' and '答' in str(seg):
                 _problem = event.message[:index]
                 answer = event.message[index:]
-                answer[0] = str(answer[0])[str(answer).index('答')+1:]
-                _problem[0] = str(_problem[0])[str(_problem).index('问')+1:]
+                answer[0] = str(answer[0])[str(answer[0]).index('答')+1:]
+                _problem[0] = str(_problem[0])[str(_problem[0]).index('问')+1:]
+                if _problem[-1].type != 'at' or seg.data['text'][:seg.data['text'].index('答')].lstrip():
+                    _problem.append(seg.data['text'][:seg.data['text'].index('答')])
                 temp = ''
                 for g in _problem:
-                    if isinstance(g, str) or g.type == 'text':
+                    if isinstance(g, str):
                         temp += g
+                    elif g.type == 'text':
+                        temp += g.data['text']
                     elif g.type == 'at':
                         temp += f"[at:{g.data['qq']}]"
                 problem = temp
                 break
+    problem = unescape(problem)
     index = len((word_scope or "") + "添加词条" + (word_type or "") + problem) + 1
     event.message[0] = event.message[0].data["text"][index + 1 :].strip()
     state["word_scope"] = word_scope
@@ -141,6 +148,11 @@ async def _(
     problem_image: Message = Arg("problem_image"),
 ):
     try:
+        if word_type == "正则":
+            try:
+                re.compile(problem)
+            except re.error:
+                await add_word.finish(f"添加词条失败，正则表达式 {problem} 非法！")
         await WordBank.add_problem_answer(
             event.user_id,
             event.group_id if isinstance(event, GroupMessageEvent) and (not word_scope or word_scope == '1') else 0,
@@ -150,6 +162,8 @@ async def _(
             answer,
         )
     except Exception as e:
+        if isinstance(e, FinishedException):
+            await add_word.finish()
         logger.error(
             f"(USER {event.user_id}, GROUP "
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
@@ -233,7 +247,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
                 not is_number(id_)
                 or int(id_) < 0
                 or int(id_)
-                > len(await WordBank.get_group_all_problem(event.group_id))
+                >= len(await WordBank.get_group_all_problem(event.group_id))
             ):
                 await show_word_matcher.finish("id必须为数字且在范围内")
             id_ = int(id_)
@@ -243,7 +257,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
                 not is_number(gid)
                 or int(gid) < 0
                 or int(gid)
-                > len(await WordBank.get_problem_by_scope(0))
+                >= len(await WordBank.get_problem_by_scope(0))
             ):
                 await show_word_matcher.finish("gid必须为数字且在范围内")
             gid = int(gid)
