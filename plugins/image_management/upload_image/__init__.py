@@ -53,8 +53,6 @@ async def _(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
     if img_list:
         state["img_list"] = arg
 
-print(Config.get_config("image_management", "IMAGE_DIR_LIST"))
-
 
 @upload_img.got(
     "path",
