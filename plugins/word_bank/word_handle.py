@@ -247,7 +247,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
                 not is_number(id_)
                 or int(id_) < 0
                 or int(id_)
-                > len(await WordBank.get_group_all_problem(event.group_id))
+                >= len(await WordBank.get_group_all_problem(event.group_id))
             ):
                 await show_word_matcher.finish("id必须为数字且在范围内")
             id_ = int(id_)
@@ -257,7 +257,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
                 not is_number(gid)
                 or int(gid) < 0
                 or int(gid)
-                > len(await WordBank.get_problem_by_scope(0))
+                >= len(await WordBank.get_problem_by_scope(0))
             ):
                 await show_word_matcher.finish("gid必须为数字且在范围内")
             gid = int(gid)
