@@ -25,7 +25,7 @@ usage：
     更推荐使用id方式删除
     问题回答支持的CQ：at, face, image
     查看词条命令：群聊时为 群词条+全局词条，私聊时为 私聊词条+全局词条
-    添加词条正则：添加词条(模糊|正则|图片)?问\s*?(\S*)\s*?答\s?(\S*)
+    添加词条正则：添加词条(模糊|正则|图片)?问\s*?(\S*\s?\S*)\s*?答\s?(\S*)
     指令：
         添加词条 ?[模糊|正则|图片]问...答...：添加问答词条，可重复添加相同问题的不同回答
         删除词条 [问题/下标] ?[下标]：删除指定词条指定或全部回答
@@ -49,7 +49,7 @@ __plugin_superuser_usage__ = r"""
 usage:
     在私聊中超级用户额外设置
     指令：
-        (全局|私聊)?添加词条\s*?(模糊|正则|图片)?问\s*?(\S*)\s*?答\s?(\S*)：添加问答词条，可重复添加相同问题的不同回答
+        (全局|私聊)?添加词条\s*?(模糊|正则|图片)?问\s*?(\S*\s?\S*)\s*?答\s?(\S*)：添加问答词条，可重复添加相同问题的不同回答
         全局添加词条
         私聊添加词条
         （私聊情况下）删除词条: 删除私聊词条
@@ -76,7 +76,7 @@ data_dir = DATA_PATH / "word_bank"
 data_dir.mkdir(parents=True, exist_ok=True)
 
 add_word = on_regex(
-    r"^(全局|私聊)?添加词条\s*?(模糊|正则|图片)?问\s*?(\S*)\s*?答\s?(\S*)", priority=5, block=True
+    r"^(全局|私聊)?添加词条\s*?(模糊|正则|图片)?问\s*?(\S*\s?\S*)\s*?答\s?(\S*)", priority=5, block=True
 )
 
 delete_word_matcher = on_command("删除词条", aliases={'删除全局词条'}, priority=5, block=True)
@@ -117,7 +117,10 @@ async def _(
                 answer = event.message[index:]
                 answer[0] = str(answer[0])[str(answer[0]).index('答')+1:]
                 _problem[0] = str(_problem[0])[str(_problem[0]).index('问')+1:]
-                _problem.append(seg.data['text'][:seg.data['text'].index('答')])
+                if _problem[-1].type == 'at' and seg.data['text'][:seg.data['text'].index('答')].lstrip():
+                    _problem.append(seg.data['text'][:seg.data['text'].index('答')])
+                else:
+                    _problem.append(seg.data['text'][:seg.data['text'].index('答')].lstrip())
                 temp = ''
                 for g in _problem:
                     if isinstance(g, str):
