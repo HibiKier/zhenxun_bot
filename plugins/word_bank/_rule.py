@@ -27,8 +27,6 @@ async def check(event: MessageEvent, state: T_State) -> bool:
         for seg in event.message:
             if seg.type == 'at':
                 temp += f"[at:{seg.data['qq']}]"
-            elif isinstance(seg, str):
-                temp += seg
             elif seg.type == 'text':
                 temp += seg.data["text"]
         problem = temp

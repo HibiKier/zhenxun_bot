@@ -237,12 +237,21 @@ class WordBank(db.Model):
         if await query.where(
             ((cls.word_type == 0) | (cls.word_type == 3)) & (cls.problem == problem)
         ).gino.first():
-            return query.where(cls.problem == problem)
+            return query.where(
+                ((cls.word_type == 0) | (cls.word_type == 3)) & (cls.problem == problem)
+            )
         # 模糊匹配
-        if await query.where(
-            (cls.word_type == 1) & (cls.problem.contains(problem))
-        ).gino.first():
-            return query.where(cls.problem.contains(problem))
+        if await db.first(
+            db.text(
+                sql_text
+                + f" and word_type = 1 and :problem like '%' || problem || '%';"
+            ),
+            problem=problem,
+        ):
+            return (
+                sql_text
+                + f" and word_type = 1 and :problem like '%' || problem || '%';"
+            )
         # 正则匹配
         if await db.first(
             db.text(
@@ -253,7 +262,7 @@ class WordBank(db.Model):
         ):
             return (
                 sql_text
-                + f" and word_type = 2 and word_scope != 999 and '{problem}' ~ problem;"
+                + f" and word_type = 2 and word_scope != 999 and :problem ~ problem;"
             )
         # if await db.first(
         #     db.text(sql_text + f" and word_type = 1 and word_scope != 999 and '{problem}' ~ problem;")
@@ -281,7 +290,7 @@ class WordBank(db.Model):
         query = await cls.check(event, problem, word_scope, word_type)
         if query is not None:
             if isinstance(query, str):
-                answer_list = await db.all(db.text(query))
+                answer_list = await db.all(db.text(query), problem=problem)
                 answer = random.choice(answer_list)
                 return (
                     await cls._format2answer(problem, answer[7], answer[1], answer[2])
