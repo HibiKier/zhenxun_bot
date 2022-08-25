@@ -1,3 +1,5 @@
+import random
+
 from asyncpg.exceptions import (
     DuplicateColumnError,
     UndefinedColumnError,
@@ -13,6 +15,7 @@ from configs.path_config import TEXT_PATH
 from asyncio.exceptions import TimeoutError
 from typing import List
 from utils.http_utils import AsyncHttpx
+from utils.manager import GDict
 from utils.utils import scheduler
 import nonebot
 
@@ -109,6 +112,18 @@ async def _():
             "genshin"
         ),  # 新增原神群号绑定字段
         (
+            "ALTER TABLE genshin ADD login_ticket VARCHAR(255) DEFAULT '';",
+            "genshin"
+        ),  # 新增米游社login_ticket绑定字段
+        (
+            "ALTER TABLE genshin ADD stuid VARCHAR(255) DEFAULT '';",
+            "genshin"
+        ),  # 新增米游社stuid绑定字段
+        (
+            "ALTER TABLE genshin ADD stoken VARCHAR(255) DEFAULT '';",
+            "genshin"
+        ),  # 新增米游社stoken绑定字段
+        (
             "ALTER TABLE chat_history ADD plain_text Text;",
             "chat_history"
         ),  # 新增纯文本
@@ -121,10 +136,13 @@ async def _():
             "goods_info"
         ),  # 新增纯文本
     ]
-    for sql in sql_str:
+    for sql in sql_str + GDict.get('run_sql', []):
         try:
-            flag = sql[1]
-            sql = sql[0]
+            if isinstance(sql, str):
+                flag = f'{random.randint(1, 10000)}'
+            else:
+                flag = sql[1]
+                sql = sql[0]
             query = db.text(sql)
             await db.first(query)
             logger.info(f"完成sql操作：{sql}")
@@ -135,29 +153,6 @@ async def _():
             logger.error(f"语法错误：执行sql失败：{sql}")
     # bag_user 将文本转为字典格式
     await __database_script(_flag)
-
-    # 完成后
-    end_sql_str = [
-        # "ALTER TABLE bag_users DROP COLUMN props;"          # 删除 bag_users 的 props 字段（还不到时候）
-    ]
-    for sql in end_sql_str:
-        try:
-            query = db.text(sql)
-            await db.first(query)
-            logger.info(f"完成执行sql操作：{sql}")
-        except (DuplicateColumnError, UndefinedColumnError):
-            pass
-        except PostgresSyntaxError:
-            logger.error(f"语法错误：执行sql失败：{sql}")
-
-    # str2json_sql = ["alter table bag_users alter COLUMN props type json USING props::json;"]       # 字段类型替换
-    # rename_sql = 'alter table {} rename {} to {};'                              # 字段更名
-    # for sql in str2json_sql:
-    #     try:
-    #         query = db.text(sql)
-    #         await db.first(query)
-    #     except DuplicateColumnError:
-    #         pass
 
 
 @driver.on_bot_connect

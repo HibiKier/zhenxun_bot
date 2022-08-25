@@ -8,10 +8,7 @@
       "configs/path_config.py",
       "configs/utils",
       "poetry.lock",
-      "pyproject.toml",
-      "resources/font",
-      "resources/image/zhenxun",
-      "resources/image/other"
+      "pyproject.toml"
     ],
     "add_file": [],
     "delete_file": []

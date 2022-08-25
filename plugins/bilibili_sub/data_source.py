@@ -39,36 +39,35 @@ async def add_live_sub(live_id: int, sub_user: str) -> str:
     :return:
     """
     try:
-        async with db.transaction():
-            try:
-                """bilibili_api.live库的LiveRoom类中get_room_info改为bilireq.live库的get_room_info_by_id方法"""
-                live_info = await get_room_info_by_id(live_id)
-            except ResponseCodeError:
-                return f"未找到房间号Id：{live_id} 的信息，请检查Id是否正确"
-            uid = live_info["uid"]
-            room_id = live_info["room_id"]
-            short_id = live_info["short_id"]
-            title = live_info["title"]
-            live_status = live_info["live_status"]
-            if await BilibiliSub.add_bilibili_sub(
-                room_id,
-                "live",
-                sub_user,
-                uid=uid,
-                live_short_id=short_id,
-                live_status=live_status,
-            ):
-                await _get_up_status(live_id)
-                uname = (await BilibiliSub.get_sub(live_id)).uname
-                return (
-                    "已成功订阅主播：\n"
-                    f"\ttitle：{title}\n"
-                    f"\tname： {uname}\n"
-                    f"\tlive_id：{live_id}\n"
-                    f"\tuid：{uid}"
+        try:
+            """bilibili_api.live库的LiveRoom类中get_room_info改为bilireq.live库的get_room_info_by_id方法"""
+            live_info = await get_room_info_by_id(live_id)
+        except ResponseCodeError:
+            return f"未找到房间号Id：{live_id} 的信息，请检查Id是否正确"
+        uid = live_info["uid"]
+        room_id = live_info["room_id"]
+        short_id = live_info["short_id"]
+        title = live_info["title"]
+        live_status = live_info["live_status"]
+        if await BilibiliSub.add_bilibili_sub(
+            room_id,
+            "live",
+            sub_user,
+            uid=uid,
+            live_short_id=short_id,
+            live_status=live_status,
+        ):
+            await _get_up_status(room_id)
+            uname = (await BilibiliSub.get_sub(room_id)).uname
+            return (
+                "已成功订阅主播：\n"
+                f"\ttitle：{title}\n"
+                f"\tname： {uname}\n"
+                f"\tlive_id：{room_id}\n"
+                f"\tuid：{uid}"
                 )
-            else:
-                return "添加订阅失败..."
+        else:
+            return "添加订阅失败..."
     except Exception as e:
         logger.error(f"订阅主播live_id：{live_id} 发生了错误 {type(e)}：{e}")
     return "添加订阅失败..."
@@ -243,7 +242,7 @@ async def _get_live_status(id_: int) -> Optional[str]:
 async def _get_up_status(id_: int) -> Optional[str]:
     """
     获取用户投稿状态
-    :param id_: 用户 id
+    :param id_: 订阅 id
     :return:
     """
     _user = await BilibiliSub.get_sub(id_)
@@ -251,13 +250,13 @@ async def _get_up_status(id_: int) -> Optional[str]:
     user_info = await get_user_info(_user.uid)
     uname = user_info["name"]
     """bilibili_api.user库中User类的get_videos改为bilireq.user库的get_videos方法"""
-    video_info = await get_videos(id_)
+    video_info = await get_videos(_user.uid)
     latest_video_created = 0
     video = None
     dividing_line = "\n-------------\n"
     if _user.uname != uname:
         await BilibiliSub.update_sub_info(id_, uname=uname)
-    dynamic_img, dynamic_upload_time, link = await get_user_dynamic(id_, _user)
+    dynamic_img, dynamic_upload_time, link = await get_user_dynamic(_user.uid, _user)
     if video_info["list"].get("vlist"):
         video = video_info["list"]["vlist"][0]
         latest_video_created = video["created"]

@@ -1,3 +1,5 @@
+import re
+
 from nonebot import on_command
 from utils.utils import is_number
 from nonebot.permission import SUPERUSER
@@ -11,7 +13,6 @@ import time
 from services.log import logger
 from pathlib import Path
 from typing import List
-from datetime import datetime
 import asyncio
 import os
 
@@ -144,38 +145,36 @@ async def _(arg: Message = CommandArg()):
 @check_omega.handle()
 async def _():
     async def _tasks(line: str, all_pid: List[int], length: int, index: int):
-        data = line.split("VALUES", maxsplit=1)[-1].strip()
-        if data.startswith("("):
-            data = data[1:]
-        if data.endswith(");"):
-            data = data[:-2]
-        x = data.split(maxsplit=3)
-        pid = int(x[1][:-1].strip())
+        data = line.split("VALUES", maxsplit=1)[-1].strip()[1:-2]
+        num_list = re.findall(r'(\d+)', data)
+        pid = int(num_list[1])
+        uid = int(num_list[2])
+        id_ = 3
+        while num_list[id_] not in ['0', '1']:
+            id_ += 1
+        classified = int(num_list[id_])
+        nsfw_tag = int(num_list[id_ + 1])
+        width = int(num_list[id_ + 2])
+        height = int(num_list[id_ + 3])
+        str_list = re.findall(r"'(.*?)',", data)
+        title = str_list[0]
+        uname = str_list[1]
+        tags = str_list[2]
+        url = str_list[3]
         if pid in all_pid:
             logger.info(f"添加OmegaPixivIllusts图库数据已存在 ---> pid：{pid}")
             return
-        uid = int(x[2][:-1].strip())
-        x = x[3].split(", '")
-        title = x[0].strip()[1:-1]
-        tmp = x[1].split(", ")
-        author = tmp[0].strip()[:-1]
-        nsfw_tag = int(tmp[1])
-        width = int(tmp[2])
-        height = int(tmp[3])
-        tags = x[2][:-1]
-        url = x[3][:-1]
         if await OmegaPixivIllusts.add_image_data(
-                pid,
-                title,
-                width,
-                height,
-                url,
-                uid,
-                author,
-                nsfw_tag,
-                tags,
-                datetime.min,
-                datetime.min,
+                pid=pid,
+                title=title,
+                width=width,
+                height=height,
+                url=url,
+                uid=uid,
+                nsfw_tag=nsfw_tag,
+                tags=tags,
+                uname=uname,
+                classified=classified
         ):
             logger.info(
                 f"成功添加OmegaPixivIllusts图库数据 pid：{pid} 本次预计存储 {length} 张，已更新第 {index} 张"
@@ -197,6 +196,7 @@ async def _():
         for line in lines:
             if "INSERT INTO" in line.upper():
                 index += 1
+                logger.info(f'line: {line} 加入更新计划')
                 tasks.append(
                     asyncio.ensure_future(_tasks(line, all_pid, length, index))
                 )

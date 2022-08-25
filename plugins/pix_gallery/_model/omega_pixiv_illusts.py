@@ -1,5 +1,4 @@
-from typing import Optional, List
-from datetime import datetime
+from typing import Optional, List, Tuple
 from services.db_context import db
 
 
@@ -12,13 +11,12 @@ class OmegaPixivIllusts(db.Model):
     uid = db.Column(db.BigInteger(), nullable=False)
     title = db.Column(db.String(), nullable=False)
     uname = db.Column(db.String(), nullable=False)
+    classified = db.Column(db.Integer(), nullable=False)
     nsfw_tag = db.Column(db.Integer(), nullable=False)
     width = db.Column(db.Integer(), nullable=False)
     height = db.Column(db.Integer(), nullable=False)
     tags = db.Column(db.String(), nullable=False)
     url = db.Column(db.String(), nullable=False)
-    created_at = db.Column(db.DateTime(timezone=True))
-    updated_at = db.Column(db.DateTime(timezone=True))
 
     _idx1 = db.Index("omega_pixiv_illusts_idx1", "pid", "url", unique=True)
 
@@ -32,10 +30,9 @@ class OmegaPixivIllusts(db.Model):
             url: str,
             uid: int,
             uname: str,
+            classified: int,
             nsfw_tag: int,
             tags: str,
-            created_at: datetime,
-            updated_at: datetime,
     ):
         """
         说明:
@@ -48,10 +45,9 @@ class OmegaPixivIllusts(db.Model):
             :param url: url链接
             :param uid: 作者uid
             :param uname: 作者名称
-            :param nsfw_tag: nsfw标签, 0=safe, 1=setu. 2=r18
+            :param classified: 标记标签, 0=未标记, 1=已人工标记或从可信已标记来源获取
+            :param nsfw_tag: nsfw标签,-1=未标记, 0=safe, 1=setu. 2=r18
             :param tags: 相关tag
-            :param created_at: 创建日期
-            :param updated_at: 更新日期
         """
         if not await cls.check_exists(pid):
             await cls.create(
@@ -62,6 +58,7 @@ class OmegaPixivIllusts(db.Model):
                 url=url,
                 uid=uid,
                 uname=uname,
+                classified=classified,
                 nsfw_tag=nsfw_tag,
                 tags=tags,
             )
@@ -113,7 +110,7 @@ class OmegaPixivIllusts(db.Model):
         return bool(query)
 
     @classmethod
-    async def get_keyword_num(cls, tags: List[str] = None) -> "int, int, int":
+    async def get_keyword_num(cls, tags: List[str] = None) -> Tuple[int, int, int]:
         """
         说明:
             获取相关关键词(keyword, tag)在图库中的数量

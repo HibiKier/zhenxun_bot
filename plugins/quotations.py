@@ -1,4 +1,4 @@
-from nonebot import on_command
+from nonebot import on_regex
 from services.log import logger
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent
 from nonebot.typing import T_State
@@ -24,7 +24,7 @@ __plugin_settings__ = {
 }
 
 
-quotations = on_command("语录", aliases={"二次元", "二次元语录"}, priority=5, block=True)
+quotations = on_regex("^(语录|二次元)$", priority=5, block=True)
 
 url = "https://international.v1.hitokoto.cn/?c=a"
 

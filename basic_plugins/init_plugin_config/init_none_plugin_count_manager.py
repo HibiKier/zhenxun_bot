@@ -5,7 +5,6 @@ from utils.manager import (
     plugins2settings_manager,
     plugins2block_manager,
     plugins_manager,
-    resources_manager
 )
 from services.log import logger
 from utils.utils import get_matchers

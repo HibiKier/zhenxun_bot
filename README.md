@@ -128,7 +128,7 @@
 - [x] 移动图片  （同上）
 - [x] 删除图片  （同上）
 - [x] 群内B站订阅
-- [x] 群词条
+- [x] 词条设置
 - [x] 休息吧/醒来
 
 ### 已实现的超级用户功能
@@ -252,8 +252,12 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ### 感谢名单
 (可以告诉我你的 __github__ 地址，我偷偷换掉0v|)  
-[爱发电用户_b9S4](https://afdian.net/u/3d8f30581a2911edba6d52540025c377) 
-[爱发电用户_c58s](https://afdian.net/u/a6ad8dda195e11ed9a4152540025c377) 
+[爱发电用户_4jrf](https://afdian.net/u/6b2cdcc817c611ed949152540025c377)  
+[爱发电用户_TBsd](https://afdian.net/u/db638b60217911ed9efd52540025c377)  
+[烟寒若雨](https://afdian.net/u/067bd2161eec11eda62b52540025c377)  
+[ln](https://afdian.net/u/b51914ba1c6611ed8a4e52540025c377)  
+[爱发电用户_b9S4](https://afdian.net/u/3d8f30581a2911edba6d52540025c377)  
+[爱发电用户_c58s](https://afdian.net/u/a6ad8dda195e11ed9a4152540025c377)  
 [爱发电用户_eNr9](https://afdian.net/u/05fdb41c0c9a11ed814952540025c377)   
 [MangataAkihi](https://github.com/Sakuracio)   
 [炀](https://afdian.net/u/69b76e9ec77b11ec874f52540025c377)   
@@ -272,6 +276,32 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 
 ## 更新
+
+### 2022/8/23
+
+* 修了下模糊匹配 issue#1026 [@pull/1026](https://github.com/HibiKier/zhenxun_bot/pull/1026)
+
+### 2022/8/22
+
+* 修复首次安装时词条旧表出错（因为根本就没有这张表！）
+* 取消配置替换定时任务，统一存储
+* 对米游社cookie进行判断，整合米游社签到信息 [@pull/1014](https://github.com/HibiKier/zhenxun_bot/pull/1014)
+* 修正尘歌壶和质变仪图片获取地址 [@pull/1010](https://github.com/HibiKier/zhenxun_bot/pull/1010)
+* 修复词库问答 **很多** 问题[@pull/1012](https://github.com/HibiKier/zhenxun_bot/pull/1012)
+
+### 2022/8/21 \[v0.1.6.3]
+
+* 重构群词条，改为词库Plus，增加 精准|模糊|正则 问题匹配，问题与回答均支持at，image，face，超级用户额外提供 全局|私聊 词库设置，数据迁移目前只提供了问题和回答都是纯文本的词条
+* 修复b站转发解析av号无法解析
+* B站订阅直播订阅支持短号
+* 开箱提供重置开箱命令，重置今日所有开箱数据（重置次数，并不会删除今日已开箱记录）
+* 提供全局字典GDict，通过from utils.manager import GDict导入
+* 适配omega 13w张图的数据结构表（建议删表重导）
+* 除首次启动外将配置替换加入单次定时任务，加快启动速度
+* fix: WordBank.check() [@pull/1008](https://github.com/HibiKier/zhenxun_bot/pull/1008)
+* 改进插件 `我有一个朋友`，避免触发过于频繁 [@pull/1001](https://github.com/HibiKier/zhenxun_bot/pull/1001)
+* 原神便笺新增洞天宝钱和参量质变仪提示 [@pull/1005](https://github.com/HibiKier/zhenxun_bot/pull/1005)
+* 新增米游社签到功能，自动领取（白嫖）米游币 [@pull/991](https://github.com/HibiKier/zhenxun_bot/pull/991)
 
 ### 2022/8/14
 
@@ -633,7 +663,7 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 * 修复点歌无法正确发送
 * 修复我有一个朋友有时文本会包含CQ码
 * 修复群欢消息被动控制文本未删除 [@pull/124](https://github.com/HibiKier/zhenxun_bot/pull/124)
-* message_builder.image不再提供参数：abspath
+* message_builder.image不再提供参数:abspath
 
 ### 2022/2/23
 
@@ -771,7 +801,7 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 __..... 更多更新信息请查看文档__
 
 ## Todo
-- [ ] web管理
+- [x] web管理
 
 ## 感谢
 [botuniverse / onebot](https://github.com/botuniverse/onebot) ：超棒的机器人协议  

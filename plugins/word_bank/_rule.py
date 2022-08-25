@@ -1,18 +1,36 @@
-import re
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, Event
-from utils.utils import get_message_img_file
-from .model import WordBank
+import imagehash
+from PIL import Image
+from io import BytesIO
+from httpx import TimeoutException
+
+from nonebot.typing import T_State
+from nonebot.adapters.onebot.v11 import MessageEvent
+
+from utils.utils import get_message_text, get_message_img, get_message_at
+from ._model import WordBank
+from utils.http_utils import AsyncHttpx
 
 
-async def check(event: Event) -> bool:
-    if isinstance(event, GroupMessageEvent):
-        msg = event.raw_message
-        list_img = get_message_img_file(event.json())
-        if list_img:
-            for img_file in list_img:
-                strinfo = re.compile(f"{img_file},.*?]")
-                msg = strinfo.sub(f'{img_file}]', msg)
-        strinfo_face = re.compile(f",type=sticker]")
-        msg = strinfo_face.sub(f']', msg)
-        return bool(await WordBank.check(event.group_id, msg,))
+async def check(event: MessageEvent, state: T_State) -> bool:
+    text = get_message_text(event.message)
+    img = get_message_img(event.message)
+    at = get_message_at(event.message)
+    problem = text
+    if not text and len(img) == 1:
+        try:
+            r = await AsyncHttpx.get(img[0])
+            problem = str(imagehash.average_hash(Image.open(BytesIO(r.content))))
+        except TimeoutException:
+            pass
+    if at:
+        temp = ''
+        for seg in event.message:
+            if seg.type == 'at':
+                temp += f"[at:{seg.data['qq']}]"
+            elif seg.type == 'text':
+                temp += seg.data["text"]
+        problem = temp
+    if problem and (await WordBank.check(event, problem) is not None):
+        state["problem"] = problem
+        return True
     return False

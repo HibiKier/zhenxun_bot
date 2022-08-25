@@ -24,8 +24,6 @@ from io import BytesIO
 import asyncio
 import random
 import nonebot
-import time
-import locale
 import os
 
 

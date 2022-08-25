@@ -114,7 +114,7 @@ async def _(event: GroupMessageEvent):
                 msg = msg[index + 2 : index + 11]
                 if is_number(msg):
                     url = f"https://www.bilibili.com/video/{msg}"
-                    vd_info = await video.get_video_base_info(msg)
+                    vd_info = await video.get_video_base_info('av' + msg)
         elif "https://b23.tv" in msg:
             url = "https://" + msg[msg.find("b23.tv"): msg.find("b23.tv") + 14]
             async with aiohttp.ClientSession(
