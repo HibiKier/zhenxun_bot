@@ -93,7 +93,7 @@ async def _(
     state: T_State,
     reg_group: Tuple[Any, ...] = RegexGroup(),
 ):
-    if str(event.user_id) not in bot.config.superusers:
+    if isinstance(event, PrivateMessageEvent) and str(event.user_id) not in bot.config.superusers:
         await add_word.finish('权限不足捏')
     word_scope, word_type, problem, answer = reg_group
     if (
