@@ -252,6 +252,8 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ### 感谢名单
 (可以告诉我你的 __github__ 地址，我偷偷换掉0v|)  
+[腊条](https://afdian.net/u/f739c4d69eca11eba94b52540025c377)  
+[ze roller](https://afdian.net/u/0e599e96257211ed805152540025c377)  
 [爱发电用户_4jrf](https://afdian.net/u/6b2cdcc817c611ed949152540025c377)  
 [爱发电用户_TBsd](https://afdian.net/u/db638b60217911ed9efd52540025c377)  
 [烟寒若雨](https://afdian.net/u/067bd2161eec11eda62b52540025c377)  
@@ -276,6 +278,10 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 
 ## 更新
+
+### 2022/8/27
+
+* 修复签到积分双倍后，日志记录获得积分变4倍问题 [@pull/1044](https://github.com/HibiKier/zhenxun_bot/pull/1044)
 
 ### 2022/8/26
 
