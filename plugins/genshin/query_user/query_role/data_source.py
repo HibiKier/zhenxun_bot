@@ -195,6 +195,7 @@ def parsed_data(
         "magic_chest_number": data["stats"]["magic_chest_number"],  # 奇馈宝箱
         "common_chest_number": data["stats"]["common_chest_number"],  # 普通宝箱
         "electroculus_number": data["stats"]["electroculus_number"],  # 雷神瞳已收集
+        "dendroculus_number": data["stats"]["dendroculus_number"],  # 草神瞳已收集
     }
     world_data_dict = {}
     for world in data["world_explorations"]:
