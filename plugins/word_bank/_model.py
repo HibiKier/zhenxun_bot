@@ -293,7 +293,7 @@ class WordBank(db.Model):
                 answer_list = await db.all(db.text(query), problem=problem)
                 answer = random.choice(answer_list)
                 return (
-                    await cls._format2answer(problem, answer[7], answer[1], answer[2])
+                    await cls._format2answer(answer[6], answer[7], answer[1], answer[2])
                     if answer.placeholder
                     else answer.answer
                 )
