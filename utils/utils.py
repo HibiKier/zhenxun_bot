@@ -238,6 +238,25 @@ def get_message_img(data: Union[str, Message]) -> List[str]:
     return img_list
 
 
+def get_message_face(data: Union[str, Message]) -> List[str]:
+    """
+    说明:
+        获取消息中所有的 face Id
+    参数:
+        :param data: event.json()
+    """
+    face_list = []
+    if isinstance(data, str):
+        data = json.loads(data)
+        for msg in data["message"]:
+            if msg["type"] == "face":
+                face_list.append(msg["data"]["id"])
+    else:
+        for seg in data["face"]:
+            face_list.append(seg.data["id"])
+    return face_list
+
+
 def get_message_img_file(data: Union[str, Message]) -> List[str]:
     """
     说明:

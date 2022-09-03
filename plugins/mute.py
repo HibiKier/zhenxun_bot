@@ -1,3 +1,7 @@
+from io import BytesIO
+
+import imagehash
+from PIL import Image
 from nonebot import on_message, on_command
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, ActionFailed
 from nonebot.adapters.onebot.v11.permission import GROUP
@@ -70,10 +74,8 @@ def save_data():
         json.dump(mute_data, f, indent=4)
 
 
-async def download_img_and_hash(url, group_id) -> str:
-    if await AsyncHttpx.download_file(url, TEMP_PATH / f"mute_{group_id}_img.jpg"):
-        return str(get_img_hash(TEMP_PATH / f"mute_{group_id}_img.jpg"))
-    return ""
+async def download_img_and_hash(url) -> str:
+    return str(imagehash.average_hash(Image.open(BytesIO((await AsyncHttpx.get(url)).content))))
 
 
 mute_dict = {}
@@ -87,7 +89,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     img_list = get_message_img(event.json())
     img_hash = ""
     for img in img_list:
-        img_hash += await download_img_and_hash(img, event.group_id)
+        img_hash += await download_img_and_hash(img)
     msg += img_hash
     if not mute_data.get(group_id):
         mute_data[group_id] = {

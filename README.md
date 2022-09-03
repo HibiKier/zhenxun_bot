@@ -282,7 +282,10 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 ### 2022/9/3
 
 * 原神玩家查询增加须弥地区 [@pull/1053](https://github.com/HibiKier/zhenxun_bot/pull/1053)
+* av号覆盖全面，且修复av号链接 [@pull/1033](https://github.com/HibiKier/zhenxun_bot/pull/1033)
 * 修复词条含有CQ回答的模糊匹配无法被解析
+* 禁言检测图片在内存中获取图片hash
+* B站订阅在群里中任意群管理员可以统一管理（原来为管理员1无法删除管理员2的订阅）
 
 ### 2022/8/27
 

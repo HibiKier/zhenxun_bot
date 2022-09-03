@@ -130,8 +130,6 @@ async def _(
                 problem = temp
                 break
     problem = unescape(problem)
-    # index = len((word_scope or "") + "添加词条" + (word_type or "") + problem) + 1
-    # event.message[0] = event.message[0].data["text"][index + 1 :].strip()
     event.message[0] = event.message[0].data["text"].split('答', maxsplit=1)[-1].strip()
     state["word_scope"] = word_scope
     state["word_type"] = word_type

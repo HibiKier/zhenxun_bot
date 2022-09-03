@@ -143,7 +143,7 @@ class WordBank(db.Model):
                 text += seg.data["text"]
             elif seg.type == "face":
                 text += f"[face:placeholder_{index}]"
-                _list.append(seg.data.id)
+                _list.append(seg.data['id'])
             elif seg.type == "at":
                 text += f"[at:placeholder_{index}]"
                 _list.append(seg.data["qq"])

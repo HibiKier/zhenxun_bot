@@ -160,7 +160,7 @@ async def _(
 async def _(event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
     msg = reg_group[0]
     id_ = (
-        f"{event.user_id}:{event.group_id}"
+        f"{event.group_id}"
         if isinstance(event, GroupMessageEvent)
         else f"{event.user_id}"
     )
