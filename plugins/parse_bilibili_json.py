@@ -110,10 +110,10 @@ async def _(event: GroupMessageEvent):
                 vd_info = await video.get_video_base_info(msg)
         elif "av" in msg:
             index = msg.find("av")
-            if len(msg[index + 2 :]) >= 9:
+            if len(msg[index + 2 :]) >= 1:
                 msg = msg[index + 2 : index + 11]
                 if is_number(msg):
-                    url = f"https://www.bilibili.com/video/{msg}"
+                    url = f"https://www.bilibili.com/video/av{msg}"
                     vd_info = await video.get_video_base_info('av' + msg)
         elif "https://b23.tv" in msg:
             url = "https://" + msg[msg.find("b23.tv"): msg.find("b23.tv") + 14]
