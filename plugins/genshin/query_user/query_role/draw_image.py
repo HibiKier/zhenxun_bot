@@ -303,7 +303,7 @@ def get_country_data_image(world_data_dict: Dict) -> BuildImage:
     :param world_data_dict: 国家数据字典
     """
     # 层岩巨渊 和 地下矿区 算一个
-    region = BuildImage(790, 267 * (len(world_data_dict) - 1), color="#F9F6F2")
+    region = BuildImage(790, 267 * ((len(world_data_dict) - 1) if world_data_dict.get("层岩巨渊·地下矿区") else len(world_data_dict)), color="#F9F6F2")
     height = 0
     for country in ["蒙德", "龙脊雪山", "璃月", "层岩巨渊", "稻妻", "渊下宫", "须弥"]:
         if not world_data_dict.get(country):
