@@ -129,7 +129,7 @@ def get_user_data_image(
     """
     if mys_data:
         nickname = [x["nickname"] for x in mys_data if x["game_id"] == 2][0]
-    region = BuildImage(1440, 450, color="#E3DBD1", font="HYWenHei-85W.ttf")
+    region = BuildImage(1440, 560, color="#E3DBD1", font="HYWenHei-85W.ttf")
     region.circle_corner(30)
     uname_img = BuildImage(
         0,
@@ -163,36 +163,42 @@ def get_user_data_image(
             / random.choice(os.listdir(image_path / "chars_ava")),
         )
         ava_bk.paste(ava_img, (12, 16), alpha=True)
-    region.paste(uname_img, (int(170 + uid_img.w / 2 - uname_img.w / 2), 305), True)
-    region.paste(uid_img, (170, 355), True)
-    region.paste(ava_bk, (int(550 / 2 - ava_bk.w / 2), 40), True)
+    region.paste(uname_img, (int(170 + uid_img.w / 2 - uname_img.w / 2), 365), True)
+    region.paste(uid_img, (170, 415), True)
+    region.paste(ava_bk, (int(550 / 2 - ava_bk.w / 2), 100), True)
     data_img = BuildImage(
-        800, 400, color="#E3DBD1", font="HYWenHei-85W.ttf", font_size=40
+        800, 510, color="#E3DBD1", font="HYWenHei-85W.ttf", font_size=40
     )
     _height = 0
     keys = [
-        ["活跃天数", "成就达成", "获得角色", "深境螺旋"],
-        ["华丽宝箱", "珍贵宝箱", "精致宝箱", "普通宝箱"],
-        ["奇馈宝箱", "风神瞳", "岩神瞳", "雷神瞳"],
+        ["活跃天数", "成就达成", "获得角色", "解锁传送"],
+        ["风神瞳", "岩神瞳", "雷神瞳", "草神瞳"],
+        ["解锁秘境", "深境螺旋", "华丽宝箱", "珍贵宝箱"],
+        ["精致宝箱", "普通宝箱", "奇馈宝箱",],
     ]
     values = [
         [
             role_data["active_day_number"],
             role_data["achievement_number"],
             role_data["avatar_number"],
-            role_data["spiral_abyss"],
+            role_data["way_point_number"],
         ],
         [
-            role_data["luxurious_chest_number"],
-            role_data["precious_chest_number"],
-            role_data["exquisite_chest_number"],
-            role_data["common_chest_number"],
-        ],
-        [
-            role_data["magic_chest_number"],
             role_data["anemoculus_number"],
             role_data["geoculus_number"],
             role_data["electroculus_number"],
+            role_data["dendroculus_number"],
+        ],
+        [
+            role_data["domain_number"],
+            role_data["spiral_abyss"],
+            role_data["luxurious_chest_number"],
+            role_data["precious_chest_number"],
+        ],
+        [
+            role_data["exquisite_chest_number"],
+            role_data["common_chest_number"],
+            role_data["magic_chest_number"],
         ],
     ]
     for key, value in zip(keys, values):
@@ -215,7 +221,7 @@ def get_user_data_image(
             )
             tmp_.text((0, 0), str(v), center_type="by_width")
             tmp_.paste(t_, (0, 50), True, "by_width")
-            _tmp_data_img.paste(tmp_, (_width if len(key) > 3 else _width + 15, 0))
+            _tmp_data_img.paste(tmp_, ((_width + 15) if keys.index(key) == 1 else _width, 0))
             _width += 200
         data_img.paste(_tmp_data_img, (0, _height))
         _height += _tmp_data_img.h - 70
@@ -228,7 +234,7 @@ def get_home_data_image(home_data_list: List[Dict]) -> BuildImage:
     画出家园数据
     :param home_data_list: 家园列表
     """
-    h = 130 + 300 * 4
+    h = 130 + 340 * 4
     region = BuildImage(
         550, h, color="#E3DBD1", font="HYWenHei-85W.ttf", font_size=40
     )
@@ -287,7 +293,7 @@ def get_home_data_image(home_data_list: List[Dict]) -> BuildImage:
             x.paste(black_img, alpha=True, center_type="center")
         x.circle_corner(50)
         region.paste(x, (0, height), True, "by_width")
-        height += 300
+        height += 340
     return region
 
 
@@ -299,7 +305,7 @@ def get_country_data_image(world_data_dict: Dict) -> BuildImage:
     # 层岩巨渊 和 地下矿区 算一个
     region = BuildImage(790, 267 * (len(world_data_dict) - 1), color="#F9F6F2")
     height = 0
-    for country in ["蒙德", "龙脊雪山", "璃月", "层岩巨渊", "稻妻", "渊下宫"]:
+    for country in ["蒙德", "龙脊雪山", "璃月", "层岩巨渊", "稻妻", "渊下宫", "须弥"]:
         if not world_data_dict.get(country):
             continue
         x = BuildImage(790, 250, color="#3A4467")
@@ -311,15 +317,15 @@ def get_country_data_image(world_data_dict: Dict) -> BuildImage:
         )
         content_bk.paste(logo, (50, 0), True, "by_height")
         if country in ["蒙德", "璃月"]:
-            content_bk.text((300, 40), "探索", fill=(239, 211, 114))
+            content_bk.text((300, 40), "蒙德探索" if country == "蒙德" else "璃月探索", fill=(239, 211, 114))
             content_bk.text(
-                (450, 40),
+                (500, 40),
                 f"{world_data_dict[country]['exploration_percentage'] / 10}%",
                 fill=(255, 255, 255),
             )
-            content_bk.text((300, 120), "声望", fill=(239, 211, 114))
+            content_bk.text((300, 120), "蒙德声望" if country == "蒙德" else "璃月声望", fill=(239, 211, 114))
             content_bk.text(
-                (450, 120),
+                (500, 120),
                 f"Lv.{world_data_dict[country]['level']}",
                 fill=(255, 255, 255),
             )
@@ -344,45 +350,65 @@ def get_country_data_image(world_data_dict: Dict) -> BuildImage:
                     fill=(255, 255, 255),
                 )
         elif country in ["龙脊雪山"]:
-            content_bk.text((300, 40), "探索", fill=(239, 211, 114))
+            content_bk.text((300, 40), "雪山探索", fill=(239, 211, 114))
             content_bk.text(
-                (450, 40),
+                (500, 40),
                 f"{world_data_dict[country]['exploration_percentage'] / 10}%",
                 fill=(255, 255, 255),
             )
-            content_bk.text((300, 120), "供奉", fill=(239, 211, 114))
+            content_bk.text((300, 120), "忍冬之树", fill=(239, 211, 114))
             content_bk.text(
-                (450, 120),
+                (500, 120),
                 f"Lv.{world_data_dict[country]['offerings'][0]['level']}",
                 fill=(255, 255, 255),
             )
         elif country in ["稻妻"]:
-            content_bk.text((300, 20), "探索", fill=(239, 211, 114))
+            content_bk.text((300, 20), "稻妻探索", fill=(239, 211, 114))
             content_bk.text(
-                (450, 20),
+                (500, 20),
                 f"{world_data_dict[country]['exploration_percentage'] / 10}%",
                 fill=(255, 255, 255),
             )
-            content_bk.text((300, 85), "声望", fill=(239, 211, 114))
+            content_bk.text((300, 85), "稻妻声望", fill=(239, 211, 114))
             content_bk.text(
-                (450, 85),
+                (500, 85),
                 f"Lv.{world_data_dict[country]['level']}",
                 fill=(255, 255, 255),
             )
-            content_bk.text((300, 150), "神樱", fill=(239, 211, 114))
+            content_bk.text((300, 150), "神樱眷顾", fill=(239, 211, 114))
             content_bk.text(
-                (450, 150),
+                (500, 150),
                 f"Lv.{world_data_dict[country]['offerings'][0]['level']}",
                 fill=(255, 255, 255),
             )
         elif country in ["渊下宫"]:
-            content_bk.text((300, 0), "探索", fill=(239, 211, 114), center_type="by_height")
+            content_bk.text((300, 0), "渊下宫探索", fill=(239, 211, 114), center_type="by_height")
             content_bk.text(
-                (450, 20),
+                (530, 20),
                 f"{world_data_dict[country]['exploration_percentage'] / 10}%",
                 fill=(255, 255, 255),
                 center_type="by_height",
             )
+        elif country in ["须弥"]:
+            content_bk.text((300, 20), "须弥探索", fill=(239, 211, 114))
+            content_bk.text(
+                (500, 20),
+                f"{world_data_dict[country]['exploration_percentage'] / 10}%",
+                fill=(255, 255, 255),
+            )
+            content_bk.text((300, 85), "须弥声望", fill=(239, 211, 114))
+            content_bk.text(
+                (500, 85),
+                f"Lv.{world_data_dict[country]['level']}",
+                fill=(255, 255, 255),
+            )
+            content_bk.text((300, 150), "梦之树", fill=(239, 211, 114))
+            content_bk.text(
+                (500, 150),
+                f"Lv.{world_data_dict[country]['offerings'][0]['level']}",
+                fill=(255, 255, 255),
+            )
+            
         x.paste(tmp_bk, alpha=True, center_type="center")
         x.paste(content_bk, alpha=True, center_type="center")
         x.circle_corner(20)

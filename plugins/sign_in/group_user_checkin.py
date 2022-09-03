@@ -81,19 +81,15 @@ async def _handle_check_in(
         await BagUser.add_gold(user_qq, group, gold)
         await BagUser.add_property(user_qq, group, gift)
         gift += ' + 1'
+
+    logger.info(
+        f"(USER {user.user_qq}, GROUP {user.group_id})"
+        f" CHECKED IN successfully. score: {user.impression:.2f} "
+        f"(+{impression_added:.2f}).获取金币：{gold + gift if gift == 'gold' else gold}"
+    )
     if critx2 + add_probability > 0.97 or critx2 < specify_probability:
-        logger.info(
-            f"(USER {user.user_qq}, GROUP {user.group_id})"
-            f" CHECKED IN successfully. score: {user.impression:.2f} "
-            f"(+{impression_added * 2:.2f}).获取金币：{gold + gift if gift == 'gold' else gold}"
-        )
         return await get_card(user, nickname, impression_added, gold, gift, True)
     else:
-        logger.info(
-            f"(USER {user.user_qq}, GROUP {user.group_id})"
-            f" CHECKED IN successfully. score: {user.impression:.2f} "
-            f"(+{impression_added:.2f}).获取金币：{gold + gift if gift == 'gold' else gold}"
-        )
         return await get_card(user, nickname, impression_added, gold, gift)
 
 
