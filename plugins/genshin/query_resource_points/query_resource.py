@@ -172,28 +172,29 @@ async def download_map_init(semaphore: Semaphore, flag: bool = False):
             if data["message"] == "OK":
                 data = json.loads(data["data"]["info"]["detail"])
                 CENTER_POINT = (data["origin"][0], data["origin"][1])
-                if not _map.exists():
+                if not _map.exists() or flag:
                     data = data["slices"]
                     idx = 0
-                    for _map_data in data[0]:
-                        map_url = _map_data["url"]
-                        await download_image(
-                            map_url,
-                            map_path / f"{idx}.png",
-                            semaphore,
-                            force_flag=flag,
-                        )
-                        BuildImage(
-                            0, 0, background=f"{map_path}/{idx}.png", ratio=MAP_RATIO
-                        ).save()
-                        idx += 1
-                    _w, h = BuildImage(0, 0, background=f"{map_path}/0.png").size
-                    w = _w * len(os.listdir(map_path))
-                    map_file = BuildImage(w, h, _w, h, ratio=MAP_RATIO)
+                    w_len = len(data[0])
+                    h_len = len(data)
+                    for _map_data in data:
+                        for _map in _map_data:
+                            map_url = _map["url"]
+                            await download_image(
+                                map_url,
+                                map_path / f"{idx}.png",
+                                semaphore,
+                                force_flag=flag,
+                            )
+                            BuildImage(
+                                0, 0, background=f"{map_path}/{idx}.png", ratio=MAP_RATIO
+                            ).save()
+                            idx += 1
+                    w, h = BuildImage(0, 0, background=f"{map_path}/0.png").size
+                    map_file = BuildImage(w * w_len, h * h_len, w, h, ratio=MAP_RATIO)
                     for i in range(idx):
-                        map_file.paste(
-                            BuildImage(0, 0, background=f"{map_path}/{i}.png")
-                        )
+                        img = BuildImage(0, 0, background=f"{map_path}/{i}.png")
+                        await map_file.apaste(img)
                     map_file.save(f"{map_path}/map.png")
             else:
                 logger.warning(f'获取原神地图失败 msg: {data["message"]}')
@@ -202,7 +203,7 @@ async def download_map_init(semaphore: Semaphore, flag: bool = False):
     except (TimeoutError, ConnectTimeout):
         logger.warning("下载原神地图数据超时....")
     except Exception as e:
-        logger.error(f"下载原神地图数据超时 {type(e)}：{e}")
+        logger.error(f"下载原神地图数据失败 {type(e)}：{e}")
 
 
 # 下载资源类型数据

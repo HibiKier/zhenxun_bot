@@ -47,7 +47,7 @@ __plugin_block_limit__ = {
 qr = on_command("原神资源查询", aliases={"原神资源查找"}, priority=5, block=True)
 qr_lst = on_command("原神资源列表", priority=5, block=True)
 rex_qr = on_regex(".*?(在哪|在哪里|哪有|哪里有).*?", priority=5, block=True)
-update_info = on_command("更新原神资源信息", permission=SUPERUSER, priority=1, block=True)
+update_info = on_regex("^更新原神资源信息$", permission=SUPERUSER, priority=1, block=True)
 
 
 @qr.handle()

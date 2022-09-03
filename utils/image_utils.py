@@ -178,8 +178,8 @@ class BuildImage:
         self.h = int(h)
         self.paste_image_width = int(paste_image_width)
         self.paste_image_height = int(paste_image_height)
-        self.current_w = 0
-        self.current_h = 0
+        self._current_w = 0
+        self._current_h = 0
         self.font = ImageFont.truetype(str(FONT_PATH / font), int(font_size))
         if not plain_text and not color:
             color = (255, 255, 255)
@@ -287,11 +287,11 @@ class BuildImage:
             pos = (width, height)
         if isinstance(img, BuildImage):
             img = img.markImg
-        if self.current_w == self.w:
-            self.current_w = 0
-            self.current_h += self.paste_image_height
+        if self._current_w >= self.w:
+            self._current_w = 0
+            self._current_h += self.paste_image_height
         if not pos:
-            pos = (self.current_w, self.current_h)
+            pos = (self._current_w, self._current_h)
         if alpha:
             try:
                 self.markImg.paste(img, pos, img)
@@ -300,7 +300,7 @@ class BuildImage:
                 self.markImg.paste(img, pos, img)
         else:
             self.markImg.paste(img, pos)
-        self.current_w += self.paste_image_width
+        self._current_w += self.paste_image_width
 
     def getsize(self, msg: str) -> Tuple[int, int]:
         """
