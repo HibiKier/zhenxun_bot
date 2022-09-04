@@ -48,6 +48,7 @@ class WordBank(db.Model):
         user_id: Optional[int],
         group_id: Optional[int],
         problem: str,
+        answer: Optional[str],
         word_scope: Optional[int] = None,
         word_type: Optional[int] = None,
     ) -> bool:
@@ -58,6 +59,7 @@ class WordBank(db.Model):
             :param user_id: 用户id
             :param group_id: 群号
             :param problem: 问题
+            :param answer: 回答
             :param word_scope: 词条范围
             :param word_type: 词条类型
         """
@@ -66,6 +68,8 @@ class WordBank(db.Model):
             query = query.where(cls.user_qq == user_id)
         if group_id:
             query = query.where(cls.group_id == group_id)
+        if answer:
+            query = query.where(cls.answer == answer)
         if word_type:
             query = query.where(cls.word_type == word_type)
         if word_scope:
@@ -105,19 +109,20 @@ class WordBank(db.Model):
             problem = str(get_img_hash(_file))
             image_path = f"problem/{group_id}/{user_id}_{int(time.time())}.jpg"
         answer, _list = await cls._answer2format(answer, user_id, group_id)
-        await cls.create(
-            user_qq=user_id,
-            group_id=group_id,
-            word_scope=word_scope,
-            word_type=word_type,
-            status=True,
-            problem=problem,
-            answer=answer,
-            image_path=image_path,
-            placeholder=",".join(_list),
-            create_time=datetime.now().replace(microsecond=0),
-            update_time=datetime.now().replace(microsecond=0),
-        )
+        if not await cls.exists(user_id, group_id, problem, answer, word_scope, word_type):
+            await cls.create(
+                user_qq=user_id,
+                group_id=group_id,
+                word_scope=word_scope,
+                word_type=word_type,
+                status=True,
+                problem=problem,
+                answer=answer,
+                image_path=image_path,
+                placeholder=",".join(_list),
+                create_time=datetime.now().replace(microsecond=0),
+                update_time=datetime.now().replace(microsecond=0),
+            )
 
     @classmethod
     async def _answer2format(
@@ -479,3 +484,40 @@ class WordBank(db.Model):
                 problem_list.append(problem)
                 _tmp.append(q.problem)
         return problem_list
+
+    @classmethod
+    async def _move(
+        cls,
+        user_id: int,
+        group_id: Optional[int],
+        problem: Union[str, Message],
+        answer: Union[str, Message],
+        placeholder: str,
+    ):
+        """
+        说明:
+            旧词条图片移动方法
+        参数:
+            :param user_id: 用户id
+            :param group_id: 群号
+            :param problem: 问题
+            :param answer: 回答
+            :param placeholder: 占位符
+        """
+        word_scope = 0
+        word_type = 0
+        # 对图片做额外处理
+        if not await cls.exists(user_id, group_id, problem, answer, word_scope, word_type):
+            await cls.create(
+                user_qq=user_id,
+                group_id=group_id,
+                word_scope=word_scope,
+                word_type=word_type,
+                status=True,
+                problem=problem,
+                answer=answer,
+                image_path=None,
+                placeholder=placeholder,
+                create_time=datetime.now().replace(microsecond=0),
+                update_time=datetime.now().replace(microsecond=0),
+            )

@@ -1,3 +1,5 @@
+import random
+import time
 from pathlib import Path
 
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
@@ -189,6 +191,9 @@ async def _():
     logger.info('开始迁移词条 纯文本 数据')
     try:
         word_list = await OldWordBank.get_all()
+        new_answer_path = Path() / 'data' / 'word_bank' / 'answer'
+        new_problem_path = Path() / 'data' / 'word_bank' / 'problem'
+        new_answer_path.mkdir(exist_ok=True, parents=True)
         for word in word_list:
             problem: str = word.problem
             user_id = word.user_qq
@@ -199,6 +204,25 @@ async def _():
             if '[CQ' not in problem and '[CQ' not in answer and '[_to_me' not in problem:
                 if not format_:
                     await WordBank.add_problem_answer(user_id, group_id, 1, 0, problem, answer)
+                else:
+                    placeholder = []
+                    for m in format_.split('<format>'):
+                        x = m.split('<_s>')
+                        if x[0]:
+                            idx, file_name = x[0], x[1]
+                            if 'jpg' in file_name:
+                                answer = answer.replace(f'[__placeholder_{idx}]', f'[image:placeholder_{idx}]')
+                                file = Path() / 'data' / 'word_bank' / f'{group_id}' / file_name
+                                rand = int(time.time()) + random.randint(1, 100000)
+                                if file.exists():
+                                    new_file = new_answer_path / f'{group_id}' / f'{user_id}_{rand}.jpg'
+                                    new_file.parent.mkdir(exist_ok=True, parents=True)
+                                    with open(file, 'rb') as rb:
+                                        with open(new_file, 'wb') as wb:
+                                            wb.write(rb.read())
+                                    # file.rename(new_file)
+                                    placeholder.append(f'answer/{group_id}/{user_id}_{rand}.jpg')
+                                    await WordBank._move(user_id, group_id, problem, answer, ",".join(placeholder))
         await WordBank.add_problem_answer(0, 0, 999, 0, '_[OK', '_[OK')
         logger.info('词条 纯文本 数据迁移完成')
         (Path() / 'plugins' / 'word_bank' / '_old_model.py').unlink()
