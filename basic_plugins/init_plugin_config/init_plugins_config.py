@@ -27,6 +27,8 @@ def init_plugins_config(data_path):
     # 优先使用 metadata 数据
     for matcher in _matchers:
         _plugin = matcher.plugin
+        if not _plugin:
+            continue
         metadata = _plugin.metadata
         try:
             _module = _plugin.module

@@ -36,6 +36,8 @@ def init_plugins_settings(data_path: str):
     for matcher in _matchers:
         if matcher.plugin_name not in plugins2settings_manager.keys():
             _plugin = matcher.plugin
+            if not _plugin:
+                continue
             metadata = _plugin.metadata
             try:
                 _module = _plugin.module

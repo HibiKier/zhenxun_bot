@@ -25,6 +25,8 @@ def init_plugins_data(data_path):
     _matchers = get_matchers(True)
     for matcher in _matchers:
         _plugin = matcher.plugin
+        if not _plugin:
+            continue
         metadata = _plugin.metadata
         try:
             _module = _plugin.module
