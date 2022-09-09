@@ -36,11 +36,11 @@ custom_welcome = on_command(
 
 @custom_welcome.handle()
 async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
+    img = get_message_img(event.json())
+    if not msg and not img:
+        await custom_welcome.finish(__plugin_usage__)
     try:
-        msg = arg.extract_plain_text().strip()
-        img = get_message_img(event.json())
-        if not msg and not img:
-            await custom_welcome.finish(__plugin_usage__)
         await custom_welcome.send(
             await custom_group_welcome(msg, img, event.user_id, event.group_id),
             at_sender=True,
