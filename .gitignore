@@ -159,3 +159,5 @@ resources/
 !/configs/config.yaml
 !/.env
 !/.env.dev
+!/plugins/csgo_server/
+!/plugins/activity/

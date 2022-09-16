@@ -15,6 +15,7 @@ from .data_source import (
     BilibiliSub,
 )
 from models.level_user import LevelUser
+from utils.manager import group_manager
 from configs.config import Config
 from utils.utils import is_number, scheduler, get_bot
 from typing import Optional, Tuple, Any
@@ -267,7 +268,8 @@ async def send_sub_msg(rst: str, sub: BilibiliSub, bot: Bot):
                             and Config.get_config("bilibili_sub", "UP_MSG_AT_ALL")
                         ):
                             rst = "[CQ:at,qq=all]\n" + rst
-                    await bot.send_group_msg(group_id=group_id, message=Message(rst))
+                    if group_manager.get_plugin_status("bilibili_sub", group_id):
+                        await bot.send_group_msg(group_id=group_id, message=Message(rst))
                 else:
                     await bot.send_private_msg(user_id=int(x), message=Message(rst))
             except Exception as e:

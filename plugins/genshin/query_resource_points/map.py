@@ -118,7 +118,7 @@ class Map:
             self._generate_best_route()
         self.map.crop((min_width, min_height, max_width, max_height))
         rand = random.randint(1, 10000)
-        self.map.save(f"{IMAGE_PATH}/temp/genshin_map_{rand}.png")
+        self.map.save(f"{TEXT_PATH}/genshin_map_{rand}.png")
         return rand
 
     # 资源数量

@@ -60,7 +60,7 @@ async def _():
             try:
                 await bot.send_group_msg(group_id=g, message="[[_task|zwa]]早上好" + result)
             except ActionFailed:
-                logger.warning(f"{g} 群被禁言中，无法发送早安")
+                logger.warning(f"{g} 发送早安失败")
     except Exception as e:
         logger.error(f"早晚安错误 e:{e}")
 
@@ -83,7 +83,7 @@ async def _():
                     group_id=g, message=f"[[_task|zwa]]{NICKNAME}要睡觉了，你们也要早点睡呀" + result
                 )
             except ActionFailed:
-                logger.warning(f"{g} 群被禁言中，无法发送晚安")
+                logger.warning(f"{g} 发送晚安失败")
     except Exception as e:
         logger.error(f"早晚安错误 e:{e}")
 

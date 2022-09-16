@@ -279,9 +279,16 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
+### 2022/9/16
+
+* fix: bilibili_sub, azur_draw_card [@pull/1090](https://github.com/HibiKier/zhenxun_bot/pull/1090)
+* 修复原神资源查询查询完毕后图片存储错误
+* b站订阅发送 与 b站订阅 使用相同开关，即：关闭b站订阅
+
 ### 2022/9/10
 
 * 自定义群欢迎消息参数不完全时提示报错
+* 修改bt插件的url地址 [@pull/1067](https://github.com/HibiKier/zhenxun_bot/pull/1067)
 
 ### 2022/9/8
 
