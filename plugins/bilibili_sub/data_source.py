@@ -208,7 +208,9 @@ async def get_sub_status(id_: int, sub_type: str) -> Optional[str]:
         elif sub_type == "season":
             return await _get_season_status(id_)
     except ResponseCodeError:
-        return f"Id：{id_} 获取信息失败...请检查订阅Id是否存在或稍后再试..."
+        logger.error(f"Id：{id_} 获取信息失败...请检查订阅Id是否存在或稍后再试...")
+        return None
+        # return f"Id：{id_} 获取信息失败...请检查订阅Id是否存在或稍后再试..."
     # except Exception as e:
     #     logger.error(f"获取订阅状态发生预料之外的错误 id_：{id_} {type(e)}：{e}")
     #     return "发生了预料之外的错误..请稍后再试或联系管理员....."
