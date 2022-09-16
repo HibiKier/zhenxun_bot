@@ -1,5 +1,5 @@
 from bilireq.exceptions import ResponseCodeError
-from nonebot.adapters.onebot.v11 import MessageSegment
+from nonebot.adapters.onebot.v11 import MessageSegment, Bot
 
 from utils.manager import resources_manager
 from asyncio.exceptions import TimeoutError
@@ -20,6 +20,11 @@ from services.db_context import db
 from services.log import logger
 from utils.http_utils import AsyncHttpx
 import random
+
+from configs.config import Config as PluginConfig
+from nonebot import get_driver
+from nonebot.config import Config as GlobalConfig
+global_config = Config.parse_obj(get_driver().config.dict())
 
 
 bilibili_search_url = "https://api.bilibili.com/x/web-interface/search/all/v2"
@@ -194,7 +199,7 @@ async def get_media_id(keyword: str) -> dict:
         return {}
 
 
-async def get_sub_status(id_: int, sub_type: str) -> Optional[str]:
+async def get_sub_status(id_: int, sub_type: str, bot: Bot = None) -> Optional[str]:
     """
     获取订阅状态
     :param id_: 订阅 id
@@ -209,6 +214,9 @@ async def get_sub_status(id_: int, sub_type: str) -> Optional[str]:
             return await _get_season_status(id_)
     except ResponseCodeError:
         logger.error(f"Id：{id_} 获取信息失败...请检查订阅Id是否存在或稍后再试...")
+        if PluginConfig.get_config("bilibili_sub", "ERROR_MSG_TO_SUPERUSERS"):
+            for user in global_config.superusers:
+                await bot.send_private_msg(user_id=int(user), message=f"b站订阅id {id_} 获取信息失败")
         return None
         # return f"Id：{id_} 获取信息失败...请检查订阅Id是否存在或稍后再试..."
     # except Exception as e:

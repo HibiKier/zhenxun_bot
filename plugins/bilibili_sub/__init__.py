@@ -64,6 +64,11 @@ __plugin_configs__ = {
         "help": "UP动态投稿提醒是否AT全体（仅在真寻是管理员时生效）",
         "default_value": False,
     },
+    "ERROR_MSG_TO_SUPERUSERS": {
+        "value": False,
+        "help": "检查b站订阅时可能会报错，是否将报错信息私发给超级用户",
+        "default_value": False
+    }
 }
 
 add_sub = on_command("添加订阅", priority=5, block=True)
