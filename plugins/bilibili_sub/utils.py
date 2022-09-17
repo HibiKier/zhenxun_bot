@@ -111,8 +111,16 @@ async def get_videos(
     }
     return await get(url, params=params, auth=auth, reqtype=reqtype, **kwargs)
 
-async def get_user_card(mid, photo: bool = False):
+async def get_user_card(mid, photo: bool = False, auth=None, reqtype="both", **kwargs):
     from bilireq.utils import get
+
     url = f"{BASE_URL}/x/web-interface/card"
-    r = await get(url, params={"mid":mid, "photo": photo})
-    return r["card"]
+    return (
+        await get(
+            url,
+            params={"mid": mid, "photo": photo},
+            auth=auth,
+            reqtype=reqtype,
+            **kwargs,
+        )
+    )["card"]
