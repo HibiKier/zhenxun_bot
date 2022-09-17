@@ -8,7 +8,7 @@ from io import BytesIO
 
 BORDER_PATH = IMAGE_PATH / "border"
 BORDER_PATH.mkdir(parents=True, exist_ok=True)
-
+BASE_URL = "https://api.bilibili.com"
 
 async def get_pic(url: str) -> bytes:
     """
@@ -78,7 +78,6 @@ async def get_meta(media_id: int, auth=None, reqtype="both", **kwargs):
     """
     from bilireq.utils import get
 
-    BASE_URL = "https://api.bilibili.com"
     url = f"{BASE_URL}/pgc/review/user"
     params = {"media_id": media_id}
     raw_json = await get(url, raw=True, params=params, auth=auth, reqtype=reqtype, **kwargs)
@@ -101,7 +100,6 @@ async def get_videos(
     :param order: 排序方式，可以为 “pubdate(上传日期从新到旧), stow(收藏从多到少), click(播放量从多到少)”
     """
     from bilireq.utils import get
-    BASE_URL = "https://api.bilibili.com"
     url = f"{BASE_URL}/x/space/arc/search"
     params = {
         "mid": uid,
@@ -112,3 +110,9 @@ async def get_videos(
         "order": order
     }
     return await get(url, params=params, auth=auth, reqtype=reqtype, **kwargs)
+
+async def get_user_card(mid, photo: bool = False):
+    from bilireq.utils import get
+    url = f"{BASE_URL}/x/web-interface/card"
+    r = await get(url, params={"mid":mid, "photo": photo})
+    return r["card"]

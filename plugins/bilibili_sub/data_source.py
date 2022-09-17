@@ -7,7 +7,7 @@ from asyncio.exceptions import TimeoutError
 from utils.utils import get_bot
 from .model import BilibiliSub
 from bilireq.live import get_room_info_by_id
-from .utils import get_meta
+from .utils import get_meta, get_user_card
 from utils.message_builder import image
 from bilireq.user import get_user_info
 from bilireq import dynamic
@@ -83,7 +83,7 @@ async def add_up_sub(uid: int, sub_user: str) -> str:
         async with db.transaction():
             try:
                 """bilibili_api.user库中User类的get_user_info改为bilireq.user库的get_user_info方法"""
-                user_info = await get_user_info(uid)
+                user_info = await get_user_card(uid)
             except ResponseCodeError:
                 return f"未找到UpId：{uid} 的信息，请检查Id是否正确"
             uname = user_info["name"]
@@ -249,7 +249,7 @@ async def _get_up_status(id_: int) -> Optional[str]:
     """
     _user = await BilibiliSub.get_sub(id_)
     """bilibili_api.user库中User类的get_user_info改为bilireq.user库的get_user_info方法"""
-    user_info = await get_user_info(_user.uid)
+    user_info = await get_user_card(_user.uid)
     uname = user_info["name"]
     """bilibili_api.user库中User类的get_videos改为bilireq.user库的get_videos方法"""
     video_info = await get_videos(_user.uid)
