@@ -1,4 +1,4 @@
-from nonebot.adapters.onebot.v11 import Bot
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent
 from nonebot.permission import SUPERUSER
 from nonebot import on_command
 from .data_source import check_update, get_latest_version_data
@@ -50,24 +50,24 @@ restart = on_command(
 
 
 @update_zhenxun.handle()
-async def _(bot: Bot):
+async def _(bot: Bot, event: MessageEvent):
     try:
         code, error = await check_update(bot)
         if error:
             logger.error(f"更新真寻未知错误 {error}")
             await bot.send_private_msg(
-                user_id=int(list(bot.config.superusers)[0]), message=f"更新真寻未知错误 {error}"
+                user_id=event.user_id, message=f"更新真寻未知错误 {error}"
             )
     except Exception as e:
         logger.error(f"更新真寻未知错误 {type(e)}：{e}")
         await bot.send_private_msg(
-            user_id=int(list(bot.config.superusers)[0]),
+            user_id=event.user_id,
             message=f"更新真寻未知错误 {type(e)}：{e}",
         )
     else:
         if code == 200:
             await bot.send_private_msg(
-                user_id=int(list(bot.config.superusers)[0]), message=f"更新完毕，请重启真寻...."
+                user_id=event.user_id, message=f"更新完毕，请重启真寻...."
             )
 
 
