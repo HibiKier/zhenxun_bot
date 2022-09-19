@@ -252,6 +252,11 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ### 感谢名单
 (可以告诉我你的 __github__ 地址，我偷偷换掉0v|)  
+[Kafka](https://afdian.net/u/41d66798ef6911ecbc5952540025c377)
+[墨然](https://afdian.net/u/8aa5874a644d11eb8a6752540025c377)
+[爱发电用户_T9e4](https://afdian.net/u/2ad1bb82f3a711eca22852540025c377)
+[笑柒XIAO_Q7](https://afdian.net/u/4696db5c529111ec84ea52540025c377)
+[noahzark](https://afdian.net/a/noahzark)
 [腊条](https://afdian.net/u/f739c4d69eca11eba94b52540025c377)  
 [ze roller](https://afdian.net/u/0e599e96257211ed805152540025c377)  
 [爱发电用户_4jrf](https://afdian.net/u/6b2cdcc817c611ed949152540025c377)  
@@ -278,6 +283,15 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 
 ## 更新
+
+### 2022/9/19
+
+* 更换bilibili_sub获取用户昵称用的API&尝试修了一下get_video() [@pull/1097](https://github.com/HibiKier/zhenxun_bot/pull/1097)
+* 修复csgo每日开箱可以多开一次
+
+### 2022/9/18
+
+* 修复 bilireq 版本过低导致 B 站视频解析错误 [@pull/1090](https://github.com/HibiKier/zhenxun_bot/pull/1096)
 
 ### 2022/9/16
 
