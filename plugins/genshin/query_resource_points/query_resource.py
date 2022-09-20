@@ -57,7 +57,7 @@ async def query_resource(resource_name: str) -> str:
         None, map_.generate_resource_icon_in_map
     )
     return (
-        f"{image(f'genshin_map_{rand}.png', 'temp')}"
+        f"{image(TEXT_PATH/f'genshin_map_{rand}.png')}"
         f"\n\n※ {resource_name} 一共找到 {count} 个位置点\n※ 数据来源于米游社wiki"
     )
 
