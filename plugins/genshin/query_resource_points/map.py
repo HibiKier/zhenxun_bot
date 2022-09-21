@@ -1,4 +1,4 @@
-from configs.path_config import IMAGE_PATH, TEXT_PATH
+from configs.path_config import IMAGE_PATH, TEXT_PATH, TEMP_PATH
 from utils.image_utils import BuildImage
 from typing import Tuple, List
 from math import sqrt, pow
@@ -118,7 +118,7 @@ class Map:
             self._generate_best_route()
         self.map.crop((min_width, min_height, max_width, max_height))
         rand = random.randint(1, 10000)
-        self.map.save(f"{TEXT_PATH}/genshin_map_{rand}.png")
+        self.map.save(f"{TEMP_PATH}/genshin_map_{rand}.png")
         return rand
 
     # 资源数量
