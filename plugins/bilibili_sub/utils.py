@@ -106,7 +106,7 @@ async def get_videos(
     headers["Referer"] = f"https://space.bilibili.com/{uid}/video"
     async with AsyncClient() as client:
         r = await client.head(
-            "https://space.bilibili.com",
+            "https://www.bilibili.com",
             headers=headers,
         )
         params = {
