@@ -9,9 +9,9 @@ from .model import BilibiliSub
 from bilireq.live import get_room_info_by_id
 from .utils import get_meta, get_user_card
 from utils.message_builder import image
-from bilireq.user import get_user_info
+from bilireq.user import get_videos
+# from .utils import get_videos
 from bilireq import dynamic
-from .utils import get_videos
 from typing import Optional, Tuple
 from configs.path_config import IMAGE_PATH
 from datetime import datetime
@@ -207,8 +207,8 @@ async def get_sub_status(id_: int, sub_type: str) -> Optional[str]:
             return await _get_up_status(id_)
         elif sub_type == "season":
             return await _get_season_status(id_)
-    except ResponseCodeError:
-        logger.error(f"Id：{id_} 获取信息失败...请检查订阅Id是否存在或稍后再试...")
+    except ResponseCodeError as msg:
+        logger.info(f"Id：{id_} 获取信息失败...{msg}")
         return None
         # return f"Id：{id_} 获取信息失败...请检查订阅Id是否存在或稍后再试..."
     # except Exception as e:
@@ -349,16 +349,8 @@ async def get_user_dynamic(
                 await page.set_viewport_size(
                     {"width": 2560, "height": 1080, "timeout": 10000 * 20}
                 )
-                await page.wait_for_selector(".panel-area")
-                await page.evaluate(
-                    """
-                    xs = document.getElementById('internationalHeader');
-                    xs.remove();
-                    xs = document.getElementsByClassName('panel-area')
-                    xs[0].remove();
-                """
-                )
-                card = page.locator(".detail-card")
+                await page.wait_for_selector(".bili-dyn-item__main")
+                card = page.locator(".bili-dyn-item__main")
                 await card.wait_for()
                 await card.screenshot(
                     path=dynamic_path / f"{local_user.sub_id}_{dynamic_upload_time}.jpg",
