@@ -56,10 +56,10 @@ def _create_help_img(
     for matcher in _matchers:
         plugin_name = None
         _plugin = matcher.plugin
-        metadata = _plugin.metadata
         if not _plugin:
             logger.warning(f"获取 功能：{matcher.plugin_name} 失败...")
             continue
+        metadata = _plugin.metadata
         _module = _plugin.module
         try:
             plugin_name = metadata.name if metadata else _module.__getattribute__("__zx_plugin_name__")
