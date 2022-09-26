@@ -1,6 +1,8 @@
 from nonebot import on_message
 from services.log import logger
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, ActionFailed
+
+from utils.manager import group_manager
 from utils.utils import get_message_json, get_local_proxy, is_number, get_message_text
 from nonebot.adapters.onebot.v11.permission import GROUP
 from utils.message_builder import image
@@ -34,7 +36,10 @@ Config.add_plugin_config(
 )
 
 
-parse_bilibili_json = on_message(priority=1, permission=GROUP, block=False)
+async def plugin_on_checker(event: GroupMessageEvent) -> bool:
+    return group_manager.get_plugin_status("parse_bilibili_json", event.group_id)
+
+parse_bilibili_json = on_message(priority=1, permission=GROUP, block=False, rule=plugin_on_checker)
 
 _tmp = {}
 
@@ -124,7 +129,7 @@ async def _(event: GroupMessageEvent):
                         url,
                         timeout=7,
                 ) as response:
-                    url = str(response.url).split("?")[0]
+                    url = (str(response.url).split("?")[0]).strip("/")
                     bvid = url.split("/")[-1]
                     vd_info = await video.get_video_base_info(bvid)
     if vd_info:
