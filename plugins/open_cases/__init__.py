@@ -101,7 +101,7 @@ cases_matcher_group = MatcherGroup(priority=5, permission=GROUP, block=True)
 
 k_open_case = cases_matcher_group.on_command("开箱")
 
-reload_count = cases_matcher_group.on_command("重置开箱")
+reload_count = cases_matcher_group.on_command("重置开箱",permission=SUPERUSER)
 
 
 @reload_count.handle()
