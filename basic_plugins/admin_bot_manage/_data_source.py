@@ -87,13 +87,13 @@ task_data = None
 
 
 async def change_group_switch(cmd: str, group_id: int, is_super: bool = False):
-    global task_data
     """
     修改群功能状态
     :param cmd: 功能名称
     :param group_id: 群号
     :param is_super: 是否位超级用户，超级用户用于私聊开关功能状态
     """
+    global task_data
     if not task_data:
         task_data = group_manager.get_task_data()
     group_help_file = DATA_PATH / "group_help" / f"{group_id}.png"
@@ -121,9 +121,9 @@ async def change_group_switch(cmd: str, group_id: int, is_super: bool = False):
         if group_help_file.exists():
             group_help_file.unlink()
         return f"已 {status} 全部功能！"
-    if cmd in [task_data[x] for x in task_data.keys()]:
+    if cmd.lower() in [task_data[x].lower() for x in task_data.keys()]:
         type_ = "task"
-        modules = [x for x in task_data.keys() if task_data[x] == cmd]
+        modules = [x for x in task_data.keys() if task_data[x].lower() == cmd.lower()]
     for module in modules:
         if is_super:
             module = f"{module}:super"

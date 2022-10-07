@@ -286,6 +286,19 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
+### 2022/10/7
+
+* 修复 B 站请求返回 -401 错误 [@pull/1119](https://github.com/HibiKier/zhenxun_bot/pull/1119)
+* 关闭功能与被动时不再区分大小写，同名时仅被动关闭操作生效
+
+### 2022/9/30
+
+* 修改重置开箱的使用权限 [@pull/1118](https://github.com/HibiKier/zhenxun_bot/pull/1118)
+
+### 2022/9/27
+
+*  更新b站转发解析 [@pull/1117](https://github.com/HibiKier/zhenxun_bot/pull/1117)
+
 ### 2022/9/24
 
 * 修复b站订阅 [@pull/1112](https://github.com/HibiKier/zhenxun_bot/pull/1112)

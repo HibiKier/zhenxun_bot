@@ -1,3 +1,4 @@
+import io
 from pathlib import Path
 from typing import List, Union
 
@@ -26,7 +27,7 @@ def image(
             return MessageSegment.image(file)
         logger.warning(f"图片 {file.absolute()}缺失...")
         return ""
-    elif isinstance(file, bytes):
+    elif isinstance(file, (bytes, io.BytesIO)):
         return MessageSegment.image(file)
     elif b64:
         return MessageSegment.image(b64 if "base64://" in b64 else "base64://" + b64)
