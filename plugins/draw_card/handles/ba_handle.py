@@ -1,4 +1,6 @@
 import random
+import json
+from utils.http_utils import AsyncHttpx
 from lxml import etree
 from typing import List, Tuple
 from PIL import ImageDraw
@@ -107,27 +109,70 @@ class BaHandle(BaseHandle[BaChar]):
         else:
             return 1
 
+    # Bwiki 待恢复
+    # async def _update_info(self):
+    #     info = {}
+    #     url = "https://wiki.biligame.com/bluearchive/学生筛选"
+    #     result = await self.get_url(url)
+    #     if not result:
+    #         logger.warning(f"更新 {self.game_name_cn} 出错")
+    #         return
+    #     else:
+    #         dom = etree.HTML(result, etree.HTMLParser())
+    #         char_list = dom.xpath("//div[@class='filters']/table[2]/tbody/tr")
+    #         for char in char_list:
+    #             try:
+    #                 name = char.xpath("./td[2]/a/div/text()")[0]
+    #                 avatar = char.xpath("./td[1]/div/div/a/img/@data-src")[0]
+    #                 star_pic = char.xpath("./td[4]/img/@alt")[0]
+    #             except IndexError:
+    #                 continue
+    #             member_dict = {
+    #                 "头像": unquote(str(avatar)),
+    #                 "名称": remove_prohibited_str(name),
+    #                 "星级": self.title2star(star_pic),
+    #             }
+    #             info[member_dict["名称"]] = member_dict
+    #     self.dump_data(info)
+    #     logger.info(f"{self.game_name_cn} 更新成功")
+    #     # 下载头像
+    #     for value in info.values():
+    #         await self.download_img(value["头像"], value["名称"])
+    #     # 下载星星
+    #     await self.download_img(
+    #         "https://patchwiki.biligame.com/images/bluearchive/thumb/e/e0/82nj2x9sxko473g7782r14fztd4zyky.png/15px-Star-1.png",
+    #         "star-1",
+    #     )
+    #     await self.download_img(
+    #         "https://patchwiki.biligame.com/images/bluearchive/thumb/0/0b/msaff2g0zk6nlyl1rrn7n1ri4yobcqc.png/30px-Star-2.png",
+    #         "star-2",
+    #     )
+    #     await self.download_img(
+    #         "https://patchwiki.biligame.com/images/bluearchive/thumb/8/8a/577yv79x1rwxk8efdccpblo0lozl158.png/46px-Star-3.png",
+    #         "star-3"
+    #     )
+    
+    # 数据来源：SCHALE DB
     async def _update_info(self):
         info = {}
-        url = "https://wiki.biligame.com/bluearchive/学生筛选"
-        result = await self.get_url(url)
-        if not result:
+        url = "https://lonqie.github.io/SchaleDB/data/cn/students.min.json?v=49"
+        result = await AsyncHttpx.get(url)
+        if result.status_code != 200:
             logger.warning(f"更新 {self.game_name_cn} 出错")
             return
         else:
-            dom = etree.HTML(result, etree.HTMLParser())
-            char_list = dom.xpath("//div[@class='filters']/table[2]/tbody/tr")
+            char_list = json.loads(result.text)
             for char in char_list:
                 try:
-                    name = char.xpath("./td[2]/a/div/text()")[0]
-                    avatar = char.xpath("./td[1]/div/div/a/img/@data-src")[0]
-                    star_pic = char.xpath("./td[4]/img/@alt")[0]
+                    name = char.get("Name")
+                    avatar = "https://lonqie.github.io/SchaleDB/images/student/icon/"+char.get("CollectionTexture")+".png"
+                    star = char.get("StarGrade")
                 except IndexError:
                     continue
                 member_dict = {
                     "头像": unquote(str(avatar)),
                     "名称": remove_prohibited_str(name),
-                    "星级": self.title2star(star_pic),
+                    "星级": star,
                 }
                 info[member_dict["名称"]] = member_dict
         self.dump_data(info)
@@ -148,3 +193,4 @@ class BaHandle(BaseHandle[BaChar]):
             "https://patchwiki.biligame.com/images/bluearchive/thumb/8/8a/577yv79x1rwxk8efdccpblo0lozl158.png/46px-Star-3.png",
             "star-3"
         )
+        
