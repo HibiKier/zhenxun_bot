@@ -3,7 +3,6 @@ from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent
 from services.log import logger
 from .data_source import get_user_memo, get_memo
 from .._models import Genshin
-from nonebot.plugin import export
 
 
 __zx_plugin_name__ = "原神便笺查询"
@@ -27,10 +26,6 @@ __plugin_settings__ = {
 }
 __plugin_block_limit__ = {}
 
-
-export = export()
-
-export.get_memo = get_memo
 
 query_memo_matcher = on_command("原神便签查询", aliases={"原神便笺查询", "yss"}, priority=5, block=True)
 

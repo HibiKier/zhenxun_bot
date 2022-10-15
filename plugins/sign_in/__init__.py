@@ -18,6 +18,7 @@ from configs.path_config import DATA_PATH
 from services.log import logger
 from .utils import clear_sign_data_pic
 from utils.utils import is_number
+from .goods_register import driver
 
 try:
     import ujson as json

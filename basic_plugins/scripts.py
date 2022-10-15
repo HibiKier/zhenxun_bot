@@ -15,7 +15,7 @@ from configs.path_config import TEXT_PATH
 from asyncio.exceptions import TimeoutError
 from typing import List
 from utils.http_utils import AsyncHttpx
-from utils.manager import GDict
+from utils.utils import GDict
 from utils.utils import scheduler
 import nonebot
 

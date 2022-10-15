@@ -6,7 +6,6 @@ from utils.message_builder import image
 from nonebot.permission import SUPERUSER
 from utils.utils import is_number, scheduler
 from nonebot.params import CommandArg
-from nonebot.plugin import export
 from services.log import logger
 import os
 
@@ -51,11 +50,6 @@ __plugin_block_limit__ = {
     "limit_type": "group"
 }
 
-# 导出方法供其他插件使用
-export = export()
-export.register_goods = register_goods
-export.delete_goods = delete_goods
-export.update_goods = update_goods
 
 shop_help = on_command("商店", priority=5, block=True)
 
