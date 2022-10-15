@@ -22,7 +22,6 @@ httpx = "^0.23.0"
 ImageHash = "^4.2.1"
 jieba = "^0.42.1"
 lxml = "4.6.5"
-nonebot-plugin-apscheduler = "^0.1.2"
 opencv-python = "^4.5.5"
 Pillow = "^9.0.1"
 playwright = "^1.18.2"
@@ -42,6 +41,8 @@ bilireq = "^0.2.3.post0"
 emoji = "^1.7.0"
 wordcloud = "^1.8.1"
 rich = "^12.4.3"
+gino = "^1.0.1"
+nonebot-plugin-apscheduler = "^0.2.0"
 
 [tool.poetry.dev-dependencies]
 
