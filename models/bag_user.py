@@ -2,6 +2,7 @@ from services.db_context import db
 from typing import Dict
 from typing import Optional, List
 from services.log import logger
+from .goods_info import GoodsInfo
 
 
 class BagUser(db.Model):
@@ -62,17 +63,24 @@ class BagUser(db.Model):
             return 100
 
     @classmethod
-    async def get_property(cls, user_qq: int, group_id: int) -> Dict[str, int]:
+    async def get_property(cls, user_qq: int, group_id: int, only_active: bool = False) -> Dict[str, int]:
         """
         说明:
             获取当前道具
         参数:
             :param user_qq: qq号
             :param group_id: 所在群号
+            :param only_active: 仅仅获取主动使用的道具
         """
         query = cls.query.where((cls.user_qq == user_qq) & (cls.group_id == group_id))
         user = await query.gino.first()
         if user:
+            if only_active and user.property:
+                data = {}
+                name_list = [x.goods_name for x in await GoodsInfo.get_all_goods() if not x.is_passive]
+                for key in [x for x in user.property.keys() if x in name_list]:
+                    data[key] = user.property[key]
+                return data
             return user.property
         else:
             await cls.create(

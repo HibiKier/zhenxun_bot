@@ -16,6 +16,8 @@ class GoodsInfo(db.Model):
     daily_purchase_limit = db.Column(
         db.JSON(), nullable=False, default={}
     )  # 每日购买限制数据存储
+    is_passive = db.Column(db.Boolean(), nullable=False, default=0)  # 是否为被动
+    icon = db.Column(db.String(), nullable=False, default=0)  # 图标
 
     _idx1 = db.Index("goods_group_users_idx1", "goods_name", unique=True)
 
@@ -28,6 +30,8 @@ class GoodsInfo(db.Model):
             goods_discount: float = 1,
             goods_limit_time: int = 0,
             daily_limit: int = 0,
+            is_passive: bool = False,
+            icon: Optional[str] = None,
     ) -> bool:
         """
         说明:
@@ -39,6 +43,8 @@ class GoodsInfo(db.Model):
             :param goods_discount: 商品折扣
             :param goods_limit_time: 商品限时
             :param daily_limit: 每日购买限制
+            :param is_passive: 是否为被动道具
+            :param icon: 图标
         """
         try:
             if not await cls.get_goods_info(goods_name):
@@ -49,10 +55,12 @@ class GoodsInfo(db.Model):
                     goods_discount=goods_discount,
                     goods_limit_time=goods_limit_time,
                     daily_limit=daily_limit,
+                    is_passive=is_passive,
+                    icon=icon
                 )
                 return True
         except Exception as e:
-            logger.error(f"GoodsInfo add_goods 发生错误 {type(e)}：{e}")
+            logger.error(f"GoodsInfo add_goods {goods_name} 发生错误 {type(e)}：{e}")
         return False
 
     @classmethod
@@ -81,7 +89,9 @@ class GoodsInfo(db.Model):
             goods_description: Optional[str] = None,
             goods_discount: Optional[float] = None,
             goods_limit_time: Optional[int] = None,
-            daily_limit: Optional[int] = None
+            daily_limit: Optional[int] = None,
+            is_passive: Optional[bool] = None,
+            icon: Optional[str] = None,
     ) -> bool:
         """
         说明:
@@ -93,6 +103,8 @@ class GoodsInfo(db.Model):
             :param goods_discount: 商品折扣
             :param goods_limit_time: 商品限时时间
             :param daily_limit: 每日次数限制
+            :param is_passive: 是否为被动
+            :param icon: 图标
         """
         try:
             query = (
@@ -108,6 +120,8 @@ class GoodsInfo(db.Model):
                 goods_discount=goods_discount or query.goods_discount,
                 goods_limit_time=goods_limit_time if goods_limit_time is not None else query.goods_limit_time,
                 daily_limit=daily_limit if daily_limit is not None else query.daily_limit,
+                is_passive=is_passive if is_passive is not None else query.is_passive,
+                icon=icon or query.icon
             ).apply()
             return True
         except Exception as e:

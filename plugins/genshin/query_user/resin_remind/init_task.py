@@ -19,7 +19,9 @@ import pytz
 driver: Driver = nonebot.get_driver()
 
 
-get_memo = require("query_memo").get_memo
+require("query_memo")
+
+from ..query_memo import get_memo
 
 
 global_map = {}

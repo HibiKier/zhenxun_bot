@@ -286,6 +286,17 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
+### 2022/10/15
+
+* nonebot2版本更新为rc1
+* 我的道具改为图片形式
+* 商品添加图标与是否为被动道具（被动道具无法被主动使用）
+* 商品添加使用前方法和使用后方法（类似hook），使用方法具体查看文档或签到商品文件中注册的例子
+
+### 2022/10/9
+
+* 修复碧蓝档案角色获取问题，换源 [@pull/1124](https://github.com/HibiKier/zhenxun_bot/pull/1124)
+
 ### 2022/10/7
 
 * 修复 B 站请求返回 -401 错误 [@pull/1119](https://github.com/HibiKier/zhenxun_bot/pull/1119)
@@ -368,7 +379,7 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 * 修复b站转发解析av号无法解析
 * B站订阅直播订阅支持短号
 * 开箱提供重置开箱命令，重置今日所有开箱数据（重置次数，并不会删除今日已开箱记录）
-* 提供全局字典GDict，通过from utils.manager import GDict导入
+* 提供全局字典GDict，通过from utils.utils import GDict导入
 * 适配omega 13w张图的数据结构表（建议删表重导）
 * 除首次启动外将配置替换加入单次定时任务，加快启动速度
 * fix: WordBank.check() [@pull/1008](https://github.com/HibiKier/zhenxun_bot/pull/1008)

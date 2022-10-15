@@ -18,8 +18,17 @@ try:
 except ModuleNotFoundError:
     import json
 
+require("nonebot_plugin_apscheduler")
+from nonebot_plugin_apscheduler import scheduler
 
-scheduler = require("nonebot_plugin_apscheduler").scheduler
+scheduler = scheduler
+
+# 全局字典
+GDict = {
+    "run_sql": [],                  # 需要启动前运行的sql语句
+    "_shop_before_handle": {},      # 商品使用前函数
+    "_shop_after_handle": {},      # 商品使用后函数
+}
 
 
 class CountLimiter:
@@ -110,8 +119,8 @@ class BanCheckLimiter:
             self.mint[key] = 0
             return False
         if (
-            self.mint[key] >= self.default_count
-            and time.time() - self.mtime[key] < self.default_check_time
+                self.mint[key] >= self.default_count
+                and time.time() - self.mtime[key] < self.default_check_time
         ):
             self.mtime[key] = time.time()
             self.mint[key] = 0
@@ -402,7 +411,7 @@ def cn2py(word: str) -> str:
 
 
 def change_pixiv_image_links(
-    url: str, size: Optional[str] = None, nginx_url: Optional[str] = None
+        url: str, size: Optional[str] = None, nginx_url: Optional[str] = None
 ):
     """
     说明:
@@ -422,8 +431,8 @@ def change_pixiv_image_links(
     if nginx_url:
         url = (
             url.replace("i.pximg.net", nginx_url)
-            .replace("i.pixiv.cat", nginx_url)
-            .replace("_webp", "")
+                .replace("i.pixiv.cat", nginx_url)
+                .replace("_webp", "")
         )
     return url
 

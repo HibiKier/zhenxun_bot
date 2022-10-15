@@ -2,49 +2,17 @@ from PIL import Image
 
 from models.goods_info import GoodsInfo
 from utils.image_utils import BuildImage
-from models.sign_group_user import SignGroupUser
 from utils.utils import is_number
 from configs.path_config import IMAGE_PATH
 from typing import Optional, Union, Tuple
-from configs.config import Config
-from nonebot import Driver
-from nonebot.plugin import require
-from utils.decorator.shop import shop_register
-import nonebot
+from utils.utils import GDict
 import time
 
-driver: Driver = nonebot.get_driver()
+icon_path = IMAGE_PATH / 'shop_icon'
 
 
-use = require("use")
-
-
-@driver.on_startup
-async def init_default_shop_goods():
-    """
-    导入内置的三个商品
-    """
-
-    @shop_register(
-        name=("好感度双倍加持卡Ⅰ", "好感度双倍加持卡Ⅱ", "好感度双倍加持卡Ⅲ"),
-        price=(30, 150, 250),
-        des=(
-            "下次签到双倍好感度概率 + 10%（谁才是真命天子？）（同类商品将覆盖）",
-            "下次签到双倍好感度概率 + 20%（平平庸庸）（同类商品将覆盖）",
-            "下次签到双倍好感度概率 + 30%（金币才是真命天子！）（同类商品将覆盖）",
-        ),
-        load_status=Config.get_config("shop", "IMPORT_DEFAULT_SHOP_GOODS"),
-        daily_limit=(10, 20, 30),
-        ** {"好感度双倍加持卡Ⅰ_prob": 0.1, "好感度双倍加持卡Ⅱ_prob": 0.2, "好感度双倍加持卡Ⅲ_prob": 0.3},
-    )
-    async def sign_card(user_id: int, group_id: int, prob: float):
-        user = await SignGroupUser.ensure(user_id, group_id)
-        await user.update(add_probability=prob).apply()
-
-
-@driver.on_bot_connect
-async def _():
-    await shop_register.load_register()
+GDict['run_sql'].append("ALTER TABLE goods_info ADD is_passive boolean DEFAULT False;")
+GDict['run_sql'].append("ALTER TABLE goods_info ADD icon VARCHAR(255);")
 
 
 # 创建商店界面
@@ -63,7 +31,7 @@ async def create_shop_help() -> str:
         if goods.goods_limit_time == 0 or time.time() < goods.goods_limit_time:
             h += len(goods.goods_description.strip().split("\n")) * font_h + 80
             _list.append(goods)
-    A = BuildImage(1000, h, color="#f9f6f2")
+    A = BuildImage(1100, h, color="#f9f6f2")
     current_h = 0
     total_n = 0
     for goods in _list:
@@ -106,9 +74,12 @@ async def create_shop_help() -> str:
         await goods_image.apaste(name_image, (0, 5), True, center_type="by_width")
         await goods_image.atext((15, 50), f"简介：{goods.goods_description}")
         await goods_image.acircle_corner(20)
-        await bk.apaste(goods_image, alpha=True)
+        if goods.icon and (icon_path / goods.icon).exists():
+            icon = BuildImage(100, 100, background=icon_path / goods.icon)
+            await bk.apaste(icon)
+        await bk.apaste(goods_image, (100, 0), alpha=True)
         n = 0
-        _w = 550
+        _w = 650
         # 添加限时图标和时间
         if goods.goods_limit_time > 0:
             n += 140
@@ -162,14 +133,14 @@ async def create_shop_help() -> str:
         if total_n < n:
             total_n = n
         if n:
-            await bk.aline((550, -1, 550 + n, -1), "#a29ad6", 5)
-            await bk.aline((550, 80, 550 + n, 80), "#a29ad6", 5)
+            await bk.aline((650, -1, 650 + n, -1), "#a29ad6", 5)
+            await bk.aline((650, 80, 650 + n, 80), "#a29ad6", 5)
 
         # 添加限时图标和时间
         idx += 1
         await A.apaste(bk, (0, current_h), True)
         current_h += 90
-    w = 850
+    w = 950
     if total_n:
         w += total_n
     h = A.h + 230 + 100
@@ -197,6 +168,8 @@ async def register_goods(
     discount: Optional[float] = 1,
     limit_time: Optional[int] = 0,
     daily_limit: Optional[int] = 0,
+    is_passive: Optional[bool] = False,
+    icon: Optional[str] = None,
 ) -> bool:
     """
     添加商品
@@ -209,6 +182,8 @@ async def register_goods(
     :param discount: 商品折扣
     :param limit_time: 商品限时销售时间，单位为小时
     :param daily_limit: 每日购买次数限制
+    :param is_passive: 是否为被动
+    :param icon: 图标
     :return: 是否添加成功
     """
     if not await GoodsInfo.get_goods_info(name):
@@ -220,7 +195,7 @@ async def register_goods(
             else 0
         )
         return await GoodsInfo.add_goods(
-            name, int(price), des, float(discount), limit_time, daily_limit
+            name, int(price), des, float(discount), limit_time, daily_limit, is_passive, icon
         )
     return False
 
@@ -272,6 +247,7 @@ async def update_goods(**kwargs) -> Tuple[bool, str, str]:
         discount = goods.goods_discount
         limit_time = goods.goods_limit_time
         daily_limit = goods.daily_limit
+        is_passive = goods.is_passive
         new_time = 0
         tmp = ""
         if kwargs.get("price"):
@@ -294,6 +270,9 @@ async def update_goods(**kwargs) -> Tuple[bool, str, str]:
         if kwargs.get("daily_limit"):
             tmp += f'每日购买限制：{daily_limit} --> {kwargs["daily_limit"]}\n' if daily_limit else "取消了购买限制\n"
             daily_limit = int(kwargs["daily_limit"])
+        if kwargs.get("is_passive"):
+            tmp += f'被动道具：{is_passive} --> {kwargs["is_passive"]}\n'
+            des = kwargs["is_passive"]
         await GoodsInfo.update_goods(
             name,
             int(price),
@@ -304,7 +283,8 @@ async def update_goods(**kwargs) -> Tuple[bool, str, str]:
                 if limit_time != 0 and new_time
                 else 0
             ),
-            daily_limit
+            daily_limit,
+            is_passive
         )
         return True, name, tmp[:-1],
 

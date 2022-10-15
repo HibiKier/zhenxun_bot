@@ -14,11 +14,6 @@ from .requests_manager import RequestManager
 from configs.path_config import DATA_PATH
 
 
-# 全局字典
-GDict = {
-    "run_sql": []           # 需要启动前运行的sql语句
-}
-
 # 群功能开关 | 群被动技能 | 群权限  管理
 group_manager: Optional[GroupManager] = GroupManager(
     DATA_PATH / "manager" / "group_manager.json"

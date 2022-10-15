@@ -1,5 +1,5 @@
 from configs.config import Config
-from utils.manager import GDict
+from utils.utils import GDict
 import nonebot
 
 

@@ -1,4 +1,6 @@
 from nonebot import on_command
+
+from models.shop_log import ShopLog
 from services.log import logger
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
 from nonebot.params import CommandArg
@@ -46,10 +48,7 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
         for x in await GoodsInfo.get_all_goods()
         if x.goods_limit_time > time.time() or x.goods_limit_time == 0
     ]
-    goods_name_list = [
-        x.goods_name
-        for x in goods_list
-    ]
+    goods_name_list = [x.goods_name for x in goods_list]
     msg = arg.extract_plain_text().strip().split()
     num = 1
     if len(msg) > 1:
@@ -77,11 +76,15 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
             await BagUser.get_gold(event.user_id, event.group_id)
         ) < goods.goods_price * num * goods.goods_discount:
             await buy.finish("您的金币好像不太够哦", at_sender=True)
-        flag, n = await GoodsInfo.check_user_daily_purchase(goods, event.user_id, event.group_id, num)
+        flag, n = await GoodsInfo.check_user_daily_purchase(
+            goods, event.user_id, event.group_id, num
+        )
         if flag:
             await buy.finish(f"该次购买将超过每日次数限制，目前该道具还可以购买{n}次哦", at_sender=True)
         if await BagUser.buy_property(event.user_id, event.group_id, goods, num):
-            await GoodsInfo.add_user_daily_purchase(goods, event.user_id, event.group_id, num)
+            await GoodsInfo.add_user_daily_purchase(
+                goods, event.user_id, event.group_id, num
+            )
             await buy.send(
                 f"花费 {goods.goods_price * num * goods.goods_discount} 金币购买 {goods.goods_name} ×{num} 成功！",
                 at_sender=True,
@@ -89,6 +92,14 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
             logger.info(
                 f"USER {event.user_id} GROUP {event.group_id} "
                 f"花费 {goods.goods_price*num} 金币购买 {goods.goods_name} ×{num} 成功！"
+            )
+            await ShopLog.add_shop_log(
+                event.user_id,
+                event.group_id,
+                0,
+                goods.goods_name,
+                num,
+                goods.goods_price * num * goods.goods_discount,
             )
         else:
             await buy.send(f"{goods.goods_name} 购买失败！", at_sender=True)
