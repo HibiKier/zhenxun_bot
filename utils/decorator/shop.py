@@ -2,9 +2,6 @@ from typing import Callable, Union, Tuple, Optional
 from nonebot.adapters.onebot.v11 import MessageSegment, Message
 from nonebot.plugin import require
 
-require("use")
-require("shop_handle")
-
 
 class ShopRegister(dict):
     def __init__(self, *args, **kwargs):
@@ -94,6 +91,8 @@ class ShopRegister(dict):
         return lambda func: add_register_item(func)
 
     async def load_register(self):
+        require("use")
+        require("shop_handle")
         from basic_plugins.shop.use.data_source import register_use, func_manager
         from basic_plugins.shop.shop_handle.data_source import register_goods
         # 统一进行注册

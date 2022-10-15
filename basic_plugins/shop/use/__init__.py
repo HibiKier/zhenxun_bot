@@ -1,6 +1,6 @@
 from nonebot import on_command
 
-from models.shop_log import ShopLog
+from models.user_shop_gold_log import UserShopGoldLog
 from services.log import logger
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message
 from nonebot.params import CommandArg
@@ -78,7 +78,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
                 logger.info(
                     f"USER {event.user_id} GROUP {event.group_id} 使用道具 {name} {num} 次成功"
                 )
-                await ShopLog.add_shop_log(event.user_id, event.group_id, 1, name, num)
+                await UserShopGoldLog.add_shop_log(event.user_id, event.group_id, 1, name, num)
             else:
                 await use_props.send(f"使用道具 {name} {num} 次失败！", at_sender=True)
                 logger.info(

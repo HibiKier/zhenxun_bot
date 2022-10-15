@@ -3,6 +3,7 @@ from nonebot.message import run_preprocessor, run_postprocessor, IgnoredExceptio
 from models.friend_user import FriendUser
 from models.group_member_info import GroupInfoUser
 from models.bag_user import BagUser
+from models.user_shop_gold_log import UserShopGoldLog
 from utils.manager import (
     plugins2settings_manager,
     admin_manager,
@@ -59,6 +60,7 @@ async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
         if await BagUser.get_gold(event.user_id, event.group_id) < cost_gold:
             await send_msg(f"金币不足..该功能需要{cost_gold}金币..", bot, event)
             raise IgnoredException(f"{module} 金币限制...")
+        await UserShopGoldLog.add_shop_log(event.user_id, event.group_id, 2, matcher.plugin_name, cost_gold, 1)
         # 当插件不阻塞超级用户时，超级用户提前扣除金币
         if (
             str(event.user_id) in bot.config.superusers
