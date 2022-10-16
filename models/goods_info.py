@@ -17,7 +17,7 @@ class GoodsInfo(db.Model):
         db.JSON(), nullable=False, default={}
     )  # 每日购买限制数据存储
     is_passive = db.Column(db.Boolean(), nullable=False, default=0)  # 是否为被动
-    icon = db.Column(db.String(), nullable=False, default=0)  # 图标
+    icon = db.Column(db.String(), default=0)  # 图标
 
     _idx1 = db.Index("goods_group_users_idx1", "goods_name", unique=True)
 
