@@ -9,7 +9,7 @@ import platform
 #     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
-url = "http://www.eclzz.cool"
+url = "http://www.eclzz.love"
 
 
 async def get_bt_info(keyword: str, page: int):
