@@ -68,7 +68,7 @@ __plugin_configs__ = {
 }
 
 add_sub = on_command("添加订阅", priority=5, block=True)
-del_sub = on_regex(r"^删除订阅(\d+)$", priority=5, block=True)
+del_sub = on_regex(r"^删除订阅[\s\S]?(\d+)$", priority=5, block=True)
 show_sub_info = on_regex("^查看订阅$", priority=5, block=True)
 
 driver: Driver = nonebot.get_driver()

@@ -1859,7 +1859,7 @@ reference = "ali"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "4dadd609a841e1e4639254f4256dc4cf2dfa4eb36d813c24dc101bded155a7a1"
+content-hash = "911ba141941ab24fc67895f173219d5e92a9cbdf80bfa0e7758ea28805418e32"
 
 [metadata.files]
 aiofiles = [

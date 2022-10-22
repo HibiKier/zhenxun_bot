@@ -1,7 +1,7 @@
 import imagehash
 from PIL import Image
 from io import BytesIO
-from httpx import TimeoutException
+from services.log import logger
 
 from nonebot.typing import T_State
 from nonebot.adapters.onebot.v11 import MessageEvent
@@ -20,8 +20,8 @@ async def check(event: MessageEvent, state: T_State) -> bool:
         try:
             r = await AsyncHttpx.get(img[0])
             problem = str(imagehash.average_hash(Image.open(BytesIO(r.content))))
-        except TimeoutException:
-            pass
+        except Exception as e:
+            logger.warning(f"word_bank rule 获取图片失败 {type(e)}：{e}")
     if at:
         temp = ''
         for seg in event.message:

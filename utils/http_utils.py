@@ -44,6 +44,7 @@ class AsyncHttpx:
             :param params: params
             :param headers: 请求头
             :param cookies: cookies
+            :param verify: verify
             :param use_proxy: 使用默认代理
             :param proxy: 指定代理
             :param timeout: 超时时间
