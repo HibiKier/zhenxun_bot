@@ -1,6 +1,4 @@
-from io import BytesIO
-import imagehash
-from PIL import Image
+from utils.image_utils import get_img_hash
 from nonebot.adapters.onebot.v11.permission import GROUP
 from configs.path_config import TEMP_PATH
 import random
@@ -10,6 +8,7 @@ from utils.utils import get_message_img, get_message_text
 from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from configs.config import Config
 from utils.http_utils import AsyncHttpx
+from services.log import logger
 from configs.config import NICKNAME
 
 
@@ -124,5 +123,15 @@ async def _(event: GroupMessageEvent):
                 await fudu.finish("[[_task|fudu]]" + rst)
 
 
-async def get_fudu_img_hash(url):
-    return str(imagehash.average_hash(Image.open(BytesIO((await AsyncHttpx.get(url)).content))))
+async def get_fudu_img_hash(url, group_id):
+    try:
+        if await AsyncHttpx.download_file(
+            url, TEMP_PATH / f"compare_{group_id}_img.jpg"
+        ):
+            img_hash = get_img_hash(TEMP_PATH / f"compare_{group_id}_img.jpg")
+            return str(img_hash)
+        else:
+            logger.warning(f"复读下载图片失败...")
+    except Exception as e:
+        logger.warning(f"复读读取图片Hash出错 {type(e)}：{e}")
+    return ""
