@@ -90,7 +90,7 @@ async def _(event: GroupMessageEvent):
     if not img and not msg:
         return
     if img:
-        img_hash = await get_fudu_img_hash(img[0])
+        img_hash = await get_fudu_img_hash(img[0],event.group_id)
     else:
         img_hash = ""
     add_msg = msg + "|-|" + img_hash
