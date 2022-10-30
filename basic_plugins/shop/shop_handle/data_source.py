@@ -1,7 +1,7 @@
 from PIL import Image
 
 from models.goods_info import GoodsInfo
-from utils.image_utils import BuildImage
+from utils.image_utils import BuildImage, text2image
 from utils.utils import is_number
 from configs.path_config import IMAGE_PATH
 from typing import Optional, Union, Tuple
@@ -22,28 +22,22 @@ async def create_shop_help() -> str:
     :return: 图片base64
     """
     goods_lst = await GoodsInfo.get_all_goods()
-    idx = 1
     _dc = {}
     font_h = BuildImage(0, 0).getsize("正")[1]
     h = 10
     _list = []
     for goods in goods_lst:
         if goods.goods_limit_time == 0 or time.time() < goods.goods_limit_time:
-            h += len(goods.goods_description.strip().split("\n")) * font_h + 80
             _list.append(goods)
-    A = BuildImage(1100, h, color="#f9f6f2")
-    current_h = 0
+    # A = BuildImage(1100, h, color="#f9f6f2")
     total_n = 0
-    for goods in _list:
-        bk = BuildImage(1180, 80, font_size=15, color="#f9f6f2", font="CJGaoDeGuo.otf")
-        goods_image = BuildImage(
-            600, 80, font_size=20, color="#a29ad6", font="CJGaoDeGuo.otf"
-        )
+    image_list = []
+    for idx, goods in enumerate(_list):
         name_image = BuildImage(
             580, 40, font_size=25, color="#e67b6b", font="CJGaoDeGuo.otf"
         )
         await name_image.atext(
-            (15, 0), f"{idx}.{goods.goods_name}", center_type="by_height"
+            (15, 0), f"{idx + 1}.{goods.goods_name}", center_type="by_height"
         )
         await name_image.aline((380, -5, 280, 45), "#a29ad6", 5)
         await name_image.atext((390, 0), "售价：", center_type="by_height")
@@ -70,14 +64,46 @@ async def create_shop_help() -> str:
             f" 金币",
             center_type="by_height",
         )
+        des_image = None
+        font_img = BuildImage(
+            600, 80, font_size=20, color="#a29ad6", font="CJGaoDeGuo.otf"
+        )
+        p = font_img.getsize('简介：')[0] + 20
+        if goods.goods_description:
+            des_list = goods.goods_description.split('\n')
+            desc = ''
+            for des in des_list:
+                if font_img.getsize(des)[0] > font_img.w - p - 20:
+                    msg = ''
+                    tmp = ''
+                    for i in range(len(des)):
+                        if font_img.getsize(tmp)[0] < font_img.w - p - 20:
+                            tmp += des[i]
+                        else:
+                            msg += tmp + '\n'
+                            tmp = des[i]
+                    desc += msg
+                    if tmp:
+                        desc += tmp
+                else:
+                    desc += des + '\n'
+            if desc[-1] == '\n':
+                desc = desc[:-1]
+            des_image = await text2image(desc, color="#a29ad6")
+        goods_image = BuildImage(
+            600, (50 + des_image.h) if des_image else 50, font_size=20, color="#a29ad6", font="CJGaoDeGuo.otf"
+        )
+        if des_image:
+            await goods_image.atext((15, 50), '简介：')
+            await goods_image.apaste(des_image, (p, 50))
         await name_image.acircle_corner(5)
         await goods_image.apaste(name_image, (0, 5), True, center_type="by_width")
-        await goods_image.atext((15, 50), f"简介：{goods.goods_description}")
         await goods_image.acircle_corner(20)
+        bk = BuildImage(1180, (50 + des_image.h) if des_image else 50, font_size=15, color="#f9f6f2", font="CJGaoDeGuo.otf")
         if goods.icon and (icon_path / goods.icon).exists():
-            icon = BuildImage(100, 100, background=icon_path / goods.icon)
+            icon = BuildImage(70, 70, background=icon_path / goods.icon)
             await bk.apaste(icon)
-        await bk.apaste(goods_image, (100, 0), alpha=True)
+        await bk.apaste(goods_image, (70, 0), alpha=True)
         n = 0
         _w = 650
         # 添加限时图标和时间
@@ -134,12 +160,20 @@ async def create_shop_help() -> str:
             total_n = n
         if n:
             await bk.aline((650, -1, 650 + n, -1), "#a29ad6", 5)
-            await bk.aline((650, 80, 650 + n, 80), "#a29ad6", 5)
+            # await bk.aline((650, 80, 650 + n, 80), "#a29ad6", 5)
 
         # 添加限时图标和时间
-        idx += 1
-        await A.apaste(bk, (0, current_h), True)
-        current_h += 90
+        image_list.append(bk)
+        # await A.apaste(bk, (0, current_h), True)
+        # current_h += 90
+    h = 0
+    current_h = 0
+    for img in image_list:
+        h += img.h + 10
+    A = BuildImage(1100, h, color="#f9f6f2")
+    for img in image_list:
+        await A.apaste(img, (0, current_h), True)
+        current_h += img.h + 10
     w = 950
     if total_n:
         w += total_n

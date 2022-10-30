@@ -8,7 +8,6 @@ from models.bag_user import BagUser
 from utils.message_builder import at
 from utils.utils import get_message_at, get_message_face, get_message_img, get_message_text
 from configs.config import Config
-from utils.manager import plugins_manager
 
 
 def CostGold(gold: int):

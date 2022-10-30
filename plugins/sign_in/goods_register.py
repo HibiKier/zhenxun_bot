@@ -54,7 +54,4 @@ async def _():
         print(user_id, group_id, '第一个使用后函数（after handle）')
 
 
-@driver.on_bot_connect
-async def _():
-    await shop_register.load_register()
 

@@ -293,6 +293,15 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
+### 2022/10/30
+
+* 商店简介动态行数，根据文字长度自动换行
+
+### 2022/10/28
+
+* 为exec指令进行了SELECT语句适配,添加了查看所有表指令 [@pull/1155](https://github.com/HibiKier/zhenxun_bot/pull/1155)
+* 修复复读 [@pull/1154](https://github.com/HibiKier/zhenxun_bot/pull/1154)
+
 ### 2022/10/23
 
 * 复读修改回图片下载
