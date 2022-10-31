@@ -66,7 +66,7 @@ class BilibiliSub(db.Model):
         """
         try:
             query = (
-                await cls.query.where(cls.sub_id == sub_id)
+                await cls.query.where( (cls.sub_id == sub_id) & (cls.sub_type == sub_type) )
                 .with_for_update()
                 .gino.first()
             )

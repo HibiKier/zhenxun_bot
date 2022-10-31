@@ -230,7 +230,7 @@ async def _get_live_status(id_: int) -> Optional[str]:
     sub = await BilibiliSub.get_sub(id_)
     if sub.live_status != live_status:
         await BilibiliSub.update_sub_info(id_, live_status=live_status)
-    if sub.live_status == 0 and live_status == 1:
+    if sub.live_status in [0, 2] and live_status == 1:
         return (
             f""
             f"{image(cover)}\n"
