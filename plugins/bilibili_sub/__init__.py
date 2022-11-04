@@ -31,16 +31,16 @@ usage：
     主播订阅相当于 直播间订阅 + UP订阅
     指令：[示例Id乱打的，仅做示例]
         添加订阅 ['主播'/'UP'/'番剧'] [id/链接/番名]
-        删除订阅 [id]
+        删除订阅 ['主播'/'UP'/'id'] [id]
         查看订阅
         示例：添加订阅主播 2345344 <-(直播房间id)
         示例：添加订阅UP 2355543 <-(个人主页id)
         示例：添加订阅番剧 史莱姆 <-(支持模糊搜索)
         示例：添加订阅番剧 125344 <-(番剧id)
-        示例：删除订阅 2324344 <-(任意id，通过查看订阅获取)
+        示例：删除订阅id 2324344 <-(任意id，通过查看订阅获取)
 """.strip()
 __plugin_des__ = "非常便利的B站订阅通知"
-__plugin_cmd__ = ["添加订阅 [主播/UP/番剧] [id/链接/番名]", "删除订阅 [id]", "查看订阅"]
+__plugin_cmd__ = ["添加订阅 [主播/UP/番剧] [id/链接/番名]", "删除订阅 ['主播'/'UP'/'id'] [id]", "查看订阅"]
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier & NumberSir"
 __plugin_settings__ = {
@@ -68,7 +68,7 @@ __plugin_configs__ = {
 }
 
 add_sub = on_command("添加订阅", priority=5, block=True)
-del_sub = on_regex(r"^删除订阅[\s\S]?(\d+)$", priority=5, block=True)
+del_sub = on_command("删除订阅", priority=5, block=True)
 show_sub_info = on_regex("^查看订阅$", priority=5, block=True)
 
 driver: Driver = nonebot.get_driver()
@@ -84,6 +84,7 @@ async def _():
 
 
 @add_sub.handle()
+@del_sub.handle()
 async def _(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip().split()
     if len(msg) < 2:
@@ -157,23 +158,30 @@ async def _(
     )
 
 
-@del_sub.handle()
-async def _(event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
-    msg = reg_group[0]
-    id_ = (
-        f"{event.group_id}"
-        if isinstance(event, GroupMessageEvent)
-        else f"{event.user_id}"
-    )
-    if await BilibiliSub.delete_bilibili_sub(int(msg), id_):
-        await del_sub.send(f"删除订阅id：{msg} 成功...")
+@del_sub.got("sub_type")
+@del_sub.got("sub_user")
+@del_sub.got("id")
+async def _(
+    event: MessageEvent,
+    id_: str = ArgStr("id"),
+    sub_type: str = ArgStr("sub_type"),
+    sub_user: str = ArgStr("sub_user"),
+):
+    if sub_type in ["主播", "直播"]:
+        result = await BilibiliSub.delete_bilibili_sub(int(id_),sub_user,"live")
+    elif sub_type.lower() in ["up", "用户"]:
+        result = await BilibiliSub.delete_bilibili_sub(int(id_),sub_user,"up")    
+    else: result = await BilibiliSub.delete_bilibili_sub(int(id_),sub_user)  
+    if result:
+        await del_sub.send(f"删除订阅id：{id_} 成功...")
         logger.info(
-            f"(USER {event.user_id}, GROUP "
-            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-            f" 删除订阅 {id_}"
-        )
+        f"(USER {event.user_id}, GROUP "
+        f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+        f" 删除订阅 {id_}"
+    )
     else:
-        await del_sub.send(f"删除订阅id：{msg} 失败...")
+        await del_sub.send(f"删除订阅id：{id_} 失败...")
+       
 
 
 @show_sub_info.handle()
