@@ -57,6 +57,8 @@ async def get_yiqing_data(area: str) -> Union[str, MessageSegment]:
     dead = data_["total"]["dead"]  # 累计死亡
     now_confirm = data_["total"]["nowConfirm"]  # 目前确诊
     add_confirm = data_["today"]["confirm"]  # 新增确诊
+    add_wzz = data_["today"]["wzz_add"] #新增无症状
+    wzz=data_["total"]["wzz"] #目前无症状
     grade = ""
     _grade_color = ""
     # if data_["total"].get("grade"):
@@ -75,8 +77,10 @@ async def get_yiqing_data(area: str) -> Union[str, MessageSegment]:
     {x} 疫情数据 {f"(<f font_color={_grade_color}>{grade}</f>)" if grade else ""}：
     目前确诊：
       确诊人数：<f font_color=red>{now_confirm}(+{add_confirm})</f>
+      新增无症状：<f font_color=red>{add_wzz}</f>
     -----------------       
     累计数据：
+      无症状人数：<f font_color=red>{wzz}</f>
       确诊人数：<f font_color=red>{confirm}</f>
       治愈人数：<f font_color=#39de4b>{heal}</f>
       死亡人数：<f font_color=#191d19>{dead}</f>
