@@ -66,7 +66,7 @@ class BilibiliSub(db.Model):
         """
         try:
             query = (
-                await cls.query.where(cls.sub_id == sub_id)
+                await cls.query.where( (cls.sub_id == sub_id) & (cls.sub_type == sub_type) )
                 .with_for_update()
                 .gino.first()
             )
@@ -107,7 +107,7 @@ class BilibiliSub(db.Model):
         return False
 
     @classmethod
-    async def delete_bilibili_sub(cls, sub_id: int, sub_user: str) -> bool:
+    async def delete_bilibili_sub(cls, sub_id: int, sub_user: str,sub_type: Optional[str] = None) -> bool:
         """
         说明:
             删除订阅
@@ -117,13 +117,22 @@ class BilibiliSub(db.Model):
         """
         try:
             async with db.transaction():
-                query = (
-                    await cls.query.where(
-                        (cls.sub_id == sub_id) & (cls.sub_users.contains(sub_user))
+                if sub_type:
+                    query = (
+                        await cls.query.where(
+                            (cls.sub_id == sub_id) & (cls.sub_users.contains(sub_user) & (cls.sub_type == sub_type))
+                        )
+                        .with_for_update()
+                        .gino.first()
                     )
-                    .with_for_update()
-                    .gino.first()
-                )
+                else:
+                    query = (
+                        await cls.query.where(
+                            (cls.sub_id == sub_id) & (cls.sub_users.contains(sub_user))
+                        )
+                        .with_for_update()
+                        .gino.first()
+                    )
                 if not query:
                     return False
                 await query.update(
