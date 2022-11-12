@@ -259,6 +259,7 @@ def _create_help_img(
         width += img.w + 10
     B = BuildImage(width + 100, height + 250, font_size=24)
     width, _ = get_max_width_or_paste(simple_help_img_list, B)
+    width = width if width > 870 else 870
     bk = None
     random_bk = os.listdir(random_bk_path)
     if random_bk:
