@@ -254,7 +254,10 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ### 感谢名单
 (可以告诉我你的 __github__ 地址，我偷偷换掉0v|)  
-[Yui](https://afdian.net/u/870dc10a3cd311ed828852540025c377)  
+
+[阿奎](https://afdian.net/u/da41f72845d511ed930d52540025c377)  
+[醉梦尘逸](https://afdian.net/u/bc11d2683cd011ed99b552540025c377)  
+[Abc](https://afdian.net/u/870dc10a3cd311ed828852540025c377)  
 [本喵无敌哒](https://afdian.net/u/dffaa9005bc911ebb69b52540025c377)  
 [椎名冬羽](https://afdian.net/u/ca1ebd64395e11ed81b452540025c377)  
 [kaito](https://afdian.net/u/a055e20a498811eab1f052540025c377)  
@@ -292,6 +295,14 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 
 ## 更新
+
+### 2022/11/12
+
+* 更新yiqing插件数据显示 [@pull/1168](https://github.com/HibiKier/zhenxun_bot/pull/1168)
+
+### 2022/11/11
+
+* fix: B站直播订阅的相关问题 [@pull/1158](https://github.com/HibiKier/zhenxun_bot/pull/1158)
 
 ### 2022/10/30
 
