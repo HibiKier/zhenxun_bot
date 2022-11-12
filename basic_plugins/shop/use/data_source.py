@@ -1,4 +1,4 @@
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageSegment
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageSegment, Message
 from services.log import logger
 from nonebot.adapters.onebot.v11 import Bot
 from pydantic import create_model
@@ -140,7 +140,7 @@ class GoodsUseFuncManager:
             return self._data[goods_name]["kwargs"]
         return {}
 
-    def init_model(self, goods_name: str, bot: Bot, event: GroupMessageEvent, num: int):
+    def init_model(self, goods_name: str, bot: Bot, event: GroupMessageEvent, num: int, text: str):
         return self._data[goods_name]["model"](
             **{
                 "goods_name": goods_name,
@@ -149,6 +149,8 @@ class GoodsUseFuncManager:
                 "user_id": event.user_id,
                 "group_id": event.group_id,
                 "num": num,
+                "message": event.message,
+                "text": text
             }
         )
 
@@ -157,7 +159,7 @@ func_manager = GoodsUseFuncManager()
 
 
 def build_params(
-    bot: Bot, event: GroupMessageEvent, goods_name: str, num: int
+    bot: Bot, event: GroupMessageEvent, goods_name: str, num: int, text: str
 ) -> Tuple[ShopParam, Dict[str, Any]]:
     """
     说明:
@@ -167,11 +169,12 @@ def build_params(
         :param event: event
         :param goods_name: 商品名称
         :param num: 数量
+        :param text: 其他信息
     :return:
     """
     _kwargs = func_manager.get_kwargs(goods_name)
     return (
-        func_manager.init_model(goods_name, bot, event, num),
+        func_manager.init_model(goods_name, bot, event, num, text),
         {
             **_kwargs,
             "_bot": bot,
@@ -179,13 +182,15 @@ def build_params(
             "group_id": event.group_id,
             "user_id": event.user_id,
             "num": num,
+            "text": text,
+            "message": event.message,
             "goods_name": goods_name,
         },
     )
 
 
 async def effect(
-    bot: Bot, event: GroupMessageEvent, goods_name: str, num: int
+    bot: Bot, event: GroupMessageEvent, goods_name: str, num: int, text: str, message: Message
 ) -> Optional[Union[str, MessageSegment]]:
     """
     商品生效
@@ -193,13 +198,15 @@ async def effect(
     :param event: GroupMessageEvent
     :param goods_name: 商品名称
     :param num: 使用数量
+    :param text: 其他信息
+    :param message: Message
     :return: 使用是否成功
     """
     # 优先使用注册的商品插件
     # try:
     if func_manager.exists(goods_name):
         _kwargs = func_manager.get_kwargs(goods_name)
-        model, kwargs = build_params(bot, event, goods_name, num)
+        model, kwargs = build_params(bot, event, goods_name, num, text)
         return await func_manager.use(model, **kwargs)
     # except Exception as e:
     #     logger.error(f"use 商品生效函数effect 发生错误 {type(e)}：{e}")

@@ -1,5 +1,5 @@
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent
-from pydantic import BaseModel, create_model
+from nonebot.adapters.onebot.v11 import Message, MessageEvent
+from pydantic import BaseModel
 from typing import Any
 
 
@@ -10,5 +10,7 @@ class ShopParam(BaseModel):
     bot: Any
     event: MessageEvent
     num: int        # 道具单次使用数量
+    message: Message
+    text: str
     send_success_msg: bool = True  # 是否发送使用成功信息
     max_num_limit: int = 1         # 单次使用最大次数
