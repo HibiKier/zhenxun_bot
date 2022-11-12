@@ -296,6 +296,10 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
+### 2022/11/13
+
+* 更新天气api
+
 ### 2022/11/12
 
 * 更新yiqing插件数据显示 [@pull/1168](https://github.com/HibiKier/zhenxun_bot/pull/1168)

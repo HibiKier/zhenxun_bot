@@ -25,27 +25,22 @@ async def get_weather_of_city(city: str) -> str:
     elif code == 998:
         return f"{NICKNAME}没查到!!试试查火星的天气？"
     else:
-        data_json = json.loads(
-            (
-                await AsyncHttpx.get(
-                    f"http://wthrcdn.etouch.cn/weather_mini?city={city}"
-                )
-            ).text
-        )
-        if "desc" in data_json:
-            if data_json["desc"] == "invilad-citykey":
-                return f"{NICKNAME}没查到!!试试查火星的天气？" + image("shengqi", "zhenxun")
-            elif data_json["desc"] == "OK":
-                w_type = data_json["data"]["forecast"][0]["type"]
-                w_max = data_json["data"]["forecast"][0]["high"][3:]
-                w_min = data_json["data"]["forecast"][0]["low"][3:]
-                fengli = data_json["data"]["forecast"][0]["fengli"][9:-3]
-                ganmao = data_json["data"]["ganmao"]
-                fengxiang = data_json["data"]["forecast"][0]["fengxiang"]
-                repass = f"{city}的天气是 {w_type} 天\n最高温度: {w_max}\n最低温度: {w_min}\n风力: {fengli} {fengxiang}\n{ganmao}"
-                return repass
+        data_json = (
+            await AsyncHttpx.get(
+                f"https://v0.yiketianqi.com/api?unescape=1&version=v91&appid=43656176&appsecret=I42og6Lm&ext=&cityid=&city={city[:-1]}"
+            )
+        ).json()
+        if wh := data_json.get('data'):
+            w_type = wh[0]["wea_day"]
+            w_max = wh[0]["tem1"]
+            w_min = wh[0]["tem2"]
+            fengli = wh[0]["win_speed"]
+            ganmao = wh[0]["narrative"]
+            fengxiang = ','.join(wh[0].get('win', []))
+            repass = f"{city}的天气是 {w_type} 天\n最高温度: {w_max}\n最低温度: {w_min}\n风力: {fengli} {fengxiang}\n{ganmao}"
+            return repass
         else:
-            return "好像出错了？再试试？"
+            return data_json.get("errmsg") or "好像出错了？再试试？"
 
 
 def _check_exists_city(city: str) -> int:
