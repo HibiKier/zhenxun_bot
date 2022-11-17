@@ -41,6 +41,7 @@ emoji = "^1.7.0"
 wordcloud = "^1.8.1"
 rich = "^12.4.3"
 gino = "^1.0.1"
+nonebot-adapter-onebot = "^2.1.5"
 nonebot-plugin-apscheduler = "^0.2.0"
 
 [tool.poetry.dev-dependencies]
