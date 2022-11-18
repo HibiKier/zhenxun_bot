@@ -2,11 +2,12 @@ import asyncio
 import base64
 import random
 import re
+import time
 from io import BytesIO
 from math import ceil
 from pathlib import Path
 from typing import List, Literal, Optional, Tuple, Union
-
+import uuid
 import cv2
 import imagehash
 from configs.path_config import FONT_PATH, IMAGE_PATH
@@ -180,6 +181,7 @@ class BuildImage:
         self.paste_image_height = int(paste_image_height)
         self._current_w = 0
         self._current_h = 0
+        self.uid = uuid.uuid1()
         self.font = ImageFont.truetype(str(FONT_PATH / font), int(font_size))
         if not plain_text and not color:
             color = (255, 255, 255)

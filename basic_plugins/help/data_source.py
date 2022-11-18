@@ -1,3 +1,4 @@
+from .utils import group_image, build_help_image
 from utils.image_utils import BuildImage
 from configs.path_config import IMAGE_PATH
 from utils.manager import (
@@ -6,14 +7,11 @@ from utils.manager import (
     plugins_manager,
     group_manager,
 )
-from typing import Optional
+from typing import Optional, List, Tuple
 from services.log import logger
 from pathlib import Path
 from utils.utils import get_matchers
-import random
-import asyncio
 import nonebot
-import os
 
 
 random_bk_path = IMAGE_PATH / "background" / "help" / "simple_help"
@@ -30,12 +28,10 @@ async def create_help_img(
     :param help_image: 图片路径
     :param simple_help_image: 简易帮助图片路径
     """
-    return await asyncio.get_event_loop().run_in_executor(
-        None, _create_help_img, group_id, help_image, simple_help_image
-    )
+    return await _create_help_img(group_id, help_image, simple_help_image)
 
 
-def _create_help_img(
+async def _create_help_img(
     group_id: Optional[int], help_image: Path, simple_help_image: Path
 ):
     """
@@ -257,23 +253,8 @@ def _create_help_img(
         if img.h > height:
             height = img.h
         width += img.w + 10
-    B = BuildImage(width + 100, height + 250, font_size=24)
-    width, _ = get_max_width_or_paste(simple_help_img_list, B)
-    width = width if width > 870 else 870
-    bk = None
-    random_bk = os.listdir(random_bk_path)
-    if random_bk:
-        bk = random.choice(random_bk)
-    x = max(width + 50, height + 250)
-    B = BuildImage(
-        x,
-        x,
-        font_size=24,
-        color="#FFEFD5",
-        background=random_bk_path / bk,
-    )
-    B.filter("GaussianBlur", 10)
-    _, B = get_max_width_or_paste(simple_help_img_list, B, True)
+    image_group, h = group_image(simple_help_img_list)
+    B = await build_help_image(image_group, h)
     w = 10
     h = 10
     for msg in ["目前支持的功能列表:", "可以通过 ‘帮助[功能名称]’ 来获取对应功能的使用方法", "或者使用 ‘详细帮助’ 来获取所有功能方法"]:
@@ -304,8 +285,8 @@ def _create_help_img(
 
 
 def get_max_width_or_paste(
-    simple_help_img_list: list, B: BuildImage = None, is_paste: bool = False
-) -> "int, BuildImage":
+    simple_help_img_list: List[BuildImage], B: BuildImage = None, is_paste: bool = False
+) -> Tuple[int, BuildImage]:
     """
     获取最大宽度，或直接贴图
     :param simple_help_img_list: 简单帮助图片列表
