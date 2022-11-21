@@ -296,7 +296,7 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
-### 2022/11/21
+### 2022/11/21  \[v0.1.6.5]
 
 * 优化manager, hook代码
 * 修复pid搜图 [@pull/1180](https://github.com/HibiKier/zhenxun_bot/pull/1180)
