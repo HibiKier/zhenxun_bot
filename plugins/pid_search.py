@@ -50,7 +50,7 @@ headers = {
 
 @pid_search.got("pid", prompt="需要查询的图片PID是？")
 async def _g(event: MessageEvent, state: T_State, pid: str = Arg("pid")):
-    url = Config.get_config("hibiapi", "HIBIAPI") + "/api/pixiv/"
+    url = Config.get_config("hibiapi", "HIBIAPI") + "/api/pixiv/illust"
     if pid in ["取消", "算了"]:
         await pid_search.finish("已取消操作...")
     if not is_number(pid):
