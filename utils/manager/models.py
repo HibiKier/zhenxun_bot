@@ -92,4 +92,4 @@ class Plugin(BaseModel):
     error: Optional[bool] = False  # 是否加载报错
     block_type: Optional[str] = None  # 关闭类型
     author: Optional[str] = None  # 作者
-    version: Optional[int] = None  # 版本
+    version: Optional[Union[int, str]] = None  # 版本
