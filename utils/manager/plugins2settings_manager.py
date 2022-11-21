@@ -1,11 +1,11 @@
-from typing import List, Optional, Union, Tuple
-from .data_class import StaticData
+from typing import List, Optional, Union, Tuple, Dict
+from utils.manager.data_class import StaticData
 from pathlib import Path
-from ruamel.yaml import YAML
 from ruamel import yaml
+from .models import PluginSetting
 
 
-_yaml = YAML(typ="safe")
+_yaml = yaml.YAML(typ="safe")
 
 
 class Plugins2settingsManager(StaticData):
@@ -14,97 +14,120 @@ class Plugins2settingsManager(StaticData):
     """
 
     def __init__(self, file: Path):
-        self.file = file
-        super().__init__(None)
-        if file.exists():
-            with open(file, "r", encoding="utf8") as f:
-                self._data = _yaml.load(f)
-        if self._data:
-            if "PluginSettings" in self._data.keys():
-                self._data = (
-                    self._data["PluginSettings"] if self._data["PluginSettings"] else {}
-                )
-            for x in self._data.keys():
-                if self._data[x].get("cost_gold") is None:
-                    self._data[x]["cost_gold"] = 0
+        super().__init__(file, False)
+        self.__load_file()
 
     def add_plugin_settings(
         self,
         plugin: str,
         cmd: Optional[List[str]] = None,
-        default_status: Optional[bool] = True,
-        level: Optional[int] = 5,
-        limit_superuser: Optional[bool] = False,
+        default_status: bool = True,
+        level: int = 5,
+        limit_superuser: bool = False,
         plugin_type: Tuple[Union[str, int]] = ("normal",),
         cost_gold: int = 0,
     ):
         """
-        添加一个插件设置
-        :param plugin: 插件模块名称
-        :param cmd: 命令 或 命令别名
-        :param default_status: 默认开关状态
-        :param level: 功能权限等级
-        :param limit_superuser: 功能状态是否限制超级用户
-        :param plugin_type: 插件类型
-        :param cost_gold: 需要消费的金币
+        说明:
+            添加一个插件设置
+        参数:
+            :param plugin: 插件模块名称
+            :param cmd: 命令 或 命令别名
+            :param default_status: 默认开关状态
+            :param level: 功能权限等级
+            :param limit_superuser: 功能状态是否限制超级用户
+            :param plugin_type: 插件类型
+            :param cost_gold: 需要消费的金币
         """
-        level = level or 5
-        cmd = cmd or []
-        cost_gold = cost_gold or 0
-        self._data[plugin] = {
-            "level": level if level is not None else 5,
-            "default_status": default_status if default_status is not None else True,
-            "limit_superuser": (
-                limit_superuser
-                if limit_superuser is not None
-                else False
-            ),
-            "cmd": cmd,
-            "plugin_type": list(
-                plugin_type if plugin_type is not None else ("normal",)
-            ),
-            "cost_gold": cost_gold,
-        }
+        self._data[plugin] = PluginSetting(
+            cmd=cmd,
+            level=level,
+            default_status=default_status,
+            limit_superuser=limit_superuser,
+            plugin_type=plugin_type,
+            cost_gold=cost_gold,
+        )
 
-    def get_plugin_data(self, module: str) -> dict:
+    def get_plugin_data(self, module: str) -> Optional[PluginSetting]:
         """
-        通过模块名获取数据
-        :param module: 模块名称
+        说明:
+            通过模块名获取数据
+        参数:
+            :param module: 模块名称
         """
-        if self._data.get(module) is not None:
-            return self._data.get(module)
-        return {}
+        return self._data.get(module)
 
     def get_plugin_module(
         self, cmd: str, is_all: bool = False
     ) -> Union[str, List[str]]:
         """
-        根据 cmd 获取功能 modules
-        :param cmd: 命令
-        :param is_all: 获取全部包含cmd的模块
+        说明:
+            根据 cmd 获取功能 modules
+        参数:
+            :param cmd: 命令
+            :param is_all: 获取全部包含cmd的模块
         """
         keys = []
         for key in self._data.keys():
-            if cmd in self._data[key]["cmd"]:
+            if cmd in self._data[key].cmd:
                 if is_all:
                     keys.append(key)
                 else:
                     return key
         return keys
 
+    def reload(self):
+        """
+        说明:
+            重载本地数据
+        """
+        self.__load_file()
+
     def save(self, path: Union[str, Path] = None):
+        """
+        说明:
+            保存文件
+        参数:
+            :param path: 文件路径
+        """
         path = path or self.file
         if isinstance(path, str):
             path = Path(path)
         if path:
             with open(path, "w", encoding="utf8") as f:
-                yaml.dump({"PluginSettings": self._data}, f, indent=2, Dumper=yaml.RoundTripDumper, allow_unicode=True)
+                yaml.dump(
+                    {"PluginSettings": self.dict()},
+                    f,
+                    indent=2,
+                    Dumper=yaml.RoundTripDumper,
+                    allow_unicode=True,
+                )
+            _data = yaml.round_trip_load(open(path, encoding="utf8"))
+            _data["PluginSettings"].yaml_set_start_comment(
+                """# 模块与对应命令和对应群权限
+# 用于生成帮助图片 和 开关功能
+# key：模块名称
+# level：需要的群等级
+# default_status：加入群时功能的默认开关状态
+# limit_superuser: 功能状态是否限制超级用户
+# cmd: 关闭[cmd] 都会触发命令 关闭对应功能，cmd列表第一个词为统计的功能名称
+# plugin_type: 帮助类别 示例：('原神相关',) 或 ('原神相关', 1)，1代表帮助命令列向排列，否则为横向排列""",
+                indent=2,
+            )
+            with open(path, "w", encoding="utf8") as wf:
+                yaml.round_trip_dump(
+                    _data, wf, Dumper=yaml.RoundTripDumper, allow_unicode=True
+                )
 
-    def reload(self):
+    def __load_file(self):
         """
-        重载本地数据
+        说明:
+            读取配置文件
         """
+        self._data: Dict[str, PluginSetting] = {}
         if self.file.exists():
             with open(self.file, "r", encoding="utf8") as f:
-                self._data: dict = _yaml.load(f)
-                self._data = self._data["PluginSettings"]
+                temp = _yaml.load(f)
+                if "PluginSettings" in temp.keys():
+                    for k, v in temp["PluginSettings"].items():
+                        self._data[k] = PluginSetting.parse_obj(v)

@@ -110,7 +110,7 @@ async def _():
 
 @group_task_status.handle()
 async def _(event: GroupMessageEvent):
-    await group_task_status.send(await group_current_status(event.group_id))
+    await group_task_status.send(group_current_status(event.group_id))
 
 
 @group_status.handle()

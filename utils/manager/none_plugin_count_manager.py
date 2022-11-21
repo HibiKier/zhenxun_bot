@@ -1,4 +1,4 @@
-from .data_class import StaticData
+from utils.manager.data_class import StaticData
 from typing import Optional
 from pathlib import Path
 

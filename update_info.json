@@ -10,8 +10,6 @@
       "poetry.lock",
       "pyproject.toml"
     ],
-    "add_file": [
-      "resources/image/shop_icon"
-    ],
+    "add_file": [],
     "delete_file": []
 }

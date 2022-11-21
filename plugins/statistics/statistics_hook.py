@@ -107,8 +107,8 @@ async def _(
             group_id = "total"
         user_id = str(event.user_id)
         plugin_name = plugins2settings_manager.get_plugin_data(module)
-        if plugin_name and plugin_name.get('cmd'):
-            plugin_name = plugin_name.get('cmd')[0]
+        if plugin_name and plugin_name.cmd:
+            plugin_name = plugin_name.cmd[0]
             check_exists_key(group_id, user_id, plugin_name)
             for data in [_prefix_count_dict, _prefix_user_count_dict]:
                 data["total_statistics"]["total"][plugin_name] += 1

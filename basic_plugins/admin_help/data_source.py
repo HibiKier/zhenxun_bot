@@ -16,9 +16,9 @@ admin_help_image = IMAGE_PATH / 'admin_help_img.png'
 
 
 @driver.on_bot_connect
-async def init_task(bot: Bot = None):
+async def init_task():
     if not group_manager.get_task_data():
-        await group_manager.init_group_task()
+        group_manager.load_task()
         logger.info(f'已成功加载 {len(group_manager.get_task_data())} 个被动技能.')
 
 

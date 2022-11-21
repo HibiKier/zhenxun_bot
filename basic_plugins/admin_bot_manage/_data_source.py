@@ -23,7 +23,7 @@ except ModuleNotFoundError:
     import json
 
 
-async def group_current_status(group_id: int) -> str:
+def group_current_status(group_id: int) -> str:
     """
     获取当前所有通知的开关
     :param group_id: 群号
@@ -31,17 +31,17 @@ async def group_current_status(group_id: int) -> str:
     rst = "[被动技能 状态]\n"
     _data = group_manager.get_task_data()
     for task in _data.keys():
-        rst += f'{_data[task]}: {"√" if await group_manager.check_group_task_status(group_id, task) else "×"}\n'
+        rst += f'{_data[task]}: {"√" if group_manager.check_group_task_status(group_id, task) else "×"}\n'
     return rst.strip()
 
 
 custom_welcome_msg_json = (
-    Path() / "data" / "custom_welcome_msg" / "custom_welcome_msg.json"
+        Path() / "data" / "custom_welcome_msg" / "custom_welcome_msg.json"
 )
 
 
 async def custom_group_welcome(
-    msg: str, imgs: List[str], user_id: int, group_id: int
+        msg: str, imgs: List[str], user_id: int, group_id: int
 ) -> str:
     """
     替换群欢迎消息
@@ -104,20 +104,21 @@ async def change_group_switch(cmd: str, group_id: int, is_super: bool = False):
     if cmd == "全部被动":
         for task in task_data:
             if status == "开启":
-                if not await group_manager.check_group_task_status(group_id, task):
-                    await group_manager.open_group_task(group_id, task)
+                if not group_manager.check_group_task_status(group_id, task):
+                    group_manager.open_group_task(group_id, task)
             else:
-                if await group_manager.check_group_task_status(group_id, task):
-                    await group_manager.close_group_task(group_id, task)
+                if group_manager.check_group_task_status(group_id, task):
+                    group_manager.close_group_task(group_id, task)
         if group_help_file.exists():
             group_help_file.unlink()
         return f"已 {status} 全部被动技能！"
     if cmd == "全部功能":
         for f in plugins2settings_manager.get_data():
             if status == "开启":
-                group_manager.unblock_plugin(f, group_id)
+                group_manager.unblock_plugin(f, group_id, False)
             else:
-                group_manager.block_plugin(f, group_id)
+                group_manager.block_plugin(f, group_id, False)
+        group_manager.save()
         if group_help_file.exists():
             group_help_file.unlink()
         return f"已 {status} 全部功能！"
@@ -129,18 +130,18 @@ async def change_group_switch(cmd: str, group_id: int, is_super: bool = False):
             module = f"{module}:super"
         if status == "开启":
             if type_ == "task":
-                if await group_manager.check_group_task_status(group_id, module):
+                if group_manager.check_group_task_status(group_id, module):
                     return f"被动 {task_data[module]} 正处于开启状态！不要重复开启."
-                await group_manager.open_group_task(group_id, module)
+                group_manager.open_group_task(group_id, module)
             else:
                 if group_manager.get_plugin_status(module, group_id):
                     return f"功能 {cmd} 正处于开启状态！不要重复开启."
                 group_manager.unblock_plugin(module, group_id)
         else:
             if type_ == "task":
-                if not await group_manager.check_group_task_status(group_id, module):
+                if not group_manager.check_group_task_status(group_id, module):
                     return f"被动 {task_data[module]} 正处于关闭状态！不要重复关闭."
-                await group_manager.close_group_task(group_id, module)
+                group_manager.close_group_task(group_id, module)
             else:
                 if not group_manager.get_plugin_status(module, group_id):
                     return f"功能 {cmd} 正处于关闭状态！不要重复关闭."
@@ -197,17 +198,17 @@ def _get_plugin_status() -> MessageSegment:
             flag = plugins_manager.get_plugin_block_type(module)
             flag = flag.upper() + " CLOSE" if flag else "OPEN"
             try:
-                plugin_name = plugins_manager.get(module)["plugin_name"]
+                plugin_name = plugins_manager.get(module).plugin_name
                 if (
-                    "[Hidden]" in plugin_name
-                    or "[Admin]" in plugin_name
-                    or "[Superuser]" in plugin_name
+                        "[Hidden]" in plugin_name
+                        or "[Admin]" in plugin_name
+                        or "[Superuser]" in plugin_name
                 ):
                     continue
                 rst += f"{plugin_name}"
             except KeyError:
                 rst += f"{module}"
-            if plugins_manager.get(module)["error"]:
+            if plugins_manager.get(module).error:
                 rst += "[ERROR]"
             rst += "\n"
             flag_str += f"{flag}\n"
@@ -238,12 +239,12 @@ async def update_member_info(group_id: int, remind_superuser: bool = False) -> b
         async with db.transaction():
             # 更新权限
             if (
-                user_info["role"]
-                in [
-                    "owner",
-                    "admin",
-                ]
-                and not await LevelUser.is_group_flag(user_info["user_id"], group_id)
+                    user_info["role"]
+                    in [
+                "owner",
+                "admin",
+            ]
+                    and not await LevelUser.is_group_flag(user_info["user_id"], group_id)
             ):
                 await LevelUser.set_level(
                     user_info["user_id"],
@@ -272,10 +273,10 @@ async def update_member_info(group_id: int, remind_superuser: bool = False) -> b
                 "%Y-%m-%d %H:%M:%S",
             )
             if await GroupInfoUser.add_member_info(
-                user_info["user_id"],
-                user_info["group_id"],
-                nickname,
-                join_time,
+                    user_info["user_id"],
+                    user_info["group_id"],
+                    nickname,
+                    join_time,
             ):
                 _exist_member_list.append(int(user_info["user_id"]))
                 logger.info(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新成功")
@@ -317,7 +318,4 @@ def set_group_bot_status(group_id: int, status: bool) -> str:
         return "呜..醒来了..."
     else:
         group_manager.shutdown_group_bot_status(group_id)
-        # for x in group_manager.get_task_data():
-        #     group_manager.close_group_task(group_id, x)
         return "那我先睡觉了..."
-

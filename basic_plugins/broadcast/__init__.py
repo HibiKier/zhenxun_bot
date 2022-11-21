@@ -44,7 +44,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     gl = [
         g["group_id"]
         for g in gl
-        if await group_manager.check_group_task_status(g["group_id"], "broadcast")
+        if group_manager.check_group_task_status(g["group_id"], "broadcast")
     ]
     g_cnt = len(gl)
     cnt = 0

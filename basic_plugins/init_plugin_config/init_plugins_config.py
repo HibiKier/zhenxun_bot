@@ -8,40 +8,32 @@ from services.log import logger
 from utils.text_utils import prompt2cn
 from utils.utils import get_matchers
 from utils.utils import scheduler
+from configs.path_config import DATA_PATH
 from ruamel import yaml
 
 
 _yaml = YAML(typ="safe")
 
 
-def init_plugins_config(data_path):
+def init_plugins_config():
     """
     初始化插件数据配置
     """
-    plugins2config_file = data_path / "configs" / "plugins2config.yaml"
+    plugins2config_file = DATA_PATH / "configs" / "plugins2config.yaml"
     plugins2config_file.parent.mkdir(parents=True, exist_ok=True)
     _data = {}
     if plugins2config_file.exists():
         _data = _yaml.load(open(plugins2config_file, "r", encoding="utf8"))
-    _matchers = get_matchers(True)
     # 优先使用 metadata 数据
-    for matcher in _matchers:
+    for matcher in [matcher for matcher in get_matchers(True) if matcher.plugin and matcher.plugin.module]:
         _plugin = matcher.plugin
-        if not _plugin:
-            continue
         metadata = _plugin.metadata
-        try:
-            _module = _plugin.module
-        except AttributeError:
-            continue
+        _module = _plugin.module
         plugin_version = None
         if metadata:
             plugin_version = metadata.extra.get("version")
-        if not plugin_version:
-            try:
-                plugin_version = _module.__getattribute__("__plugin_version__")
-            except AttributeError:
-                pass
+        if not plugin_version and hasattr(_module, "__plugin_version__"):
+            plugin_version = _module.__getattribute__("__plugin_version__")
         if metadata and metadata.config:
             plugin_configs = {}
             for key, value in metadata.config.__fields__.items():
@@ -61,7 +53,7 @@ def init_plugins_config(data_path):
                 _data.get(matcher.plugin_name)
                 and _data[matcher.plugin_name].keys() != plugin_configs.keys()
             )
-            or plugin_version > plugins_manager.get(matcher.plugin_name)["version"]
+            or plugin_version > plugins_manager.get(matcher.plugin_name).version
             or matcher.plugin_name not in _data.keys()
         ):
             for key in plugin_configs:
@@ -94,16 +86,16 @@ def init_plugins_config(data_path):
         _data = round_trip_load(open(plugins2config_file, encoding="utf8"))
         for plugin in _data.keys():
             try:
-                plugin_name = plugins_manager.get(plugin)["plugin_name"]
+                plugin_name = plugins_manager.get(plugin).plugin_name
             except (AttributeError, TypeError):
                 plugin_name = plugin
             _data[plugin].yaml_set_start_comment(plugin_name, indent=2)
         # 初始化未设置的管理员权限等级
         for k, v in Config.get_admin_level_data():
-            try:
-                admin_manager.set_admin_level(k, v)
-            except KeyError as e:
-                raise KeyError(f"{e} ****** 请检查是否有插件加载失败 ******")
+            # try:
+            admin_manager.set_admin_level(k, v)
+            # except KeyError as e:
+            #     raise KeyError(f"{e} ****** 请检查是否有插件加载失败 ******")
         # 存完插件基本设置
         with open(plugins2config_file, "w", encoding="utf8") as wf:
             round_trip_dump(
@@ -181,7 +173,7 @@ def _replace_config():
                 plugin_name = None
             if not plugin_name:
                 try:
-                    plugin_name = plugins_manager.get(plugin)["plugin_name"]
+                    plugin_name = plugins_manager.get(plugin).plugin_name
                 except (AttributeError, TypeError):
                     plugin_name = plugin
             plugin_name = (

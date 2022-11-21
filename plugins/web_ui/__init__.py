@@ -23,11 +23,11 @@ gConfig.add_plugin_config("web-ui", "password", None, name="web-ui", help_="å‰ç
 async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
     flag = False
     for module in plugins2settings_manager.keys():
-        if isinstance(plugins2settings_manager.get_plugin_data(module).get("cmd"), str):
+        if isinstance(plugins2settings_manager.get_plugin_data(module).cmd, str):
             plugins2settings_manager.set_module_data(
                 module,
                 "cmd",
-                plugins2settings_manager.get_plugin_data(module).get("cmd").split(","),
+                plugins2settings_manager.get_plugin_data(module).cmd.split(","),
                 False
             )
             flag = True

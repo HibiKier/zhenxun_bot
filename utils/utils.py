@@ -450,4 +450,4 @@ def change_img_md5(path_file: Union[str, Path]) -> bool:
         return True
     except Exception as e:
         logger.warning(f"改变图片MD5发生错误 {type(e)}：{e} Path：{path_file}")
-        return False
+    return False

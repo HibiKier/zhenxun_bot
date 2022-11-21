@@ -40,16 +40,14 @@ async def _create_help_img(
     :param help_image: 图片路径
     :param simple_help_image: 简易帮助图片路径
     """
-    _matchers = get_matchers(True)
     width = 0
     matchers_data = {}
     _des_tmp = {}
-    _plugin_name_tmp = []
     _tmp = []
     tmp_img = BuildImage(0, 0, plain_text="1", font_size=24)
     font_height = tmp_img.h
     # 插件分类
-    for matcher in _matchers:
+    for matcher in get_matchers(True):
         plugin_name = None
         _plugin = matcher.plugin
         if not _plugin:
@@ -67,7 +65,6 @@ async def _create_help_img(
                 "[hidden]" in plugin_name.lower()
                 or "[admin]" in plugin_name.lower()
                 or "[superuser]" in plugin_name.lower()
-                or plugin_name in _plugin_name_tmp
                 or plugin_name == "帮助"
             ):
                 continue
@@ -75,11 +72,9 @@ async def _create_help_img(
             text_type = 0
             if plugins2settings_manager.get(
                 matcher.plugin_name
-            ) and plugins2settings_manager[matcher.plugin_name].get("plugin_type"):
+            ) and plugins2settings_manager.get(matcher.plugin_name).plugin_type:
                 plugin_type = tuple(
-                    plugins2settings_manager.get_plugin_data(matcher.plugin_name)[
-                        "plugin_type"
-                    ]
+                    plugins2settings_manager.get_plugin_data(matcher.plugin_name).plugin_type
                 )
             else:
                 try:
@@ -128,10 +123,7 @@ async def _create_help_img(
             if plugin_des not in _des_tmp:
                 _des_tmp[plugin_des] = plugin_name
         except AttributeError as e:
-            if plugin_name not in _plugin_name_tmp:
-                logger.warning(f"获取功能 {matcher.plugin_name}: {plugin_name} 设置失败...e：{e}")
-        if plugin_name not in _plugin_name_tmp:
-            _plugin_name_tmp.append(plugin_name)
+            logger.warning(f"获取功能 {matcher.plugin_name}: {plugin_name} 设置失败...e：{e}")
     help_img_list = []
     simple_help_img_list = []
     types = list(matchers_data.keys())
@@ -284,45 +276,13 @@ async def _create_help_img(
     B.save(simple_help_image)
 
 
-def get_max_width_or_paste(
-    simple_help_img_list: List[BuildImage], B: BuildImage = None, is_paste: bool = False
-) -> Tuple[int, BuildImage]:
-    """
-    获取最大宽度，或直接贴图
-    :param simple_help_img_list: 简单帮助图片列表
-    :param B: 背景图
-    :param is_paste: 是否直接贴图
-    """
-    current_width = 50
-    current_height = 180
-    max_width = simple_help_img_list[0].w
-    for i in range(len(simple_help_img_list)):
-        try:
-            if is_paste and B:
-                B.paste(simple_help_img_list[i], (current_width, current_height), True)
-            current_height += simple_help_img_list[i].h + 40
-            if current_height + simple_help_img_list[i + 1].h > B.h - 10:
-                current_height = 180
-                current_width += max_width + 30
-                max_width = 0
-            elif simple_help_img_list[i].w > max_width:
-                max_width = simple_help_img_list[i].w
-        except IndexError:
-            pass
-    if current_width > simple_help_img_list[0].w + 50:
-        current_width += simple_help_img_list[-1].w
-    return current_width, B
-
-
 def get_plugin_help(msg: str, is_super: bool = False) -> Optional[str]:
     """
     获取功能的帮助信息
     :param msg: 功能cmd
     :param is_super: 是否为超级用户
     """
-    module = plugins2settings_manager.get_plugin_module(msg)
-    if not module:
-        module = admin_manager.get_plugin_module(msg)
+    module = plugins2settings_manager.get_plugin_module(msg) or admin_manager.get_plugin_module(msg)
     if module:
         try:
             plugin = nonebot.plugin.get_plugin(module)

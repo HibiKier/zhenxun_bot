@@ -1,24 +1,29 @@
-from typing import Union, Optional
+from typing import Union, Optional, TypeVar, Generic, Dict, NoReturn, Any
 from pathlib import Path
 from ruamel.yaml import YAML
 from ruamel import yaml
 import ujson as json
 import copy
 
+from .models import *
+
 _yaml = YAML(typ="safe")
 
 
-class StaticData:
+T = TypeVar("T", AdminSetting, BaseData, PluginBlock, PluginCd, PluginCount, PluginSetting, Plugin)
+
+
+class StaticData(Generic[T]):
     """
     静态数据共享类
     """
 
-    def __init__(self, file: Optional[Path]):
+    def __init__(self, file: Optional[Path], load_file: bool = True):
         self._data: dict = {}
         if file:
             file.parent.mkdir(exist_ok=True, parents=True)
             self.file = file
-            if file.exists():
+            if file.exists() and load_file:
                 with open(file, "r", encoding="utf8") as f:
                     if file.name.endswith("json"):
                         try:
@@ -29,30 +34,39 @@ class StaticData:
                     elif file.name.endswith("yaml"):
                         self._data = _yaml.load(f)
 
-    def set(self, key, value):
+    def set(self, key, value) -> NoReturn:
         self._data[key] = value
         self.save()
 
-    def set_module_data(self, module, key, value, auto_save: bool = True):
+    def set_module_data(self, module, key, value, auto_save: bool = True) -> NoReturn:
         if module in self._data.keys():
             self._data[module][key] = value
             if auto_save:
                 self.save()
 
-    def get(self, key):
+    def get(self, key) -> T:
         return self._data.get(key)
 
-    def keys(self):
+    def keys(self) -> List[str]:
         return self._data.keys()
 
-    def delete(self, key):
+    def delete(self, key) -> NoReturn:
         if self._data.get(key) is not None:
             del self._data[key]
 
-    def get_data(self) -> dict:
+    def get_data(self) -> Dict[str, T]:
         return copy.deepcopy(self._data)
 
-    def save(self, path: Union[str, Path] = None):
+    def dict(self) -> Dict[str, Any]:
+        temp = {}
+        for k, v in self._data.items():
+            try:
+                temp[k] = v.dict()
+            except AttributeError:
+                temp[k] = copy.deepcopy(v)
+        return temp
+
+    def save(self, path: Union[str, Path] = None) -> NoReturn:
         path = path or self.file
         if isinstance(path, str):
             path = Path(path)
@@ -61,26 +75,26 @@ class StaticData:
                 if path.name.endswith("yaml"):
                     yaml.dump(self._data, f, indent=2, Dumper=yaml.RoundTripDumper, allow_unicode=True)
                 else:
-                    json.dump(self._data, f, ensure_ascii=False, indent=4)
+                    json.dump(self.dict(), f, ensure_ascii=False, indent=4)
 
-    def reload(self):
+    def reload(self) -> NoReturn:
         if self.file.exists():
             if self.file.name.endswith("json"):
                 self._data: dict = json.load(open(self.file, "r", encoding="utf8"))
             elif self.file.name.endswith("yaml"):
                 self._data: dict = _yaml.load(open(self.file, "r", encoding="utf8"))
 
-    def is_exists(self):
+    def is_exists(self) -> bool:
         return self.file.exists()
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return bool(len(self._data))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self._data)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value) -> NoReturn:
         self._data[key] = value
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> T:
         return self._data[key]

@@ -61,8 +61,8 @@ def _(type_: Optional[str], user: User = Depends(token_to_user)) -> Result:
                         )
                     data["plugin_manager"] = PluginManager(**x)
                 if x := plugins2settings_manager.get(model):
-                    if x.get("cmd") and isinstance(x.get("cmd"), list):
-                        x["cmd"] = ",".join(x["cmd"])
+                    if x.cmd and isinstance(x.cmd, list):
+                        x.cmd = ",".join(x.cmd)
                     data["plugin_settings"] = PluginSettings(**x)
                 if x := plugins2cd_manager.get(model):
                     data["cd_limit"] = CdLimit(**x)

@@ -39,7 +39,7 @@ async def _(bot: Bot, api: str, data: Dict[str, Any]):
         group_id = data["group_id"]
         if group_manager.get_group_level(
             group_id
-        ) < 0 or not await group_manager.check_group_task_status(group_id, task):
+        ) < 0 or not group_manager.check_group_task_status(group_id, task):
             raise MockApiException(f"被动技能 {task} 处于关闭状态...")
         else:
             msg = str(data["message"]).strip()

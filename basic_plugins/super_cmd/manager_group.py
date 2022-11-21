@@ -122,8 +122,8 @@ async def _(event: GroupMessageEvent):
     tmp = ""
     data = plugins2settings_manager.get_data()
     for module in data:
-        if data[module]["level"] > level:
-            plugin_name = data[module]["cmd"][0]
+        if data[module].level > level:
+            plugin_name = data[module].cmd[0]
             if plugin_name == "pixiv":
                 plugin_name = "搜图 p站排行"
             tmp += f"{plugin_name}\n"

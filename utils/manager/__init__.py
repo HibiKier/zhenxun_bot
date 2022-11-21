@@ -14,6 +14,9 @@ from .requests_manager import RequestManager
 from configs.path_config import DATA_PATH
 
 
+# 管理员命令管理器
+admin_manager = AdminManager()
+
 # 群功能开关 | 群被动技能 | 群权限  管理
 group_manager: Optional[GroupManager] = GroupManager(
     DATA_PATH / "manager" / "group_manager.json"
@@ -62,5 +65,3 @@ requests_manager: Optional[RequestManager] = RequestManager(
     DATA_PATH / "manager" / "requests_manager.json"
 )
 
-# 管理员命令管理器
-admin_manager = AdminManager()

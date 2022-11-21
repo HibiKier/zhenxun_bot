@@ -1,7 +1,7 @@
 from utils.manager.data_class import StaticData
 from nonebot.adapters.onebot.v11 import Bot, ActionFailed
 from services.log import logger
-from typing import Optional, Literal
+from typing import Optional
 from utils.image_utils import BuildImage
 from utils.utils import get_user_avatar
 from pathlib import Path
