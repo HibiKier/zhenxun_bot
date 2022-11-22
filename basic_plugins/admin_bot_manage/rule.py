@@ -16,7 +16,7 @@ def switch_rule(event: Event) -> bool:
     参数:
         :param event: pass
     """
-    global cmd
+    global cmd, v
     try:
         if not cmd or time.time() - v > 60 * 60:
             cmd = ["关闭全部被动", "开启全部被动", "开启全部功能", "关闭全部功能"]
@@ -42,6 +42,7 @@ def switch_rule(event: Event) -> bool:
                         cmd.append(f"关闭 {key}")
                 except KeyError:
                     pass
+            v = time.time()
         msg = get_message_text(event.json()).split()
         msg = msg[0] if msg else ""
         return msg in cmd

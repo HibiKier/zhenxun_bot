@@ -9,7 +9,7 @@ async def check_plugin_status(bot: Bot):
     msg = ""
     for plugin in plugins_manager.keys():
         data = plugins_manager.get(plugin)
-        if not data.error:
+        if data.error:
             msg += f'{plugin}:{data.plugin_name}\n'
     if msg and bot.config.superusers:
         msg = "以下插件加载失败..\n" + msg
