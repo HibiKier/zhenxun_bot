@@ -453,7 +453,6 @@ class AuthChecker:
             :param bot: bot
             :param event: event
         """
-        ban = await BanUser.is_ban(event.user_id)
         try:
             if (
                 (
