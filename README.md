@@ -296,6 +296,12 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
+* 修复webui插件无法获取修改
+
+### 2022/11/22
+
+* fix switch_rule [@pull/1185](https://github.com/HibiKier/zhenxun_bot/pull/1185)
+
 ### 2022/11/21  \[v0.1.6.5]
 
 * 优化manager, hook代码

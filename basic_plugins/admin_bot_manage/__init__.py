@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from configs.config import Config
 import nonebot
 
@@ -27,4 +29,4 @@ Config.add_plugin_config(
     default_value=5
 )
 
-nonebot.load_plugins("basic_plugins/admin_bot_manage")
+nonebot.load_plugins(str((Path(__file__).parent / "admin_bot_manage").resolve()))

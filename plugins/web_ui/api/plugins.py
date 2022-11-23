@@ -1,5 +1,4 @@
 from pydantic import ValidationError
-
 from configs.config import Config
 from services.log import logger
 from utils.manager import (plugins2block_manager, plugins2cd_manager,
@@ -21,15 +20,15 @@ def _(type_: Optional[str], user: User = Depends(token_to_user)) -> Result:
     """
     global plugin_name_list
     if not plugin_name_list:
-        plugin_name_list = [x.plugin_name for x in get_matchers()]
+        plugin_name_list = [x.plugin_name for x in get_matchers(True)]
     plugin_list = []
     plugin_data = plugins_manager.get_data()
     for model in plugin_data:
         if model in plugin_name_list:
             try:
                 data = plugin_data.get(model)
-                data["model"] = model
-                plugin_name = data.get("plugin_name")
+                # data.model = model
+                plugin_name = data.plugin_name
                 if (
                     (type_ == "hidden" and "[hidden]" not in plugin_name.lower())
                     or (type_ == "admin" and "[admin]" not in plugin_name.lower())
@@ -47,29 +46,29 @@ def _(type_: Optional[str], user: User = Depends(token_to_user)) -> Result:
                     continue
                 data = {"model": model}
                 if x := plugin_data.get(model):
-                    if not x.get("status") and x.get("block_type") in [
+                    if not x.status and x.block_type in [
                         "group",
                         "private",
                         "all",
                     ]:
-                        x["block_type"] = (
+                        x.block_type = (
                             "群聊"
-                            if x["block_type"] == "group"
+                            if x.block_type == "group"
                             else "私聊"
-                            if x["block_type"] == "private"
+                            if x.block_type == "private"
                             else "全部"
                         )
-                    data["plugin_manager"] = PluginManager(**x)
+                    data["plugin_manager"] = PluginManager(**x.dict())
                 if x := plugins2settings_manager.get(model):
                     if x.cmd and isinstance(x.cmd, list):
                         x.cmd = ",".join(x.cmd)
-                    data["plugin_settings"] = PluginSettings(**x)
+                    data["plugin_settings"] = PluginSettings(**x.dict())
                 if x := plugins2cd_manager.get(model):
-                    data["cd_limit"] = CdLimit(**x)
+                    data["cd_limit"] = CdLimit(**x.dict())
                 if x := plugins2block_manager.get(model):
-                    data["block_limit"] = BlockLimit(**x)
+                    data["block_limit"] = BlockLimit(**x.dict())
                 if x := plugins2count_manager.get(model):
-                    data["count_limit"] = CountLimit(**x)
+                    data["count_limit"] = CountLimit(**x.dict())
                 if x := Config.get(model):
                     id_ = 0
                     tmp = []
@@ -148,10 +147,10 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
                 for key, value in plugin.plugin_settings:
                     if key == "cmd":
                         value = value.split(",")
-                    plugins2settings_manager.set_module_data(plugin.model, key, value)
+                    setattr(plugins2settings_manager[plugin.model], key, value)
             if plugin.plugin_manager:
                 for key, value in plugin.plugin_manager:
-                    plugins_manager.set_module_data(plugin.model, key, value)
+                    setattr(plugins_manager[plugin.model], key, value)
     except Exception as e:
         logger.error(
             f"WEB_UI POST /webui/plugins model：{plugin.model} 发生错误 {type(e)}：{e}"
@@ -160,4 +159,6 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
             code=500,
             data=f"WEB_UI POST /webui/plugins model：{plugin.model} 发生错误 {type(e)}：{e}",
         )
+    plugins2settings_manager.save()
+    plugins_manager.save()
     return Result(code=200, data="修改成功！")
