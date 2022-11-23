@@ -73,7 +73,7 @@ async def util_get_buff_price(case_name: str = "狂牙大行动") -> str:
                                     "page_num": f"{i}",
                                     "search": skin,
                                 }
-                                res = await AsyncHttpx.get(url, params=parameter)
+                                res = await AsyncHttpx.get(url, params=parameter, cookies=cookie)
                                 data = res.json()["data"][
                                     "items"
                                 ]
