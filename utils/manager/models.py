@@ -74,7 +74,7 @@ class PluginSetting(BaseModel):
     插件设置
     """
 
-    cmd: Optional[List[str]] = []  # 命令 或 命令别名
+    cmd: List[str] = []  # 命令 或 命令别名
     default_status: bool = True  # 默认开关状态
     level: int = 5  # 功能权限等级
     limit_superuser: bool = False  # 功能状态是否限制超级用户
