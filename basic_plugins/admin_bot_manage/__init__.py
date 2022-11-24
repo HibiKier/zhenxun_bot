@@ -29,4 +29,4 @@ Config.add_plugin_config(
     default_value=5
 )
 
-nonebot.load_plugins(str((Path(__file__).parent / "admin_bot_manage").resolve()))
+nonebot.load_plugins(str(Path(__file__).parent.resolve()))
