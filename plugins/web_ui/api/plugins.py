@@ -159,6 +159,9 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
             code=500,
             data=f"WEB_UI POST /webui/plugins model：{plugin.model} 发生错误 {type(e)}：{e}",
         )
+    for key in plugins2settings_manager.keys():
+        if isinstance(plugins2settings_manager[key].cmd, str):
+            plugins2settings_manager[key].cmd = plugins2settings_manager[key].cmd.split(',')
     plugins2settings_manager.save()
     plugins_manager.save()
     return Result(code=200, data="修改成功！")

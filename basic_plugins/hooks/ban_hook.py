@@ -29,10 +29,13 @@ _flmt = FreqLimiter(300)
 # 检查是否被ban
 @run_preprocessor
 async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
-    if (
-        (isinstance(event, MessageEvent) or isinstance(event, PokeNotifyEvent))
-        and matcher.priority not in [1, 999]
-    ) or matcher.plugin_name in other_limit_plugins:
+    if hasattr(event, "user_id") and (
+        (
+            (isinstance(event, MessageEvent) or isinstance(event, PokeNotifyEvent))
+            and matcher.priority not in [1, 999]
+        )
+        or matcher.plugin_name in other_limit_plugins
+    ):
         try:
             if (
                 await BanUser.is_super_ban(event.user_id)

@@ -2,7 +2,7 @@ from configs.config import Config
 from models.chat_history import ChatHistory
 from nonebot import on_message
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent
-from utils.utils import get_message_text
+from utils.depends import PlaintText
 
 from ._rule import rule
 
@@ -20,13 +20,13 @@ chat_history = on_message(rule=rule, priority=1, block=False)
 
 
 @chat_history.handle()
-async def _(event: MessageEvent):
+async def _(event: MessageEvent, msg: str = PlaintText()):
     if isinstance(event, GroupMessageEvent):
         await ChatHistory.add_chat_msg(
-            event.user_id, event.group_id, str(event.get_message()), get_message_text(event.json())
+            event.user_id, event.group_id, str(event.get_message()), msg
         )
     else:
-        await ChatHistory.add_chat_msg(event.user_id, None, str(event.get_message()), get_message_text(event.json()))
+        await ChatHistory.add_chat_msg(event.user_id, None, str(event.get_message()), msg)
 
 
 # @test.handle()

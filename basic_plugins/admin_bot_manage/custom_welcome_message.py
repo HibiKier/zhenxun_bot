@@ -1,11 +1,13 @@
+from typing import List
+
 from nonebot import on_command
-from utils.utils import get_message_img
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
 from nonebot.params import CommandArg
 from ._data_source import custom_group_welcome
 from nonebot.adapters.onebot.v11.permission import GROUP
 from configs.config import Config
 from services.log import logger
+from utils.depends import ImageList
 
 
 __zx_plugin_name__ = "自定义进群欢迎消息 [Admin]"
@@ -35,9 +37,8 @@ custom_welcome = on_command(
 
 
 @custom_welcome.handle()
-async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
+async def _(event: GroupMessageEvent, arg: Message = CommandArg(), img: List[str] = ImageList):
     msg = arg.extract_plain_text().strip()
-    img = get_message_img(event.json())
     if not msg and not img:
         await custom_welcome.finish(__plugin_usage__)
     try:

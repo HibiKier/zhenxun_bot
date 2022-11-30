@@ -1,7 +1,8 @@
 import nonebot
+from pathlib import Path
 
 
-nonebot.load_plugins('basic_plugins/super_cmd')
+nonebot.load_plugins(str(Path(__file__).parent.resolve()))
 
 
 

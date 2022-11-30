@@ -40,10 +40,9 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     rst = ""
     for img in img_list:
         rst += image(img)
-    gl = await bot.get_group_list()
     gl = [
         g["group_id"]
-        for g in gl
+        for g in await bot.get_group_list()
         if group_manager.check_group_task_status(g["group_id"], "broadcast")
     ]
     g_cnt = len(gl)

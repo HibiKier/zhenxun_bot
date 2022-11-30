@@ -296,6 +296,15 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
+### 2022/11/28
+
+* 修复web_ui群组无法获取
+* 修复web_ui修改插件数据时cmd格式错误
+
+### 2022/11/28
+
+* :bug: Fix a bug in open_cases to get vanilla knives' prices [@pull/1188](https://github.com/HibiKier/zhenxun_bot/pull/1188)
+
 ### 2022/11/24
 
 * 修复管理员插件加载路径错误

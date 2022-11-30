@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 
 from configs.config import NICKNAME, Config
 from models.ban_user import BanUser
@@ -9,6 +9,7 @@ from nonebot.adapters.onebot.v11 import (Bot, GroupMessageEvent, Message,
 from nonebot.params import Command, CommandArg
 from nonebot.permission import SUPERUSER
 from services.log import logger
+from utils.depends import AtList
 from utils.utils import get_message_at, is_number
 
 from .data_source import a_ban, parse_ban_time
@@ -69,10 +70,10 @@ async def _(
     event: GroupMessageEvent,
     cmd: Tuple[str, ...] = Command(),
     arg: Message = CommandArg(),
+    qq: List[str] = AtList()
 ):
     cmd = cmd[0]
     result = ""
-    qq = get_message_at(event.json())
     if qq:
         qq = qq[0]
         user_name = await bot.get_group_member_info(group_id=event.group_id, user_id=qq)
@@ -127,7 +128,6 @@ async def _(
         if str(event.user_id) in bot.config.superusers:
             msg_splt = msg.split()
             if is_number(msg_splt[0]):
-
                 qq = int(msg_splt[0])
                 msg = msg_splt[1:]
                 if cmd in [".ban", "/ban"]:

@@ -1,3 +1,4 @@
+import copy
 from typing import List, Union, Dict, Callable
 from pathlib import Path
 from .models import BaseData, BaseGroup
@@ -64,6 +65,9 @@ class GroupManager(StaticData):
     def __init__(self, file: Path):
         super().__init__(file, False)
         self._data = BaseData.parse_file(file) if file.exists() else BaseData()
+
+    def get_data(self) -> BaseData:
+        return copy.deepcopy(self._data)
 
     def block_plugin(self, module: str, group_id: int, is_save: bool = True):
         """
@@ -339,6 +343,12 @@ class GroupManager(StaticData):
             del dict_data["task"]
             with open(path, "w", encoding="utf8") as f:
                 json.dump(dict_data, f, ensure_ascii=False, indent=4)
+
+    def __setitem__(self, key, value):
+        self._data.group_manager[key] = value
+
+    def __getitem__(self, key) -> BaseGroup:
+        return self._data.group_manager[key]
 
     # def get_super_old_data(self) -> Optional[dict]:
     #     """

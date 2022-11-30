@@ -19,11 +19,7 @@ from configs.config import Config
 from pathlib import Path
 import random
 import os
-
-try:
-    import ujson as json
-except ModuleNotFoundError:
-    import json
+import ujson as json
 
 
 __zx_plugin_name__ = "群事件处理 [Hidden]"

@@ -16,53 +16,55 @@ from utils.http_utils import AsyncHttpx
 import asyncio
 import time
 import os
+import ujson as json
 
-try:
-    import ujson as json
-except ModuleNotFoundError:
-    import json
+
+custom_welcome_msg_json = (
+    Path() / "data" / "custom_welcome_msg" / "custom_welcome_msg.json"
+)
 
 
 def group_current_status(group_id: int) -> str:
     """
-    获取当前所有通知的开关
-    :param group_id: 群号
+    说明:
+        获取当前群聊所有通知的开关
+    参数:
+        :param group_id: 群号
     """
-    rst = "[被动技能 状态]\n"
     _data = group_manager.get_task_data()
-    for task in _data.keys():
-        rst += f'{_data[task]}: {"√" if group_manager.check_group_task_status(group_id, task) else "×"}\n'
-    return rst.strip()
-
-
-custom_welcome_msg_json = (
-        Path() / "data" / "custom_welcome_msg" / "custom_welcome_msg.json"
-)
+    return "[被动技能 状态]\n" + "\n".join(
+        [
+            f'{_data[task]}: {"√" if group_manager.check_group_task_status(group_id, task) else "×"}\n'
+            for task in _data
+        ]
+    )
 
 
 async def custom_group_welcome(
-        msg: str, imgs: List[str], user_id: int, group_id: int
+    msg: str, img_list: List[str], user_id: int, group_id: int
 ) -> str:
     """
-    替换群欢迎消息
-    :param msg: 欢迎消息文本
-    :param imgs: 欢迎消息图片，只取第一张
-    :param user_id: 用户id，用于log记录
-    :param group_id: 群号
+    说明:
+        替换群欢迎消息
+    参数:
+        :param msg: 欢迎消息文本
+        :param img_list: 欢迎消息图片，只取第一张
+        :param user_id: 用户id，用于log记录
+        :param group_id: 群号
     """
     img_result = ""
-    img = imgs[0] if imgs else ""
     result = ""
+    img = img_list[0] if img_list else ""
     if (DATA_PATH / f"custom_welcome_msg/{group_id}.jpg").exists():
         (DATA_PATH / f"custom_welcome_msg/{group_id}.jpg").unlink()
+    data = {}
     if not custom_welcome_msg_json.exists():
         custom_welcome_msg_json.parent.mkdir(parents=True, exist_ok=True)
-        data = {}
     else:
         try:
             data = json.load(open(custom_welcome_msg_json, "r"))
         except FileNotFoundError:
-            data = {}
+            pass
     try:
         if msg:
             data[str(group_id)] = str(msg)
@@ -88,10 +90,12 @@ task_data = None
 
 async def change_group_switch(cmd: str, group_id: int, is_super: bool = False):
     """
-    修改群功能状态
-    :param cmd: 功能名称
-    :param group_id: 群号
-    :param is_super: 是否位超级用户，超级用户用于私聊开关功能状态
+    说明:
+        修改群功能状态
+    参数:
+        :param cmd: 功能名称
+        :param group_id: 群号
+        :param is_super: 是否位超级用户，超级用户用于私聊开关功能状态
     """
     global task_data
     if not task_data:
@@ -161,9 +165,11 @@ async def change_group_switch(cmd: str, group_id: int, is_super: bool = False):
 
 def set_plugin_status(cmd: str, block_type: str = "all"):
     """
-    设置插件功能状态（超级用户使用）
-    :param cmd: 功能名称
-    :param block_type: 限制类型, 'all': 私聊+群里, 'private': 私聊, 'group': 群聊
+    说明:
+        设置插件功能状态（超级用户使用）
+    参数:
+        :param cmd: 功能名称
+        :param block_type: 限制类型, 'all': 私聊+群里, 'private': 私聊, 'group': 群聊
     """
     status = cmd[:2]
     cmd = cmd[2:]
@@ -179,14 +185,16 @@ def set_plugin_status(cmd: str, block_type: str = "all"):
 
 async def get_plugin_status():
     """
-    获取功能状态
+    说明:
+        获取功能状态
     """
     return await asyncio.get_event_loop().run_in_executor(None, _get_plugin_status)
 
 
 def _get_plugin_status() -> MessageSegment:
     """
-    合成功能状态图片
+    说明:
+        合成功能状态图片
     """
     rst = "\t功能\n"
     flag_str = "状态".rjust(4) + "\n"
@@ -200,9 +208,9 @@ def _get_plugin_status() -> MessageSegment:
             try:
                 plugin_name = plugins_manager.get(module).plugin_name
                 if (
-                        "[Hidden]" in plugin_name
-                        or "[Admin]" in plugin_name
-                        or "[Superuser]" in plugin_name
+                    "[Hidden]" in plugin_name
+                    or "[Admin]" in plugin_name
+                    or "[Superuser]" in plugin_name
                 ):
                     continue
                 rst += f"{plugin_name}"
@@ -225,9 +233,11 @@ def _get_plugin_status() -> MessageSegment:
 
 async def update_member_info(group_id: int, remind_superuser: bool = False) -> bool:
     """
-    更新群成员信息
-    :param group_id: 群号
-    :param remind_superuser: 失败信息提醒超级用户
+    说明:
+        更新群成员信息
+    参数:
+        :param group_id: 群号
+        :param remind_superuser: 失败信息提醒超级用户
     """
     bot = get_bot()
     _group_user_list = await bot.get_group_member_list(group_id=group_id)
@@ -238,14 +248,10 @@ async def update_member_info(group_id: int, remind_superuser: bool = False) -> b
         nickname = user_info["card"] or user_info["nickname"]
         async with db.transaction():
             # 更新权限
-            if (
-                    user_info["role"]
-                    in [
+            if user_info["role"] in [
                 "owner",
                 "admin",
-            ]
-                    and not await LevelUser.is_group_flag(user_info["user_id"], group_id)
-            ):
+            ] and not await LevelUser.is_group_flag(user_info["user_id"], group_id):
                 await LevelUser.set_level(
                     user_info["user_id"],
                     user_info["group_id"],
@@ -273,10 +279,10 @@ async def update_member_info(group_id: int, remind_superuser: bool = False) -> b
                 "%Y-%m-%d %H:%M:%S",
             )
             if await GroupInfoUser.add_member_info(
-                    user_info["user_id"],
-                    user_info["group_id"],
-                    nickname,
-                    join_time,
+                user_info["user_id"],
+                user_info["group_id"],
+                nickname,
+                join_time,
             ):
                 _exist_member_list.append(int(user_info["user_id"]))
                 logger.info(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新成功")
@@ -307,9 +313,11 @@ async def update_member_info(group_id: int, remind_superuser: bool = False) -> b
 
 def set_group_bot_status(group_id: int, status: bool) -> str:
     """
-    设置群聊bot开关状态
-    :param group_id: 群号
-    :param status: 状态
+    说明:
+        设置群聊bot开关状态
+    参数:
+        :param group_id: 群号
+        :param status: 状态
     """
     if status:
         if group_manager.check_group_bot_status(group_id):

@@ -19,10 +19,10 @@ async def _(user: User = Depends(token_to_user)) -> Result:
         for g in group_list:
             group_info[g["group_id"]] = Group(**g)
     group_data = group_manager.get_data()
-    for group_id in group_data["group_manager"]:
+    for group_id in group_data.group_manager:
         try:
             task_list = []
-            data = group_data["group_manager"][group_id]
+            data = group_manager[group_id].dict()
             for tn, status in data["group_task_status"].items():
                 task_list.append(
                     Task(
