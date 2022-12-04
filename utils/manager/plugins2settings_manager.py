@@ -1,9 +1,8 @@
-from typing import List, Optional, Union, Tuple, Dict
+from typing import List, Optional, Union, Tuple, Dict, overload
 from utils.manager.data_class import StaticData
 from pathlib import Path
 from ruamel import yaml
-from .models import PluginSetting
-
+from .models import PluginSetting, PluginType
 
 _yaml = yaml.YAML(typ="safe")
 
@@ -17,10 +16,27 @@ class Plugins2settingsManager(StaticData):
         super().__init__(file, False)
         self.__load_file()
 
+    @overload
+    def add_plugin_settings(self, plugin: str, plugin_settings: PluginSetting):
+        ...
+
+    @overload
     def add_plugin_settings(
         self,
         plugin: str,
-        cmd: Optional[List[str]] = None,
+        cmd: List[str] = None,
+        default_status: bool = True,
+        level: int = 5,
+        limit_superuser: bool = False,
+        plugin_type: Tuple[Union[str, int]] = ("normal",),
+        cost_gold: int = 0,
+    ):
+        ...
+
+    def add_plugin_settings(
+        self,
+        plugin: str,
+        cmd: Union[List[str], PluginSetting] = None,
         default_status: bool = True,
         level: int = 5,
         limit_superuser: bool = False,
@@ -39,14 +55,17 @@ class Plugins2settingsManager(StaticData):
             :param plugin_type: 插件类型
             :param cost_gold: 需要消费的金币
         """
-        self._data[plugin] = PluginSetting(
-            cmd=cmd,
-            level=level,
-            default_status=default_status,
-            limit_superuser=limit_superuser,
-            plugin_type=plugin_type,
-            cost_gold=cost_gold,
-        )
+        if isinstance(cmd, PluginSetting):
+            self._data[plugin] = cmd
+        else:
+            self._data[plugin] = PluginSetting(
+                cmd=cmd,
+                level=level,
+                default_status=default_status,
+                limit_superuser=limit_superuser,
+                plugin_type=plugin_type,
+                cost_gold=cost_gold,
+            )
 
     def get_plugin_data(self, module: str) -> Optional[PluginSetting]:
         """
@@ -95,8 +114,16 @@ class Plugins2settingsManager(StaticData):
             path = Path(path)
         if path:
             with open(path, "w", encoding="utf8") as f:
+                self_dict = self.dict()
+                for key in self_dict.keys():
+                    if self_dict[key].get("plugin_type") and isinstance(
+                        self_dict[key].get("plugin_type"), PluginType
+                    ):
+                        self_dict[key]["plugin_type"] = self_dict[key][
+                            "plugin_type"
+                        ].value
                 yaml.dump(
-                    {"PluginSettings": self.dict()},
+                    {"PluginSettings": self_dict},
                     f,
                     indent=2,
                     Dumper=yaml.RoundTripDumper,
@@ -127,7 +154,7 @@ class Plugins2settingsManager(StaticData):
         self._data: Dict[str, PluginSetting] = {}
         if self.file.exists():
             with open(self.file, "r", encoding="utf8") as f:
-                temp = _yaml.load(f)
-                if "PluginSettings" in temp.keys():
-                    for k, v in temp["PluginSettings"].items():
-                        self._data[k] = PluginSetting.parse_obj(v)
+                if temp := _yaml.load(f):
+                    if "PluginSettings" in temp.keys():
+                        for k, v in temp["PluginSettings"].items():
+                            self._data[k] = PluginSetting.parse_obj(v)

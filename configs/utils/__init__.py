@@ -1,3 +1,4 @@
+import copy
 from typing import Optional, Any, Union
 from pathlib import Path
 from ruamel.yaml import YAML
@@ -215,6 +216,9 @@ class ConfigsManager:
         获取管理插件等级
         """
         return self._admin_level_data
+
+    def get_data(self):
+        return copy.deepcopy(self._data)
 
     def is_empty(self) -> bool:
         return not bool(self._data)

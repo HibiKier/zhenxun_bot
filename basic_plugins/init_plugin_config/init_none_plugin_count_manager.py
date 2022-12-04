@@ -48,7 +48,7 @@ def init_none_plugin_count_manager():
                     logger.info(
                         f"{module}:{plugin_name} 插件疑似已删除，"
                         f"加载{none_plugin_count_manager._max_count}次失败后将清除对应插件数据，"
-                        f"当前次数：{none_plugin_count_manager._data[module]}"
+                        f"当前次数：{none_plugin_count_manager.get(module)}"
                     )
             else:
                 none_plugin_count_manager.reset(module)

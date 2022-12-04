@@ -1,11 +1,27 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Optional, Union
 from configs.path_config import IMAGE_PATH
 from utils.image_utils import BuildImage
+from pydantic import BaseModel
 import os
 import random
 
-
 background_path = IMAGE_PATH / "background" / "help" / "simple_help"
+
+# class PluginType(BaseModel):
+#
+#
+# class Plugin(BaseModel):
+#     name: str
+#     plugin_type: PluginType                # 插件内部类型，根据name [Hidden] [Admin] [SUPERUSER]
+#     usage: Optional[str]
+#     des: Optional[str]
+#     cmd: Optional[List[str]]
+#     task: Optional[Dict[str, str]]
+#     type: Optional[Tuple[str, int]]                # 菜单类型
+#     version: Optional[Union[str, int]]
+#     author: Optional[str]
+
+
 
 
 async def build_help_image(image_group: List[List[BuildImage]], h: int):
@@ -103,3 +119,10 @@ def group_image(image_list: List[BuildImage]) -> Tuple[List[List[BuildImage]], i
         max_w -= max([x.w for x in image_group[-1]])
         image_group.pop(-1)
     return image_group, max(max_h + 250, max_w + 70)
+
+
+# class HelpImageBuild:
+#
+#     def __init__(self):
+#         self._data: Dict[str, List[]] = {}
+

@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Literal, Union
+from typing import Optional, Dict, Literal, Union, overload
 from utils.manager.data_class import StaticData
 from utils.utils import DailyNumberLimiter
 from services.log import logger
@@ -19,11 +19,25 @@ class Plugins2countManager(StaticData):
         self._daily_limiter: Dict[str, DailyNumberLimiter] = {}
         self.__load_file()
 
+    @overload
+    def add_count_limit(self, plugin: str, plugin_count: PluginCount):
+        ...
+
+    @overload
     def add_count_limit(
         self,
         plugin: str,
-        *,
         max_count: int = 5,
+        status: Optional[bool] = True,
+        limit_type: Literal["user", "group"] = "user",
+        rst: Optional[str] = None,
+    ):
+        ...
+
+    def add_count_limit(
+        self,
+        plugin: str,
+        max_count: Union[int, PluginCount] = 5,
         status: Optional[bool] = True,
         limit_type: Literal["user", "group"] = "user",
         rst: Optional[str] = None,
@@ -38,9 +52,12 @@ class Plugins2countManager(StaticData):
             :param limit_type: 限制类型 监听对象，以user_id或group_id作为键来限制，'user'：用户id，'group'：群id
             :param rst: 回复的话，为空则不回复
         """
-        if limit_type not in ["user", "group"]:
-            raise ValueError(f"{plugin} 添加count限制错误，‘limit_type‘ 必须为 'user'/'group'")
-        self._data[plugin] = PluginCount(max_count=max_count, status=status, limit_type=limit_type, rst=rst)
+        if isinstance(max_count, PluginCount):
+            self._data[plugin] = max_count
+        else:
+            if limit_type not in ["user", "group"]:
+                raise ValueError(f"{plugin} 添加count限制错误，‘limit_type‘ 必须为 'user'/'group'")
+            self._data[plugin] = PluginCount(max_count=max_count, status=status, limit_type=limit_type, rst=rst)
 
     def get_plugin_count_data(self, plugin: str) -> Optional[PluginCount]:
         """

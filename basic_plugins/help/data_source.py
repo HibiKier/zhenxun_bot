@@ -77,10 +77,8 @@ async def _create_help_img(
                     plugins2settings_manager.get_plugin_data(matcher.plugin_name).plugin_type
                 )
             else:
-                try:
+                if hasattr(_module, "__plugin_type__"):
                     plugin_type = _module.__getattribute__("__plugin_type__")
-                except AttributeError:
-                    pass
             if len(plugin_type) > 1:
                 try:
                     text_type = int(plugin_type[1])

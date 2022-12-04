@@ -5,6 +5,7 @@ from .init_plugins_data import init_plugins_data, plugins_manager
 from .init_none_plugin_count_manager import init_none_plugin_count_manager
 from .init_plugins_resources import init_plugins_resources
 from .init_plugins_settings import init_plugins_settings
+from .init_plugin_info import init_plugin_info
 from .init_plugins_limit import (
     init_plugins_block_limit,
     init_plugins_count_limit,
@@ -34,6 +35,7 @@ async def _():
     config_file = DATA_PATH / "configs" / "plugins2config.yaml"
     _flag = not config_file.exists()
     init()
+    init_plugin_info()
     init_plugins_settings()
     init_plugins_cd_limit()
     init_plugins_block_limit()

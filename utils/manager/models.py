@@ -1,6 +1,8 @@
-from typing import List, Optional, Dict, Literal, Tuple, Union
+from pathlib import Path
+from typing import List, Optional, Dict, Literal, Tuple, Union, Any
 from pydantic import BaseModel
 from configs.config import Config
+from enum import Enum
 
 
 class AdminSetting(BaseModel):
@@ -8,7 +10,7 @@ class AdminSetting(BaseModel):
     管理员设置
     """
 
-    level: int
+    level: int = 5
     cmd: Optional[List[str]]
 
 
@@ -40,9 +42,9 @@ class PluginBlock(BaseModel):
     插件阻断
     """
 
-    status: bool  # 限制状态
-    check_type: Literal["private", "group", "all"]  # 检查类型
-    limit_type: Literal["user", "group"]  # 监听对象
+    status: bool = True  # 限制状态
+    check_type: Literal["private", "group", "all"] = "all"  # 检查类型
+    limit_type: Literal["user", "group"] = "user"  # 监听对象
     rst: Optional[str]  # 阻断时回复
 
 
@@ -51,10 +53,10 @@ class PluginCd(BaseModel):
     插件阻断
     """
 
-    cd: int  # cd
-    status: bool  # 限制状态
-    check_type: Literal["private", "group", "all"]  # 检查类型
-    limit_type: Literal["user", "group"]  # 监听对象
+    cd: int = 5  # cd
+    status: bool = True  # 限制状态
+    check_type: Literal["private", "group", "all"] = "all"  # 检查类型
+    limit_type: Literal["user", "group"] = "user"  # 监听对象
     rst: Optional[str]  # 阻断时回复
 
 
@@ -64,8 +66,8 @@ class PluginCount(BaseModel):
     """
 
     max_count: int  # 次数
-    status: bool  # 限制状态
-    limit_type: Literal["user", "group"]  # 监听对象
+    status: bool = True  # 限制状态
+    limit_type: Literal["user", "group"] = "user"  # 监听对象
     rst: Optional[str]  # 阻断时回复
 
 
@@ -93,3 +95,45 @@ class Plugin(BaseModel):
     block_type: Optional[str] = None  # 关闭类型
     author: Optional[str] = None  # 作者
     version: Optional[Union[int, str]] = None  # 版本
+
+
+class PluginType(Enum):
+    """
+    插件类型
+    """
+
+    NORMAL = "normal"
+    ADMIN = "admin"
+    HIDDEN = "hidden"
+    SUPERUSER = "superuser"
+
+
+class PluginData(BaseModel):
+    model: str
+    name: str
+    plugin_type: PluginType  # 插件内部类型，根据name [Hidden] [Admin] [SUPERUSER]
+    usage: Optional[str]
+    des: Optional[str]
+    task: Optional[Dict[str, str]]
+    menu_type: Tuple[Union[str, int], ...] = ("normal",)  # 菜单类型
+    version: Optional[Union[str, int]]
+    author: Optional[str]
+    plugin_setting: Optional[PluginSetting]
+    plugin_cd: Optional[PluginCd]
+    plugin_block: Optional[PluginBlock]
+    plugin_count: Optional[PluginCount]
+    plugin_resources: Optional[Dict[str, Union[str, Path]]]
+    plugin_configs: Optional[Dict[str, Dict[str, Any]]]
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def __eq__(self, other: "PluginData"):
+        return (
+            isinstance(other, PluginData)
+            and self.name == other.name
+            and self.menu_type == other.menu_type
+        )
+
+    def __hash__(self):
+        return hash(self.name + self.menu_type[0])

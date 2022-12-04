@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Literal, Union
+from typing import Optional, Dict, Literal, Union, overload
 from utils.manager.data_class import StaticData
 from utils.utils import FreqLimiter
 from services.log import logger
@@ -19,11 +19,26 @@ class Plugins2cdManager(StaticData):
         self._freq_limiter: Dict[str, FreqLimiter] = {}
         self.__load_file()
 
+    @overload
+    def add_cd_limit(self, plugin: str, plugin_cd: PluginCd):
+        ...
+
+    @overload
     def add_cd_limit(
         self,
         plugin: str,
-        *,
-        cd: Optional[int] = 5,
+        cd: Union[int, PluginCd] = 5,
+        status: Optional[bool] = True,
+        check_type: Literal["private", "group", "all"] = "all",
+        limit_type: Literal["user", "group"] = "user",
+        rst: Optional[str] = None,
+    ):
+        ...
+
+    def add_cd_limit(
+        self,
+        plugin: str,
+        cd: Union[int, PluginCd] = 5,
         status: Optional[bool] = True,
         check_type: Literal["private", "group", "all"] = "all",
         limit_type: Literal["user", "group"] = "user",
@@ -40,13 +55,16 @@ class Plugins2cdManager(StaticData):
             :param limit_type: 限制类型 监听对象，以user_id或group_id作为键来限制，'user'：用户id，'group'：群id
             :param rst: 回复的话，为空则不回复
         """
-        if check_type not in ["all", "group", "private"]:
-            raise ValueError(
-                f"{plugin} 添加cd限制错误，‘check_type‘ 必须为 'private'/'group'/'all'"
-            )
-        if limit_type not in ["user", "group"]:
-            raise ValueError(f"{plugin} 添加cd限制错误，‘limit_type‘ 必须为 'user'/'group'")
-        self._data[plugin] = PluginCd(cd=cd, status=status, check_type=check_type, limit_type=limit_type, rst=rst)
+        if isinstance(cd, PluginCd):
+            self._data[plugin] = cd
+        else:
+            if check_type not in ["all", "group", "private"]:
+                raise ValueError(
+                    f"{plugin} 添加cd限制错误，‘check_type‘ 必须为 'private'/'group'/'all'"
+                )
+            if limit_type not in ["user", "group"]:
+                raise ValueError(f"{plugin} 添加cd限制错误，‘limit_type‘ 必须为 'user'/'group'")
+            self._data[plugin] = PluginCd(cd=cd, status=status, check_type=check_type, limit_type=limit_type, rst=rst)
 
     def get_plugin_cd_data(self, plugin: str) -> Optional[PluginCd]:
         """

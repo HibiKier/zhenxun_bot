@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Literal, Union
+from typing import Optional, Dict, Literal, Union, overload
 from utils.manager.data_class import StaticData
 from services.log import logger
 from utils.utils import UserBlockLimiter
@@ -19,11 +19,25 @@ class Plugins2blockManager(StaticData):
         self._block_limiter: Dict[str, UserBlockLimiter] = {}
         self.__load_file()
 
+    @overload
+    def add_block_limit(self, plugin: str, plugin_block: PluginBlock):
+        ...
+
+    @overload
     def add_block_limit(
         self,
         plugin: str,
-        *,
-        status: Optional[bool] = True,
+        status: bool = True,
+        check_type: Literal["private", "group", "all"] = "all",
+        limit_type: Literal["user", "group"] = "user",
+        rst: Optional[str] = None,
+    ):
+        ...
+
+    def add_block_limit(
+        self,
+        plugin: str,
+        status: Union[bool, PluginBlock] = True,
         check_type: Literal["private", "group", "all"] = "all",
         limit_type: Literal["user", "group"] = "user",
         rst: Optional[str] = None,
@@ -38,15 +52,18 @@ class Plugins2blockManager(StaticData):
             :param limit_type: 限制类型 监听对象，以user_id或group_id作为键来限制，'user'：用户id，'group'：群id
             :param rst: 回复的话，为空则不回复
         """
-        if check_type not in ["all", "group", "private"]:
-            raise ValueError(
-                f"{plugin} 添加block限制错误，‘check_type‘ 必须为 'private'/'group'/'all'"
+        if isinstance(status, PluginBlock):
+            self._data[plugin] = status
+        else:
+            if check_type not in ["all", "group", "private"]:
+                raise ValueError(
+                    f"{plugin} 添加block限制错误，‘check_type‘ 必须为 'private'/'group'/'all'"
+                )
+            if limit_type not in ["user", "group"]:
+                raise ValueError(f"{plugin} 添加block限制错误，‘limit_type‘ 必须为 'user'/'group'")
+            self._data[plugin] = PluginBlock(
+                status=status, check_type=check_type, limit_type=limit_type, rst=rst
             )
-        if limit_type not in ["user", "group"]:
-            raise ValueError(f"{plugin} 添加block限制错误，‘limit_type‘ 必须为 'user'/'group'")
-        self._data[plugin] = PluginBlock(
-            status=status, check_type=check_type, limit_type=limit_type, rst=rst
-        )
 
     def get_plugin_block_data(self, plugin: str) -> Optional[PluginBlock]:
         """
