@@ -2,12 +2,12 @@ from configs.path_config import DATA_PATH
 from nonebot.matcher import Matcher
 from nonebot.message import run_postprocessor
 from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent
 from datetime import datetime
 from utils.manager import plugins2settings_manager
 from utils.utils import scheduler
 from nonebot.typing import Optional
-from pathlib import Path
+from ._model import Statistics
 
 try:
     import ujson as json
@@ -90,7 +90,7 @@ async def _(
     matcher: Matcher,
     exception: Optional[Exception],
     bot: Bot,
-    event: GroupMessageEvent,
+    event: MessageEvent,
     state: T_State,
 ):
     global _prefix_count_dict
@@ -99,6 +99,11 @@ async def _(
         and matcher.priority not in [1, 999]
         and matcher.plugin_name not in ["update_info", "statistics_handle"]
     ):
+        await Statistics.add_statistic(
+            event.user_id,
+            event.group_id if isinstance(event, GroupMessageEvent) else None,
+            matcher.plugin_name,
+        )
         module = matcher.plugin_name
         day_index = _prefix_count_dict["day_index"]
         try:
@@ -124,17 +129,11 @@ async def _(
                         key = user_id
                     data["total_statistics"][key][plugin_name] += 1
                     data["day_statistics"][key][plugin_name] += 1
-                    data["week_statistics"][key][str(day_index % 7)][
-                        plugin_name
-                    ] += 1
-                    data["month_statistics"][key][str(day_index % 30)][
-                        plugin_name
-                    ] += 1
+                    data["week_statistics"][key][str(day_index % 7)][plugin_name] += 1
+                    data["month_statistics"][key][str(day_index % 30)][plugin_name] += 1
             with open(statistics_group_file, "w", encoding="utf8") as f:
                 json.dump(_prefix_count_dict, f, indent=4, ensure_ascii=False)
-            with open(
-                statistics_user_file, "w", encoding="utf8"
-            ) as f:
+            with open(statistics_user_file, "w", encoding="utf8") as f:
                 json.dump(_prefix_user_count_dict, f, ensure_ascii=False, indent=4)
 
 
@@ -153,7 +152,7 @@ def check_exists_key(group_id: str, user_id: str, plugin_name: str):
             data["week_statistics"]["total"][plugin_name] = 0
         if not data["month_statistics"]["total"].get(plugin_name):
             data["month_statistics"]["total"][plugin_name] = 0
-        
+
         if not data["total_statistics"].get(key):
             data["total_statistics"][key] = {}
         if not data["total_statistics"][key].get(plugin_name):
@@ -163,7 +162,7 @@ def check_exists_key(group_id: str, user_id: str, plugin_name: str):
         if not data["day_statistics"][key].get(plugin_name):
             data["day_statistics"][key][plugin_name] = 0
 
-        if key != 'total':
+        if key != "total":
             if not data["week_statistics"].get(key):
                 data["week_statistics"][key] = {}
             if data["week_statistics"][key].get("0") is None:
@@ -172,7 +171,7 @@ def check_exists_key(group_id: str, user_id: str, plugin_name: str):
             if data["week_statistics"][key]["0"].get(plugin_name) is None:
                 for i in range(7):
                     data["week_statistics"][key][str(i)][plugin_name] = 0
-    
+
             if not data["month_statistics"].get(key):
                 data["month_statistics"][key] = {}
             if data["month_statistics"][key].get("0") is None:
@@ -214,4 +213,3 @@ async def _():
         json.dump(_prefix_count_dict, f, indent=4, ensure_ascii=False)
     with open(statistics_user_file, "w", encoding="utf8") as f:
         json.dump(_prefix_user_count_dict, f, indent=4, ensure_ascii=False)
-
