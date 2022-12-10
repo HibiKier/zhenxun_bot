@@ -136,7 +136,12 @@ class HelpImageBuild:
                 self._sort_data[plugin_data.menu_type[0]].append(self._data[key])
 
     async def build_name_image(
-        self, max_width: int, name: str, color: str, text_color: Tuple[int, int, int], pos: Optional[Tuple[int, int, int, int]]
+        self,
+        max_width: int,
+        name: str,
+        color: str,
+        text_color: Tuple[int, int, int],
+        pos: Optional[Tuple[int, int, int, int]],
     ) -> BuildImage:
         image = BuildImage(max_width - 5, 50, color=color, font_size=24)
         await image.acircle_corner()
@@ -160,7 +165,7 @@ class HelpImageBuild:
             wh_list = [_image.getsize(x.name) for x in plugin_list]
             wh_list.append(_image.getsize(menu_type))
             # sum_height = sum([x[1] for x in wh_list])
-            if build_type == 'VV':
+            if build_type == "VV":
                 sum_height = 50 * len(plugin_list) + 10
             else:
                 sum_height = (font_size + 6) * len(plugin_list) + 10
@@ -192,7 +197,7 @@ class HelpImageBuild:
                 if (
                     not plugin_data.plugin_status.status
                     and plugin_data.plugin_status.block_type in ["group", "all"]
-                ):
+                ) or not group_manager.get_plugin_super_status(plugin_data.model, group_id):
                     w = curr_h + int(B.getsize(plugin_data.name)[1] / 2) + 2
                     pos = (
                         7,
@@ -201,8 +206,16 @@ class HelpImageBuild:
                         w,
                     )
                 if build_type == "VV":
-                    name_image = await self.build_name_image(max_width, plugin_data.name, "black" if not idx % 2 else "white", text_color, pos)
-                    await B.apaste(name_image, (0, curr_h), True, center_type="by_width")
+                    name_image = await self.build_name_image(
+                        max_width,
+                        plugin_data.name,
+                        "black" if not idx % 2 else "white",
+                        text_color,
+                        pos,
+                    )
+                    await B.apaste(
+                        name_image, (0, curr_h), True, center_type="by_width"
+                    )
                     curr_h += name_image.h + 5
                 else:
                     await B.atext(

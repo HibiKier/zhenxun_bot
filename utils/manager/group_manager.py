@@ -142,6 +142,16 @@ class GroupManager(StaticData):
         """
         return module not in self._data.group_manager[str(group_id)].close_plugins
 
+    def get_plugin_super_status(self, module: str, group_id: int) -> bool:
+        """
+        说明:
+            获取插件是否被超级用户关闭
+        参数:
+            :param module: 功能模块名
+            :param group_id: 群组
+        """
+        return f"{module}:super" not in self._data.group_manager[str(group_id)].close_plugins
+
     @init_group
     def get_group_level(self, group_id: int) -> int:
         """

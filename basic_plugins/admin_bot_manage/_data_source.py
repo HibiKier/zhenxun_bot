@@ -88,7 +88,7 @@ async def custom_group_welcome(
 task_data = None
 
 
-async def change_group_switch(cmd: str, group_id: int, is_super: bool = False):
+async def change_group_switch(cmd: str, group_id: int, is_super: bool = False) -> str:
     """
     说明:
         修改群功能状态
