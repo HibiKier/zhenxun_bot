@@ -84,8 +84,9 @@ async def word_handle(params: str, group_id: Optional[int], type_: str, word_sco
             if not is_number(index) or int(index) < 0 or int(index) > answer_num:
                 return "指定回答下标id必须为数字且在范围内"
             index = int(index)
-        await WordBank.delete_group_problem(problem, group_id, index, word_scope)
-        return "删除词条成功"
+        if await WordBank.delete_group_problem(problem, group_id, index, word_scope):
+            return "删除词条成功"
+        return "词条不存在"
     if type_ == "update":
         replace_str = params[1]
         await WordBank.update_group_problem(problem, replace_str, group_id, word_scope=word_scope)

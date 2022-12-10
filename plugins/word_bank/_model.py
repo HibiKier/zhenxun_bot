@@ -39,6 +39,7 @@ class WordBank(db.Model):
     answer = db.Column(db.String(), nullable=False)  # 回答
     placeholder = db.Column(db.String())  # 占位符
     image_path = db.Column(db.String())  # 使用图片作为问题时图片存储的路径
+    to_me = db.Column(db.String())  # 使用图片作为问题时图片存储的路径
     create_time = db.Column(db.DateTime(), nullable=False)
     update_time = db.Column(db.DateTime(), nullable=False)
 
@@ -85,6 +86,7 @@ class WordBank(db.Model):
         word_type: int,
         problem: Union[str, Message],
         answer: Union[str, Message],
+        to_me_nickname: str = None
     ):
         """
         说明:
@@ -96,6 +98,7 @@ class WordBank(db.Model):
             :param word_type: 词条类型,
             :param problem: 问题
             :param answer: 回答
+            :param to_me_nickname: at真寻名称
         """
         # 对图片做额外处理
         image_path = None
@@ -122,6 +125,7 @@ class WordBank(db.Model):
                 placeholder=",".join(_list),
                 create_time=datetime.now().replace(microsecond=0),
                 update_time=datetime.now().replace(microsecond=0),
+                to_me=to_me_nickname
             )
 
     @classmethod
@@ -202,6 +206,7 @@ class WordBank(db.Model):
                     seg_list.append(at(p))
             return MessageTemplate(temp_answer, Message).format(*seg_list)
         return answer
+
 
     @classmethod
     async def check(
@@ -366,25 +371,28 @@ class WordBank(db.Model):
             :param index: 回答下标
             :param word_scope: 词条范围
         """
-        if index is not None:
-            if group_id:
-                query = await cls.query.where(
-                    (cls.group_id == group_id) & (cls.problem == problem)
-                ).gino.all()
+        if await cls.exists(None, group_id, problem, None, word_scope):
+            if index is not None:
+                if group_id:
+                    query = await cls.query.where(
+                        (cls.group_id == group_id) & (cls.problem == problem)
+                    ).gino.all()
+                else:
+                    query = await cls.query.where(
+                        (cls.word_scope == 0) & (cls.problem == problem)
+                    ).gino.all()
+                await query[index].delete()
             else:
-                query = await cls.query.where(
-                    (cls.word_scope == 0) & (cls.problem == problem)
-                ).gino.all()
-            await query[index].delete()
-        else:
-            if group_id:
-                await WordBank.delete.where(
-                    (cls.group_id == group_id) & (cls.problem == problem)
-                ).gino.status()
-            else:
-                await WordBank.delete.where(
-                    (cls.word_scope == word_scope) & (cls.problem == problem)
-                ).gino.status()
+                if group_id:
+                    await WordBank.delete.where(
+                        (cls.group_id == group_id) & (cls.problem == problem)
+                    ).gino.status()
+                else:
+                    await WordBank.delete.where(
+                        (cls.word_scope == word_scope) & (cls.problem == problem)
+                    ).gino.status()
+            return True
+        return False
 
     @classmethod
     async def update_group_problem(
