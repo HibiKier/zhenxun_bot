@@ -19,6 +19,7 @@ from models.friend_user import FriendUser
 from models.group_member_info import GroupInfoUser
 from models.level_user import LevelUser
 from models.user_shop_gold_log import UserShopGoldLog
+from utils.decorator import Singleton
 from utils.manager import (
     plugins2block_manager,
     StaticData,
@@ -119,23 +120,17 @@ class ReturnException(Exception):
     pass
 
 
+@Singleton
 class AuthChecker:
     """
     权限检查
     """
-
-    checker: Optional["AuthChecker"] = None
 
     def __init__(self):
         self._flmt = FreqLimiter(Config.get_config("hook", "CHECK_NOTICE_INFO_CD"))
         self._flmt_g = FreqLimiter(Config.get_config("hook", "CHECK_NOTICE_INFO_CD"))
         self._flmt_s = FreqLimiter(Config.get_config("hook", "CHECK_NOTICE_INFO_CD"))
         self._flmt_c = FreqLimiter(Config.get_config("hook", "CHECK_NOTICE_INFO_CD"))
-
-    def __new__(cls, *args, **kwargs):
-        if not cls.checker:
-            cls.checker = super().__new__(cls)
-        return cls.checker
 
     async def auth(self, matcher: Matcher, bot: Bot, event: Event):
         """

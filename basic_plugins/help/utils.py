@@ -1,5 +1,6 @@
 from typing import List, Tuple, Dict, Optional
 from configs.path_config import IMAGE_PATH
+from utils.decorator import Singleton
 from utils.image_utils import BuildImage
 from configs.config import Config
 import os
@@ -109,19 +110,14 @@ def group_image(image_list: List[BuildImage]) -> Tuple[List[List[BuildImage]], i
     return image_group, max(max_h + 250, max_w + 70)
 
 
+@Singleton
 class HelpImageBuild:
 
-    build: Optional["HelpImageBuild"] = None
-
     def __init__(self):
+        print('初始化咯')
         self._data: Dict[str, PluginData] = plugin_data_manager.get_data()
         self._sort_data: Dict[str, List[PluginData]] = {}
         self._image_list = []
-
-    def __new__(cls, *args, **kwargs):
-        if not cls.build:
-            cls.build = super().__new__(cls)
-        return cls.build
 
     def sort_type(self):
         """
@@ -156,7 +152,8 @@ class HelpImageBuild:
             :param group_id: 群号
         """
         self._image_list = []
-        self.sort_type()
+        if not self._sort_data.keys():
+            self.sort_type()
         font_size = 24
         build_type = Config.get_config("help", "TYPE")
         _image = BuildImage(0, 0, plain_text="1", font_size=font_size)
