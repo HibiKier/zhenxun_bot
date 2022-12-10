@@ -88,10 +88,10 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
                     message=f"触发强制入群保护，退出群聊 {event.group_id} 失败..",
                 )
         # 默认群功能开关
-        elif event.group_id not in group_manager["group_manager"].keys():
+        elif event.group_id not in group_manager.get_data().group_manager.keys():
             data = plugins2settings_manager.get_data()
             for plugin in data.keys():
-                if not data[plugin]["default_status"]:
+                if not data[plugin].default_status:
                     group_manager.block_plugin(plugin, event.group_id)
             # 即刻刷新权限
             for user_info in await bot.get_group_member_list(group_id=event.group_id):
