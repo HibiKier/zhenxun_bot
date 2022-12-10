@@ -116,14 +116,13 @@ class PluginData(BaseModel):
     des: Optional[str]
     task: Optional[Dict[str, str]]
     menu_type: Tuple[Union[str, int], ...] = ("normal",)  # 菜单类型
-    version: Optional[Union[str, int]]
-    author: Optional[str]
     plugin_setting: Optional[PluginSetting]
     plugin_cd: Optional[PluginCd]
     plugin_block: Optional[PluginBlock]
     plugin_count: Optional[PluginCount]
     plugin_resources: Optional[Dict[str, Union[str, Path]]]
     plugin_configs: Optional[Dict[str, Dict[str, Any]]]
+    plugin_status: Plugin
 
     class Config:
         arbitrary_types_allowed = True

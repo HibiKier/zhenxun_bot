@@ -23,15 +23,15 @@ def init_plugins_config():
         if plugin_data := plugin_data_manager.get(matcher.plugin_name):
             # 插件配置版本更新或为Version为None或不在存储配置内，当使用metadata时，必定更新
             if plugin_data.plugin_configs and (
-                isinstance(plugin_data.version, str)
+                isinstance(plugin_data.plugin_status.version, str)
                 or (
-                    plugin_data.version is None
+                    plugin_data.plugin_status.version is None
                     or (
                         _data.get(matcher.plugin_name)
                         and _data[matcher.plugin_name].keys()
                         != plugin_data.plugin_configs.keys()
                     )
-                    or plugin_data.version
+                    or plugin_data.plugin_status.version
                     > plugins_manager.get(matcher.plugin_name).version
                     or matcher.plugin_name not in _data.keys()
                 )

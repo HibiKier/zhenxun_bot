@@ -1,3 +1,4 @@
+import random
 from types import ModuleType
 from typing import Any
 
@@ -7,7 +8,7 @@ from utils.manager import (
     plugins2settings_manager,
     plugins2cd_manager,
     plugins2block_manager,
-    plugins2count_manager,
+    plugins2count_manager, plugins_manager,
 )
 from configs.config import Config
 from utils.manager.models import (
@@ -16,7 +17,7 @@ from utils.manager.models import (
     PluginCd,
     PluginData,
     PluginBlock,
-    PluginCount,
+    PluginCount, Plugin,
 )
 from utils.utils import get_matchers
 
@@ -99,6 +100,13 @@ def init_plugin_info():
                     plugin_count = plugin_count_limit
                 if plugin_cfg := Config.get(plugin_model):
                     plugin_configs = plugin_cfg
+                plugin_status = plugins_manager.get(plugin_model)
+                if not plugin_status:
+                    plugin_status = Plugin(
+                        plugin_name=plugin_model
+                    )
+                plugin_status.author = plugin_author
+                plugin_status.version = plugin_version
                 plugin_data = PluginData(
                     model=plugin_model,
                     name=plugin_name.strip(),
@@ -107,14 +115,13 @@ def init_plugin_info():
                     des=plugin_des,
                     task=plugin_task,
                     menu_type=menu_type,
-                    version=plugin_version,
-                    author=plugin_author,
                     plugin_setting=plugin_setting,
                     plugin_cd=plugin_cd,
                     plugin_block=plugin_block,
                     plugin_count=plugin_count,
                     plugin_resources=plugin_resources,
                     plugin_configs=plugin_configs,
+                    plugin_status=plugin_status
                 )
                 plugin_data_manager.add_plugin_info(plugin_data)
         except Exception as e:

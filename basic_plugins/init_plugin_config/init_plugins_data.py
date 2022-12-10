@@ -33,9 +33,9 @@ def init_plugins_data():
         else:
             if plugin_data := plugin_data_manager.get(matcher.plugin_name):
                 try:
-                    plugin_version = plugin_data.version
+                    plugin_version = plugin_data.plugin_status.version
                     plugin_name = plugin_data.name
-                    plugin_author = plugin_data.author
+                    plugin_author = plugin_data.plugin_status.author
                     if matcher.plugin_name in plugins_manager.keys():
                         plugins_manager[matcher.plugin_name].error = False
                     if matcher.plugin_name not in plugins_manager.keys():

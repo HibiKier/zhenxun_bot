@@ -1,14 +1,16 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
+from . import StaticData
 from .models import PluginData
 
 
-class PluginDataManager:
+class PluginDataManager(StaticData):
     """
     插件所有信息管理
     """
 
     def __init__(self):
+        super().__init__(None)
         self._data: Dict[str, PluginData] = {}
 
     def add_plugin_info(self, info: PluginData):
@@ -28,8 +30,6 @@ class PluginDataManager:
     def __getitem__(self, item) -> PluginData:
         return self._data.get(item)
 
-    def __str__(self) -> str:
-        return str(self._data)
 
 
 

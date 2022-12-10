@@ -449,7 +449,7 @@ class BuildImage:
         说明:
             显示图片
         """
-        self.markImg.show(self.markImg)
+        self.markImg.show()
 
     async def aresize(self, ratio: float = 0, w: int = 0, h: int = 0):
         """
@@ -693,22 +693,26 @@ class BuildImage:
         except ValueError:
             pass
 
-    async def acircle_corner(self, radii: int = 30):
+    async def acircle_corner(self, radii: int = 30, point_list: List[Literal["lt", "rt", "lb", "lr"]] = None):
         """
         说明:
             异步 矩形四角变圆
         参数:
             :param radii: 半径
+            :param point_list: 需要变化的角
         """
-        await self.loop.run_in_executor(None, self.circle_corner, radii)
+        await self.loop.run_in_executor(None, self.circle_corner, radii, point_list)
 
-    def circle_corner(self, radii: int = 30):
+    def circle_corner(self, radii: int = 30, point_list: List[Literal["lt", "rt", "lb", "lr"]] = None):
         """
         说明:
             矩形四角变圆
         参数:
             :param radii: 半径
+            :param point_list: 需要变化的角
         """
+        if not point_list:
+            point_list = ["lt", "rt", "lb", "rb"]
         # 画圆（用于分离4个角）
         circle = Image.new("L", (radii * 2, radii * 2), 0)
         draw = ImageDraw.Draw(circle)
@@ -716,13 +720,18 @@ class BuildImage:
         self.markImg = self.markImg.convert("RGBA")
         w, h = self.markImg.size
         alpha = Image.new("L", self.markImg.size, 255)
-        alpha.paste(circle.crop((0, 0, radii, radii)), (0, 0))
-        alpha.paste(circle.crop((radii, 0, radii * 2, radii)), (w - radii, 0))
-        alpha.paste(
-            circle.crop((radii, radii, radii * 2, radii * 2)), (w - radii, h - radii)
-        )
-        alpha.paste(circle.crop((0, radii, radii, radii * 2)), (0, h - radii))
+        if "lt" in point_list:
+            alpha.paste(circle.crop((0, 0, radii, radii)), (0, 0))
+        if "rt" in point_list:
+            alpha.paste(circle.crop((radii, 0, radii * 2, radii)), (w - radii, 0))
+        if "lb" in point_list:
+            alpha.paste(circle.crop((0, radii, radii, radii * 2)), (0, h - radii))
+        if "rb" in point_list:
+            alpha.paste(
+                circle.crop((radii, radii, radii * 2, radii * 2)), (w - radii, h - radii)
+            )
         self.markImg.putalpha(alpha)
+        self.draw = ImageDraw.Draw(self.markImg)
 
     async def arotate(self, angle: int, expand: bool = False):
         """
