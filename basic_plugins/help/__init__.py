@@ -9,15 +9,15 @@ from nonebot.params import CommandArg
 from nonebot.rule import to_me
 from configs.path_config import IMAGE_PATH, DATA_PATH
 from utils.message_builder import image
-from .data_source import create_help_img, get_plugin_help
+from ._data_source import create_help_img, get_plugin_help
 import os
 
 
 __zx_plugin_name__ = "帮助"
 
-# __plugin_configs__ = {
-#     "TYPE": {"value": "normal", "help": "帮助图片样式 ['normal', 'VV']", "default_value": "normal"}
-# }
+__plugin_configs__ = {
+    "TYPE": {"value": "normal", "help": "帮助图片样式 ['normal', 'HTML']", "default_value": "normal"}
+}
 
 group_help_path = DATA_PATH / "group_help"
 simple_help_image = IMAGE_PATH / "simple_help.png"

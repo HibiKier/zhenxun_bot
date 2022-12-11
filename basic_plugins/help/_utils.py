@@ -1,5 +1,9 @@
+from pathlib import Path
 from typing import List, Tuple, Dict, Optional
-from configs.path_config import IMAGE_PATH
+from nonebot_plugin_htmlrender import template_to_pic
+
+from ._config import Item
+from configs.path_config import IMAGE_PATH, TEMPLATE_PATH
 from utils.decorator import Singleton
 from utils.image_utils import BuildImage
 from configs.config import Config
@@ -9,7 +13,10 @@ import random
 from utils.manager import plugin_data_manager, group_manager
 from utils.manager.models import PluginData, PluginType
 
+
 background_path = IMAGE_PATH / "background" / "help" / "simple_help"
+
+logo_path = TEMPLATE_PATH / 'menu' / 'res' / 'logo'
 
 
 async def build_help_image(image_group: List[List[BuildImage]], h: int):
@@ -114,22 +121,35 @@ def group_image(image_list: List[BuildImage]) -> Tuple[List[List[BuildImage]], i
 class HelpImageBuild:
 
     def __init__(self):
-        print('初始化咯')
         self._data: Dict[str, PluginData] = plugin_data_manager.get_data()
         self._sort_data: Dict[str, List[PluginData]] = {}
         self._image_list = []
+        self.icon2str = {
+            'normal': 'fa fa-cog',
+            '原神相关': 'fa fa-circle-o',
+            '常规插件': 'fa fa-cubes',
+            '联系管理员': 'fa fa-envelope-o',
+            '抽卡相关': 'fa fa-credit-card-alt',
+            '来点好康的': 'fa fa-picture-o',
+            '数据统计': 'fa fa-bar-chart',
+            '一些工具': 'fa fa-shopping-cart',
+            '商店': 'fa fa-shopping-cart',
+            '其它': 'fa fa-tags',
+            '群内小游戏': 'fa fa-gamepad',
+        }
 
     def sort_type(self):
         """
         说明:
             对插件按照菜单类型分类
         """
-        for key in self._data.keys():
-            plugin_data = self._data[key]
-            if plugin_data.plugin_type == PluginType.NORMAL:
-                if not self._sort_data.get(plugin_data.menu_type[0]):
-                    self._sort_data[plugin_data.menu_type[0]] = []
-                self._sort_data[plugin_data.menu_type[0]].append(self._data[key])
+        if not self._sort_data.keys():
+            for key in self._data.keys():
+                plugin_data = self._data[key]
+                if plugin_data.plugin_type == PluginType.NORMAL:
+                    if not self._sort_data.get(plugin_data.menu_type[0]):
+                        self._sort_data[plugin_data.menu_type[0]] = []
+                    self._sort_data[plugin_data.menu_type[0]].append(self._data[key])
 
     async def build_name_image(
         self,
@@ -144,7 +164,66 @@ class HelpImageBuild:
         await image.atext((0, 0), name, text_color, center_type="center")
         return image
 
-    async def build_image(self, group_id: Optional[int]) -> BuildImage:
+    async def build_image(self, group_id: Optional[int], help_image: Path):
+        build_type = Config.get_config("help", "TYPE")
+        if build_type == 'HTML':
+            byt = await self.build_html_image(group_id)
+            with open(help_image, 'wb') as f:
+                f.write(byt)
+        else:
+            img = await self.build_pil_image(group_id)
+            img.save(help_image)
+
+    async def build_html_image(self, group_id: Optional[int]) -> bytes:
+        self.sort_type()
+        classify = {}
+        for menu in self._sort_data:
+            for plugin in self._sort_data[menu]:
+                sta = 0
+                if not plugin.plugin_status.status and plugin.plugin_status.block_type:
+                    if plugin.plugin_status.block_type in ['all', 'group']:
+                        sta = 2
+                if not group_manager.get_plugin_super_status(plugin.model, group_id):
+                    sta = 2
+                if not group_manager.get_plugin_status(plugin.model, group_id):
+                    sta = 1
+                if classify.get(menu):
+                    classify[menu].append(Item(plugin_name=plugin.name, sta=sta))
+                else:
+                    classify[menu] = [Item(plugin_name=plugin.name, sta=sta)]
+        max_len = 0
+        flag_index = -1
+        max_data = None
+        plugin_list = []
+        for index, plu in enumerate(classify.keys()):
+            if plu in self.icon2str.keys():
+                icon = self.icon2str[plu]
+            else:
+                icon = 'fa fa-pencil-square-o'
+            logo = logo_path / random.choice(os.listdir(logo_path))
+            # print(str(logo.absolute()))
+            data = {'name': plu if plu != 'normal' else '功能', 'items': classify[plu], 'icon': icon,
+                    'logo': str(logo.absolute())}
+            if len(classify[plu]) > max_len:
+                max_len = len(classify[plu])
+                flag_index = index
+                max_data = data
+            plugin_list.append(data)
+        del plugin_list[flag_index]
+        plugin_list.insert(0, max_data)
+        pic = await template_to_pic(
+            template_path=str((TEMPLATE_PATH / 'menu').absolute()),
+            template_name='zhenxun_menu.html',
+            templates={"plugin_list": plugin_list},
+            pages={
+                "viewport": {"width": 1903, "height": 975},
+                "base_url": f"file://{TEMPLATE_PATH}",
+            },
+            wait=2,
+        )
+        return pic
+
+    async def build_pil_image(self, group_id: Optional[int]) -> BuildImage:
         """
         说明:
             构造帮助图片
@@ -152,8 +231,7 @@ class HelpImageBuild:
             :param group_id: 群号
         """
         self._image_list = []
-        if not self._sort_data.keys():
-            self.sort_type()
+        self.sort_type()
         font_size = 24
         build_type = Config.get_config("help", "TYPE")
         _image = BuildImage(0, 0, plain_text="1", font_size=font_size)
