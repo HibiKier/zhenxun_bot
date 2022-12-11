@@ -15,6 +15,8 @@ FONT_PATH = Path() / "resources" / "font"
 DATA_PATH = Path() / "data"
 # 临时数据路径
 TEMP_PATH = Path() / "resources" / "temp"
+# 网页模板路径
+TEMPLATE_PATH = Path() / "resources" / "template"
 
 
 def load_path():
