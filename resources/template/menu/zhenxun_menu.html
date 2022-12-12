@@ -38,13 +38,13 @@
                             <div class="splic"></div>
                         </span>
                     {% elif item.sta == 1 %}
-                        <span>
-                            <del>{{item.plugin_name}}</del>
+                        <span class="ban">
+                            {{item.plugin_name}}
                             <div class="splic"></div>
                         </span>
                     {% else %}
-                        <span class="ban">
-                            {{item.plugin_name}}
+                        <span>
+                            <del>{{item.plugin_name}}</del>
                             <div class="splic"></div>
                         </span>
                     {% endif %}
