@@ -1,9 +1,8 @@
-from pathlib import Path
 from typing import List, Tuple, Dict, Optional
 from nonebot_plugin_htmlrender import template_to_pic
 
 from ._config import Item
-from configs.path_config import IMAGE_PATH, TEMPLATE_PATH
+from configs.path_config import IMAGE_PATH, TEMPLATE_PATH, DATA_PATH
 from utils.decorator import Singleton
 from utils.image_utils import BuildImage
 from configs.config import Config
@@ -14,14 +13,20 @@ from utils.manager import plugin_data_manager, group_manager
 from utils.manager.models import PluginData, PluginType
 
 
-background_path = IMAGE_PATH / "background" / "help" / "simple_help"
+GROUP_HELP_PATH = DATA_PATH / "group_help"
+GROUP_HELP_PATH.mkdir(exist_ok=True, parents=True)
+for x in os.listdir(GROUP_HELP_PATH):
+    group_help_image = GROUP_HELP_PATH / x
+    group_help_image.unlink()
 
-logo_path = TEMPLATE_PATH / 'menu' / 'res' / 'logo'
+BACKGROUND_PATH = IMAGE_PATH / "background" / "help" / "simple_help"
+
+LOGO_PATH = TEMPLATE_PATH / 'menu' / 'res' / 'logo'
 
 
 async def build_help_image(image_group: List[List[BuildImage]], h: int):
     bk = None
-    random_bk = os.listdir(background_path)
+    random_bk = os.listdir(BACKGROUND_PATH)
     if random_bk:
         bk = random.choice(random_bk)
     A = BuildImage(
@@ -29,7 +34,7 @@ async def build_help_image(image_group: List[List[BuildImage]], h: int):
         h,
         font_size=24,
         color="#FFEFD5",
-        background=(background_path / bk) if bk else None,
+        background=(BACKGROUND_PATH / bk) if bk else None,
     )
     A.filter("GaussianBlur", 5)
     curr_w = 50
@@ -151,20 +156,11 @@ class HelpImageBuild:
                         self._sort_data[plugin_data.menu_type[0]] = []
                     self._sort_data[plugin_data.menu_type[0]].append(self._data[key])
 
-    async def build_name_image(
-        self,
-        max_width: int,
-        name: str,
-        color: str,
-        text_color: Tuple[int, int, int],
-        pos: Optional[Tuple[int, int, int, int]],
-    ) -> BuildImage:
-        image = BuildImage(max_width - 5, 50, color=color, font_size=24)
-        await image.acircle_corner()
-        await image.atext((0, 0), name, text_color, center_type="center")
-        return image
-
-    async def build_image(self, group_id: Optional[int], help_image: Path):
+    async def build_image(self, group_id: Optional[int]):
+        if group_id:
+            help_image = GROUP_HELP_PATH / f"{group_id}.png"
+        else:
+            help_image = IMAGE_PATH / f"simple_help.png"
         build_type = Config.get_config("help", "TYPE")
         if build_type == 'HTML':
             byt = await self.build_html_image(group_id)
@@ -180,12 +176,14 @@ class HelpImageBuild:
         for menu in self._sort_data:
             for plugin in self._sort_data[menu]:
                 sta = 0
-                if not plugin.plugin_status.status and plugin.plugin_status.block_type:
-                    if plugin.plugin_status.block_type in ['all', 'group']:
+                if not plugin.plugin_status.status:
+                    if group_id and plugin.plugin_status.block_type in ['all', 'group']:
                         sta = 2
-                if not group_manager.get_plugin_super_status(plugin.model, group_id):
+                    if not group_id and plugin.plugin_status.block_type in ['all', 'private']:
+                        sta = 2
+                if group_id and not group_manager.get_plugin_super_status(plugin.model, group_id):
                     sta = 2
-                if not group_manager.get_plugin_status(plugin.model, group_id):
+                if group_id and not group_manager.get_plugin_status(plugin.model, group_id):
                     sta = 1
                 if classify.get(menu):
                     classify[menu].append(Item(plugin_name=plugin.name, sta=sta))
@@ -200,7 +198,7 @@ class HelpImageBuild:
                 icon = self.icon2str[plu]
             else:
                 icon = 'fa fa-pencil-square-o'
-            logo = logo_path / random.choice(os.listdir(logo_path))
+            logo = LOGO_PATH / random.choice(os.listdir(LOGO_PATH))
             # print(str(logo.absolute()))
             data = {'name': plu if plu != 'normal' else '功能', 'items': classify[plu], 'icon': icon,
                     'logo': str(logo.absolute())}

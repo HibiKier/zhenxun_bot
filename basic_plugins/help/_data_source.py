@@ -1,3 +1,4 @@
+
 from ._utils import HelpImageBuild
 from utils.image_utils import BuildImage
 from configs.path_config import IMAGE_PATH
@@ -6,7 +7,6 @@ from utils.manager import (
     admin_manager,
 )
 from typing import Optional
-from pathlib import Path
 import nonebot
 
 
@@ -15,22 +15,12 @@ random_bk_path = IMAGE_PATH / "background" / "help" / "simple_help"
 background = IMAGE_PATH / "background" / "0.png"
 
 
-async def create_help_img(group_id: Optional[int], help_image: Path):
+async def create_help_img(group_id: Optional[int]):
     """
     生成帮助图片
     :param group_id: 群号
-    :param help_image: 图片路径
     """
-    return await _create_help_img(group_id, help_image)
-
-
-async def _create_help_img(group_id: Optional[int], help_image: Path):
-    """
-    生成帮助图片
-    :param group_id: 群号
-    :param help_image: 图片路径
-    """
-    await HelpImageBuild().build_image(group_id, help_image)
+    await HelpImageBuild().build_image(group_id)
 
 
 def get_plugin_help(msg: str, is_super: bool = False) -> Optional[str]:

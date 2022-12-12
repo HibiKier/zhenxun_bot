@@ -10,6 +10,7 @@ from nonebot.rule import to_me
 from configs.path_config import IMAGE_PATH, DATA_PATH
 from utils.message_builder import image
 from ._data_source import create_help_img, get_plugin_help
+from ._utils import GROUP_HELP_PATH
 import os
 
 
@@ -19,14 +20,9 @@ __plugin_configs__ = {
     "TYPE": {"value": "normal", "help": "帮助图片样式 ['normal', 'HTML']", "default_value": "normal"}
 }
 
-group_help_path = DATA_PATH / "group_help"
 simple_help_image = IMAGE_PATH / "simple_help.png"
 if simple_help_image.exists():
     simple_help_image.unlink()
-group_help_path.mkdir(exist_ok=True, parents=True)
-for x in os.listdir(group_help_path):
-    group_help_image = group_help_path / x
-    group_help_image.unlink()
 
 
 simple_help = on_command("功能", rule=to_me(), aliases={"help", "帮助"}, priority=1, block=True)
@@ -48,13 +44,13 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
             await simple_help.send("没有此功能的帮助信息...")
     else:
         if isinstance(event, GroupMessageEvent):
-            _image_path = group_help_path / f"{event.group_id}.png"
+            _image_path = GROUP_HELP_PATH / f"{event.group_id}.png"
             if not _image_path.exists():
-                await create_help_img(event.group_id, _image_path)
+                await create_help_img(event.group_id)
             await simple_help.send(image(_image_path))
         else:
             if not simple_help_image.exists():
                 if simple_help_image.exists():
                     simple_help_image.unlink()
-                await create_help_img(None, simple_help_image)
+                await create_help_img(None)
             await simple_help.finish(image("simple_help.png"))
