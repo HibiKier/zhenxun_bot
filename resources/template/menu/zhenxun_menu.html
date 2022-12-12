@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zhenxun_menu</title>
+    <link rel="stylesheet" href="./res/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="zhenxun_menu.css">
+</head>
+<body>
+    <div class="wrapper">
+        <header></header>
+		<div class="transition"></div>
+        <main class="des">
+            <p>可以通过 ‘帮助[功能名称]’ 来获取对应功能的使用方法。&nbsp;&nbsp;&nbsp;或者使用 ‘详细帮助’ 来获取所有功能方法。</p>
+            <p style="color:red;">注：浅色字功能被群管理员禁用，横线字代表功能正在维护&nbsp;&nbsp;&nbsp;&nbsp;真寻机器人免费开源，如果你在任何渠道付费购买了真寻机器人，请退款。</p>
+        </main>
+        <div class="content">
+             {% for plugin in plugin_list %}
+            <div style="--themebordercolor:#ddc871;--themebgcolor:#ddc8710a;--pluginbgcolor:#ddc8715c;">
+                <div>
+                    <span>
+                        <!-- 图标  -->
+                        <i class="{{plugin.icon}}"></i>
+                        <!-- 插件种类名 -->
+                        {{plugin.name}}
+                    </span>
+                    <!-- 真寻表情包图片 -->
+                    <div class="logo">
+                        <img src="{{plugin.logo}}" alt="">
+                    </div>
+                </div>
+                {% for item in plugin['items'] %}
+                    {% if item.sta == 0 %}
+                        <span>
+                            {{item.plugin_name}}
+                            <div class="splic"></div>
+                        </span>
+                    {% elif item.sta == 1 %}
+                        <span>
+                            <del>{{item.plugin_name}}</del>
+                            <div class="splic"></div>
+                        </span>
+                    {% else %}
+                        <span class="ban">
+                            {{item.plugin_name}}
+                            <div class="splic"></div>
+                        </span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+             {% endfor %}
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="zhenxun_menu.js"></script>
+</html>
