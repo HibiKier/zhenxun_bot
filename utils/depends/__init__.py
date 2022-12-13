@@ -88,7 +88,7 @@ def ImageList(msg: Optional[str] = None, contain_reply: bool = True) -> List[str
     return Depends(dependency)
 
 
-def AtList(msg: Optional[str] = None, contain_reply: bool = True) -> List[str]:
+def AtList(msg: Optional[str] = None, contain_reply: bool = True) -> List[int]:
     """
     说明:
         获取at列表（包括回复时），含有msg时不能为空，为空时提示并结束事件
@@ -97,7 +97,7 @@ def AtList(msg: Optional[str] = None, contain_reply: bool = True) -> List[str]:
         :param contain_reply: 包含回复内容
     """
     async def dependency(matcher: Matcher, event: MessageEvent):
-        return await _match(matcher, event, msg, get_message_at, contain_reply)
+        return [int(x) for x in await _match(matcher, event, msg, get_message_at, contain_reply)]
 
     return Depends(dependency)
 
