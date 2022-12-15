@@ -70,7 +70,7 @@ async def _(
     event: GroupMessageEvent,
     cmd: Tuple[str, ...] = Command(),
     arg: Message = CommandArg(),
-    qq: List[str] = AtList()
+    qq: List[int] = AtList()
 ):
     cmd = cmd[0]
     result = ""

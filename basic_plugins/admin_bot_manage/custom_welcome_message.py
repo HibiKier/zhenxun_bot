@@ -37,7 +37,7 @@ custom_welcome = on_command(
 
 
 @custom_welcome.handle()
-async def _(event: GroupMessageEvent, arg: Message = CommandArg(), img: List[str] = ImageList):
+async def _(event: GroupMessageEvent, arg: Message = CommandArg(), img: List[str] = ImageList()):
     msg = arg.extract_plain_text().strip()
     if not msg and not img:
         await custom_welcome.finish(__plugin_usage__)
