@@ -47,6 +47,14 @@ let logoArr = Array.from(Array(24), (v,k) =>k+1);
 let fatherDom = document.querySelector(".content");
 
 let childDom = fatherDom.children;
+
+//瀑布流列数统计
+let columnCount = 0;
+//首列为最长列的情况下，作为被除数
+let firstColumnNum = childDom[0].childElementCount;
+
+
+
 for(let i = 0 ;i < childDom.length ;i++){
     // 随机取颜色
     let index = Math.floor((Math.random()*colorlist.length));
@@ -78,7 +86,13 @@ for(let i = 0 ;i < childDom.length ;i++){
     logoArr.splice(logoIndex, 1);
     imgDom.src=logoUrl;
 
+    //暂时把所有的插件数量写入到列数中
+    columnCount += childDom[i].childElementCount
 }
 
-
-
+//计算瀑布流列数
+columnCount = Math.ceil(columnCount / firstColumnNum) < 5 ? Math.ceil(columnCount / firstColumnNum) : 4;
+//修改瀑布流列数
+if(columnCount != 4){
+    fatherDom.style.columnCount = columnCount;
+}

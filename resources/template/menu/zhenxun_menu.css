@@ -14,7 +14,7 @@
     /* 标题背景色 */
     --titlecolor:#8b2671;
     /* 标题正文 */
-    --titletext:"功能总列表";
+    --titletext:"真寻的功能捏~";
     /* 功能项背景色 */
     --optcolor:rgba( 255, 255, 255, 0.25 );
     /* 默认字体大小 */
@@ -101,11 +101,10 @@ header::after{
 }
 
 .content {
-    /* width: 58rem; */
     /* 瀑布流参数 */
-    columns: 12rem 4;
+    column-count: 4;
     gap: 1rem;
-    /* column-gap: normal; */
+    column-gap: normal;
 }
 .des{
     /* width: 58rem; */
