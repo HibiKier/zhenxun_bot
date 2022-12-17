@@ -5,10 +5,7 @@ from nonebot.matcher import Matcher
 from nonebot.message import run_preprocessor, IgnoredException
 from utils.manager import plugins2settings_manager
 from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import (
-    Bot,
-    MessageEvent
-)
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent
 
 
 gConfig.add_plugin_config("web-ui", "username", "admin", name="web-ui", help_="前端管理用户名")
@@ -23,14 +20,12 @@ gConfig.add_plugin_config("web-ui", "password", None, name="web-ui", help_="前�
 async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
     flag = False
     for module in plugins2settings_manager.keys():
-        if isinstance(plugins2settings_manager.get_plugin_data(module).cmd, str):
-            plugins2settings_manager.set_module_data(
-                module,
-                "cmd",
-                plugins2settings_manager.get_plugin_data(module).cmd.split(","),
-                False
-            )
+        if plugins2settings_manager.get_plugin_data(module).cmd and isinstance(
+            plugins2settings_manager.get_plugin_data(module).cmd, str
+        ):
+            plugins2settings_manager[module].cmd = plugins2settings_manager[
+                module
+            ].cmd.split(",")
             flag = True
-        if flag:
-            plugins2settings_manager.save()
-
+    if flag:
+        plugins2settings_manager.save()

@@ -116,7 +116,8 @@ async def show_plugin_repo() -> Union[int, str]:
         if code != 200:
             return code
     plugin_info = json.load(open(plugin_json, "r", encoding="utf8"))
-    load_plugin_list = plugins_manager.get_data().keys()
+    plugins_data = plugins_manager.get_data()
+    load_plugin_list = plugins_data.keys()
     image_list = []
     w, h = 0, 0
     line_height = 10
@@ -134,7 +135,7 @@ async def show_plugin_repo() -> Union[int, str]:
         version = ""
         if key in load_plugin_list:
             status = "<f font_color=#1a7e30>[已安装]</f>"
-            version = f"<f font_color=#1a7e30>[{plugins_manager.get_data()[key]['version']}]</f>"
+            version = f"<f font_color=#1a7e30>[{plugins_data[key].version}]</f>"
         s = (
             f'id：{i+1}\n名称：{plugin_info[key]["plugin_name"]}'
             f' \t\t{status}\n'
