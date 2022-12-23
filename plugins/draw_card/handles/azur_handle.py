@@ -1,17 +1,17 @@
-import contextlib
 import random
 import dateparser
 from lxml import etree
 from typing import List, Optional, Tuple
+from PIL import ImageDraw
 from urllib.parse import unquote
 from pydantic import ValidationError
 from nonebot.log import logger
-from nonebot.adapters.onebot.v11 import Message
-from utils.message_builder import image
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
 
+from utils.message_builder import image
 from .base_handle import BaseHandle, BaseData, UpEvent as _UpEvent, UpChar as _UpChar
 from ..config import draw_config
-from ..util import remove_prohibited_str, cn2py
+from ..util import remove_prohibited_str, cn2py, load_font
 from utils.image_utils import BuildImage
 
 try:
@@ -59,19 +59,25 @@ class AzurHandle(BaseHandle[AzurChar]):
         # print(up_ship)
         acquire_char = None
         if up_ship and up_pool_flag:
-            up_zoom = [(0, up_ship[0].zoom / 100)]
+            up_zoom: List[Tuple[float, float]] = [(0, up_ship[0].zoom / 100)]
             # 初始化概率
             cur_ = up_ship[0].zoom / 100
             for i in range(len(up_ship)):
-                with contextlib.suppress(IndexError):
+                try:
                     up_zoom.append((cur_, cur_ + up_ship[i + 1].zoom / 100))
                     cur_ += up_ship[i + 1].zoom / 100
+                except IndexError:
+                    pass
             rand = random.random()
             # 抽取up
             for i, zoom in enumerate(up_zoom):
                 if zoom[0] <= rand <= zoom[1]:
-                    with contextlib.suppress(IndexError):
-                        acquire_char = [x for x in self.ALL_CHAR if x.name == up_ship[i].name][0]
+                    try:
+                        acquire_char = [
+                            x for x in self.ALL_CHAR if x.name == up_ship[i].name
+                        ][0]
+                    except IndexError:
+                        pass
         # 没有up或者未抽取到up
         if not acquire_char:
             star = self.get_star(
@@ -83,17 +89,19 @@ class AzurHandle(BaseHandle[AzurChar]):
                     self.config.AZUR_ONE_P,
                 ],
             )
-            acquire_char = random.choice([
-                x
-                for x in self.ALL_CHAR
-                if x.star == star and x.type_ in type_ and not x.limited
-            ])
+            acquire_char = random.choice(
+                [
+                    x
+                    for x in self.ALL_CHAR
+                    if x.star == star and x.type_ in type_ and not x.limited
+                ]
+            )
         return acquire_char
 
-    async def draw(self, count: int, **kwargs) -> Message:
+    def draw(self, count: int, **kwargs) -> Message:
         index2card = self.get_cards(count, **kwargs)
         cards = [card[0] for card in index2card]
-        up_list = [x.name for x in self.UP_EVENT.up_char] if self.UP_EVENT.up_char else []
+        up_list = [x.name for x in self.UP_EVENT.up_char] if self.UP_EVENT else []
         result = self.format_result(index2card, **{**kwargs, "up_list": up_list})
         return image(b64=self.generate_img(cards).pic2bs4()) + result
 
@@ -103,22 +111,25 @@ class AzurHandle(BaseHandle[AzurChar]):
         sep_b = 20
         w = 100
         h = 100
-        bg = BuildImage(w + sep_w * 2, h + sep_t + sep_b, font="msyh.ttf")
-        frame_path = self.img_path / f"{card.star}_star.png"
+        bg = BuildImage(w + sep_w * 2, h + sep_t + sep_b)
+        frame_path = str(self.img_path / f"{card.star}_star.png")
         frame = BuildImage(w, h, background=frame_path)
-        img_path = self.img_path / f"{cn2py(card.name)}.png"
+        img_path = str(self.img_path / f"{cn2py(card.name)}.png")
         img = BuildImage(w, h, background=img_path)
         # 加圆角
+        frame.circle_corner(6)
         img.circle_corner(6)
         bg.paste(img, (sep_w, sep_t), alpha=True)
         bg.paste(frame, (sep_w, sep_t), alpha=True)
-        bg.circle_corner(6)
         # 加名字
         text = card.name[:6] + "..." if len(card.name) > 7 else card.name
-        text_w, text_h = bg.getsize(text)
-        bg.text(
+        font = load_font(fontsize=14)
+        text_w, text_h = font.getsize(text)
+        draw = ImageDraw.Draw(bg.markImg)
+        draw.text(
             (sep_w + (w - text_w) / 2, h + sep_t + (sep_b - text_h) / 2),
             text,
+            font=font,
             fill=["#808080", "#3b8bff", "#8000ff", "#c90", "#ee494c"][card.star - 1],
         )
         return bg
@@ -145,6 +156,7 @@ class AzurHandle(BaseHandle[AzurChar]):
     def dump_up_char(self):
         if self.UP_EVENT:
             data = {"char": json.loads(self.UP_EVENT.json())}
+            self.dump_data(data, f"draw_card_up/{self.game_name}_up_char.json")
             self.dump_data(data, f"draw_card_up/{self.game_name}_up_char.json")
 
     async def _update_info(self):
@@ -220,17 +232,22 @@ class AzurHandle(BaseHandle[AzurChar]):
 
     @staticmethod
     def parse_star(star: str) -> int:
-        if star in {"舰娘头像外框普通.png", "舰娘头像外框白色.png"}:
+        if star in ["舰娘头像外框普通.png", "舰娘头像外框白色.png"]:
             return 1
-        elif star in {"舰娘头像外框稀有.png", "舰娘头像外框蓝色.png"}:
+        elif star in ["舰娘头像外框稀有.png", "舰娘头像外框蓝色.png"]:
             return 2
-        elif star in {"舰娘头像外框精锐.png", "舰娘头像外框紫色.png"}:
+        elif star in ["舰娘头像外框精锐.png", "舰娘头像外框紫色.png"]:
             return 3
-        elif star in {"舰娘头像外框超稀有.png", "舰娘头像外框金色.png"}:
+        elif star in ["舰娘头像外框超稀有.png", "舰娘头像外框金色.png"]:
             return 4
-        elif star in {"舰娘头像外框海上传奇.png", "舰娘头像外框彩色.png"}:
+        elif star in ["舰娘头像外框海上传奇.png", "舰娘头像外框彩色.png"]:
             return 5
-        elif star in {"舰娘头像外框最高方案.png", "舰娘头像外框决战方案.png", "舰娘头像外框超稀有META.png", "舰娘头像外框精锐META.png"}:
+        elif star in [
+            "舰娘头像外框最高方案.png",
+            "舰娘头像外框决战方案.png",
+            "舰娘头像外框超稀有META.png",
+            "舰娘头像外框精锐META.png",
+        ]:
             return 6
         else:
             return 6

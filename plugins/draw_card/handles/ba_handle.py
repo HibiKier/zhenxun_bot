@@ -1,16 +1,16 @@
 import random
-import json
-from utils.http_utils import AsyncHttpx
-from lxml import etree
 from typing import List, Tuple
-from PIL import ImageDraw
 from urllib.parse import unquote
-from nonebot.log import logger
 
-from .base_handle import BaseHandle, BaseData
-from ..config import draw_config
-from ..util import remove_prohibited_str, cn2py, load_font
+from lxml import etree
+from nonebot.log import logger
+from PIL import ImageDraw
+from utils.http_utils import AsyncHttpx
 from utils.image_utils import BuildImage
+
+from ..config import draw_config
+from ..util import cn2py, load_font, remove_prohibited_str
+from .base_handle import BaseData, BaseHandle
 
 
 class BaChar(BaseData):
@@ -68,17 +68,19 @@ class BaHandle(BaseHandle[BaChar]):
         bar = BuildImage(bar_w, bar_h, color="#6495ED")
         bg.paste(img, (sep_w, sep_h), alpha=True)
         bg.paste(bar, (sep_w, img_h - bar_h + sep_h), alpha=True)
-        if (card.star == 1):
+        if card.star == 1:
             star_path = str(self.img_path / "star-1.png")
             star_w = 15
-        elif (card.star == 2):
+        elif card.star == 2:
             star_path = str(self.img_path / "star-2.png")
             star_w = 30
         else:
             star_path = str(self.img_path / "star-3.png")
             star_w = 45
         star = BuildImage(star_w, star_h, background=star_path)
-        bg.paste(star, (img_w // 2 - 15 * (card.star - 1) // 2, img_h - star_h), alpha=True)
+        bg.paste(
+            star, (img_w // 2 - 15 * (card.star - 1) // 2, img_h - star_h), alpha=True
+        )
         text = card.name[:5] + "..." if len(card.name) > 6 else card.name
         font = load_font(fontsize=14)
         text_w, text_h = font.getsize(text)
@@ -100,78 +102,37 @@ class BaHandle(BaseHandle[BaChar]):
             )
             for key, value in self.load_data().items()
         ]
-    
+
     def title2star(self, title: int):
-        if title == 'Star-3.png':
+        if title == "Star-3.png":
             return 3
-        elif title == 'Star-2.png':
+        elif title == "Star-2.png":
             return 2
         else:
             return 1
 
-    # Bwiki 待恢复
-    # async def _update_info(self):
-    #     info = {}
-    #     url = "https://wiki.biligame.com/bluearchive/学生筛选"
-    #     result = await self.get_url(url)
-    #     if not result:
-    #         logger.warning(f"更新 {self.game_name_cn} 出错")
-    #         return
-    #     else:
-    #         dom = etree.HTML(result, etree.HTMLParser())
-    #         char_list = dom.xpath("//div[@class='filters']/table[2]/tbody/tr")
-    #         for char in char_list:
-    #             try:
-    #                 name = char.xpath("./td[2]/a/div/text()")[0]
-    #                 avatar = char.xpath("./td[1]/div/div/a/img/@data-src")[0]
-    #                 star_pic = char.xpath("./td[4]/img/@alt")[0]
-    #             except IndexError:
-    #                 continue
-    #             member_dict = {
-    #                 "头像": unquote(str(avatar)),
-    #                 "名称": remove_prohibited_str(name),
-    #                 "星级": self.title2star(star_pic),
-    #             }
-    #             info[member_dict["名称"]] = member_dict
-    #     self.dump_data(info)
-    #     logger.info(f"{self.game_name_cn} 更新成功")
-    #     # 下载头像
-    #     for value in info.values():
-    #         await self.download_img(value["头像"], value["名称"])
-    #     # 下载星星
-    #     await self.download_img(
-    #         "https://patchwiki.biligame.com/images/bluearchive/thumb/e/e0/82nj2x9sxko473g7782r14fztd4zyky.png/15px-Star-1.png",
-    #         "star-1",
-    #     )
-    #     await self.download_img(
-    #         "https://patchwiki.biligame.com/images/bluearchive/thumb/0/0b/msaff2g0zk6nlyl1rrn7n1ri4yobcqc.png/30px-Star-2.png",
-    #         "star-2",
-    #     )
-    #     await self.download_img(
-    #         "https://patchwiki.biligame.com/images/bluearchive/thumb/8/8a/577yv79x1rwxk8efdccpblo0lozl158.png/46px-Star-3.png",
-    #         "star-3"
-    #     )
-    
-    # 数据来源：SCHALE DB
     async def _update_info(self):
         info = {}
         url = "https://lonqie.github.io/SchaleDB/data/cn/students.min.json?v=49"
-        result = await AsyncHttpx.get(url)
-        if result.status_code != 200:
+        result = (await AsyncHttpx.get(url)).json()
+        if not result:
             logger.warning(f"更新 {self.game_name_cn} 出错")
             return
         else:
-            char_list = json.loads(result.text)
-            for char in char_list:
+            for char in result:
                 try:
-                    name = char.get("Name")
-                    avatar = "https://lonqie.github.io/SchaleDB/images/student/icon/"+char.get("CollectionTexture")+".png"
-                    star = char.get("StarGrade")
+                    name = char["Name"]
+                    avatar = (
+                        "https://github.com/lonqie/SchaleDB/raw/main/images/student/icon/"
+                        + char["CollectionTexture"]
+                        + ".png"
+                    )
+                    star = char["StarGrade"]
                 except IndexError:
                     continue
                 member_dict = {
-                    "头像": unquote(str(avatar)),
-                    "名称": remove_prohibited_str(name),
+                    "头像": avatar,
+                    "名称": name,
                     "星级": star,
                 }
                 info[member_dict["名称"]] = member_dict
@@ -191,6 +152,5 @@ class BaHandle(BaseHandle[BaChar]):
         )
         await self.download_img(
             "https://patchwiki.biligame.com/images/bluearchive/thumb/8/8a/577yv79x1rwxk8efdccpblo0lozl158.png/46px-Star-3.png",
-            "star-3"
+            "star-3",
         )
-        

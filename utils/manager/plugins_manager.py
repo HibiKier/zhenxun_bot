@@ -30,7 +30,7 @@ def init_plugin(func: Callable):
     return wrapper
 
 
-class PluginsManager(StaticData):
+class PluginsManager(StaticData[Plugin]):
     """
     插件 管理器
     """

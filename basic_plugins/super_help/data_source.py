@@ -1,79 +1,84 @@
-from utils.image_utils import BuildImage
-from configs.path_config import IMAGE_PATH
-from services.log import logger
-from utils.utils import get_matchers
-from nonebot.adapters.onebot.v11 import Bot
-from nonebot import Driver
-import asyncio
-import nonebot
 
+import nonebot
+from configs.path_config import IMAGE_PATH
+from nonebot import Driver
+from services.log import logger
+from utils.image_template import help_template
+from utils.image_utils import (BuildImage, build_sort_image, group_image,
+                               text2image)
+from utils.manager import plugin_data_manager
+from utils.manager.models import PluginType
 
 driver: Driver = nonebot.get_driver()
 
-background = IMAGE_PATH / "background" / "0.png"
-
-superuser_help_image = IMAGE_PATH / "superuser_help.png"
+SUPERUSER_HELP_IMAGE = IMAGE_PATH / "superuser_help.png"
 
 
 @driver.on_bot_connect
-async def create_help_image(bot: Bot = None):
+async def create_help_image():
     """
     创建超级用户帮助图片
     """
-    await asyncio.get_event_loop().run_in_executor(None, _create_help_image)
-
-
-def _create_help_image():
-    """
-    创建管理员帮助图片
-    """
-    _matchers = get_matchers()
-    _plugin_name_list = []
-    width = 0
-    help_str = "超级用户帮助\n\n*  注: ‘*’ 代表可有多个相同参数 ‘?’ 代表可省略该参数  *\n\n"
-    tmp_img = BuildImage(0, 0, plain_text='1', font_size=24)
-    for matcher in _matchers:
-        plugin_name = ""
+    if SUPERUSER_HELP_IMAGE.exists():
+        return
+    plugin_data_ = plugin_data_manager.get_data()
+    image_list = []
+    task_list = []
+    for plugin_data in [
+        plugin_data_[x]
+        for x in plugin_data_
+        if plugin_data_[x].name != "超级用户帮助 [Superuser]"
+    ]:
         try:
-            _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
-            _module = _plugin.module
-            try:
-                plugin_name = _module.__getattribute__("__zx_plugin_name__")
-            except AttributeError:
-                continue
-            is_superuser_usage = False
-            try:
-                _ = _module.__getattribute__("__plugin_superuser_usage__")
-                is_superuser_usage = True
-            except AttributeError:
-                pass
-            if (
-                ("[superuser]" in plugin_name.lower() or is_superuser_usage)
-                and plugin_name != "超级用户帮助 [Superuser]"
-                and plugin_name not in _plugin_name_list
-                and "[hidden]" not in plugin_name.lower()
-            ):
-                _plugin_name_list.append(plugin_name)
-                try:
-                    plugin_des = _module.__getattribute__("__plugin_des__")
-                except AttributeError:
-                    plugin_des = '_'
-                plugin_cmd = _module.__getattribute__("__plugin_cmd__")
-                if is_superuser_usage:
-                    plugin_cmd = [x for x in plugin_cmd if "[_superuser]" in x]
-                plugin_cmd = " / ".join(plugin_cmd).replace('[_superuser]', '').strip()
-                help_str += f"{plugin_des} -> {plugin_cmd}\n\n"
-                x = tmp_img.getsize(f"{plugin_des} -> {plugin_cmd}")[0]
-                width = width if width > x else x
+            if plugin_data.plugin_type in [PluginType.SUPERUSER, PluginType.ADMIN]:
+                usage = None
+                if (
+                    plugin_data.plugin_type == PluginType.SUPERUSER
+                    and plugin_data.usage
+                ):
+                    usage = await text2image(
+                        plugin_data.usage, padding=5, color=(204, 196, 151)
+                    )
+                if plugin_data.superuser_usage:
+                    usage = await text2image(
+                        plugin_data.superuser_usage, padding=5, color=(204, 196, 151)
+                    )
+                if usage:
+                    await usage.acircle_corner()
+                    image = await help_template(plugin_data.name, usage)
+                    image_list.append(image)
+            if plugin_data.task:
+                for x in plugin_data.task.keys():
+                    task_list.append(plugin_data.task[x])
         except Exception as e:
             logger.warning(
-                f"获取超级用户插件 {matcher.plugin_name}: {plugin_name} 设置失败... {type(e)}：{e}"
+                f"获取超级用户插件 {plugin_data.model}: {plugin_data.name} 设置失败... {type(e)}：{e}"
             )
-    height = len(help_str.split("\n")) * 33
-    width += 500
-    A = BuildImage(width, height, font_size=24)
-    _background = BuildImage(width, height, background=background)
-    A.text((300, 140), help_str)
-    A.paste(_background, alpha=True)
-    A.save(superuser_help_image)
-    logger.info(f"已成功加载 {len(_plugin_name_list)} 条超级用户命令")
+    task_str = "\n".join(task_list)
+    task_str = "通过 开启/关闭 来控制全局被动\n----------\n" + task_str
+    task_image = await text2image(
+        task_str, padding=5, color=(204, 196, 151)
+    )
+    task_image = await help_template("被动任务", task_image)
+    image_list.append(task_image)
+    image_group, _ = group_image(image_list)
+    A = await build_sort_image(image_group, color="#f9f6f2", padding_top=180)
+    await A.apaste(
+        BuildImage(0, 0, font="CJGaoDeGuo.otf", plain_text="超级用户帮助", font_size=50),
+        (50, 30),
+        True,
+    )
+    await A.apaste(
+        BuildImage(
+            0,
+            0,
+            font="CJGaoDeGuo.otf",
+            plain_text="注: ‘*’ 代表可有多个相同参数 ‘?’ 代表可省略该参数",
+            font_size=30,
+            font_color="red",
+        ),
+        (50, 90),
+        True,
+    )
+    await A.asave(SUPERUSER_HELP_IMAGE)
+    logger.info(f"已成功加载 {len(image_list)} 条超级用户命令")

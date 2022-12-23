@@ -1,5 +1,5 @@
 import copy
-from typing import List, Union, Dict, Callable
+from typing import List, Union, Dict, Callable, Any
 from pathlib import Path
 from .models import BaseData, BaseGroup
 from utils.manager.data_class import StaticData
@@ -57,7 +57,7 @@ def init_task(func: Callable):
     return wrapper
 
 
-class GroupManager(StaticData):
+class GroupManager(StaticData[BaseData]):
     """
     群权限 | 功能 | 总开关 | 聊天时间 管理器
     """
@@ -353,6 +353,9 @@ class GroupManager(StaticData):
             del dict_data["task"]
             with open(path, "w", encoding="utf8") as f:
                 json.dump(dict_data, f, ensure_ascii=False, indent=4)
+
+    def get(self, key: str, default: Any = None) -> BaseGroup:
+        return self._data.group_manager.get(key, default)
 
     def __setitem__(self, key, value):
         self._data.group_manager[key] = value

@@ -1,20 +1,21 @@
 import asyncio
 import base64
+import os
 import random
 import re
-import time
+import uuid
 from io import BytesIO
 from math import ceil
 from pathlib import Path
-from typing import List, Literal, Optional, Tuple, Union
-import uuid
+from typing import List, Literal, Optional, Tuple, Union, Callable, Awaitable
+from nonebot.utils import is_coroutine_callable
+
 import cv2
 import imagehash
 from configs.path_config import FONT_PATH, IMAGE_PATH
 from imagehash import ImageHash
 from matplotlib import pyplot as plt
 from PIL import Image, ImageDraw, ImageFile, ImageFilter, ImageFont
-
 from services import logger
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
@@ -159,6 +160,7 @@ class BuildImage:
         is_alpha: bool = False,
         plain_text: Optional[str] = None,
         font_color: Optional[Union[str, Tuple[int, int, int]]] = None,
+        **kwargs
     ):
         """
         参数:
@@ -693,7 +695,11 @@ class BuildImage:
         except ValueError:
             pass
 
-    async def acircle_corner(self, radii: int = 30, point_list: List[Literal["lt", "rt", "lb", "lr"]] = None):
+    async def acircle_corner(
+        self,
+        radii: int = 30,
+        point_list: List[Literal["lt", "rt", "lb", "rb"]] = ["lt", "rt", "lb", "rb"],
+    ):
         """
         说明:
             异步 矩形四角变圆
@@ -703,7 +709,11 @@ class BuildImage:
         """
         await self.loop.run_in_executor(None, self.circle_corner, radii, point_list)
 
-    def circle_corner(self, radii: int = 30, point_list: List[Literal["lt", "rt", "lb", "lr"]] = None):
+    def circle_corner(
+        self,
+        radii: int = 30,
+        point_list: List[Literal["lt", "rt", "lb", "rb"]] = ["lt", "rt", "lb", "rb"],
+    ):
         """
         说明:
             矩形四角变圆
@@ -711,15 +721,13 @@ class BuildImage:
             :param radii: 半径
             :param point_list: 需要变化的角
         """
-        if not point_list:
-            point_list = ["lt", "rt", "lb", "rb"]
         # 画圆（用于分离4个角）
+        img = self.markImg.convert("RGBA")
+        alpha = img.split()[-1]
         circle = Image.new("L", (radii * 2, radii * 2), 0)
         draw = ImageDraw.Draw(circle)
-        draw.ellipse((0, 0, radii * 2, radii * 2), fill=255)
-        self.markImg = self.markImg.convert("RGBA")
-        w, h = self.markImg.size
-        alpha = Image.new("L", self.markImg.size, 255)
+        draw.ellipse((0, 0, radii * 2, radii * 2), fill=255)  # 黑色方形内切白色圆形
+        w, h = img.size
         if "lt" in point_list:
             alpha.paste(circle.crop((0, 0, radii, radii)), (0, 0))
         if "rt" in point_list:
@@ -728,9 +736,11 @@ class BuildImage:
             alpha.paste(circle.crop((0, radii, radii, radii * 2)), (0, h - radii))
         if "rb" in point_list:
             alpha.paste(
-                circle.crop((radii, radii, radii * 2, radii * 2)), (w - radii, h - radii)
+                circle.crop((radii, radii, radii * 2, radii * 2)),
+                (w - radii, h - radii),
             )
-        self.markImg.putalpha(alpha)
+        img.putalpha(alpha)
+        self.markImg = img
         self.draw = ImageDraw.Draw(self.markImg)
 
     async def arotate(self, angle: int, expand: bool = False):
@@ -1518,7 +1528,16 @@ async def text2image(
             w, _ = _tmp.getsize(x.strip() or "正")
             height += h + line_height
             width = width if width > w else w
-            image_list.append(BuildImage(w, h, font=font, font_size=font_size, plain_text=x.strip(), color=color))
+            image_list.append(
+                BuildImage(
+                    w,
+                    h,
+                    font=font,
+                    font_size=font_size,
+                    plain_text=x.strip(),
+                    color=color,
+                )
+            )
         width += pw
         height += ph
         A = BuildImage(
@@ -1530,6 +1549,144 @@ async def text2image(
         for img in image_list:
             await A.apaste(img, (pw, cur_h), True)
             cur_h += img.h + line_height
+    return A
+
+
+def group_image(image_list: List[BuildImage]) -> Tuple[List[List[BuildImage]], int]:
+    """
+    说明:
+        根据图片大小进行分组
+    参数:
+        :param image_list: 排序图片列表
+    """
+    image_list.sort(key=lambda x: x.h, reverse=True)
+    max_image = max(image_list, key=lambda x: x.h)
+
+    image_list.remove(max_image)
+    max_h = max_image.h
+    total_w = 0
+
+    # 图片分组
+    image_group = [[max_image]]
+    is_use = []
+    surplus_list = image_list[:]
+
+    for image in image_list:
+        if image.uid not in is_use:
+            group = [image]
+            is_use.append(image.uid)
+            curr_h = image.h
+            while True:
+                surplus_list = [x for x in surplus_list if x.uid not in is_use]
+                for tmp in surplus_list:
+                    temp_h = curr_h + tmp.h + 10
+                    if temp_h < max_h or abs(max_h - temp_h) < 100:
+                        curr_h += tmp.h + 15
+                        is_use.append(tmp.uid)
+                        group.append(tmp)
+                        break
+                else:
+                    break
+            total_w += max([x.w for x in group]) + 15
+            image_group.append(group)
+    while surplus_list:
+        surplus_list = [x for x in surplus_list if x.uid not in is_use]
+        if not surplus_list:
+            break
+        surplus_list.sort(key=lambda x: x.h, reverse=True)
+        for img in surplus_list:
+            if img.uid not in is_use:
+                _w = 0
+                index = -1
+                for i, ig in enumerate(image_group):
+                    if s := sum([x.h for x in ig]) > _w:
+                        _w = s
+                        index = i
+                if index != -1:
+                    image_group[index].append(img)
+                    is_use.append(img.uid)
+
+    max_h = 0
+    max_w = 0
+    for ig in image_group:
+        if (_h := sum([x.h + 15 for x in ig])) > max_h:
+            max_h = _h
+        max_w += max([x.w for x in ig]) + 30
+    is_use.clear()
+    while abs(max_h - max_w) > 200 and len(image_group) - 1 >= len(image_group[-1]):
+        for img in image_group[-1]:
+            _min_h = 999999
+            _min_index = -1
+            for i, ig in enumerate(image_group):
+                # if i not in is_use and (_h := sum([x.h for x in ig]) + img.h) > _min_h:
+                if (_h := sum([x.h for x in ig]) + img.h) < _min_h:
+                    _min_h = _h
+                    _min_index = i
+            is_use.append(_min_index)
+            image_group[_min_index].append(img)
+        max_w -= max([x.w for x in image_group[-1]]) - 30
+        image_group.pop(-1)
+        max_h = max([sum([x.h + 15 for x in ig]) for ig in image_group])
+    return image_group, max(max_h + 250, max_w + 70)
+
+
+async def build_sort_image(
+    image_group: List[List[BuildImage]],
+    h: Optional[int] = None,
+    padding_top: int = 200,
+    color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]] = (255, 255, 255),
+    background_path: Optional[Path] = None,
+    background_handle: Callable[[BuildImage], Optional[Awaitable]] = None,
+) -> BuildImage:
+    """
+    说明:
+        对group_image的图片进行组装
+    参数:
+        :param image_group: 分组图片列表
+        :param h: max(宽，高)，一般为group_image的返回值，有值时，图片必定为正方形
+        :param padding_top: 图像列表与最顶层间距
+        :param color: 背景颜色
+        :param background_path: 背景图片文件夹路径（随机）
+        :param background_handle: 背景图额外操作
+    """
+    bk_file = None
+    if background_path:
+        random_bk = os.listdir(background_path)
+        if random_bk:
+            bk_file = random.choice(random_bk)
+    image_w = 0
+    image_h = 0
+    if not h:
+        for ig in image_group:
+            _w = max([x.w + 30 for x in ig])
+            image_w += _w + 30
+            _h = sum([x.h + 10 for x in ig])
+            if _h > image_h:
+                image_h = _h
+        image_h += padding_top
+    else:
+        image_w = h
+        image_h = h
+    A = BuildImage(
+        image_w,
+        image_h,
+        font_size=24,
+        font="CJGaoDeGuo.otf",
+        color=color,
+        background=(background_path / bk_file) if bk_file else None,
+    )
+    if background_handle:
+        if is_coroutine_callable(background_handle):
+            await background_handle(A)
+        else:
+            background_handle(A)
+    curr_w = 50
+    for ig in image_group:
+        curr_h = padding_top - 20
+        for img in ig:
+            await A.apaste(img, (curr_w, curr_h), True)
+            curr_h += img.h + 10
+        curr_w += max([x.w for x in ig]) + 30
     return A
 
 

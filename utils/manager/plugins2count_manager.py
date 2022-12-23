@@ -9,7 +9,7 @@ from .models import PluginCount
 _yaml = yaml.YAML(typ="safe")
 
 
-class Plugins2countManager(StaticData):
+class Plugins2countManager(StaticData[PluginCount]):
     """
     插件命令 次数 管理器
     """

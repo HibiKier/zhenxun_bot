@@ -9,7 +9,7 @@ from .models import PluginCd
 _yaml = yaml.YAML(typ="safe")
 
 
-class Plugins2cdManager(StaticData):
+class Plugins2cdManager(StaticData[PluginCd]):
     """
     插件命令 cd 管理器
     """

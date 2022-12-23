@@ -1,14 +1,19 @@
 import platform
 import pypinyin
+from pathlib import Path
 from PIL.ImageFont import FreeTypeFont
 from PIL import Image, ImageDraw, ImageFont
 from PIL.Image import Image as IMG
+
 from configs.path_config import FONT_PATH
+
+dir_path = Path(__file__).parent.absolute()
 
 
 def cn2py(word) -> str:
+    """保存声调，防止出现类似方舟干员红与吽拼音相同声调不同导致红照片无法保存的问题"""
     temp = ""
-    for i in pypinyin.pinyin(word, style=pypinyin.NORMAL):
+    for i in pypinyin.pinyin(word, style=pypinyin.Style.TONE3):
         temp += "".join(i)
     return temp
 
@@ -26,9 +31,9 @@ def remove_prohibited_str(name: str) -> str:
     return name
 
 
-def load_font(font_name: str = "msyh.ttf", fontsize: int = 16) -> FreeTypeFont:
+def load_font(fontname: str = "msyh.ttf", fontsize: int = 16) -> FreeTypeFont:
     return ImageFont.truetype(
-        str(FONT_PATH / f"{font_name}"), fontsize, encoding="utf-8"
+        str(FONT_PATH / f"{fontname}"), fontsize, encoding="utf-8"
     )
 
 

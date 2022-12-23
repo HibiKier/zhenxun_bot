@@ -1,25 +1,25 @@
-from utils.image_utils import BuildImage
-from configs.path_config import IMAGE_PATH
-from services.log import logger
-from utils.utils import get_matchers
-from utils.manager import group_manager
-from nonebot.adapters.onebot.v11 import Bot
-from nonebot import Driver
 import nonebot
-
+from configs.path_config import IMAGE_PATH
+from nonebot import Driver
+from services.log import logger
+from utils.image_template import help_template
+from utils.image_utils import (BuildImage, build_sort_image, group_image,
+                               text2image)
+from utils.manager import group_manager, plugin_data_manager
+from utils.manager.models import PluginType
 
 driver: Driver = nonebot.get_driver()
 
 background = IMAGE_PATH / "background" / "0.png"
 
-admin_help_image = IMAGE_PATH / 'admin_help_img.png'
+ADMIN_HELP_IMAGE = IMAGE_PATH / "admin_help_img.png"
 
 
 @driver.on_bot_connect
 async def init_task():
     if not group_manager.get_task_data():
         group_manager.load_task()
-        logger.info(f'已成功加载 {len(group_manager.get_task_data())} 个被动技能.')
+        logger.info(f"已成功加载 {len(group_manager.get_task_data())} 个被动技能.")
 
 
 async def create_help_image():
@@ -33,58 +33,55 @@ async def _create_help_image():
     """
     创建管理员帮助图片
     """
-    _matchers = get_matchers()
-    _plugin_name_list = []
-    width = 0
-    _plugin_level = {}
-    for matcher in _matchers:
-        _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
-        _module = _plugin.module
+    if ADMIN_HELP_IMAGE.exists():
+        return
+    plugin_data_ = plugin_data_manager.get_data()
+    image_list = []
+    task_list = []
+    for plugin_data in [plugin_data_[x] for x in plugin_data_]:
         try:
-            plugin_name = _module.__getattribute__("__zx_plugin_name__")
-        except AttributeError:
-            continue
-        try:
-            if (
-                "[admin]" in plugin_name.lower()
-                and plugin_name not in _plugin_name_list
-                and plugin_name != "管理帮助 [Admin]"
-            ):
-                _plugin_name_list.append(plugin_name)
-                plugin_settings = _module.__getattribute__("__plugin_settings__")
-                plugin_des = _module.__getattribute__("__plugin_des__")
-                plugin_cmd = _module.__getattribute__("__plugin_cmd__")
-                plugin_cmd = [x for x in plugin_cmd if "[_superuser]" not in x]
-                admin_level = int(plugin_settings["admin_level"])
-                if _plugin_level.get(admin_level):
-                    _plugin_level[admin_level].append(
-                        f"[{admin_level}] {plugin_des} -> " + " / ".join(plugin_cmd)
-                    )
-                else:
-                    _plugin_level[admin_level] = [
-                        f"[{admin_level}] {plugin_des} -> " + " / ".join(plugin_cmd)
-                    ]
-                x = len(f"[{admin_level}] {plugin_des} -> " + " / ".join(plugin_cmd)) * 23
-                width = width if width > x else x
-        except AttributeError:
-            logger.warning(f"获取管理插件 {matcher.plugin_name}: {plugin_name} 设置失败...")
-    help_str = "*  注: ‘*’ 代表可有多个相同参数 ‘?’ 代表可省略该参数  *\n\n" \
-               "[权限等级] 管理员帮助：\n\n"
-    x = list(_plugin_level.keys())
-    x.sort()
-    for level in x:
-        for help_ in _plugin_level[level]:
-            help_str += f"\t{help_}\n\n"
-    help_str += '-----[被动技能开关]-----\n\n'
-    task_data = group_manager.get_task_data()
-    for i, x in enumerate(task_data.keys()):
-        help_str += f'{i+1}.开启/关闭{task_data[x]}\n\n'
-    height = len(help_str.split("\n")) * 33
-    A = BuildImage(width, height, font_size=24)
-    _background = BuildImage(width, height, background=background)
-    await A.apaste(_background, alpha=True)
-    await A.atext((150, 110), help_str)
-    await A.asave(admin_help_image)
-    logger.info(f'已成功加载 {len(_plugin_name_list)} 条管理员命令')
-
-
+            usage = None
+            if plugin_data.plugin_type == PluginType.ADMIN and plugin_data.usage:
+                usage = await text2image(
+                    plugin_data.usage, padding=5, color=(204, 196, 151)
+                )
+            if usage:
+                await usage.acircle_corner()
+                level = 5
+                if plugin_data.plugin_setting:
+                    level = plugin_data.plugin_setting.level or level
+                image = await help_template(plugin_data.name + f"[{level}]", usage)
+                image_list.append(image)
+            if plugin_data.task:
+                for x in plugin_data.task.keys():
+                    task_list.append(plugin_data.task[x])
+        except Exception as e:
+            logger.warning(
+                f"获取群管理员插件 {plugin_data.model}: {plugin_data.name} 设置失败... {type(e)}：{e}"
+            )
+    task_str = "\n".join(task_list)
+    task_str = "通过 开启/关闭 来控制群被动\n----------\n" + task_str
+    task_image = await text2image(task_str, padding=5, color=(204, 196, 151))
+    task_image = await help_template("被动任务", task_image)
+    image_list.append(task_image)
+    image_group, _ = group_image(image_list)
+    A = await build_sort_image(image_group, color="#f9f6f2", padding_top=180)
+    await A.apaste(
+        BuildImage(0, 0, font="CJGaoDeGuo.otf", plain_text="群管理员帮助", font_size=50),
+        (50, 30),
+        True,
+    )
+    await A.apaste(
+        BuildImage(
+            0,
+            0,
+            font="CJGaoDeGuo.otf",
+            plain_text="注: ‘*’ 代表可有多个相同参数 ‘?’ 代表可省略该参数",
+            font_size=30,
+            font_color="red",
+        ),
+        (50, 90),
+        True,
+    )
+    await A.asave(ADMIN_HELP_IMAGE)
+    logger.info(f"已成功加载 {len(image_list)} 条管理员命令")

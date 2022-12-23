@@ -9,7 +9,7 @@ from .models import PluginBlock
 _yaml = yaml.YAML(typ="safe")
 
 
-class Plugins2blockManager(StaticData):
+class Plugins2blockManager(StaticData[PluginBlock]):
     """
     插件命令阻塞 管理器
     """

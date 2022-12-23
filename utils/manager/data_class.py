@@ -1,16 +1,17 @@
-from typing import Union, Optional, TypeVar, Generic, Dict, NoReturn, Any
-from pathlib import Path
-from ruamel.yaml import YAML
-from ruamel import yaml
-import ujson as json
 import copy
+from pathlib import Path
+from typing import Any, Dict, Generic, NoReturn, Optional, TypeVar, Union
+
+import ujson as json
+from ruamel import yaml
+from ruamel.yaml import YAML
 
 from .models import *
 
 _yaml = YAML(typ="safe")
 
 
-T = TypeVar("T", AdminSetting, BaseData, PluginBlock, PluginCd, PluginCount, PluginSetting, Plugin)
+T = TypeVar("T")
 
 
 class StaticData(Generic[T]):

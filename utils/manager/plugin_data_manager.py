@@ -4,7 +4,7 @@ from . import StaticData
 from .models import PluginData
 
 
-class PluginDataManager(StaticData):
+class PluginDataManager(StaticData[PluginData]):
     """
     插件所有信息管理
     """

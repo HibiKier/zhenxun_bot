@@ -113,6 +113,7 @@ class PluginData(BaseModel):
     name: str
     plugin_type: PluginType  # 插件内部类型，根据name [Hidden] [Admin] [SUPERUSER]
     usage: Optional[str]
+    superuser_usage: Optional[str]
     des: Optional[str]
     task: Optional[Dict[str, str]]
     menu_type: Tuple[Union[str, int], ...] = ("normal",)  # 菜单类型

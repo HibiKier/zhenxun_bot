@@ -7,10 +7,10 @@ from datetime import datetime
 from urllib.parse import unquote
 from typing import List, Optional, Tuple
 from pydantic import ValidationError
-from nonebot.adapters.onebot.v11 import Message
-from utils.message_builder import image
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
 from nonebot.log import logger
-import asyncio
+
+from utils.message_builder import image
 
 try:
     import ujson as json
@@ -137,10 +137,7 @@ class GuardianHandle(BaseHandle[GuardianData]):
             info = f"当前up池：{up_event.title}\n{info}"
         return info.strip()
 
-    async def draw(self, count: int, pool_name: str, **kwargs) -> Message:
-        return await asyncio.get_event_loop().run_in_executor(None, self._draw, count, pool_name)
-
-    def _draw(self, count: int, pool_name: str, **kwargs) -> Message:
+    def draw(self, count: int, pool_name: str, **kwargs) -> Message:
         index2card = self.get_cards(count, pool_name)
         cards = [card[0] for card in index2card]
         up_event = self.UP_CHAR if pool_name == "char" else self.UP_ARMS
@@ -238,9 +235,12 @@ class GuardianHandle(BaseHandle[GuardianData]):
             char_list = dom.xpath("//table[@id='CardSelectTr']/tbody/tr")
             for char in char_list:
                 try:
-                    name = char.xpath("./td[1]/a/@title")[0]
-                    avatar = char.xpath("./td[1]/a/img/@src")[0]
-                    star = char.xpath("./td[1]/span/img/@alt")[0]
+                    # name = char.xpath("./td[1]/a/@title")[0]
+                    # avatar = char.xpath("./td[1]/a/img/@src")[0]
+                    # star = char.xpath("./td[1]/span/img/@alt")[0]
+                    name = char.xpath("./th[1]/a[1]/@title")[0]
+                    avatar = char.xpath("./th[1]/a/img/@src")[0]
+                    star = char.xpath("./th[1]/span/img/@alt")[0]
                 except IndexError:
                     continue
                 member_dict = {

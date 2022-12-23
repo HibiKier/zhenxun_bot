@@ -7,7 +7,7 @@ from .models import PluginSetting, PluginType
 _yaml = yaml.YAML(typ="safe")
 
 
-class Plugins2settingsManager(StaticData):
+class Plugins2settingsManager(StaticData[PluginSetting]):
     """
     插件命令阻塞 管理器
     """

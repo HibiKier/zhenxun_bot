@@ -3,7 +3,7 @@ from nonebot.typing import T_State
 from nonebot.adapters import Bot
 from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from utils.message_builder import image
-from .data_source import create_help_image, admin_help_image
+from .data_source import create_help_image, ADMIN_HELP_IMAGE
 
 
 __zx_plugin_name__ = '管理帮助 [Admin]'
@@ -16,12 +16,12 @@ __plugin_settings__ = {
 
 admin_help = on_command("管理员帮助", aliases={"管理帮助"}, priority=5, block=True)
 
-if admin_help_image.exists():
-    admin_help_image.unlink()
+if ADMIN_HELP_IMAGE.exists():
+    ADMIN_HELP_IMAGE.unlink()
 
 
 @admin_help.handle()
 async def _(bot: Bot, event: GroupMessageEvent, state: T_State):
-    if not admin_help_image.exists():
+    if not ADMIN_HELP_IMAGE.exists():
         await create_help_image()
-    await admin_help.send(image('admin_help_img.png'))
+    await admin_help.send(image(ADMIN_HELP_IMAGE))

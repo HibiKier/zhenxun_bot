@@ -1,22 +1,56 @@
 from utils.http_utils import AsyncHttpx
+import time
+import random
+from hashlib import md5
 
-url = f"http://fanyi.youdao.com/translate?smartresult=dict&smartresult=rule&smartresult=ugc&sessionFrom=null"
+# url = f"http://fanyi.youdao.com/translate?smartresult=dict&smartresult=rule&smartresult=ugc&sessionFrom=null"
+url = f"https://fanyi-api.baidu.com/api/trans/vip/translate"
 
 
-async def translate_msg(language_type, msg):
+# 获取lts时间戳,salt加密盐,sign加密签名
+def get_lts_salt_sign(word):
+    lts = str(int(time.time() * 10000))
+    salt = lts + str(random.randint(0, 9))
+    string = "fanyideskweb" + word + salt + "Ygy_4c=r#e#4EX^NUGUc5"
+    s = md5()
+    # md5的加密串必须为字节码
+    s.update(string.encode())
+    # 16进制加密
+    sign = s.hexdigest()
+    print(lts, salt, sign)
+    return lts, salt, sign
+
+async def translate_msg(language_type, word):
+    # data = {
+    #     "type": parse_language(language_type),
+    #     "i": msg,
+    #     "doctype": "json",
+    #     "version": "2.1",
+    #     "keyfrom": "fanyi.web",
+    #     "ue": "UTF-8",
+    #     "action": "FY_BY_CLICKBUTTON",
+    #     "typoResult": "true",
+    # }
+    lts, salt, sign = get_lts_salt_sign(word)
     data = {
         "type": parse_language(language_type),
-        "i": msg,
-        "doctype": "json",
-        "version": "2.1",
-        "keyfrom": "fanyi.web",
-        "ue": "UTF-8",
-        "action": "FY_BY_CLICKBUTTON",
-        "typoResult": "true",
+        'i': word,
+        'from': 'AUTO',
+        'to': 'AUTO',
+        'smartresult': 'dict',
+        'client': 'fanyideskweb',
+        'salt': salt,
+        'sign': sign,
+        'lts': lts,
+        'bv': 'bdc0570a34c12469d01bfac66273680d',
+        'doctype': 'json',
+        'version': '2.1',
+        'keyfrom': 'fanyi.web',
+        'action': 'FY_BY_REALTlME'
     }
     data = (await AsyncHttpx.post(url, data=data)).json()
     if data["errorCode"] == 0:
-        return f'原文：{msg}\n翻译：{data["translateResult"][0][0]["tgt"]}'
+        return f'原文：{word}\n翻译：{data["translateResult"][0][0]["tgt"]}'
     return "翻译惜败.."
 
 

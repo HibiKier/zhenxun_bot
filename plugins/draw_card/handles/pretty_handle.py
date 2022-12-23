@@ -8,10 +8,10 @@ from datetime import datetime
 from urllib.parse import unquote
 from typing import List, Optional, Tuple
 from pydantic import ValidationError
-from nonebot.adapters.onebot.v11 import Message
-from utils.message_builder import image
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
 from nonebot.log import logger
-import asyncio
+
+from utils.message_builder import image
 
 try:
     import ujson as json
@@ -40,9 +40,10 @@ class PrettyCard(PrettyData):
 
 class PrettyHandle(BaseHandle[PrettyData]):
     def __init__(self):
-        super().__init__("pretty", "赛马娘", "#eff2f5")
+        super().__init__("pretty", "赛马娘")
         self.data_files.append("pretty_card.json")
         self.max_star = 3
+        self.game_card_color = "#eff2f5"
         self.config = draw_config.pretty
 
         self.ALL_CHAR: List[PrettyChar] = []
@@ -129,10 +130,7 @@ class PrettyHandle(BaseHandle[PrettyData]):
             info = f"当前up池：{up_event.title}\n{info}"
         return info.strip()
 
-    async def draw(self, count: int, pool_name: str, **kwargs) -> Message:
-        return await asyncio.get_event_loop().run_in_executor(None, self._draw, count, pool_name)
-
-    def _draw(self, count: int, pool_name: str, **kwargs) -> Message:
+    def draw(self, count: int, pool_name: str, **kwargs) -> Message:
         pool_name = "char" if not pool_name else pool_name
         index2card = self.get_cards(count, pool_name)
         cards = [card[0] for card in index2card]
@@ -331,7 +329,9 @@ class PrettyHandle(BaseHandle[PrettyData]):
             try:
                 title = announcement.xpath("./@title")[0]
                 url = "https://wiki.biligame.com/" + announcement.xpath("./@href")[0]
-                if "卡池" in title:
+                if re.match(r".*?\d{8}$", title) or re.match(
+                    r"^\d{1,2}月\d{1,2}日.*?", title
+                ):
                     break
             except IndexError:
                 continue
@@ -348,49 +348,48 @@ class PrettyHandle(BaseHandle[PrettyData]):
             char_img = ""
             card_img = ""
             up_chars = []
-            up_chars_name = []
             up_cards = []
-            up_cards_name = []            
-            dom = etree.HTML(result, etree.HTMLParser())
-            content = dom.xpath('//*[@id="mw-content-text"]/div/div/div[1]/div')[0]
-            heads = content.xpath("./div")
+            soup = BeautifulSoup(result, "lxml")
+            heads = soup.find_all("span", {"class": "mw-headline"})
             for head in heads:
-                if "时间" in head.find("./img").tail or "期间" in head.find("./img").tail:
-                    time = content.xpath("./p")[1].text.split("\n")[0]
+                if "时间" in head.text:
+                    time = head.find_next("p").text.split("\n")[0]
                     if "～" in time:
                         start, end = time.split("～")
                         start_time = dateparser.parse(start)
                         end_time = dateparser.parse(end)
-                elif "赛马娘" in head.find("./img").tail:
-                    char_img = content.xpath("./center")[1].find("./a/img").get("src")
-                    lines = content.xpath("./p")[2].xpath("string(.)").split("\n")
+                elif "赛马娘" in head.text:
+                    char_img = head.find_next("a", {"class": "image"}).find("img")[
+                        "src"
+                    ]
+                    lines = str(head.find_next("p").text).split("\n")
                     chars = [
                         line
                         for line in lines
-                        if "★" in line and "[" in line and "]" in line
+                        if "★" in line and "（" in line and "）" in line
                     ]
-                    for char in set(chars):  # list去重
+                    for char in chars:
                         star = char.count("★")
-                        name = re.split("[ ]",char)[-1]
+                        name = re.split(r"[（）]", char)[-2].strip()
                         up_chars.append(
                             UpChar(name=name, star=star, limited=False, zoom=70)
                         )
-                        up_chars_name.append(name)
-                elif "支援卡" in head.find("./img").tail:
-                    card_img = content.xpath("./center")[2].find("./a/img").get("src")
-                    lines = content.xpath("./p")[3].xpath("string(.)").split("\n")
+                elif "支援卡" in head.text:
+                    card_img = head.find_next("a", {"class": "image"}).find("img")[
+                        "src"
+                    ]
+                    lines = str(head.find_next("p").text).split("\n")
                     cards = [
                         line
                         for line in lines
-                        if "R" in line and "[" in line and "]" in line
+                        if "R" in line and "（" in line and "）" in line
                     ]
-                    for card in set(cards):
+                    for card in cards:
                         star = 3 if "SSR" in card else 2 if "SR" in card else 1
-                        name = re.split("[ ]",card)[-1]
+                        name = re.split(r"[（）]", card)[-2].strip()
                         up_cards.append(
                             UpChar(name=name, star=star, limited=False, zoom=70)
                         )
-                        up_cards_name.append(name)
             if start_time and end_time:
                 if start_time <= datetime.now() <= end_time:
                     self.UP_CHAR = UpEvent(
@@ -399,7 +398,6 @@ class PrettyHandle(BaseHandle[PrettyData]):
                         start_time=start_time,
                         end_time=end_time,
                         up_char=up_chars,
-                        up_name=",".join(up_chars_name),
                     )
                     self.UP_CARD = UpEvent(
                         title=title,
@@ -407,7 +405,6 @@ class PrettyHandle(BaseHandle[PrettyData]):
                         start_time=start_time,
                         end_time=end_time,
                         up_char=up_cards,
-                        up_name=",".join(up_cards_name),
                     )
                     self.dump_up_char()
                     logger.info(f"成功获取{self.game_name_cn}当前up信息...当前up池: {title}")
@@ -419,8 +416,9 @@ class PrettyHandle(BaseHandle[PrettyData]):
         self.load_up_char()
         if self.UP_CHAR and self.UP_CARD:
             return Message(
-                Message.template("重载成功！\n当前UP池子：{}\n当前支援卡池子：{}").format(
-                    self.UP_CHAR.up_name,
-                    self.UP_CARD.up_name,
+                Message.template("重载成功！\n当前UP池子：{}{:image}{:image}").format(
+                    self.UP_CHAR.title,
+                    self.UP_CHAR.pool_img,
+                    self.UP_CARD.pool_img,
                 )
             )

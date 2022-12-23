@@ -6,10 +6,10 @@ from urllib.parse import unquote
 from typing import List, Optional, Tuple
 from pydantic import ValidationError
 from datetime import datetime, timedelta
-from nonebot.adapters.onebot.v11 import Message
-from utils.message_builder import image
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
 from nonebot.log import logger
-import asyncio
+
+from utils.message_builder import image
 
 try:
     import ujson as json
@@ -37,21 +37,23 @@ class GenshinArms(GenshinData):
 
 class GenshinHandle(BaseHandle[GenshinData]):
     def __init__(self):
-        super().__init__("genshin", "原神", "#ebebeb")
+        super().__init__("genshin", "原神")
         self.data_files.append("genshin_arms.json")
         self.max_star = 5
+        self.game_card_color = "#ebebeb"
         self.config = draw_config.genshin
 
         self.ALL_CHAR: List[GenshinData] = []
         self.ALL_ARMS: List[GenshinData] = []
         self.UP_CHAR: Optional[UpEvent] = None
+        self.UP_CHAR_LIST: Optional[UpEvent] = []
         self.UP_ARMS: Optional[UpEvent] = None
 
         self.count_manager = GenshinCountManager((10, 90), ("4", "5"), 180)
 
     # 抽取卡池
     def get_card(
-        self, pool_name: str, mode: int = 1, add: float = 0.0, is_up: bool = False
+        self, pool_name: str, mode: int = 1, add: float = 0.0, is_up: bool = False, card_index: int = 0
     ):
         """
         mode 1：普通抽 2：四星保底 3：五星保底
@@ -74,7 +76,7 @@ class GenshinHandle(BaseHandle[GenshinData]):
             star = 5
 
         if pool_name == "char":
-            up_event = self.UP_CHAR
+            up_event = self.UP_CHAR_LIST[card_index]
             all_list = self.ALL_CHAR + [
                 x for x in self.ALL_ARMS if x.star == star and x.star < 5
             ]
@@ -105,14 +107,13 @@ class GenshinHandle(BaseHandle[GenshinData]):
         return acquire_char
 
     def get_cards(
-        self, count: int, user_id: int, pool_name: str
+        self, count: int, user_id: int, pool_name: str, card_index: int = 0
     ) -> List[Tuple[GenshinData, int]]:
         card_list = []  # 获取角色列表
         add = 0.0
         count_manager = self.count_manager
-        count_manager.check_timeout(user_id)  # 检查上次抽卡次数是否超时
         count_manager.check_count(user_id, count)  # 检查次数累计
-        pool = self.UP_CHAR if pool_name == "char" else self.UP_ARMS
+        pool = self.UP_CHAR_LIST[card_index] if pool_name == "char" else self.UP_ARMS
         for i in range(count):
             count_manager.increase(user_id)
             star = count_manager.check(user_id)  # 是否有四星或五星保底
@@ -123,13 +124,13 @@ class GenshinHandle(BaseHandle[GenshinData]):
                 add += draw_config.genshin.I72_ADD
             if star:
                 if star == 4:
-                    card = self.get_card(pool_name, 2, add=add)
+                    card = self.get_card(pool_name, 2, add=add, card_index=card_index)
                 else:
                     card = self.get_card(
-                        pool_name, 3, add, count_manager.is_up(user_id)
+                        pool_name, 3, add, count_manager.is_up(user_id), card_index=card_index
                     )
             else:
-                card = self.get_card(pool_name, 1, add, count_manager.is_up(user_id))
+                card = self.get_card(pool_name, 1, add, count_manager.is_up(user_id), card_index=card_index)
             # print(f"{count_manager.get_user_count(user_id)}：",
             # count_manager.get_user_five_index(user_id), star, card.star, add)
             # 四星角色
@@ -147,7 +148,6 @@ class GenshinHandle(BaseHandle[GenshinData]):
             else:
                 count_manager.set_is_up(user_id, False)
             card_list.append((card, count_manager.get_user_count(user_id)))
-        count_manager.update_time(user_id)
         return card_list
 
     def generate_card_img(self, card: GenshinData) -> BuildImage:
@@ -188,11 +188,11 @@ class GenshinHandle(BaseHandle[GenshinData]):
         bg.paste(star, (sep_w + int((frame_w - star.width) / 2), sep_h - 6), alpha=True)
         return bg
 
-    def format_pool_info(self, pool_name: str) -> str:
+    def format_pool_info(self, pool_name: str, card_index: int = 0) -> str:
         info = ""
         up_event = None
         if pool_name == "char":
-            up_event = self.UP_CHAR
+            up_event = self.UP_CHAR_LIST[card_index]
         elif pool_name == "arms":
             up_event = self.UP_ARMS
         if up_event:
@@ -205,15 +205,18 @@ class GenshinHandle(BaseHandle[GenshinData]):
             info = f"当前up池：{up_event.title}\n{info}"
         return info.strip()
 
-    async def draw(self, count: int, user_id: int, pool_name: str = "", **kwargs) -> Message:
-        return await asyncio.get_event_loop().run_in_executor(None, self._draw, count, user_id, pool_name)
-
-    def _draw(self, count: int, user_id: int, pool_name: str = "", **kwargs) -> Message:
-        index2cards = self.get_cards(count, user_id, pool_name)
+    def draw(self, count: int, user_id: int, pool_name: str = "", **kwargs) -> Message:
+        card_index = 0
+        if "1" in pool_name:
+            card_index = 1
+        pool_name = pool_name.replace("1", "")
+        index2cards = self.get_cards(count, user_id, pool_name, card_index)
         cards = [card[0] for card in index2cards]
         up_event = None
         if pool_name == "char":
-            up_event = self.UP_CHAR
+            if card_index == 1 and len(self.UP_CHAR_LIST) == 1:
+                return Message("当前没有第二个角色UP池")
+            up_event = self.UP_CHAR_LIST[card_index]
         elif pool_name == "arms":
             up_event = self.UP_ARMS
         up_list = [x.name for x in up_event.up_char] if up_event else []
@@ -225,7 +228,7 @@ class GenshinHandle(BaseHandle[GenshinData]):
         )
         result += f"\n距离保底发还剩 {self.count_manager.get_user_guarantee_count(user_id)} 抽"
         # result += "\n【五星：0.6%，四星：5.1%，第72抽开始五星概率每抽加0.585%】"
-        pool_info = self.format_pool_info(pool_name)
+        pool_info = self.format_pool_info(pool_name, card_index)
         img = self.generate_img(cards)
         bk = BuildImage(img.w, img.h + 50, font_size=20, color="#ebebeb")
         bk.paste(img)
@@ -255,17 +258,20 @@ class GenshinHandle(BaseHandle[GenshinData]):
     def load_up_char(self):
         try:
             data = self.load_data(f"draw_card_up/{self.game_name}_up_char.json")
-            self.UP_CHAR = UpEvent.parse_obj(data.get("char", {}))
+            self.UP_CHAR_LIST.append(UpEvent.parse_obj(data.get("char", {})))
+            self.UP_CHAR_LIST.append(UpEvent.parse_obj(data.get("char1", {})))
             self.UP_ARMS = UpEvent.parse_obj(data.get("arms", {}))
         except ValidationError:
             logger.warning(f"{self.game_name}_up_char 解析出错")
 
     def dump_up_char(self):
-        if self.UP_CHAR and self.UP_ARMS:
+        if self.UP_CHAR_LIST and self.UP_ARMS:
             data = {
-                "char": json.loads(self.UP_CHAR.json()),
+                "char": json.loads(self.UP_CHAR_LIST[0].json()),
                 "arms": json.loads(self.UP_ARMS.json()),
             }
+            if len(self.UP_CHAR_LIST) > 1:
+                data['char1'] = json.loads(self.UP_CHAR_LIST[1].json())
             self.dump_data(data, f"draw_card_up/{self.game_name}_up_char.json")
 
     async def _update_info(self):
@@ -359,6 +365,7 @@ class GenshinHandle(BaseHandle[GenshinData]):
         await self.update_up_char()
 
     async def update_up_char(self):
+        self.UP_CHAR_LIST = []
         url = "https://wiki.biligame.com/ys/祈愿"
         result = await self.get_url(url)
         if not result:
@@ -399,14 +406,15 @@ class GenshinHandle(BaseHandle[GenshinData]):
                             for name in star4_list
                         ],
                     )
-                    if index == 0:
-                        self.UP_CHAR = up_event
-                    elif index == 1:
+                    if '神铸赋形' not in title:
+                        self.UP_CHAR_LIST.append(up_event)
+                    else:
                         self.UP_ARMS = up_event
-            if self.UP_CHAR and self.UP_ARMS:
+            if self.UP_CHAR_LIST and self.UP_ARMS:
                 self.dump_up_char()
+                char_title = " & ".join([x.title for x in self.UP_CHAR_LIST])
                 logger.info(
-                    f"成功获取{self.game_name_cn}当前up信息...当前up池: {self.UP_CHAR.title} & {self.UP_ARMS.title}"
+                    f"成功获取{self.game_name_cn}当前up信息...当前up池: {char_title} & {self.UP_ARMS.title}"
                 )
         except Exception as e:
             logger.warning(f"{self.game_name_cn}UP更新出错 {type(e)}：{e}")
@@ -418,12 +426,23 @@ class GenshinHandle(BaseHandle[GenshinData]):
     async def _reload_pool(self) -> Optional[Message]:
         await self.update_up_char()
         self.load_up_char()
-        if self.UP_CHAR and self.UP_ARMS:
+        if self.UP_CHAR_LIST and self.UP_ARMS:
+            if len(self.UP_CHAR_LIST) > 1:
+                return Message(
+                    Message.template("重载成功！\n当前UP池子：{} & {} & {}{:image}{:image}{:image}").format(
+                        self.UP_CHAR_LIST[0].title,
+                        self.UP_CHAR_LIST[1].title,
+                        self.UP_ARMS.title,
+                        self.UP_CHAR_LIST[0].pool_img,
+                        self.UP_CHAR_LIST[1].pool_img,
+                        self.UP_ARMS.pool_img,
+                    )
+                )
             return Message(
                 Message.template("重载成功！\n当前UP池子：{} & {}{:image}{:image}").format(
-                    self.UP_CHAR.title,
+                    char_title,
                     self.UP_ARMS.title,
-                    self.UP_CHAR.pool_img,
+                    self.UP_CHAR_LIST[0].pool_img,
                     self.UP_ARMS.pool_img,
                 )
             )

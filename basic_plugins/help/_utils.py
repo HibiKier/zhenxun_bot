@@ -1,17 +1,15 @@
-from typing import List, Tuple, Dict, Optional
-from nonebot_plugin_htmlrender import template_to_pic
-
-from ._config import Item
-from configs.path_config import IMAGE_PATH, TEMPLATE_PATH, DATA_PATH
-from utils.decorator import Singleton
-from utils.image_utils import BuildImage
-from configs.config import Config
 import os
 import random
+from typing import Dict, List, Optional
 
-from utils.manager import plugin_data_manager, group_manager
+from configs.config import Config
+from configs.path_config import DATA_PATH, IMAGE_PATH, TEMPLATE_PATH
+from utils.decorator import Singleton
+from utils.image_utils import BuildImage, build_sort_image, group_image
+from utils.manager import group_manager, plugin_data_manager
 from utils.manager.models import PluginData, PluginType
 
+from ._config import Item
 
 GROUP_HELP_PATH = DATA_PATH / "group_help"
 GROUP_HELP_PATH.mkdir(exist_ok=True, parents=True)
@@ -21,126 +19,27 @@ for x in os.listdir(GROUP_HELP_PATH):
 
 BACKGROUND_PATH = IMAGE_PATH / "background" / "help" / "simple_help"
 
-LOGO_PATH = TEMPLATE_PATH / 'menu' / 'res' / 'logo'
-
-
-async def build_help_image(image_group: List[List[BuildImage]], h: int):
-    bk = None
-    random_bk = os.listdir(BACKGROUND_PATH)
-    if random_bk:
-        bk = random.choice(random_bk)
-    A = BuildImage(
-        h,
-        h,
-        font_size=24,
-        color="#FFEFD5",
-        background=(BACKGROUND_PATH / bk) if bk else None,
-    )
-    A.filter("GaussianBlur", 5)
-    curr_w = 50
-    for ig in image_group:
-        curr_h = 180
-        for img in ig:
-            await A.apaste(img, (curr_w, curr_h), True)
-            curr_h += img.h + 10
-        curr_w += max([x.w for x in ig]) + 30
-    return A
-
-
-def group_image(image_list: List[BuildImage]) -> Tuple[List[List[BuildImage]], int]:
-    """
-    说明:
-        根据图片大小进行分组
-    参数:
-        :param image_list: 排序图片列表
-    """
-    image_list.sort(key=lambda x: x.h, reverse=True)
-    max_image = max(image_list, key=lambda x: x.h)
-
-    image_list.remove(max_image)
-    max_h = max_image.h
-    total_w = 0
-
-    # 图片分组
-    image_group = [[max_image]]
-    is_use = []
-    surplus_list = image_list[:]
-
-    for image in image_list:
-        if image.uid not in is_use:
-            group = [image]
-            is_use.append(image.uid)
-            curr_h = image.h
-            while True:
-                surplus_list = [x for x in surplus_list if x.uid not in is_use]
-                for tmp in surplus_list:
-                    temp_h = curr_h + tmp.h + 10
-                    if temp_h < max_h or abs(max_h - temp_h) < 100:
-                        curr_h += tmp.h + 15
-                        is_use.append(tmp.uid)
-                        group.append(tmp)
-                        break
-                else:
-                    break
-            total_w += max([x.w for x in group]) + 15
-            image_group.append(group)
-    while surplus_list:
-        surplus_list = [x for x in surplus_list if x.uid not in is_use]
-        if not surplus_list:
-            break
-        surplus_list.sort(key=lambda x: x.h, reverse=True)
-        for img in surplus_list:
-            if img.uid not in is_use:
-                _w = 0
-                index = -1
-                for i, ig in enumerate(image_group):
-                    if s := sum([x.h for x in ig]) > _w:
-                        _w = s
-                        index = i
-                if index != -1:
-                    image_group[index].append(img)
-                    is_use.append(img.uid)
-    max_h = 0
-    max_w = 0
-    for i, ig in enumerate(image_group):
-        if (_h := sum([x.h + 15 for x in ig])) > max_h:
-            max_h = _h
-        max_w += max([x.w for x in ig]) + 30
-    is_use.clear()
-    while abs(max_h - max_w) > 200 and len(image_group) - 1 >= len(image_group[-1]):
-        for img in image_group[-1]:
-            _min_h = 0
-            _min_index = -1
-            for i, ig in enumerate(image_group):
-                if i not in is_use and (_h := sum([x.h for x in ig]) + img.h) > _min_h:
-                    _min_h = _h
-                    _min_index = i
-            is_use.append(_min_index)
-            image_group[_min_index].append(img)
-        max_w -= max([x.w for x in image_group[-1]])
-        image_group.pop(-1)
-    return image_group, max(max_h + 250, max_w + 70)
+LOGO_PATH = TEMPLATE_PATH / "menu" / "res" / "logo"
 
 
 @Singleton
 class HelpImageBuild:
-
     def __init__(self):
         self._data: Dict[str, PluginData] = plugin_data_manager.get_data()
         self._sort_data: Dict[str, List[PluginData]] = {}
         self._image_list = []
         self.icon2str = {
-            'normal': 'fa fa-cog',
-            '原神相关': 'fa fa-circle-o',
-            '常规插件': 'fa fa-cubes',
-            '联系管理员': 'fa fa-envelope-o',
-            '抽卡相关': 'fa fa-credit-card-alt',
-            '来点好康的': 'fa fa-picture-o',
-            '数据统计': 'fa fa-bar-chart',
-            '一些工具': 'fa fa-shopping-cart',
-            '商店': 'fa fa-shopping-cart',
-            '其它': 'fa fa-tags',
-            '群内小游戏': 'fa fa-gamepad',
+            "normal": "fa fa-cog",
+            "原神相关": "fa fa-circle-o",
+            "常规插件": "fa fa-cubes",
+            "联系管理员": "fa fa-envelope-o",
+            "抽卡相关": "fa fa-credit-card-alt",
+            "来点好康的": "fa fa-picture-o",
+            "数据统计": "fa fa-bar-chart",
+            "一些工具": "fa fa-shopping-cart",
+            "商店": "fa fa-shopping-cart",
+            "其它": "fa fa-tags",
+            "群内小游戏": "fa fa-gamepad",
         }
 
     def sort_type(self):
@@ -162,28 +61,36 @@ class HelpImageBuild:
         else:
             help_image = IMAGE_PATH / f"simple_help.png"
         build_type = Config.get_config("help", "TYPE")
-        if build_type == 'HTML':
+        if build_type == "HTML":
             byt = await self.build_html_image(group_id)
-            with open(help_image, 'wb') as f:
+            with open(help_image, "wb") as f:
                 f.write(byt)
         else:
             img = await self.build_pil_image(group_id)
             img.save(help_image)
 
     async def build_html_image(self, group_id: Optional[int]) -> bytes:
+        from nonebot_plugin_htmlrender import template_to_pic
         self.sort_type()
         classify = {}
         for menu in self._sort_data:
             for plugin in self._sort_data[menu]:
                 sta = 0
                 if not plugin.plugin_status.status:
-                    if group_id and plugin.plugin_status.block_type in ['all', 'group']:
+                    if group_id and plugin.plugin_status.block_type in ["all", "group"]:
                         sta = 2
-                    if not group_id and plugin.plugin_status.block_type in ['all', 'private']:
+                    if not group_id and plugin.plugin_status.block_type in [
+                        "all",
+                        "private",
+                    ]:
                         sta = 2
-                if group_id and not group_manager.get_plugin_super_status(plugin.model, group_id):
+                if group_id and not group_manager.get_plugin_super_status(
+                    plugin.model, group_id
+                ):
                     sta = 2
-                if group_id and not group_manager.get_plugin_status(plugin.model, group_id):
+                if group_id and not group_manager.get_plugin_status(
+                    plugin.model, group_id
+                ):
                     sta = 1
                 if classify.get(menu):
                     classify[menu].append(Item(plugin_name=plugin.name, sta=sta))
@@ -197,11 +104,14 @@ class HelpImageBuild:
             if plu in self.icon2str.keys():
                 icon = self.icon2str[plu]
             else:
-                icon = 'fa fa-pencil-square-o'
+                icon = "fa fa-pencil-square-o"
             logo = LOGO_PATH / random.choice(os.listdir(LOGO_PATH))
-            # print(str(logo.absolute()))
-            data = {'name': plu if plu != 'normal' else '功能', 'items': classify[plu], 'icon': icon,
-                    'logo': str(logo.absolute())}
+            data = {
+                "name": plu if plu != "normal" else "功能",
+                "items": classify[plu],
+                "icon": icon,
+                "logo": str(logo.absolute()),
+            }
             if len(classify[plu]) > max_len:
                 max_len = len(classify[plu])
                 flag_index = index
@@ -210,8 +120,8 @@ class HelpImageBuild:
         del plugin_list[flag_index]
         plugin_list.insert(0, max_data)
         pic = await template_to_pic(
-            template_path=str((TEMPLATE_PATH / 'menu').absolute()),
-            template_name='zhenxun_menu.html',
+            template_path=str((TEMPLATE_PATH / "menu").absolute()),
+            template_name="zhenxun_menu.html",
             templates={"plugin_list": plugin_list},
             pages={
                 "viewport": {"width": 1903, "height": 975},
@@ -270,7 +180,9 @@ class HelpImageBuild:
                 if (
                     not plugin_data.plugin_status.status
                     and plugin_data.plugin_status.block_type in ["group", "all"]
-                ) or not group_manager.get_plugin_super_status(plugin_data.model, group_id):
+                ) or (group_id and not group_manager.get_plugin_super_status(
+                    plugin_data.model, group_id
+                )):
                     w = curr_h + int(B.getsize(plugin_data.name)[1] / 2) + 2
                     pos = (
                         7,
@@ -305,7 +217,12 @@ class HelpImageBuild:
             # await bk.acircle_corner(point_list=['lt', 'rt'])
             self._image_list.append(bk)
         image_group, h = group_image(self._image_list)
-        B = await build_help_image(image_group, h)
+        B = await build_sort_image(
+            image_group,
+            h,
+            background_path=BACKGROUND_PATH,
+            background_handle=lambda image: image.filter("GaussianBlur", 5),
+        )
         w = 10
         h = 10
         for msg in [

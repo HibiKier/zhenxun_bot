@@ -2,23 +2,13 @@ import random
 from types import ModuleType
 from typing import Any
 
-from services import logger
-from utils.manager import (
-    plugin_data_manager,
-    plugins2settings_manager,
-    plugins2cd_manager,
-    plugins2block_manager,
-    plugins2count_manager, plugins_manager,
-)
 from configs.config import Config
-from utils.manager.models import (
-    PluginType,
-    PluginSetting,
-    PluginCd,
-    PluginData,
-    PluginBlock,
-    PluginCount, Plugin,
-)
+from services import logger
+from utils.manager import (plugin_data_manager, plugins2block_manager,
+                           plugins2cd_manager, plugins2count_manager,
+                           plugins2settings_manager, plugins_manager)
+from utils.manager.models import (Plugin, PluginBlock, PluginCd, PluginCount,
+                                  PluginData, PluginSetting, PluginType)
 from utils.utils import get_matchers
 
 
@@ -31,9 +21,7 @@ def get_attr(module: ModuleType, name: str, default: Any = None) -> Any:
         :param name: name
         :param default: default
     """
-    if hasattr(module, name):
-        return getattr(module, name)
-    return default
+    return getattr(module, name) if hasattr(module, name) else default
 
 
 def init_plugin_info():
@@ -42,6 +30,7 @@ def init_plugin_info():
         try:
             plugin = matcher.plugin
             metadata = plugin.metadata
+            extra = metadata.extra if metadata else {}
             if hasattr(plugin, "module"):
                 module = plugin.module
                 plugin_model = matcher.plugin_name
@@ -52,13 +41,13 @@ def init_plugin_info():
                 )
                 if "[Admin]" in plugin_name:
                     plugin_type = PluginType.ADMIN
-                    plugin_name = plugin_name.replace("[Admin]", "")
+                    plugin_name = plugin_name.replace("[Admin]", "").strip()
                 elif "[Hidden]" in plugin_name:
                     plugin_type = PluginType.HIDDEN
-                    plugin_name = plugin_name.replace("[Hidden]", "")
+                    plugin_name = plugin_name.replace("[Hidden]", "").strip()
                 elif "[Superuser]" in plugin_name:
                     plugin_type = PluginType.SUPERUSER
-                    plugin_name = plugin_name.replace("[Superuser]", "")
+                    plugin_name = plugin_name.replace("[Superuser]", "").strip()
                 else:
                     plugin_type = PluginType.NORMAL
                 plugin_usage = (
@@ -76,9 +65,14 @@ def init_plugin_info():
                 if plugin_setting:
                     plugin_setting = PluginSetting(**plugin_setting)
                     plugin_setting.plugin_type = menu_type
+                plugin_superuser_usage = get_attr(module, "__plugin_super_usage__")
                 plugin_task = get_attr(module, "__plugin_task__")
-                plugin_version = get_attr(module, "__plugin_version__")
-                plugin_author = get_attr(module, "__plugin_author__")
+                plugin_version = extra.get("__plugin_version__") or get_attr(
+                    module, "__plugin_version__"
+                )
+                plugin_author = extra.get("__plugin_author__") or get_attr(
+                    module, "__plugin_author__"
+                )
                 plugin_cd = get_attr(module, "__plugin_cd_limit__")
                 if plugin_cd:
                     plugin_cd = PluginCd(**plugin_cd)
@@ -102,9 +96,7 @@ def init_plugin_info():
                     plugin_configs = plugin_cfg
                 plugin_status = plugins_manager.get(plugin_model)
                 if not plugin_status:
-                    plugin_status = Plugin(
-                        plugin_name=plugin_model
-                    )
+                    plugin_status = Plugin(plugin_name=plugin_model)
                 plugin_status.author = plugin_author
                 plugin_status.version = plugin_version
                 plugin_data = PluginData(
@@ -112,6 +104,7 @@ def init_plugin_info():
                     name=plugin_name.strip(),
                     plugin_type=plugin_type,
                     usage=plugin_usage,
+                    superuser_usage=plugin_superuser_usage,
                     des=plugin_des,
                     task=plugin_task,
                     menu_type=menu_type,
@@ -121,7 +114,7 @@ def init_plugin_info():
                     plugin_count=plugin_count,
                     plugin_resources=plugin_resources,
                     plugin_configs=plugin_configs,
-                    plugin_status=plugin_status
+                    plugin_status=plugin_status,
                 )
                 plugin_data_manager.add_plugin_info(plugin_data)
         except Exception as e:

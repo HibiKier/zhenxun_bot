@@ -1,15 +1,16 @@
-from typing import Optional
+from typing import Optional, TypeVar, Generic
 from pydantic import BaseModel
-import time
+from cachetools import TTLCache
 
 
 class BaseUserCount(BaseModel):
-    count: int = 1  # 当前抽卡次数
-    time_: int = time.time()  # 抽卡时间，当超过一定时间时将重置抽卡次数
-    timeout: int = 60  # 超时时间60秒
+    count: int = 0  # 当前抽卡次数
 
 
-class DrawCountManager:
+TCount = TypeVar("TCount", bound="BaseUserCount")
+
+
+class DrawCountManager(Generic[TCount]):
     """
     抽卡统计保底
     """
@@ -30,19 +31,28 @@ class DrawCountManager:
 
         """
         # 只有保底
-        self._data = {}
+        # 超过60秒重置抽卡次数
+        self._data: TTLCache[int, TCount] = TTLCache(maxsize=1000, ttl=60)
         self._guarantee_tuple = game_draw_count_rule
         self._star2name = star2name
         self._max_draw_count = max_draw_count
+
+    @classmethod
+    def get_count_class(cls) -> TCount:
+        raise NotImplementedError
+
+    def _get_count(self, key: int) -> TCount:
+        if self._data.get(key) is None:
+            self._data[key] = self.get_count_class()
+        else:
+            self._data[key] = self._data[key]
+        return self._data[key]
 
     def increase(self, key: int, value: int = 1):
         """
         用户抽卡次数加1
         """
-        if self._data.get(key) is None:
-            self._data[key] = BaseUserCount()
-        else:
-            self._data[key].count += 1
+        self._get_count(key).count += value
 
     def get_max_guarantee(self):
         """
@@ -54,103 +64,74 @@ class DrawCountManager:
         """
         获取当前抽卡次数
         """
-        return self._data[key].count
-
-    def update_time(self, key: int):
-        """
-        更新抽卡时间
-        """
-        self._data[key].time_ = time.time()
+        return self._get_count(key).count
 
     def reset(self, key: int):
         """
         清空记录
         """
-        del self._data[key]
+        self._data.pop(key, None)
 
 
-class GenshinCountManager(DrawCountManager):
-    class UserCount(BaseUserCount):
-        five_index: int = 0  # 获取五星时的抽卡次数
-        four_index: int = 0  # 获取四星时的抽卡次数
-        is_up: bool = False  # 下次五星是否必定为up
+class GenshinUserCount(BaseUserCount):
+    five_index: int = 0  # 获取五星时的抽卡次数
+    four_index: int = 0  # 获取四星时的抽卡次数
+    is_up: bool = False  # 下次五星是否必定为up
 
-    def increase(self, key: int, value: int = 1):
-        """
-        用户抽卡次数加1
-        """
-        if self._data.get(key) is None:
-            self._data[key] = self.UserCount()
-        else:
-            self._data[key].count += 1
+
+class GenshinCountManager(DrawCountManager[GenshinUserCount]):
+    @classmethod
+    def get_count_class(cls) -> GenshinUserCount:
+        return GenshinUserCount()
 
     def set_is_up(self, key: int, value: bool):
         """
         设置下次是否必定up
         """
-        self._data[key].is_up = value
+        self._get_count(key).is_up = value
 
     def is_up(self, key: int) -> bool:
         """
         判断该次保底是否必定为up
         """
-        return self._data[key].is_up
+        return self._get_count(key).is_up
 
     def get_user_five_index(self, key: int) -> int:
         """
         获取用户上次获取五星的次数
         """
-        return self._data[key].five_index
+        return self._get_count(key).five_index
 
     def get_user_four_index(self, key: int) -> int:
         """
         获取用户上次获取四星的次数
         """
-        return self._data[key].four_index
+        return self._get_count(key).four_index
 
     def mark_five_index(self, key: int):
         """
         标记用户该次次数为五星
         """
-        self._data[key].five_index = self._data[key].count
+        self._get_count(key).five_index = self._get_count(key).count
 
     def mark_four_index(self, key: int):
         """
         标记用户该次次数为四星
         """
-        self._data[key].four_index = self._data[key].count
-
-    def check_timeout(self, key: int):
-        """
-        检查用户距离上次抽卡是否超时
-        """
-        if key in self._data.keys() and self._is_timeout(key):
-            del self._data[key]
+        self._get_count(key).four_index = self._get_count(key).count
 
     def check_count(self, key: int, count: int):
         """
         检查用户该次抽卡次数累计是否超过最大限制次数
         """
-        if (
-            key in self._data.keys()
-            and self._data[key].count + count > self._max_draw_count
-        ):
-            del self._data[key]
-
-    def _is_timeout(self, key: int) -> bool:
-        return time.time() - self._data[key].time_ > self._data[key].timeout
+        if self._get_count(key).count + count > self._max_draw_count:
+            self._data.pop(key, None)
 
     def get_user_guarantee_count(self, key: int) -> int:
+        user = self._get_count(key)
         return (
             self.get_max_guarantee()
-            - (
-                (
-                    self._data[key].count % self.get_max_guarantee()
-                    if self._data[key].count > 0
-                    else 0
-                )
-                - self._data[key].five_index
-            )
+            - (user.count % self.get_max_guarantee() - user.five_index)
         ) % self.get_max_guarantee() or self.get_max_guarantee()
 
     def check(self, key: int) -> Optional[int]:
@@ -158,12 +139,11 @@ class GenshinCountManager(DrawCountManager):
         是否保底
         """
         # print(self._data)
-        user: GenshinCountManager.UserCount = self._data[key]
+        user = self._get_count(key)
         if user.count - user.five_index == 90:
-            user.five_index = 90
+            user.five_index = user.count
             return 5
         if user.count - user.four_index == 10:
             user.four_index = user.count
             return 4
         return None
-

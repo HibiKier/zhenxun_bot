@@ -1,9 +1,9 @@
 import nonebot
 from pathlib import Path
 from nonebot.log import logger
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, Extra, ValidationError
 from configs.config import Config as AConfig
-from configs.path_config import DATA_PATH
+from configs.path_config import IMAGE_PATH, DATA_PATH
 
 try:
     import ujson as json
@@ -87,28 +87,30 @@ class OnmyojiConfig(BaseModel, extra=Extra.ignore):
     ONMYOJI_SR: float = 0.2
     ONMYOJI_R: float = 0.7875
 
-#碧蓝档案
+
+# 碧蓝档案
 class BaConfig(BaseModel, extra=Extra.ignore):
     BA_THREE_P: float = 0.025
     BA_TWO_P: float = 0.185
     BA_ONE_P: float = 0.79
     BA_G_TWO_P: float = 0.975
 
+
 class Config(BaseModel, extra=Extra.ignore):
     # 开关
-    PRTS_FLAG: bool = AConfig.get_config("draw_card", "PRTS_FLAG")
-    GENSHIN_FLAG: bool = AConfig.get_config("draw_card", "GENSHIN_FLAG")
-    PRETTY_FLAG: bool = AConfig.get_config("draw_card", "PRETTY_FLAG")
-    GUARDIAN_FLAG: bool = AConfig.get_config("draw_card", "GUARDIAN_FLAG")
-    PCR_FLAG: bool = AConfig.get_config("draw_card", "PCR_FLAG")
-    AZUR_FLAG: bool = AConfig.get_config("draw_card", "AZUR_FLAG")
-    FGO_FLAG: bool = AConfig.get_config("draw_card", "FGO_FLAG")
-    ONMYOJI_FLAG: bool = AConfig.get_config("draw_card", "ONMYOJI_FLAG")
-    BA_FLAG: bool = AConfig.get_config("draw_card", "BA_FLAG")
+    PRTS_FLAG: bool = True
+    GENSHIN_FLAG: bool = True
+    PRETTY_FLAG: bool = True
+    GUARDIAN_FLAG: bool = True
+    PCR_FLAG: bool = True
+    AZUR_FLAG: bool = True
+    FGO_FLAG: bool = True
+    ONMYOJI_FLAG: bool = True
+    BA_FLAG: bool = True
 
     # 其他配置
-    PCR_TAI: bool = AConfig.get_config("draw_card", "PCR_TAI")
-    SEMAPHORE: int = AConfig.get_config("draw_card", "SEMAPHORE")
+    PCR_TAI: bool = True
+    SEMAPHORE: int = 5
 
     # 抽卡概率
     prts: PrtsConfig = PrtsConfig()
@@ -124,11 +126,15 @@ class Config(BaseModel, extra=Extra.ignore):
 
 driver = nonebot.get_driver()
 
-DRAW_PATH = DATA_PATH / "draw_card"
-config_path = DRAW_PATH / "draw_card_config" / "draw_card_config.json"
+# DRAW_PATH = Path("data/draw_card").absolute()
+DRAW_PATH = IMAGE_PATH / "draw_card"
+# try:
+#     DRAW_PATH = Path(global_config.draw_path).absolute()
+# except:
+#     pass
+config_path = DATA_PATH / "draw_card" / "draw_card_config" / "draw_card_config.json"
 
 draw_config: Config = Config()
-
 
 for game_flag, game_name in zip(
     [
@@ -143,7 +149,7 @@ for game_flag, game_name in zip(
         "PCR_TAI",
         "BA_FLAG"
     ],
-    ["明日方舟", "原神", "赛马娘", "坎公骑冠剑", "公主连结", "碧蓝航线", "命运-冠位指定（FGO）", "阴阳师", "pcr台服卡池","碧蓝档案"],
+    ["明日方舟", "原神", "赛马娘", "坎公骑冠剑", "公主连结", "碧蓝航线", "命运-冠位指定（FGO）", "阴阳师", "pcr台服卡池", "碧蓝档案"],
 ):
     AConfig.add_plugin_config(
         "draw_card",
@@ -161,11 +167,19 @@ AConfig.add_plugin_config(
 @driver.on_startup
 def check_config():
     global draw_config
-    draw_config = Config()
+
     if not config_path.exists():
         config_path.parent.mkdir(parents=True, exist_ok=True)
         draw_config = Config()
         logger.warning("draw_card：配置文件不存在，已重新生成配置文件.....")
+    else:
+        with config_path.open("r", encoding="utf8") as fp:
+            data = json.load(fp)
+        try:
+            draw_config = Config.parse_obj({**data})
+        except ValidationError:
+            draw_config = Config()
+            logger.warning("draw_card：配置文件格式错误，已重新生成配置文件.....")
 
     with config_path.open("w", encoding="utf8") as fp:
         json.dump(

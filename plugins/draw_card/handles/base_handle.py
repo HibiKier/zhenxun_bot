@@ -1,18 +1,18 @@
 import math
+import anyio
 import random
 import aiohttp
 import asyncio
-import aiofiles
 from PIL import Image
 from datetime import datetime
 from pydantic import BaseModel, Extra
 from asyncio.exceptions import TimeoutError
 from typing import Dict, List, Optional, TypeVar, Generic, Tuple
-from nonebot.adapters.onebot.v11 import Message
-from configs.path_config import IMAGE_PATH
-from utils.message_builder import image
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
 from nonebot.log import logger
-import asyncio
+
+from configs.path_config import DATA_PATH
+from utils.message_builder import image
 
 try:
     import ujson as json
@@ -50,29 +50,25 @@ class UpEvent(BaseModel):
     start_time: Optional[datetime]  # 开始时间
     end_time: Optional[datetime]  # 结束时间
     up_char: List[UpChar]  # up对象
-    up_name: str = ""  # up名称
 
 
 TC = TypeVar("TC", bound="BaseData")
 
 
 class BaseHandle(Generic[TC]):
-    def __init__(self, game_name: str, game_name_cn: str, game_card_color: str = "#ffffff"):
+    def __init__(self, game_name: str, game_name_cn: str):
         self.game_name = game_name
         self.game_name_cn = game_name_cn
         self.max_star = 1  # 最大星级
-        self.data_path = DRAW_PATH
-        self.img_path = IMAGE_PATH / f"draw_card/{self.game_name}"
-        self.up_path = DRAW_PATH / "draw_card_up"
+        self.game_card_color: str = "#ffffff"
+        self.data_path = DATA_PATH / "draw_card"
+        self.img_path = DRAW_PATH / f"{self.game_name}"
+        self.up_path = DATA_PATH / "draw_card" / "draw_card_up"
         self.img_path.mkdir(parents=True, exist_ok=True)
         self.up_path.mkdir(parents=True, exist_ok=True)
         self.data_files: List[str] = [f"{self.game_name}.json"]
-        self.game_card_color: str = game_card_color
 
-    async def draw(self, count: int, **kwargs) -> Message:
-        return await asyncio.get_event_loop().run_in_executor(None, self._draw, count)
-
-    def _draw(self, count: int, **kwargs) -> Message:
+    def draw(self, count: int, **kwargs) -> Message:
         index2card = self.get_cards(count, **kwargs)
         cards = [card[0] for card in index2card]
         result = self.format_result(index2card)
@@ -173,7 +169,6 @@ class BaseHandle(Generic[TC]):
         card_imgs: List[BuildImage] = []
         for card, num in zip(card_list, num_list):
             card_img = self.generate_card_img(card)
-
             # 数量 > 1 时加数字上标
             if num > 1:
                 label = circled_number(num)
@@ -274,7 +269,7 @@ class BaseHandle(Generic[TC]):
             return True
         try:
             async with self.session.get(url, timeout=10) as response:
-                async with aiofiles.open(str(img_path), "wb") as f:
+                async with await anyio.open_file(img_path, "wb") as f:
                     await f.write(await response.read())
             return True
         except TimeoutError:

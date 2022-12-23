@@ -17,17 +17,21 @@ background = IMAGE_PATH / "background" / "0.png"
 
 async def create_help_img(group_id: Optional[int]):
     """
-    生成帮助图片
-    :param group_id: 群号
+    说明:
+        生成帮助图片
+    参数:
+        :param group_id: 群号
     """
     await HelpImageBuild().build_image(group_id)
 
 
 def get_plugin_help(msg: str, is_super: bool = False) -> Optional[str]:
     """
-    获取功能的帮助信息
-    :param msg: 功能cmd
-    :param is_super: 是否为超级用户
+    说明:
+        获取功能的帮助信息
+    参数:
+        :param msg: 功能cmd
+        :param is_super: 是否为超级用户
     """
     module = plugins2settings_manager.get_plugin_module(
         msg
