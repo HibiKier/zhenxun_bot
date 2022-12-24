@@ -116,7 +116,7 @@ async def send_msg(msg: str, bot: Bot, event: MessageEvent):
         pass
 
 
-class ReturnException(Exception):
+class IsSuperuserException(Exception):
     pass
 
 
@@ -144,14 +144,15 @@ class AuthChecker:
         try:
             plugin_name = matcher.plugin_name
             cost_gold = await self.auth_cost(plugin_name, bot, event)
-            await self.auth_basic(plugin_name, bot, event)
-            self.auth_group(plugin_name, bot, event)
-            await self.auth_admin(plugin_name, matcher, bot, event)
-            await self.auth_plugin(plugin_name, matcher, bot, event)
-            await self.auth_limit(plugin_name, bot, event)
-            if cost_gold and str(event.user_id) not in bot.config.superusers:
-                await BagUser.spend_gold(event.user_id, event.group_id, cost_gold)
-        except ReturnException:
+            if str(event.user_id) not in bot.config.superusers:
+                await self.auth_basic(plugin_name, bot, event)
+                self.auth_group(plugin_name, bot, event)
+                await self.auth_admin(plugin_name, matcher, bot, event)
+                await self.auth_plugin(plugin_name, matcher, bot, event)
+                await self.auth_limit(plugin_name, bot, event)
+                if cost_gold:
+                    await BagUser.spend_gold(event.user_id, event.group_id, cost_gold)
+        except IsSuperuserException:
             return
 
     async def auth_limit(self, plugin_name: str, bot: Bot, event: Event):
@@ -336,7 +337,7 @@ class AuthChecker:
                 if isinstance(
                     event, GroupMessageEvent
                 ) and group_manager.check_group_is_white(event.group_id):
-                    raise ReturnException()
+                    raise IsSuperuserException()
                 try:
                     if isinstance(event, GroupMessageEvent):
                         if (
@@ -463,7 +464,7 @@ class AuthChecker:
                     plugin_name
                 ).limit_superuser
             ):
-                raise ReturnException()
+                raise IsSuperuserException()
             _plugin = nonebot.plugin.get_plugin(plugin_name)
             _module = _plugin.module
             _plugin_name = _module.__getattribute__("__zx_plugin_name__")
@@ -471,7 +472,7 @@ class AuthChecker:
                 "[superuser]" in _plugin_name.lower()
                 and str(event.user_id) in bot.config.superusers
             ):
-                raise ReturnException()
+                raise IsSuperuserException()
         except AttributeError:
             pass
 
