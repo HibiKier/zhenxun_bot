@@ -1,12 +1,12 @@
 import asyncio
 import traceback
 from dataclasses import dataclass
-from typing import Optional, Set, Tuple, Any
+from typing import Any, Optional, Set, Tuple
 
 import nonebot
 from cn2an import cn2an
 from configs.config import Config
-from nonebot import on_keyword, on_regex
+from nonebot import on_keyword, on_message, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.log import logger
 from nonebot.matcher import Matcher
@@ -25,6 +25,7 @@ from .handles.onmyoji_handle import OnmyojiHandle
 from .handles.pcr_handle import PcrHandle
 from .handles.pretty_handle import PrettyHandle
 from .handles.prts_handle import PrtsHandle
+from .rule import rule
 
 __zx_plugin_name__ = "游戏抽卡"
 __plugin_usage__ = """
@@ -98,17 +99,83 @@ __plugin_settings__ = {
 }
 
 
+x = on_message(rule=lambda: False)
+
+
 @dataclass
 class Game:
     keywords: Set[str]
     handle: BaseHandle
     flag: bool
+    config_name: str
     max_count: int = 300  # 一次最大抽卡数
     reload_time: Optional[int] = None  # 重载UP池时间（小时）
     has_other_pool: bool = False
 
 
-games = None
+games = (
+    Game(
+        {"azur", "碧蓝航线"},
+        AzurHandle(),
+        Config.get_config("draw_card", "AZUR_FLAG", True),
+        "AZUR_FLAG",
+    ),
+    Game(
+        {"fgo", "命运冠位指定"},
+        FgoHandle(),
+        Config.get_config("draw_card", "FGO_FLAG", True),
+        "FGO_FLAG",
+    ),
+    Game(
+        {"genshin", "原神"},
+        GenshinHandle(),
+        Config.get_config("draw_card", "GENSHIN_FLAG", True),
+        "GENSHIN_FLAG",
+        max_count=180,
+        reload_time=18,
+        has_other_pool=True,
+    ),
+    Game(
+        {"guardian", "坎公骑冠剑"},
+        GuardianHandle(),
+        Config.get_config("draw_card", "GUARDIAN_FLAG", True),
+        "GUARDIAN_FLAG",
+        reload_time=4,
+    ),
+    Game(
+        {"onmyoji", "阴阳师"},
+        OnmyojiHandle(),
+        Config.get_config("draw_card", "ONMYOJI_FLAG", True),
+        "ONMYOJI_FLAG",
+    ),
+    Game(
+        {"pcr", "公主连结", "公主连接", "公主链接", "公主焊接"},
+        PcrHandle(),
+        Config.get_config("draw_card", "PCR_FLAG", True),
+        "PCR_FLAG",
+    ),
+    Game(
+        {"pretty", "马娘", "赛马娘"},
+        PrettyHandle(),
+        Config.get_config("draw_card", "PRETTY_FLAG", True),
+        "PRETTY_FLAG",
+        max_count=200,
+        reload_time=4,
+    ),
+    Game(
+        {"prts", "方舟", "明日方舟"},
+        PrtsHandle(),
+        Config.get_config("draw_card", "PRTS_FLAG", True),
+        "PRTS_FLAG",
+        reload_time=4,
+    ),
+    Game(
+        {"ba", "碧蓝档案"},
+        BaHandle(),
+        Config.get_config("draw_card", "BA_FLAG", True),
+        "BA_FLAG",
+    ),
+)
 
 
 def create_matchers():
@@ -137,7 +204,6 @@ def create_matchers():
                 .replace("卡牌", "card")
                 .replace("卡", "card")
             )
-
             try:
                 if pool_type_ in ["2池", "二池"]:
                     pool_name = pool_name + "1"
@@ -190,26 +256,25 @@ def create_matchers():
         update_keywords = {f"更新{keyword}信息" for keyword in game.keywords}
         reload_keywords = {f"重载{keyword}卡池" for keyword in game.keywords}
         reset_keywords = {f"重置{keyword}抽卡" for keyword in game.keywords}
-        if game.flag:
-            on_regex(draw_regex, priority=5, block=True).append_handler(
-                draw_handler(game)
+        on_regex(draw_regex, priority=5, block=True, rule=rule(game)).append_handler(
+            draw_handler(game)
+        )
+        on_keyword(
+            update_keywords, priority=1, block=True, permission=SUPERUSER
+        ).append_handler(update_handler(game))
+        on_keyword(
+            reload_keywords, priority=1, block=True, permission=SUPERUSER
+        ).append_handler(reload_handler(game))
+        on_keyword(reset_keywords, priority=5, block=True).append_handler(
+            reset_handler(game)
+        )
+        if game.reload_time:
+            scheduler.add_job(
+                scheduled_job(game), trigger="cron", hour=game.reload_time, minute=1
             )
-            on_keyword(
-                update_keywords, priority=1, block=True, permission=SUPERUSER
-            ).append_handler(update_handler(game))
-            on_keyword(
-                reload_keywords, priority=1, block=True, permission=SUPERUSER
-            ).append_handler(reload_handler(game))
-            on_keyword(reset_keywords, priority=5, block=True).append_handler(
-                reset_handler(game)
-            )
-            if game.reload_time:
-                scheduler.add_job(
-                    scheduled_job(game), trigger="cron", hour=game.reload_time, minute=1
-                )
 
 
-# create_matchers()
+create_matchers()
 
 
 # 更新资源
@@ -231,65 +296,6 @@ driver = nonebot.get_driver()
 
 @driver.on_startup
 async def _():
-    global games
-    if not games:
-        from .config import draw_config
-
-        games = (
-            Game(
-                {"azur", "碧蓝航线"},
-                AzurHandle(),
-                Config.get_config("draw_card", "AZUR_FLAG", True),
-            ),
-            Game(
-                {"fgo", "命运冠位指定"},
-                FgoHandle(),
-                Config.get_config("draw_card", "FGO_FLAG", True),
-            ),
-            Game(
-                {"genshin", "原神"},
-                GenshinHandle(),
-                Config.get_config("draw_card", "GENSHIN_FLAG", True),
-                max_count=180,
-                reload_time=18,
-                has_other_pool=True,
-            ),
-            Game(
-                {"guardian", "坎公骑冠剑"},
-                GuardianHandle(),
-                Config.get_config("draw_card", "GUARDIAN_FLAG", True),
-                reload_time=4,
-            ),
-            Game(
-                {"onmyoji", "阴阳师"},
-                OnmyojiHandle(),
-                Config.get_config("draw_card", "ONMYOJI_FLAG", True),
-            ),
-            Game(
-                {"pcr", "公主连结", "公主连接", "公主链接", "公主焊接"},
-                PcrHandle(),
-                Config.get_config("draw_card", "PCR_FLAG", True),
-            ),
-            Game(
-                {"pretty", "马娘", "赛马娘"},
-                PrettyHandle(),
-                Config.get_config("draw_card", "PRETTY_FLAG", True),
-                max_count=200,
-                reload_time=4,
-            ),
-            Game(
-                {"prts", "方舟", "明日方舟"},
-                PrtsHandle(),
-                Config.get_config("draw_card", "PRTS_FLAG", True),
-                reload_time=4,
-            ),
-            Game(
-                {"ba", "碧蓝档案"},
-                BaHandle(),
-                Config.get_config("draw_card", "BA_FLAG", True),
-            ),
-        )
-        create_matchers()
     tasks = []
     for game in games:
         if game.flag:
