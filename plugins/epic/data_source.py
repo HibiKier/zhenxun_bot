@@ -24,6 +24,22 @@ async def get_epic_game():
         logger.error(f"Epic 访问接口错误 {type(e)}：{e}")
     return None
 
+# 此处用于获取游戏简介
+async def get_epic_game_desp(name):
+    desp_url = "https://store-content-ipv4.ak.epicgames.com/api/zh-CN/content/products/" + str(name)
+    headers = {
+        "Referer": "https://store.epicgames.com/zh-CN/p/" + str(name),
+        "Content-Type": "application/json; charset=utf-8",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.80 Safari/537.36",
+    }
+    try:
+        res = await AsyncHttpx.get(desp_url, headers=headers, timeout=10)
+        res_json = res.json()
+        gamesDesp = res_json["pages"][0]["data"]["about"]
+        return gamesDesp
+    except Exception as e:
+        logger.error(f"Epic 访问接口错误 {type(e)}：{e}")
+    return None
 
 # 获取 Epic Game Store 免费游戏信息
 # 处理免费游戏的信息方法借鉴 pip 包 epicstore_api 示例
@@ -95,7 +111,10 @@ async def get_epic_free(bot: Bot, type_event: str):
                             game_dev = pair["value"]
                         if pair["key"] == "publisherName":
                             game_pub = pair["value"]
-                    game_desp = game["description"]
+                    if game.get("productSlug"):
+                    	gamesDesp = await get_epic_game_desp(game["productSlug"])
+                    	#game_desp = game["description"]
+                    	game_desp = gamesDesp["description"]
                     try:
                         end_date_iso = game["promotions"]["promotionalOffers"][0][
                             "promotionalOffers"
