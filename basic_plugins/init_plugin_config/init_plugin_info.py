@@ -39,6 +39,9 @@ def init_plugin_info():
                     if metadata and metadata.name
                     else get_attr(module, "__zx_plugin_name__", matcher.plugin_name)
                 )
+                if not plugin_name:
+                    logger.warning(f"配置文件 模块：{plugin_model} 获取 plugin_name 失败...")
+                    continue
                 if "[Admin]" in plugin_name:
                     plugin_type = PluginType.ADMIN
                     plugin_name = plugin_name.replace("[Admin]", "").strip()

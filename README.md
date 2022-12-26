@@ -304,6 +304,7 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 * 优化`gamedraw`插件
 * 提供全局被动控制
 * 群被动状态改为图片
+* 修复epic获取到的简介不是中文的bug [@pull/1221](https://github.com/HibiKier/zhenxun_bot/pull/1221)
 
 ## 2022/12/24
 
