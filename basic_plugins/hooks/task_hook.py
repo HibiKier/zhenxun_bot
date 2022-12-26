@@ -9,6 +9,8 @@ import re
 @Bot.on_calling_api
 async def _(bot: Bot, api: str, data: Dict[str, Any]):
     r = None
+    task = None
+    group_id = None
     try:
         if (
             (
@@ -37,6 +39,10 @@ async def _(bot: Bot, api: str, data: Dict[str, Any]):
         ):
             task = r.group(1)
             group_id = data["group_id"]
+    except Exception as e:
+        logger.error(f"TaskHook ERROR {type(e)}：{e}")
+    else:
+        if task and group_id:
             if (
                 group_manager.get_group_level(group_id) < 0
                 or not group_manager.check_task_status(task, group_id)
@@ -48,5 +54,3 @@ async def _(bot: Bot, api: str, data: Dict[str, Any]):
                     f"[[_task|{task}]]", ""
                 )
                 data["message"] = Message(msg)
-    except Exception as e:
-        logger.error(f"TaskHook ERROR {type(e)}：{e}")
