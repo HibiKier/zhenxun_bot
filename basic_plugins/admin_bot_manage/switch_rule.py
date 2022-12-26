@@ -1,12 +1,14 @@
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent, GROUP
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent, GROUP, PrivateMessageEvent
 from nonebot import on_command, on_message, on_regex
 from nonebot.params import RegexGroup
+
+from utils.message_builder import image
 from ._data_source import (
     change_group_switch,
     set_plugin_status,
     get_plugin_status,
     group_current_status,
-    set_group_bot_status
+    set_group_bot_status, change_global_task_status
 )
 from services.log import logger
 from configs.config import NICKNAME, Config
@@ -31,11 +33,12 @@ usage：
 """.strip()
 __plugin_superuser_usage__ = """
 usage:
-    功能总开关与指定群禁用
+    （私聊）功能总开关与指定群禁用
     指令：
         功能状态
         开启/关闭[功能] [group]
         开启/关闭[功能] ['private'/'group']
+        开启被动/关闭被动[被动名称]     # 全局被动控制
 """.strip()
 __plugin_des__ = "群内功能开关"
 __plugin_cmd__ = [
@@ -74,7 +77,9 @@ async def _(bot: Bot, event: MessageEvent):
         if str(event.user_id) in bot.config.superusers:
             block_type = " ".join(get_message_text(event.json()).split()[1:])
             block_type = block_type if block_type else "a"
-            if is_number(block_type):
+            if ("关闭被动" in _cmd or "开启被动" in _cmd) and isinstance(event, PrivateMessageEvent):
+                await switch_rule_matcher.send(change_global_task_status(_cmd))
+            elif is_number(block_type):
                 if not int(block_type) in [
                     g["group_id"]
                     for g in await bot.get_group_list()
@@ -110,7 +115,7 @@ async def _():
 
 @group_task_status.handle()
 async def _(event: GroupMessageEvent):
-    await group_task_status.send(group_current_status(event.group_id))
+    await group_task_status.send(image(b64=await group_current_status(event.group_id)))
 
 
 @group_status.handle()

@@ -24,6 +24,8 @@ def switch_rule(event: Event) -> bool:
             for key in _data:
                 cmd.append(f"开启{_data[key]}")
                 cmd.append(f"关闭{_data[key]}")
+                cmd.append(f"开启被动{_data[key]}")
+                cmd.append(f"关闭被动{_data[key]}")
                 cmd.append(f"开启 {_data[key]}")
                 cmd.append(f"关闭 {_data[key]}")
             _data = plugins2settings_manager.get_data()

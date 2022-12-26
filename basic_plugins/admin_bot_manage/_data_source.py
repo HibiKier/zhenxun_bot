@@ -1,7 +1,7 @@
 from typing import List
 from nonebot.adapters.onebot.v11.message import MessageSegment
 from services.log import logger
-from configs.path_config import DATA_PATH
+from configs.path_config import DATA_PATH, IMAGE_PATH
 from utils.message_builder import image
 from utils.utils import get_bot, get_matchers
 from pathlib import Path
@@ -23,8 +23,10 @@ custom_welcome_msg_json = (
     Path() / "data" / "custom_welcome_msg" / "custom_welcome_msg.json"
 )
 
+ICON_PATH = IMAGE_PATH / 'other'
 
-def group_current_status(group_id: int) -> str:
+
+async def group_current_status(group_id: int) -> str:
     """
     说明:
         获取当前群聊所有通知的开关
@@ -32,12 +34,33 @@ def group_current_status(group_id: int) -> str:
         :param group_id: 群号
     """
     _data = group_manager.get_task_data()
-    return "[被动技能 状态]\n" + "\n".join(
-        [
-            f'{_data[task]}: {"√" if group_manager.check_group_task_status(group_id, task) else "×"}\n'
-            for task in _data
-        ]
-    )
+    image_list = []
+    for i, task in enumerate(_data):
+        name = _data[task]
+        name_image = BuildImage(0, 0, plain_text=f"{i+1}.{name}", font_size=20)
+        bk = BuildImage(name_image.w + 200, name_image.h + 20, color=(103, 177, 109), font_size=15)
+        await bk.apaste(name_image, (10, 0), True, "by_height")
+        a_icon = BuildImage(40, 40, background=ICON_PATH / "btn_false.png")
+        if group_manager.check_group_task_status(group_id, task):
+            a_icon = BuildImage(40, 40, background=ICON_PATH / "btn_true.png")
+        b_icon = BuildImage(40, 40, background=ICON_PATH / "btn_false.png")
+        if group_manager.check_task_super_status(task):
+            b_icon = BuildImage(40, 40, background=ICON_PATH / "btn_true.png")
+        await bk.atext((name_image.w + 20, 10), "状态")
+        await bk.apaste(a_icon, (name_image.w + 50, 0), True)
+        await bk.atext((name_image.w + 100, 10), "全局")
+        await bk.apaste(b_icon, (name_image.w + 130, 0), True)
+        image_list.append(bk)
+    w = max([x.w for x in image_list])
+    h = sum([x.h + 10 for x in image_list])
+    A = BuildImage(w + 20, h + 70, font_size=30, color=(119, 97, 177))
+    await A.atext((15, 20), "群被动状态")
+    curr_h = 75
+    for img in image_list:
+        # await img.acircle_corner()
+        await A.apaste(img, (0, curr_h), True)
+        curr_h += img.h + 10
+    return A.pic2bs4()
 
 
 async def custom_group_welcome(
@@ -86,6 +109,38 @@ async def custom_group_welcome(
 
 
 task_data = None
+
+
+def change_global_task_status(cmd: str) -> str:
+    """
+    说明:
+        修改全局被动任务状态
+    参数:
+        :param cmd: 功能名称
+    """
+    global task_data
+    if not task_data:
+        task_data = group_manager.get_task_data()
+    status = cmd[:2]
+    _cmd = cmd[4:]
+    if '全部被动' in cmd:
+        for task in task_data:
+            if status == "开启":
+                group_manager.open_global_task(task)
+            else:
+                group_manager.close_global_task(task)
+        group_manager.save()
+        return f"已 {status} 全局全部被动技能！"
+    else:
+        modules = [x for x in task_data if task_data[x].lower() == _cmd.lower()]
+        if not modules:
+            return '未查询到该被动任务'
+        if status == "开启":
+            group_manager.open_global_task(modules[0])
+        else:
+            group_manager.close_global_task(modules[0])
+        group_manager.save()
+        return f"已 {status} 全局{_cmd}"
 
 
 async def change_group_switch(cmd: str, group_id: int, is_super: bool = False) -> str:

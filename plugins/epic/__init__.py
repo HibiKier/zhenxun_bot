@@ -67,7 +67,7 @@ async def _():
     gl = [g["group_id"] for g in gl]
     msg_list, code = await get_epic_free(bot, "Group")
     for g in gl:
-        if group_manager.check_group_task_status(g, "epic_free_game"):
+        if group_manager.check_task_status("epic_free_game", g):
             try:
                 if msg_list and code == 200:
                     await bot.send_group_forward_msg(group_id=g, messages=msg_list)

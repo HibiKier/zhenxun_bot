@@ -1,5 +1,5 @@
 import copy
-from typing import List, Union, Dict, Callable, Any
+from typing import List, Union, Dict, Callable, Any, Optional
 from pathlib import Path
 from .models import BaseData, BaseGroup
 from utils.manager.data_class import StaticData
@@ -14,7 +14,11 @@ Config.add_plugin_config(
 )
 
 Config.add_plugin_config(
-    "group_manager", "DEFAULT_GROUP_BOT_STATUS", True, help_="默认进群总开关状态", default_value=True
+    "group_manager",
+    "DEFAULT_GROUP_BOT_STATUS",
+    True,
+    help_="默认进群总开关状态",
+    default_value=True,
 )
 
 
@@ -25,12 +29,14 @@ def init_group(func: Callable):
     参数:
         :param func: func
     """
+
     def wrapper(*args, **kwargs):
         self = args[0]
         group_id = list(filter(lambda x: is_number(x), args[1:]))[0]
         if self and group_id and not self._data.group_manager.get(str(group_id)):
             self._data.group_manager[str(group_id)] = BaseGroup()
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -41,19 +47,30 @@ def init_task(func: Callable):
     参数:
         :param func: func
     """
+
     def wrapper(*args, **kwargs):
         self = args[0]
         group_id = str(args[1])
         task = args[2] if len(args) > 1 else None
-        if group_id and task and self._data.group_manager[group_id].group_task_status.get(task) is None:
+        if (
+            group_id
+            and task
+            and self._data.group_manager[group_id].group_task_status.get(task) is None
+        ):
             for task in self._data.task:
-                if self._data.group_manager[group_id].group_task_status.get(task) is None:
-                    self._data.group_manager[group_id].group_task_status[task] = Config.get_config('_task', f'DEFAULT_{task}', default=True)
+                if (
+                    self._data.group_manager[group_id].group_task_status.get(task)
+                    is None
+                ):
+                    self._data.group_manager[group_id].group_task_status[
+                        task
+                    ] = Config.get_config("_task", f"DEFAULT_{task}", default=True)
             for task in list(self._data.group_manager[group_id].group_task_status):
                 if task not in self._data.task:
                     del self._data.group_manager[group_id].group_task_status[task]
             self.save()
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -150,7 +167,10 @@ class GroupManager(StaticData[BaseData]):
             :param module: 功能模块名
             :param group_id: 群组
         """
-        return f"{module}:super" not in self._data.group_manager[str(group_id)].close_plugins
+        return (
+            f"{module}:super"
+            not in self._data.group_manager[str(group_id)].close_plugins
+        )
 
     @init_group
     def get_group_level(self, group_id: int) -> int:
@@ -237,6 +257,26 @@ class GroupManager(StaticData[BaseData]):
         """
         self._set_group_group_task_status(group_id, task, True)
 
+    def close_global_task(self, task: str):
+        """
+        说明:
+            关闭全局被动技能
+        参数:
+            :param task: 被动技能名称
+        """
+        if task not in self._data.close_task:
+            self._data.close_task.append(task)
+
+    def open_global_task(self, task: str):
+        """
+        说明:
+            开启全局被动技能
+        参数:
+            :param task: 被动技能名称
+        """
+        if task in self._data.close_task:
+            self._data.close_task.remove(task)
+
     def close_group_task(self, group_id: int, task: str):
         """
         说明:
@@ -247,6 +287,21 @@ class GroupManager(StaticData[BaseData]):
         """
         self._set_group_group_task_status(group_id, task, False)
 
+    def check_task_status(self, task: str, group_id: Optional[int] = None) -> bool:
+        """
+        说明:
+            检查该被动状态
+        参数:
+            :param task: 被动技能名称
+            :param group_id: 群号
+        """
+        if group_id:
+            return self.check_group_task_status(
+                group_id, task
+            ) and self.check_task_super_status(task)
+        return self.check_task_super_status(task)
+
+    @init_group
     @init_task
     def check_group_task_status(self, group_id: int, task: str) -> bool:
         """
@@ -256,7 +311,18 @@ class GroupManager(StaticData[BaseData]):
             :param group_id: 群号
             :param task: 被动技能名称
         """
-        return self._data.group_manager[str(group_id)].group_task_status.get(task, False)
+        return self._data.group_manager[str(group_id)].group_task_status.get(
+            task, False
+        )
+
+    def check_task_super_status(self, task: str) -> bool:
+        """
+        说明:
+            查看群被动技能状态（超级用户设置的状态）
+        参数:
+            :param task: 被动技能名称
+        """
+        return task not in self._data.close_task
 
     def get_task_data(self) -> Dict[str, str]:
         """
@@ -265,6 +331,7 @@ class GroupManager(StaticData[BaseData]):
         """
         return self._data.task
 
+    @init_group
     @init_task
     def group_group_task_status(self, group_id: int) -> str:
         """
@@ -279,8 +346,8 @@ class GroupManager(StaticData[BaseData]):
             x += f'{self._data.task[key]}：{"√" if self.check_group_task_status(int(group_id), key) else "×"}\n'
         return x[:-1]
 
-    @init_task
     @init_group
+    @init_task
     def _set_group_group_task_status(self, group_id: int, task: str, status: bool):
         """
         说明:
@@ -295,11 +362,7 @@ class GroupManager(StaticData[BaseData]):
 
     @init_group
     def _set_plugin_status(
-        self,
-        module: str,
-        status: str,
-        group_id: int,
-        is_save: bool
+        self, module: str, status: str, group_id: int, is_save: bool
     ):
         """
         说明:

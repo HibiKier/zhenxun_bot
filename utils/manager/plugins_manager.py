@@ -14,17 +14,20 @@ def init_plugin(func: Callable):
     """
 
     def wrapper(*args, **kwargs):
-        self = args[0]
-        module = args[1]
-        if module not in self._data.keys():
-            self._data[module] = Plugin(
-                plugin_name=module,
-                status=True,
-                error=False,
-                block_type=None,
-                author=None,
-                version=None,
-            )
+        try:
+            self = args[0]
+            module = args[1]
+            if module not in self._data.keys():
+                self._data[module] = Plugin(
+                    plugin_name=module,
+                    status=True,
+                    error=False,
+                    block_type=None,
+                    author=None,
+                    version=None,
+                )
+        except Exception as e:
+            pass
         return func(*args, **kwargs)
 
     return wrapper

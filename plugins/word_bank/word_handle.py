@@ -54,7 +54,7 @@ usage:
         私聊添加词条
         （私聊情况下）删除词条: 删除私聊词条
         （私聊情况下）删除全局词条
-        （私聊情况下）修改词条: 修改词条私聊词条
+        （私聊情况下）修改词条: 修改私聊词条
         （私聊情况下）修改全局词条
         用法与普通用法相同
 """.strip()
@@ -96,6 +96,8 @@ async def _(
     if isinstance(event, PrivateMessageEvent) and str(event.user_id) not in bot.config.superusers:
         await add_word.finish('权限不足捏')
     word_scope, word_type, problem, answer = reg_group
+    if not word_scope and isinstance(event, PrivateMessageEvent):
+        word_scope = '私聊'
     if (
         word_scope
         and word_scope in ["全局", "私聊"]
@@ -153,8 +155,8 @@ async def _(
                 re.compile(problem)
             except re.error:
                 await add_word.finish(f"添加词条失败，正则表达式 {problem} 非法！")
-        if str(event.user_id) in bot.config.superusers and isinstance(event, PrivateMessageEvent):
-            word_scope = "私聊"
+        # if str(event.user_id) in bot.config.superusers and isinstance(event, PrivateMessageEvent):
+        #     word_scope = "私聊"
         nickname = None
         if problem and bot.config.nickname:
             nickname = [nk for nk in bot.config.nickname if problem.startswith(nk)]

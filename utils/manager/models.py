@@ -33,6 +33,7 @@ class BaseData(BaseModel):
     """
 
     white_group: List[int] = []  # 白名单
+    close_task: List[str] = []   # 全局关闭的被动任务
     group_manager: Dict[str, BaseGroup] = {}  # 群组管理
     task: Dict[str, str] = {}  # 被动任务 【英文：中文】
 
