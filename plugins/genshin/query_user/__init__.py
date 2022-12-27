@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from configs.config import Config
 import nonebot
 
@@ -26,7 +28,7 @@ Config.add_plugin_config(
     "5"
 )
 
-nonebot.load_plugins("plugins/genshin/query_user")
+nonebot.load_plugins(str(Path(__file__).parent.resolve()))
 
 
 

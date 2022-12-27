@@ -234,7 +234,7 @@ def get_home_data_image(home_data_list: List[Dict]) -> BuildImage:
     画出家园数据
     :param home_data_list: 家园列表
     """
-    h = 130 + 340 * 4
+    h = 130 + 340 * len(home_data_list)
     region = BuildImage(
         550, h, color="#E3DBD1", font="HYWenHei-85W.ttf", font_size=40
     )
