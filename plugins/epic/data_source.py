@@ -112,9 +112,15 @@ async def get_epic_free(bot: Bot, type_event: str):
                         if pair["key"] == "publisherName":
                             game_pub = pair["value"]
                     if game.get("productSlug"):
-                    	gamesDesp = await get_epic_game_desp(game["productSlug"])
-                    	#game_desp = game["description"]
-                    	game_desp = gamesDesp["description"]
+                        gamesDesp = await get_epic_game_desp(game["productSlug"])
+                        try:
+                            #是否存在简短的介绍
+                            if "shortDescription" in gamesDesp:
+                                game_desp = gamesDesp["shortDescription"]
+                        except KeyError:
+                                game_desp = gamesDesp["description"]
+                    else:
+                        game_desp = game["description"]
                     try:
                         end_date_iso = game["promotions"]["promotionalOffers"][0][
                             "promotionalOffers"
