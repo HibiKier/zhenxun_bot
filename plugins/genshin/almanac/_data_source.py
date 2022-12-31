@@ -77,7 +77,7 @@ async def build_alc_image() -> str:
         构造今日运势图片
     """
     for file in os.listdir(ALC_PATH):
-        if file not in ["back.png", f"{datetime.now().date()}"]:
+        if file not in ["back.png", f"{datetime.now().date()}.png"]:
             (ALC_PATH / file).unlink()
     path = ALC_PATH / f"{datetime.now().date()}.png"
     if path.exists():
