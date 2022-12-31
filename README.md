@@ -303,6 +303,7 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 * 修复epic报错，优化简介 [@pull/1226](https://github.com/HibiKier/zhenxun_bot/pull/1226)
 * 修复词条在某些回答下出错
+* 原神黄历改为PIL
 
 ### 2022/12/27 \[v0.1.6.6]
 

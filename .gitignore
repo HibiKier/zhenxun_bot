@@ -163,3 +163,5 @@ configs/config.yaml
 ./.env.dev
 plugins/csgo_server/
 plugins/activity/
+!/resources/image/genshin/alc/back.png
+!/data/genshin_alc/

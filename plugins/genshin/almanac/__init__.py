@@ -1,11 +1,13 @@
-from utils.utils import get_bot, scheduler
+from configs.config import Config
+from configs.path_config import IMAGE_PATH
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent
 from services.log import logger
-from configs.path_config import IMAGE_PATH
-from .data_source import get_alc_image
 from utils.manager import group_manager
-from configs.config import Config
+from utils.message_builder import image
+from utils.utils import get_bot, scheduler
+
+from ._data_source import build_alc_image
 
 __zx_plugin_name__ = "原神老黄历"
 __plugin_usage__ = """
@@ -35,25 +37,16 @@ Config.add_plugin_config(
     default_value=True,
 )
 
-almanac = on_command("原神黄历", priority=15, block=True)
-
-
-ALC_PATH = IMAGE_PATH / "genshin" / "alc"
-ALC_PATH.mkdir(parents=True, exist_ok=True)
+almanac = on_command("原神黄历", priority=5, block=True)
 
 
 @almanac.handle()
-async def _(event: MessageEvent,):
-    alc_img = await get_alc_image(ALC_PATH)
-    if alc_img:
-        mes = alc_img + "\n ※ 黄历数据来源于 genshin.pub"
-        await almanac.send(mes)
-        logger.info(
-            f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-            f" 发送查看原神黄历"
-        )
-    else:
-        await almanac.send("黄历图片下载失败...")
+async def _(event: MessageEvent):
+    await almanac.send(image(b64=await build_alc_image()))
+    logger.info(
+        f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+        f" 发送查看原神黄历"
+    )
 
 
 @scheduler.scheduled_job(
@@ -67,9 +60,9 @@ async def _():
     if bot:
         gl = await bot.get_group_list()
         gl = [g["group_id"] for g in gl]
-        alc_img = await get_alc_image(ALC_PATH)
+        alc_img = image(b64=await build_alc_image())
         if alc_img:
-            mes = "[[_task|genshin_alc]]" + alc_img + "\n ※ 黄历数据来源于 genshin.pub"
+            mes = "[[_task|genshin_alc]]" + alc_img
             for gid in gl:
                 if group_manager.check_group_task_status(gid, "genshin_alc"):
                     await bot.send_group_msg(group_id=int(gid), message="" + mes)

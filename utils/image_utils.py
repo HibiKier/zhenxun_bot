@@ -8,6 +8,8 @@ from io import BytesIO
 from math import ceil
 from pathlib import Path
 from typing import List, Literal, Optional, Tuple, Union, Callable, Awaitable
+
+from PIL.ImageFont import FreeTypeFont
 from nonebot.utils import is_coroutine_callable
 
 import cv2
@@ -184,6 +186,7 @@ class BuildImage:
         self._current_w = 0
         self._current_h = 0
         self.uid = uuid.uuid1()
+        self.font_name = font
         self.font = ImageFont.truetype(str(FONT_PATH / font), int(font_size))
         if not plain_text and not color:
             color = (255, 255, 255)
@@ -236,6 +239,17 @@ class BuildImage:
             new_loop = asyncio.new_event_loop()
             asyncio.set_event_loop(new_loop)
             self.loop = asyncio.get_event_loop()
+
+    @classmethod
+    def load_font(cls, font: str, font_size: int) -> FreeTypeFont:
+        """
+        说明:
+            加载字体
+        参数:
+            :param font: 字体名称
+            :param font_size: 字体大小
+        """
+        return ImageFont.truetype(str(FONT_PATH / font), font_size)
 
     async def apaste(
         self,
@@ -379,6 +393,9 @@ class BuildImage:
         text: str,
         fill: Union[str, Tuple[int, int, int]] = (0, 0, 0),
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
+        font: Union[FreeTypeFont, str] = None,
+        font_size: Optional[int] = None,
+        **kwargs
     ):
         """
         说明:
@@ -388,8 +405,10 @@ class BuildImage:
             :param text: 文字内容
             :param fill: 文字颜色
             :param center_type: 居中类型，可能的值 center: 完全居中，by_width: 水平居中，by_height: 垂直居中
+            :param font: 字体
+            :param font_size: 字体大小
         """
-        await self.loop.run_in_executor(None, self.text, pos, text, fill, center_type)
+        await self.loop.run_in_executor(None, self.text, pos, text, fill, center_type, font, font_size, **kwargs)
 
     def text(
         self,
@@ -397,6 +416,9 @@ class BuildImage:
         text: str,
         fill: Union[str, Tuple[int, int, int]] = (0, 0, 0),
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
+        font: Union[FreeTypeFont, str] = None,
+        font_size: Optional[int] = None,
+        **kwargs
     ):
         """
         说明:
@@ -406,6 +428,8 @@ class BuildImage:
             :param text: 文字内容
             :param fill: 文字颜色
             :param center_type: 居中类型，可能的值 center: 完全居中，by_width: 水平居中，by_height: 垂直居中
+            :param font: 字体
+            :param font_size: 字体大小
         """
         if center_type:
             if center_type not in ["center", "by_height", "by_width"]:
@@ -424,7 +448,12 @@ class BuildImage:
                 h = int((h - ttf_h) / 2)
                 w = pos[0]
             pos = (w, h)
-        self.draw.text(pos, text, fill=fill, font=self.font)
+        if font:
+            if isinstance(font, str):
+                font = self.load_font(font, font_size)
+        elif font_size:
+            font = self.load_font(self.font_name, font_size)
+        self.draw.text(pos, text, fill=fill, font=font or self.font, **kwargs)
 
     async def asave(self, path: Optional[Union[str, Path]] = None):
         """
