@@ -144,7 +144,7 @@ class AuthChecker:
         try:
             plugin_name = matcher.plugin_name
             cost_gold = await self.auth_cost(plugin_name, bot, event)
-            if str(event.user_id) not in bot.config.superusers:
+            if hasattr(event, "user_id") and str(event.user_id) not in bot.config.superusers:
                 await self.auth_basic(plugin_name, bot, event)
                 self.auth_group(plugin_name, bot, event)
                 await self.auth_admin(plugin_name, matcher, bot, event)

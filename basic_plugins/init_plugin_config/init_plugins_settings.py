@@ -9,13 +9,13 @@ def init_plugins_settings():
     """
     初始化插件设置，从插件中获取 __zx_plugin_name__，__plugin_cmd__，__plugin_settings__
     """
-    for x in plugins2settings_manager.keys():
-        try:
-            _plugin = nonebot.plugin.get_plugin(x)
-            _module = _plugin.module
-            _module.__getattribute__("__zx_plugin_name__")
-        except (KeyError, AttributeError) as e:
-            logger.warning(f"配置文件 模块：{x} 获取 plugin_name 失败...{e}")
+    # for x in plugins2settings_manager.keys():
+    #     try:
+    #         _plugin = nonebot.plugin.get_plugin(x)
+    #         _module = _plugin.module
+    #         _module.__getattribute__("__zx_plugin_name__")
+    #     except (KeyError, AttributeError) as e:
+    #         logger.warning(f"配置文件 模块：{x} 获取 plugin_name 失败...{e}")
     for matcher in get_matchers(True):
         try:
             if matcher.plugin_name not in plugins2settings_manager.keys():

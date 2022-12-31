@@ -192,7 +192,7 @@ class BuildImage:
             if plain_text:
                 if not color:
                     color = (255, 255, 255, 0)
-                ttf_w, ttf_h = self.getsize(plain_text)
+                ttf_w, ttf_h = self.getsize(str(plain_text))
                 self.w = self.w if self.w > ttf_w else ttf_w
                 self.h = self.h if self.h > ttf_h else ttf_h
             self.markImg = Image.new(image_mode, (self.w, self.h), color)
@@ -229,7 +229,7 @@ class BuildImage:
         self.size = self.w, self.h
         if plain_text:
             fill = font_color if font_color else (0, 0, 0)
-            self.text((0, 0), plain_text, fill)
+            self.text((0, 0), str(plain_text), fill)
         try:
             self.loop = asyncio.get_event_loop()
         except RuntimeError:

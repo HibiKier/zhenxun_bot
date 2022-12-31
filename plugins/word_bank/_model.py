@@ -194,8 +194,8 @@ class WordBank(db.Model):
                 & (cls.answer == answer)
             ).gino.first()
         if query and query.placeholder:
-            type_list = re.findall(rf"\[(.*):placeholder_.*]", answer)
-            temp_answer = re.sub(rf"\[(.*):placeholder_.*]", "{}", answer)
+            type_list = re.findall(rf"\[(.*?):placeholder_.*?]", answer)
+            temp_answer = re.sub(rf"\[(.*?):placeholder_.*?]", "{}", answer)
             seg_list = []
             for t, p in zip(type_list, query.placeholder.split(",")):
                 if t == "image":
@@ -206,7 +206,6 @@ class WordBank(db.Model):
                     seg_list.append(at(p))
             return MessageTemplate(temp_answer, Message).format(*seg_list)
         return answer
-
 
     @classmethod
     async def check(
