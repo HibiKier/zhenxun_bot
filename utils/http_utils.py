@@ -162,7 +162,10 @@ class AsyncHttpx:
                                 timeout=timeout,
                                 **kwargs,
                             )
-                        ).content
+                        )
+                        if content.status_code != 200:
+                            continue
+                        content = content.content
                         async with aiofiles.open(path, "wb") as wf:
                             await wf.write(content)
                             logger.info(f"下载 {url} 成功.. Path：{path.absolute()}")
@@ -184,6 +187,8 @@ class AsyncHttpx:
                                 timeout=timeout,
                                 **kwargs
                             ) as response:
+                                if response.status_code != 200:
+                                    continue
                                 logger.info(f"开始下载 {path.name}.. Path: {path.absolute()}")
                                 async with aiofiles.open(path, "wb") as wf:
                                     total = int(response.headers["Content-Length"])
