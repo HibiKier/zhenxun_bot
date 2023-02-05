@@ -13,7 +13,7 @@ Config.add_plugin_config(
 Config.add_plugin_config(
     "pixiv",
     "PIXIV_NGINX_URL",
-    "i.pixiv.re",
+    "i.pximg.cf",
     help_="Pixiv反向代理"
 )
 Config.add_plugin_config(
