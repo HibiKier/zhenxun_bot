@@ -99,7 +99,7 @@ async def update_image():
     except Exception as e:
         logger.error(f"原神每日素材更新出错... {type(e)}: {e}")
         if page:
-            page.close()
+            await page.close()
         return False
 
 
