@@ -336,6 +336,9 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 * 数据库舍弃`gino`使用`tortoise`
 * 昵称提供命令`全局昵称设置`
 * `manager_group`群管理操作中`退群`，`修改群权限`，`添加/删除群白名单`，`添加/删除群认证`在群聊中使用命令时且未指定群聊时，默认指定当前群聊
+* 修复插件帮助命令不生效的问题 [@pull/1263](https://github.com/HibiKier/zhenxun_bot/pull/1263)
+* 解决开红包经常误触的问题，有红包和未领取的时候才会触发“开”命令 [@pull/1257](https://github.com/HibiKier/zhenxun_bot/pull/1257)
+* 细节优化，原神今日素材重写 [@pull/1258](https://github.com/HibiKier/zhenxun_bot/pull/1258)
 
 ### 2022/1/31
 
