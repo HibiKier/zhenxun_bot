@@ -1,35 +1,23 @@
 
-from datetime import datetime
+from tortoise import fields
 
-from services.db_context import db
+from services.db_context import Model
 
 # 1.狂牙武器箱
 
 
-class BuffPrice(db.Model):
-    __tablename__ = 'buff_prices'
-    __table_args__ = {'extend_existing': True}
+class BuffPrice(Model):
 
-    id = db.Column(db.Integer(), primary_key=True)
-    case_id = db.Column(db.Integer(), nullable=False)
-    skin_name = db.Column(db.Unicode(), nullable=False)
-    skin_price = db.Column(db.Float(), nullable=False)
-    update_date = db.Column(db.DateTime(), nullable=False)
+    id = fields.IntField(pk=True, generated=True, auto_increment=True)
+    """自增id"""
+    case_id = fields.IntField()
+    """箱子id"""
+    skin_name = fields.CharField(255, unique=True)
+    """皮肤名称"""
+    skin_price = fields.FloatField()
+    """皮肤价格"""
+    update_date = fields.DatetimeField()
 
-    _idx1 = db.Index('buff_price_idx1', 'skin_name', unique=True)
-
-    @classmethod
-    async def ensure(cls, skin_name: str, for_update: bool = False) -> 'BuffPrice':
-        query = cls.query.where(
-            (cls.skin_name == skin_name)
-        )
-        if for_update:
-            query = query.with_for_update()
-        user = await query.gino.first()
-        return user or await cls.create(
-            case_id=1,
-            skin_name=skin_name,
-            skin_price=0,
-            update_date=datetime.min,
-        )
-
+    class Meta:
+        table = "buff_prices"
+        table_description = "Buff价格数据表"

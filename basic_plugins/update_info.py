@@ -1,6 +1,6 @@
 from nonebot import on_command
-from utils.message_builder import image
 
+from utils.message_builder import image
 
 __zx_plugin_name__ = "更新信息"
 __plugin_usage__ = """
@@ -26,8 +26,7 @@ update_info = on_command("更新信息", aliases={"更新日志"}, priority=5, b
 
 @update_info.handle()
 async def _():
-    img = image("update_info.png")
-    if img:
+    if img := image("update_info.png"):
         await update_info.finish(image("update_info.png"))
     else:
         await update_info.finish("目前没有更新信息哦")

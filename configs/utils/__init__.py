@@ -1,8 +1,9 @@
 import copy
-from typing import Optional, Any, Union
 from pathlib import Path
-from ruamel.yaml import YAML
+from typing import Any, Optional, Union
+
 from ruamel import yaml
+from ruamel.yaml import YAML
 from ruamel.yaml.scanner import ScannerError
 
 
@@ -50,7 +51,7 @@ class ConfigsManager:
         *,
         name: Optional[str] = None,
         help_: Optional[str] = None,
-        default_value: Optional[str] = None,
+        default_value: Optional[Any] = None,
         _override: bool = False,
     ):
         """

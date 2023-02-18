@@ -1,9 +1,10 @@
-from configs.config import Config
-import json
-import time
-import random
 import hashlib
+import json
+import random
 import string
+import time
+
+from configs.config import Config
 
 
 def _md5(text):
@@ -15,7 +16,7 @@ def _md5(text):
 def get_old_ds() -> str:
     n = Config.get_config("genshin", "n")
     i = str(int(time.time()))
-    r = ''.join(random.sample(string.ascii_lowercase + string.digits, 6))
+    r = "".join(random.sample(string.ascii_lowercase + string.digits, 6))
     c = _md5("salt=" + n + "&t=" + i + "&r=" + r)
     return i + "," + r + "," + c
 
@@ -33,7 +34,7 @@ def get_ds(q: str = "", b: dict = None) -> str:
 
 
 def random_hex(length: int) -> str:
-    result = hex(random.randint(0, 16 ** length)).replace("0x", "").upper()
+    result = hex(random.randint(0, 16**length)).replace("0x", "").upper()
     if len(result) < length:
         result = "0" * (length - len(result)) + result
     return result

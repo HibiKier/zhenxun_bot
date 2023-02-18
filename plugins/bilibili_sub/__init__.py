@@ -1,28 +1,29 @@
-from nonebot import on_command, on_regex
-from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
+from typing import Any, Optional, Tuple
 
+import nonebot
+from nonebot import Driver, on_command, on_regex
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent
+from nonebot.params import ArgStr, CommandArg, RegexGroup
+from nonebot.typing import T_State
+
+from configs.config import Config
+from models.level_user import LevelUser
+from services.log import logger
 from utils.image_utils import text2image
+from utils.manager import group_manager
 from utils.message_builder import image
+from utils.utils import get_bot, is_number, scheduler
+
 from .data_source import (
+    BilibiliSub,
+    SubManager,
     add_live_sub,
-    delete_sub,
-    add_up_sub,
     add_season_sub,
+    add_up_sub,
+    delete_sub,
     get_media_id,
     get_sub_status,
-    SubManager,
-    BilibiliSub,
 )
-from models.level_user import LevelUser
-from utils.manager import group_manager
-from configs.config import Config
-from utils.utils import is_number, scheduler, get_bot
-from typing import Optional, Tuple, Any
-from services.log import logger
-from nonebot import Driver
-from nonebot.params import CommandArg, ArgStr, RegexGroup
-import nonebot
 
 __zx_plugin_name__ = "B站订阅"
 __plugin_usage__ = """
@@ -168,20 +169,20 @@ async def _(
     sub_user: str = ArgStr("sub_user"),
 ):
     if sub_type in ["主播", "直播"]:
-        result = await BilibiliSub.delete_bilibili_sub(int(id_),sub_user,"live")
+        result = await BilibiliSub.delete_bilibili_sub(int(id_), sub_user, "live")
     elif sub_type.lower() in ["up", "用户"]:
-        result = await BilibiliSub.delete_bilibili_sub(int(id_),sub_user,"up")    
-    else: result = await BilibiliSub.delete_bilibili_sub(int(id_),sub_user)  
+        result = await BilibiliSub.delete_bilibili_sub(int(id_), sub_user, "up")
+    else:
+        result = await BilibiliSub.delete_bilibili_sub(int(id_), sub_user)
     if result:
         await del_sub.send(f"删除订阅id：{id_} 成功...")
         logger.info(
-        f"(USER {event.user_id}, GROUP "
-        f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-        f" 删除订阅 {id_}"
-    )
+            f"(USER {event.user_id}, GROUP "
+            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
+            f" 删除订阅 {id_}"
+        )
     else:
         await del_sub.send(f"删除订阅id：{id_} 失败...")
-       
 
 
 @show_sub_info.handle()
@@ -190,7 +191,7 @@ async def _(event: MessageEvent):
         id_ = f"{event.group_id}"
     else:
         id_ = f"{event.user_id}"
-    data = await BilibiliSub.get_sub_data(id_)
+    data = await BilibiliSub.filter(sub_users__contains=id_).all()
     live_rst = ""
     up_rst = ""
     season_rst = ""
@@ -217,11 +218,9 @@ async def _(event: MessageEvent):
         )
     await show_sub_info.send(
         image(
-            b64=(
-                await text2image(
-                    live_rst + up_rst + season_rst, padding=10, color="#f9f6f2"
-                )
-            ).pic2bs4()
+            await text2image(
+                live_rst + up_rst + season_rst, padding=10, color="#f9f6f2"
+            )
         )
     )
 
@@ -277,7 +276,9 @@ async def send_sub_msg(rst: str, sub: BilibiliSub, bot: Bot):
                         ):
                             rst = "[CQ:at,qq=all]\n" + rst
                     if group_manager.get_plugin_status("bilibili_sub", group_id):
-                        await bot.send_group_msg(group_id=group_id, message=Message(rst))
+                        await bot.send_group_msg(
+                            group_id=group_id, message=Message(rst)
+                        )
                 else:
                     await bot.send_private_msg(user_id=int(x), message=Message(rst))
             except Exception as e:

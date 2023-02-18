@@ -1,13 +1,16 @@
-from nonebot import on_command
-from utils.utils import is_number
-from services.log import logger
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
-from nonebot.params import CommandArg, Command
 from typing import Tuple
-from ._data_source import uid_pid_exists
-from ._model.pixiv_keyword_user import PixivKeywordUser
-from ._model.pixiv import Pixiv
+
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent
+from nonebot.params import Command, CommandArg
 from nonebot.permission import SUPERUSER
+
+from services.log import logger
+from utils.utils import is_number
+
+from ._data_source import uid_pid_exists
+from ._model.pixiv import Pixiv
+from ._model.pixiv_keyword_user import PixivKeywordUser
 
 __zx_plugin_name__ = "PIX关键词/UID/PID添加管理 [Superuser]"
 __plugin_usage__ = """
@@ -46,9 +49,16 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     if isinstance(event, GroupMessageEvent):
         group_id = event.group_id
     if msg:
-        if await PixivKeywordUser.add_keyword(
-            event.user_id, group_id, msg, bot.config.superusers
-        ):
+        # if await PixivKeywordUser.add_keyword(
+        #     event.user_id, group_id, msg, bot.config.superusers
+        # ):
+        if not await PixivKeywordUser.exists(keyword=msg):
+            await PixivKeywordUser.create(
+                user_qq=event.user_id,
+                group_id=group_id,
+                keyword=msg,
+                is_pass=str(event.user_id) in bot.config.superusers,
+            )
             await add_keyword.send(
                 f"已成功添加pixiv搜图关键词：{msg}，请等待管理员通过该关键词！", at_sender=True
             )
@@ -63,7 +73,12 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
 
 
 @add_uid_pid.handle()
-async def _(bot: Bot, event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
+async def _(
+    bot: Bot,
+    event: MessageEvent,
+    cmd: Tuple[str, ...] = Command(),
+    arg: Message = CommandArg(),
+):
     msg = arg.extract_plain_text().strip()
     exists_flag = True
     if msg.find("-f") != -1 and str(event.user_id) in bot.config.superusers:
@@ -77,16 +92,23 @@ async def _(bot: Bot, event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg
                 msg = f"uid:{msg}"
             else:
                 msg = f"pid:{msg}"
-                if await Pixiv.check_exists(int(msg[4:]), "p0"):
+                if await Pixiv.get_or_none(pid=int(msg[4:]), img_p="p0"):
                     await add_uid_pid.finish(f"该PID：{msg[4:]}已存在...", at_sender=True)
             if not await uid_pid_exists(msg) and exists_flag:
                 await add_uid_pid.finish("画师或作品不存在或搜索正在CD，请稍等...", at_sender=True)
             group_id = -1
             if isinstance(event, GroupMessageEvent):
                 group_id = event.group_id
-            if await PixivKeywordUser.add_keyword(
-                event.user_id, group_id, msg, bot.config.superusers
-            ):
+            # if await PixivKeywordUser.add_keyword(
+            #     event.user_id, group_id, msg, bot.config.superusers
+            # ):
+            if not await PixivKeywordUser.exists(keyword=msg):
+                await PixivKeywordUser.create(
+                    user_qq=event.user_id,
+                    group_id=group_id,
+                    keyword=msg,
+                    is_pass=str(event.user_id) in bot.config.superusers,
+                )
                 await add_uid_pid.send(
                     f"已成功添加pixiv搜图UID/PID：{msg[4:]}，请等待管理员通过！", at_sender=True
                 )
@@ -106,12 +128,21 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         pid = pid[: pid.find("p")]
     if not is_number(pid):
         await add_black_pid.finish("PID必须全部是数字！", at_sender=True)
-    if await PixivKeywordUser.add_keyword(
-        114514,
-        114514,
-        f"black:{pid}{f'_p{img_p}' if img_p else ''}",
-        bot.config.superusers,
+    # if await PixivKeywordUser.add_keyword(
+    #     114514,
+    #     114514,
+    #     f"black:{pid}{f'_p{img_p}' if img_p else ''}",
+    #     bot.config.superusers,
+    # ):
+    if not await PixivKeywordUser.exists(
+        keyword=f"black:{pid}{f'_p{img_p}' if img_p else ''}"
     ):
+        await PixivKeywordUser.create(
+            user_qq=114514,
+            group_id=114514,
+            keyword=f"black:{pid}{f'_p{img_p}' if img_p else ''}",
+            is_pass=str(event.user_id) in bot.config.superusers,
+        )
         await add_black_pid.send(f"已添加PID：{pid} 至黑名单中...")
         logger.info(
             f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"

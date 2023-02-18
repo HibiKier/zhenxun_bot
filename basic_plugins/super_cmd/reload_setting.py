@@ -1,21 +1,21 @@
 from nonebot import on_command
 from nonebot.permission import SUPERUSER
 from nonebot.rule import to_me
-from utils.manager import (
-    plugins2cd_manager,
-    plugins2settings_manager,
-    plugins2block_manager,
-    group_manager,
-)
+
 from configs.config import Config
 from services.log import logger
+from utils.manager import (
+    group_manager,
+    plugins2block_manager,
+    plugins2cd_manager,
+    plugins2settings_manager,
+)
 from utils.utils import scheduler
 
-
-__zx_plugin_name__ = "重载插件配置 [Superuser]"
+__zx_plugin_name__ = "重载配置 [Superuser]"
 __plugin_usage__ = """
 usage：
-    重载插件配置
+    重载配置
     plugins2settings,
     plugins2cd
     plugins2block
@@ -23,23 +23,15 @@ usage：
     指令：
         重载插件配置
 """.strip()
-__plugin_des__ = "重载插件配置"
+__plugin_des__ = "重载配置"
 __plugin_cmd__ = [
-    "重载插件配置",
+    "重载配置",
 ]
-__plugin_version__ = 0.1
+__plugin_version__ = 0.2
 __plugin_author__ = "HibiKier"
 __plugin_configs__ = {
-    "AUTO_RELOAD": {
-        "value": False,
-        "help": "自动重载配置文件",
-        "default_value": False
-    },
-    "AUTO_RELOAD_TIME": {
-        "value": 180,
-        "help": "控制自动重载配置文件时长",
-        "default_value": 180
-    }
+    "AUTO_RELOAD": {"value": False, "help": "自动重载配置文件", "default_value": False},
+    "AUTO_RELOAD_TIME": {"value": 180, "help": "控制自动重载配置文件时长", "default_value": 180},
 }
 
 
@@ -59,7 +51,7 @@ async def _():
 
 
 @scheduler.scheduled_job(
-    'interval',
+    "interval",
     seconds=Config.get_config("reload_setting", "AUTO_RELOAD_TIME", 180),
 )
 async def _():

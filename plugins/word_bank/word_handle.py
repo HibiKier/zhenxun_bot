@@ -1,21 +1,29 @@
 import re
-from typing import Tuple, Any, Optional
+from typing import Any, Optional, Tuple
 
+from nonebot import on_command, on_regex
+from nonebot.adapters.onebot.v11 import (
+    Bot,
+    GroupMessageEvent,
+    Message,
+    MessageEvent,
+    PrivateMessageEvent,
+    unescape,
+)
+from nonebot.exception import FinishedException
 from nonebot.internal.params import Arg, ArgStr
+from nonebot.params import Command, CommandArg, RegexGroup
 from nonebot.typing import T_State
 
-from utils.utils import get_message_at, is_number, get_message_img
-from nonebot.params import CommandArg, RegexGroup, Command
-from nonebot.exception import FinishedException
-from services.log import logger
-from configs.path_config import DATA_PATH
-from utils.message_builder import custom_forward_msg
-from ._model import WordBank
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent, PrivateMessageEvent, unescape
-from nonebot import on_command, on_regex
 from configs.config import Config
-from ._data_source import delete_word, update_word, show_word
+from configs.path_config import DATA_PATH
+from services.log import logger
+from utils.message_builder import custom_forward_msg
+from utils.utils import get_message_at, get_message_img, is_number
+
 from ._config import scope2int, type2int
+from ._data_source import delete_word, show_word, update_word
+from ._model import WordBank
 
 __zx_plugin_name__ = "词库问答 [Admin]"
 __plugin_usage__ = r"""

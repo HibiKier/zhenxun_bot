@@ -1,19 +1,17 @@
 from typing import Any, Tuple
 
 from nonebot import on_command, on_regex
-
-from models.user_shop_gold_log import UserShopGoldLog
-from services.log import logger
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message
+from nonebot.adapters.onebot.v11.permission import GROUP
 from nonebot.params import CommandArg, RegexGroup
 
+from models.bag_user import BagUser
+from models.user_shop_gold_log import UserShopGoldLog
+from services.log import logger
 from utils.decorator.shop import NotMeetUseConditionsException
 from utils.utils import is_number
-from models.bag_user import BagUser
-from nonebot.adapters.onebot.v11.permission import GROUP
-from services.db_context import db
-from .data_source import effect, register_use, func_manager, build_params
 
+from .data_source import build_params, effect, func_manager, register_use
 
 __zx_plugin_name__ = "商店 - 使用道具"
 __plugin_usage__ = """
@@ -75,17 +73,25 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
             if prop_n not in property_.keys():
                 await use_props.finish("道具名称错误！", at_sender=True)
             name = prop_n
+        if not name:
+            await use_props.finish("未获取到道具名称", at_sender=True)
         _user_prop_count = property_[name]
         if num > _user_prop_count:
             await use_props.finish(f"道具数量不足，无法使用{num}次！")
         if num > (n := func_manager.get_max_num_limit(name)):
             await use_props.finish(f"该道具单次只能使用 {n} 个！")
-        model, kwargs = build_params(bot, event, name, num, text)
         try:
-            await func_manager.run_handle(type_="before_handle", param=model, **kwargs)
-        except NotMeetUseConditionsException as e:
-            await use_props.finish(e.get_info(), at_sender=True)
-        async with db.transaction():
+            model, kwargs = build_params(bot, event, name, num, text)
+        except KeyError:
+            logger.warning(f"{name} 未注册使用函数")
+            await use_props.finish(f"{name} 未注册使用方法")
+        else:
+            try:
+                await func_manager.run_handle(
+                    type_="before_handle", param=model, **kwargs
+                )
+            except NotMeetUseConditionsException as e:
+                await use_props.finish(e.get_info(), at_sender=True)
             if await BagUser.delete_property(event.user_id, event.group_id, name, num):
                 if func_manager.check_send_success_message(name):
                     await use_props.send(f"使用道具 {name} {num} 次成功！", at_sender=True)
@@ -94,14 +100,18 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
                 logger.info(
                     f"USER {event.user_id} GROUP {event.group_id} 使用道具 {name} {num} 次成功"
                 )
-                await UserShopGoldLog.add_shop_log(
-                    event.user_id, event.group_id, 1, name, num
+                await UserShopGoldLog.create(
+                    user_qq=event.user_id,
+                    group_id=event.group_id,
+                    type=1,
+                    name=name,
+                    num=num,
                 )
             else:
                 await use_props.send(f"使用道具 {name} {num} 次失败！", at_sender=True)
                 logger.info(
                     f"USER {event.user_id} GROUP {event.group_id} 使用道具 {name} {num} 次失败"
                 )
-        await func_manager.run_handle(type_="after_handle", param=model, **kwargs)
+            await func_manager.run_handle(type_="after_handle", param=model, **kwargs)
     else:
         await use_props.send("您的背包里没有任何的道具噢", at_sender=True)

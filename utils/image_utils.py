@@ -7,21 +7,26 @@ import uuid
 from io import BytesIO
 from math import ceil
 from pathlib import Path
-from typing import List, Literal, Optional, Tuple, Union, Callable, Awaitable
-
-from PIL.ImageFont import FreeTypeFont
-from nonebot.utils import is_coroutine_callable
+from typing import Awaitable, Callable, List, Literal, Optional, Tuple, Union
 
 import cv2
 import imagehash
-from configs.path_config import FONT_PATH, IMAGE_PATH
 from imagehash import ImageHash
 from matplotlib import pyplot as plt
+from nonebot.utils import is_coroutine_callable
 from PIL import Image, ImageDraw, ImageFile, ImageFilter, ImageFont
+from PIL.ImageFont import FreeTypeFont
+
+from configs.path_config import FONT_PATH, IMAGE_PATH
 from services import logger
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 Image.MAX_IMAGE_PIXELS = None
+
+
+ModeType = Literal[
+    "1", "CMYK", "F", "HSV", "I", "L", "LAB", "P", "RGB", "RGBA", "RGBX", "YCbCr"
+]
 
 
 def compare_image_with_hash(
@@ -154,7 +159,7 @@ class BuildImage:
         paste_image_width: int = 0,
         paste_image_height: int = 0,
         color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]] = None,
-        image_mode: str = "RGBA",
+        image_mode: ModeType = "RGBA",
         font_size: int = 10,
         background: Union[Optional[str], BytesIO, Path] = None,
         font: str = "yz.ttf",
@@ -162,7 +167,7 @@ class BuildImage:
         is_alpha: bool = False,
         plain_text: Optional[str] = None,
         font_color: Optional[Union[str, Tuple[int, int, int]]] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         参数:
@@ -320,6 +325,19 @@ class BuildImage:
             self.markImg.paste(img, pos)
         self._current_w += self.paste_image_width
 
+    @classmethod
+    def get_text_size(cls, msg: str, font: str, font_size: int) -> Tuple[int, int]:
+        """
+        说明:
+            获取文字在该图片 font_size 下所需要的空间
+        参数:
+            :param msg: 文字内容
+            :param font: 字体
+            :param font_size: 字体大小
+        """
+        font = cls.load_font(font, font_size)
+        return font.getsize(msg)
+
     def getsize(self, msg: str) -> Tuple[int, int]:
         """
         说明:
@@ -395,7 +413,7 @@ class BuildImage:
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
         font: Union[FreeTypeFont, str] = None,
         font_size: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         说明:
@@ -408,7 +426,9 @@ class BuildImage:
             :param font: 字体
             :param font_size: 字体大小
         """
-        await self.loop.run_in_executor(None, self.text, pos, text, fill, center_type, font, font_size, **kwargs)
+        await self.loop.run_in_executor(
+            None, self.text, pos, text, fill, center_type, font, font_size, **kwargs
+        )
 
     def text(
         self,
@@ -418,7 +438,7 @@ class BuildImage:
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
         font: Union[FreeTypeFont, str] = None,
         font_size: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         说明:
@@ -577,9 +597,9 @@ class BuildImage:
         buf = BytesIO()
         self.markImg.save(buf, format="PNG")
         base64_str = base64.b64encode(buf.getvalue()).decode()
-        return base64_str
+        return "base64://" + base64_str
 
-    def convert(self, type_: str):
+    def convert(self, type_: ModeType):
         """
         说明:
             修改图片类型
@@ -792,7 +812,7 @@ class BuildImage:
         """
         self.markImg = self.markImg.rotate(angle, expand=expand)
 
-    async def atranspose(self, angle: int):
+    async def atranspose(self, angle: Literal[0, 1, 2, 3, 4, 5, 6]):
         """
         说明:
             异步 旋转图片(包括边框)
@@ -801,7 +821,7 @@ class BuildImage:
         """
         await self.loop.run_in_executor(None, self.transpose, angle)
 
-    def transpose(self, angle: int):
+    def transpose(self, angle: Literal[0, 1, 2, 3, 4, 5, 6]):
         """
         说明:
             旋转图片(包括边框)
@@ -1663,7 +1683,11 @@ async def build_sort_image(
     image_group: List[List[BuildImage]],
     h: Optional[int] = None,
     padding_top: int = 200,
-    color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]] = (255, 255, 255),
+    color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]] = (
+        255,
+        255,
+        255,
+    ),
     background_path: Optional[Path] = None,
     background_handle: Callable[[BuildImage], Optional[Awaitable]] = None,
 ) -> BuildImage:

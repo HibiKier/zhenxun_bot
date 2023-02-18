@@ -1,20 +1,23 @@
-from typing import Dict, Union, Optional, List, Any, Literal
-from utils.user_agent import get_user_agent
-from .utils import get_local_proxy
-from services.log import logger
-from pathlib import Path
-from httpx import Response
-from asyncio.exceptions import TimeoutError
-from nonebot.adapters.onebot.v11 import MessageSegment
-from playwright.async_api import Page, BrowserContext
-from .message_builder import image
-from httpx import ConnectTimeout
-from .browser import get_browser
-from retrying import retry
 import asyncio
+from asyncio.exceptions import TimeoutError
+from contextlib import asynccontextmanager
+from pathlib import Path
+from typing import Any, AsyncGenerator, Dict, List, Literal, Optional, Union
+
 import aiofiles
 import httpx
 import rich
+from httpx import ConnectTimeout, Response
+from nonebot.adapters.onebot.v11 import MessageSegment
+from playwright.async_api import BrowserContext, Page
+from retrying import retry
+
+from services.log import logger
+from utils.user_agent import get_user_agent
+
+from .browser import get_browser
+from .message_builder import image
+from .utils import get_local_proxy
 
 
 class AsyncHttpx:
@@ -32,7 +35,7 @@ class AsyncHttpx:
         cookies: Optional[Dict[str, str]] = None,
         verify: bool = True,
         use_proxy: bool = True,
-        proxy: Dict[str, str] = None,
+        proxy: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = 30,
         **kwargs,
     ) -> Response:
@@ -59,7 +62,7 @@ class AsyncHttpx:
                 headers=headers,
                 cookies=cookies,
                 timeout=timeout,
-                **kwargs
+                **kwargs,
             )
 
     @classmethod
@@ -174,7 +177,9 @@ class AsyncHttpx:
                         headers = get_user_agent()
                     proxy = proxy if proxy else cls.proxy if use_proxy else None
                     try:
-                        async with httpx.AsyncClient(proxies=proxy, verify=verify) as client:
+                        async with httpx.AsyncClient(
+                            proxies=proxy, verify=verify
+                        ) as client:
                             async with client.stream(
                                 "GET",
                                 url,
@@ -182,9 +187,11 @@ class AsyncHttpx:
                                 headers=headers,
                                 cookies=cookies,
                                 timeout=timeout,
-                                **kwargs
+                                **kwargs,
                             ) as response:
-                                logger.info(f"开始下载 {path.name}.. Path: {path.absolute()}")
+                                logger.info(
+                                    f"开始下载 {path.name}.. Path: {path.absolute()}"
+                                )
                                 async with aiofiles.open(path, "wb") as wf:
                                     total = int(response.headers["Content-Length"])
                                     with rich.progress.Progress(
@@ -192,13 +199,18 @@ class AsyncHttpx:
                                         "[progress.percentage]{task.percentage:>3.0f}%",
                                         rich.progress.BarColumn(bar_width=None),
                                         rich.progress.DownloadColumn(),
-                                        rich.progress.TransferSpeedColumn()
+                                        rich.progress.TransferSpeedColumn(),
                                     ) as progress:
-                                        download_task = progress.add_task("Download", total=total)
+                                        download_task = progress.add_task(
+                                            "Download", total=total
+                                        )
                                         async for chunk in response.aiter_bytes():
                                             await wf.write(chunk)
                                             await wf.flush()
-                                            progress.update(download_task, completed=response.num_bytes_downloaded)
+                                            progress.update(
+                                                download_task,
+                                                completed=response.num_bytes_downloaded,
+                                            )
                                     logger.info(f"下载 {url} 成功.. Path：{path.absolute()}")
                         return True
                     except (TimeoutError, ConnectTimeout):
@@ -274,7 +286,7 @@ class AsyncHttpx:
                             use_proxy=use_proxy,
                             timeout=timeout,
                             proxy=proxy,
-                            ** kwargs,
+                            **kwargs,
                         )
                     )
                 )
@@ -285,64 +297,23 @@ class AsyncHttpx:
 
 
 class AsyncPlaywright:
-
     @classmethod
-    async def _new_page(cls, user_agent: Optional[str] = None, **kwargs) -> Page:
+    @asynccontextmanager
+    async def new_page(cls, **kwargs) -> AsyncGenerator[Page, None]:
         """
         说明:
             获取一个新页面
         参数:
             :param user_agent: 请求头
         """
-        browser = await get_browser()
-        if browser:
-            return await browser.new_page(user_agent=user_agent, **kwargs)
-        raise BrowserIsNone("获取Browser失败...")
-
-    @classmethod
-    async def new_context(cls, user_agent: Optional[str] = None, **kwargs) -> BrowserContext:
-        """
-        说明:
-            获取一个新上下文
-        参数:
-            :param user_agent: 请求头
-        """
-        browser = await get_browser()
-        if browser:
-            return await browser.new_context(user_agent=user_agent, **kwargs)
-        raise BrowserIsNone("获取Browser失败...")
-
-    @classmethod
-    async def goto(
-        cls,
-        url: str,
-        *,
-        timeout: Optional[float] = 100000,
-        wait_until: Optional[
-            Literal["domcontentloaded", "load", "networkidle"]
-        ] = "networkidle",
-        referer: str = None,
-        **kwargs
-    ) -> Optional[Page]:
-        """
-        说明:
-            goto
-        参数:
-            :param url: 网址
-            :param timeout: 超时限制
-            :param wait_until: 等待类型
-            :param referer:
-        """
-        page = None
+        browser = get_browser()
+        ctx = await browser.new_context(**kwargs)
+        page = await ctx.new_page()
         try:
-            page = await cls._new_page(**kwargs)
-            await page.goto(url, timeout=timeout, wait_until=wait_until, referer=referer)
-            return page
-        except Exception as e:
-            logger.warning(f"Playwright 访问 url：{url} 发生错误 {type(e)}：{e}")
-            if page:
-                await page.close()
-        return None
+            yield page
+        finally:
+            await page.close()
+            await ctx.close()
 
     @classmethod
     async def screenshot(
@@ -352,13 +323,13 @@ class AsyncPlaywright:
         element: Union[str, List[str]],
         *,
         wait_time: Optional[int] = None,
-        viewport_size: Dict[str, int] = None,
+        viewport_size: Optional[Dict[str, int]] = None,
         wait_until: Optional[
             Literal["domcontentloaded", "load", "networkidle"]
         ] = "networkidle",
-        timeout: float = None,
-        type_: Literal["jpeg", "png"] = None,
-        **kwargs
+        timeout: Optional[float] = None,
+        type_: Optional[Literal["jpeg", "png"]] = None,
+        **kwargs,
     ) -> Optional[MessageSegment]:
         """
         说明:
@@ -373,33 +344,25 @@ class AsyncPlaywright:
             :param timeout: 超时限制
             :param type_: 保存类型
         """
-        page = None
         if viewport_size is None:
             viewport_size = dict(width=2560, height=1080)
         if isinstance(path, str):
             path = Path(path)
-        try:
-            page = await cls.goto(url, wait_until=wait_until, **kwargs)
-            await page.set_viewport_size(viewport_size)
-            if isinstance(element, str):
-                if wait_time:
-                    card = await page.wait_for_selector(element, timeout=wait_time * 1000)
-                else:
-                    card = await page.query_selector(element)
-            else:
-                card = page
-                for e in element:
-                    if wait_time:
-                        card = await card.wait_for_selector(e, timeout=wait_time * 1000)
-                    else:
-                        card = await card.query_selector(e)
-            await card.screenshot(path=path, timeout=timeout, type=type_)
-            return image(path)
-        except Exception as e:
-            logger.warning(f"Playwright 截图 url：{url} element：{element} 发生错误 {type(e)}：{e}")
-        finally:
-            if page:
-                await page.close()
+        wait_time = wait_time * 1000 if wait_time else None
+        if isinstance(element, str):
+            element_list = [element]
+        else:
+            element_list = element
+        async with cls.new_page(viewport=viewport_size) as page:
+            await page.goto(url, timeout=timeout, wait_until=wait_until)
+            card = page
+            for e in element_list:
+                if not card:
+                    return None
+                card = await card.wait_for_selector(e, timeout=wait_time)
+            if card:
+                await card.screenshot(path=path, timeout=timeout, type=type_)
+                return image(path)
         return None
 
 

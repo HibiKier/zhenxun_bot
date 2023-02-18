@@ -1,16 +1,16 @@
 from datetime import datetime, timedelta
+from typing import Any, Tuple
 
 import pytz
-from models.chat_history import ChatHistory
-from models.group_member_info import GroupInfoUser
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from nonebot.params import RegexGroup
-from utils.image_utils import BuildImage, text2image
-from utils.utils import is_number
-from utils.message_builder import image
-from typing import Tuple, Any
 
+from models.chat_history import ChatHistory
+from models.group_member_info import GroupInfoUser
+from utils.image_utils import BuildImage, text2image
+from utils.message_builder import image
+from utils.utils import is_number
 
 __zx_plugin_name__ = "消息统计"
 __plugin_usage__ = """
@@ -29,12 +29,7 @@ usage：
         消息统计n=15
 """.strip()
 __plugin_des__ = "发言消息排行"
-__plugin_cmd__ = [
-    "消息统计",
-    "周消息统计",
-    "月消息统计",
-    "日消息统计"
-]
+__plugin_cmd__ = ["消息统计", "周消息统计", "月消息统计", "日消息统计"]
 __plugin_type__ = ("数据统计", 1)
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
@@ -44,7 +39,9 @@ __plugin_settings__ = {
 }
 
 
-msg_handler = on_regex(r"^(周|月|日)?消息统计(des|DES)?(n=[0-9]{1,2})?$", priority=5, block=True)
+msg_handler = on_regex(
+    r"^(周|月|日)?消息统计(des|DES)?(n=[0-9]{1,2})?$", priority=5, block=True
+)
 
 
 @msg_handler.handle()
@@ -56,7 +53,9 @@ async def _(event: GroupMessageEvent, reg_group: Tuple[Any, ...] = RegexGroup())
     if num and is_number(num) and 10 < int(num) < 50:
         num = int(num)
     time_now = datetime.now()
-    zero_today = time_now - timedelta(hours=time_now.hour, minutes=time_now.minute, seconds=time_now.second)
+    zero_today = time_now - timedelta(
+        hours=time_now.hour, minutes=time_now.minute, seconds=time_now.second
+    )
     if date in ["日"]:
         date_scope = (zero_today, time_now)
     elif date in ["周"]:
@@ -70,9 +69,9 @@ async def _(event: GroupMessageEvent, reg_group: Tuple[Any, ...] = RegexGroup())
         num_str = "发言次数：\n\n"
         idx = 1
         for uid, num in rank_data:
-            try:
-                user_name = (await GroupInfoUser.get_member_info(uid, gid)).user_name
-            except AttributeError:
+            if user := await GroupInfoUser.filter(user_qq=uid, group_id=gid).first():
+                user_name = user.user_name
+            else:
                 user_name = uid
             name += f"\t{idx}.{user_name} \n\n"
             num_str += f"\t{num}\n\n"

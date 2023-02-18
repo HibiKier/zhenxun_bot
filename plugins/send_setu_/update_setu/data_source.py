@@ -1,18 +1,21 @@
-from configs.path_config import IMAGE_PATH, TEXT_PATH, TEMP_PATH
-from services.log import logger
-from datetime import datetime
-from utils.image_utils import compressed_image, get_img_hash
-from utils.utils import get_bot
-from PIL import UnidentifiedImageError
-from .._model import Setu
-from asyncpg.exceptions import UniqueViolationError
-from configs.config import Config
-from utils.http_utils import AsyncHttpx
-from nonebot import Driver
-import nonebot
 import os
-import ujson as json
 import shutil
+from datetime import datetime
+
+import nonebot
+import ujson as json
+from asyncpg.exceptions import UniqueViolationError
+from nonebot import Driver
+from PIL import UnidentifiedImageError
+
+from configs.config import Config
+from configs.path_config import IMAGE_PATH, TEMP_PATH, TEXT_PATH
+from services.log import logger
+from utils.http_utils import AsyncHttpx
+from utils.image_utils import compressed_image, get_img_hash
+from utils.utils import change_pixiv_image_links, get_bot
+
+from .._model import Setu
 
 driver: Driver = nonebot.get_driver()
 
@@ -47,15 +50,17 @@ async def update_old_setu_data():
                     )
                     # idx = r18_index if 'R-18' in data[x]["tags"] else index
                     try:
-                        await Setu.add_setu_data(
-                            idx,
-                            data[x]["title"],
-                            data[x]["author"],
-                            data[x]["pid"],
-                            data[x]["img_hash"],
-                            img_url,
-                            ",".join(data[x]["tags"]),
-                        )
+                        if not await Setu.exists(pid=data[x]["pid"], url=img_url):
+                            await Setu.create(
+                                local_id=idx,
+                                title=data[x]["title"],
+                                author=data[x]["author"],
+                                pid=data[x]["pid"],
+                                img_hash=data[x]["img_hash"],
+                                img_url=img_url,
+                                is_r18="R-18" in data[x]["tags"],
+                                tags=",".join(data[x]["tags"]),
+                            )
                         count += 1
                         if "R-18" in data[x]["tags"]:
                             r18_index += 1
@@ -94,7 +99,7 @@ async def update_setu_img(flag: bool = False):
     更新色图
     :param flag: 是否手动更新
     """
-    image_list = await Setu.get_all_setu()
+    image_list = await Setu.all().order_by("local_id")
     image_list.reverse()
     _success = 0
     error_info = []
@@ -110,12 +115,7 @@ async def update_setu_img(flag: bool = False):
             temp_file = TEMP_PATH / f"{image.local_id}.jpg"
             if temp_file.exists():
                 temp_file.unlink()
-            url_ = image.img_url
-            ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
-            if ws_url:
-                url_ = url_.replace("i.pximg.net", ws_url).replace(
-                    "i.pixiv.cat", ws_url
-                )
+            url_ = change_pixiv_image_links(image.img_url)
             try:
                 if not await AsyncHttpx.download_file(
                     url_, TEMP_PATH / f"{image.local_id}.jpg"
@@ -146,15 +146,20 @@ async def update_setu_img(flag: bool = False):
                     logger.warning(f"文件 {image.local_id}.jpg 不存在，跳过...")
                     continue
                 img_hash = str(get_img_hash(f"{path}/{image.local_id}.jpg"))
-                await Setu.update_setu_data(image.pid, img_hash=img_hash)
+                image.img_hash = img_hash
+                await image.save(update_fields=["img_hash"])
+                # await Setu.update_setu_data(image.pid, img_hash=img_hash)
             except UnidentifiedImageError:
                 # 图片已删除
-                with open(local_image, 'r') as f:
-                    if '404 Not Found' in f.read():
-                        max_num = await Setu.delete_image(image.pid)
-                        local_image.unlink()
-                        os.rename(path / f"{max_num}.jpg", local_image)
-                        logger.warning(f"更新色图 PID：{image.pid} 404，已删除并替换")
+                unlink = False
+                with open(local_image, "r") as f:
+                    if "404 Not Found" in f.read():
+                        unlink = True
+                if unlink:
+                    local_image.unlink()
+                    max_num = await Setu.delete_image(image.pid)
+                    os.rename(path / f"{max_num}.jpg", local_image)
+                    logger.warning(f"更新色图 PID：{image.pid} 404，已删除并替换")
             except Exception as e:
                 _success -= 1
                 logger.error(f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}")

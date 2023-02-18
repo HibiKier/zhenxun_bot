@@ -1,10 +1,11 @@
-from nonebot import on_command
-from nonebot.adapters.onebot.v11.permission import GROUP
-from nonebot.adapters.onebot.v11 import GroupMessageEvent
-from models.group_member_info import GroupInfoUser
 from datetime import timedelta
-from models.level_user import LevelUser
 
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
+from nonebot.adapters.onebot.v11.permission import GROUP
+
+from models.group_member_info import GroupInfoUser
+from models.level_user import LevelUser
 
 __zx_plugin_name__ = "个人信息权限查看"
 __plugin_usage__ = """
@@ -31,13 +32,13 @@ async def _(event: GroupMessageEvent):
 
 
 async def get_member_info(user_qq: int, group_id: int) -> str:
-    user = await GroupInfoUser.get_member_info(user_qq, group_id)
-    if user is None:
+    if user := await GroupInfoUser.get_or_none(user_qq=user_qq, group_id=group_id):
+        result = ""
+        result += "昵称:" + user.user_name + "\n"
+        result += "加群时间:" + str(user.user_join_time.date())
+        return result
+    else:
         return "该群员不在列表中，请更新群成员信息"
-    result = ""
-    result += "昵称:" + user.user_name + "\n"
-    result += "加群时间:" + str(user.user_join_time.date() + timedelta(hours=8))
-    return result
 
 
 @my_level.handle()

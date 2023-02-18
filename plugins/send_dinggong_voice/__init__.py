@@ -1,12 +1,14 @@
+import os
+import random
+
 from nonebot import on_keyword
-from utils.message_builder import record
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent
+from nonebot.rule import to_me
+from nonebot.typing import T_State
+
 from configs.path_config import RECORD_PATH
 from services.log import logger
-from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent
-from nonebot.rule import to_me
-import random
-import os
+from utils.message_builder import record
 
 __zx_plugin_name__ = "骂我"
 __plugin_usage__ = """
@@ -25,10 +27,7 @@ __plugin_settings__ = {
     "limit_superuser": False,
     "cmd": ["骂老子", "骂我"],
 }
-__plugin_cd_limit__ = {
-    "cd": 3,
-    "rst": "就...就算求我骂你也得慢慢来..."
-}
+__plugin_cd_limit__ = {"cd": 3, "rst": "就...就算求我骂你也得慢慢来..."}
 
 
 dg_voice = on_keyword({"骂"}, rule=to_me(), priority=5, block=True)
@@ -38,7 +37,9 @@ dg_voice = on_keyword({"骂"}, rule=to_me(), priority=5, block=True)
 async def _(bot: Bot, event: MessageEvent, state: T_State):
     if len(str((event.get_message()))) > 1:
         voice = random.choice(os.listdir(RECORD_PATH / "dinggong"))
-        result = record(voice, "dinggong")
+        result = record(
+            RECORD_PATH / "dinggong" / voice,
+        )
         await dg_voice.send(result)
         await dg_voice.send(voice.split("_")[1])
         logger.info(

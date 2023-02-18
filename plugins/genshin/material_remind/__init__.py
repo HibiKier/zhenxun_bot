@@ -1,18 +1,19 @@
-from nonebot import on_command, Driver
-from nonebot.adapters.onebot.v11 import MessageEvent, Message, GroupMessageEvent
-from utils.message_builder import image
-from utils.image_utils import BuildImage
-from utils.browser import get_browser
-from configs.path_config import IMAGE_PATH
-import nonebot
-from services.log import logger
-from nonebot.permission import SUPERUSER
-from typing import List
-from datetime import datetime, timedelta
-import os
 import asyncio
+import os
 import time
+from datetime import datetime, timedelta
+from typing import List
 
+import nonebot
+from nonebot import Driver, on_command
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message, MessageEvent
+from nonebot.permission import SUPERUSER
+
+from configs.path_config import IMAGE_PATH
+from services.log import logger
+from utils.browser import get_browser
+from utils.image_utils import BuildImage
+from utils.message_builder import image
 
 __zx_plugin_name__ = "原神今日素材"
 __plugin_usage__ = """
@@ -56,7 +57,7 @@ async def _(event: MessageEvent):
         await update_image()
     await material.send(
         Message(
-            image(f"{file_name}.png", "genshin/material")
+            image(IMAGE_PATH / "genshin" / "material" / f"{file_name}.png")
             + "\n※ 每日素材数据来源于 genshin.pub"
         )
     )
@@ -163,5 +164,3 @@ def get_background_height(weapons_img: List[str]) -> int:
     last_weapon.save(weapons_img[-1])
 
     return height
-
-

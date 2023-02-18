@@ -1,21 +1,22 @@
-import re
-
-from nonebot import on_command
-from utils.utils import is_number
-from nonebot.permission import SUPERUSER
-from ._data_source import start_update_image_url
-from ._model.pixiv_keyword_user import PixivKeywordUser
-from ._model.omega_pixiv_illusts import OmegaPixivIllusts
-from ._model.pixiv import Pixiv
-from nonebot.adapters.onebot.v11 import Message
-from nonebot.params import CommandArg
-import time
-from services.log import logger
-from pathlib import Path
-from typing import List
 import asyncio
 import os
+import re
+import time
+from pathlib import Path
+from typing import List
 
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import Message
+from nonebot.params import CommandArg
+from nonebot.permission import SUPERUSER
+
+from services.log import logger
+from utils.utils import is_number
+
+from ._data_source import start_update_image_url
+from ._model.omega_pixiv_illusts import OmegaPixivIllusts
+from ._model.pixiv import Pixiv
+from ._model.pixiv_keyword_user import PixivKeywordUser
 
 __zx_plugin_name__ = "pix检查更新 [Superuser]"
 __plugin_usage__ = """
@@ -146,11 +147,11 @@ async def _(arg: Message = CommandArg()):
 async def _():
     async def _tasks(line: str, all_pid: List[int], length: int, index: int):
         data = line.split("VALUES", maxsplit=1)[-1].strip()[1:-2]
-        num_list = re.findall(r'(\d+)', data)
+        num_list = re.findall(r"(\d+)", data)
         pid = int(num_list[1])
         uid = int(num_list[2])
         id_ = 3
-        while num_list[id_] not in ['0', '1']:
+        while num_list[id_] not in ["0", "1"]:
             id_ += 1
         classified = int(num_list[id_])
         nsfw_tag = int(num_list[id_ + 1])
@@ -164,23 +165,25 @@ async def _():
         if pid in all_pid:
             logger.info(f"添加OmegaPixivIllusts图库数据已存在 ---> pid：{pid}")
             return
-        if await OmegaPixivIllusts.add_image_data(
-                pid=pid,
-                title=title,
-                width=width,
-                height=height,
-                url=url,
-                uid=uid,
-                nsfw_tag=nsfw_tag,
-                tags=tags,
-                uname=uname,
-                classified=classified
-        ):
+        _, is_create = await OmegaPixivIllusts.get_or_create(
+            pid=pid,
+            title=title,
+            width=width,
+            height=height,
+            url=url,
+            uid=uid,
+            nsfw_tag=nsfw_tag,
+            tags=tags,
+            uname=uname,
+            classified=classified,
+        )
+        if is_create:
             logger.info(
                 f"成功添加OmegaPixivIllusts图库数据 pid：{pid} 本次预计存储 {length} 张，已更新第 {index} 张"
             )
         else:
             logger.info(f"添加OmegaPixivIllusts图库数据已存在 ---> pid：{pid}")
+
     omega_pixiv_illusts = None
     for file in os.listdir("."):
         if "omega_pixiv_artwork" in file and ".sql" in file:
@@ -190,13 +193,13 @@ async def _():
             lines = f.readlines()
         tasks = []
         length = len([x for x in lines if "INSERT INTO" in x.upper()])
-        all_pid = await OmegaPixivIllusts.get_all_pid()
+        all_pid = await OmegaPixivIllusts.all().values_list("pid", flat=True)
         index = 0
         logger.info("检测到OmegaPixivIllusts数据库，准备开始更新....")
         for line in lines:
             if "INSERT INTO" in line.upper():
                 index += 1
-                logger.info(f'line: {line} 加入更新计划')
+                logger.info(f"line: {line} 加入更新计划")
                 tasks.append(
                     asyncio.ensure_future(_tasks(line, all_pid, length, index))
                 )

@@ -1,19 +1,23 @@
-from asyncpg.exceptions import UniqueViolationError
-from ._model.omega_pixiv_illusts import OmegaPixivIllusts
-from asyncio.locks import Semaphore
-from asyncio.exceptions import TimeoutError
-from ._model.pixiv import Pixiv
-from typing import List, Optional
-from utils.utils import change_pixiv_image_links, change_img_md5
-from utils.image_utils import BuildImage
-from utils.http_utils import AsyncHttpx
-from services.log import logger
-from configs.config import Config
-from configs.path_config import TEMP_PATH
-import aiofiles
-import platform
 import asyncio
 import math
+import platform
+from asyncio.exceptions import TimeoutError
+from asyncio.locks import Semaphore
+from copy import deepcopy
+from typing import List, Optional, Tuple
+
+import aiofiles
+from asyncpg.exceptions import UniqueViolationError
+
+from configs.config import Config
+from configs.path_config import TEMP_PATH
+from services.log import logger
+from utils.http_utils import AsyncHttpx
+from utils.image_utils import BuildImage
+from utils.utils import change_img_md5, change_pixiv_image_links
+
+from ._model.omega_pixiv_illusts import OmegaPixivIllusts
+from ._model.pixiv import Pixiv
 
 try:
     import ujson as json
@@ -65,9 +69,7 @@ async def start_update_image_url(
                 params = {"word": keyword, "page": page}
             tasks.append(
                 asyncio.ensure_future(
-                    search_image(
-                        url, keyword, params, semaphore, page, black_pid
-                    )
+                    search_image(url, keyword, params, semaphore, page, black_pid)
                 )
             )
             if keyword.startswith("pid:"):
@@ -101,96 +103,91 @@ async def search_image(
     pic_count = 0
     pid_count = 0
     async with semaphore:
-        try:
-            data = (await AsyncHttpx.get(url, params=params)).json()
-            if (
-                not data
-                or data.get("error")
-                or (not data.get("illusts") and not data.get("illust"))
-            ):
-                return 0, 0
-            if url != f"{HIBIAPI}/api/pixiv/illust":
-                logger.info(f'{keyword}: 获取数据成功...数据总量：{len(data["illusts"])}')
-                data = data["illusts"]
+        # try:
+        data = (await AsyncHttpx.get(url, params=params)).json()
+        if (
+            not data
+            or data.get("error")
+            or (not data.get("illusts") and not data.get("illust"))
+        ):
+            return 0, 0
+        if url != f"{HIBIAPI}/api/pixiv/illust":
+            logger.info(f'{keyword}: 获取数据成功...数据总量：{len(data["illusts"])}')
+            data = data["illusts"]
+        else:
+            logger.info(f'获取数据成功...PID：{params.get("id")}')
+            data = [data["illust"]]
+        img_data = {}
+        for x in data:
+            pid = x["id"]
+            title = x["title"]
+            width = x["width"]
+            height = x["height"]
+            view = x["total_view"]
+            bookmarks = x["total_bookmarks"]
+            uid = x["user"]["id"]
+            author = x["user"]["name"]
+            tags = []
+            for tag in x["tags"]:
+                for i in tag:
+                    if tag[i]:
+                        tags.append(tag[i])
+            img_urls = []
+            if x["page_count"] == 1:
+                img_urls.append(x["meta_single_page"]["original_image_url"])
             else:
-                logger.info(f'获取数据成功...PID：{params.get("id")}')
-                data = [data["illust"]]
-            img_data = {}
-            for x in data:
-                pid = x["id"]
-                title = x["title"]
-                width = x["width"]
-                height = x["height"]
-                view = x["total_view"]
-                bookmarks = x["total_bookmarks"]
-                uid = x["user"]["id"]
-                author = x["user"]["name"]
-                tags = []
-                for tag in x["tags"]:
-                    for i in tag:
-                        if tag[i]:
-                            tags.append(tag[i])
-                img_urls = []
-                if x["page_count"] == 1:
-                    img_urls.append(x["meta_single_page"]["original_image_url"])
-                else:
-                    for urls in x["meta_pages"]:
-                        img_urls.append(urls["image_urls"]["original"])
-                if (
-                    (
-                        bookmarks
-                        >= Config.get_config("pix", "SEARCH_HIBIAPI_BOOKMARKS")
-                        or (
-                            url == f"{HIBIAPI}/api/pixiv/member_illust"
-                            and bookmarks >= 1500
-                        )
-                        or (url == f"{HIBIAPI}/api/pixiv/illust")
+                for urls in x["meta_pages"]:
+                    img_urls.append(urls["image_urls"]["original"])
+            if (
+                (
+                    bookmarks >= Config.get_config("pix", "SEARCH_HIBIAPI_BOOKMARKS")
+                    or (
+                        url == f"{HIBIAPI}/api/pixiv/member_illust"
+                        and bookmarks >= 1500
                     )
-                    and len(img_urls) < 10
-                    and _check_black(img_urls, black)
+                    or (url == f"{HIBIAPI}/api/pixiv/illust")
+                )
+                and len(img_urls) < 10
+                and _check_black(img_urls, black)
+            ):
+                img_data[pid] = {
+                    "pid": pid,
+                    "title": title,
+                    "width": width,
+                    "height": height,
+                    "view": view,
+                    "bookmarks": bookmarks,
+                    "img_urls": img_urls,
+                    "uid": uid,
+                    "author": author,
+                    "tags": tags,
+                }
+            else:
+                continue
+        for x in img_data.keys():
+            data = img_data[x]
+            data_copy = deepcopy(data)
+            del data_copy["img_urls"]
+            for img_url in data["img_urls"]:
+                img_p = img_url[img_url.rfind("_") + 1 : img_url.rfind(".")]
+                data_copy["img_url"] = img_url
+                data_copy["img_p"] = img_p
+                data_copy["is_r18"] = "R-18" in data["tags"]
+                if not await Pixiv.exists(
+                    pid=data["pid"], img_url=img_url, img_p=img_p
                 ):
-                    img_data[pid] = {
-                        "pid": pid,
-                        "title": title,
-                        "width": width,
-                        "height": height,
-                        "view": view,
-                        "bookmarks": bookmarks,
-                        "img_urls": img_urls,
-                        "uid": uid,
-                        "author": author,
-                        "tags": tags,
-                    }
+                    data_copy["img_url"] = img_url
+                    await Pixiv.create(**data_copy)
+                    if data["pid"] not in tmp_pid:
+                        pid_count += 1
+                        tmp_pid.append(data["pid"])
+                    pic_count += 1
+                    logger.info(f'存储图片PID：{data["pid"]} IMG_P：{img_p}')
                 else:
-                    continue
-            for x in img_data.keys():
-                data = img_data[x]
-                for img_url in data["img_urls"]:
-                    img_p = img_url[img_url.rfind("_") + 1 : img_url.rfind(".")]
-                    try:
-                        if await Pixiv.add_image_data(
-                            data["pid"],
-                            data["title"],
-                            data["width"],
-                            data["height"],
-                            data["view"],
-                            data["bookmarks"],
-                            img_url,
-                            img_p,
-                            data["uid"],
-                            data["author"],
-                            ",".join(data["tags"]),
-                        ):
-                            if data["pid"] not in tmp_pid:
-                                pid_count += 1
-                                tmp_pid.append(data["pid"])
-                            pic_count += 1
-                            logger.info(f'存储图片PID：{data["pid"]} IMG_P：{img_p}')
-                    except UniqueViolationError:
-                        logger.warning(f'{data["pid"]} | {img_url} 已存在...')
-        except Exception as e:
-            logger.warning(f"PIX在线搜索图片错误，已再次调用 {type(e)}：{e}")
-            await search_image(url, keyword, params, semaphore, page, black)
+                    logger.warning(f'{data["pid"]} | {img_url} 已存在...')
+        # except Exception as e:
+        #     logger.warning(f"PIX在线搜索图片错误，已再次调用 {type(e)}：{e}")
+        #     await search_image(url, keyword, params, semaphore, page, black)
     return pid_count, pic_count
 
 
@@ -206,7 +203,9 @@ async def get_image(img_url: str, user_id: int) -> Optional[str]:
         params = {"id": pid}
         for _ in range(3):
             try:
-                response = await AsyncHttpx.get(f"{HIBIAPI}/api/pixiv/illust", params=params)
+                response = await AsyncHttpx.get(
+                    f"{HIBIAPI}/api/pixiv/illust", params=params
+                )
                 if response.status_code == 200:
                     data = response.json()
                     if data.get("illust"):
@@ -215,22 +214,28 @@ async def get_image(img_url: str, user_id: int) -> Optional[str]:
                                 "original_image_url"
                             ]
                         else:
-                            img_url = data["illust"]["meta_pages"][0][
-                                "image_urls"
-                            ]["original"]
+                            img_url = data["illust"]["meta_pages"][0]["image_urls"][
+                                "original"
+                            ]
                         break
             except TimeoutError:
                 pass
     old_img_url = img_url
     img_url = change_pixiv_image_links(
-        img_url, Config.get_config("pix", "PIX_IMAGE_SIZE"), Config.get_config("pixiv", "PIXIV_NGINX_URL")
+        img_url,
+        Config.get_config("pix", "PIX_IMAGE_SIZE"),
+        Config.get_config("pixiv", "PIXIV_NGINX_URL"),
     )
     old_img_url = change_pixiv_image_links(
         old_img_url, None, Config.get_config("pixiv", "PIXIV_NGINX_URL")
     )
     for _ in range(3):
         try:
-            response = await AsyncHttpx.get(img_url, headers=headers, timeout=Config.get_config("pix", "TIMEOUT"),)
+            response = await AsyncHttpx.get(
+                img_url,
+                headers=headers,
+                timeout=Config.get_config("pix", "TIMEOUT"),
+            )
             if response.status_code == 404:
                 img_url = old_img_url
                 continue
@@ -238,7 +243,9 @@ async def get_image(img_url: str, user_id: int) -> Optional[str]:
                 TEMP_PATH / f"pix_{user_id}_{img_url.split('/')[-1][:-4]}.jpg", "wb"
             ) as f:
                 await f.write(response.content)
-            change_img_md5(TEMP_PATH / f"pix_{user_id}_{img_url.split('/')[-1][:-4]}.jpg")
+            change_img_md5(
+                TEMP_PATH / f"pix_{user_id}_{img_url.split('/')[-1][:-4]}.jpg"
+            )
             return TEMP_PATH / f"pix_{user_id}_{img_url.split('/')[-1][:-4]}.jpg"
         except TimeoutError:
             logger.warning(f"PIX：{img_url} 图片下载超时...")
@@ -264,7 +271,7 @@ async def uid_pid_exists(id_: str) -> bool:
     return True
 
 
-async def get_keyword_num(keyword: str) -> "int, int, int, int, int":
+async def get_keyword_num(keyword: str) -> Tuple[int, int, int, int, int]:
     """
     查看图片相关 tag 数量
     :param keyword: 关键词tag
@@ -276,7 +283,7 @@ async def get_keyword_num(keyword: str) -> "int, int, int, int, int":
     return count, r18_count, count_, setu_count, r18_count_
 
 
-async def remove_image(pid: int, img_p: str) -> bool:
+async def remove_image(pid: int, img_p: Optional[str]):
     """
     删除置顶图片
     :param pid: pid
@@ -285,7 +292,10 @@ async def remove_image(pid: int, img_p: str) -> bool:
     if img_p:
         if "p" not in img_p:
             img_p = f"p{img_p}"
-    return await Pixiv.remove_image_data(pid, img_p)
+    if img_p:
+        await Pixiv.filter(pid=pid, img_p=img_p).delete()
+    else:
+        await Pixiv.filter(pid=pid).delete()
 
 
 def gen_keyword_pic(
@@ -392,6 +402,3 @@ def _check_black(img_urls: List[str], black: List[str]) -> bool:
             if b in img_url:
                 return False
     return True
-
-
-

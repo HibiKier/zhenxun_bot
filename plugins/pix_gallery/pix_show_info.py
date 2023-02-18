@@ -1,11 +1,13 @@
-from nonebot import on_command
-from utils.message_builder import image
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, Message
-from ._data_source import gen_keyword_pic, get_keyword_num
-from ._model.pixiv_keyword_user import PixivKeywordUser
-from nonebot.params import CommandArg
 import asyncio
 
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent
+from nonebot.params import CommandArg
+
+from utils.message_builder import image
+
+from ._data_source import gen_keyword_pic, get_keyword_num
+from ._model.pixiv_keyword_user import PixivKeywordUser
 
 __zx_plugin_name__ = "查看pix图库"
 __plugin_usage__ = """
@@ -35,12 +37,12 @@ show_pix = on_command("查看pix图库", priority=1, block=True)
 
 @my_keyword.handle()
 async def _(event: MessageEvent):
-    data = await PixivKeywordUser.get_all_user_dict()
-    if data.get(event.user_id) is None or not data[event.user_id]["keyword"]:
-        await my_keyword.finish("您目前没有提供任何Pixiv搜图关键字...", at_sender=True)
-    await my_keyword.send(
-        f"您目前提供的如下关键字：\n\t" + "，".join(data[event.user_id]["keyword"])
+    data = await PixivKeywordUser.filter(user_qq=event.user_id).values_list(
+        "keyword", flat=True
     )
+    if not data:
+        await my_keyword.finish("您目前没有提供任何Pixiv搜图关键字...", at_sender=True)
+    await my_keyword.send(f"您目前提供的如下关键字：\n\t" + "，".join(data))
 
 
 @show_keyword.handle()

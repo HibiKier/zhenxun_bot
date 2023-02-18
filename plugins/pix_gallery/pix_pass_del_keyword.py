@@ -1,15 +1,17 @@
-from nonebot import on_command
-from utils.utils import is_number
-from utils.message_builder import at
-from services.log import logger
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
-from nonebot.params import CommandArg, Command
-from nonebot.permission import SUPERUSER
-from ._data_source import remove_image
-from ._model.pixiv_keyword_user import PixivKeywordUser
-from ._model.pixiv import Pixiv
 from typing import Tuple
 
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent
+from nonebot.params import Command, CommandArg
+from nonebot.permission import SUPERUSER
+
+from services.log import logger
+from utils.message_builder import at
+from utils.utils import is_number
+
+from ._data_source import remove_image
+from ._model.pixiv import Pixiv
+from ._model.pixiv_keyword_user import PixivKeywordUser
 
 __zx_plugin_name__ = "PIX关键词/UID/PID删除管理 [Superuser]"
 __plugin_usage__ = """
@@ -60,7 +62,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         msg = f"uid:{msg}"
     if msg.lower().startswith("pid"):
         msg = "pid:" + msg.replace("pid", "").replace(":", "")
-    if await PixivKeywordUser.delete_keyword(msg):
+    if data := await PixivKeywordUser.get_or_none(keyword=msg):
+        await data.delete()
         await del_keyword.send(f"删除搜图关键词/UID：{msg} 成功...")
         logger.info(
             f"(USER {event.user_id}, GROUP {event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
@@ -97,22 +100,31 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                     if await remove_image(int(pid), img_p):
                         msg += f'{pid}{f"_p{img_p}" if img_p else ""}，'
                         if flag:
-                            if await PixivKeywordUser.add_keyword(
-                                114514,
-                                114514,
-                                f"black:{pid}{f'_p{img_p}' if img_p else ''}",
-                                bot.config.superusers,
+                            # if await PixivKeywordUser.add_keyword(
+                            #     114514,
+                            #     114514,
+                            #     f"black:{pid}{f'_p{img_p}' if img_p else ''}",
+                            #     bot.config.superusers,
+                            # ):
+                            if await PixivKeywordUser.exists(
+                                keyword=f"black:{pid}{f'_p{img_p}' if img_p else ''}"
                             ):
+                                await PixivKeywordUser.create(
+                                    user_qq=114514,
+                                    group_id=114514,
+                                    keyword=f"black:{pid}{f'_p{img_p}' if img_p else ''}",
+                                    is_pass=False,
+                                )
                                 black_pid += f'{pid}{f"_p{img_p}" if img_p else ""}，'
                         logger.info(
                             f"(USER {event.user_id}, GROUP "
                             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
                             f" 删除了PIX图片 PID:{pid}{f'_p{img_p}' if img_p else ''}"
                         )
-                    else:
-                        await del_pic.send(
-                            f"PIX:删除pid：{pid}{f'_p{img_p}' if img_p else ''} 失败.."
-                        )
+                    # else:
+                    #     await del_pic.send(
+                    #         f"PIX:删除pid：{pid}{f'_p{img_p}' if img_p else ''} 失败.."
+                    #     )
                 else:
                     await del_pic.send(
                         f"PIX:图片pix：{pid}{f'_p{img_p}' if img_p else ''} 不存在...无法删除.."
@@ -127,7 +139,12 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
 
 
 @pass_keyword.handle()
-async def _(bot: Bot, event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
+async def _(
+    bot: Bot,
+    event: MessageEvent,
+    cmd: Tuple[str, ...] = Command(),
+    arg: Message = CommandArg(),
+):
     tmp = {"group": {}, "private": {}}
     msg = arg.extract_plain_text().strip()
     if not msg:
@@ -145,7 +162,13 @@ async def _(bot: Bot, event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg
             if not is_number(x[4:]):
                 await pass_keyword.send(f"UID/PID：{x} 非全数字，跳过该关键词...")
                 continue
-        user_id, group_id = await PixivKeywordUser.set_keyword_pass(x, flag)
+        data = await PixivKeywordUser.get_or_none(keyword=x)
+        user_id = 0
+        group_id = 0
+        if data:
+            data.is_pass = flag
+            await data.save(update_fields=["is_pass"])
+            user_id, group_id = data.user_qq, data.group_id
         if not user_id:
             await pass_keyword.send(f"未找到关键词/UID：{x}，请检查关键词/UID是否存在...")
             continue
@@ -163,7 +186,7 @@ async def _(bot: Bot, event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg
                 else:
                     tmp["group"][group_id][user_id]["keyword"].append(x)
     msg = " ".join(msg)
-    await pass_keyword.send(f'已成功{cmd[0][:2]}搜图关键词：{msg}....')
+    await pass_keyword.send(f"已成功{cmd[0][:2]}搜图关键词：{msg}....")
     for user in tmp["private"]:
         x = "，".join(tmp["private"][user]["keyword"])
         await bot.send_private_msg(

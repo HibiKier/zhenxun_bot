@@ -1,17 +1,19 @@
-from .models.buff_prices import BuffPrice
-from services.db_context import db
-from datetime import datetime, timedelta
-from configs.path_config import IMAGE_PATH
-from utils.http_utils import AsyncHttpx
-from .models.open_cases_user import OpenCasesUser
-from services.log import logger
-from utils.utils import get_bot, cn2py
-from asyncio.exceptions import TimeoutError
-from nonebot.adapters.onebot.v11 import ActionFailed
-from configs.config import Config
-from utils.manager import group_manager
-from .config import *
 import os
+from asyncio.exceptions import TimeoutError
+from datetime import datetime, timedelta
+
+from nonebot.adapters.onebot.v11 import ActionFailed
+
+from configs.config import Config
+from configs.path_config import IMAGE_PATH
+from services.log import logger
+from utils.http_utils import AsyncHttpx
+from utils.manager import group_manager
+from utils.utils import cn2py, get_bot
+
+from .config import *
+from .models.buff_prices import BuffPrice
+from .models.open_cases_user import OpenCasesUser
 
 url = "https://buff.163.com/api/market/goods"
 # proxies = 'http://49.75.59.242:3128'
@@ -49,108 +51,102 @@ async def util_get_buff_price(case_name: str = "狂牙大行动") -> str:
                 "骷髅匕首 | 无涂装",
             ]:
                 skin = skin.split("|")[0].strip()
-            async with db.transaction():
-                name_list = []
-                price_list = []
-                parameter = {"game": "csgo", "page_num": "1", "search": skin}
-                try:
-                    response = await AsyncHttpx.get(url, proxy=Config.get_config("open_cases", "BUFF_PROXY"),
+            name_list = []
+            price_list = []
+            parameter = {"game": "csgo", "page_num": "1", "search": skin}
+            try:
+                response = await AsyncHttpx.get(
+                    url,
+                    proxy=Config.get_config("open_cases", "BUFF_PROXY"),
                     params=parameter,
-                    cookies=cookie,)
-                    if response.status_code == 200:
-                        data = response.json()["data"]
-                        total_page = data["total_page"]
-                        data = data["items"]
-                        flag = False
-                        if (
-                            skin.find("|") == -1
-                        ):  # in ['蝴蝶刀', '求生匕首', '流浪者匕首', '系绳匕首', '骷髅匕首']:
-                            for i in range(1, total_page + 1):
-                                name_list = []
-                                price_list = []
-                                parameter = {
-                                    "game": "csgo",
-                                    "page_num": f"{i}",
-                                    "search": skin,
-                                }
-                                res = await AsyncHttpx.get(url, params=parameter, cookies=cookie)
-                                data = res.json()["data"][
-                                    "items"
-                                ]
-                                for j in range(len(data)):
-                                    if data[j]["name"] in [f"{skin}（★）"]:
-                                        name = data[j]["name"]
-                                        price = data[j][
-                                            "sell_reference_price"
-                                        ]
-                                        name_list.append(
-                                            name.split("（")[0].strip()
-                                            + " | 无涂装"
-                                        )
-                                        price_list.append(price)
-                                        flag = True
-                                        break
-                                if flag:
+                    cookies=cookie,
+                )
+                if response.status_code == 200:
+                    data = response.json()["data"]
+                    total_page = data["total_page"]
+                    data = data["items"]
+                    flag = False
+                    if (
+                        skin.find("|") == -1
+                    ):  # in ['蝴蝶刀', '求生匕首', '流浪者匕首', '系绳匕首', '骷髅匕首']:
+                        for i in range(1, total_page + 1):
+                            name_list = []
+                            price_list = []
+                            parameter = {
+                                "game": "csgo",
+                                "page_num": f"{i}",
+                                "search": skin,
+                            }
+                            res = await AsyncHttpx.get(
+                                url, params=parameter, cookies=cookie
+                            )
+                            data = res.json()["data"]["items"]
+                            for j in range(len(data)):
+                                if data[j]["name"] in [f"{skin}（★）"]:
+                                    name = data[j]["name"]
+                                    price = data[j]["sell_reference_price"]
+                                    name_list.append(
+                                        name.split("（")[0].strip() + " | 无涂装"
+                                    )
+                                    price_list.append(price)
+                                    flag = True
                                     break
-                        else:
-                            try:
-                                for _ in range(total_page):
-                                    for i in range(len(data)):
-                                        name = data[i]["name"]
-                                        price = data[i]["sell_reference_price"]
-                                        name_list.append(name)
-                                        price_list.append(price)
-                            except Exception as e:
-                                failed_list.append(skin)
-                                logger.warning(f"{skin}更新失败")
+                            if flag:
+                                break
                     else:
-                        failed_list.append(skin)
-                        logger.warning(f"{skin}更新失败")
-                except Exception:
+                        try:
+                            for _ in range(total_page):
+                                for i in range(len(data)):
+                                    name = data[i]["name"]
+                                    price = data[i]["sell_reference_price"]
+                                    name_list.append(name)
+                                    price_list.append(price)
+                        except Exception as e:
+                            failed_list.append(skin)
+                            logger.warning(f"{skin}更新失败")
+                else:
                     failed_list.append(skin)
                     logger.warning(f"{skin}更新失败")
-                    continue
-                for i in range(len(name_list)):
-                    name = name_list[i].strip()
-                    price = float(price_list[i])
-                    if name.find("（★）") != -1:
-                        name = name[: name.find("（")] + name[name.find("）") + 1 :]
-                    if name.find("消音") != -1 and name.find("（S") != -1:
-                        name = name.split("（")[0][:-4] + "（" + name.split("（")[1]
-                        name = (
-                            name.split("|")[0].strip()
-                            + " | "
-                            + name.split("|")[1].strip()
-                        )
-                    elif name.find("消音") != -1:
-                        name = (
-                            name.split("|")[0][:-5].strip()
-                            + " | "
-                            + name.split("|")[1].strip()
-                        )
-                    if name.find(" 18 ") != -1 and name.find("（S") != -1:
-                        name = name.split("（")[0][:-5] + "（" + name.split("（")[1]
-                        name = (
-                            name.split("|")[0].strip()
-                            + " | "
-                            + name.split("|")[1].strip()
-                        )
-                    elif name.find(" 18 ") != -1:
-                        name = (
-                            name.split("|")[0][:-6].strip()
-                            + " | "
-                            + name.split("|")[1].strip()
-                        )
-                    dbskin = await BuffPrice.ensure(name, True)
-                    if (
-                        dbskin.update_date + timedelta(8)
-                    ).date() == datetime.now().date():
+            except Exception:
+                failed_list.append(skin)
+                logger.warning(f"{skin}更新失败")
+                continue
+            for i in range(len(name_list)):
+                name = name_list[i].strip()
+                price = float(price_list[i])
+                if name.find("（★）") != -1:
+                    name = name[: name.find("（")] + name[name.find("）") + 1 :]
+                if name.find("消音") != -1 and name.find("（S") != -1:
+                    name = name.split("（")[0][:-4] + "（" + name.split("（")[1]
+                    name = (
+                        name.split("|")[0].strip() + " | " + name.split("|")[1].strip()
+                    )
+                elif name.find("消音") != -1:
+                    name = (
+                        name.split("|")[0][:-5].strip()
+                        + " | "
+                        + name.split("|")[1].strip()
+                    )
+                if name.find(" 18 ") != -1 and name.find("（S") != -1:
+                    name = name.split("（")[0][:-5] + "（" + name.split("（")[1]
+                    name = (
+                        name.split("|")[0].strip() + " | " + name.split("|")[1].strip()
+                    )
+                elif name.find(" 18 ") != -1:
+                    name = (
+                        name.split("|")[0][:-6].strip()
+                        + " | "
+                        + name.split("|")[1].strip()
+                    )
+                if dbskin := await BuffPrice.get_or_none(skin_name=name):
+                    if dbskin.update_date.date() == datetime.now().date():
                         continue
-                    await dbskin.update(
-                        case_id=case_id,
-                        skin_price=price,
-                        update_date=datetime.now(),
-                    ).apply()
+                    dbskin.case_id = case_id
+                    dbskin.skin_price = price
+                    dbskin.update_date = datetime.now()
+                    await dbskin.save(
+                        update_fields=["case_id", "skin_price", "update_date"]
+                    )
                     logger.info(f"{name_list[i]}---------->成功更新")
     result = None
     if failed_list:
@@ -186,14 +182,16 @@ async def util_get_buff_img(case_name: str = "狂牙大行动") -> str:
             logger.info(f"开始更新----->{skin}")
             skin_name = ""
             # try:
-            response = await AsyncHttpx.get(url, proxy=Config.get_config("open_cases", "BUFF_PROXY"), params=parameter)
+            response = await AsyncHttpx.get(
+                url,
+                proxy=Config.get_config("open_cases", "BUFF_PROXY"),
+                params=parameter,
+            )
             if response.status_code == 200:
                 data = response.json()["data"]
                 total_page = data["total_page"]
                 flag = False
-                if (
-                    skin.find("|") == -1
-                ):  # in ['蝴蝶刀', '求生匕首', '流浪者匕首', '系绳匕首', '骷髅匕首']:
+                if skin.find("|") == -1:  # in ['蝴蝶刀', '求生匕首', '流浪者匕首', '系绳匕首', '骷髅匕首']:
                     for i in range(1, total_page + 1):
                         res = await AsyncHttpx.get(url, params=parameter)
                         data = res.json()["data"]["items"]
@@ -201,17 +199,21 @@ async def util_get_buff_img(case_name: str = "狂牙大行动") -> str:
                             if data[j]["name"] in [f"{skin}（★）"]:
                                 img_url = data[j]["goods_info"]["icon_url"]
                                 skin_name = cn2py(skin + "无涂装")
-                                await AsyncHttpx.download_file(img_url, path / f"{skin_name}.png")
+                                await AsyncHttpx.download_file(
+                                    img_url, path / f"{skin_name}.png"
+                                )
                                 flag = True
                                 break
                         if flag:
                             break
                 else:
-                    img_url = (await response.json())["data"]["items"][0][
-                        "goods_info"
-                    ]["icon_url"]
+                    img_url = (await response.json())["data"]["items"][0]["goods_info"][
+                        "icon_url"
+                    ]
                     skin_name += cn2py(skin.replace("|", "-").strip())
-                    if await AsyncHttpx.download_file(img_url, path / f"{skin_name}.png"):
+                    if await AsyncHttpx.download_file(
+                        img_url, path / f"{skin_name}.png"
+                    ):
                         logger.info(f"------->写入 {skin} 成功")
                     else:
                         logger.info(f"------->写入 {skin} 失败")
@@ -255,18 +257,15 @@ async def get_price(d_name):
 
 async def update_count_daily():
     try:
-        users = await OpenCasesUser.get_user_all()
-        if users:
-            for user in users:
-                await user.update(
-                    today_open_total=0,
-                ).apply()
+        await OpenCasesUser.all().update(today_open_total=0)
         bot = get_bot()
         gl = await bot.get_group_list()
         gl = [g["group_id"] for g in gl]
         for g in gl:
             try:
-                await bot.send_group_msg(group_id=g, message="[[_task|open_case_reset_remind]]今日开箱次数重置成功")
+                await bot.send_group_msg(
+                    group_id=g, message="[[_task|open_case_reset_remind]]今日开箱次数重置成功"
+                )
             except ActionFailed:
                 logger.warning(f"{g} 群被禁言，无法发送 开箱重置提醒")
         logger.info("今日开箱次数重置成功")

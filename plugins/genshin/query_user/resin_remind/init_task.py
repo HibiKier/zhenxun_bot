@@ -1,20 +1,20 @@
-from nonebot.adapters.onebot.v11 import ActionFailed
-
-from utils.utils import get_bot, scheduler
-from utils.message_builder import at
-from models.group_member_info import GroupInfoUser
-from apscheduler.jobstores.base import ConflictingIdError
-from nonebot import Driver
-from .._models import Genshin
-from datetime import datetime, timedelta
-from apscheduler.jobstores.base import JobLookupError
-from services.log import logger
-from nonebot.plugin import require
-from configs.config import Config
 import random
+from datetime import datetime, timedelta
+
 import nonebot
 import pytz
+from apscheduler.jobstores.base import ConflictingIdError, JobLookupError
+from nonebot import Driver
+from nonebot.adapters.onebot.v11 import ActionFailed
+from nonebot.plugin import require
 
+from configs.config import Config
+from models.group_member_info import GroupInfoUser
+from services.log import logger
+from utils.message_builder import at
+from utils.utils import get_bot, scheduler
+
+from .._models import Genshin
 
 driver: Driver = nonebot.get_driver()
 
@@ -22,7 +22,6 @@ driver: Driver = nonebot.get_driver()
 require("query_memo")
 
 from ..query_memo import get_memo
-
 
 global_map = {}
 
@@ -80,12 +79,13 @@ async def _():
     """
     启动时分配定时任务
     """
-    g_list = await Genshin.get_all_resin_remind_user()
+    g_list = await Genshin.filter(resin_remind=True).all()
+    update_list = []
     date = datetime.now(pytz.timezone("Asia/Shanghai")) + timedelta(seconds=30)
     for u in g_list:
         if u.resin_remind:
             if u.resin_recovery_time:
-                if await Genshin.get_user_resin_recovery_time(u.uid) > datetime.now(
+                if u.resin_recovery_time and u.resin_recovery_time > datetime.now(
                     pytz.timezone("Asia/Shanghai")
                 ):
                     # date = await Genshin.get_user_resin_recovery_time(u.uid)  # 不能要,因为可能在这期间用户使用了树脂
@@ -101,7 +101,8 @@ async def _():
                         f"genshin_resin_remind add_job：USER：{u.user_qq} UID：{u.uid}启动原神树脂提醒 "
                     )
                 else:
-                    await Genshin.clear_resin_remind_time(u.uid)
+                    u.resin_recovery_time = None
+                    update_list.append(u)
                     add_job(u.user_qq, u.uid)
                     logger.info(
                         f"genshin_resin_remind add_job CHECK：USER：{u.user_qq} UID：{u.uid}启动原神树脂提醒 "
@@ -111,6 +112,8 @@ async def _():
                 logger.info(
                     f"genshin_resin_remind add_job CHECK：USER：{u.user_qq} UID：{u.uid}启动原神树脂提醒 "
                 )
+    if update_list:
+        await Genshin.bulk_update(update_list, ["resin_recovery_time"])
 
 
 def add_job(user_id: int, uid: int):
@@ -133,6 +136,7 @@ def add_job(user_id: int, uid: int):
 
 
 async def _remind(user_id: int, uid: str):
+    user = await Genshin.get_or_none(user_qq=user_id, uid=int(uid))
     uid = str(uid)
     if uid[0] in ["1", "2"]:
         server_id = "cn_gf01"
@@ -158,7 +162,9 @@ async def _remind(user_id: int, uid: str):
         elif max_resin - 20 <= current_resin < max_resin:
             next_time = now + timedelta(minutes=(max_resin - current_resin) * 8)
         elif current_resin == max_resin:
-            custom_overflow_resin = Config.get_config("resin_remind", "CUSTOM_RESIN_OVERFLOW_REMIND")
+            custom_overflow_resin = Config.get_config(
+                "resin_remind", "CUSTOM_RESIN_OVERFLOW_REMIND"
+            )
             if user_manager.is_overflow(uid) and custom_overflow_resin:
                 next_time = now + timedelta(minutes=custom_overflow_resin * 8)
                 user_manager.add_overflow(uid)
@@ -178,28 +184,35 @@ async def _remind(user_id: int, uid: str):
                         message=msg,
                     )
                 else:
-                    group_id = await Genshin.get_bind_group(int(uid))
-                    if not group_id:
-                        group_list = await GroupInfoUser.get_user_all_group(user_id)
-                        if group_list:
-                            group_id = group_list[0]
-                    try:
-                        await bot.send_group_msg(
-                            group_id=group_id,
-                            message=at(user_id) + msg
-                        )
-                    except ActionFailed as e:
-                        logger.error(f"树脂提醒推送发生错误 {type(e)}：{e}")
+                    if user:
+                        group_id = user.bind_group
+                        if not group_id:
+                            if group_list := await GroupInfoUser.get_user_all_group(
+                                user_id
+                            ):
+                                group_id = group_list[0]
+                        try:
+                            await bot.send_group_msg(
+                                group_id=group_id, message=at(user_id) + msg
+                            )
+                        except ActionFailed as e:
+                            logger.error(f"树脂提醒推送发生错误 {type(e)}：{e}")
 
     if not next_time:
-        if user_manager.check(uid) and Config.get_config("resin_remind", "AUTO_CLOSE_QUERY_FAIL_RESIN_REMIND"):
-            await Genshin.set_resin_remind(int(uid), False)
-            await Genshin.clear_resin_remind_time(int(uid))
+        if user_manager.check(uid) and Config.get_config(
+            "resin_remind", "AUTO_CLOSE_QUERY_FAIL_RESIN_REMIND"
+        ):
+            if user:
+                user.resin_remind = False
+                user.resin_recovery_time = None
+                await user.save(update_fields=["resin_recovery_time", "resin_remind"])
         next_time = now + timedelta(minutes=(20 + random.randint(5, 20)) * 8)
         user_manager.add_error_count(uid)
     else:
         user_manager.remove_error_count(uid)
-    await Genshin.set_user_resin_recovery_time(int(uid), next_time)
+    if user:
+        user.resin_recovery_time = next_time
+        await user.save(update_fields=["resin_recovery_time", "resin_remind"])
     scheduler.add_job(
         _remind,
         "date",
@@ -208,6 +221,5 @@ async def _remind(user_id: int, uid: str):
         args=[user_id, uid],
     )
     logger.info(
-                        f"genshin_resin_remind add_job：USER：{user_id} UID：{uid} "
-                        f"{next_time} 原神树脂提醒"
-                    )
+        f"genshin_resin_remind add_job：USER：{user_id} UID：{uid} " f"{next_time} 原神树脂提醒"
+    )

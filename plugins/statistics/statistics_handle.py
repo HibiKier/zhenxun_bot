@@ -1,14 +1,16 @@
-from nonebot import on_command
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent, Message
-from models.group_info import GroupInfo
-from configs.path_config import DATA_PATH, IMAGE_PATH
-from nonebot.params import CommandArg, Command
-from utils.image_utils import BuildMat
-from utils.message_builder import image
-from utils.manager import plugins2settings_manager
-from typing import Tuple
 import asyncio
 import os
+from typing import Tuple
+
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent
+from nonebot.params import Command, CommandArg
+
+from configs.path_config import DATA_PATH, IMAGE_PATH
+from models.group_info import GroupInfo
+from utils.image_utils import BuildMat
+from utils.manager import plugins2settings_manager
+from utils.message_builder import image
 
 try:
     import ujson as json
@@ -160,8 +162,8 @@ async def _(bot: Bot, event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg
     day_index = data["day_index"]
     data = data[arg][key]
     if _type == "group":
-        name = await GroupInfo.get_group_info(event.group_id)
-        name = name.group_name if name else str(event.group_id)
+        group = await GroupInfo.filter(group_id=event.group_id).first()
+        name = name.group_name if group else str(event.group_id)
     else:
         name = event.sender.card or event.sender.nickname
     img = await generate_statistics_img(data, arg, name, plugin, day_index)

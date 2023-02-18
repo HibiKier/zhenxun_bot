@@ -108,7 +108,7 @@ class GoodsUseFuncManager:
                     )
 
     async def run_handle(self, goods_name: str, type_: str, param: ShopParam, **kwargs):
-        if self._data[goods_name].get(type_):
+        if self._data.get(goods_name) and self._data[goods_name].get(type_):
             for func in self._data[goods_name].get(type_):
                 args = inspect.signature(func).parameters
                 if args and list(args.keys())[0] != "kwargs":
@@ -170,7 +170,6 @@ def build_params(
         :param goods_name: 商品名称
         :param num: 数量
         :param text: 其他信息
-    :return:
     """
     _kwargs = func_manager.get_kwargs(goods_name)
     return (

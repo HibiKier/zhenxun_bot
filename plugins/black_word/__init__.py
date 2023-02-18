@@ -1,28 +1,30 @@
+from datetime import datetime
+from typing import Any, Tuple
+
+from nonebot import on_command, on_message, on_regex
 from nonebot.adapters.onebot.v11 import (
+    Bot,
     Event,
-    MessageEvent,
     GroupMessageEvent,
     Message,
-    Bot,
+    MessageEvent,
 )
 from nonebot.matcher import Matcher
 from nonebot.message import run_preprocessor
+from nonebot.params import CommandArg, RegexGroup
+from nonebot.permission import SUPERUSER
+
+from configs.config import NICKNAME, Config
+from models.ban_user import BanUser
+from services.log import logger
 from utils.image_utils import BuildImage
 from utils.manager import group_manager
-from utils.utils import get_message_text, is_number
-from nonebot.params import RegexGroup, CommandArg
-from .utils import black_word_manager
-from nonebot import on_command, on_message, on_regex
-from configs.config import Config, NICKNAME
-from nonebot.permission import SUPERUSER
-from .data_source import show_black_text_image, set_user_punish
-from services.log import logger
-from models.ban_user import BanUser
-from datetime import datetime
 from utils.message_builder import image
-from .model import BlackWord
-from typing import Tuple, Any
+from utils.utils import get_message_text, is_number
 
+from .data_source import set_user_punish, show_black_text_image
+from .model import BlackWord
+from .utils import black_word_manager
 
 __zx_plugin_name__ = "敏感词检测"
 __plugin_usage__ = """
@@ -38,7 +40,7 @@ usage：
     设置惩罚id需要通过 '记录名单u:xxxxxxxx' 获取
     指令：
         记录名单
-        设置惩罚 [user_id] [id] [punish_level]
+        设置惩罚 [user_id] [下标] [惩罚等级]
         示例：记录名单
         示例：记录名单u:12345678
         示例：设置惩罚 12345678 1 4
@@ -150,24 +152,32 @@ async def _(
     matcher: Matcher,
     event: Event,
 ):
+    msg = get_message_text(event.json())
     if (
         isinstance(event, MessageEvent)
         and event.is_tome()
-        and matcher.plugin_name == "black_word"
-        and not await BanUser.is_ban(event.user_id)
-        and str(event.user_id) not in bot.config.superusers
-        and not get_message_text(event.json()).startswith("原神绑定")
+        and not msg.startswith("原神绑定")
     ):
-        # 屏蔽群权限-1的群
-        if isinstance(event, GroupMessageEvent) and group_manager.get_group_level(event.group_id) < 0:
-            return
-        user_id = event.user_id
-        group_id = event.group_id if isinstance(event, GroupMessageEvent) else None
-        msg = get_message_text(event.json())
-        if await black_word_manager.check(user_id, group_id, msg) and Config.get_config(
-            "black_word", "CONTAIN_BLACK_STOP_PROPAGATION"
+        # if str(event.user_id) not in bot.config.superusers:
+        #     return logger.debug(f"超级用户跳过黑名单词汇检查 Message: {msg}", target=event.user_id)
+        if (
+            event.is_tome()
+            and matcher.plugin_name == "black_word"
+            and not await BanUser.is_ban(event.user_id)
         ):
-            matcher.stop_propagation()
+            # 屏蔽群权限-1的群
+            if (
+                isinstance(event, GroupMessageEvent)
+                and group_manager.get_group_level(event.group_id) < 0
+            ):
+                return
+            user_id = event.user_id
+            group_id = event.group_id if isinstance(event, GroupMessageEvent) else None
+            msg = get_message_text(event.json())
+            if await black_word_manager.check(
+                user_id, group_id, msg
+            ) and Config.get_config("black_word", "CONTAIN_BLACK_STOP_PROPAGATION"):
+                matcher.stop_propagation()
 
 
 @show_black.handle()

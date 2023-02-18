@@ -1,10 +1,10 @@
 from nonebot import on_notice
-from services.log import logger
 from nonebot.adapters.onebot.v11 import GroupAdminNoticeEvent
-from models.level_user import LevelUser
-from models.group_member_info import GroupInfoUser
-from configs.config import Config
 
+from configs.config import Config
+from models.group_member_info import GroupInfoUser
+from models.level_user import LevelUser
+from services.log import logger
 
 __zx_plugin_name__ = "群管理员变动监测 [Hidden]"
 __plugin_version__ = 0.1
@@ -16,11 +16,11 @@ admin_notice = on_notice(priority=5)
 
 @admin_notice.handle()
 async def _(event: GroupAdminNoticeEvent):
-    try:
-        nickname = (
-            await GroupInfoUser.get_member_info(event.user_id, event.group_id)
-        ).user_name
-    except AttributeError:
+    if user := await GroupInfoUser.filter(
+        user_qq=event.user_id, group_id=event.group_id
+    ).first():
+        nickname = user.nickname
+    else:
         nickname = event.user_id
     if event.sub_type == "set":
         await LevelUser.set_level(

@@ -1,20 +1,21 @@
-from nonebot.matcher import Matcher
-from nonebot.message import run_preprocessor, IgnoredException
-from nonebot.typing import T_State
 from nonebot.adapters.onebot.v11 import (
+    ActionFailed,
     Bot,
     Event,
-    MessageEvent,
-    ActionFailed,
-    PokeNotifyEvent,
     GroupMessageEvent,
+    MessageEvent,
+    PokeNotifyEvent,
 )
+from nonebot.matcher import Matcher
+from nonebot.message import IgnoredException, run_preprocessor
+from nonebot.typing import T_State
+
 from configs.config import Config
 from models.ban_user import BanUser
-from utils.utils import is_number, static_flmt, FreqLimiter
 from utils.message_builder import at
-from ._utils import ignore_rst_module, other_limit_plugins
+from utils.utils import FreqLimiter, is_number, static_flmt
 
+from ._utils import ignore_rst_module, other_limit_plugins
 
 Config.add_plugin_config(
     "hook",
@@ -49,7 +50,7 @@ async def _(matcher: Matcher, bot: Bot, event: Event, state: T_State):
             and str(event.user_id) not in bot.config.superusers
         ):
             time = await BanUser.check_ban_time(event.user_id)
-            if is_number(time):
+            if isinstance(time, int):
                 time = abs(int(time))
                 if time < 60:
                     time = str(time) + " 秒"

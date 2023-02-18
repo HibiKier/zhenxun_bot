@@ -1,15 +1,16 @@
-from utils.utils import scheduler, get_bot
-from ._data_source import update_member_info
-from services.log import logger
-from models.group_info import GroupInfo
 from asyncpg.exceptions import ConnectionDoesNotExistError, UndefinedColumnError
 
+from models.group_info import GroupInfo
+from services.log import logger
+from utils.utils import get_bot, scheduler
 
-__zx_plugin_name__ = '管理方面定时任务 [Hidden]'
-__plugin_usage__ = '无'
-__plugin_des__ = '成员信息和管理权限的定时更新'
+from ._data_source import update_member_info
+
+__zx_plugin_name__ = "管理方面定时任务 [Hidden]"
+__plugin_usage__ = "无"
+__plugin_des__ = "成员信息和管理权限的定时更新"
 __plugin_version__ = 0.1
-__plugin_author__ = 'HibiKier'
+__plugin_author__ = "HibiKier"
 
 
 # 自动更新群员信息
@@ -42,7 +43,7 @@ async def _():
         if bot:
             gl = await bot.get_group_list()
             gl = [g["group_id"] for g in gl]
-            all_group = [x.group_id for x in await GroupInfo.get_all_group()]
+            all_group = [x.group_id for x in await GroupInfo.all()]
             for g in gl:
                 if g not in all_group:
                     await update_member_info(g, False)

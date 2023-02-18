@@ -1,42 +1,40 @@
 import random
-from nonebot import on_command, on_regex
-from services.log import logger
-from models.sign_group_user import SignGroupUser
-from nonebot.message import run_postprocessor
-from nonebot.matcher import Matcher
-from typing import Optional, Type, Any
-from gino.exceptions import UninitializedError
+import re
+from typing import Any, Optional, Tuple, Type
 
-from utils.message_builder import custom_forward_msg
-from utils.utils import (
-    is_number,
-)
-from nonebot.typing import T_State
+from nonebot import on_command, on_regex
 from nonebot.adapters.onebot.v11 import (
-    Bot,
     ActionFailed,
-    MessageEvent,
-    GroupMessageEvent,
-    PrivateMessageEvent,
-    Message,
+    Bot,
     Event,
+    GroupMessageEvent,
+    Message,
+    MessageEvent,
+    PrivateMessageEvent,
 )
+from nonebot.matcher import Matcher
+from nonebot.message import run_postprocessor
+from nonebot.params import Command, CommandArg, RegexGroup
+from nonebot.typing import T_State
+
+from configs.config import NICKNAME, Config
+from models.sign_group_user import SignGroupUser
+from services.log import logger
+from utils.manager import withdraw_message_manager
+from utils.message_builder import custom_forward_msg
+from utils.utils import is_number
+
+from .._model import Setu
 from .data_source import (
-    get_setu_list,
-    get_luoxiang,
-    search_online_setu,
-    get_setu_urls,
+    add_data_to_database,
+    check_local_exists_or_download,
     find_img_index,
     gen_message,
-    check_local_exists_or_download,
-    add_data_to_database,
-    get_setu_count,
+    get_luoxiang,
+    get_setu_list,
+    get_setu_urls,
+    search_online_setu,
 )
-from configs.config import Config, NICKNAME
-from utils.manager import withdraw_message_manager
-from nonebot.params import CommandArg, Command, RegexGroup
-from typing import Tuple
-import re
 
 try:
     import ujson as json
@@ -126,7 +124,7 @@ async def do_something(
                 await add_data_to_database(setu_data_list)
                 logger.info("色图数据自动存储数据库成功...")
                 setu_data_list = []
-            except UninitializedError:
+            except Exception:
                 pass
 
 
@@ -146,17 +144,18 @@ async def _(
 ):
     msg = arg.extract_plain_text().strip()
     if isinstance(event, GroupMessageEvent):
-        impression = (
-            await SignGroupUser.ensure(event.user_id, event.group_id)
-        ).impression
+        user, _ = await SignGroupUser.get_or_create(
+            user_qq=event.user_id, group_id=event.group_id
+        )
+        impression = user.impression
         luox = get_luoxiang(impression)
         if luox:
             await setu.finish(luox)
-    r18 = 0
+    r18 = False
     num = 1
     # 是否看r18
     if cmd[0] == "色图r" and isinstance(event, PrivateMessageEvent):
-        r18 = 1
+        r18 = True
         num = 10
     elif cmd[0] == "色图r" and isinstance(event, GroupMessageEvent):
         if not Config.get_config("send_setu", "ALLOW_GROUP_R18"):
@@ -164,18 +163,20 @@ async def _(
                 random.choice(["这种不好意思的东西怎么可能给这么多人看啦", "羞羞脸！给我滚出克私聊！", "变态变态变态变态大变态！"])
             )
         else:
-            r18 = 1
+            r18 = False
     # 有 数字 的话先尝试本地色图id
     if msg and is_number(msg):
         setu_list, code = await get_setu_list(int(msg), r18=r18)
         if code != 200:
             await setu.finish(setu_list[0], at_sender=True)
         setu_img, code = await check_local_exists_or_download(setu_list[0])
-        msg_id = await setu.send(gen_message(setu_list[0]) + setu_img, at_sender=True)
+        msg_id = await setu.send(
+            Message(gen_message(setu_list[0])) + setu_img, at_sender=True
+        )
         logger.info(
             f"(USER {event.user_id}, GROUP "
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-            f" 发送色图 {setu_list[0].local_id}.png"
+            f" 发送色图 {setu_list[0].local_id}.jpd"
         )
         if msg_id:
             withdraw_message_manager.withdraw_message(
@@ -205,9 +206,10 @@ num_key = {
 @setu_reg.handle()
 async def _(bot: Bot, event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
     if isinstance(event, GroupMessageEvent):
-        impression = (
-            await SignGroupUser.ensure(event.user_id, event.group_id)
-        ).impression
+        user, _ = await SignGroupUser.get_or_create(
+            user_qq=event.user_id, group_id=event.group_id
+        )
+        impression = user.impression
         luox = get_luoxiang(impression)
         if luox:
             await setu.finish(luox, at_sender=True)
@@ -220,7 +222,7 @@ async def _(bot: Bot, event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGro
         num = int(num)
     except ValueError:
         num = 1
-    await send_setu_handle(bot, setu_reg, event, "色图", tags, num, 0)
+    await send_setu_handle(bot, setu_reg, event, "色图", tags, num, False)
 
 
 async def send_setu_handle(
@@ -230,7 +232,7 @@ async def send_setu_handle(
     command: str,
     msg: str,
     num: int,
-    r18: int,
+    r18: bool,
 ):
     global setu_data_list
     # 非 id，在线搜索
@@ -240,7 +242,7 @@ async def send_setu_handle(
         await matcher.finish("咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀")
     # 本地先拿图，下载失败补上去
     setu_list, code = None, 200
-    setu_count = await get_setu_count(r18)
+    setu_count = await Setu.filter(is_r18=r18).count()
     if (
         not Config.get_config("send_setu", "ONLY_USE_LOCAL_SETU") and tags
     ) or setu_count <= 0:
