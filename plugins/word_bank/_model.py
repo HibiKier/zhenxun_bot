@@ -12,7 +12,7 @@ from nonebot.adapters.onebot.v11 import (
 )
 from nonebot.internal.adapter.template import MessageTemplate
 from tortoise import Tortoise, fields
-from tortoise.expressions import Q, RawSQL
+from tortoise.expressions import Q
 
 from configs.path_config import DATA_PATH
 from services.db_context import Model
@@ -496,3 +496,8 @@ class WordBank(Model):
                 create_time=datetime.now().replace(microsecond=0),
                 update_time=datetime.now().replace(microsecond=0),
             )
+
+    @classmethod
+    async def _run_script(cls):
+        await cls.raw("ALTER TABLE word_bank2 ADD to_me varchar(255);")
+        """允许 user_join_time 为空"""

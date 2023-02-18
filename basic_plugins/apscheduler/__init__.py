@@ -71,7 +71,9 @@ async def _():
 )
 async def _():
     img = image(IMAGE_PATH / "zhenxun" / "sleep.jpg")
-    await broadcast_group("[[_task|zwa]]{NICKNAME}要睡觉了，你们也要早点睡呀" + img, log_cmd="被动早晚安")
+    await broadcast_group(
+        f"[[_task|zwa]]{NICKNAME}要睡觉了，你们也要早点睡呀" + img, log_cmd="被动早晚安"
+    )
     logger.info("每日晚安发送")
 
 
