@@ -228,7 +228,6 @@ class HelpImageBuild:
         for msg in [
             "目前支持的功能列表:",
             "可以通过 ‘帮助[功能名称]’ 来获取对应功能的使用方法",
-            "或者使用 ‘详细帮助’ 来获取所有功能方法",
         ]:
             text = BuildImage(
                 0,
