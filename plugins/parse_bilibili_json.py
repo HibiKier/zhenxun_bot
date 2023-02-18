@@ -1,22 +1,24 @@
-from nonebot import on_message
-from services.log import logger
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, ActionFailed
-
-from utils.manager import group_manager
-from utils.utils import get_message_json, get_local_proxy, is_number, get_message_text
-from nonebot.adapters.onebot.v11.permission import GROUP
-from utils.message_builder import image
-from utils.image_utils import BuildImage
-from utils.browser import get_browser
-from configs.path_config import IMAGE_PATH
-from utils.http_utils import AsyncHttpx
-from configs.config import Config
-from utils.user_agent import get_user_agent
-import aiohttp
 import asyncio
 import time
+
+import aiohttp
 import ujson as json
 from bilireq import video
+from nonebot import on_message
+from nonebot.adapters.onebot.v11 import ActionFailed, GroupMessageEvent
+from nonebot.adapters.onebot.v11.permission import GROUP
+
+from configs.config import Config
+from configs.path_config import IMAGE_PATH, TEMP_PATH
+from services.log import logger
+from utils.browser import get_browser
+from utils.http_utils import AsyncHttpx
+from utils.image_utils import BuildImage
+from utils.manager import group_manager
+from utils.message_builder import image
+from utils.user_agent import get_user_agent
+from utils.utils import get_local_proxy, get_message_json, get_message_text, is_number
+
 __zx_plugin_name__ = "B站转发解析"
 __plugin_usage__ = """
 usage：
@@ -39,7 +41,10 @@ Config.add_plugin_config(
 async def plugin_on_checker(event: GroupMessageEvent) -> bool:
     return group_manager.get_plugin_status("parse_bilibili_json", event.group_id)
 
-parse_bilibili_json = on_message(priority=1, permission=GROUP, block=False, rule=plugin_on_checker)
+
+parse_bilibili_json = on_message(
+    priority=1, permission=GROUP, block=False, rule=plugin_on_checker
+)
 
 _tmp = {}
 
@@ -55,16 +60,14 @@ async def _(event: GroupMessageEvent):
             data = None
         if data:
             # 转发视频
-            if data.get("desc") == "哔哩哔哩" or data.get('prompt').find('哔哩哔哩') != -1:
-                async with aiohttp.ClientSession(
-                    headers=get_user_agent()
-                ) as session:
+            if data.get("desc") == "哔哩哔哩" or "哔哩哔哩" in data.get("prompt"):
+                async with aiohttp.ClientSession(headers=get_user_agent()) as session:
                     async with session.get(
-                            data["meta"]["detail_1"]["qqdocurl"],
-                            timeout=7,
+                        data["meta"]["detail_1"]["qqdocurl"],
+                        timeout=7,
                     ) as response:
                         url = str(response.url).split("?")[0]
-                        if url[-1] == '/':
+                        if url[-1] == "/":
                             url = url[:-1]
                         bvid = url.split("/")[-1]
                         vd_info = await video.get_video_base_info(bvid)
@@ -93,10 +96,11 @@ async def _(event: GroupMessageEvent):
                         timeout=100000,
                     )
                     await asyncio.get_event_loop().run_in_executor(
-                        None, resize, f"{IMAGE_PATH}/temp/cv_{event.user_id}.png"
+                        None, resize, TEMP_PATH / f"cv_{event.user_id}.png"
                     )
                     await parse_bilibili_json.send(
-                        "[[_task|bilibili_parse]]" + image(f"cv_{event.user_id}.png", "temp")
+                        "[[_task|bilibili_parse]]"
+                        + image(TEMP_PATH / f"cv_{event.user_id}.png")
                     )
                     await page.close()
                     logger.info(
@@ -121,15 +125,13 @@ async def _(event: GroupMessageEvent):
                 msg = msg[index + 2 : index + 11]
                 if is_number(msg):
                     url = f"https://www.bilibili.com/video/av{msg}"
-                    vd_info = await video.get_video_base_info('av' + msg)
+                    vd_info = await video.get_video_base_info("av" + msg)
         elif "https://b23.tv" in msg:
-            url = "https://" + msg[msg.find("b23.tv"): msg.find("b23.tv") + 14]
-            async with aiohttp.ClientSession(
-                    headers=get_user_agent()
-            ) as session:
+            url = "https://" + msg[msg.find("b23.tv") : msg.find("b23.tv") + 14]
+            async with aiohttp.ClientSession(headers=get_user_agent()) as session:
                 async with session.get(
-                        url,
-                        timeout=7,
+                    url,
+                    timeout=7,
                 ) as response:
                     url = (str(response.url).split("?")[0]).strip("/")
                     bvid = url.split("/")[-1]
@@ -150,8 +152,9 @@ async def _(event: GroupMessageEvent):
             date = time.strftime("%Y-%m-%d", time.localtime(vd_info["ctime"]))
             try:
                 await parse_bilibili_json.send(
-                    "[[_task|bilibili_parse]]" +
-                    image(vd_info["pic"]) + f"\nav{aid}\n标题：{title}\n"
+                    "[[_task|bilibili_parse]]"
+                    + image(vd_info["pic"])
+                    + f"\nav{aid}\n标题：{title}\n"
                     f"UP：{author}\n"
                     f"上传日期：{date}\n"
                     f"回复：{reply}，收藏：{favorite}，投币：{coin}\n"

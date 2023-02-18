@@ -1,11 +1,12 @@
 from nonebot import on_command
 from nonebot.permission import SUPERUSER
 from nonebot.rule import to_me
+
 from utils.message_builder import image
-from .data_source import create_help_image, SUPERUSER_HELP_IMAGE
 
+from .data_source import SUPERUSER_HELP_IMAGE, create_help_image
 
-__zx_plugin_name__ = '超级用户帮助 [Superuser]'
+__zx_plugin_name__ = "超级用户帮助 [Superuser]"
 
 
 if SUPERUSER_HELP_IMAGE.exists():
@@ -20,5 +21,4 @@ super_help = on_command(
 async def _():
     if not SUPERUSER_HELP_IMAGE.exists():
         await create_help_image()
-    x = image(SUPERUSER_HELP_IMAGE)
-    await super_help.finish(x)
+    await super_help.finish(image(SUPERUSER_HELP_IMAGE))

@@ -1,39 +1,40 @@
+import time
 from typing import Optional
 
 import nonebot
 from nonebot.adapters.onebot.v11 import (
-    GroupMessageEvent,
-    PrivateMessageEvent,
     Bot,
     Event,
-    MessageEvent,
+    GroupMessageEvent,
     Message,
+    MessageEvent,
     PokeNotifyEvent,
+    PrivateMessageEvent,
 )
 from nonebot.exception import ActionFailed, IgnoredException
 from nonebot.internal.matcher import Matcher
 
+from configs.config import Config
 from models.bag_user import BagUser
 from models.ban_user import BanUser
 from models.friend_user import FriendUser
 from models.group_member_info import GroupInfoUser
 from models.level_user import LevelUser
 from models.user_shop_gold_log import UserShopGoldLog
+from services.log import logger
 from utils.decorator import Singleton
 from utils.manager import (
-    plugins2block_manager,
     StaticData,
-    plugins2settings_manager,
-    group_manager,
     admin_manager,
-    plugins_manager,
+    group_manager,
+    plugins2block_manager,
     plugins2cd_manager,
     plugins2count_manager,
+    plugins2settings_manager,
+    plugins_manager,
 )
 from utils.message_builder import at
 from utils.utils import FreqLimiter
-from configs.config import Config
-import time
 
 ignore_rst_module = ["ai", "poke", "dialogue"]
 
@@ -97,11 +98,11 @@ async def send_msg(msg: str, bot: Bot, event: MessageEvent):
         msg = msg.replace("[uname]", uname)
     if "[nickname]" in msg:
         if isinstance(event, GroupMessageEvent):
-            nickname = await GroupInfoUser.get_group_member_nickname(
+            nickname = await GroupInfoUser.get_user_nickname(
                 event.user_id, event.group_id
             )
         else:
-            nickname = await FriendUser.get_friend_nickname(event.user_id)
+            nickname = await FriendUser.get_user_nickname(event.user_id)
         msg = msg.replace("[nickname]", nickname)
     if "[at]" in msg and isinstance(event, GroupMessageEvent):
         msg = msg.replace("[at]", str(at(event.user_id)))
@@ -142,16 +143,19 @@ class AuthChecker:
             :param event: event
         """
         try:
-            plugin_name = matcher.plugin_name
-            cost_gold = await self.auth_cost(plugin_name, bot, event)
-            if hasattr(event, "user_id") and str(event.user_id) not in bot.config.superusers:
-                await self.auth_basic(plugin_name, bot, event)
-                self.auth_group(plugin_name, bot, event)
-                await self.auth_admin(plugin_name, matcher, bot, event)
-                await self.auth_plugin(plugin_name, matcher, bot, event)
-                await self.auth_limit(plugin_name, bot, event)
-                if cost_gold:
-                    await BagUser.spend_gold(event.user_id, event.group_id, cost_gold)
+            if plugin_name := matcher.plugin_name:
+                cost_gold = await self.auth_cost(plugin_name, bot, event)
+                user_id = getattr(event, "user_id", None)
+                if user_id and str(user_id) not in bot.config.superusers:
+                    await self.auth_basic(plugin_name, bot, event)
+                    self.auth_group(plugin_name, bot, event)
+                    await self.auth_admin(plugin_name, matcher, bot, event)
+                    await self.auth_plugin(plugin_name, matcher, bot, event)
+                    await self.auth_limit(plugin_name, bot, event)
+                    if cost_gold:
+                        await BagUser.spend_gold(
+                            event.user_id, event.group_id, cost_gold
+                        )
         except IsSuperuserException:
             return
 
@@ -221,7 +225,9 @@ class AuthChecker:
             else:
                 plugins2count_manager.increase(plugin_name, count_type_)
 
-    async def auth_plugin(self, plugin_name: str, matcher: Matcher, bot: Bot, event: Event):
+    async def auth_plugin(
+        self, plugin_name: str, matcher: Matcher, bot: Bot, event: Event
+    ):
         """
         说明:
             插件状态
@@ -345,6 +351,7 @@ class AuthChecker:
                             and plugin_name not in ignore_rst_module
                         ):
                             self._flmt_c.start_cd(event.group_id)
+                            logger.info(f"{event.user_id} ||XXXXXX: {matcher.module}")
                             await bot.send_group_msg(
                                 group_id=event.group_id, message="此功能正在维护..."
                             )
@@ -364,7 +371,9 @@ class AuthChecker:
                 set_block_limit_false(event, plugin_name)
                 raise IgnoredException("此功能正在维护...")
 
-    async def auth_admin(self, plugin_name: str, matcher: Matcher, bot: Bot, event: Event):
+    async def auth_admin(
+        self, plugin_name: str, matcher: Matcher, bot: Bot, event: Event
+    ):
         """
         说明:
             管理员命令 个人权限
@@ -504,8 +513,13 @@ class AuthChecker:
                     await BagUser.spend_gold(
                         event.user_id, event.group_id, psm.cost_gold
                     )
-                await UserShopGoldLog.add_shop_log(
-                    event.user_id, event.group_id, 2, plugin_name, psm.cost_gold, 1
+                await UserShopGoldLog.create(
+                    user_qq=event.user_id,
+                    group_id=event.group_id,
+                    type=2,
+                    name=plugin_name,
+                    num=1,
+                    spend_gold=psm.cost_gold,
                 )
                 cost_gold = psm.cost_gold
         return cost_gold

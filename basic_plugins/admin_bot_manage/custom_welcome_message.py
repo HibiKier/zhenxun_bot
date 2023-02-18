@@ -1,14 +1,14 @@
 from typing import List
 
+from configs.config import Config
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
-from nonebot.params import CommandArg
-from ._data_source import custom_group_welcome
 from nonebot.adapters.onebot.v11.permission import GROUP
-from configs.config import Config
+from nonebot.params import CommandArg
 from services.log import logger
 from utils.depends import ImageList
 
+from ._data_source import custom_group_welcome
 
 __zx_plugin_name__ = "自定义进群欢迎消息 [Admin]"
 __plugin_usage__ = """
@@ -19,12 +19,14 @@ usage：
         Note：可以通过[at]来确认是否艾特新成员
         示例：自定义进群欢迎消息 欢迎你[at]
 """.strip()
-__plugin_des__ = '简易的自定义群欢迎消息'
-__plugin_cmd__ = ['自定义群欢迎消息 ?[文本] ?[图片]']
+__plugin_des__ = "简易的自定义群欢迎消息"
+__plugin_cmd__ = ["自定义群欢迎消息 ?[文本] ?[图片]"]
 __plugin_version__ = 0.1
-__plugin_author__ = 'HibiKier'
+__plugin_author__ = "HibiKier"
 __plugin_settings__ = {
-    "admin_level": Config.get_config("admin_bot_manage", "SET_GROUP_WELCOME_MESSAGE_LEVEL"),
+    "admin_level": Config.get_config(
+        "admin_bot_manage", "SET_GROUP_WELCOME_MESSAGE_LEVEL"
+    ),
 }
 
 custom_welcome = on_command(
@@ -37,7 +39,9 @@ custom_welcome = on_command(
 
 
 @custom_welcome.handle()
-async def _(event: GroupMessageEvent, arg: Message = CommandArg(), img: List[str] = ImageList()):
+async def _(
+    event: GroupMessageEvent, arg: Message = CommandArg(), img: List[str] = ImageList()
+):
     msg = arg.extract_plain_text().strip()
     if not msg and not img:
         await custom_welcome.finish(__plugin_usage__)

@@ -1,14 +1,17 @@
-from nonebot import on_command
-from nonebot.permission import SUPERUSER
-from nonebot.adapters.onebot.v11 import Bot, Message
-from nonebot.params import Command, CommandArg
 from typing import Tuple
+
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent
+from nonebot.params import Command, CommandArg
+from nonebot.permission import SUPERUSER
 from nonebot.rule import to_me
-from utils.utils import is_number
+
+from models.group_info import GroupInfo
+from services.log import logger
+from utils.depends import OneCommand
 from utils.manager import requests_manager
 from utils.message_builder import image
-from models.group_info import GroupInfo
-
+from utils.utils import is_number
 
 __zx_plugin_name__ = "显示所有好友群组 [Superuser]"
 __plugin_usage__ = """
@@ -76,8 +79,7 @@ async def _(bot: Bot):
 
 
 @friend_handle.handle()
-async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
-    cmd = cmd[0]
+async def _(bot: Bot, cmd: str = OneCommand(), arg: Message = CommandArg()):
     id_ = arg.extract_plain_text().strip()
     if is_number(id_):
         id_ = int(id_)
@@ -97,8 +99,9 @@ async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandAr
 
 
 @group_handle.handle()
-async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandArg()):
-    cmd = cmd[0]
+async def _(
+    bot: Bot, event: MessageEvent, cmd: str = OneCommand(), arg: Message = CommandArg()
+):
     id_ = arg.extract_plain_text().strip()
     flag = None
     if is_number(id_):
@@ -106,20 +109,21 @@ async def _(bot: Bot, cmd: Tuple[str, ...] = Command(), arg: Message = CommandAr
         if cmd[:2] == "同意":
             rid = requests_manager.get_group_id(id_)
             if rid:
-                if await GroupInfo.get_group_info(rid):
-                    await GroupInfo.set_group_flag(rid, 1)
+                if group := await GroupInfo.filter(group_id=rid).first():
+                    await group.update_or_create(group_flag=1)
                 else:
                     group_info = await bot.get_group_info(group_id=rid)
-                    await GroupInfo.add_group_info(
-                        rid,
-                        group_info["group_name"],
-                        group_info["max_member_count"],
-                        group_info["member_count"],
-                        1
+                    await GroupInfo.create(
+                        group_id=rid,
+                        group_name=group_info["group_name"],
+                        max_member_count=group_info["max_member_count"],
+                        member_count=group_info["member_count"],
+                        group_flag=1,
                     )
                 flag = await requests_manager.approve(bot, id_, "group")
             else:
                 await group_handle.send("同意群聊请求失败，未找到此id的请求..")
+                logger.info("同意群聊请求失败，未找到此id的请求..", cmd, event.user_id)
         else:
             flag = await requests_manager.refused(bot, id_, "group")
         if flag == 1:
@@ -139,11 +143,11 @@ async def _():
     for type_ in ["private", "group"]:
         msg = await requests_manager.show(type_)
         if msg:
-            _str += image(b64=msg)
+            _str += image(msg)
         else:
             _str += "没有任何好友请求.." if type_ == "private" else "没有任何群聊请求.."
         if type_ == "private":
-            _str += '\n--------------------\n'
+            _str += "\n--------------------\n"
     await cls_request.send(Message(_str))
 
 

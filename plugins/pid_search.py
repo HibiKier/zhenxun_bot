@@ -1,17 +1,17 @@
+from asyncio.exceptions import TimeoutError
+
 from nonebot import on_command
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, Message, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent
+from nonebot.params import Arg, CommandArg
 from nonebot.typing import T_State
 
 from configs.config import Config
-from utils.utils import is_number, change_pixiv_image_links
-from utils.message_builder import image
+from configs.path_config import IMAGE_PATH, TEMP_PATH
 from services.log import logger
-from asyncio.exceptions import TimeoutError
-from configs.path_config import IMAGE_PATH
-from utils.manager import withdraw_message_manager
 from utils.http_utils import AsyncHttpx
-from nonebot.params import CommandArg, Arg
-
+from utils.manager import withdraw_message_manager
+from utils.message_builder import image
+from utils.utils import change_pixiv_image_links, is_number
 
 __zx_plugin_name__ = "pid搜索"
 __plugin_usage__ = """
@@ -88,7 +88,7 @@ async def _g(event: MessageEvent, state: T_State, pid: str = Arg("pid")):
                 img_url = change_pixiv_image_links(img_url)
                 if not await AsyncHttpx.download_file(
                     img_url,
-                    IMAGE_PATH / "temp" / f"pid_search_{event.user_id}_{i}.png",
+                    TEMP_PATH / f"pid_search_{event.user_id}_{i}.png",
                     headers=headers,
                 ):
                     await pid_search.send("图片下载失败了....", at_sender=True)
@@ -101,7 +101,7 @@ async def _g(event: MessageEvent, state: T_State, pid: str = Arg("pid")):
                         f"pid：{pid}\n"
                         f"author：{author}\n"
                         f"author_id：{author_id}\n"
-                        f'{image(f"pid_search_{event.user_id}_{i}.png", "temp")}'
+                        f'{image(TEMP_PATH / f"pid_search_{event.user_id}_{i}.png")}'
                         f"{tmp}"
                     )
                 )

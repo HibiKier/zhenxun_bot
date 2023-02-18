@@ -1,15 +1,18 @@
-from utils.utils import cn2py, get_bot
-from configs.path_config import DATA_PATH
-from typing import Optional, Union, Tuple
-from .model import BlackWord
-from configs.config import Config
-from pathlib import Path
-from services.log import logger
-from models.ban_user import BanUser
-from nonebot.adapters.onebot.v11 import ActionFailed
-from models.group_member_info import GroupInfoUser
-from utils.http_utils import AsyncHttpx
 import random
+from pathlib import Path
+from typing import Optional, Tuple, Union
+
+from nonebot.adapters.onebot.v11 import ActionFailed
+
+from configs.config import Config
+from configs.path_config import DATA_PATH
+from models.ban_user import BanUser
+from models.group_member_info import GroupInfoUser
+from services.log import logger
+from utils.http_utils import AsyncHttpx
+from utils.utils import cn2py, get_bot
+
+from .model import BlackWord
 
 try:
     import ujson as json
@@ -49,7 +52,7 @@ class BlackWordManager:
                 "hanbi",
                 "hanpi",
                 "laji",
-                "fw"
+                "fw",
             ],
             "5": [],
         }
@@ -94,9 +97,9 @@ class BlackWordManager:
                     user_id, group_id, data[0], message, int(data[1])
                 )
                 return True
-        if Config.get_config(
-            "black_word", "ALAPI_CHECK_FLAG"
-        ) and not await check_text(message):
+        if Config.get_config("black_word", "ALAPI_CHECK_FLAG") and not await check_text(
+            message
+        ):
             await send_msg(
                 0, None, f"USER {user_id} GROUP {group_id} ALAPI 疑似检测：{message}"
             )
@@ -146,8 +149,12 @@ async def _add_user_black_word(
         "black_word", "AUTO_ADD_PUNISH_LEVEL"
     ) and user_count > Config.get_config("black_word", "ADD_PUNISH_LEVEL_TO_COUNT"):
         punish_level -= 1
-    await BlackWord.add_user_black_word(
-        user_id, group_id, black_word, message, punish_level
+    await BlackWord.create(
+        user_qq=user_id,
+        group_id=group_id,
+        plant_text=message,
+        black_word=black_word,
+        punish_level=punish_level,
     )
     logger.info(
         f"已将 USER {user_id} GROUP {group_id} 添加至黑名单词汇记录 Black_word：{black_word} Plant_text：{message}"
@@ -172,7 +179,9 @@ async def _punish_handle(
     # 用户周期内触发punish_level级惩罚的次数
     user_count = await BlackWord.get_user_count(user_id, cycle_days, punish_level)
     # 获取最近一次的惩罚等级，将在此基础上增加
-    punish_level = await BlackWord.get_user_punish_level(user_id, cycle_days) or punish_level
+    punish_level = (
+        await BlackWord.get_user_punish_level(user_id, cycle_days) or punish_level
+    )
     # 容忍次数：List[int]
     tolerate_count = Config.get_config("black_word", "TOLERATE_COUNT")
     if not tolerate_count or len(tolerate_count) < 5:
@@ -226,15 +235,17 @@ async def _get_punish(
     ban_4_duration = Config.get_config("black_word", "BAN_4_DURATION")
     # 口头警告内容
     warning_result = Config.get_config("black_word", "WARNING_RESULT")
-    try:
-        uname = (await GroupInfoUser.get_member_info(user_id, group_id)).user_name
-    except AttributeError:
+    if user := await GroupInfoUser.get_or_none(user_qq=user_id, group_id=group_id):
+        uname = user.user_name
+    else:
         uname = user_id
     # 永久ban
     if id_ == 1:
         if str(user_id) not in bot.config.superusers:
             await BanUser.ban(user_id, 10, 99999999)
-            await send_msg(user_id, group_id, f"BlackWordChecker 永久ban USER {uname}({user_id})")
+            await send_msg(
+                user_id, group_id, f"BlackWordChecker 永久ban USER {uname}({user_id})"
+            )
             logger.info(f"BlackWord 永久封禁 USER {user_id}...")
     # 删除好友（有的话
     elif id_ == 2:
@@ -319,4 +330,7 @@ async def check_text(text: str) -> bool:
     return True
 
 
-black_word_manager = BlackWordManager(DATA_PATH / "black_word" / "black_word.json", DATA_PATH / "black_word" / "black_py.json")
+black_word_manager = BlackWordManager(
+    DATA_PATH / "black_word" / "black_word.json",
+    DATA_PATH / "black_word" / "black_py.json",
+)

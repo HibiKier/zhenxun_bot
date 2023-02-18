@@ -1,28 +1,61 @@
+from typing import List
 
-from gino import Gino
-from .log import logger
+from tortoise import Tortoise, fields
+from tortoise.connection import connections
+from tortoise.models import Model as Model_
+from tortoise.queryset import RawSQLQuery
+
+from configs.config import address, bind, database, password, port, sql_name, user
 from utils.text_utils import prompt2cn
-from configs.config import bind, sql_name, user, password, address, port, database
+
+from .log import logger
+
+MODELS: List[str] = []
+
+SCRIPT_METHOD = []
 
 
-# 全局数据库连接对象
-db = Gino()
+class Model(Model_):
+    """
+    自动添加模块
+
+    Args:
+        Model_ (_type_): _description_
+    """
+
+    def __init_subclass__(cls, **kwargs):
+        MODELS.append(cls.__module__)
+
+        if func := getattr(cls, "_run_script", None):
+            SCRIPT_METHOD.append(func)
+
+
+class TestSQL(Model):
+
+    id = fields.IntField(pk=True, generated=True, auto_increment=True)
+    """自增id"""
+
+    class Meta:
+        table = "test_sql"
+        table_description = "执行SQL命令，不记录任何数据"
 
 
 async def init():
-    if not bind and (not user and not password and not address and not port and not database):
+    if not bind and not any([user, password, address, port, database]):
         raise ValueError("\n" + prompt2cn("数据库配置未填写", 28))
     i_bind = bind
     if not i_bind:
         i_bind = f"{sql_name}://{user}:{password}@{address}:{port}/{database}"
     try:
-        await db.set_bind(i_bind)
-        await db.gino.create_all()
-        logger.info(f'Database loaded successfully!')
+        await Tortoise.init(db_url=i_bind, modules={"models": MODELS})
+        await Tortoise.generate_schemas()
+        logger.info(f"Database loaded successfully!")
     except Exception as e:
-        raise Exception(f'数据库连接错误.... {type(e)}: {e}')
+        raise Exception(f"数据库连接错误.... {type(e)}: {e}")
+    if SCRIPT_METHOD:
+        for func in SCRIPT_METHOD:
+            await func()
 
 
 async def disconnect():
-    await db.pop_bind().close()
-
+    await connections.close_all()

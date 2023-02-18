@@ -1,20 +1,21 @@
-from nonebot import on_command
-from PIL import Image, ImageFilter
-from utils.message_builder import image
-from configs.path_config import TEMP_PATH, IMAGE_PATH
-from services.log import logger
-from nonebot.rule import to_me
-from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
-from nonebot.typing import T_State
-from utils.utils import get_message_img, is_number
-from nonebot.params import CommandArg, Arg, ArgStr, Depends
-from utils.image_utils import BuildImage, pic2b64
-from configs.config import NICKNAME
-from utils.http_utils import AsyncHttpx
 from typing import Union
+
 import cv2
 import numpy as np
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message, MessageEvent
+from nonebot.params import Arg, ArgStr, CommandArg, Depends
+from nonebot.rule import to_me
+from nonebot.typing import T_State
+from PIL import Image, ImageFilter
 
+from configs.config import NICKNAME
+from configs.path_config import IMAGE_PATH, TEMP_PATH
+from services.log import logger
+from utils.http_utils import AsyncHttpx
+from utils.image_utils import BuildImage, pic2b64
+from utils.message_builder import image
+from utils.utils import get_message_img, is_number
 
 __zx_plugin_name__ = "各种图片简易操作"
 __plugin_usage__ = """
@@ -88,9 +89,7 @@ update_img_help.save(IMAGE_PATH / "update_img_help.png")
 
 
 def parse_key(key: str):
-    async def _key_parser(
-        state: T_State, inp: Union[Message, str] = Arg(key)
-    ):
+    async def _key_parser(state: T_State, inp: Union[Message, str] = Arg(key)):
         if key != "img_list" and isinstance(inp, Message):
             inp = inp.extract_plain_text().strip()
         if inp in ["取消", "算了"]:
@@ -132,6 +131,7 @@ def parse_key(key: str):
             if not get_message_img(inp):
                 await update_img.reject_arg("img_list", "没图？没图？没图？来图速来！")
         state[key] = inp
+
     return _key_parser
 
 
@@ -167,10 +167,18 @@ async def _(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
             state["img_list"] = event.message
 
 
-@update_img.got("method", prompt=f"要使用图片的什么操作呢？{method_str}", parameterless=[Depends(parse_key("method"))])
-@update_img.got("x", prompt="[宽度？ 比率？ 旋转角度？ 底色？]", parameterless=[Depends(parse_key("x"))])
+@update_img.got(
+    "method",
+    prompt=f"要使用图片的什么操作呢？{method_str}",
+    parameterless=[Depends(parse_key("method"))],
+)
+@update_img.got(
+    "x", prompt="[宽度？ 比率？ 旋转角度？ 底色？]", parameterless=[Depends(parse_key("x"))]
+)
 @update_img.got("y", prompt="[长度？ 0 0 底色？]", parameterless=[Depends(parse_key("y"))])
-@update_img.got("img_list", prompt="图呢图呢图呢图呢？GKD！", parameterless=[Depends(parse_key("img_list"))])
+@update_img.got(
+    "img_list", prompt="图呢图呢图呢图呢？GKD！", parameterless=[Depends(parse_key("img_list"))]
+)
 async def _(
     event: MessageEvent,
     state: T_State,
@@ -285,7 +293,7 @@ async def _(
                         img[i, j] = color
             cv2.imwrite(TEMP_PATH / f"{event.user_id}_{k}_ok_update.png", img)
         for i in range(index):
-            result += image(f"{event.user_id}_{i}_ok_update.png", "temp")
+            result += image(TEMP_PATH / f"{event.user_id}_{i}_ok_update.png")
     if is_number(method):
         method = method_list[int(method) - 1]
     logger.info(

@@ -1,18 +1,22 @@
-from configs.path_config import IMAGE_PATH, TEMP_PATH
-from utils.message_builder import image
-from services.log import logger
-from utils.image_utils import get_img_hash, compressed_image
-from utils.utils import change_img_md5
-from asyncpg.exceptions import UniqueViolationError
-from asyncio.exceptions import TimeoutError
-from typing import List, Optional
-from configs.config import NICKNAME, Config
-from utils.http_utils import AsyncHttpx
-from .._model import Setu
 import asyncio
 import os
 import random
 import re
+from asyncio.exceptions import TimeoutError
+from typing import List, Optional, Tuple, Union
+
+from asyncpg.exceptions import UniqueViolationError
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
+
+from configs.config import NICKNAME, Config
+from configs.path_config import IMAGE_PATH, TEMP_PATH
+from services.log import logger
+from utils.http_utils import AsyncHttpx
+from utils.image_utils import compressed_image, get_img_hash
+from utils.message_builder import image
+from utils.utils import change_img_md5
+
+from .._model import Setu
 
 try:
     import ujson as json
@@ -28,11 +32,11 @@ host_pattern = re.compile(r"https?://([^/]+)")
 
 # 获取url
 async def get_setu_urls(
-    tags: List[str], num: int = 1, r18: int = 0, command: str = ""
-) -> "List[str], List[str], List[tuple], int":
+    tags: List[str], num: int = 1, r18: bool = False, command: str = ""
+) -> Tuple[List[str], List[str], List[tuple], int]:
     tags = tags[:3] if len(tags) > 3 else tags
     params = {
-        "r18": r18,  # 添加r18参数 0为否，1为是，2为混合
+        "r18": 1 if r18 else 0,  # 添加r18参数 0为否，1为是，2为混合
         "tag": tags,  # 若指定tag
         "num": 20,  # 一次返回的结果数量
         "size": ["original"],
@@ -82,7 +86,7 @@ headers = {
 
 async def search_online_setu(
     url_: str, id_: Optional[int] = None, path_: Optional[str] = None
-) -> "MessageSegment, int":
+) -> Tuple[Union[MessageSegment, str], int]:
     """
     下载色图
     :param url_: 色图url
@@ -108,10 +112,7 @@ async def search_online_setu(
             ):
                 continue
             if id_ is not None:
-                if (
-                    os.path.getsize(path_ / f"{index}.jpg")
-                    > 1024 * 1024 * 1.5
-                ):
+                if os.path.getsize(path_ / f"{index}.jpg") > 1024 * 1024 * 1.5:
                     compressed_image(
                         path_ / f"{index}.jpg",
                     )
@@ -126,7 +127,9 @@ async def search_online_setu(
 
 
 # 检测本地是否有id涩图，无的话则下载
-async def check_local_exists_or_download(setu_image: Setu) -> "MessageSegment, int":
+async def check_local_exists_or_download(
+    setu_image: Setu,
+) -> Tuple[MessageSegment, int]:
     path_ = None
     id_ = None
     if Config.get_config("send_setu", "DOWNLOAD_SETU"):
@@ -148,27 +151,28 @@ async def add_data_to_database(lst: List[tuple]):
     if tmp:
         for x in tmp:
             try:
-                r18 = 1 if "R-18" in x[5] else 0
-                idx = await Setu.get_image_count(r18)
-                await Setu.add_setu_data(
-                    idx,
-                    x[0],
-                    x[1],
-                    x[2],
-                    x[3],
-                    x[4],
-                    x[5],
-                )
+                idx = await Setu.filter(is_r18="R-18" in x[5]).count()
+                if not await Setu.exists(pid=x[2], img_url=x[4]):
+                    await Setu.create(
+                        local_id=idx,
+                        title=x[0],
+                        author=x[1],
+                        pid=x[2],
+                        img_hash=x[3],
+                        img_url=x[4],
+                        tags=x[5],
+                        is_r18="R-18" in x[5],
+                    )
             except UniqueViolationError:
                 pass
 
 
 # 拿到本地色图列表
 async def get_setu_list(
-    index: Optional[int] = None, tags: Optional[List[str]] = None, r18: int = 0
-) -> "list, int":
+    index: Optional[int] = None, tags: Optional[List[str]] = None, r18: bool = False
+) -> Tuple[list, int]:
     if index:
-        image_count = await Setu.get_image_count(r18) - 1
+        image_count = await Setu.filter(is_r18=r18).count() - 1
         if index < 0 or index > image_count:
             return [f"超过当前上下限！({image_count})"], 999
         image_list = [await Setu.query_image(index, r18=r18)]
@@ -182,42 +186,42 @@ async def get_setu_list(
 
 
 # 初始化消息
-def gen_message(setu_image: Setu, img_msg: bool = False) -> str:
+def gen_message(
+    setu_image: Setu, img_msg: bool = False
+) -> Union[Message, MessageSegment]:
     local_id = setu_image.local_id
     title = setu_image.title
     author = setu_image.author
     pid = setu_image.pid
+    path_ = r18_path if setu_image.is_r18 else path
+    image_path = IMAGE_PATH / path_ / f"{local_id}.jpg"
     if Config.get_config("send_setu", "SHOW_INFO"):
-        return (
+        return Message(
             f"id：{local_id}\n"
             f"title：{title}\n"
             f"author：{author}\n"
-            f"PID：{pid}\n"
-            f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}"
+            f"PID：{pid}\n" + image(image_path)
         )
-    return f"{image(f'{local_id}', f'{r18_path if setu_image.is_r18 else path}') if img_msg else ''}"
+    return image(image_path)
 
 
 # 罗翔老师！
 def get_luoxiang(impression):
     probability = (
-        impression + Config.get_config("send_setu", "INITIAL_SETU_PROBABILITY") * 100
+        float(impression)
+        + Config.get_config("send_setu", "INITIAL_SETU_PROBABILITY") * 100
     )
     if probability < random.randint(1, 101):
         return (
             "我为什么要给你发这个？"
-            + image(random.choice(os.listdir(IMAGE_PATH / "luoxiang")), "luoxiang")
+            + image(
+                IMAGE_PATH
+                / "luoxiang"
+                / random.choice(os.listdir(IMAGE_PATH / "luoxiang"))
+            )
             + f"\n(快向{NICKNAME}签到提升好感度吧！)"
         )
     return None
-
-
-async def get_setu_count(r18: int) -> int:
-    """
-    获取色图数量
-    :param r18: r18类型
-    """
-    return await Setu.get_image_count(r18)
 
 
 async def find_img_index(img_url, user_id):
@@ -228,8 +232,7 @@ async def find_img_index(img_url, user_id):
     ):
         return "检索图片下载上失败..."
     img_hash = str(get_img_hash(TEMP_PATH / f"{user_id}_find_setu_index.jpg"))
-    setu_img = await Setu.get_image_in_hash(img_hash)
-    if setu_img:
+    if setu_img := await Setu.get_or_none(img_hash=img_hash):
         return (
             f"id：{setu_img.local_id}\n"
             f"title：{setu_img.title}\n"

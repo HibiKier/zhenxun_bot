@@ -1,15 +1,17 @@
-from nonebot import on_message, on_regex
-from configs.path_config import IMAGE_PATH
-from utils.message_builder import image
-from utils.utils import is_number, get_message_text
-from services.log import logger
-from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent
-from utils.utils import FreqLimiter, cn2py
-from configs.config import Config
-from utils.manager import withdraw_message_manager
-from .rule import rule
-import random
 import os
+import random
+
+from nonebot import on_message, on_regex
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent
+
+from configs.config import Config
+from configs.path_config import IMAGE_PATH
+from services.log import logger
+from utils.manager import withdraw_message_manager
+from utils.message_builder import image
+from utils.utils import FreqLimiter, cn2py, get_message_text, is_number
+
+from .rule import rule
 
 try:
     import ujson as json
@@ -66,16 +68,14 @@ async def _(event: MessageEvent):
     if len(msg) > 1:
         img_id = msg[1]
     path = _path / cn2py(gallery)
-    if gallery in Config.get_config(
-        "image_management", "IMAGE_DIR_LIST"
-    ):
+    if gallery in Config.get_config("image_management", "IMAGE_DIR_LIST"):
         if not path.exists() and (path.parent.parent / cn2py(gallery)).exists():
             path = IMAGE_PATH / cn2py(gallery)
         else:
             path.mkdir(parents=True, exist_ok=True)
     length = len(os.listdir(path))
     if length == 0:
-        logger.warning(f'图库 {cn2py(gallery)} 为空，调用取消！')
+        logger.warning(f"图库 {cn2py(gallery)} 为空，调用取消！")
         await send_img.finish("该图库中没有图片噢")
     index = img_id if img_id else str(random.randint(0, length - 1))
     if not is_number(index):
@@ -87,8 +87,7 @@ async def _(event: MessageEvent):
         logger.info(
             f"(USER {event.user_id}, GROUP "
             f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) "
-            f"发送{cn2py(gallery)}:"
-            + result
+            f"发送{cn2py(gallery)}:" + result
         )
         msg_id = await send_img.send(
             f"id：{index}" + result
@@ -113,4 +112,6 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     if _flmt.check(event.user_id):
         _flmt.start_cd(event.user_id)
-        await pa_reg.finish(image(random.choice(os.listdir(IMAGE_PATH / "pa")), "pa"))
+        await pa_reg.finish(
+            image(IMAGE_PATH / "pa" / random.choice(os.listdir(IMAGE_PATH / "pa")))
+        )

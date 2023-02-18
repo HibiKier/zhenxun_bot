@@ -1,47 +1,63 @@
+import random
+import re
 import time
-from nonebot.internal.adapter.template import MessageTemplate
+from datetime import datetime
+from typing import Any, List, Optional, Tuple, Union
+
 from nonebot.adapters.onebot.v11 import (
+    GroupMessageEvent,
     Message,
     MessageEvent,
-    GroupMessageEvent,
     MessageSegment,
 )
-from services.db_context import db
-from typing import Optional, List, Union, Tuple, Any
-from datetime import datetime
-from configs.path_config import DATA_PATH
-import random
-from ._config import int2type
-from utils.image_utils import get_img_hash
-from utils.http_utils import AsyncHttpx
-import re
+from nonebot.internal.adapter.template import MessageTemplate
+from tortoise import Tortoise, fields
+from tortoise.expressions import Q, RawSQL
 
-from utils.message_builder import image, face, at
+from configs.path_config import DATA_PATH
+from services.db_context import Model
+from utils.http_utils import AsyncHttpx
+from utils.image_utils import get_img_hash
+from utils.message_builder import at, face, image
 from utils.utils import get_message_img
+
+from ._config import int2type
 
 path = DATA_PATH / "word_bank"
 
 
-class WordBank(db.Model):
-    __tablename__ = "word_bank2"
+class WordBank(Model):
 
-    id = db.Column(db.Integer(), primary_key=True)
-    user_qq = db.Column(db.BigInteger(), nullable=False)
-    group_id = db.Column(db.Integer())
-    word_scope = db.Column(
-        db.Integer(), nullable=False, default=0
-    )  # 生效范围 0: 全局 1: 群聊 2: 私聊
-    word_type = db.Column(
-        db.Integer(), nullable=False, default=0
-    )  # 词条类型 0: 完全匹配 1: 模糊 2: 正则 3: 图片
-    status = db.Column(db.Boolean(), nullable=False, default=True)  # 词条状态
-    problem = db.Column(db.String(), nullable=False)  # 问题，为图片时使用图片hash
-    answer = db.Column(db.String(), nullable=False)  # 回答
-    placeholder = db.Column(db.String())  # 占位符
-    image_path = db.Column(db.String())  # 使用图片作为问题时图片存储的路径
-    to_me = db.Column(db.String())  # 使用图片作为问题时图片存储的路径
-    create_time = db.Column(db.DateTime(), nullable=False)
-    update_time = db.Column(db.DateTime(), nullable=False)
+    id = fields.IntField(pk=True, generated=True, auto_increment=True)
+    """自增id"""
+    user_qq = fields.BigIntField()
+    """用户id"""
+    group_id = fields.BigIntField(null=True)
+    """群聊id"""
+    word_scope = fields.IntField(default=0)
+    """生效范围 0: 全局 1: 群聊 2: 私聊"""
+    word_type = fields.IntField(default=0)
+    """词条类型 0: 完全匹配 1: 模糊 2: 正则 3: 图片"""
+    status = fields.BooleanField()
+    """词条状态"""
+    problem = fields.TextField()
+    """问题，为图片时使用图片hash"""
+    answer = fields.TextField()
+    """回答"""
+    placeholder = fields.TextField(null=True)
+    """占位符"""
+    image_path = fields.TextField(null=True)
+    """使用图片作为问题时图片存储的路径"""
+    to_me = fields.CharField(255, null=True)
+    """昵称开头时存储的昵称"""
+    create_time = fields.DatetimeField(auto_now=True)
+    """创建时间"""
+    update_time = fields.DatetimeField(auto_now_add=True)
+    """更新时间"""
+
+    class Meta:
+        table = "word_bank2"
+        table_description = "词条数据库"
 
     @classmethod
     async def exists(
@@ -64,18 +80,18 @@ class WordBank(db.Model):
             :param word_scope: 词条范围
             :param word_type: 词条类型
         """
-        query = cls.query.where(cls.problem == problem)
+        query = cls.filter(problem=problem)
         if user_id:
-            query = query.where(cls.user_qq == user_id)
+            query = query.filter(user_qq=user_id)
         if group_id:
-            query = query.where(cls.group_id == group_id)
+            query = query.filter(group_id=group_id)
         if answer:
-            query = query.where(cls.answer == answer)
-        if word_type:
-            query = query.where(cls.word_type == word_type)
-        if word_scope:
-            query = query.where(cls.word_scope == word_scope)
-        return bool(await query.gino.first())
+            query = query.filter(answer=answer)
+        if word_type is not None:
+            query = query.filter(word_type=word_type)
+        if word_scope is not None:
+            query = query.filter(word_scope=word_scope)
+        return bool(await query.first())
 
     @classmethod
     async def add_problem_answer(
@@ -86,7 +102,7 @@ class WordBank(db.Model):
         word_type: int,
         problem: Union[str, Message],
         answer: Union[str, Message],
-        to_me_nickname: str = None
+        to_me_nickname: Optional[str] = None,
     ):
         """
         说明:
@@ -112,7 +128,9 @@ class WordBank(db.Model):
             problem = str(get_img_hash(_file))
             image_path = f"problem/{group_id}/{user_id}_{int(time.time())}.jpg"
         answer, _list = await cls._answer2format(answer, user_id, group_id)
-        if not await cls.exists(user_id, group_id, problem, answer, word_scope, word_type):
+        if not await cls.exists(
+            user_id, group_id, problem, answer, word_scope, word_type
+        ):
             await cls.create(
                 user_qq=user_id,
                 group_id=group_id,
@@ -125,7 +143,7 @@ class WordBank(db.Model):
                 placeholder=",".join(_list),
                 create_time=datetime.now().replace(microsecond=0),
                 update_time=datetime.now().replace(microsecond=0),
-                to_me=to_me_nickname
+                to_me=to_me_nickname,
             )
 
     @classmethod
@@ -152,7 +170,7 @@ class WordBank(db.Model):
                 text += seg.data["text"]
             elif seg.type == "face":
                 text += f"[face:placeholder_{index}]"
-                _list.append(seg.data['id'])
+                _list.append(seg.data["id"])
             elif seg.type == "at":
                 text += f"[at:placeholder_{index}]"
                 _list.append(seg.data["qq"])
@@ -187,12 +205,12 @@ class WordBank(db.Model):
         if query:
             answer = query.answer
         else:
-            query = await cls.query.where(
-                (cls.problem == problem)
-                & (cls.user_qq == user_id)
-                & (cls.group_id == group_id)
-                & (cls.answer == answer)
-            ).gino.first()
+            query = await cls.get_or_none(
+                problem=problem,
+                user_qq=user_id,
+                group_id=group_id,
+                answer=answer,
+            )
         if query and query.placeholder:
             type_list = re.findall(rf"\[(.*?):placeholder_.*?]", answer)
             temp_answer = re.sub(rf"\[(.*?):placeholder_.*?]", "{}", answer)
@@ -208,7 +226,7 @@ class WordBank(db.Model):
         return answer
 
     @classmethod
-    async def check(
+    async def check_problem(
         cls,
         event: MessageEvent,
         problem: str,
@@ -224,60 +242,35 @@ class WordBank(db.Model):
             :param word_scope: 词条范围
             :param word_type: 词条类型
         """
-        query = cls.query
-        sql_text = "SELECT * FROM public.word_bank2 where 1 = 1"
-        # 救命！！没找到gino的正则表达式方法，暂时使用sql语句
+        query = cls
         if isinstance(event, GroupMessageEvent):
             if word_scope:
-                query = query.where(cls.word_scope == word_scope)
-                sql_text += f" and word_scope = {word_scope}"
+                query = query.filter(word_scope=word_scope)
             else:
-                query = query.where(
-                    (cls.group_id == event.group_id) | (cls.word_scope == 0)
-                )
-                sql_text += f" and (group_id = {event.group_id} or word_scope = 0)"
+                query = query.filter(Q(group_id=event.group_id) | Q(word_scope=0))
         else:
-            query = query.where((cls.word_scope == 2) | (cls.word_scope == 0))
-            sql_text += f" and (word_scope = 2 or word_scope = 0)"
+            query = query.filter(Q(cword_scope=2) | Q(word_scope=0))
             if word_type:
-                query = query.where(cls.word_scope == word_type)
-                sql_text += f" and word_scope = {word_scope}"
+                query = query.filter(word_scope=word_type)
         # 完全匹配
-        if await query.where(
-            ((cls.word_type == 0) | (cls.word_type == 3)) & (cls.problem == problem)
-        ).gino.first():
-            return query.where(
-                ((cls.word_type == 0) | (cls.word_type == 3)) & (cls.problem == problem)
-            )
+        if data_list := await query.filter(
+            Q(Q(word_type=0) | Q(word_type=3)), Q(problem=problem)
+        ).all():
+            return data_list
+        db = Tortoise.get_connection("default")
         # 模糊匹配
-        if await db.first(
-            db.text(
-                sql_text
-                + f" and word_type = 1 and :problem like '%' || problem || '%';"
-            ),
-            problem=problem,
-        ):
-            return (
-                sql_text
-                + f" and word_type = 1 and :problem like '%' || problem || '%';"
-            )
-        # 正则匹配
-        if await db.first(
-            db.text(
-                sql_text
-                + f" and word_type = 2 and word_scope != 999 and :problem ~ problem;"
-            ),
-            problem=problem,
-        ):
-            return (
-                sql_text
-                + f" and word_type = 2 and word_scope != 999 and :problem ~ problem;"
-            )
-        # if await db.first(
-        #     db.text(sql_text + f" and word_type = 1 and word_scope != 999 and '{problem}' ~ problem;")
-        # ):
-        #     return sql_text + f" and word_type = 1 and word_scope != 999 and '{problem}' ~ problem;"
-        # return None
+        sql = query.filter(word_type=1).sql() + " and POSITION(problem in $1) > 0"
+        data_list = await db.execute_query_dict(sql, [problem])
+        if data_list:
+            return [cls(**data) for data in data_list]
+        # 正则
+        sql = (
+            query.filter(word_type=2, word_scope__not=999).sql() + " and $1 ~ problem;"
+        )
+        data_list = await db.execute_query_dict(sql, [problem])
+        if data_list:
+            return [cls(**data) for data in data_list]
+        return None
 
     @classmethod
     async def get_answer(
@@ -296,26 +289,16 @@ class WordBank(db.Model):
             :param word_scope: 词条范围
             :param word_type: 词条类型
         """
-        query = await cls.check(event, problem, word_scope, word_type)
-        if query is not None:
-            if isinstance(query, str):
-                answer_list = await db.all(db.text(query), problem=problem)
-                answer = random.choice(answer_list)
-                return (
-                    await cls._format2answer(answer[6], answer[7], answer[1], answer[2])
-                    if answer.placeholder
-                    else answer.answer
+        data_list = await cls.check_problem(event, problem, word_scope, word_type)
+        if data_list:
+            answer = random.choice(data_list)
+            return (
+                await cls._format2answer(
+                    problem, answer.answer, answer.user_qq, answer.group_id
                 )
-            else:
-                answer_list = await query.gino.all()
-                answer = random.choice(answer_list)
-                return (
-                    await cls._format2answer(
-                        problem, answer.answer, answer.user_qq, answer.group_id
-                    )
-                    if answer.placeholder
-                    else answer.answer
-                )
+                if answer.placeholder
+                else answer.answer
+            )
 
     @classmethod
     async def get_problem_all_answer(
@@ -336,22 +319,14 @@ class WordBank(db.Model):
         """
         if index is not None:
             if group_id:
-                problem = (await cls.query.where(cls.group_id == group_id).gino.all())[
-                    index
-                ]
+                problem_ = (await cls.filter(group_id=group_id).all())[index]
             else:
-                problem = (
-                    await cls.query.where(
-                        cls.word_scope == (word_scope or 0)
-                    ).gino.all()
-                )[index]
-            problem = problem.problem
-        answer = cls.query.where(cls.problem == problem)
+                problem_ = (await cls.filter(word_scope=(word_scope or 0)).all())[index]
+            problem = problem_.problem
+        answer = cls.filter(problem=problem)
         if group_id:
-            answer = answer.where(cls.group_id == group_id)
-        return [
-            await cls._format2answer("", "", 0, 0, x) for x in (await answer.gino.all())
-        ]
+            answer = answer.filter(group_id=group_id)
+        return [await cls._format2answer("", "", 0, 0, x) for x in (await answer.all())]
 
     @classmethod
     async def delete_group_problem(
@@ -373,23 +348,17 @@ class WordBank(db.Model):
         if await cls.exists(None, group_id, problem, None, word_scope):
             if index is not None:
                 if group_id:
-                    query = await cls.query.where(
-                        (cls.group_id == group_id) & (cls.problem == problem)
-                    ).gino.all()
+                    query = await cls.filter(group_id=group_id, problem=problem).all()
                 else:
-                    query = await cls.query.where(
-                        (cls.word_scope == 0) & (cls.problem == problem)
-                    ).gino.all()
+                    query = await cls.filter(word_scope=0, problem=problem).all()
                 await query[index].delete()
             else:
                 if group_id:
-                    await WordBank.delete.where(
-                        (cls.group_id == group_id) & (cls.problem == problem)
-                    ).gino.status()
+                    await WordBank.filter(group_id=group_id, problem=problem).delete()
                 else:
-                    await WordBank.delete.where(
-                        (cls.word_scope == word_scope) & (cls.problem == problem)
-                    ).gino.status()
+                    await WordBank.filter(
+                        word_scope=word_scope, problem=problem
+                    ).delete()
             return True
         return False
 
@@ -414,23 +383,20 @@ class WordBank(db.Model):
         """
         if index is not None:
             if group_id:
-                query = await cls.query.where(
-                    (cls.group_id == group_id) & (cls.problem == problem)
-                ).gino.all()
+                query = await cls.filter(group_id=group_id, problem=problem).all()
             else:
-                query = await cls.query.where(
-                    (cls.word_scope == word_scope) & (cls.problem == problem)
-                ).gino.all()
-            await query[index].update(problem=replace_str).apply()
+                query = await cls.filter(word_scope=word_scope, problem=problem).all()
+            query[index].problem = replace_str
+            await query[index].save(update_fields=["problem"])
         else:
             if group_id:
-                await WordBank.update.values(problem=replace_str).where(
-                    (cls.group_id == group_id) & (cls.problem == problem)
-                ).gino.status()
+                await cls.filter(group_id=group_id, problem=problem).update(
+                    problem=replace_str
+                )
             else:
-                await WordBank.update.values(problem=replace_str).where(
-                    (cls.word_scope == word_scope) & (cls.problem == problem)
-                ).gino.status()
+                await cls.filter(word_scope=word_scope, problem=problem).update(
+                    problem=replace_str
+                )
 
     @classmethod
     async def get_group_all_problem(
@@ -443,7 +409,7 @@ class WordBank(db.Model):
             :param group_id: 群号
         """
         return cls._handle_problem(
-            await cls.query.where(cls.group_id == group_id).gino.all()
+            await cls.filter(group_id=group_id).all()  # type: ignore
         )
 
     @classmethod
@@ -455,7 +421,7 @@ class WordBank(db.Model):
             :param word_scope: 词条范围
         """
         return cls._handle_problem(
-            await cls.query.where(cls.word_scope == word_scope).gino.all()
+            await cls.filter(word_scope=word_scope).all()  # type: ignore
         )
 
     @classmethod
@@ -467,13 +433,13 @@ class WordBank(db.Model):
             :param word_type: 词条类型
         """
         return cls._handle_problem(
-            await cls.query.where(cls.word_type == word_type).gino.all()
+            await cls.filter(word_type=word_type).all()  # type: ignore
         )
 
     @classmethod
-    def _handle_problem(cls, msg_list: List[Union[str, MessageSegment]]):
+    def _handle_problem(cls, msg_list: List["WordBank"]):
         """
-            说明:
+        说明:
             格式化处理问题
         参数:
          :param msg_list: 消息列表
@@ -514,7 +480,9 @@ class WordBank(db.Model):
         word_scope = 0
         word_type = 0
         # 对图片做额外处理
-        if not await cls.exists(user_id, group_id, problem, answer, word_scope, word_type):
+        if not await cls.exists(
+            user_id, group_id, problem, answer, word_scope, word_type
+        ):
             await cls.create(
                 user_qq=user_id,
                 group_id=group_id,

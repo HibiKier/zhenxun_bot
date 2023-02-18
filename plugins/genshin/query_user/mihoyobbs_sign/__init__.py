@@ -1,13 +1,15 @@
-from nonebot.adapters.onebot.v11 import MessageEvent
+from typing import Tuple
+
 from nonebot import on_command
+from nonebot.adapters.onebot.v11 import MessageEvent
+from nonebot.params import Command
+
 from services.log import logger
+
 # from .init_task import add_job, scheduler, _sign
 # from apscheduler.jobstores.base import JobLookupError
 from .._models import Genshin
-from nonebot.params import Command
-from typing import Tuple
 from .mihoyobbs import *
-
 
 __zx_plugin_name__ = "米游社自动签到"
 __plugin_usage__ = """
@@ -28,12 +30,10 @@ __plugin_settings__ = {
     "level": 5,
     "default_status": True,
     "limit_superuser": False,
-    "cmd": ["原神签到"],
+    "cmd": ["米游社签到"],
 }
 
-mihoyobbs_matcher = on_command(
-    "米游社签到", aliases={"米游社我硬签"}, priority=5, block=True
-)
+mihoyobbs_matcher = on_command("米游社签到", aliases={"米游社我硬签"}, priority=5, block=True)
 
 
 @mihoyobbs_matcher.handle()
@@ -47,24 +47,29 @@ async def _(event: MessageEvent, cmd: Tuple[str, ...] = Command()):
 
 
 async def mihoyobbs_sign(user_id):
-    uid = await Genshin.get_user_uid(user_id)
-    if not uid or not await Genshin.get_user_cookie(uid, True):
+    user = await Genshin.get_or_none(user_qq=user_id)
+    if not user or not user.uid or not user.cookie:
         await mihoyobbs_matcher.finish("请先绑定uid和cookie！", at_sender=True)
-    stuid = await Genshin.get_stuid(uid)
-    stoken = await Genshin.get_stoken(uid)
-    cookie = await Genshin.get_user_cookie(uid)
-    bbs = mihoyobbs.Mihoyobbs(stuid=stuid, stoken=stoken, cookie=cookie)
+    bbs = mihoyobbs.Mihoyobbs(stuid=user.stuid, stoken=user.stoken, cookie=user.cookie)
     await bbs.init()
     return_data = ""
-    if bbs.Task_do["bbs_Sign"] and bbs.Task_do["bbs_Read_posts"] and bbs.Task_do["bbs_Like_posts"] and \
-            bbs.Task_do["bbs_Share"]:
-        return_data += f"今天的米游社签到任务已经全部完成了！\n" \
-                              f"一共获得{mihoyobbs.today_have_get_coins}个米游币\n目前有{mihoyobbs.Have_coins}个米游币"
-        logger.info(f"今天已经全部完成了！一共获得{mihoyobbs.today_have_get_coins}个米游币，目前有{mihoyobbs.Have_coins}个米游币")
+    if (
+        bbs.Task_do["bbs_Sign"]
+        and bbs.Task_do["bbs_Read_posts"]
+        and bbs.Task_do["bbs_Like_posts"]
+        and bbs.Task_do["bbs_Share"]
+    ):
+        return_data += (
+            f"今天的米游社签到任务已经全部完成了！\n"
+            f"一共获得{mihoyobbs.today_have_get_coins}个米游币\n目前有{mihoyobbs.Have_coins}个米游币"
+        )
+        logger.info(
+            f"今天已经全部完成了！一共获得{mihoyobbs.today_have_get_coins}个米游币，目前有{mihoyobbs.Have_coins}个米游币"
+        )
     else:
         i = 0
-        print("开始签到")
-        print(mihoyobbs.today_have_get_coins)
+        # print("开始签到")
+        # print(mihoyobbs.today_have_get_coins)
         while mihoyobbs.today_get_coins != 0 and i < 3:
             # if i > 0:
             await bbs.refresh_list()
@@ -74,8 +79,12 @@ async def mihoyobbs_sign(user_id):
             await bbs.share_post()
             await bbs.get_tasks_list()
             i += 1
-        return_data += "\n" + f"今天已经获得{mihoyobbs.today_have_get_coins}个米游币\n" \
-                              f"还能获得{mihoyobbs.today_get_coins}个米游币\n目前有{mihoyobbs.Have_coins}个米游币"
-        logger.info(f"今天已经获得{mihoyobbs.today_have_get_coins}个米游币，"
-                 f"还能获得{mihoyobbs.today_get_coins}个米游币，目前有{mihoyobbs.Have_coins}个米游币")
+        return_data += (
+            "\n" + f"今天已经获得{mihoyobbs.today_have_get_coins}个米游币\n"
+            f"还能获得{mihoyobbs.today_get_coins}个米游币\n目前有{mihoyobbs.Have_coins}个米游币"
+        )
+        logger.info(
+            f"今天已经获得{mihoyobbs.today_have_get_coins}个米游币，"
+            f"还能获得{mihoyobbs.today_get_coins}个米游币，目前有{mihoyobbs.Have_coins}个米游币"
+        )
     return return_data

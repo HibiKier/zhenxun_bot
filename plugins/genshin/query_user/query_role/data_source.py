@@ -1,11 +1,14 @@
-from typing import Optional, List, Dict, Union
-from .draw_image import init_image, get_genshin_image
+from typing import Dict, List, Optional, Tuple, Union
+
 from nonebot.adapters.onebot.v11 import MessageSegment
-from .._utils import get_ds, element_mastery
+
+from configs.config import Config
 from services.log import logger
 from utils.http_utils import AsyncHttpx
-from configs.config import Config
+
 from .._models import Genshin
+from .._utils import element_mastery, get_ds
+from .draw_image import get_genshin_image, init_image
 
 try:
     import ujson as json
@@ -96,66 +99,66 @@ b=body q=query
 """
 
 
-async def get_info(uid_: str, server_id: str) -> "Optional[Union[dict, str]], int":
-    try:
-        req = await AsyncHttpx.get(
-            url=f"https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/index?server={server_id}&role_id={uid_}",
-            headers={
-                "Accept": "application/json, text/plain, */*",
-                "DS": get_ds(f"role_id={uid_}&server={server_id}"),
-                "Origin": "https://webstatic.mihoyo.com",
-                "x-rpc-app_version": Config.get_config("genshin", "mhyVersion"),
-                "User-Agent": "Mozilla/5.0 (Linux; Android 9; Unspecified Device) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/39.0.0.0 Mobile Safari/537.36 miHoYoBBS/2.2.0",
-                "x-rpc-client_type": Config.get_config("genshin", "client_type"),
-                "Referer": "https://webstatic.mihoyo.com/app/community-game-records/index.html?v=6",
-                "Accept-Encoding": "gzip, deflate",
-                "Accept-Language": "zh-CN,en-US;q=0.8",
-                "X-Requested-With": "com.mihoyo.hyperion",
-                "Cookie": await Genshin.get_user_cookie(int(uid_))
-            },
-        )
-        data = req.json()
-        if data["message"] == "OK":
-            return data["data"], 200
-        return data["message"], 999
-    except Exception as e:
-        logger.error(f"访问失败，请重试！ {type(e)}: {e}")
+async def get_info(uid_: str, server_id: str) -> Tuple[Optional[Union[dict, str]], int]:
+    # try:
+    req = await AsyncHttpx.get(
+        url=f"https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/index?server={server_id}&role_id={uid_}",
+        headers={
+            "Accept": "application/json, text/plain, */*",
+            "DS": get_ds(f"role_id={uid_}&server={server_id}"),
+            "Origin": "https://webstatic.mihoyo.com",
+            "x-rpc-app_version": Config.get_config("genshin", "mhyVersion"),
+            "User-Agent": "Mozilla/5.0 (Linux; Android 9; Unspecified Device) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/39.0.0.0 Mobile Safari/537.36 miHoYoBBS/2.2.0",
+            "x-rpc-client_type": Config.get_config("genshin", "client_type"),
+            "Referer": "https://webstatic.mihoyo.com/app/community-game-records/index.html?v=6",
+            "Accept-Encoding": "gzip, deflate",
+            "Accept-Language": "zh-CN,en-US;q=0.8",
+            "X-Requested-With": "com.mihoyo.hyperion",
+            "Cookie": await Genshin.random_cookie(uid_),
+        },
+    )
+    data = req.json()
+    if data["message"] == "OK":
+        return data["data"], 200
+    return data["message"], 999
+    # except Exception as e:
+    #     logger.error(f"访问失败，请重试！ {type(e)}: {e}")
     return None, -1
 
 
 async def get_character(
     uid: str, character_ids: List[str], server_id="cn_gf01"
 ) -> Optional[dict]:
-    try:
-        req = await AsyncHttpx.post(
-            url="https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/character",
-            headers={
-                "Accept": "application/json, text/plain, */*",
-                "DS": get_ds(
-                    "",
-                    {
-                        "character_ids": character_ids,
-                        "role_id": uid,
-                        "server": server_id,
-                    },
-                ),
-                "Origin": "https://webstatic.mihoyo.com",
-                "Cookie": await Genshin.get_user_cookie(int(uid)),
-                "x-rpc-app_version": Config.get_config("genshin", "mhyVersion"),
-                "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.11.1",
-                "x-rpc-client_type": "5",
-                "Referer": "https://webstatic.mihoyo.com/",
-                "Accept-Encoding": "gzip, deflate",
-                "Accept-Language": "zh-CN,en-US;q=0.8",
-                "X-Requested-With": "com.mihoyo.hyperion",
-            },
-            json={"character_ids": character_ids, "role_id": uid, "server": server_id},
-        )
-        data = req.json()
-        if data["message"] == "OK":
-            return data["data"]
-    except Exception as e:
-        logger.error(f"访问失败，请重试！ {type(e)}: {e}")
+    # try:
+    req = await AsyncHttpx.post(
+        url="https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/character",
+        headers={
+            "Accept": "application/json, text/plain, */*",
+            "DS": get_ds(
+                "",
+                {
+                    "character_ids": character_ids,
+                    "role_id": uid,
+                    "server": server_id,
+                },
+            ),
+            "Origin": "https://webstatic.mihoyo.com",
+            "Cookie": await Genshin.random_cookie(uid),
+            "x-rpc-app_version": Config.get_config("genshin", "mhyVersion"),
+            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.11.1",
+            "x-rpc-client_type": "5",
+            "Referer": "https://webstatic.mihoyo.com/",
+            "Accept-Encoding": "gzip, deflate",
+            "Accept-Language": "zh-CN,en-US;q=0.8",
+            "X-Requested-With": "com.mihoyo.hyperion",
+        },
+        json={"character_ids": character_ids, "role_id": uid, "server": server_id},
+    )
+    data = req.json()
+    if data["message"] == "OK":
+        return data["data"]
+    # except Exception as e:
+    #     logger.error(f"访问失败，请重试！ {type(e)}: {e}")
     return None
 
 
@@ -205,7 +208,7 @@ def parsed_data(
             "image": world["icon"],
             "name": world["name"],
             "offerings": world["offerings"],
-            "icon": world["icon"]
+            "icon": world["icon"],
         }
         world_data_dict[world["name"]] = _x
     home_data_list = []
@@ -231,21 +234,21 @@ async def get_mys_data(uid: str, mys_id: Optional[str]) -> Optional[List[Dict]]:
     :param mys_id: 米游社id
     """
     if mys_id:
-        try:
-            req = await AsyncHttpx.get(
-                url=f"https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={mys_id}",
-                headers={
-                    "DS": get_ds(f"uid={mys_id}"),
-                    "x-rpc-app_version": Config.get_config("genshin", "mhyVersion"),
-                    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.11.1",
-                    "x-rpc-client_type": "5",
-                    "Referer": "https://webstatic.mihoyo.com/",
-                    "Cookie": await Genshin.get_user_cookie(int(uid))
-                },
-            )
-            data = req.json()
-            if data["message"] == "OK":
-                return data["data"]["list"]
-        except Exception as e:
-            logger.error(f"访问失败，请重试！ {type(e)}: {e}")
+        # try:
+        req = await AsyncHttpx.get(
+            url=f"https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid={mys_id}",
+            headers={
+                "DS": get_ds(f"uid={mys_id}"),
+                "x-rpc-app_version": Config.get_config("genshin", "mhyVersion"),
+                "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.11.1",
+                "x-rpc-client_type": "5",
+                "Referer": "https://webstatic.mihoyo.com/",
+                "Cookie": await Genshin.random_cookie(uid),
+            },
+        )
+        data = req.json()
+        if data["message"] == "OK":
+            return data["data"]["list"]
+        # except Exception as e:
+        #     logger.error(f"访问失败，请重试！ {type(e)}: {e}")
     return None

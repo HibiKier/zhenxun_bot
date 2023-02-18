@@ -1,18 +1,22 @@
-from utils.message_builder import image
-from utils.utils import scheduler, get_bot
-from nonebot import on_message
-from services.log import logger
-from models.group_info import GroupInfo
-from models.friend_user import FriendUser
-from nonebot.adapters.onebot.v11 import ActionFailed
-from configs.config import NICKNAME, Config
-from pathlib import Path
 import shutil
+from pathlib import Path
+
+import nonebot
+from nonebot import on_message
+from nonebot.adapters.onebot.v11 import ActionFailed
+
+from configs.config import NICKNAME, Config
+from configs.path_config import IMAGE_PATH
+from models.friend_user import FriendUser
+from models.group_info import GroupInfo
+from services.log import logger
+from utils.message_builder import image
+from utils.utils import broadcast_group, get_bot, scheduler
 
 __zx_plugin_name__ = "定时任务相关 [Hidden]"
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
-__plugin_task__ = {'zwa': '早晚安'}
+__plugin_task__ = {"zwa": "早晚安"}
 
 
 Config.add_plugin_config(
@@ -24,20 +28,23 @@ Config.add_plugin_config(
 )
 
 Config.add_plugin_config(
-    "_backup",
-    "BACKUP_FLAG",
-    True,
-    help_="是否开启文件备份",
-    default_value=True
+    "_backup", "BACKUP_FLAG", True, help_="是否开启文件备份", default_value=True
 )
 
 Config.add_plugin_config(
     "_backup",
     "BACKUP_DIR_OR_FILE",
-    ['data/black_word', 'data/configs', 'data/statistics', 'data/word_bank', 'data/manager', 'configs'],
+    [
+        "data/black_word",
+        "data/configs",
+        "data/statistics",
+        "data/word_bank",
+        "data/manager",
+        "configs",
+    ],
     name="文件备份",
     help_="备份的文件夹或文件",
-    default_value=[]
+    default_value=[],
 )
 
 
@@ -51,18 +58,9 @@ cx = on_message(priority=9999, block=False, rule=lambda: False)
     minute=1,
 )
 async def _():
-    try:
-        bot = get_bot()
-        gl = await bot.get_group_list()
-        gl = [g["group_id"] for g in gl]
-        for g in gl:
-            result = image("zao.jpg", "zhenxun")
-            try:
-                await bot.send_group_msg(group_id=g, message="[[_task|zwa]]早上好" + result)
-            except ActionFailed:
-                logger.warning(f"{g} 发送早安失败")
-    except Exception as e:
-        logger.error(f"早晚安错误 e:{e}")
+    img = image(IMAGE_PATH / "zhenxun" / "zao.jpg")
+    await broadcast_group("[[_task|zwa]]早上好" + img, log_cmd="被动早晚安")
+    logger.info("每日早安发送")
 
 
 # 睡觉了
@@ -72,20 +70,9 @@ async def _():
     minute=59,
 )
 async def _():
-    try:
-        bot = get_bot()
-        gl = await bot.get_group_list()
-        gl = [g["group_id"] for g in gl]
-        for g in gl:
-            result = image("sleep.jpg", "zhenxun")
-            try:
-                await bot.send_group_msg(
-                    group_id=g, message=f"[[_task|zwa]]{NICKNAME}要睡觉了，你们也要早点睡呀" + result
-                )
-            except ActionFailed:
-                logger.warning(f"{g} 发送晚安失败")
-    except Exception as e:
-        logger.error(f"早晚安错误 e:{e}")
+    img = image(IMAGE_PATH / "zhenxun" / "sleep.jpg")
+    await broadcast_group("[[_task|zwa]]{NICKNAME}要睡觉了，你们也要早点睡呀" + img, log_cmd="被动早晚安")
+    logger.info("每日晚安发送")
 
 
 # 自动更新群组信息
@@ -95,22 +82,27 @@ async def _():
     minute=1,
 )
 async def _():
-    try:
-        bot = get_bot()
-        gl = await bot.get_group_list()
-        gl = [g["group_id"] for g in gl]
-        for g in gl:
-            group_info = await bot.get_group_info(group_id=g)
-            await GroupInfo.add_group_info(
-                group_info["group_id"],
-                group_info["group_name"],
-                group_info["max_member_count"],
-                group_info["member_count"],
-                1
-            )
-            logger.info(f"自动更新群组 {g} 信息成功")
-    except Exception as e:
-        logger.error(f"自动更新群组信息错误 e:{e}")
+    bots = nonebot.get_bots()
+    _used_group = []
+    for bot in bots.values():
+        try:
+            group_list = await bot.get_group_list()
+            gl = [g["group_id"] for g in group_list if g["group_id"] not in _used_group]
+            for g in gl:
+                _used_group.append(g)
+                group_info = await bot.get_group_info(group_id=g)
+                await GroupInfo.update_or_create(
+                    group_id=group_info["group_id"],
+                    defaults={
+                        "group_name": group_info["group_name"],
+                        "max_member_count": group_info["max_member_count"],
+                        "member_count": group_info["member_count"],
+                        "group_flag": 1,
+                    },
+                )
+                logger.info(f"自动更新群组信息成功", group_id=g)
+        except Exception as e:
+            logger.error(f"Bot: {bot.self_id} 自动更新群组信息", e=e)
 
 
 # 自动更新好友信息
@@ -124,10 +116,10 @@ async def _():
         bot = get_bot()
         fl = await bot.get_friend_list()
         for f in fl:
-            if await FriendUser.add_friend_info(f["user_id"], f["nickname"]):
-                logger.info(f'自动更新好友 {f["user_id"]} 信息成功')
-            else:
-                logger.warning(f'自动更新好友 {f["user_id"]} 信息失败')
+            await FriendUser.create(user_id=f["user_id"], user_name=f["nickname"])
+            logger.info(f'自动更新好友 {f["user_id"]} 信息成功')
+            # else:
+            #     logger.warning(f'自动更新好友 {f["user_id"]} 信息失败')
     except Exception as e:
         logger.error(f"自动更新群组信息错误 e:{e}")
 
@@ -140,7 +132,7 @@ async def _():
 )
 async def _():
     if Config.get_config("_backup", "BACKUP_FLAG"):
-        _backup_path = Path() / 'backup'
+        _backup_path = Path() / "backup"
         _backup_path.mkdir(exist_ok=True, parents=True)
         for x in Config.get_config("_backup", "BACKUP_DIR_OR_FILE"):
             try:
@@ -155,12 +147,13 @@ async def _():
                         if _p.exists():
                             _p.unlink()
                         shutil.copy(x, _p)
-                    logger.info(f'已完成自动备份：{x}')
+                    logger.info(f"已完成自动备份：{x}")
             except Exception as e:
                 logger.error(f"自动备份文件 {x} 发生错误 {type(e)}:{e}")
 
-
     #  一次性任务
+
+
 # 固定时间触发，仅触发一次：
 #
 # from datetime import datetime

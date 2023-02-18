@@ -1,12 +1,14 @@
-from configs.path_config import DATA_PATH
+from datetime import datetime
+
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent
 from nonebot.matcher import Matcher
 from nonebot.message import run_postprocessor
-from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent
-from datetime import datetime
+from nonebot.typing import Optional, T_State
+
+from configs.path_config import DATA_PATH
 from utils.manager import plugins2settings_manager
 from utils.utils import scheduler
-from nonebot.typing import Optional
+
 from ._model import Statistics
 
 try:
@@ -99,10 +101,11 @@ async def _(
         and matcher.priority not in [1, 999]
         and matcher.plugin_name not in ["update_info", "statistics_handle"]
     ):
-        await Statistics.add_statistic(
-            event.user_id,
-            event.group_id if isinstance(event, GroupMessageEvent) else None,
-            matcher.plugin_name,
+        await Statistics.create(
+            user_qq=event.user_id,
+            group_id=getattr(event, "group_id", None),
+            plugin_name=matcher.plugin_name,
+            create_time=datetime.now(),
         )
         module = matcher.plugin_name
         day_index = _prefix_count_dict["day_index"]

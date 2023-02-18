@@ -1,14 +1,15 @@
-import imagehash
-from PIL import Image
 from io import BytesIO
-from services.log import logger
 
+import imagehash
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent
 from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import MessageEvent, Bot
+from PIL import Image
 
-from utils.utils import get_message_text, get_message_img, get_message_at
-from ._model import WordBank
+from services.log import logger
 from utils.http_utils import AsyncHttpx
+from utils.utils import get_message_at, get_message_img, get_message_text
+
+from ._model import WordBank
 
 
 async def check(bot: Bot, event: MessageEvent, state: T_State) -> bool:
@@ -23,11 +24,11 @@ async def check(bot: Bot, event: MessageEvent, state: T_State) -> bool:
         except Exception as e:
             logger.warning(f"word_bank rule 获取图片失败 {type(e)}：{e}")
     if at:
-        temp = ''
+        temp = ""
         for seg in event.message:
-            if seg.type == 'at':
+            if seg.type == "at":
                 temp += f"[at:{seg.data['qq']}]"
-            elif seg.type == 'text':
+            elif seg.type == "text":
                 temp += seg.data["text"]
         problem = temp
     if event.to_me and bot.config.nickname:
@@ -35,9 +36,13 @@ async def check(bot: Bot, event: MessageEvent, state: T_State) -> bool:
             problem = f"[at:{bot.self_id}]" + problem
         else:
             if problem and bot.config.nickname:
-                nickname = [nk for nk in bot.config.nickname if str(event.original_message).startswith(nk)]
+                nickname = [
+                    nk
+                    for nk in bot.config.nickname
+                    if str(event.original_message).startswith(nk)
+                ]
                 problem = nickname[0] + problem if nickname else problem
-    if problem and (await WordBank.check(event, problem) is not None):
+    if problem and (await WordBank.check_problem(event, problem) is not None):
         state["problem"] = problem
         return True
     return False

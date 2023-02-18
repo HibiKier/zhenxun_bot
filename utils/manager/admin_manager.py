@@ -1,6 +1,8 @@
-from .models import AdminSetting
+from typing import Dict, List, Optional
+
 from utils.manager.data_class import StaticData
-from typing import List, Optional, Dict
+
+from .models import AdminSetting
 
 
 class AdminManager(StaticData):
@@ -59,7 +61,7 @@ class AdminManager(StaticData):
     def get_plugin_level(self, plugin: str) -> int:
         """
         说明:
-            获取插件等级
+            获取插件权限
         参数:
             :param plugin: 模块名
         """
@@ -75,6 +77,7 @@ class AdminManager(StaticData):
             :param cmd: 命令
         """
         for key in self._data.keys():
-            if self._data[key].cmd and cmd in self._data[key].cmd:
-                return key
+            if data := self._data.get(key):
+                if data.cmd and cmd in data.cmd:
+                    return key
         return None

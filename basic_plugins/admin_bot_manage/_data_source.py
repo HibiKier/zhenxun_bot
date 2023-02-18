@@ -1,29 +1,29 @@
+import asyncio
+import os
+import time
+from datetime import datetime
+from pathlib import Path
 from typing import List
+
+import ujson as json
 from nonebot.adapters.onebot.v11.message import MessageSegment
-from services.log import logger
+
+from configs.config import Config
 from configs.path_config import DATA_PATH, IMAGE_PATH
+from models.group_member_info import GroupInfoUser
+from models.level_user import LevelUser
+from services.log import logger
+from utils.http_utils import AsyncHttpx
+from utils.image_utils import BuildImage
+from utils.manager import group_manager, plugins2settings_manager, plugins_manager
 from utils.message_builder import image
 from utils.utils import get_bot, get_matchers
-from pathlib import Path
-from models.group_member_info import GroupInfoUser
-from datetime import datetime
-from services.db_context import db
-from models.level_user import LevelUser
-from configs.config import Config
-from utils.manager import group_manager, plugins2settings_manager, plugins_manager
-from utils.image_utils import BuildImage
-from utils.http_utils import AsyncHttpx
-import asyncio
-import time
-import os
-import ujson as json
-
 
 custom_welcome_msg_json = (
     Path() / "data" / "custom_welcome_msg" / "custom_welcome_msg.json"
 )
 
-ICON_PATH = IMAGE_PATH / 'other'
+ICON_PATH = IMAGE_PATH / "other"
 
 
 async def group_current_status(group_id: int) -> str:
@@ -38,7 +38,9 @@ async def group_current_status(group_id: int) -> str:
     for i, task in enumerate(_data):
         name = _data[task]
         name_image = BuildImage(0, 0, plain_text=f"{i+1}.{name}", font_size=20)
-        bk = BuildImage(name_image.w + 200, name_image.h + 20, color=(103, 177, 109), font_size=15)
+        bk = BuildImage(
+            name_image.w + 200, name_image.h + 20, color=(103, 177, 109), font_size=15
+        )
         await bk.apaste(name_image, (10, 0), True, "by_height")
         a_icon = BuildImage(40, 40, background=ICON_PATH / "btn_false.png")
         if group_manager.check_group_task_status(group_id, task):
@@ -123,7 +125,7 @@ def change_global_task_status(cmd: str) -> str:
         task_data = group_manager.get_task_data()
     status = cmd[:2]
     _cmd = cmd[4:]
-    if '全部被动' in cmd:
+    if "全部被动" in cmd:
         for task in task_data:
             if status == "开启":
                 group_manager.open_global_task(task)
@@ -134,7 +136,7 @@ def change_global_task_status(cmd: str) -> str:
     else:
         modules = [x for x in task_data if task_data[x].lower() == _cmd.lower()]
         if not modules:
-            return '未查询到该被动任务'
+            return "未查询到该被动任务"
         if status == "开启":
             group_manager.open_global_task(modules[0])
         else:
@@ -301,50 +303,40 @@ async def update_member_info(group_id: int, remind_superuser: bool = False) -> b
     # try:
     for user_info in _group_user_list:
         nickname = user_info["card"] or user_info["nickname"]
-        async with db.transaction():
-            # 更新权限
-            if user_info["role"] in [
-                "owner",
-                "admin",
-            ] and not await LevelUser.is_group_flag(user_info["user_id"], group_id):
-                await LevelUser.set_level(
-                    user_info["user_id"],
-                    user_info["group_id"],
-                    Config.get_config("admin_bot_manage", "ADMIN_DEFAULT_AUTH"),
-                )
-            if str(user_info["user_id"]) in bot.config.superusers:
-                await LevelUser.set_level(
-                    user_info["user_id"], user_info["group_id"], 9
-                )
-            user = await GroupInfoUser.get_member_info(
-                user_info["user_id"], user_info["group_id"]
-            )
-            if user:
-                if user.user_name != nickname:
-                    await user.update(user_name=nickname).apply()
-                    logger.info(
-                        f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新群昵称成功"
-                    )
-                _exist_member_list.append(int(user_info["user_id"]))
-                continue
-            join_time = datetime.strptime(
-                time.strftime(
-                    "%Y-%m-%d %H:%M:%S", time.localtime(user_info["join_time"])
-                ),
-                "%Y-%m-%d %H:%M:%S",
-            )
-            if await GroupInfoUser.add_member_info(
+        # 更新权限
+        if user_info["role"] in [
+            "owner",
+            "admin",
+        ] and not await LevelUser.is_group_flag(user_info["user_id"], group_id):
+            await LevelUser.set_level(
                 user_info["user_id"],
                 user_info["group_id"],
-                nickname,
-                join_time,
-            ):
-                _exist_member_list.append(int(user_info["user_id"]))
-                logger.info(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新成功")
-            else:
-                _error_member_list.append(
-                    f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新失败\n"
+                Config.get_config("admin_bot_manage", "ADMIN_DEFAULT_AUTH"),
+            )
+        if str(user_info["user_id"]) in bot.config.superusers:
+            await LevelUser.set_level(user_info["user_id"], user_info["group_id"], 9)
+        user = await GroupInfoUser.filter(
+            user_qq=user_info["user_id"], group_id=user_info["group_id"]
+        ).first()
+        if user:
+            if user.user_name != nickname:
+                await user.update(user_name=nickname).apply()
+                logger.info(
+                    f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新群昵称成功"
                 )
+            _exist_member_list.append(int(user_info["user_id"]))
+            continue
+        join_time = datetime.strptime(
+            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(user_info["join_time"])),
+            "%Y-%m-%d %H:%M:%S",
+        )
+        await GroupInfoUser.update_or_create(
+            user_qq=user_info["user_id"],
+            group_id=user_info["group_id"],
+            defaults={"user_name": nickname, "user_join_time": join_time},
+        )
+        _exist_member_list.append(int(user_info["user_id"]))
+        logger.info("更新成功", "更新成员信息", user_info["user_id"], user_info["group_id"])
     _del_member_list = list(
         set(_exist_member_list).difference(
             set(await GroupInfoUser.get_group_member_id_list(group_id))
@@ -352,10 +344,8 @@ async def update_member_info(group_id: int, remind_superuser: bool = False) -> b
     )
     if _del_member_list:
         for del_user in _del_member_list:
-            if await GroupInfoUser.delete_member_info(del_user, group_id):
-                logger.info(f"退群用户{del_user} 所属{group_id} 已删除")
-            else:
-                logger.info(f"退群用户{del_user} 所属{group_id} 删除失败")
+            await GroupInfoUser.filter(user_qq=del_user, group_id=group_id).delete()
+            logger.info(f"退群用户{del_user} 所属{group_id} 已删除")
     if _error_member_list and remind_superuser:
         result = ""
         for error_user in _error_member_list:

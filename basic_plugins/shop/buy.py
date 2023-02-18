@@ -1,16 +1,15 @@
-from nonebot import on_command
-
-from models.user_shop_gold_log import UserShopGoldLog
-from services.log import logger
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
-from nonebot.params import CommandArg
-from utils.utils import is_number
-from models.bag_user import BagUser
-from services.db_context import db
-from nonebot.adapters.onebot.v11.permission import GROUP
-from models.goods_info import GoodsInfo
 import time
 
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
+from nonebot.adapters.onebot.v11.permission import GROUP
+from nonebot.params import CommandArg
+
+from models.bag_user import BagUser
+from models.goods_info import GoodsInfo
+from models.user_shop_gold_log import UserShopGoldLog
+from services.log import logger
+from utils.utils import is_number
 
 __zx_plugin_name__ = "商店 - 购买道具"
 __plugin_usage__ = """
@@ -71,39 +70,40 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
                 await buy.finish("请输入正确的商品名称！")
         else:
             await buy.finish("请输入正确的商品名称！", at_sender=True)
-    async with db.transaction():
-        if (
-            await BagUser.get_gold(event.user_id, event.group_id)
-        ) < goods.goods_price * num * goods.goods_discount:
-            await buy.finish("您的金币好像不太够哦", at_sender=True)
-        flag, n = await GoodsInfo.check_user_daily_purchase(
-            goods, event.user_id, event.group_id, num
-        )
-        if flag:
-            await buy.finish(f"该次购买将超过每日次数限制，目前该道具还可以购买{n}次哦", at_sender=True)
-        if await BagUser.buy_property(event.user_id, event.group_id, goods, num):
-            await GoodsInfo.add_user_daily_purchase(
-                goods, event.user_id, event.group_id, num
-            )
-            await buy.send(
-                f"花费 {goods.goods_price * num * goods.goods_discount} 金币购买 {goods.goods_name} ×{num} 成功！",
-                at_sender=True,
-            )
-            logger.info(
-                f"USER {event.user_id} GROUP {event.group_id} "
-                f"花费 {goods.goods_price*num} 金币购买 {goods.goods_name} ×{num} 成功！"
-            )
-            await UserShopGoldLog.add_shop_log(
-                event.user_id,
-                event.group_id,
-                0,
-                goods.goods_name,
-                num,
-                goods.goods_price * num * goods.goods_discount,
-            )
-        else:
-            await buy.send(f"{goods.goods_name} 购买失败！", at_sender=True)
-            logger.info(
-                f"USER {event.user_id} GROUP {event.group_id} "
-                f"花费 {goods.goods_price * num * goods.goods_discount} 金币购买 {goods.goods_name} ×{num} 失败！"
-            )
+    if (
+        await BagUser.get_gold(event.user_id, event.group_id)
+    ) < goods.goods_price * num * goods.goods_discount:
+        await buy.finish("您的金币好像不太够哦", at_sender=True)
+    flag, n = await GoodsInfo.check_user_daily_purchase(
+        goods, event.user_id, event.group_id, num
+    )
+    if flag:
+        await buy.finish(f"该次购买将超过每日次数限制，目前该道具还可以购买{n}次哦", at_sender=True)
+    spend_gold = int(goods.goods_discount * goods.goods_price * num)
+    await BagUser.spend_gold(event.user_id, event.group_id, spend_gold)
+    await BagUser.add_property(event.user_id, event.group_id, goods.goods_name, num)
+    await GoodsInfo.add_user_daily_purchase(goods, event.user_id, event.group_id, num)
+    await buy.send(
+        f"花费 {goods.goods_price * num * goods.goods_discount} 金币购买 {goods.goods_name} ×{num} 成功！",
+        at_sender=True,
+    )
+    logger.info(
+        f"花费 {goods.goods_price*num} 金币购买 {goods.goods_name} ×{num} 成功！",
+        "购买道具",
+        event.user_id,
+        event.group_id,
+    )
+    await UserShopGoldLog.create(
+        user_qq=event.user_id,
+        group_id=event.group_id,
+        type=0,
+        name=goods.goods_name,
+        num=num,
+        spend_gold=goods.goods_price * num * goods.goods_discount,
+    )
+    # else:
+    #     await buy.send(f"{goods.goods_name} 购买失败！", at_sender=True)
+    #     logger.info(
+    #         f"USER {event.user_id} GROUP {event.group_id} "
+    #         f"花费 {goods.goods_price * num * goods.goods_discount} 金币购买 {goods.goods_name} ×{num} 失败！"
+    #     )

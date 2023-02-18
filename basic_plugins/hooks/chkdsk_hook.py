@@ -28,12 +28,12 @@ async def _(matcher: Matcher, bot: Bot, event: GroupMessageEvent, state: T_State
     if matcher.type == "message" and matcher.priority not in [1, 999]:
         if state["_prefix"]["raw_command"]:
             if _blmt.check(f'{event.user_id}{state["_prefix"]["raw_command"]}'):
-                if await BanUser.ban(
+                await BanUser.ban(
                     event.user_id,
                     9,
                     Config.get_config("hook", "MALICIOUS_BAN_TIME") * 60,
-                ):
-                    logger.info(f"USER {event.user_id} 触发了恶意触发检测")
+                )
+                logger.info(f"USER {event.user_id} 触发了恶意触发检测")
                 if isinstance(event, GroupMessageEvent):
                     try:
                         await bot.send_group_msg(

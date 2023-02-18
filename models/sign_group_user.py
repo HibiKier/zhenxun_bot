@@ -1,99 +1,78 @@
 from datetime import datetime
-from typing import List
-from services.db_context import db
+from typing import Dict, List, Literal, Optional, Tuple, Union
+
+from tortoise import fields
+
+from services.db_context import Model
 
 
-class SignGroupUser(db.Model):
-    __tablename__ = "sign_group_users"
+class SignGroupUser(Model):
 
-    id = db.Column(db.Integer(), primary_key=True)
-    user_qq = db.Column(db.BigInteger(), nullable=False)
-    group_id = db.Column(db.BigInteger(), nullable=False)
-    checkin_count = db.Column(db.Integer(), nullable=False)
-    checkin_time_last = db.Column(db.DateTime(timezone=True), nullable=False)
-    impression = db.Column(db.Numeric(scale=3, asdecimal=False), nullable=False)
-    add_probability = db.Column(
-        db.Numeric(scale=3, asdecimal=False), nullable=False, default=0
-    )
-    specify_probability = db.Column(
-        db.Numeric(scale=3, asdecimal=False), nullable=False, default=0
-    )
+    id = fields.IntField(pk=True, generated=True, auto_increment=True)
+    """自增id"""
+    user_qq = fields.BigIntField()
+    """用户id"""
+    group_id = fields.BigIntField()
+    """群聊id"""
+    checkin_count = fields.IntField(default=0)
+    """签到次数"""
+    checkin_time_last = fields.DatetimeField(auto_now=True)
+    """最后签到时间"""
+    impression = fields.DecimalField(10, 3, default=0)
+    """好感度"""
+    add_probability = fields.DecimalField(10, 3, default=0)
+    """双倍签到增加概率"""
+    specify_probability = fields.DecimalField(10, 3, default=0)
+    """使用指定双倍概率"""
+    # specify_probability = fields.DecimalField(10, 3, default=0)
 
-    _idx1 = db.Index("sign_group_users_idx1", "user_qq", "group_id", unique=True)
-
-    @classmethod
-    async def ensure(
-        cls, user_qq: int, group_id: int, for_update: bool = False
-    ) -> "SignGroupUser":
-        """
-        说明:
-            获取签到用户
-        参数:
-            :param user_qq: 用户qq
-            :param group_id: 所在群聊
-            :param for_update: 是否存在修改数据
-        """
-        query = cls.query.where(
-            (cls.user_qq == user_qq) & (cls.group_id == group_id)
-        )
-        if for_update:
-            query = query.with_for_update()
-        user = await query.gino.first()
-        return user or await cls.create(
-            user_qq=user_qq,
-            group_id=group_id,
-            checkin_count=0,
-            checkin_time_last=datetime.min,  # 从未签到过
-            impression=0,
-        )
+    class Meta:
+        table = "sign_group_users"
+        table_description = "群员签到数据表"
+        unique_together = ("user_qq", "group_id")
 
     @classmethod
-    async def get_user_all_data(cls, user_qq: int) -> List["SignGroupUser"]:
-        """
-        说明:
-            获取某用户所有数据
-        参数:
-            :param user_qq: 用户qq
-        """
-        query = cls.query.where(cls.user_qq == user_qq)
-        query = query.with_for_update()
-        return await query.gino.all()
-
-    @classmethod
-    async def sign(cls, user: "SignGroupUser", impression: float, checkin_time_last: datetime):
+    async def sign(cls, user: "SignGroupUser", impression: float):
         """
         说明:
             签到
         说明:
             :param user: 用户
             :param impression: 增加的好感度
-            :param checkin_time_last: 签到时间
         """
-        await user.update(
-            checkin_count=user.checkin_count + 1,
-            checkin_time_last=checkin_time_last,
-            impression=user.impression + impression,
-            add_probability=0,
-            specify_probability=0,
-        ).apply()
+        user.checkin_count = user.checkin_count + 1
+        user.add_probability = 0
+        user.specify_probability = 0
+        user.impression = float(user.impression) + impression
+        await user.save(
+            update_fields=[
+                "checkin_count",
+                "add_probability",
+                "specify_probability",
+                "impression",
+            ]
+        )
 
     @classmethod
-    async def get_all_impression(cls, group_id: int) -> "list, list, list":
+    async def get_all_impression(
+        cls, group_id: Optional[int]
+    ) -> Tuple[List[int], List[int], List[float]]:
         """
         说明:
             获取该群所有用户 id 及对应 好感度
         参数:
             :param group_id: 群号
         """
-        impression_list = []
-        user_qq_list = []
-        user_group = []
         if group_id:
-            query = cls.query.where(cls.group_id == group_id)
+            query = cls.filter(group_id=group_id)
         else:
-            query = cls.query
-        for user in await query.gino.all():
-            impression_list.append(user.impression)
-            user_qq_list.append(user.user_qq)
-            user_group.append(user.group_id)
-        return user_qq_list, impression_list, user_group
+            query = cls
+        value_list = await query.all().values_list("user_qq", "group_id", "impression")  # type: ignore
+        qq_list = []
+        group_list = []
+        impression_list = []
+        for value in value_list:
+            qq_list.append(value[0])
+            group_list.append(value[1])
+            impression_list.append(float(value[2]))
+        return qq_list, impression_list, group_list

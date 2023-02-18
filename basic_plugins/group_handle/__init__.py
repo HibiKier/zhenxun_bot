@@ -1,26 +1,27 @@
-from nonebot import on_notice, on_request
-from configs.path_config import IMAGE_PATH, DATA_PATH
-from models.level_user import LevelUser
-from utils.message_builder import image
-from models.group_member_info import GroupInfoUser
-from datetime import datetime
-from services.log import logger
-from nonebot.adapters.onebot.v11 import (
-    Bot,
-    ActionFailed,
-    GroupIncreaseNoticeEvent,
-    GroupDecreaseNoticeEvent,
-)
-from utils.manager import group_manager, plugins2settings_manager, requests_manager
-from configs.config import NICKNAME
-from models.group_info import GroupInfo
-from utils.utils import FreqLimiter
-from configs.config import Config
-from pathlib import Path
-import random
 import os
-import ujson as json
+import random
+from datetime import datetime
+from pathlib import Path
 
+import ujson as json
+from nonebot import on_notice, on_request
+from nonebot.adapters.onebot.v11 import (
+    ActionFailed,
+    Bot,
+    GroupDecreaseNoticeEvent,
+    GroupIncreaseNoticeEvent,
+)
+
+from configs.config import NICKNAME, Config
+from configs.path_config import DATA_PATH, IMAGE_PATH
+from models.group_info import GroupInfo
+from models.group_member_info import GroupInfoUser
+from models.level_user import LevelUser
+from services.log import logger
+from utils.depends import GetConfig
+from utils.manager import group_manager, plugins2settings_manager, requests_manager
+from utils.message_builder import image
+from utils.utils import FreqLimiter
 
 __zx_plugin_name__ = "群事件处理 [Hidden]"
 __plugin_version__ = 0.1
@@ -65,7 +66,7 @@ add_group = on_request(priority=1, block=False)
 @group_increase_handle.handle()
 async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
     if event.user_id == int(bot.self_id):
-        group = await GroupInfo.get_group_info(event.group_id)
+        group = await GroupInfo.filter(group_id=event.group_id).first()
         # 群聊不存在或被强制拉群，退出该群
         if (not group or group.group_flag == 0) and Config.get_config(
             "invite_manager", "flag"
@@ -115,15 +116,12 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
         user_info = await bot.get_group_member_info(
             group_id=event.group_id, user_id=event.user_id
         )
-        if await GroupInfoUser.add_member_info(
-            user_info["user_id"],
-            user_info["group_id"],
-            user_info["nickname"],
-            join_time,
-        ):
-            logger.info(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新成功")
-        else:
-            logger.info(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新失败")
+        await GroupInfoUser.update_or_create(
+            user_qq=user_info["user_id"],
+            group_id=user_info["group_id"],
+            defaults={"user_name": user_info["nickname"], "user_join_time": join_time},
+        )
+        logger.info(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新成功")
 
         # 群欢迎消息
         if _flmt.check(event.group_id):
@@ -152,7 +150,11 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
             else:
                 await group_increase_handle.send(
                     "[[_task|group_welcome]]新人快跑啊！！本群现状↓（快使用自定义！）"
-                    + image(random.choice(os.listdir(IMAGE_PATH / "qxz")), "qxz")
+                    + image(
+                        IMAGE_PATH
+                        / "qxz"
+                        / random.choice(os.listdir(IMAGE_PATH / "qxz"))
+                    )
                 )
 
 
@@ -162,13 +164,13 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent):
     if event.sub_type == "kick_me":
         group_id = event.group_id
         operator_id = event.operator_id
-        try:
-            operator_name = (
-                await GroupInfoUser.get_member_info(event.operator_id, event.group_id)
-            ).user_name
-        except AttributeError:
+        if user := await GroupInfoUser.get_or_none(
+            user_qq=event.operator_id, group_id=event.group_id
+        ):
+            operator_name = user.user_name
+        else:
             operator_name = "None"
-        group = await GroupInfo.get_group_info(group_id)
+        group = await GroupInfo.filter(group_id=group_id).first()
         group_name = group.group_name if group else ""
         coffee = int(list(bot.config.superusers)[0])
         await bot.send_private_msg(
@@ -182,16 +184,19 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent):
     if event.user_id == int(bot.self_id):
         group_manager.delete_group(event.group_id)
         return
-    try:
-        user_name = (
-            await GroupInfoUser.get_member_info(event.user_id, event.group_id)
-        ).user_name
-    except AttributeError:
-        user_name = str(event.user_id)
-    if await GroupInfoUser.delete_member_info(event.user_id, event.group_id):
-        logger.info(f"用户{user_name}, qq={event.user_id} 所属{event.group_id} 删除成功")
+    if user := await GroupInfoUser.get_or_none(
+        user_qq=event.user_id, group_id=event.group_id
+    ):
+        user_name = user.user_name
     else:
-        logger.info(f"用户{user_name}, qq={event.user_id} 所属{event.group_id} 删除失败")
+        user_name = f"{event.user_id}"
+    await GroupInfoUser.filter(user_qq=event.user_id, group_id=event.group_id).delete()
+    logger.info(
+        f"名称: {user_name} 退出群聊",
+        "group_decrease_handle",
+        event.user_id,
+        event.group_id,
+    )
     rst = ""
     if event.sub_type == "leave":
         rst = f"{user_name}离开了我们..."

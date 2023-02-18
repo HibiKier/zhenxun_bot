@@ -1,79 +1,50 @@
-from typing import Optional, List, Tuple
-from services.db_context import db
+from typing import List, Optional, Tuple
+
+from tortoise import fields
+from tortoise.contrib.postgres.functions import Random
+
+from services.db_context import Model
 
 
-class OmegaPixivIllusts(db.Model):
-    __tablename__ = "omega_pixiv_illusts"
-    __table_args__ = {'extend_existing': True}
+class OmegaPixivIllusts(Model):
 
-    id = db.Column(db.Integer(), primary_key=True)
-    pid = db.Column(db.BigInteger(), nullable=False)
-    uid = db.Column(db.BigInteger(), nullable=False)
-    title = db.Column(db.String(), nullable=False)
-    uname = db.Column(db.String(), nullable=False)
-    classified = db.Column(db.Integer(), nullable=False)
-    nsfw_tag = db.Column(db.Integer(), nullable=False)
-    width = db.Column(db.Integer(), nullable=False)
-    height = db.Column(db.Integer(), nullable=False)
-    tags = db.Column(db.String(), nullable=False)
-    url = db.Column(db.String(), nullable=False)
+    id = fields.IntField(pk=True, generated=True, auto_increment=True)
+    """自增id"""
+    pid = fields.BigIntField()
+    """pid"""
+    uid = fields.BigIntField()
+    """uid"""
+    title = fields.CharField(255)
+    """标题"""
+    uname = fields.CharField(255)
+    """画师名称"""
+    classified = fields.IntField()
+    """标记标签, 0=未标记, 1=已人工标记或从可信已标记来源获取"""
+    nsfw_tag = fields.IntField()
+    """nsfw标签,-1=未标记, 0=safe, 1=setu. 2=r18"""
+    width = fields.IntField()
+    """宽度"""
+    height = fields.IntField()
+    """高度"""
+    tags = fields.TextField()
+    """tags"""
+    url = fields.CharField(255)
+    """pixiv url链接"""
 
-    _idx1 = db.Index("omega_pixiv_illusts_idx1", "pid", "url", unique=True)
-
-    @classmethod
-    async def add_image_data(
-            cls,
-            pid: int,
-            title: str,
-            width: int,
-            height: int,
-            url: str,
-            uid: int,
-            uname: str,
-            classified: int,
-            nsfw_tag: int,
-            tags: str,
-    ):
-        """
-        说明:
-            添加图片信息
-        参数:
-            :param pid: pid
-            :param title: 标题
-            :param width: 宽度
-            :param height: 长度
-            :param url: url链接
-            :param uid: 作者uid
-            :param uname: 作者名称
-            :param classified: 标记标签, 0=未标记, 1=已人工标记或从可信已标记来源获取
-            :param nsfw_tag: nsfw标签,-1=未标记, 0=safe, 1=setu. 2=r18
-            :param tags: 相关tag
-        """
-        if not await cls.check_exists(pid):
-            await cls.create(
-                pid=pid,
-                title=title,
-                width=width,
-                height=height,
-                url=url,
-                uid=uid,
-                uname=uname,
-                classified=classified,
-                nsfw_tag=nsfw_tag,
-                tags=tags,
-            )
-            return True
-        return False
+    class Meta:
+        table = "omega_pixiv_illusts"
+        table_description = "omega图库数据表"
+        unique_together = ("pid", "url")
 
     @classmethod
     async def query_images(
-            cls,
-            keywords: Optional[List[str]] = None,
-            uid: Optional[int] = None,
-            pid: Optional[int] = None,
-            nsfw_tag: Optional[int] = 0,
-            num: int = 100
-    ) -> List[Optional["OmegaPixivIllusts"]]:
+        cls,
+        keywords: Optional[List[str]] = None,
+        uid: Optional[int] = None,
+        pid: Optional[int] = None,
+        nsfw_tag: Optional[int] = 0,
+        num: int = 100,
+    ) -> List["OmegaPixivIllusts"]:
         """
         说明:
             查找符合条件的图片
@@ -84,66 +55,38 @@ class OmegaPixivIllusts(db.Model):
             :param nsfw_tag: nsfw标签, 0=safe, 1=setu. 2=r18
             :param num: 获取图片数量
         """
+        if not num:
+            return []
+        query = cls
         if nsfw_tag is not None:
-            query = cls.query.where(cls.nsfw_tag == nsfw_tag)
-        else:
-            query = cls.query
+            query = cls.filter(nsfw_tag=nsfw_tag)
         if keywords:
             for keyword in keywords:
-                query = query.where(cls.tags.contains(keyword))
+                query = query.filter(tags__contains=keyword)
         elif uid:
-            query = query.where(cls.uid == uid)
+            query = query.filter(uid=uid)
         elif pid:
-            query = query.where(cls.uid == pid)
-        query = query.order_by(db.func.random()).limit(num)
-        return await query.gino.all()
+            query = query.filter(pid=pid)
+        query = query.annotate(rand=Random()).limit(num)
+        return await query.all()  # type: ignore
 
     @classmethod
-    async def check_exists(cls, pid: int) -> bool:
-        """
-        说明:
-            检测pid是否已存在
-        参数:
-            :param pid: 图片PID
-        """
-        query = await cls.query.where(cls.pid == pid).gino.all()
-        return bool(query)
-
-    @classmethod
-    async def get_keyword_num(cls, tags: List[str] = None) -> Tuple[int, int, int]:
+    async def get_keyword_num(
+        cls, tags: Optional[List[str]] = None
+    ) -> Tuple[int, int, int]:
         """
         说明:
             获取相关关键词(keyword, tag)在图库中的数量
         参数:
             :param tags: 关键词/Tag
         """
-        setattr(OmegaPixivIllusts, 'count', db.func.count(cls.pid).label('count'))
-        query = cls.select('count')
+        query = cls
         if tags:
             for tag in tags:
-                query = query.where(cls.tags.contains(tag))
-        count = await query.where(cls.nsfw_tag == 0).gino.first()
-        setu_count = await query.where(cls.nsfw_tag == 1).gino.first()
-        r18_count = await query.where(cls.nsfw_tag == 2).gino.first()
-        return count[0], setu_count[0], r18_count[0]
-
-    @classmethod
-    async def get_all_pid(cls) -> List[int]:
-        """
-        说明:
-            获取所有图片PID
-        """
-        data = await cls.select('pid').gino.all()
-        return [x[0] for x in data]
-
-    # async def test(cls, nsfw_tag: int = 1):
-    #     if nsfw_tag is not None:
-    #         query = cls.query.where(cls.nsfw_tag == nsfw_tag)
-    #     else:
-    #         query = cls.query
-    #     query = query.where((cls.width - cls.height) < 50)
-    #     for x in await query.gino.all():
-    #         print(x.pid)
-
-
-
+                query = query.filter(tags__contains=tag)
+        else:
+            query = query.all()
+        count = await query.filter(nsfw_tag=0).count()
+        setu_count = await query.filter(nsfw_tag=1).count()
+        r18_count = await query.filter(nsfw_tag=2).count()
+        return count, setu_count, r18_count

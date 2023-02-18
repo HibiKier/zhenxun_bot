@@ -1,14 +1,24 @@
-from .data_source import create_shop_help, delete_goods, update_goods, register_goods, parse_goods_info, GoodsInfo
-from nonebot.adapters.onebot.v11 import MessageEvent, Message
-from nonebot import on_command
-from configs.path_config import IMAGE_PATH
-from utils.message_builder import image
-from nonebot.permission import SUPERUSER
-from utils.utils import is_number, scheduler
-from nonebot.params import CommandArg
-from services.log import logger
 import os
 
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import Message, MessageEvent
+from nonebot.params import CommandArg
+from nonebot.permission import SUPERUSER
+
+from configs.path_config import IMAGE_PATH
+from models.bag_user import BagUser
+from services.log import logger
+from utils.message_builder import image
+from utils.utils import is_number, scheduler
+
+from .data_source import (
+    GoodsInfo,
+    create_shop_help,
+    delete_goods,
+    parse_goods_info,
+    register_goods,
+    update_goods,
+)
 
 __zx_plugin_name__ = "商店"
 __plugin_usage__ = """
@@ -37,7 +47,7 @@ __plugin_cmd__ = [
     "删除商品 [名称或序号] [_superuser]",
     "修改商品 name:[名称或序号] price:[价格] des:[描述] discount:[折扣] limit_time:[限时] [_superuser]",
 ]
-__plugin_type__ = ('商店',)
+__plugin_type__ = ("商店",)
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {
@@ -46,9 +56,7 @@ __plugin_settings__ = {
     "limit_superuser": False,
     "cmd": ["商店"],
 }
-__plugin_block_limit__ = {
-    "limit_type": "group"
-}
+__plugin_block_limit__ = {"limit_type": "group"}
 
 
 shop_help = on_command("商店", priority=5, block=True)
@@ -75,12 +83,15 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         if not data.get("name") or not data.get("price") or not data.get("des"):
             await shop_add_goods.finish("name:price:des 参数不可缺少！")
         if await register_goods(**data):
-            await shop_add_goods.send(f"添加商品 {data['name']} 成功！\n"
-                                      f"名称：{data['name']}\n"
-                                      f"价格：{data['price']}金币\n"
-                                      f"简介：{data['des']}\n"
-                                      f"折扣：{data.get('discount')}\n"
-                                      f"限时：{data.get('limit_time')}", at_sender=True)
+            await shop_add_goods.send(
+                f"添加商品 {data['name']} 成功！\n"
+                f"名称：{data['name']}\n"
+                f"价格：{data['price']}金币\n"
+                f"简介：{data['des']}\n"
+                f"折扣：{data.get('discount')}\n"
+                f"限时：{data.get('limit_time')}",
+                at_sender=True,
+            )
             logger.info(f"USER {event.user_id} 添加商品 {msg} 成功")
         else:
             await shop_add_goods.send(f"添加商品 {msg} 失败了...", at_sender=True)
@@ -133,7 +144,19 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
 )
 async def _():
     try:
-        await GoodsInfo.reset_daily_purchase()
+        await GoodsInfo.all().update(daily_purchase_limit={})
         logger.info("商品每日限购次数重置成功...")
     except Exception as e:
-        logger.error(f"商品每日限购次数重置发生错误 {type(e)}：{e}")
+        logger.error(f"商品每日限购次数重置出错 {type(e)}：{e}")
+
+
+@scheduler.scheduled_job(
+    "cron",
+    hour=0,
+    minute=1,
+)
+async def _():
+    try:
+        await BagUser.all().update(get_today_gold=0, spend_today_gold=0)
+    except Exception as e:
+        logger.error(f"重置每日金币", "定时任务", e=e)

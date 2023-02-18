@@ -1,7 +1,8 @@
-from utils.manager import requests_manager
-from ..auth import token_to_user, Depends, User
-from utils.utils import get_bot
 from models.group_info import GroupInfo
+from utils.manager import requests_manager
+from utils.utils import get_bot
+
+from ..auth import Depends, User, token_to_user
 from ..config import *
 
 
@@ -39,18 +40,21 @@ async def _(parma: RequestParma, user: User = Depends(token_to_user)) -> Result:
     if bot := get_bot():
         if parma.handle == "approve":
             if parma.type == "group":
-                rid = requests_manager.get_group_id(parma.id)
-                if await GroupInfo.get_group_info(rid):
-                    await GroupInfo.set_group_flag(rid, 1)
-                else:
-                    group_info = await bot.get_group_info(group_id=rid)
-                    await GroupInfo.add_group_info(
-                        rid,
-                        group_info["group_name"],
-                        group_info["max_member_count"],
-                        group_info["member_count"],
-                        1,
-                    )
+                if rid := requests_manager.get_group_id(parma.id):
+                    # await GroupInfo.update_or_create(defaults={"group_flag": 1}, )
+                    if group := await GroupInfo.filter(group_id=rid).first():
+                        await group.update_or_create(group_flag=1)
+                    else:
+                        group_info = await bot.get_group_info(group_id=rid)
+                        await GroupInfo.update_or_create(
+                            group_id=group_info["group_id"],
+                            defaults={
+                                "group_name": group_info["group_name"],
+                                "max_member_count": group_info["max_member_count"],
+                                "member_count": group_info["member_count"],
+                                "group_flag": 1,
+                            },
+                        )
             flag = await requests_manager.approve(bot, parma.id, parma.type)
         elif parma.handle == "refuse":
             flag = await requests_manager.refused(bot, parma.id, parma.type)

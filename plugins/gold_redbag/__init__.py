@@ -29,7 +29,6 @@ from nonebot.params import CommandArg
 import random
 import time
 
-
 __zx_plugin_name__ = "金币红包"
 __plugin_usage__ = """
 usage：
@@ -64,11 +63,16 @@ __plugin_settings__ = {
 }
 __plugin_resources__ = {"prts": IMAGE_PATH}
 
+
+async def rule(event: GroupMessageEvent) -> bool:
+    return check_on_gold_red(event)
+
+
 gold_redbag = on_command(
     "塞红包", aliases={"金币红包"}, priority=5, block=True, permission=GROUP
 )
 
-open_ = on_command("开", aliases={"抢"}, priority=5, block=True, permission=GROUP)
+open_ = on_command("开", aliases={"抢"}, priority=5, block=True, permission=GROUP, rule=rule)
 
 poke_ = on_notice(priority=6, block=False)
 
@@ -85,27 +89,11 @@ festive_redbag_data = {}
 
 # 阻断其他poke
 @run_preprocessor
-async def _(matcher: Matcher, event: PokeNotifyEvent):
+async def _(matcher: Matcher, event: PokeNotifyEvent, ):
     try:
         if matcher.type == "notice" and event.self_id == event.target_id:
-            flag1 = True
-            flag2 = True
-            try:
-                if festive_redbag_data[event.group_id]["user_id"]:
-                    if (
-                        event.user_id
-                        in festive_redbag_data[event.group_id]["open_user"]
-                    ):
-                        flag1 = False
-            except KeyError:
-                flag1 = False
-            try:
-                if redbag_data[event.group_id]["user_id"]:
-                    if event.user_id in redbag_data[event.group_id]["open_user"]:
-                        flag2 = False
-            except KeyError:
-                flag2 = False
-            if flag1 or flag2:
+            flag = check_on_gold_red(event)
+            if flag:
                 if matcher.plugin_name == "poke":
                     raise IgnoredException("目前正在抢红包...")
             else:
@@ -121,8 +109,8 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
     try:
         if time.time() - redbag_data[event.group_id]["time"] > 60:
             amount = (
-                redbag_data[event.group_id]["amount"]
-                - redbag_data[event.group_id]["open_amount"]
+                    redbag_data[event.group_id]["amount"]
+                    - redbag_data[event.group_id]["open_amount"]
             )
             await return_gold(redbag_data[event.group_id]["user_id"], event.group_id, amount)
             await gold_redbag.send(
@@ -185,43 +173,21 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip()
     msg = (
         msg.replace("!", "")
-        .replace("！", "")
-        .replace(",", "")
-        .replace("，", "")
-        .replace(".", "")
-        .replace("。", "")
+            .replace("！", "")
+            .replace(",", "")
+            .replace("，", "")
+            .replace(".", "")
+            .replace("。", "")
     )
     if msg:
         if "红包" not in msg:
             return
-    flag1 = True
-    flag2 = True
-    open_flag1 = True
-    open_flag2 = True
     try:
-        if festive_redbag_data[event.group_id]["user_id"]:
-            if event.user_id in festive_redbag_data[event.group_id]["open_user"]:
-                open_flag1 = False
-    except KeyError:
-        open_flag1 = False
-        flag1 = False
-    try:
-        if redbag_data[event.group_id]["user_id"]:
-            if event.user_id in redbag_data[event.group_id]["open_user"]:
-                open_flag2 = False
-    except KeyError:
-        flag2 = False
-    if not flag1 and not flag2:
-        await open_.finish("目前没有红包可以开...", at_sender=True)
-    if open_flag1 or open_flag2:
-        try:
-            await open_.send(
-                image(b64=await get_redbag_img(event.user_id, event.group_id)),
-                at_sender=True,
+        await open_.send(
+            image(b64=await get_redbag_img(event.user_id, event.group_id)),
+            at_sender=True,
             )
-        except KeyError:
-            await open_.finish("真贪心，明明已经开过这个红包了的说...", at_sender=True)
-    else:
+    except KeyError:
         await open_.finish("真贪心，明明已经开过这个红包了的说...", at_sender=True)
 
 
@@ -229,19 +195,8 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
 async def _poke_(event: PokeNotifyEvent):
     global redbag_data, festive_redbag_data
     if event.self_id == event.target_id:
-        flag1 = True
-        flag2 = True
-        try:
-            if event.user_id in festive_redbag_data[event.group_id]["open_user"]:
-                flag1 = False
-        except KeyError:
-            flag1 = False
-        try:
-            if event.user_id in redbag_data[event.group_id]["open_user"]:
-                flag2 = False
-        except KeyError:
-            flag2 = False
-        if not flag1 and not flag2:
+        flag = check_on_gold_red(event)
+        if not flag:
             return
         await poke_.send(
             image(b64=await get_redbag_img(event.user_id, event.group_id)),
@@ -331,7 +286,7 @@ async def _(bot: Bot, arg: Message = CommandArg()):
                 await bot.send_group_msg(
                     group_id=g,
                     message=f"{NICKNAME}发起了金币红包\n金额：{amount}\n数量：{num}\n"
-                    + image(
+                            + image(
                         b64=await generate_send_redbag_pic(int(bot.self_id), greetings)
                     ),
                 )
@@ -342,13 +297,13 @@ async def _(bot: Bot, arg: Message = CommandArg()):
 
 # 红包数据初始化
 def init_redbag(
-    user_id: int,
-    group_id: int,
-    nickname: str,
-    amount: int,
-    num: int,
-    bot_self_id: int,
-    mode: int = 0,
+        user_id: int,
+        group_id: int,
+        nickname: str,
+        amount: int,
+        num: int,
+        bot_self_id: int,
+        mode: int = 0,
 ):
     global redbag_data, festive_redbag_data
     data = redbag_data if mode == 0 else festive_redbag_data
@@ -428,3 +383,27 @@ async def end_festive_redbag(bot: Bot, group_id: int):
     )
     await bot.send_group_msg(group_id=group_id, message=message)
     festive_redbag_data[group_id] = {}
+
+
+def check_on_gold_red(event) -> bool:
+    flag1 = True
+    flag2 = True
+    try:
+        if festive_redbag_data[event.group_id]["user_id"]:
+            if (
+                    event.user_id
+                    in festive_redbag_data[event.group_id]["open_user"]
+            ):
+                flag1 = False
+    except KeyError:
+        flag1 = False
+    try:
+        if redbag_data[event.group_id]["user_id"]:
+            if event.user_id in redbag_data[event.group_id]["open_user"]:
+                flag2 = False
+    except KeyError:
+        flag2 = False
+    if flag1 or flag2:
+        return True
+    else:
+        return False

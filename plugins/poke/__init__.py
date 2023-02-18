@@ -1,12 +1,14 @@
+import os
+import random
+
 from nonebot import on_notice
 from nonebot.adapters.onebot.v11 import PokeNotifyEvent
-from configs.path_config import RECORD_PATH, IMAGE_PATH
-from utils.message_builder import record, image, poke
-from services.log import logger
-import random
-from utils.utils import CountLimiter
+
+from configs.path_config import IMAGE_PATH, RECORD_PATH
 from models.ban_user import BanUser
-import os
+from services.log import logger
+from utils.message_builder import image, poke, record
+from utils.utils import CountLimiter
 
 __zx_plugin_name__ = "戳一戳"
 
@@ -64,13 +66,17 @@ async def _poke_event(event: PokeNotifyEvent):
         rand = random.random()
         path = random.choice(["luoli", "meitu"])
         if rand <= 0.3 and len(os.listdir(IMAGE_PATH / "image_management" / path)) > 0:
-            index = random.randint(0, len(os.listdir(IMAGE_PATH / "image_management" / path)) - 1)
-            result = f"id：{index}" + image(f"{index}.jpg", "image_management/" + path)
+            index = random.randint(
+                0, len(os.listdir(IMAGE_PATH / "image_management" / path)) - 1
+            )
+            result = f"id：{index}" + image(
+                IMAGE_PATH / "image_management" / path / f"{index}.jpg"
+            )
             await poke_.send(result)
             logger.info(f"USER {event.user_id} 戳了戳我 回复: {result}  {result}")
         elif 0.3 < rand < 0.6:
             voice = random.choice(os.listdir(RECORD_PATH / "dinggong"))
-            result = record(voice, "dinggong")
+            result = record(RECORD_PATH / "dinggong" / voice)
             await poke_.send(result)
             await poke_.send(voice.split("_")[1])
             logger.info(

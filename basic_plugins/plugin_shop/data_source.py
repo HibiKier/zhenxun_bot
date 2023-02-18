@@ -2,15 +2,15 @@ import os
 import shutil
 import zipfile
 from pathlib import Path
-from typing import Union, Tuple
-from utils.manager import plugins_manager
+from typing import Tuple, Union
 
 import ujson as json
 
+from configs.path_config import DATA_PATH, TEMP_PATH
 from services import logger
 from utils.http_utils import AsyncHttpx
-from configs.path_config import TEMP_PATH, DATA_PATH
-from utils.image_utils import text2image, BuildImage
+from utils.image_utils import BuildImage, text2image
+from utils.manager import plugins_manager
 from utils.utils import is_number
 
 path = DATA_PATH / "plugin_shop"
@@ -48,7 +48,7 @@ async def install_plugin(name: str) -> str:
         if zip_file.exists():
             zip_file.unlink()
         if await AsyncHttpx.download_file(url, zip_file):
-            logger.debug("开始解压插件压缩包...")
+            logger.debug("开始解压插件压缩包...", "安装插件", target=name)
             # 解压
             zf = zipfile.ZipFile(zip_file, "r")
             extract_path = TEMP_PATH / f"{name}"
@@ -58,32 +58,34 @@ async def install_plugin(name: str) -> str:
             for file in zf.namelist():
                 zf.extract(file, extract_path)
             zf.close()
-            logger.debug("解压插件压缩包完成...")
-            logger.debug("开始移动插件文件夹...")
+            logger.debug("解压插件压缩包完成...", "安装插件", target=name)
+            logger.debug("开始移动插件文件夹...", "安装插件", target=name)
             if (extensive_plugin_path / f"{name}").exists():
-                logger.debug("extensive_plugin目录下文件夹已存在，删除该目录插件文件夹...")
+                logger.debug(
+                    "extensive_plugin目录下文件夹已存在，删除该目录插件文件夹...", "安装插件", target=name
+                )
                 shutil.rmtree(
                     (extensive_plugin_path / f"{name}").absolute(), ignore_errors=True
                 )
             extract_path.rename(extensive_plugin_path / f"{name}")
-            tmp = ""
+            prompt = ""
             if "pyproject.toml" in os.listdir(extensive_plugin_path / f"{name}"):
-                tmp = "检测到该插件含有额外依赖，当前安装无法保证依赖完全安装成功。"
+                prompt = "检测到该插件含有额外依赖，当前安装无法保证依赖完全安装成功。"
                 os.system(
                     f"poetry run pip install -r {(extensive_plugin_path / f'{name}' / 'pyproject.toml').absolute()}"
                 )
             elif "requirements.txt" in os.listdir(extensive_plugin_path / f"{name}"):
-                tmp = "检测到该插件含有额外依赖，当前安装无法保证依赖完全安装成功。"
+                prompt = "检测到该插件含有额外依赖，当前安装无法保证依赖完全安装成功。"
                 os.system(
                     f"poetry run pip install -r {(extensive_plugin_path / f'{name}' / 'requirements.txt').absolute()}"
                 )
             with open(extensive_plugin_path / f"{name}" / "plugin_info.json", "w") as f:
                 json.dump(data[name], f, ensure_ascii=False, indent=4)
-            logger.debug("移动插件文件夹完成...")
-            logger.info(f"成功安装插件 {name} 成功！\n{tmp}")
+            logger.debug("移动插件文件夹完成...", "安装插件", target=name)
+            logger.info(f"成功安装插件 {name} 成功！\n{prompt}", "安装插件", target=name)
         return f"成功安装插件 {name}，请重启真寻！"
     except Exception as e:
-        logger.error(f"安装插件 {name} 失败 {type(e)}：{e}")
+        logger.error(f"安装插失败", "安装插件", target=name, e=e)
         return f"安装插件 {name} 失败 {type(e)}：{e}"
 
 
@@ -138,7 +140,7 @@ async def show_plugin_repo() -> Union[int, str]:
             version = f"<f font_color=#1a7e30>[{plugins_data[key].version}]</f>"
         s = (
             f'id：{i+1}\n名称：{plugin_info[key]["plugin_name"]}'
-            f' \t\t{status}\n'
+            f" \t\t{status}\n"
             f"模块：{key}\n"
             f'作者：{plugin_info[key]["author"]}\n'
             f'版本：{plugin_info[key]["version"]} \t\t{version}\n'

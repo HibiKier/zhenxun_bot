@@ -1,18 +1,25 @@
-from asyncpg import UniqueViolationError
+from tortoise import fields
 
-from services.db_context import db
+from services.db_context import Model
 
 
-class LevelUser(db.Model):
-    __tablename__ = "level_users"
+class LevelUser(Model):
 
-    id = db.Column(db.Integer(), primary_key=True)
-    user_qq = db.Column(db.BigInteger(), nullable=False)
-    group_id = db.Column(db.BigInteger(), nullable=False)
-    user_level = db.Column(db.BigInteger(), nullable=False)
-    group_flag = db.Column(db.Integer(), nullable=False, default=0)
+    id = fields.IntField(pk=True, generated=True, auto_increment=True)
+    """自增id"""
+    user_qq = fields.BigIntField()
+    """用户id"""
+    group_id = fields.BigIntField()
+    """群聊id"""
+    user_level = fields.BigIntField()
+    """用户权限等级"""
+    group_flag = fields.IntField(default=0)
+    """特殊标记，是否随群管理员变更而设置权限"""
 
-    _idx1 = db.Index("level_group_users_idx1", "user_qq", "group_id", unique=True)
+    class Meta:
+        table = "level_users"
+        table_description = "用户权限数据库"
+        unique_together = ("user_qq", "group_id")
 
     @classmethod
     async def get_user_level(cls, user_qq: int, group_id: int) -> int:
@@ -23,17 +30,14 @@ class LevelUser(db.Model):
             :param user_qq: qq号
             :param group_id: 群号
         """
-        query = cls.query.where((cls.user_qq == user_qq) & (cls.group_id == group_id))
-        user = await query.gino.first()
-        if user:
+        if user := await cls.get_or_none(user_qq=user_qq, group_id=group_id):
             return user.user_level
-        else:
-            return -1
+        return -1
 
     @classmethod
     async def set_level(
         cls, user_qq: int, group_id: int, level: int, group_flag: int = 0
-    ) -> bool:
+    ):
         """
         说明:
             设置用户在群内的权限
@@ -43,23 +47,11 @@ class LevelUser(db.Model):
             :param level: 权限等级
             :param group_flag: 是否被自动更新刷新权限 0：是，1：否
         """
-        query = cls.query.where((cls.user_qq == user_qq) & (cls.group_id == group_id))
-        query = query.with_for_update()
-        user = await query.gino.first()
-        try:
-            if not user:
-                await cls.create(
-                    user_qq=user_qq,
-                    group_id=group_id,
-                    user_level=level,
-                    group_flag=group_flag,
-                )
-                return True
-            else:
-                await user.update(user_level=level, group_flag=group_flag).apply()
-                return False
-        except UniqueViolationError:
-            return False
+        await cls.update_or_create(
+            user_qq=user_qq,
+            group_id=group_id,
+            defaults={"user_level": level, "group_flag": group_flag},
+        )
 
     @classmethod
     async def delete_level(cls, user_qq: int, group_id: int) -> bool:
@@ -70,14 +62,10 @@ class LevelUser(db.Model):
             :param user_qq: qq号
             :param group_id: 群号
         """
-        query = cls.query.where((cls.user_qq == user_qq) & (cls.group_id == group_id))
-        query = query.with_for_update()
-        user = await query.gino.first()
-        if user is None:
-            return False
-        else:
+        if user := await cls.get_or_none(user_qq=user_qq, group_id=group_id):
             await user.delete()
             return True
+        return False
 
     @classmethod
     async def check_level(cls, user_qq: int, group_id: int, level: int) -> bool:
@@ -89,25 +77,14 @@ class LevelUser(db.Model):
             :param group_id: 群号
             :param level: 权限等级
         """
-        if group_id != 0:
-            query = cls.query.where(
-                (cls.user_qq == user_qq) & (cls.group_id == group_id)
-            )
-            user = await query.gino.first()
-            if user is None:
-                return False
-            user_level = user.user_level
+        if group_id:
+            if user := await cls.get_or_none(user_qq=user_qq, group_id=group_id):
+                return user.user_level > level
         else:
-            query = cls.query.where(cls.user_qq == user_qq)
-            highest_level = 0
-            for user in await query.gino.all():
-                if user.user_level > highest_level:
-                    highest_level = user.user_level
-            user_level = highest_level
-        if user_level >= level:
-            return True
-        else:
-            return False
+            user_list = await cls.filter(user_qq=user_qq).all()
+            user = max(user_list, key=lambda x: x.user_level)
+            return user.user_level > level
+        return False
 
     @classmethod
     async def is_group_flag(cls, user_qq: int, group_id: int) -> bool:
@@ -118,12 +95,6 @@ class LevelUser(db.Model):
             :param user_qq: qq号
             :param group_id: 群号
         """
-        user = await cls.query.where(
-            (cls.user_qq == user_qq) & (cls.group_id == group_id)
-        ).gino.first()
-        if not user:
-            return False
-        if user.group_flag == 1:
-            return True
-        else:
-            return False
+        if user := await cls.get_or_none(user_qq=user_qq, group_id=group_id):
+            return user.group_flag == 1
+        return False

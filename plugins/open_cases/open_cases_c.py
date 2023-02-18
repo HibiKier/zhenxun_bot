@@ -1,20 +1,22 @@
-from datetime import datetime, timedelta
-from .config import *
-from services.log import logger
-from services.db_context import db
-from .models.open_cases_user import OpenCasesUser
-from models.sign_group_user import SignGroupUser
-from utils.message_builder import image
-import pypinyin
-import random
-from .utils import get_price
-from .models.buff_prices import BuffPrice
-from PIL import Image
-from utils.image_utils import alpha2white_pil, BuildImage
-from configs.path_config import IMAGE_PATH
 import asyncio
-from utils.utils import cn2py
+import random
+from datetime import datetime, timedelta
+
+import pypinyin
+from PIL import Image
+
 from configs.config import Config
+from configs.path_config import IMAGE_PATH
+from models.sign_group_user import SignGroupUser
+from services.log import logger
+from utils.image_utils import BuildImage, alpha2white_pil
+from utils.message_builder import image
+from utils.utils import cn2py
+
+from .config import *
+from .models.buff_prices import BuffPrice
+from .models.open_cases_user import OpenCasesUser
+from .utils import get_price
 
 
 async def open_case(user_qq: int, group: int, case_name: str = "狂牙大行动") -> str:
@@ -26,71 +28,76 @@ async def open_case(user_qq: int, group: int, case_name: str = "狂牙大行动"
     case = ""
     for i in pypinyin.pinyin(case_name, style=pypinyin.NORMAL):
         case += "".join(i)
-    impression = (await SignGroupUser.ensure(user_qq, group)).impression
+    user, _ = await SignGroupUser.get_or_create(user_qq=user_qq, group_id=group)
+    impression = user.impression
     rand = random.random()
-    async with db.transaction():
-        user = await OpenCasesUser.ensure(user_qq, group, for_update=True)
-        # 一天次数上限
-        if user.today_open_total >= int(
-            Config.get_config("open_cases", "INITIAL_OPEN_CASE_COUNT")
-            + int(impression)
-            / Config.get_config("open_cases", "EACH_IMPRESSION_ADD_COUNT")
-        ):
-            return _handle_is_MAX_COUNT()
-        skin, mosun = get_color_quality(rand, case_name)
-        # 调侃
-        if skin[:2] == "军规":
-            if skin.find("StatTrak") == -1:
-                uplist[0] = 1
-            else:
-                uplist[1] = 1
-            ridicule_result = random.choice(["这样看着才舒服", "是自己人，大伙把刀收好", "非常舒适~"])
-        if skin[:2] == "受限":
-            if skin.find("StatTrak") == -1:
-                uplist[2] = 1
-            else:
-                uplist[3] = 1
-            ridicule_result = random.choice(
-                ["还行吧，勉强接受一下下", "居然不是蓝色，太假了", "运气-1-1-1-1-1..."]
-            )
-        if skin[:2] == "保密":
-            if skin.find("StatTrak") == -1:
-                uplist[4] = 1
-            else:
-                uplist[5] = 1
-            ridicule_result = random.choice(
-                ["开始不适....", "你妈妈买菜必涨价！涨三倍！", "你最近不适合出门，真的"]
-            )
-        if skin[:2] == "隐秘":
-            if skin.find("StatTrak") == -1:
-                uplist[6] = 1
-            else:
-                uplist[7] = 1
-            ridicule_result = random.choice(
-                ["已经非常不适", "好兄弟你开的什么箱子啊，一般箱子不是只有蓝色的吗", "开始拿阳寿开箱子了？"]
-            )
-        if skin[:2] == "罕见":
-            knifes_flag = True
-            if skin.find("StatTrak") == -1:
-                uplist[8] = 1
-            else:
-                uplist[9] = 1
-            ridicule_result = random.choice(
-                ["你的好运我收到了，你可以去喂鲨鱼了", "最近该吃啥就迟点啥吧，哎，好好的一个人怎么就....哎", "众所周知，欧皇寿命极短."]
-            )
-        if skin.find("（") != -1:
-            cskin = skin.split("（")
-            skin = cskin[0].strip() + "（" + cskin[1].strip()
-        skin = skin.split("|")[0].strip() + " | " + skin.split("|")[1].strip()
-        # 价格
-        if skin.find("无涂装") == -1:
-            dbprice = await BuffPrice.ensure(skin[9:])
+    await OpenCasesUser.get_or_none(user_qq=user_qq, group_id=group)
+    # user, _ = await OpenCasesUser.get_or_create(user_qq=user_qq, group_id=group)
+    user = await OpenCasesUser.get_or_none(user_qq=user_qq, group_id=group)
+    if not user:
+        user = await OpenCasesUser.create(
+            user_qq=user_qq, group_id=group, open_cases_time_last=datetime.now()
+        )
+    # 一天次数上限
+    if user.today_open_total >= int(
+        Config.get_config("open_cases", "INITIAL_OPEN_CASE_COUNT")
+        + int(impression) / Config.get_config("open_cases", "EACH_IMPRESSION_ADD_COUNT")
+    ):
+        return _handle_is_MAX_COUNT()
+    skin, mosun = get_color_quality(rand, case_name)
+    # 调侃
+    if skin[:2] == "军规":
+        if skin.find("StatTrak") == -1:
+            uplist[0] = 1
         else:
-            dbprice = await BuffPrice.ensure(skin[9 : skin.rfind("(")].strip())
-        if dbprice.skin_price != 0:
-            price_result = dbprice.skin_price
-            logger.info("数据库查询到价格: ", dbprice.skin_price)
-            uplist[10] = dbprice.skin_price
+            uplist[1] = 1
+        ridicule_result = random.choice(["这样看着才舒服", "是自己人，大伙把刀收好", "非常舒适~"])
+    if skin[:2] == "受限":
+        if skin.find("StatTrak") == -1:
+            uplist[2] = 1
+        else:
+            uplist[3] = 1
+        ridicule_result = random.choice(
+            ["还行吧，勉强接受一下下", "居然不是蓝色，太假了", "运气-1-1-1-1-1..."]
+        )
+    if skin[:2] == "保密":
+        if skin.find("StatTrak") == -1:
+            uplist[4] = 1
+        else:
+            uplist[5] = 1
+        ridicule_result = random.choice(["开始不适....", "你妈妈买菜必涨价！涨三倍！", "你最近不适合出门，真的"])
+    if skin[:2] == "隐秘":
+        if skin.find("StatTrak") == -1:
+            uplist[6] = 1
+        else:
+            uplist[7] = 1
+        ridicule_result = random.choice(
+            ["已经非常不适", "好兄弟你开的什么箱子啊，一般箱子不是只有蓝色的吗", "开始拿阳寿开箱子了？"]
+        )
+    if skin[:2] == "罕见":
+        knifes_flag = True
+        if skin.find("StatTrak") == -1:
+            uplist[8] = 1
+        else:
+            uplist[9] = 1
+        ridicule_result = random.choice(
+            ["你的好运我收到了，你可以去喂鲨鱼了", "最近该吃啥就迟点啥吧，哎，好好的一个人怎么就....哎", "众所周知，欧皇寿命极短."]
+        )
+    if skin.find("（") != -1:
+        cskin = skin.split("（")
+        skin = cskin[0].strip() + "（" + cskin[1].strip()
+    skin = skin.split("|")[0].strip() + " | " + skin.split("|")[1].strip()
+    # 价格
+    if skin.find("无涂装") == -1:
+        search_name = skin[9:]
+    else:
+        search_name = skin[9 : skin.rfind("(")].strip()
+    price_result = 0
+    if data := await BuffPrice.get_or_none(skin_name=search_name):
+        if data.skin_price != 0:
+            price_result = data.skin_price
+            logger.info("数据库查询到价格: ", data.skin_price)
+            uplist[10] = data.skin_price
         else:
             price = -1
             price_result = "未查询到"
@@ -102,55 +109,56 @@ async def open_case(user_qq: int, group: int, case_name: str = "狂牙大行动"
                         price = float(pcp[1].strip())
                         break
                 if price != -1:
-                    logger.info("存储入数据库---->", price)
+                    logger.info("存储入数据库---->{price}")
                     uplist[10] = price
                     price_result = str(price)
-                    await dbprice.update(
-                        skin_price=price,
-                        update_date=datetime.now(),
-                    ).apply()
-        # sp = skin.split("|")
-        # cskin_word = sp[1][:sp[1].find("(") - 1].strip()
-        if knifes_flag:
-            await user.update(
-                knifes_name=user.knifes_name
-                + f"{case}||{skin.split(':')[1].strip()} 磨损：{str(mosun)[:11]}， 价格：{uplist[10]},"
-            ).apply()
-        cskin_word = skin.split(":")[1].replace("|", "-").replace("（StatTrak™）", "")
-        cskin_word = cskin_word[: cskin_word.rfind("(")].strip()
-        skin_name = cn2py(
-            cskin_word.replace("|", "-").replace("（StatTrak™）", "").strip()
+                    data.skin_price = price
+                    data.update_date = datetime.now()
+                    await data.save(update_fields=["skin_price", "update_date"])
+    # sp = skin.split("|")
+    # cskin_word = sp[1][:sp[1].find("(") - 1].strip()
+    if knifes_flag:
+        await user.update(
+            knifes_name=user.knifes_name
+            + f"{case}||{skin.split(':')[1].strip()} 磨损：{str(mosun)[:11]}， 价格：{uplist[10]},"
+        ).apply()
+    cskin_word = skin.split(":")[1].replace("|", "-").replace("（StatTrak™）", "")
+    cskin_word = cskin_word[: cskin_word.rfind("(")].strip()
+    skin_name = cn2py(cskin_word.replace("|", "-").replace("（StatTrak™）", "").strip())
+    img = image(IMAGE_PATH / "cases" / case / f"{skin_name}.png")
+    #        if knifes_flag:
+    #            await user.update(
+    #                knifes_name=user.knifes_name + f"{skin} 磨损：{mosun}， 价格：{uplist[10]}"
+    #            ).apply()
+    if await update_user_total(user, uplist):
+        logger.info(
+            f"qq:{user_qq} 群:{group} 开启{case_name}武器箱 获得 {skin} 磨损：{mosun}， 价格：{uplist[10]}， 数据更新成功"
         )
-        img = image(f"{skin_name}.png", "cases/" + case)
-        #        if knifes_flag:
-        #            await user.update(
-        #                knifes_name=user.knifes_name + f"{skin} 磨损：{mosun}， 价格：{uplist[10]}"
-        #            ).apply()
-        if await update_user_total(user, uplist):
-            logger.info(
-                f"qq:{user_qq} 群:{group} 开启{case_name}武器箱 获得 {skin} 磨损：{mosun}， 价格：{uplist[10]}， 数据更新成功"
-            )
-        else:
-            logger.warning(
-                f"qq:{user_qq} 群:{group} 开启{case_name}武器箱 获得 {skin} 磨损：{mosun}， 价格：{uplist[10]}， 数据更新失败"
-            )
-        user = await OpenCasesUser.ensure(user_qq, group, for_update=True)
-        over_count = int(
+    else:
+        logger.warning(
+            f"qq:{user_qq} 群:{group} 开启{case_name}武器箱 获得 {skin} 磨损：{mosun}， 价格：{uplist[10]}， 数据更新失败"
+        )
+    user, _ = await OpenCasesUser.get_or_create(user_qq=user_qq, group_id=group)
+    over_count = (
+        int(
             Config.get_config("open_cases", "INITIAL_OPEN_CASE_COUNT")
             + int(impression)
             / Config.get_config("open_cases", "EACH_IMPRESSION_ADD_COUNT")
-        ) - user.today_open_total
-        return (
-            f"开启{case_name}武器箱.\n剩余开箱次数：{over_count}.\n" + img + "\n" + f"皮肤:{skin}\n"
-            f"磨损:{mosun:.9f}\n"
-            f"价格:{price_result}\n"
-            f"{ridicule_result}"
         )
+        - user.today_open_total
+    )
+    return (
+        f"开启{case_name}武器箱.\n剩余开箱次数：{over_count}.\n" + img + "\n" + f"皮肤:{skin}\n"
+        f"磨损:{mosun:.9f}\n"
+        f"价格:{price_result}\n"
+        f"{ridicule_result}"
+    )
 
 
 async def open_shilian_case(user_qq: int, group: int, case_name: str, num: int = 10):
-    user = await OpenCasesUser.ensure(user_qq, group, for_update=True)
-    impression = (await SignGroupUser.ensure(user_qq, group)).impression
+    user, _ = await OpenCasesUser.get_or_create(user_qq=user_qq, group_id=group)
+    sign_user, _ = await SignGroupUser.get_or_create(user_qq=user_qq, group_id=group)
+    impression = sign_user.impression
     max_count = int(
         Config.get_config("open_cases", "INITIAL_OPEN_CASE_COUNT")
         + int(impression) / Config.get_config("open_cases", "EACH_IMPRESSION_ADD_COUNT")
@@ -162,11 +170,10 @@ async def open_shilian_case(user_qq: int, group: int, case_name: str, num: int =
             f"今天开箱次数不足{num}次噢，请单抽试试看（也许单抽运气更好？）"
             f"\n剩余开箱次数：{max_count - user.today_open_total}"
         )
-    await user.update(
-        total_count=user.total_count + num,
-        spend_money=user.spend_money + 17 * num,
-        today_open_total=user.today_open_total + num,
-    ).apply()
+    user.total_count = user.total_count + num
+    user.spend_money = user.spend_money + 17 * num
+    user.today_open_total = user.today_open_total + num
+    await user.save(update_fields=["total_count", "spend_money", "today_open_total"])
     if num < 5:
         h = 270
     elif num % 5 == 0:
@@ -180,46 +187,46 @@ async def open_shilian_case(user_qq: int, group: int, case_name: str, num: int =
     uplist = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0]
     img_list = []
     name_list = ["蓝", "蓝(暗金)", "紫", "紫(暗金)", "粉", "粉(暗金)", "红", "红(暗金)", "金", "金(暗金)"]
-    async with db.transaction():
-        for _ in range(num):
-            knifes_flag = False
-            rand = random.random()
-            skin, mosun = get_color_quality(rand, case_name)
-            if skin[:2] == "军规":
-                if skin.find("StatTrak") == -1:
-                    uplist[0] += 1
-                else:
-                    uplist[1] += 1
-            if skin[:2] == "受限":
-                if skin.find("StatTrak") == -1:
-                    uplist[2] += 1
-                else:
-                    uplist[3] += 1
-            if skin[:2] == "保密":
-                if skin.find("StatTrak") == -1:
-                    uplist[4] += 1
-                else:
-                    uplist[5] += 1
-            if skin[:2] == "隐秘":
-                if skin.find("StatTrak") == -1:
-                    uplist[6] += 1
-                else:
-                    uplist[7] += 1
-            if skin[:2] == "罕见":
-                knifes_flag = True
-                if skin.find("StatTrak") == -1:
-                    uplist[8] += 1
-                else:
-                    uplist[9] += 1
-            if skin.find("（") != -1:
-                cskin = skin.split("（")
-                skin = cskin[0].strip() + "（" + cskin[1].strip()
-            skin = skin.split("|")[0].strip() + " | " + skin.split("|")[1].strip()
-            # 价格
-            if skin.find("无涂装") == -1:
-                dbprice = await BuffPrice.ensure(skin[9:])
+    for _ in range(num):
+        knifes_flag = False
+        rand = random.random()
+        skin, mosun = get_color_quality(rand, case_name)
+        if skin[:2] == "军规":
+            if skin.find("StatTrak") == -1:
+                uplist[0] += 1
             else:
-                dbprice = await BuffPrice.ensure(skin[9 : skin.rfind("(")].strip())
+                uplist[1] += 1
+        if skin[:2] == "受限":
+            if skin.find("StatTrak") == -1:
+                uplist[2] += 1
+            else:
+                uplist[3] += 1
+        if skin[:2] == "保密":
+            if skin.find("StatTrak") == -1:
+                uplist[4] += 1
+            else:
+                uplist[5] += 1
+        if skin[:2] == "隐秘":
+            if skin.find("StatTrak") == -1:
+                uplist[6] += 1
+            else:
+                uplist[7] += 1
+        if skin[:2] == "罕见":
+            knifes_flag = True
+            if skin.find("StatTrak") == -1:
+                uplist[8] += 1
+            else:
+                uplist[9] += 1
+        if skin.find("（") != -1:
+            cskin = skin.split("（")
+            skin = cskin[0].strip() + "（" + cskin[1].strip()
+        skin = skin.split("|")[0].strip() + " | " + skin.split("|")[1].strip()
+        # 价格
+        if skin.find("无涂装") == -1:
+            search_name = skin[9:]
+        else:
+            search_name = skin[9 : skin.rfind("(")].strip()
+        if dbprice := await BuffPrice.get_or_none(skin_name=search_name):
             if dbprice.skin_price != 0:
                 price_result = dbprice.skin_price
                 uplist[10] += price_result
@@ -238,7 +245,6 @@ async def open_shilian_case(user_qq: int, group: int, case_name: str, num: int =
                 style=pypinyin.NORMAL,
             ):
                 skin_name += "".join(i)
-            # img = image(skin_name, "cases/" + case, "png")
             wImg = BuildImage(200, 270, 200, 200)
             wImg.paste(
                 alpha2white_pil(
@@ -296,7 +302,7 @@ def _handle_is_MAX_COUNT() -> str:
 
 async def update_user_total(user: OpenCasesUser, up_list: list, num: int = 1) -> bool:
     try:
-        await user.update(
+        await user.update_or_create(
             total_count=user.total_count + num,
             blue_count=user.blue_count + up_list[0],
             blue_st_count=user.blue_st_count + up_list[1],
@@ -312,36 +318,35 @@ async def update_user_total(user: OpenCasesUser, up_list: list, num: int = 1) ->
             make_money=user.make_money + up_list[10],
             today_open_total=user.today_open_total + num,
             open_cases_time_last=datetime.now(),
-        ).apply()
+        )
         return True
     except:
         return False
 
 
 async def total_open_statistics(user_qq: int, group: int) -> str:
-    async with db.transaction():
-        user = await OpenCasesUser.ensure(user_qq, group, for_update=True)
-        return (
-            f"开箱总数：{user.total_count}\n"
-            f"今日开箱：{user.today_open_total}\n"
-            f"蓝色军规：{user.blue_count}\n"
-            f"蓝色暗金：{user.blue_st_count}\n"
-            f"紫色受限：{user.purple_count}\n"
-            f"紫色暗金：{user.purple_st_count}\n"
-            f"粉色保密：{user.pink_count}\n"
-            f"粉色暗金：{user.pink_st_count}\n"
-            f"红色隐秘：{user.red_count}\n"
-            f"红色暗金：{user.red_st_count}\n"
-            f"金色罕见：{user.knife_count}\n"
-            f"金色暗金：{user.knife_st_count}\n"
-            f"花费金额：{user.spend_money}\n"
-            f"获取金额：{user.make_money:.2f}\n"
-            f"最后开箱日期：{(user.open_cases_time_last + timedelta(hours=8)).date()}"
-        )
+    user, _ = await OpenCasesUser.get_or_create(user_qq=user_qq, group_id=group)
+    return (
+        f"开箱总数：{user.total_count}\n"
+        f"今日开箱：{user.today_open_total}\n"
+        f"蓝色军规：{user.blue_count}\n"
+        f"蓝色暗金：{user.blue_st_count}\n"
+        f"紫色受限：{user.purple_count}\n"
+        f"紫色暗金：{user.purple_st_count}\n"
+        f"粉色保密：{user.pink_count}\n"
+        f"粉色暗金：{user.pink_st_count}\n"
+        f"红色隐秘：{user.red_count}\n"
+        f"红色暗金：{user.red_st_count}\n"
+        f"金色罕见：{user.knife_count}\n"
+        f"金色暗金：{user.knife_st_count}\n"
+        f"花费金额：{user.spend_money}\n"
+        f"获取金额：{user.make_money:.2f}\n"
+        f"最后开箱日期：{user.open_cases_time_last.date()}"
+    )
 
 
 async def group_statistics(group: int):
-    user_list = await OpenCasesUser.get_user_all(group)
+    user_list = await OpenCasesUser.filter(group_id=group).all()
     #          lan   zi   fen   hong   jin  pricei
     uplist = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0, 0]
     for user in user_list:
@@ -377,7 +382,8 @@ async def group_statistics(group: int):
 
 
 async def my_knifes_name(user_id: int, group: int):
-    knifes_name = (await OpenCasesUser.ensure(user_id, group)).knifes_name
+    user, _ = await OpenCasesUser.get_or_create(user_qq=user_id, group_id=group)
+    knifes_name = user.knifes_name
     if knifes_name:
         knifes_list = knifes_name[:-1].split(",")
         length = len(knifes_list)

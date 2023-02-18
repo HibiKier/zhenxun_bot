@@ -1,21 +1,23 @@
 import asyncio
 import os
 import random
-import jieba.analyse
 import re
-from typing import List
-from PIL import Image as IMG
-import jieba
-from emoji import replace_emoji  # type: ignore
-from wordcloud import WordCloud, ImageColorGenerator
-import numpy as np
-import matplotlib.pyplot as plt
 from io import BytesIO
-from configs.path_config import IMAGE_PATH, FONT_PATH
+from typing import List
+
+import jieba
+import jieba.analyse
+import matplotlib.pyplot as plt
+import numpy as np
+from emoji import replace_emoji  # type: ignore
+from PIL import Image as IMG
+from wordcloud import ImageColorGenerator, WordCloud
+
+from configs.config import Config
+from configs.path_config import FONT_PATH, IMAGE_PATH
+from models.chat_history import ChatHistory
 from services import logger
 from utils.http_utils import AsyncHttpx
-from models.chat_history import ChatHistory
-from configs.config import Config
 
 
 async def pre_precess(msg: List[str], config) -> str:
@@ -117,10 +119,8 @@ async def draw_word_cloud(messages, config):
 
 
 async def get_list_msg(user_id, group_id, days):
-    messages_list = (
-        await ChatHistory()
-        ._get_msg(uid=user_id, gid=group_id, type_="group", days=days)
-        .gino.all()
+    messages_list = await ChatHistory().get_message(
+        uid=user_id, gid=group_id, type_="group", days=days
     )
     if messages_list:
         messages = [i.text for i in messages_list]

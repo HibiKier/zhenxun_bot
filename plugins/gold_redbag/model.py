@@ -1,73 +1,58 @@
-from services.db_context import db
 from typing import List
 
+from tortoise import fields
 
-class RedbagUser(db.Model):
-    __tablename__ = "redbag_users"
+from services.db_context import Model
 
-    id = db.Column(db.Integer(), primary_key=True)
-    user_qq = db.Column(db.BigInteger(), nullable=False)
-    group_id = db.Column(db.BigInteger(), nullable=False)
-    send_redbag_count = db.Column(db.Integer(), default=0)
-    get_redbag_count = db.Column(db.Integer(), default=0)
-    spend_gold = db.Column(db.Integer(), default=0)
-    get_gold = db.Column(db.Integer(), default=0)
 
-    _idx1 = db.Index("redbag_group_users_idx1", "user_qq", "group_id", unique=True)
+class RedbagUser(Model):
+
+    id = fields.IntField(pk=True, generated=True, auto_increment=True)
+    """自增id"""
+    user_qq = fields.BigIntField()
+    """用户id"""
+    group_id = fields.BigIntField()
+    """群聊id"""
+    send_redbag_count = fields.IntField(default=0)
+    """发送红包次数"""
+    get_redbag_count = fields.IntField(default=0)
+    """开启红包次数"""
+    spend_gold = fields.IntField(default=0)
+    """发送红包花费金额"""
+    get_gold = fields.IntField(default=0)
+    """开启红包获取金额"""
+
+    class Meta:
+        table = "redbag_users"
+        table_description = "红包统计数据表"
+        unique_together = ("user_qq", "group_id")
 
     @classmethod
-    async def add_redbag_data(cls, user_qq: int, group_id: int, itype: str, money: int):
+    async def add_redbag_data(
+        cls, user_qq: int, group_id: int, i_type: str, money: int
+    ):
         """
         说明:
             添加收发红包数据
         参数:
             :param user_qq: qq号
             :param group_id: 群号
-            :param itype: 收或发
+            :param i_type: 收或发
             :param money: 金钱数量
         """
-        query = cls.query.where((cls.user_qq == user_qq) & (cls.group_id == group_id))
-        user = await query.with_for_update().gino.first() or await cls.create(
-            user_qq=user_qq,
-            group_id=group_id,
-        )
-        if itype == "get":
-            await user.update(
-                get_redbag_count=user.get_redbag_count + 1,
-                get_gold=user.get_gold + money,
-            ).apply()
-        else:
-            await user.update(
-                send_redbag_count=user.send_redbag_count + 1,
-                spend_gold=user.spend_gold + money,
-            ).apply()
 
-    @classmethod
-    async def ensure(cls, user_qq: int, group_id: int) -> bool:
-        """
-        说明:
-            获取用户对象
-        参数:
-            :param user_qq: qq号
-            :param group_id: 群号
-        """
-        query = cls.query.where((cls.user_qq == user_qq) & (cls.group_id == group_id))
-        user = await query.gino.first() or await cls.create(
-            user_qq=user_qq,
-            group_id=group_id,
-        )
-        return user
-
-    @classmethod
-    async def get_user_all(cls, group_id: int = None) -> List["RedbagUser"]:
-        """
-        说明:
-            获取所有用户对象
-        参数:
-            :param group_id: 群号
-        """
-        if not group_id:
-            query = await cls.query.gino.all()
+        user, _ = await cls.get_or_create(user_qq=user_qq, group_id=group_id)
+        if i_type == "get":
+            user.get_redbag_count = user.get_redbag_count + 1
+            user.get_gold = user.get_gold + money
         else:
-            query = await cls.query.where((cls.group_id == group_id)).gino.all()
-        return query
+            user.send_redbag_count = user.send_redbag_count + 1
+            user.spend_gold = user.spend_gold + money
+        await user.save(
+            update_fields=[
+                "get_redbag_count",
+                "get_gold",
+                "send_redbag_count",
+                "spend_gold",
+            ]
+        )
