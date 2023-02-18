@@ -156,8 +156,9 @@ data/
 .env.dev
 /resources/text/
 /resources/image/
+/resources/temp/
 !/resources/template/
-configs/config.py
+/configs/config.py
 configs/config.yaml
 ./.env
 ./.env.dev
@@ -165,3 +166,4 @@ plugins/csgo_server/
 plugins/activity/
 !/resources/image/genshin/alc/back.png
 !/data/genshin_alc/
+.vscode/launch.json
