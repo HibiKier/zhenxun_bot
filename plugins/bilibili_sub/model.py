@@ -104,7 +104,7 @@ class BilibiliSub(Model):
         if sub:
             sub_users = sub.sub_users + sub_user
             data["sub_type"] = sub_type or sub.sub_type
-            data["sub_user"] = sub_users
+            data["sub_users"] = sub_users
             data["live_short_id"] = live_short_id or sub.live_short_id
             data["live_status"] = (
                 live_status if live_status is not None else sub.live_status
