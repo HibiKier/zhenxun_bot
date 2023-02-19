@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import List, Literal, Optional, Tuple
 
 from tortoise import fields
 
@@ -44,14 +44,7 @@ class SignGroupUser(Model):
         user.add_probability = 0
         user.specify_probability = 0
         user.impression = float(user.impression) + impression
-        await user.save(
-            update_fields=[
-                "checkin_count",
-                "add_probability",
-                "specify_probability",
-                "impression",
-            ]
-        )
+        await user.save()
 
     @classmethod
     async def get_all_impression(

@@ -320,7 +320,8 @@ async def update_member_info(group_id: int, remind_superuser: bool = False) -> b
         ).first()
         if user:
             if user.user_name != nickname:
-                await user.update(user_name=nickname).apply()
+                user.user_name=nickname
+                await user.save(update_fields=['user_name'])
                 logger.info(
                     f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新群昵称成功"
                 )
