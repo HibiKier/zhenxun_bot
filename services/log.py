@@ -109,6 +109,7 @@ class logger:
         user_id: Optional[int] = None,
         group_id: Optional[int] = None,
         target: Optional[Any] = None,
+        e: Optional[Exception] = None,
     ):
         template = cls.__parser_template(info, command, user_id, group_id, target)
         logger_.opt(colors=True).debug(template)

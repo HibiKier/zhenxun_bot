@@ -500,4 +500,4 @@ class WordBank(Model):
     @classmethod
     async def _run_script(cls):
         await cls.raw("ALTER TABLE word_bank2 ADD to_me varchar(255);")
-        """允许 user_join_time 为空"""
+        """添加 to_me 字段"""

@@ -27,7 +27,7 @@ class Model(Model_):
         MODELS.append(cls.__module__)
 
         if func := getattr(cls, "_run_script", None):
-            SCRIPT_METHOD.append(func)
+            SCRIPT_METHOD.append((cls.__module__, func))
 
 
 class TestSQL(Model):
@@ -53,8 +53,11 @@ async def init():
     except Exception as e:
         raise Exception(f"数据库连接错误.... {type(e)}: {e}")
     if SCRIPT_METHOD:
-        for func in SCRIPT_METHOD:
-            await func()
+        for module, func in SCRIPT_METHOD:
+            try:
+                await func()
+            except Exception as e:
+                logger.debug(f"{module} 执行SQL", e=e)
 
 
 async def disconnect():
