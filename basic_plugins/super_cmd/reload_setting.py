@@ -21,7 +21,7 @@ usage：
     plugins2block
     group_manager
     指令：
-        重载插件配置
+        重载配置
 """.strip()
 __plugin_des__ = "重载配置"
 __plugin_cmd__ = [
