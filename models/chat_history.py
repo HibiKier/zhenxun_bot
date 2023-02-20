@@ -13,11 +13,11 @@ class ChatHistory(Model):
     """自增id"""
     user_qq = fields.BigIntField()
     """用户id"""
-    group_id = fields.BigIntField()
+    group_id = fields.BigIntField(null=True)
     """群聊id"""
-    text = fields.TextField()
+    text = fields.TextField(null=True)
     """文本内容"""
-    plain_text = fields.TextField()
+    plain_text = fields.TextField(null=True)
     """纯文本"""
     create_time = fields.DatetimeField(auto_now_add=True)
     """创建时间"""
