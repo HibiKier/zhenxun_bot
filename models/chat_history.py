@@ -50,7 +50,7 @@ class ChatHistory(Model):
             .group_by("user_qq")
             .limit(limit)
             .values_list("user_qq", "count")
-        )
+        )  # type: ignore
 
     @classmethod
     async def get_group_first_msg_datetime(cls, group_id: int) -> Optional[datetime]:
@@ -103,4 +103,13 @@ class ChatHistory(Model):
                 )
             elif isinstance(days, tuple):
                 query = query.filter(create_at__range=days)
-        return await query.all()
+        return await query.all()  # type: ignore
+
+    @classmethod
+    async def _run_script(cls):
+        await cls.raw("alter table chat_history alter group_id drop not null;")
+        """允许 group_id 为空"""
+        await cls.raw("alter table chat_history alter text drop not null;")
+        """允许 text 为空"""
+        await cls.raw("alter table chat_history alter plain_text drop not null;")
+        """允许 plain_text 为空"""

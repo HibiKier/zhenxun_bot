@@ -331,11 +331,16 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
-### 2022/2/19
+### 2023/2/20
+
+* chat_history部分字段调整为可null [@pull/1270](https://github.com/HibiKier/zhenxun_bot/pull/1270)
+
+### 2023/2/19
 
 * 修正了`重载插件`的帮助提示
+* 修改BUG
 
-### 2022/2/18
+### 2023/2/18
 
 * 数据库舍弃`gino`使用`tortoise`
 * 昵称提供命令`全局昵称设置`
@@ -344,11 +349,11 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 * 解决开红包经常误触的问题，有红包和未领取的时候才会触发“开”命令 [@pull/1257](https://github.com/HibiKier/zhenxun_bot/pull/1257)
 * 细节优化，原神今日素材重写 [@pull/1258](https://github.com/HibiKier/zhenxun_bot/pull/1258)
 
-### 2022/1/31
+### 2023/1/31
 
 * 修复B站转发卡片BUG [@pull/1249](https://github.com/HibiKier/zhenxun_bot/pull/1249)
 
-### 2022/1/27
+### 2023/1/27
 
 * 替换pixiv反向代理地址 [@pull/1244](https://github.com/HibiKier/zhenxun_bot/pull/1244)
 

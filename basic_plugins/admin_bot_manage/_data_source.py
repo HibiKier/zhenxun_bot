@@ -315,9 +315,9 @@ async def update_member_info(group_id: int, remind_superuser: bool = False) -> b
             )
         if str(user_info["user_id"]) in bot.config.superusers:
             await LevelUser.set_level(user_info["user_id"], user_info["group_id"], 9)
-        user = await GroupInfoUser.filter(
+        user = await GroupInfoUser.get_or_none(
             user_qq=user_info["user_id"], group_id=user_info["group_id"]
-        ).first()
+        )
         if user:
             if user.user_name != nickname:
                 user.user_name=nickname
