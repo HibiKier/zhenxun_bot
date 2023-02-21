@@ -44,7 +44,7 @@ nonebot-adapter-onebot = "^2.1.5"
 nonebot-plugin-apscheduler = "^0.2.0"
 nonebot-plugin-htmlrender = "^0.2.0"
 cachetools = "^5.2.0"
-tortoise-orm = "^0.19.3"
+tortoise-orm = {extras = ["asyncpg"], version = "^0.19.3"}
 
 [tool.poetry.dev-dependencies]
 
