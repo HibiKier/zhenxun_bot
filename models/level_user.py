@@ -79,11 +79,11 @@ class LevelUser(Model):
         """
         if group_id:
             if user := await cls.get_or_none(user_qq=user_qq, group_id=group_id):
-                return user.user_level > level
+                return user.user_level >= level
         else:
             user_list = await cls.filter(user_qq=user_qq).all()
             user = max(user_list, key=lambda x: x.user_level)
-            return user.user_level > level
+            return user.user_level >= level
         return False
 
     @classmethod
