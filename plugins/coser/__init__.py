@@ -2,8 +2,10 @@ from typing import Tuple, Any
 
 from nonebot import on_regex
 from nonebot.params import RegexGroup
-from nonebot.typing import T_State
+from configs.path_config import TEMP_PATH
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent
+import time
+from utils.http_utils import AsyncHttpx
 from utils.message_builder import image
 from services.log import logger
 from utils.manager import withdraw_message_manager
@@ -36,19 +38,22 @@ __plugin_configs__ = {
     },
 }
 
+cos_img_path = TEMP_PATH / "cos"
 coser = on_regex(r"^(\d)?连?(cos|COS|coser|括丝)$", priority=5, block=True)
 
 # 纯cos，较慢:https://picture.yinux.workers.dev
 # 比较杂，有福利姬，较快:https://api.jrsgslb.cn/cos/url.php?return=img
-url = "https://picture.yinux.workers.dev/"
+url = "https://picture.yinux.workers.dev"
 
 
 @coser.handle()
 async def _(event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
     num = reg_group[0] or 1
     for _ in range(int(num)):
+        path = cos_img_path / f'{int(time.time())}.jpeg'
         try:
-            msg_id = await coser.send(image(url))
+            await AsyncHttpx.download_file(url, path)
+            msg_id = await coser.send(image(path))
             withdraw_message_manager.withdraw_message(
                 event,
                 msg_id["message_id"],
