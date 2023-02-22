@@ -234,7 +234,10 @@ def get_home_data_image(home_data_list: List[Dict]) -> BuildImage:
     画出家园数据
     :param home_data_list: 家园列表
     """
-    h = 130 + 340 * len(home_data_list)
+    homes = os.listdir(image_path / "homes")
+    homes.remove("lock.png")
+    homes.sort()
+    h = 130 + 340 * len(homes)
     region = BuildImage(
         550, h, color="#E3DBD1", font="HYWenHei-85W.ttf", font_size=40
     )
@@ -250,9 +253,6 @@ def get_home_data_image(home_data_list: List[Dict]) -> BuildImage:
         region.text((0, region.h - 70), f"仙力: 0", center_type="by_width")
     region.circle_corner(30)
     height = 100
-    homes = os.listdir(image_path / "homes")
-    homes.remove("lock.png")
-    homes.sort()
     unlock_home = [x["name"] for x in home_data_list]
     for i, file in enumerate(homes):
         home_img = image_path / "homes" / file
