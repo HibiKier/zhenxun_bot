@@ -38,7 +38,6 @@ __plugin_configs__ = {
     },
 }
 
-cos_img_path = TEMP_PATH / "cos"
 coser = on_regex(r"^(\d)?连?(cos|COS|coser|括丝)$", priority=5, block=True)
 
 # 纯cos，较慢:https://picture.yinux.workers.dev
@@ -50,7 +49,7 @@ url = "https://picture.yinux.workers.dev"
 async def _(event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
     num = reg_group[0] or 1
     for _ in range(int(num)):
-        path = cos_img_path / f'{int(time.time())}.jpeg'
+        path = TEMP_PATH / f'cos_cc{int(time.time())}.jpeg'
         try:
             await AsyncHttpx.download_file(url, path)
             msg_id = await coser.send(image(path))
