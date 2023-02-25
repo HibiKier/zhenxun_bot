@@ -249,7 +249,7 @@ class WordBank(Model):
             else:
                 query = query.filter(Q(group_id=event.group_id) | Q(word_scope=0))
         else:
-            query = query.filter(Q(cword_scope=2) | Q(word_scope=0))
+            query = query.filter(Q(word_scope=2) | Q(word_scope=0))
             if word_type:
                 query = query.filter(word_scope=word_type)
         # 完全匹配
