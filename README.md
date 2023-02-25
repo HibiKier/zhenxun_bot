@@ -331,6 +331,11 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
+### 2023/2/25
+
+* 修复ys查询，尘歌壶背景尺寸与内容不匹配的问题 [@pull/1270](https://github.com/HibiKier/zhenxun_bot/pull/1275)
+* 更换cos url [@pull/1270](https://github.com/HibiKier/zhenxun_bot/pull/1274)
+
 ### 2023/2/20
 
 * chat_history部分字段调整为可null [@pull/1270](https://github.com/HibiKier/zhenxun_bot/pull/1270)
