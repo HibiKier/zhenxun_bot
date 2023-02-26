@@ -1,7 +1,8 @@
-from configs.config import Config
-from configs.path_config import IMAGE_PATH
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent
+
+from configs.config import Config
+from configs.path_config import IMAGE_PATH
 from services.log import logger
 from utils.manager import group_manager
 from utils.message_builder import image
@@ -35,6 +36,7 @@ Config.add_plugin_config(
     True,
     help_="被动 原神黄历提醒 进群默认开关状态",
     default_value=True,
+    type=bool,
 )
 
 almanac = on_command("原神黄历", priority=5, block=True)

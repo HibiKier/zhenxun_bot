@@ -1,9 +1,11 @@
-import nonebot
 from pathlib import Path
+
+import nonebot
 from nonebot.log import logger
 from pydantic import BaseModel, Extra, ValidationError
+
 from configs.config import Config as AConfig
-from configs.path_config import IMAGE_PATH, DATA_PATH
+from configs.path_config import DATA_PATH, IMAGE_PATH
 
 try:
     import ujson as json
@@ -147,9 +149,20 @@ for game_flag, game_name in zip(
         "FGO_FLAG",
         "ONMYOJI_FLAG",
         "PCR_TAI",
-        "BA_FLAG"
+        "BA_FLAG",
     ],
-    ["明日方舟", "原神", "赛马娘", "坎公骑冠剑", "公主连结", "碧蓝航线", "命运-冠位指定（FGO）", "阴阳师", "pcr台服卡池", "碧蓝档案"],
+    [
+        "明日方舟",
+        "原神",
+        "赛马娘",
+        "坎公骑冠剑",
+        "公主连结",
+        "碧蓝航线",
+        "命运-冠位指定（FGO）",
+        "阴阳师",
+        "pcr台服卡池",
+        "碧蓝档案",
+    ],
 ):
     AConfig.add_plugin_config(
         "draw_card",
@@ -158,9 +171,10 @@ for game_flag, game_name in zip(
         name="游戏抽卡",
         help_=f"{game_name} 抽卡开关",
         default_value=True,
+        type=bool,
     )
 AConfig.add_plugin_config(
-    "draw_card", "SEMAPHORE", 5, help_=f"异步数据下载数量限制", default_value=5
+    "draw_card", "SEMAPHORE", 5, help_=f"异步数据下载数量限制", default_value=5, type=int
 )
 
 

@@ -15,7 +15,13 @@ __plugin_author__ = "HibiKier"
 
 
 Config.add_plugin_config(
-    "chat_history", "FLAG", True, help_="是否开启消息自从存储", name="消息存储", default_value=True
+    "chat_history",
+    "FLAG",
+    True,
+    help_="是否开启消息自从存储",
+    name="消息存储",
+    default_value=True,
+    type=bool,
 )
 
 

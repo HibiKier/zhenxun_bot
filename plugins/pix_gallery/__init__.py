@@ -1,7 +1,9 @@
+from pathlib import Path
+from typing import Tuple
+
 import nonebot
 
 from configs.config import Config
-from utils.utils import GDict
 
 Config.add_plugin_config(
     "hibiapi",
@@ -25,6 +27,7 @@ Config.add_plugin_config(
     5000,
     help_="最低收藏，PIX使用HIBIAPI搜索图片时达到最低收藏才会添加至图库",
     default_value=5000,
+    type=int,
 )
 Config.add_plugin_config(
     "pix",
@@ -32,6 +35,7 @@ Config.add_plugin_config(
     (0, 1),
     help_="自动撤回，参1：延迟撤回色图时间(秒)，0 为关闭 | 参2：监控聊天类型，0(私聊) 1(群聊) 2(群聊+私聊)",
     default_value=(0, 1),
+    type=Tuple[int, int],
 )
 Config.add_plugin_config(
     "pix",
@@ -39,13 +43,15 @@ Config.add_plugin_config(
     (10, 0),
     help_="PIX图库 与 额外图库OmegaPixivIllusts 混合搜索的比例 参1：PIX图库 参2：OmegaPixivIllusts扩展图库（没有此图库请设置为0）",
     default_value=(10, 0),
+    type=Tuple[int, int],
 )
-Config.add_plugin_config("pix", "TIMEOUT", 10, help_="下载图片超时限制（秒）", default_value=10)
+Config.add_plugin_config(
+    "pix", "TIMEOUT", 10, help_="下载图片超时限制（秒）", default_value=10, type=int
+)
 
 Config.add_plugin_config(
-    "pix", "SHOW_INFO", True, help_="是否显示图片的基本信息，如PID等", default_value=True
+    "pix", "SHOW_INFO", True, help_="是否显示图片的基本信息，如PID等", default_value=True, type=bool
 )
 
-GDict["run_sql"].append("ALTER TABLE omega_pixiv_illusts ADD classified Integer;")
-
-nonebot.load_plugins("plugins/pix_gallery")
+# GDict["run_sql"].append("ALTER TABLE omega_pixiv_illusts ADD classified Integer;")
+nonebot.load_plugins(str(Path(__file__).parent.resolve()))

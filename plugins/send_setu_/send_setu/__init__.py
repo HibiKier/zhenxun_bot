@@ -78,29 +78,44 @@ __plugin_configs__ = {
         "value": (0, 1),
         "help": "自动撤回，参1：延迟撤回色图时间(秒)，0 为关闭 | 参2：监控聊天类型，0(私聊) 1(群聊) 2(群聊+私聊)",
         "default_value": (0, 1),
+        "type": Tuple[int, int],
     },
     "ONLY_USE_LOCAL_SETU": {
         "value": False,
         "help": "仅仅使用本地色图，不在线搜索",
         "default_value": False,
+        "type": bool,
     },
     "INITIAL_SETU_PROBABILITY": {
         "value": 0.7,
         "help": "初始色图概率，总概率 = 初始色图概率 + 好感度",
         "default_value": 0.7,
+        "type": float,
     },
     "DOWNLOAD_SETU": {
         "value": True,
         "help": "是否存储下载的色图，使用本地色图可以加快图片发送速度",
         "default_value": True,
+        "type": bool,
     },
-    "TIMEOUT": {"value": 10, "help": "色图下载超时限制(秒)", "default_value": 10},
-    "SHOW_INFO": {"value": True, "help": "是否显示色图的基本信息，如PID等", "default_value": True},
-    "ALLOW_GROUP_R18": {"value": False, "help": "在群聊中启用R18权限", "default_value": False},
+    "TIMEOUT": {"value": 10, "help": "色图下载超时限制(秒)", "default_value": 10, "type": int},
+    "SHOW_INFO": {
+        "value": True,
+        "help": "是否显示色图的基本信息，如PID等",
+        "default_value": True,
+        "type": bool,
+    },
+    "ALLOW_GROUP_R18": {
+        "value": False,
+        "help": "在群聊中启用R18权限",
+        "default_value": False,
+        "type": bool,
+    },
     "MAX_ONCE_NUM2FORWARD": {
         "value": None,
         "help": "单次发送的图片数量达到指定值时转发为合并消息",
         "default_value": None,
+        "type": int,
     },
 }
 Config.add_plugin_config("pixiv", "PIXIV_NGINX_URL", "i.pixiv.re", help_="Pixiv反向代理")

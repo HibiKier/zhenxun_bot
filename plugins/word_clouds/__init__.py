@@ -1,15 +1,18 @@
 import re
 from datetime import datetime, timedelta
 from typing import Tuple, Union
+
 import pytz
-from nonebot import on_command, get_driver
+from nonebot import get_driver, on_command
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
 from nonebot.adapters.onebot.v11.event import GroupMessageEvent
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, Command, CommandArg, Depends
 from nonebot.typing import T_State
-from .data_source import draw_word_cloud, get_list_msg
+
 from configs.config import Config
+
+from .data_source import draw_word_cloud, get_list_msg
 
 __zx_plugin_name__ = "词云"
 
@@ -60,13 +63,16 @@ wordcloud_cmd = on_command(
         "我的本月词云",
         "我的年度词云",
         "我的历史词云",
-    }, block=True, priority=5
+    },
+    block=True,
+    priority=5,
 )
 Config.add_plugin_config(
     "word_clouds",
     "WORD_CLOUDS_TEMPLATE",
     1,
-    help_="词云模板 参1：图片生成，默认使用真寻图片，可在项目路径resources/image/wordcloud下配置图片，多张则随机 | 参2/其他：黑底图片"
+    help_="词云模板 参1：图片生成，默认使用真寻图片，可在项目路径resources/image/wordcloud下配置图片，多张则随机 | 参2/其他：黑底图片",
+    type=int,
 )
 
 
@@ -74,9 +80,9 @@ def parse_datetime(key: str):
     """解析数字，并将结果存入 state 中"""
 
     async def _key_parser(
-            matcher: Matcher,
-            state: T_State,
-            input_: Union[datetime, Message] = Arg(key),
+        matcher: Matcher,
+        state: T_State,
+        input_: Union[datetime, Message] = Arg(key),
     ):
         if isinstance(input_, datetime):
             return
@@ -102,10 +108,10 @@ def get_datetime_fromisoformat_with_timezone(date_string: str) -> datetime:
 
 @wordcloud_cmd.handle()
 async def handle_first_receive(
-        event: GroupMessageEvent,
-        state: T_State,
-        commands: Tuple[str, ...] = Command(),
-        args: Message = CommandArg(),
+    event: GroupMessageEvent,
+    state: T_State,
+    commands: Tuple[str, ...] = Command(),
+    args: Message = CommandArg(),
 ):
     command = commands[0]
 
@@ -172,10 +178,10 @@ async def handle_first_receive(
     parameterless=[Depends(parse_datetime("stop"))],
 )
 async def handle_message(
-        event: GroupMessageEvent,
-        start: datetime = Arg(),
-        stop: datetime = Arg(),
-        my: bool = Arg(),
+    event: GroupMessageEvent,
+    start: datetime = Arg(),
+    stop: datetime = Arg(),
+    my: bool = Arg(),
 ):
     # 是否只查询自己的记录
     if my:
@@ -183,9 +189,14 @@ async def handle_message(
     else:
         user_id = None
     # 将时间转换到 东八 时区
-    messages = await get_list_msg(user_id, int(event.group_id),
-                                  days=(start.astimezone(pytz.timezone("Asia/Shanghai")),
-                                        stop.astimezone(pytz.timezone("Asia/Shanghai"))))
+    messages = await get_list_msg(
+        user_id,
+        int(event.group_id),
+        days=(
+            start.astimezone(pytz.timezone("Asia/Shanghai")),
+            stop.astimezone(pytz.timezone("Asia/Shanghai")),
+        ),
+    )
     if messages:
         image_bytes = await draw_word_cloud(messages, get_driver().config)
         if image_bytes:

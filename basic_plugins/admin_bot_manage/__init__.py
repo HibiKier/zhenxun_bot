@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from configs.config import Config
 import nonebot
 
+from configs.config import Config
 
 Config.add_plugin_config(
     "admin_bot_manage:custom_welcome_message",
@@ -11,6 +11,7 @@ Config.add_plugin_config(
     name="群管理员操作",
     help_="设置群欢迎消息权限",
     default_value=2,
+    type=int,
 )
 
 Config.add_plugin_config(
@@ -19,6 +20,7 @@ Config.add_plugin_config(
     2,
     help_="开关群功能权限",
     default_value=2,
+    type=int,
 )
 
 Config.add_plugin_config(
@@ -26,7 +28,8 @@ Config.add_plugin_config(
     "ADMIN_DEFAULT_AUTH",
     5,
     help_="默认群管理员权限",
-    default_value=5
+    default_value=5,
+    type=int,
 )
 
 nonebot.load_plugins(str(Path(__file__).parent.resolve()))

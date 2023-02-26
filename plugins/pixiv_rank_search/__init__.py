@@ -1,16 +1,25 @@
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message, NetworkError
+import time
+from asyncio.exceptions import TimeoutError
+from typing import Type
+
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import (
+    Bot,
+    GroupMessageEvent,
+    Message,
+    MessageEvent,
+    NetworkError,
+)
 from nonebot.matcher import Matcher
 from nonebot.params import CommandArg
-from nonebot import on_command
-from utils.utils import is_number
-from .data_source import get_pixiv_urls, download_pixiv_imgs, search_pixiv_urls
-from services.log import logger
-from asyncio.exceptions import TimeoutError
-from utils.message_builder import custom_forward_msg
-from configs.config import Config
-from typing import Type
 from nonebot.rule import to_me
-import time
+
+from configs.config import Config
+from services.log import logger
+from utils.message_builder import custom_forward_msg
+from utils.utils import is_number
+
+from .data_source import download_pixiv_imgs, get_pixiv_urls, search_pixiv_urls
 
 __zx_plugin_name__ = "P站排行/搜图"
 
@@ -61,21 +70,19 @@ __plugin_settings__ = {
 }
 __plugin_block_limit__ = {"rst": "P站排行榜或搜图正在搜索，请不要重复触发命令..."}
 __plugin_configs__ = {
-    "TIMEOUT": {
-        "value": 10,
-        "help": "图片下载超时限制",
-        "default_value": 10
-    },
+    "TIMEOUT": {"value": 10, "help": "图片下载超时限制", "default_value": 10, "type": int},
     "MAX_PAGE_LIMIT": {
         "value": 20,
         "help": "作品最大页数限制，超过的作品会被略过",
-        "default_value": 20
+        "default_value": 20,
+        "type": int,
     },
     "ALLOW_GROUP_R18": {
         "value": False,
         "help": "允许群聊中使用 r18 参数",
-        "default_value": False
-    }
+        "default_value": False,
+        "type": bool,
+    },
 }
 Config.add_plugin_config(
     "hibiapi",
@@ -84,12 +91,7 @@ Config.add_plugin_config(
     help_="如果没有自建或其他hibiapi请不要修改",
     default_value="https://api.obfs.dev",
 )
-Config.add_plugin_config(
-    "pixiv",
-    "PIXIV_NGINX_URL",
-    "i.pixiv.re",
-    help_="Pixiv反向代理"
-)
+Config.add_plugin_config("pixiv", "PIXIV_NGINX_URL", "i.pixiv.re", help_="Pixiv反向代理")
 
 
 rank_dict = {
@@ -158,7 +160,9 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
 async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip()
     if isinstance(event, GroupMessageEvent):
-        if "r18" in msg.lower() and not Config.get_config("pixiv_rank_search", "ALLOW_GROUP_R18"):
+        if "r18" in msg.lower() and not Config.get_config(
+            "pixiv_rank_search", "ALLOW_GROUP_R18"
+        ):
             await pixiv_keyword.finish("(脸红#) 你不会害羞的 八嘎！", at_sender=True)
     r18 = 0 if "r18" in msg else 1
     msg = msg.replace("r18", "").strip().split()
@@ -168,7 +172,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     num = 10
     page = 1
     if (n := len(msg)) > 0:
-        keyword = msg[0].replace("#"," ")
+        keyword = msg[0].replace("#", " ")
     if n > 1:
         if not is_number(msg[1]):
             await pixiv_keyword.finish("图片数量必须是数字！", at_sender=True)
@@ -206,7 +210,10 @@ async def send_image(
         idx = 0
         mes_list = []
         for title, author, urls in info_list:
-            _message = f"title: {title}\nauthor: {author}\n" + await download_pixiv_imgs(urls, event.user_id, idx)
+            _message = (
+                f"title: {title}\nauthor: {author}\n"
+                + await download_pixiv_imgs(urls, event.user_id, idx)
+            )
             mes_list.append(_message)
             idx += 1
         mes_list = custom_forward_msg(mes_list, bot.self_id)

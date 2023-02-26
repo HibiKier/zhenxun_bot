@@ -55,16 +55,19 @@ __plugin_configs__ = {
         "value": 5,
         "help": "群内bilibili订阅需要管理的权限",
         "default_value": 5,
+        "type": int,
     },
     "LIVE_MSG_AT_ALL": {
         "value": False,
         "help": "直播提醒是否AT全体（仅在真寻是管理员时生效）",
         "default_value": False,
+        "type": bool,
     },
     "UP_MSG_AT_ALL": {
         "value": False,
         "help": "UP动态投稿提醒是否AT全体（仅在真寻是管理员时生效）",
         "default_value": False,
+        "type": bool,
     },
 }
 

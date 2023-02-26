@@ -13,11 +13,6 @@ from utils.utils import FreqLimiter, cn2py, get_message_text, is_number
 
 from .rule import rule
 
-try:
-    import ujson as json
-except ModuleNotFoundError:
-    import json
-
 __zx_plugin_name__ = "本地图库"
 __plugin_usage__ = f"""
 usage：
@@ -36,16 +31,12 @@ __plugin_settings__ = {
     "level": 5,
     "default_status": True,
     "limit_superuser": False,
-    "cmd": ["发送图片"] + Config.get_config("image_management", "IMAGE_DIR_LIST"),
+    "cmd": ["发送图片"] + (Config.get_config("image_management", "IMAGE_DIR_LIST") or []),
 }
 __plugin_resources__ = {"pa": IMAGE_PATH / "pa"}
 
 Config.add_plugin_config(
-    "_task",
-    "DEFAULT_PA",
-    True,
-    help_="被动 爬 进群默认开关状态",
-    default_value=True,
+    "_task", "DEFAULT_PA", True, help_="被动 爬 进群默认开关状态", default_value=True, type=int
 )
 
 _flmt = FreqLimiter(1)

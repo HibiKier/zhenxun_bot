@@ -25,7 +25,12 @@ __zx_plugin_name__ = "好友群聊处理请求 [Hidden]"
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_configs__ = {
-    "AUTO_ADD_FRIEND": {"value": False, "help": "是否自动同意好友添加", "default_value": False}
+    "AUTO_ADD_FRIEND": {
+        "value": False,
+        "help": "是否自动同意好友添加",
+        "default_value": False,
+        "type": bool,
+    }
 }
 
 friend_req = on_request(priority=5, block=True)

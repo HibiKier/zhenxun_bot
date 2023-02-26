@@ -1,13 +1,17 @@
 from datetime import datetime
 
-from configs.config import Config
 from nonebot import on
-from nonebot.adapters.onebot.v11 import (Bot, Event, GroupMessageEvent,
-                                         PrivateMessageEvent)
+from nonebot.adapters.onebot.v11 import (
+    Bot,
+    Event,
+    GroupMessageEvent,
+    PrivateMessageEvent,
+)
 from nonebot.message import handle_event
 
-from ._rule import rule
+from configs.config import Config
 
+from ._rule import rule
 
 __zx_plugin_name__ = "自身消息触发 [Hidden]"
 __plugin_version__ = 0.1
@@ -18,6 +22,7 @@ Config.add_plugin_config(
     False,
     help_="允许真寻自身触发命令，需要在go-cqhttp配置文件中report-self-message修改为true，触发命令时需前缀cmd且受权限影响，例如：cmd签到",
     default_value=False,
+    type=bool,
 )
 
 message_sent = on(

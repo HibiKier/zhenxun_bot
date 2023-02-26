@@ -31,10 +31,10 @@ Config.add_plugin_config(
     "invite_manager", "message", f"请不要未经同意就拉{NICKNAME}入群！告辞！", help_="强制拉群后进群回复的内容.."
 )
 Config.add_plugin_config(
-    "invite_manager", "flag", True, help_="被强制拉群后是否直接退出", default_value=True
+    "invite_manager", "flag", True, help_="被强制拉群后是否直接退出", default_value=True, type=bool
 )
 Config.add_plugin_config(
-    "invite_manager", "welcome_msg_cd", 5, help_="群欢迎消息cd", default_value=5
+    "invite_manager", "welcome_msg_cd", 5, help_="群欢迎消息cd", default_value=5, type=int
 )
 Config.add_plugin_config(
     "_task",
@@ -42,6 +42,7 @@ Config.add_plugin_config(
     True,
     help_="被动 进群欢迎 进群默认开关状态",
     default_value=True,
+    type=bool,
 )
 Config.add_plugin_config(
     "_task",
@@ -49,10 +50,11 @@ Config.add_plugin_config(
     True,
     help_="被动 退群提醒 进群默认开关状态",
     default_value=True,
+    type=bool,
 )
 
 
-_flmt = FreqLimiter(Config.get_config("invite_manager", "welcome_msg_cd"))
+_flmt = FreqLimiter(Config.get_config("invite_manager", "welcome_msg_cd") or 5)
 
 
 # 群员增加处理

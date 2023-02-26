@@ -1,12 +1,13 @@
 from nonebot import on_command
-from .data_source import from_anime_get_info
-from services.log import logger
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent
+from nonebot.params import ArgStr, CommandArg
 from nonebot.typing import T_State
-from configs.config import Config
-from utils.message_builder import custom_forward_msg
-from nonebot.params import CommandArg, ArgStr
 
+from configs.config import Config
+from services.log import logger
+from utils.message_builder import custom_forward_msg
+
+from .data_source import from_anime_get_info
 
 __zx_plugin_name__ = "搜番"
 __plugin_usage__ = f"""
@@ -29,7 +30,12 @@ __plugin_settings__ = {
 }
 __plugin_block_limit__ = {"rst": "搜索还未完成，不要重复触发！"}
 __plugin_configs__ = {
-    "SEARCH_ANIME_MAX_INFO": {"value": 20, "help": "搜索动漫返回的最大数量", "default_value": 20}
+    "SEARCH_ANIME_MAX_INFO": {
+        "value": 20,
+        "help": "搜索动漫返回的最大数量",
+        "default_value": 20,
+        "type": int,
+    }
 }
 
 search_anime = on_command("搜番", aliases={"搜动漫"}, priority=5, block=True)
@@ -42,7 +48,9 @@ async def _(state: T_State, arg: Message = CommandArg()):
 
 
 @search_anime.got("anime", prompt="是不是少了番名？")
-async def _(bot: Bot, event: MessageEvent, state: T_State, key_word: str = ArgStr("anime")):
+async def _(
+    bot: Bot, event: MessageEvent, state: T_State, key_word: str = ArgStr("anime")
+):
     await search_anime.send(f"开始搜番 {key_word}", at_sender=True)
     anime_report = await from_anime_get_info(
         key_word,

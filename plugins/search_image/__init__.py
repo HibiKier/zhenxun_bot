@@ -1,12 +1,13 @@
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent
+from nonebot.params import Arg, ArgStr, CommandArg, Depends
 from nonebot.plugin import on_command
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
 from nonebot.typing import T_State
-from services.log import logger
-from utils.utils import get_message_img
-from utils.message_builder import custom_forward_msg
-from nonebot.params import CommandArg, Arg, ArgStr, Depends
-from .saucenao import get_saucenao_image
 
+from services.log import logger
+from utils.message_builder import custom_forward_msg
+from utils.utils import get_message_img
+
+from .saucenao import get_saucenao_image
 
 __zx_plugin_name__ = "识图"
 __plugin_usage__ = """
@@ -27,7 +28,12 @@ __plugin_settings__ = {
     "cmd": ["识图"],
 }
 __plugin_configs__ = {
-    "MAX_FIND_IMAGE_COUNT": {"value": 3, "help": "识图返回的最大结果数", "default_value": 3},
+    "MAX_FIND_IMAGE_COUNT": {
+        "value": 3,
+        "help": "识图返回的最大结果数",
+        "default_value": 3,
+        "type": int,
+    },
     "API_KEY": {
         "value": None,
         "help": "Saucenao的API_KEY，通过 https://saucenao.com/user.php?page=search-api 注册获取",
@@ -44,12 +50,11 @@ async def get_image_info(mod: str, url: str):
 
 
 def parse_image(key: str):
-    async def _key_parser(
-        state: T_State, img: Message = Arg(key)
-    ):
+    async def _key_parser(state: T_State, img: Message = Arg(key)):
         if not get_message_img(img):
             await search_image.reject_arg(key, "请发送要识别的图片！")
         state[key] = img
+
     return _key_parser
 
 

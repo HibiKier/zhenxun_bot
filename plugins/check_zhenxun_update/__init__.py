@@ -1,16 +1,18 @@
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent
-from nonebot.permission import SUPERUSER
-from nonebot import on_command
-from .data_source import check_update, get_latest_version_data
-from services.log import logger
-from utils.utils import scheduler, get_bot
-from pathlib import Path
-from configs.config import NICKNAME, Config
-from nonebot.rule import to_me
-from nonebot.params import ArgStr
-import platform
 import os
+import platform
+from pathlib import Path
 
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent
+from nonebot.params import ArgStr
+from nonebot.permission import SUPERUSER
+from nonebot.rule import to_me
+
+from configs.config import NICKNAME, Config
+from services.log import logger
+from utils.utils import get_bot, scheduler
+
+from .data_source import check_update, get_latest_version_data
 
 __zx_plugin_name__ = "自动更新 [Superuser]"
 __plugin_usage__ = """
@@ -29,12 +31,14 @@ __plugin_configs__ = {
         "value": True,
         "help": "真寻是否检测版本状态",
         "default": True,
+        "type": bool,
     },
     "AUTO_UPDATE_ZHENXUN": {
         "value": False,
         "help": "真寻是否自动检查更新",
         "default": False,
-    }
+        "type": bool,
+    },
 }
 
 update_zhenxun = on_command("检查更新真寻", permission=SUPERUSER, priority=1, block=True)
@@ -66,9 +70,7 @@ async def _(bot: Bot, event: MessageEvent):
         )
     else:
         if code == 200:
-            await bot.send_private_msg(
-                user_id=event.user_id, message=f"更新完毕，请重启真寻...."
-            )
+            await bot.send_private_msg(user_id=event.user_id, message=f"更新完毕，请重启真寻....")
 
 
 @restart.got("flag", prompt=f"确定是否重启{NICKNAME}？确定请回复[是|好|确定]（重启失败咱们将失去联系，请谨慎！）")
@@ -78,6 +80,7 @@ async def _(flag: str = ArgStr("flag")):
         open("is_restart", "w")
         if str(platform.system()).lower() == "windows":
             import sys
+
             python = sys.executable
             os.execl(python, python, *sys.argv)
         else:
@@ -109,8 +112,7 @@ async def _():
                 bot = get_bot()
                 await bot.send_private_msg(
                     user_id=int(list(bot.config.superusers)[0]),
-                    message=f"检测到真寻版本更新\n"
-                    f"当前版本：{_version}，最新版本：{latest_version}",
+                    message=f"检测到真寻版本更新\n" f"当前版本：{_version}，最新版本：{latest_version}",
                 )
                 if Config.get_config("check_zhenxun_update", "AUTO_UPDATE_ZHENXUN"):
                     try:

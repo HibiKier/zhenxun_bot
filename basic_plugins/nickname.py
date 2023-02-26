@@ -1,5 +1,5 @@
 import random
-from typing import Any, Tuple
+from typing import Any, List, Tuple
 
 from nonebot import on_command, on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent
@@ -39,6 +39,7 @@ __plugin_configs__ = {
         "value": ["爸", "爹", "爷", "父"],
         "help": "昵称所屏蔽的关键词，已设置的昵称会被替换为 *，未设置的昵称会在设置时提示",
         "default_value": None,
+        "type": List[str],
     }
 }
 

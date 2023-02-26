@@ -57,6 +57,7 @@ __plugin_configs__ = {
         "value": 1000,
         "help": "俄罗斯轮盘最大赌注金额",
         "default_value": 1000,
+        "type": int,
     }
 }
 

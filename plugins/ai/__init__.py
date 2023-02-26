@@ -1,3 +1,5 @@
+from typing import List
+
 from nonebot import on_message
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent
 from nonebot.rule import to_me
@@ -22,12 +24,18 @@ __plugin_settings__ = {
     "cmd": ["Ai", "ai", "AI", "aI"],
 }
 __plugin_configs__ = {
-    "TL_KEY": {"value": [], "help": "图灵Key"},
-    "ALAPI_AI_CHECK": {"value": False, "help": "是否检测青云客骂娘回复", "default_value": False},
+    "TL_KEY": {"value": [], "help": "图灵Key", "type": List[str]},
+    "ALAPI_AI_CHECK": {
+        "value": False,
+        "help": "是否检测青云客骂娘回复",
+        "default_value": False,
+        "type": bool,
+    },
     "TEXT_FILTER": {
         "value": ["鸡", "口交"],
         "help": "文本过滤器，将敏感词更改为*",
         "default_value": [],
+        "type": List[str],
     },
 }
 Config.add_plugin_config(

@@ -1,14 +1,15 @@
-from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent
-from nonebot import on_command
-from nonebot.permission import SUPERUSER
-from nonebot.params import CommandArg
-from utils.utils import get_message_img
-from services.log import logger
-from utils.message_builder import image
-from utils.manager import group_manager
-from configs.config import Config
 import asyncio
 
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent
+from nonebot.params import CommandArg
+from nonebot.permission import SUPERUSER
+
+from configs.config import Config
+from services.log import logger
+from utils.manager import group_manager
+from utils.message_builder import image
+from utils.utils import get_message_img
 
 __zx_plugin_name__ = "广播 [Superuser]"
 __plugin_usage__ = """
@@ -28,6 +29,7 @@ Config.add_plugin_config(
     True,
     help_="被动 广播 进群默认开关状态",
     default_value=True,
+    type=bool,
 )
 
 broadcast = on_command("广播-", priority=1, permission=SUPERUSER, block=True)

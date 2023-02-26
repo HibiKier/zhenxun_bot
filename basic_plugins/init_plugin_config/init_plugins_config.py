@@ -1,13 +1,14 @@
 from pathlib import Path
-from ruamel.yaml import round_trip_load, round_trip_dump, YAML
-from utils.manager import admin_manager, plugins_manager, plugin_data_manager
+
+from ruamel import yaml
+from ruamel.yaml import YAML, round_trip_dump, round_trip_load
+
 from configs.config import Config
+from configs.path_config import DATA_PATH
 from services.log import logger
+from utils.manager import admin_manager, plugin_data_manager, plugins_manager
 from utils.text_utils import prompt2cn
 from utils.utils import get_matchers
-from configs.path_config import DATA_PATH
-from ruamel import yaml
-
 
 _yaml = YAML(typ="safe")
 
@@ -20,47 +21,60 @@ def init_plugins_config():
     _data = Config.get_data()
     # 优先使用 metadata 数据
     for matcher in get_matchers(True):
-        if plugin_data := plugin_data_manager.get(matcher.plugin_name):
-            # 插件配置版本更新或为Version为None或不在存储配置内，当使用metadata时，必定更新
-            if plugin_data.plugin_configs and (
-                isinstance(plugin_data.plugin_status.version, str)
-                or (
-                    plugin_data.plugin_status.version is None
+        if matcher.plugin_name:
+            if plugin_data := plugin_data_manager.get(matcher.plugin_name):
+                # 插件配置版本更新或为Version为None或不在存储配置内，当使用metadata时，必定更新
+                version = plugin_data.plugin_status.version
+                config = _data.get(matcher.plugin_name)
+                plugin = plugins_manager.get(matcher.plugin_name)
+                if plugin_data.plugin_configs and (
+                    isinstance(version, str)
                     or (
-                        _data.get(matcher.plugin_name)
-                        and _data[matcher.plugin_name].keys()
-                        != plugin_data.plugin_configs.keys()
+                        version is None
+                        or (
+                            config
+                            and config.configs.keys()
+                            != plugin_data.plugin_configs.keys()
+                        )
+                        or version > int(plugin.version or 0)
+                        or matcher.plugin_name not in _data.keys()
                     )
-                    or plugin_data.plugin_status.version
-                    > plugins_manager.get(matcher.plugin_name).version
-                    or matcher.plugin_name not in _data.keys()
-                )
-            ):
-                plugin_configs = plugin_data.plugin_configs
-                for key in plugin_configs:
-                    if isinstance(plugin_data.plugin_configs[key], dict):
+                ):
+                    plugin_configs = plugin_data.plugin_configs
+                    for key in plugin_configs:
+                        if isinstance(plugin_data.plugin_configs[key], dict):
+                            Config.add_plugin_config(
+                                matcher.plugin_name,
+                                key,
+                                plugin_configs[key].get("value"),
+                                help_=plugin_configs[key].get("help"),
+                                default_value=plugin_configs[key].get("default_value"),
+                                _override=True,
+                                type=plugin_configs[key].get("type") or str,
+                            )
+                        else:
+                            config = plugin_configs[key]
+                            Config.add_plugin_config(
+                                matcher.plugin_name,
+                                key,
+                                config.value,
+                                name=config.name,
+                                help_=config.help,
+                                default_value=config.default_value,
+                                _override=True,
+                                type=config.type or str,
+                            )
+                elif plugin_configs := _data.get(matcher.plugin_name):
+                    for key in plugin_configs.configs:
                         Config.add_plugin_config(
                             matcher.plugin_name,
                             key,
-                            plugin_configs[key].get("value"),
-                            help_=plugin_configs[key].get("help"),
-                            default_value=plugin_configs[key].get("default_value"),
+                            plugin_configs.configs[key].value,
+                            help_=plugin_configs.configs[key].help,
+                            default_value=plugin_configs.configs[key].default_value,
                             _override=True,
+                            type=plugin_configs.configs[key].type,
                         )
-                    else:
-                        Config.add_plugin_config(
-                            matcher.plugin_name, key, plugin_configs[key]
-                        )
-            elif plugin_configs := _data.get(matcher.plugin_name):
-                for key in plugin_configs:
-                    Config.add_plugin_config(
-                        matcher.plugin_name,
-                        key,
-                        plugin_configs[key]["value"],
-                        help_=plugin_configs[key]["help"],
-                        default_value=plugin_configs[key]["default_value"],
-                        _override=True,
-                    )
     if not Config.is_empty():
         Config.save()
         _data = round_trip_load(open(plugins2config_file, encoding="utf8"))
@@ -96,7 +110,7 @@ def _replace_config():
     # 数据替换
     for plugin in Config.keys():
         _tmp_data[plugin] = {}
-        for k in Config[plugin].keys():
+        for k in Config[plugin].configs.keys():
             try:
                 if _data.get(plugin) and k in _data[plugin].keys():
                     Config.set_config(plugin, k, _data[plugin][k])
@@ -126,14 +140,14 @@ def _replace_config():
             rst = ""
             plugin_name = None
             try:
-                plugin_data = Config.get(plugin)
-                for x in list(Config.get(plugin).keys()):
-                    try:
-                        _x = plugin_data[x].get("name")
-                        if _x:
-                            plugin_name = _x
-                    except AttributeError:
-                        pass
+                if config_group := Config.get(plugin):
+                    for key in list(config_group.configs.keys()):
+                        try:
+                            if config := config_group.configs[key]:
+                                if config.name:
+                                    plugin_name = config.name
+                        except AttributeError:
+                            pass
             except (KeyError, AttributeError):
                 plugin_name = None
             if not plugin_name:
@@ -149,7 +163,7 @@ def _replace_config():
             )
             rst += plugin_name + "\n"
             for k in _data[plugin].keys():
-                rst += f'{k}: {Config[plugin][k]["help"]}' + "\n"
+                rst += f"{k}: {Config[plugin].configs[k].help}" + "\n"
             _data[plugin].yaml_set_start_comment(rst[:-1], indent=2)
         with open(Path() / "configs" / "config.yaml", "w", encoding="utf8") as wf:
             round_trip_dump(_data, wf, Dumper=yaml.RoundTripDumper, allow_unicode=True)

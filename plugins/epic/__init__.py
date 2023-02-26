@@ -1,11 +1,13 @@
 from nonebot import on_regex
-from services.log import logger
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent
 from nonebot.typing import T_State
-from utils.utils import scheduler, get_bot
-from .data_source import get_epic_free
-from utils.manager import group_manager
+
 from configs.config import Config
+from services.log import logger
+from utils.manager import group_manager
+from utils.utils import get_bot, scheduler
+
+from .data_source import get_epic_free
 
 __zx_plugin_name__ = "epic免费游戏"
 __plugin_usage__ = """
@@ -31,6 +33,7 @@ Config.add_plugin_config(
     True,
     help_="被动 epic免费游戏 进群默认开关状态",
     default_value=True,
+    type=bool,
 )
 
 epic = on_regex("^epic$", priority=5, block=True)

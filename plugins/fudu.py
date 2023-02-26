@@ -1,16 +1,16 @@
-from utils.image_utils import get_img_hash
-from nonebot.adapters.onebot.v11.permission import GROUP
-from configs.path_config import TEMP_PATH
 import random
-from utils.message_builder import image
-from nonebot import on_message
-from utils.utils import get_message_img, get_message_text
-from nonebot.adapters.onebot.v11 import GroupMessageEvent
-from configs.config import Config
-from utils.http_utils import AsyncHttpx
-from services.log import logger
-from configs.config import NICKNAME
 
+from nonebot import on_message
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
+from nonebot.adapters.onebot.v11.permission import GROUP
+
+from configs.config import NICKNAME, Config
+from configs.path_config import TEMP_PATH
+from services.log import logger
+from utils.http_utils import AsyncHttpx
+from utils.image_utils import get_img_hash
+from utils.message_builder import image
+from utils.utils import get_message_img, get_message_text
 
 __zx_plugin_name__ = "复读"
 __plugin_usage__ = """
@@ -23,14 +23,15 @@ __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_task__ = {"fudu": "复读"}
 __plugin_configs__ = {
-    "FUDU_PROBABILITY": {"value": 0.7, "help": "复读概率", "default_value": 0.7}
+    "FUDU_PROBABILITY": {
+        "value": 0.7,
+        "help": "复读概率",
+        "default_value": 0.7,
+        "type": float,
+    }
 }
 Config.add_plugin_config(
-    "_task",
-    "DEFAULT_FUDU",
-    True,
-    help_="被动 复读 进群默认开关状态",
-    default_value=True,
+    "_task", "DEFAULT_FUDU", True, help_="被动 复读 进群默认开关状态", default_value=True, type=bool
 )
 
 
@@ -90,7 +91,7 @@ async def _(event: GroupMessageEvent):
     if not img and not msg:
         return
     if img:
-        img_hash = await get_fudu_img_hash(img[0],event.group_id)
+        img_hash = await get_fudu_img_hash(img[0], event.group_id)
     else:
         img_hash = ""
     add_msg = msg + "|-|" + img_hash
@@ -107,7 +108,7 @@ async def _(event: GroupMessageEvent):
         ) and not _fudu_list.is_repeater(event.group_id):
             if random.random() < 0.2:
                 if msg.endswith("打断施法！"):
-                    await fudu.finish("[[_task|fudu]]打断" + msg)        
+                    await fudu.finish("[[_task|fudu]]打断" + msg)
                 else:
                     await fudu.finish("[[_task|fudu]]打断施法！")
             _fudu_list.set_repeater(event.group_id)

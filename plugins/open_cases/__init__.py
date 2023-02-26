@@ -1,24 +1,27 @@
-from typing import Type, Tuple, Any
-from nonebot import on_command
-from nonebot.matcher import Matcher
-from utils.utils import scheduler, is_number
-from nonebot.adapters.onebot.v11.permission import GROUP
-from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent, Message
-from nonebot.permission import SUPERUSER
 import random
-from nonebot.plugin import MatcherGroup
-from configs.path_config import IMAGE_PATH
+from typing import Any, Tuple, Type
+
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message, MessageEvent
+from nonebot.adapters.onebot.v11.permission import GROUP
+from nonebot.matcher import Matcher
 from nonebot.params import CommandArg, RegexGroup
+from nonebot.permission import SUPERUSER
+from nonebot.plugin import MatcherGroup
+from nonebot.typing import T_State
+
+from configs.config import Config
+from configs.path_config import IMAGE_PATH
+from utils.utils import is_number, scheduler
+
 from .open_cases_c import (
-    open_case,
-    total_open_statistics,
     group_statistics,
     my_knifes_name,
-    open_shilian_case,
+    open_case,
+    open_multiple_case,
+    total_open_statistics,
 )
-from .utils import util_get_buff_price, util_get_buff_img, update_count_daily
-from configs.config import Config
+from .utils import reset_count_daily, util_get_buff_img, util_get_buff_price
 
 __zx_plugin_name__ = "开箱"
 __plugin_usage__ = """
@@ -73,11 +76,17 @@ __plugin_task__ = {"open_case_reset_remind": "每日开箱重置提醒"}
 __plugin_cd_limit__ = {"rst": "着什么急啊，慢慢来！"}
 __plugin_resources__ = {f"cases": IMAGE_PATH}
 __plugin_configs__ = {
-    "INITIAL_OPEN_CASE_COUNT": {"value": 20, "help": "初始每日开箱次数", "default_value": 20},
+    "INITIAL_OPEN_CASE_COUNT": {
+        "value": 20,
+        "help": "初始每日开箱次数",
+        "default_value": 20,
+        "type": int,
+    },
     "EACH_IMPRESSION_ADD_COUNT": {
         "value": 3,
         "help": "每 * 点好感度额外增加开箱次数",
         "default_value": 3,
+        "type": int,
     },
     "COOKIE": {
         "value": None,
@@ -92,6 +101,7 @@ Config.add_plugin_config(
     True,
     help_="被动 每日开箱重置提醒 进群默认开关状态",
     default_value=True,
+    type=int,
 )
 
 cases_name = ["狂牙大行动", "突围大行动", "命悬一线", "裂空", "光谱"]
@@ -101,12 +111,12 @@ cases_matcher_group = MatcherGroup(priority=5, permission=GROUP, block=True)
 
 k_open_case = cases_matcher_group.on_command("开箱")
 
-reload_count = cases_matcher_group.on_command("重置开箱",permission=SUPERUSER)
+reload_count = cases_matcher_group.on_command("重置开箱", permission=SUPERUSER)
 
 
 @reload_count.handle()
 async def _(event: GroupMessageEvent):
-    await update_count_daily()
+    await reset_count_daily()
 
 
 @k_open_case.handle()
@@ -153,11 +163,13 @@ async def _(event: GroupMessageEvent):
     )
 
 
-open_shilian: Type[Matcher] = cases_matcher_group.on_regex("(.*)连开箱(.*)?")
+open_multiple: Type[Matcher] = cases_matcher_group.on_regex("(.*)连开箱(.*)?")
 
 
-@open_shilian.handle()
-async def _(event: GroupMessageEvent, state: T_State, reg_group: Tuple[Any, ...] = RegexGroup()):
+@open_multiple.handle()
+async def _(
+    event: GroupMessageEvent, state: T_State, reg_group: Tuple[Any, ...] = RegexGroup()
+):
     num, case_name = reg_group
     if is_number(num) or num_dict.get(num):
         try:
@@ -165,18 +177,18 @@ async def _(event: GroupMessageEvent, state: T_State, reg_group: Tuple[Any, ...]
         except KeyError:
             num = int(num)
         if num > 30:
-            await open_shilian.finish("开箱次数不要超过30啊笨蛋！", at_sender=True)
+            await open_multiple.finish("开箱次数不要超过30啊笨蛋！", at_sender=True)
         if num < 0:
-            await open_shilian.finish("再负开箱就扣你明天开箱数了！", at_sender=True)
+            await open_multiple.finish("再负开箱就扣你明天开箱数了！", at_sender=True)
     else:
-        await open_shilian.finish("必须要是数字切不要超过30啊笨蛋！中文也可！", at_sender=True)
+        await open_multiple.finish("必须要是数字切不要超过30啊笨蛋！中文也可！", at_sender=True)
     case_name = case_name.replace("武器箱", "").strip()
     if not case_name:
         case_name = random.choice(cases_name)
     elif case_name not in cases_name:
-        await open_shilian.finish("武器箱未收录！", at_sender=True)
-    await open_shilian.finish(
-        await open_shilian_case(event.user_id, event.group_id, case_name, num),
+        await open_multiple.finish("武器箱未收录！", at_sender=True)
+    await open_multiple.finish(
+        await open_multiple_case(event.user_id, event.group_id, case_name, num),
         at_sender=True,
     )
 
@@ -220,7 +232,9 @@ update_price = on_command("更新开箱价格", priority=1, permission=SUPERUSER
 
 @update_price.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
-    await update_price.send(await util_get_buff_price(arg.extract_plain_text().strip() or "狂牙大行动"))
+    await update_price.send(
+        await util_get_buff_price(arg.extract_plain_text().strip() or "狂牙大行动")
+    )
 
 
 update_img = on_command("更新开箱图片", priority=1, permission=SUPERUSER, block=True)
@@ -228,7 +242,9 @@ update_img = on_command("更新开箱图片", priority=1, permission=SUPERUSER, 
 
 @update_img.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
-    await update_img.send(await util_get_buff_img(arg.extract_plain_text().strip() or "狂牙大行动"))
+    await update_img.send(
+        await util_get_buff_img(arg.extract_plain_text().strip() or "狂牙大行动")
+    )
 
 
 # 重置开箱
@@ -238,4 +254,4 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
     minute=1,
 )
 async def _():
-    await update_count_daily()
+    await reset_count_daily()

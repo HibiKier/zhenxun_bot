@@ -1,15 +1,16 @@
-from typing import Tuple, Any
+import time
+from typing import Any, Tuple
 
 from nonebot import on_regex
-from nonebot.params import RegexGroup
-from configs.path_config import TEMP_PATH
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent
-import time
-from utils.http_utils import AsyncHttpx
-from utils.message_builder import image
-from services.log import logger
-from utils.manager import withdraw_message_manager
+from nonebot.params import RegexGroup
+
 from configs.config import Config
+from configs.path_config import TEMP_PATH
+from services.log import logger
+from utils.http_utils import AsyncHttpx
+from utils.manager import withdraw_message_manager
+from utils.message_builder import image
 
 __zx_plugin_name__ = "coser"
 __plugin_usage__ = """
@@ -35,6 +36,7 @@ __plugin_configs__ = {
         "value": (0, 1),
         "help": "自动撤回，参1：延迟撤回色图时间(秒)，0 为关闭 | 参2：监控聊天类型，0(私聊) 1(群聊) 2(群聊+私聊)",
         "default_value": (0, 1),
+        "type": Tuple[int, int],
     },
 }
 
@@ -49,7 +51,7 @@ url = "https://picture.yinux.workers.dev"
 async def _(event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
     num = reg_group[0] or 1
     for _ in range(int(num)):
-        path = TEMP_PATH / f'cos_cc{int(time.time())}.jpeg'
+        path = TEMP_PATH / f"cos_cc{int(time.time())}.jpeg"
         try:
             await AsyncHttpx.download_file(url, path)
             msg_id = await coser.send(image(path))

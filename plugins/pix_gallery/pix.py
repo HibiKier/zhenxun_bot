@@ -1,16 +1,18 @@
-from utils.utils import is_number
-from configs.config import Config
-from ._model.omega_pixiv_illusts import OmegaPixivIllusts
-from utils.message_builder import image, custom_forward_msg
-from utils.manager import withdraw_message_manager
-from services.log import logger
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
-from nonebot.params import CommandArg
-from ._data_source import get_image
-from ._model.pixiv import Pixiv
-from nonebot import on_command
 import random
 
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent
+from nonebot.params import CommandArg
+
+from configs.config import Config
+from services.log import logger
+from utils.manager import withdraw_message_manager
+from utils.message_builder import custom_forward_msg, image
+from utils.utils import is_number
+
+from ._data_source import get_image
+from ._model.omega_pixiv_illusts import OmegaPixivIllusts
+from ._model.pixiv import Pixiv
 
 __zx_plugin_name__ = "PIX"
 __plugin_usage__ = """
@@ -55,9 +57,20 @@ __plugin_configs__ = {
         "value": None,
         "help": "单次发送的图片数量达到指定值时转发为合并消息",
         "default_value": None,
+        "type": int,
     },
-    "ALLOW_GROUP_SETU": {"value": False, "help": "允许非超级用户使用-s参数", "default_value": False},
-    "ALLOW_GROUP_R18": {"value": False, "help": "允许非超级用户使用-r参数", "default_value": False},
+    "ALLOW_GROUP_SETU": {
+        "value": False,
+        "help": "允许非超级用户使用-s参数",
+        "default_value": False,
+        "type": bool,
+    },
+    "ALLOW_GROUP_R18": {
+        "value": False,
+        "help": "允许非超级用户使用-r参数",
+        "default_value": False,
+        "type": bool,
+    },
 }
 
 

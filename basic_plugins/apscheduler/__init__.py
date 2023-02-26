@@ -1,5 +1,6 @@
 import shutil
 from pathlib import Path
+from typing import List
 
 import nonebot
 from nonebot import on_message
@@ -20,15 +21,11 @@ __plugin_task__ = {"zwa": "早晚安"}
 
 
 Config.add_plugin_config(
-    "_task",
-    "DEFAULT_ZWA",
-    True,
-    help_="被动 早晚安 进群默认开关状态",
-    default_value=True,
+    "_task", "DEFAULT_ZWA", True, help_="被动 早晚安 进群默认开关状态", default_value=True, type=bool
 )
 
 Config.add_plugin_config(
-    "_backup", "BACKUP_FLAG", True, help_="是否开启文件备份", default_value=True
+    "_backup", "BACKUP_FLAG", True, help_="是否开启文件备份", default_value=True, type=bool
 )
 
 Config.add_plugin_config(
@@ -45,6 +42,7 @@ Config.add_plugin_config(
     name="文件备份",
     help_="备份的文件夹或文件",
     default_value=[],
+    type=List[str],
 )
 
 

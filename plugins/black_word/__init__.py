@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Tuple
+from typing import Any, List, Tuple
 
 from nonebot import on_command, on_message, on_regex
 from nonebot.adapters.onebot.v11 import (
@@ -56,7 +56,13 @@ __plugin_settings__ = {
 
 
 Config.add_plugin_config(
-    "black_word", "CYCLE_DAYS", 30, name="敏感词检测与惩罚", help_="黑名单词汇记录周期", default_value=30
+    "black_word",
+    "CYCLE_DAYS",
+    30,
+    name="敏感词检测与惩罚",
+    help_="黑名单词汇记录周期",
+    default_value=30,
+    type=int,
 )
 
 Config.add_plugin_config(
@@ -65,10 +71,11 @@ Config.add_plugin_config(
     [5, 1, 1, 1, 1],
     help_="各个级别惩罚的容忍次数，依次为：1, 2, 3, 4, 5",
     default_value=[5, 1, 1, 1, 1],
+    type=List[int],
 )
 
 Config.add_plugin_config(
-    "black_word", "AUTO_PUNISH", True, help_="是否启动自动惩罚机制", default_value=True
+    "black_word", "AUTO_PUNISH", True, help_="是否启动自动惩罚机制", default_value=True, type=bool
 )
 
 # Config.add_plugin_config(
@@ -81,6 +88,7 @@ Config.add_plugin_config(
     360,
     help_="Union[int, List[int, int]]Ban时长（分钟），四级惩罚，可以为指定数字或指定列表区间(随机)，例如 [30, 360]",
     default_value=360,
+    type=int,
 )
 
 Config.add_plugin_config(
@@ -89,6 +97,7 @@ Config.add_plugin_config(
     7,
     help_="Union[int, List[int, int]]Ban时长（天），三级惩罚，可以为指定数字或指定列表区间(随机)，例如 [7, 30]",
     default_value=360,
+    type=int,
 )
 
 Config.add_plugin_config(
@@ -105,6 +114,7 @@ Config.add_plugin_config(
     True,
     help_="自动提级机制，当周期内处罚次数大于某一特定值就提升惩罚等级",
     default_value=True,
+    type=bool,
 )
 
 Config.add_plugin_config(
@@ -113,6 +123,7 @@ Config.add_plugin_config(
     3,
     help_="在CYCLE_DAYS周期内触发指定惩罚次数后提升惩罚等级",
     default_value=3,
+    type=int,
 )
 
 Config.add_plugin_config(
@@ -121,6 +132,7 @@ Config.add_plugin_config(
     False,
     help_="当未检测到已收录的敏感词时，开启ALAPI文本检测并将疑似文本发送给超级用户",
     default_value=False,
+    type=bool,
 )
 
 Config.add_plugin_config(
@@ -129,6 +141,7 @@ Config.add_plugin_config(
     True,
     help_="当文本包含任意敏感词时，停止向下级插件传递，即不触发ai",
     default_value=True,
+    type=bool,
 )
 
 message_matcher = on_message(priority=1, block=False)

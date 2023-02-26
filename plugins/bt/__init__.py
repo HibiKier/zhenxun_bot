@@ -1,12 +1,15 @@
-from nonebot import on_command
-from .data_source import get_bt_info
-from services.log import logger
-from nonebot.adapters.onebot.v11 import PrivateMessageEvent, Message
-from nonebot.adapters.onebot.v11.permission import PRIVATE
 from asyncio.exceptions import TimeoutError
-from utils.utils import is_number
-from nonebot.params import CommandArg, ArgStr
+
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import Message, PrivateMessageEvent
+from nonebot.adapters.onebot.v11.permission import PRIVATE
+from nonebot.params import ArgStr, CommandArg
 from nonebot.typing import T_State
+
+from services.log import logger
+from utils.utils import is_number
+
+from .data_source import get_bt_info
 
 __zx_plugin_name__ = "磁力搜索"
 __plugin_usage__ = """
@@ -34,6 +37,7 @@ __plugin_configs__ = {
         "value": 10,
         "help": "单次BT搜索返回最大消息数量",
         "default_value": 10,
+        "type": int,
     }
 }
 

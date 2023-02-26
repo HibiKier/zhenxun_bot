@@ -35,6 +35,7 @@ Config.add_plugin_config(
     True,
     help_="被动 B站转发解析 进群默认开关状态",
     default_value=True,
+    type=bool
 )
 
 

@@ -37,11 +37,13 @@ __plugin_configs__ = {
         "value": True,
         "help": "当请求连续三次失败时，关闭用户的树脂提醒",
         "default_value": True,
+        "type": bool,
     },
     "CUSTOM_RESIN_OVERFLOW_REMIND": {
         "value": 20,
         "help": "自定义树脂溢出指定数量时的提醒，空值是为关闭",
         "default_value": None,
+        "type": int,
     },
 }
 

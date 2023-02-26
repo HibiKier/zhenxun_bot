@@ -1,14 +1,17 @@
-from nonebot import on_command
-from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
-from .data_source import download_gocq_lasted, upload_gocq_lasted
-from services.log import logger
-from utils.utils import scheduler, get_bot
-from nonebot.permission import SUPERUSER
-from configs.config import Config
-from pathlib import Path
 import os
+from pathlib import Path
+from typing import List
 
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
+from nonebot.permission import SUPERUSER
+from nonebot.typing import T_State
+
+from configs.config import Config
+from services.log import logger
+from utils.utils import get_bot, scheduler
+
+from .data_source import download_gocq_lasted, upload_gocq_lasted
 
 __zx_plugin_name__ = "更新gocq [Superuser]"
 __plugin_usage__ = """
@@ -25,6 +28,7 @@ __plugin_configs__ = {
         "value": [],
         "help": "需要为哪些群更新最新版gocq吗？（上传最新版gocq）示例：[434995955, 239483248]",
         "default_value": [],
+        "type": List[int],
     }
 }
 

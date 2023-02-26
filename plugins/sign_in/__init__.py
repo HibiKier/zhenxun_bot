@@ -1,24 +1,25 @@
-from typing import Tuple, Any
+from pathlib import Path
+from typing import Any, Tuple
 
-from .group_user_checkin import (
-    group_user_check_in,
-    group_user_check,
-    group_impression_rank,
-    impression_rank,
-    check_in_all
-)
+from nonebot import on_command, on_regex
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
 from nonebot.adapters.onebot.v11.permission import GROUP
-from utils.message_builder import image
-from nonebot import on_command, on_regex
-from utils.utils import scheduler
 from nonebot.params import CommandArg, RegexGroup
-from pathlib import Path
+
 from configs.path_config import DATA_PATH
 from services.log import logger
-from .utils import clear_sign_data_pic
-from utils.utils import is_number
+from utils.message_builder import image
+from utils.utils import is_number, scheduler
+
 from .goods_register import driver
+from .group_user_checkin import (
+    check_in_all,
+    group_impression_rank,
+    group_user_check,
+    group_user_check_in,
+    impression_rank,
+)
+from .utils import clear_sign_data_pic
 
 try:
     import ujson as json
@@ -49,22 +50,34 @@ __plugin_settings__ = {
 }
 __plugin_cd_limit__ = {}
 __plugin_configs__ = {
-    "MAX_SIGN_GOLD": {"value": 200, "help": "签到好感度加成额外获得的最大金币数", "default_value": 200},
-    "SIGN_CARD1_PROB": {"value": 0.2, "help": "签到好感度双倍加持卡Ⅰ掉落概率", "default_value": 0.2},
+    "MAX_SIGN_GOLD": {
+        "value": 200,
+        "help": "签到好感度加成额外获得的最大金币数",
+        "default_value": 200,
+        "type": int,
+    },
+    "SIGN_CARD1_PROB": {
+        "value": 0.2,
+        "help": "签到好感度双倍加持卡Ⅰ掉落概率",
+        "default_value": 0.2,
+        "type": float,
+    },
     "SIGN_CARD2_PROB": {
         "value": 0.09,
         "help": "签到好感度双倍加持卡Ⅱ掉落概率",
         "default_value": 0.09,
+        "type": float,
     },
     "SIGN_CARD3_PROB": {
         "value": 0.05,
         "help": "签到好感度双倍加持卡Ⅲ掉落概率",
         "default_value": 0.05,
+        "type": float,
     },
 }
 
 
-_file = Path(f"{DATA_PATH}/not_show_sign_rank_user.json")
+_file = DATA_PATH / "not_show_sign_rank_user.json"
 try:
     data = json.load(open(_file, "r", encoding="utf8"))
 except (FileNotFoundError, ValueError, TypeError):

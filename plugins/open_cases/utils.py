@@ -1,22 +1,24 @@
-import os
 from asyncio.exceptions import TimeoutError
-from datetime import datetime, timedelta
+from datetime import datetime
+from typing import Optional
 
-from nonebot.adapters.onebot.v11 import ActionFailed
+import nonebot
 
 from configs.config import Config
 from configs.path_config import IMAGE_PATH
 from services.log import logger
 from utils.http_utils import AsyncHttpx
-from utils.manager import group_manager
-from utils.utils import cn2py, get_bot
+from utils.utils import broadcast_group, cn2py
 
 from .config import *
 from .models.buff_prices import BuffPrice
+from .models.buff_skin import BuffSkin
 from .models.open_cases_user import OpenCasesUser
 
 url = "https://buff.163.com/api/market/goods"
 # proxies = 'http://49.75.59.242:3128'
+
+driver = nonebot.get_driver()
 
 
 async def util_get_buff_price(case_name: str = "狂牙大行动") -> str:
@@ -255,22 +257,86 @@ async def get_price(d_name):
     return result[:-1], 999
 
 
-async def update_count_daily():
+async def reset_count_daily():
+    """
+    重置每日开箱
+    """
     try:
         await OpenCasesUser.all().update(today_open_total=0)
-        bot = get_bot()
-        gl = await bot.get_group_list()
-        gl = [g["group_id"] for g in gl]
-        for g in gl:
-            try:
-                await bot.send_group_msg(
-                    group_id=g, message="[[_task|open_case_reset_remind]]今日开箱次数重置成功"
-                )
-            except ActionFailed:
-                logger.warning(f"{g} 群被禁言，无法发送 开箱重置提醒")
-        logger.info("今日开箱次数重置成功")
+        await broadcast_group(
+            "[[_task|open_case_reset_remind]]今日开箱次数重置成功", log_cmd="开箱重置提醒"
+        )
     except Exception as e:
-        logger.error(f"开箱重置错误 e:{e}")
+        logger.error(f"开箱重置错误", e=e)
+
+
+def get_color(case_name: str, name: str, skin_name: str) -> Optional[str]:
+    case_py = cn2py(case_name).upper()
+    color_map = {}
+    color_map["KNIFE"] = eval(case_py + "_CASE_KNIFE")
+    color_map["RED"] = eval(case_py + "_CASE_RED")
+    color_map["PINK"] = eval(case_py + "_CASE_PINK")
+    color_map["PURPLE"] = eval(case_py + "_CASE_PURPLE")
+    color_map["BLUE"] = eval(case_py + "_CASE_BLUE")
+    for key in color_map:
+        for skin in color_map[key]:
+            if name in skin and skin_name in skin:
+                return key
+    return None
+
+
+@driver.on_startup
+async def _():
+    """
+    将旧表数据移动到新表
+    """
+    if not await BuffSkin.first() and await BuffPrice.first():
+        logger.debug("开始移动旧表数据 BuffPrice -> BuffSkin")
+        id2name = {1: "狂牙大行动", 2: "突围大行动", 3: "命悬一线", 4: "裂空", 5: "光谱"}
+        data_list: List[BuffSkin] = []
+        for data in await BuffPrice.all():
+            logger.debug(f"移动旧表数据: {data.skin_name}")
+            case_name = id2name[data.case_id]
+            name = data.skin_name
+            is_stattrak = "StatTrak" in name
+            name = name.replace("（★ StatTrak™）", "").replace("（StatTrak™）", "").strip()
+            name, skin_name = name.split("|")
+            abrasion = "无涂装"
+            if "(" in skin_name:
+                skin_name, abrasion = skin_name.split("(")
+                if abrasion.endswith(")"):
+                    abrasion = abrasion[:-1]
+            color = get_color(case_name, name.strip(), skin_name.strip())
+            if not color:
+                search_list = [
+                    x
+                    for x in data_list
+                    if x.skin_name == skin_name.strip() and x.name == name.strip()
+                ]
+                if search_list:
+                    color = get_color(
+                        case_name, search_list[0].name, search_list[0].skin_name
+                    )
+                if not color:
+                    logger.debug(
+                        f"箱子: [{case_name}] 皮肤: [{name}|{skin_name}] 未获取到皮肤品质，跳过..."
+                    )
+                    continue
+            data_list.append(
+                BuffSkin(
+                    case_name=case_name,
+                    name=name.strip(),
+                    skin_name=skin_name.strip(),
+                    is_stattrak=is_stattrak,
+                    abrasion=abrasion.strip(),
+                    skin_price=data.skin_price,
+                    color=color,
+                    create_time=datetime.now(),
+                    update_time=datetime.now(),
+                )
+            )
+        await BuffSkin.bulk_create(data_list, batch_size=10)
+        logger.debug("完成移动旧表数据 BuffPrice -> BuffSkin")
 
 
 # 蝴蝶刀（★） | 噩梦之夜 (久经沙场)

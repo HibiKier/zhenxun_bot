@@ -1,12 +1,13 @@
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent
+from nonebot.matcher import Matcher
+from nonebot.message import IgnoredException, run_preprocessor
+from nonebot.typing import T_State
+
 from configs.config import Config as gConfig
+from utils.manager import plugins2settings_manager
+
 from .api import *
 from .auth import *
-from nonebot.matcher import Matcher
-from nonebot.message import run_preprocessor, IgnoredException
-from utils.manager import plugins2settings_manager
-from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent
-
 
 gConfig.add_plugin_config("web-ui", "username", "admin", name="web-ui", help_="前端管理用户名")
 

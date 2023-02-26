@@ -30,8 +30,8 @@ __plugin_cmd__ = [
 __plugin_version__ = 0.2
 __plugin_author__ = "HibiKier"
 __plugin_configs__ = {
-    "AUTO_RELOAD": {"value": False, "help": "自动重载配置文件", "default_value": False},
-    "AUTO_RELOAD_TIME": {"value": 180, "help": "控制自动重载配置文件时长", "default_value": 180},
+    "AUTO_RELOAD": {"value": False, "help": "自动重载配置文件", "default_value": False, "type": bool},
+    "AUTO_RELOAD_TIME": {"value": 180, "help": "控制自动重载配置文件时长", "default_value": 180, "type": int},
 }
 
 

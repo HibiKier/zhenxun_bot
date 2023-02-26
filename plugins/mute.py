@@ -1,19 +1,20 @@
+import time
 from io import BytesIO
+from typing import Any, Dict, Tuple
 
 import imagehash
-from PIL import Image
-from nonebot import on_message, on_command
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, ActionFailed
+from nonebot import on_command, on_message
+from nonebot.adapters.onebot.v11 import ActionFailed, Bot, GroupMessageEvent, Message
 from nonebot.adapters.onebot.v11.permission import GROUP
-from utils.utils import is_number, get_message_img, get_message_text
-from configs.path_config import DATA_PATH, TEMP_PATH
-from utils.image_utils import get_img_hash
-from services.log import logger
+from nonebot.params import Command, CommandArg
+from PIL import Image
+
 from configs.config import NICKNAME, Config
+from configs.path_config import DATA_PATH, TEMP_PATH
+from services.log import logger
 from utils.http_utils import AsyncHttpx
-from nonebot.params import CommandArg, Command
-from typing import Tuple, Dict, Any
-import time
+from utils.image_utils import get_img_hash
+from utils.utils import get_message_img, get_message_text, is_number
 
 try:
     import ujson as json
@@ -38,13 +39,29 @@ __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 __plugin_settings__ = {"admin_level": Config.get_config("mute", "MUTE_LEVEL")}
 __plugin_configs__ = {
-    "MUTE_LEVEL [LEVEL]": {"value": 5, "help": "更改禁言设置的管理权限", "default_value": 5},
-    "MUTE_DEFAULT_COUNT": {"value": 10, "help": "刷屏禁言默认检测次数", "default_value": 10},
-    "MUTE_DEFAULT_TIME": {"value": 7, "help": "刷屏检测默认规定时间", "default_value": 7},
+    "MUTE_LEVEL [LEVEL]": {
+        "value": 5,
+        "help": "更改禁言设置的管理权限",
+        "default_value": 5,
+        "type": int,
+    },
+    "MUTE_DEFAULT_COUNT": {
+        "value": 10,
+        "help": "刷屏禁言默认检测次数",
+        "default_value": 10,
+        "type": int,
+    },
+    "MUTE_DEFAULT_TIME": {
+        "value": 7,
+        "help": "刷屏检测默认规定时间",
+        "default_value": 7,
+        "type": int,
+    },
     "MUTE_DEFAULT_DURATION": {
         "value": 10,
         "help": "刷屏检测默禁言时长（分钟）",
         "default_value": 10,
+        "type": int,
     },
 }
 
@@ -75,7 +92,9 @@ def save_data():
 
 
 async def download_img_and_hash(url) -> str:
-    return str(imagehash.average_hash(Image.open(BytesIO((await AsyncHttpx.get(url)).content))))
+    return str(
+        imagehash.average_hash(Image.open(BytesIO((await AsyncHttpx.get(url)).content)))
+    )
 
 
 mute_dict = {}
