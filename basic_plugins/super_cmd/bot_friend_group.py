@@ -110,7 +110,7 @@ async def _(
             rid = requests_manager.get_group_id(id_)
             if rid:
                 if group := await GroupInfo.filter(group_id=rid).first():
-                    await group.update_or_create(group_flag=1)
+                    await group.update_or_create(group_id=rid, defaults={"group_flag": 1})
                 else:
                     group_info = await bot.get_group_info(group_id=rid)
                     await GroupInfo.create(
