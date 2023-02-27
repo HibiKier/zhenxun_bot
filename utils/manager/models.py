@@ -1,8 +1,11 @@
-from pathlib import Path
-from typing import List, Optional, Dict, Literal, Tuple, Union, Any
-from pydantic import BaseModel
-from configs.config import Config
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+
+from pydantic import BaseModel
+
+from configs.config import Config
+from configs.utils import Config as zConfig
 
 
 class AdminSetting(BaseModel):
@@ -33,7 +36,7 @@ class BaseData(BaseModel):
     """
 
     white_group: List[int] = []  # 白名单
-    close_task: List[str] = []   # 全局关闭的被动任务
+    close_task: List[str] = []  # 全局关闭的被动任务
     group_manager: Dict[str, BaseGroup] = {}  # 群组管理
     task: Dict[str, str] = {}  # 被动任务 【英文：中文】
 
@@ -123,7 +126,7 @@ class PluginData(BaseModel):
     plugin_block: Optional[PluginBlock]
     plugin_count: Optional[PluginCount]
     plugin_resources: Optional[Dict[str, Union[str, Path]]]
-    plugin_configs: Optional[Dict[str, Dict[str, Any]]]
+    plugin_configs: Optional[Dict[str, zConfig]]
     plugin_status: Plugin
 
     class Config:

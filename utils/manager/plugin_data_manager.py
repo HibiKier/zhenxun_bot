@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from . import StaticData
 from .models import PluginData
@@ -27,9 +27,5 @@ class PluginDataManager(StaticData[PluginData]):
     def get(self, item: str, default: Any = None) -> PluginData:
         return self._data.get(item, default)
 
-    def __getitem__(self, item) -> PluginData:
+    def __getitem__(self, item) -> Optional[PluginData]:
         return self._data.get(item)
-
-
-
-

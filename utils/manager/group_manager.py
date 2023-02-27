@@ -1,16 +1,18 @@
 import copy
-from typing import List, Union, Dict, Callable, Any, Optional
 from pathlib import Path
-from .models import BaseData, BaseGroup
-from utils.manager.data_class import StaticData
-from utils.utils import get_matchers, is_number
-from configs.config import Config
+from typing import Any, Callable, Dict, List, Optional, Union
+
 import nonebot
 import ujson as json
 
+from configs.config import Config
+from utils.manager.data_class import StaticData
+from utils.utils import get_matchers, is_number
+
+from .models import BaseData, BaseGroup
 
 Config.add_plugin_config(
-    "group_manager", "DEFAULT_GROUP_LEVEL", 5, help_="默认群权限", default_value=5
+    "group_manager", "DEFAULT_GROUP_LEVEL", 5, help_="默认群权限", default_value=5, type=int
 )
 
 Config.add_plugin_config(
@@ -19,6 +21,7 @@ Config.add_plugin_config(
     True,
     help_="默认进群总开关状态",
     default_value=True,
+    type=bool
 )
 
 
