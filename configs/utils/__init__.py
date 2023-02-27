@@ -84,7 +84,7 @@ class ConfigsManager:
         name: Optional[str] = None,
         help_: Optional[str] = None,
         default_value: Optional[Any] = None,
-        type: Optional[Type] = str,
+        type: Optional[Type] = None,
         arg_parser: Optional[Callable] = None,
         _override: bool = False,
     ):

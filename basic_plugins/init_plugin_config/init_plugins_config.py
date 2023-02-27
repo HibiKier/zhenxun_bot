@@ -50,7 +50,7 @@ def init_plugins_config():
                                 help_=plugin_configs[key].get("help"),
                                 default_value=plugin_configs[key].get("default_value"),
                                 _override=True,
-                                type=plugin_configs[key].get("type") or str,
+                                type=plugin_configs[key].get("type"),
                             )
                         else:
                             config = plugin_configs[key]
@@ -62,7 +62,7 @@ def init_plugins_config():
                                 help_=config.help,
                                 default_value=config.default_value,
                                 _override=True,
-                                type=config.type or str,
+                                type=config.type,
                             )
                 elif plugin_configs := _data.get(matcher.plugin_name):
                     for key in plugin_configs.configs:

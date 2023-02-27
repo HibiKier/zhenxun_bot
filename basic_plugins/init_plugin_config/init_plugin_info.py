@@ -117,7 +117,7 @@ def init_plugin_info():
                                     config.get("value"),
                                     help_=config.get("help"),
                                     default_value=config.get("default_value"),
-                                    type=config.get("type") or str,
+                                    type=config.get("type"),
                                 )
                         plugin_configs = plugin_cfg.configs
                     plugin_status = plugins_manager.get(plugin_model)
