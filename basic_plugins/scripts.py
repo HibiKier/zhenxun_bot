@@ -166,7 +166,8 @@ async def _(bot: Bot):
         for group_id in _gl:
             if group_id in group_list:
                 if group := await GroupInfo.get_or_none(group_id=group_id):
-                    await group.update_or_create(group_flag=1)
+                    group.group_flag = 1
+                    await group.save(update_fields=["group_flag"])
                 else:
                     group_info = await bot.get_group_info(group_id=group_id)
                     await GroupInfo.create(
