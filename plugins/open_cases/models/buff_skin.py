@@ -1,4 +1,4 @@
-import random
+from datetime import datetime
 from typing import List, Optional
 
 from tortoise import fields
@@ -23,11 +23,27 @@ class BuffSkin(Model):
     """磨损度"""
     color = fields.CharField(255)
     """颜色(品质)"""
-    skin_price = fields.FloatField(default=0)
-    """皮肤价格"""
-    create_time = fields.DatetimeField(auto_add_now=True)
+
+    img_url = fields.CharField(255)
+    """图片url"""
+    steam_price = fields.FloatField(default=0)
+    """steam价格"""
+    weapon_type = fields.CharField(255)
+    """枪械类型"""
+    buy_max_price = fields.FloatField(default=0)
+    """最大求购价格"""
+    buy_num = fields.IntField(default=0)
+    """求购数量"""
+    sell_min_price = fields.FloatField(default=0)
+    """售卖最低价格"""
+    sell_num = fields.IntField(default=0)
+    """出售个数"""
+    sell_reference_price = fields.FloatField(default=0)
+    """参考价格"""
+
+    create_time: datetime = fields.DatetimeField(auto_add_now=True)
     """创建日期"""
-    update_time = fields.DatetimeField(auto_add=True)
+    update_time: datetime = fields.DatetimeField(auto_add=True)
     """更新日期"""
 
     class Meta:
@@ -48,3 +64,17 @@ class BuffSkin(Model):
             query = query.filter(case_name=case_name)
         query = query.filter(abrasion=abrasion, is_stattrak=is_stattrak, color=color)
         return await query.annotate(rand=Random()).limit(num)  # type:ignore
+
+    @classmethod
+    async def _run_script(cls):
+        return [
+            "ALTER TABLE buff_skin ADD img_url varchar(255);",  # 新增img_url
+            "ALTER TABLE buff_skin ADD steam_price float;",  # 新增steam_price
+            "ALTER TABLE buff_skin ADD weapon_type varchar(255);",  # 新增type
+            "ALTER TABLE buff_skin ADD buy_max_price float;"  # 新增buy_max_price
+            "ALTER TABLE buff_skin ADD buy_num Integer;",  # 新增buy_max_price
+            "ALTER TABLE buff_skin ADD sell_min_price float;",  # 新增sell_min_price
+            "ALTER TABLE buff_skin ADD sell_num Integer;",  # 新增sell_num
+            "ALTER TABLE buff_skin ADD sell_reference_price float;",  # 新增sell_reference_price
+            "ALTER TABLE buff_skin DROP COLUMN skin_price;",  # 删除skin_price
+        ]

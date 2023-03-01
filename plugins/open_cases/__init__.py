@@ -14,6 +14,7 @@ from configs.config import Config
 from configs.path_config import IMAGE_PATH
 from utils.utils import is_number, scheduler
 
+from .config import CASE2ID
 from .open_cases_c import (
     group_statistics,
     my_knifes_name,
@@ -21,7 +22,7 @@ from .open_cases_c import (
     open_multiple_case,
     total_open_statistics,
 )
-from .utils import reset_count_daily, util_get_buff_img, util_get_buff_price
+from .utils import CaseManager, reset_count_daily, update_case_data
 
 __zx_plugin_name__ = "开箱"
 __plugin_usage__ = """
@@ -104,7 +105,6 @@ Config.add_plugin_config(
     type=int,
 )
 
-cases_name = ["狂牙大行动", "突围大行动", "命悬一线", "裂空", "光谱"]
 
 cases_matcher_group = MatcherGroup(priority=5, permission=GROUP, block=True)
 
@@ -123,12 +123,7 @@ async def _(event: GroupMessageEvent):
 async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
     case_name = arg.extract_plain_text().strip()
     case_name = case_name.replace("武器箱", "").strip()
-    if case_name:
-        result = await open_case(event.user_id, event.group_id, case_name)
-    else:
-        result = await open_case(
-            event.user_id, event.group_id, random.choice(cases_name)
-        )
+    result = await open_case(event.user_id, event.group_id, case_name)
     await k_open_case.finish(result, at_sender=True)
 
 
@@ -183,10 +178,6 @@ async def _(
     else:
         await open_multiple.finish("必须要是数字切不要超过30啊笨蛋！中文也可！", at_sender=True)
     case_name = case_name.replace("武器箱", "").strip()
-    if not case_name:
-        case_name = random.choice(cases_name)
-    elif case_name not in cases_name:
-        await open_multiple.finish("武器箱未收录！", at_sender=True)
     await open_multiple.finish(
         await open_multiple_case(event.user_id, event.group_id, case_name, num),
         at_sender=True,
@@ -227,24 +218,21 @@ num_dict = {
 }
 
 
-update_price = on_command("更新开箱价格", priority=1, permission=SUPERUSER, block=True)
+update_data = on_command("更新武器箱", priority=1, permission=SUPERUSER, block=True)
 
 
-@update_price.handle()
+@update_data.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
-    await update_price.send(
-        await util_get_buff_price(arg.extract_plain_text().strip() or "狂牙大行动")
-    )
-
-
-update_img = on_command("更新开箱图片", priority=1, permission=SUPERUSER, block=True)
-
-
-@update_img.handle()
-async def _(event: MessageEvent, arg: Message = CommandArg()):
-    await update_img.send(
-        await util_get_buff_img(arg.extract_plain_text().strip() or "狂牙大行动")
-    )
+    msg = arg.extract_plain_text().strip()
+    if not msg:
+        case_list = []
+        for i, case_name in enumerate(CASE2ID):
+            if case_name in CaseManager.CURRENT_CASES:
+                case_list.append(f"{i+1}.{case_name} [已更新]")
+            else:
+                case_list.append(f"{i+1}.{case_name}")
+        await update_data.finish("未指定武器箱, 当前已包含武器箱\n" + "\n".join(case_list))
+    await update_data.send(await update_case_data(msg))
 
 
 # 重置开箱

@@ -51,7 +51,6 @@ class OpenCasesUser(Model):
 
     @classmethod
     async def _run_script(cls):
-        await cls.raw(
-            "alter table open_cases_users alter COLUMN make_money type float;"
-        )
-        """将make_money字段改为float"""
+        return [
+            "alter table open_cases_users alter COLUMN make_money type float;"  # 将make_money字段改为float
+        ]

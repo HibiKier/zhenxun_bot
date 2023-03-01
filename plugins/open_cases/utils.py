@@ -1,6 +1,8 @@
-from asyncio.exceptions import TimeoutError
+import asyncio
+import random
+import time
 from datetime import datetime
-from typing import Optional
+from typing import List, Tuple, Union
 
 import nonebot
 
@@ -10,251 +12,203 @@ from services.log import logger
 from utils.http_utils import AsyncHttpx
 from utils.utils import broadcast_group, cn2py
 
-from .config import *
-from .models.buff_prices import BuffPrice
+from .config import CASE2ID
 from .models.buff_skin import BuffSkin
+from .models.buff_skin_log import BuffSkinLog
 from .models.open_cases_user import OpenCasesUser
 
-url = "https://buff.163.com/api/market/goods"
+URL = "https://buff.163.com/api/market/goods"
 # proxies = 'http://49.75.59.242:3128'
+
+NAME2COLOR = {"军规级": "BLUE", "受限": "PURPLE", "保密": "PINK", "隐秘": "RED", "非凡": "KNIFE"}
+
+CURRENT_CASES = []
 
 driver = nonebot.get_driver()
 
-
-async def util_get_buff_price(case_name: str = "狂牙大行动") -> str:
-    cookie = {"session": Config.get_config("open_cases", "COOKIE")}
-    failed_list = []
-    case = cn2py(case_name)
-    if case_name == "狂牙大行动":
-        case_id = 1
-    elif case_name == "突围大行动":
-        case_id = 2
-    elif case_name == "命悬一线":
-        case_id = 3
-    elif case_name == "裂空":
-        case_id = 4
-    elif case_name == "光谱":
-        case_id = 5
-    else:
-        return "未查询到武器箱"
-    case = case.upper()
-    CASE_KNIFE = eval(case + "_CASE_KNIFE")
-    CASE_RED = eval(case + "_CASE_RED")
-    CASE_PINK = eval(case + "_CASE_PINK")
-    CASE_PURPLE = eval(case + "_CASE_PURPLE")
-    CASE_BLUE = eval(case + "_CASE_BLUE")
-    for total_list in [CASE_KNIFE, CASE_RED, CASE_PINK, CASE_PURPLE, CASE_BLUE]:
-        for skin in total_list:
-            if skin in [
-                "蝴蝶刀 | 无涂装",
-                "求生匕首 | 无涂装",
-                "流浪者匕首 | 无涂装",
-                "系绳匕首 | 无涂装",
-                "骷髅匕首 | 无涂装",
-            ]:
-                skin = skin.split("|")[0].strip()
-            name_list = []
-            price_list = []
-            parameter = {"game": "csgo", "page_num": "1", "search": skin}
-            try:
-                response = await AsyncHttpx.get(
-                    url,
-                    proxy=Config.get_config("open_cases", "BUFF_PROXY"),
-                    params=parameter,
-                    cookies=cookie,
-                )
-                if response.status_code == 200:
-                    data = response.json()["data"]
-                    total_page = data["total_page"]
-                    data = data["items"]
-                    flag = False
-                    if (
-                        skin.find("|") == -1
-                    ):  # in ['蝴蝶刀', '求生匕首', '流浪者匕首', '系绳匕首', '骷髅匕首']:
-                        for i in range(1, total_page + 1):
-                            name_list = []
-                            price_list = []
-                            parameter = {
-                                "game": "csgo",
-                                "page_num": f"{i}",
-                                "search": skin,
-                            }
-                            res = await AsyncHttpx.get(
-                                url, params=parameter, cookies=cookie
-                            )
-                            data = res.json()["data"]["items"]
-                            for j in range(len(data)):
-                                if data[j]["name"] in [f"{skin}（★）"]:
-                                    name = data[j]["name"]
-                                    price = data[j]["sell_reference_price"]
-                                    name_list.append(
-                                        name.split("（")[0].strip() + " | 无涂装"
-                                    )
-                                    price_list.append(price)
-                                    flag = True
-                                    break
-                            if flag:
-                                break
-                    else:
-                        try:
-                            for _ in range(total_page):
-                                for i in range(len(data)):
-                                    name = data[i]["name"]
-                                    price = data[i]["sell_reference_price"]
-                                    name_list.append(name)
-                                    price_list.append(price)
-                        except Exception as e:
-                            failed_list.append(skin)
-                            logger.warning(f"{skin}更新失败")
-                else:
-                    failed_list.append(skin)
-                    logger.warning(f"{skin}更新失败")
-            except Exception:
-                failed_list.append(skin)
-                logger.warning(f"{skin}更新失败")
-                continue
-            for i in range(len(name_list)):
-                name = name_list[i].strip()
-                price = float(price_list[i])
-                if name.find("（★）") != -1:
-                    name = name[: name.find("（")] + name[name.find("）") + 1 :]
-                if name.find("消音") != -1 and name.find("（S") != -1:
-                    name = name.split("（")[0][:-4] + "（" + name.split("（")[1]
-                    name = (
-                        name.split("|")[0].strip() + " | " + name.split("|")[1].strip()
-                    )
-                elif name.find("消音") != -1:
-                    name = (
-                        name.split("|")[0][:-5].strip()
-                        + " | "
-                        + name.split("|")[1].strip()
-                    )
-                if name.find(" 18 ") != -1 and name.find("（S") != -1:
-                    name = name.split("（")[0][:-5] + "（" + name.split("（")[1]
-                    name = (
-                        name.split("|")[0].strip() + " | " + name.split("|")[1].strip()
-                    )
-                elif name.find(" 18 ") != -1:
-                    name = (
-                        name.split("|")[0][:-6].strip()
-                        + " | "
-                        + name.split("|")[1].strip()
-                    )
-                if dbskin := await BuffPrice.get_or_none(skin_name=name):
-                    if dbskin.update_date.date() == datetime.now().date():
-                        continue
-                    dbskin.case_id = case_id
-                    dbskin.skin_price = price
-                    dbskin.update_date = datetime.now()
-                    await dbskin.save(
-                        update_fields=["case_id", "skin_price", "update_date"]
-                    )
-                    logger.info(f"{name_list[i]}---------->成功更新")
-    result = None
-    if failed_list:
-        result = ""
-        for fail_skin in failed_list:
-            result += fail_skin + "\n"
-    return result[:-1] if result else "更新价格成功"
+BASE_PATH = IMAGE_PATH / "csgo_cases"
 
 
-async def util_get_buff_img(case_name: str = "狂牙大行动") -> str:
-    cookie = {"session": Config.get_config("open_cases", "COOKIE")}
-    error_list = []
-    case = cn2py(case_name)
-    path = IMAGE_PATH / "cases/" / case
-    path.mkdir(exist_ok=True, parents=True)
-    case = case.upper()
-    CASE_KNIFE = eval(case + "_CASE_KNIFE")
-    CASE_RED = eval(case + "_CASE_RED")
-    CASE_PINK = eval(case + "_CASE_PINK")
-    CASE_PURPLE = eval(case + "_CASE_PURPLE")
-    CASE_BLUE = eval(case + "_CASE_BLUE")
-    for total_list in [CASE_KNIFE, CASE_RED, CASE_PINK, CASE_PURPLE, CASE_BLUE]:
-        for skin in total_list:
-            parameter = {"game": "csgo", "page_num": "1", "search": skin}
-            if skin in [
-                "蝴蝶刀 | 无涂装",
-                "求生匕首 | 无涂装",
-                "流浪者匕首 | 无涂装",
-                "系绳匕首 | 无涂装",
-                "骷髅匕首 | 无涂装",
-            ]:
-                skin = skin.split("|")[0].strip()
-            logger.info(f"开始更新----->{skin}")
-            skin_name = ""
-            # try:
-            response = await AsyncHttpx.get(
-                url,
-                proxy=Config.get_config("open_cases", "BUFF_PROXY"),
-                params=parameter,
-            )
-            if response.status_code == 200:
-                data = response.json()["data"]
-                total_page = data["total_page"]
-                flag = False
-                if skin.find("|") == -1:  # in ['蝴蝶刀', '求生匕首', '流浪者匕首', '系绳匕首', '骷髅匕首']:
-                    for i in range(1, total_page + 1):
-                        res = await AsyncHttpx.get(url, params=parameter)
-                        data = res.json()["data"]["items"]
-                        for j in range(len(data)):
-                            if data[j]["name"] in [f"{skin}（★）"]:
-                                img_url = data[j]["goods_info"]["icon_url"]
-                                skin_name = cn2py(skin + "无涂装")
-                                await AsyncHttpx.download_file(
-                                    img_url, path / f"{skin_name}.png"
-                                )
-                                flag = True
-                                break
-                        if flag:
-                            break
-                else:
-                    img_url = (await response.json())["data"]["items"][0]["goods_info"][
-                        "icon_url"
-                    ]
-                    skin_name += cn2py(skin.replace("|", "-").strip())
-                    if await AsyncHttpx.download_file(
-                        img_url, path / f"{skin_name}.png"
-                    ):
-                        logger.info(f"------->写入 {skin} 成功")
-                    else:
-                        logger.info(f"------->写入 {skin} 失败")
-    result = None
-    if error_list:
-        result = ""
-        for err_skin in error_list:
-            result += err_skin + "\n"
-    return result[:-1] if result else "更新图片成功"
+class CaseManager:
+
+    CURRENT_CASES = []
+
+    @classmethod
+    async def reload(cls):
+        cls.CURRENT_CASES = (
+            await BuffSkin.annotate().distinct().values_list("case_name", flat=True)
+        )
 
 
-async def get_price(d_name):
-    cookie = {"session": Config.get_config("open_cases", "COOKIE")}
-    name_list = []
-    price_list = []
-    parameter = {"game": "csgo", "page_num": "1", "search": d_name}
-    try:
-        response = await AsyncHttpx.get(url, cookies=cookie, params=parameter)
-        if response.status_code == 200:
-            try:
-                data = response.json()["data"]
-                total_page = data["total_page"]
-                data = data["items"]
-                for _ in range(total_page):
-                    for i in range(len(data)):
-                        name = data[i]["name"]
-                        price = data[i]["sell_reference_price"]
-                        name_list.append(name)
-                        price_list.append(price)
-            except Exception as e:
-                return "没有查询到...", 998
+async def update_case_data(case_name: str) -> str:
+    """更新皮肤数据
+
+    Args:
+        case_name (str): 箱子名称
+
+    Returns:
+        _type_: _description_
+    """
+    if case_name not in CASE2ID:
+        return "未在当前指定武器箱捏"
+    session = Config.get_config("open_cases", "COOKIE")
+    if not session:
+        return "BUFF COOKIE为空捏!"
+    db_skin_list = await BuffSkin.filter(case_name=case_name).all()
+    db_skin_name_list = [
+        skin.name + skin.skin_name + skin.abrasion for skin in db_skin_list
+    ]
+    data_list, total = await search_skin_page(case_name, 1)
+    if isinstance(data_list, str):
+        return data_list
+    for page in range(2, total + 1):
+        rand_time = random.randint(10, 50)
+        logger.debug(f"访问随机等待时间: {rand_time}", "开箱更新")
+        await asyncio.sleep(rand_time)
+        data_list_, total = await search_skin_page(case_name, page)
+        if isinstance(data_list_, list):
+            data_list += data_list_
+    create_list = []
+    update_list = []
+    log_list = []
+    case_name_py = cn2py(case_name)
+    now = datetime.now()
+    for skin in data_list:
+        name = skin.name + skin.skin_name + skin.abrasion
+        skin.create_time = now
+        skin.update_time = now
+        if name in db_skin_name_list:
+            update_list.append(skin)
         else:
-            return "访问失败！", response.status_code
-    except TimeoutError as e:
-        return "访问超时! 请重试或稍后再试!", 997
-    result = f"皮肤: {d_name}({len(name_list)})\n"
-    for i in range(len(name_list)):
-        result += name_list[i] + ": " + price_list[i] + "\n"
-    return result[:-1], 999
+            create_list.append(skin)
+        log_list.append(
+            BuffSkinLog(
+                name=skin.name,
+                case_name=skin.case_name,
+                skin_name=skin.skin_name,
+                is_stattrak=skin.is_stattrak,
+                abrasion=skin.abrasion,
+                color=skin.color,
+                steam_price=skin.steam_price,
+                weapon_type=skin.weapon_type,
+                buy_max_price=skin.buy_max_price,
+                buy_num=skin.buy_num,
+                sell_min_price=skin.sell_min_price,
+                sell_num=skin.sell_num,
+                sell_reference_price=skin.sell_reference_price,
+                create_time=now,
+            )
+        )
+        name = skin.name + "-" + skin.skin_name + "-" + skin.abrasion
+        file_path = BASE_PATH / case_name_py / f"{cn2py(name)}.jpg"
+        if not file_path.exists():
+            logger.debug(f"下载皮肤 {name} 图片: {skin.img_url}...", "开箱更新")
+            await AsyncHttpx.download_file(skin.img_url, file_path)
+            rand_time = random.randint(1, 10)
+            await asyncio.sleep(rand_time)
+            logger.debug(f"图片下载随机等待时间: {rand_time}", "开箱更新")
+        else:
+            logger.debug(f"皮肤 {name} 图片已存在...", "开箱更新")
+    if create_list:
+        logger.debug(f"更新武器箱: [<u><e>{case_name}</e></u>], 创建 {len(create_list)} 个皮肤!")
+        await BuffSkin.bulk_create(create_list, 10)
+    if update_list:
+        logger.debug(f"更新武器箱: [<u><c>{case_name}</c></u>], 更新 {len(create_list)} 个皮肤!")
+        await BuffSkin.bulk_update(
+            update_list,
+            [
+                "skin_price",
+                "steam_price",
+                "buy_max_price",
+                "buy_num",
+                "sell_min_price",
+                "sell_num",
+                "sell_reference_price",
+                "update_time",
+            ],
+            10,
+        )
+    if log_list:
+        logger.debug(f"更新武器箱: [<u><e>{case_name}</e></u>], 新增 {len(log_list)} 条皮肤日志!")
+        await BuffSkinLog.bulk_create(log_list)
+    if case_name not in CaseManager.CURRENT_CASES:
+        CaseManager.CURRENT_CASES.append(case_name)  # type: ignore
+    return f"更新武器箱: [{case_name}] 成功, 共更新 {len(update_list)} 个皮肤, 新创建 {len(create_list)} 个皮肤!"
+
+
+async def search_skin_page(
+    case_name: str, page_index: int
+) -> Tuple[Union[List[BuffSkin], str], int]:
+    """查询箱子皮肤
+
+    Args:
+        case_name (str): 箱子名称
+        page_index (int): 页数
+
+    Returns:
+        Union[List[BuffSkin], str]: BuffSkin
+    """
+    logger.debug(
+        f"尝试访问武器箱: [<u><e>{case_name}</e></u>] 页数: [<u><y>{page_index}</y></u>]", "开箱更新"
+    )
+    cookie = {"session": Config.get_config("open_cases", "COOKIE")}
+    params = {
+        "game": "csgo",
+        "page_num": page_index,
+        "page_size": 80,
+        "itemset": CASE2ID[case_name],
+        "_": time.time(),
+        "use_suggestio": 0,
+    }
+    response = await AsyncHttpx.get(
+        URL,
+        proxy=Config.get_config("open_cases", "BUFF_PROXY"),
+        params=params,
+        cookies=cookie,  # type: ignore
+    )
+    json_data = response.json()
+    update_data = []
+    if json_data["code"] == "OK":
+        data_list = json_data["data"]["items"]
+        for data in data_list:
+            obj = {"case_name": case_name}
+            name = data["name"]
+            logger.debug(
+                f"武器箱: [<u><e>{case_name}</e></u>] 页数: [<u><y>{page_index}</y></u>] 正在收录皮肤: [<u><c>{name}</c></u>]...",
+                "开箱更新",
+            )
+            obj["buy_max_price"] = data["buy_max_price"]  # 求购最大金额
+            obj["buy_num"] = data["buy_num"]  # 当前求购
+            goods_info = data["goods_info"]
+            info = goods_info["info"]
+            tags = info["tags"]
+            obj["weapon_type"] = tags["type"]["localized_name"]  # 枪械类型
+            if obj["weapon_type"] in ["音乐盒", "印花", "武器箱"]:
+                continue
+            if obj["weapon_type"] in ["匕首", "手套"]:
+                obj["color"] = "KNIFE"
+                obj["name"] = data["short_name"].split("（")[0].strip()  # 名称
+            else:
+                obj["color"] = NAME2COLOR[tags["rarity"]["localized_name"]]
+                obj["name"] = tags["weapon"]["localized_name"]  # 名称
+            obj["skin_name"] = data["short_name"].split("|")[-1].strip()  # 皮肤名称
+            obj["img_url"] = goods_info["original_icon_url"]  # 图片url
+            obj["steam_price"] = goods_info["steam_price_cny"]  # steam价格
+            obj["abrasion"] = tags["exterior"]["localized_name"]  # 磨损
+            obj["color"] = NAME2COLOR[tags["rarity"]["localized_name"]]  # 品质颜色
+            obj["is_stattrak"] = "StatTrak" in tags["quality"]["localized_name"]  # type: ignore # 是否暗金
+            obj["sell_min_price"] = data["sell_min_price"]  # 售卖最低价格
+            obj["sell_num"] = data["sell_num"]  # 售卖数量
+            obj["sell_reference_price"] = data["sell_reference_price"]  # 参考价格
+            update_data.append(BuffSkin(**obj))
+        logger.debug(
+            f"访问武器箱: [<u><e>{case_name}</e></u>] 页数: [<u><y>{page_index}</y></u>] 成功并收录完成",
+            "开箱更新",
+        )
+        return update_data, json_data["data"]["total_page"]
+    else:
+        logger.warning(f'访问BUFF失败: {json_data["msg"]}')
+    return f'访问失败: {json_data["msg"]}', -1
 
 
 async def reset_count_daily():
@@ -270,19 +224,9 @@ async def reset_count_daily():
         logger.error(f"开箱重置错误", e=e)
 
 
-def get_color(case_name: str, name: str, skin_name: str) -> Optional[str]:
-    case_py = cn2py(case_name).upper()
-    color_map = {}
-    color_map["KNIFE"] = eval(case_py + "_CASE_KNIFE")
-    color_map["RED"] = eval(case_py + "_CASE_RED")
-    color_map["PINK"] = eval(case_py + "_CASE_PINK")
-    color_map["PURPLE"] = eval(case_py + "_CASE_PURPLE")
-    color_map["BLUE"] = eval(case_py + "_CASE_BLUE")
-    for key in color_map:
-        for skin in color_map[key]:
-            if name in skin and skin_name in skin:
-                return key
-    return None
+@driver.on_startup
+async def _():
+    await CaseManager.reload()
 
 
 @driver.on_startup
@@ -290,55 +234,50 @@ async def _():
     """
     将旧表数据移动到新表
     """
-    if not await BuffSkin.first() and await BuffPrice.first():
-        logger.debug("开始移动旧表数据 BuffPrice -> BuffSkin")
-        id2name = {1: "狂牙大行动", 2: "突围大行动", 3: "命悬一线", 4: "裂空", 5: "光谱"}
-        data_list: List[BuffSkin] = []
-        for data in await BuffPrice.all():
-            logger.debug(f"移动旧表数据: {data.skin_name}")
-            case_name = id2name[data.case_id]
-            name = data.skin_name
-            is_stattrak = "StatTrak" in name
-            name = name.replace("（★ StatTrak™）", "").replace("（StatTrak™）", "").strip()
-            name, skin_name = name.split("|")
-            abrasion = "无涂装"
-            if "(" in skin_name:
-                skin_name, abrasion = skin_name.split("(")
-                if abrasion.endswith(")"):
-                    abrasion = abrasion[:-1]
-            color = get_color(case_name, name.strip(), skin_name.strip())
-            if not color:
-                search_list = [
-                    x
-                    for x in data_list
-                    if x.skin_name == skin_name.strip() and x.name == name.strip()
-                ]
-                if search_list:
-                    color = get_color(
-                        case_name, search_list[0].name, search_list[0].skin_name
-                    )
-                if not color:
-                    logger.debug(
-                        f"箱子: [{case_name}] 皮肤: [{name}|{skin_name}] 未获取到皮肤品质，跳过..."
-                    )
-                    continue
-            data_list.append(
-                BuffSkin(
-                    case_name=case_name,
-                    name=name.strip(),
-                    skin_name=skin_name.strip(),
-                    is_stattrak=is_stattrak,
-                    abrasion=abrasion.strip(),
-                    skin_price=data.skin_price,
-                    color=color,
-                    create_time=datetime.now(),
-                    update_time=datetime.now(),
-                )
-            )
-        await BuffSkin.bulk_create(data_list, batch_size=10)
-        logger.debug("完成移动旧表数据 BuffPrice -> BuffSkin")
-
-
-# 蝴蝶刀（★） | 噩梦之夜 (久经沙场)
-if __name__ == "__main__":
-    print(util_get_buff_img("xxxx/"))
+    # if not await BuffSkin.first() and await BuffPrice.first():
+    #     logger.debug("开始移动旧表数据 BuffPrice -> BuffSkin")
+    #     id2name = {1: "狂牙大行动", 2: "突围大行动", 3: "命悬一线", 4: "裂空", 5: "光谱"}
+    #     data_list: List[BuffSkin] = []
+    #     for data in await BuffPrice.all():
+    #         logger.debug(f"移动旧表数据: {data.skin_name}")
+    #         case_name = id2name[data.case_id]
+    #         name = data.skin_name
+    #         is_stattrak = "StatTrak" in name
+    #         name = name.replace("（★ StatTrak™）", "").replace("（StatTrak™）", "").strip()
+    #         name, skin_name = name.split("|")
+    #         abrasion = "无涂装"
+    #         if "(" in skin_name:
+    #             skin_name, abrasion = skin_name.split("(")
+    #             if abrasion.endswith(")"):
+    #                 abrasion = abrasion[:-1]
+    #         color = get_color(case_name, name.strip(), skin_name.strip())
+    #         if not color:
+    #             search_list = [
+    #                 x
+    #                 for x in data_list
+    #                 if x.skin_name == skin_name.strip() and x.name == name.strip()
+    #             ]
+    #             if search_list:
+    #                 color = get_color(
+    #                     case_name, search_list[0].name, search_list[0].skin_name
+    #                 )
+    #             if not color:
+    #                 logger.debug(
+    #                     f"箱子: [{case_name}] 皮肤: [{name}|{skin_name}] 未获取到皮肤品质，跳过..."
+    #                 )
+    #                 continue
+    #         data_list.append(
+    #             BuffSkin(
+    #                 case_name=case_name,
+    #                 name=name.strip(),
+    #                 skin_name=skin_name.strip(),
+    #                 is_stattrak=is_stattrak,
+    #                 abrasion=abrasion.strip(),
+    #                 skin_price=data.skin_price,
+    #                 color=color,
+    #                 create_time=datetime.now(),
+    #                 update_time=datetime.now(),
+    #             )
+    #         )
+    #     await BuffSkin.bulk_create(data_list, batch_size=10)
+    #     logger.debug("完成移动旧表数据 BuffPrice -> BuffSkin")

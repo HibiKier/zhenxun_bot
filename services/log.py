@@ -112,6 +112,8 @@ class logger:
         e: Optional[Exception] = None,
     ):
         template = cls.__parser_template(info, command, user_id, group_id, target)
+        if e:
+            template += f" || 错误 <r>{type(e)}: {e}</r>"
         logger_.opt(colors=True).debug(template)
 
     @classmethod

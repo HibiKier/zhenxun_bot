@@ -53,11 +53,20 @@ async def init():
     except Exception as e:
         raise Exception(f"数据库连接错误.... {type(e)}: {e}")
     if SCRIPT_METHOD:
+        logger.debug(f"即将运行SCRIPT_METHOD方法, 合计 <u><y>{len(SCRIPT_METHOD)}</y></u> 个...")
+        sql_list = []
         for module, func in SCRIPT_METHOD:
             try:
-                await func()
+                if sql := await func():
+                    sql_list += sql
             except Exception as e:
-                logger.debug(f"{module} 执行SQL", e=e)
+                logger.debug(f"{module} 执行SCRIPT_METHOD方法出错...", e=e)
+        for sql in sql_list:
+            logger.debug(f"执行SQL: {sql}")
+            try:
+                await TestSQL.raw(sql)
+            except Exception as e:
+                logger.debug(f"执行SQL: {sql} 错误...", e=e)
 
 
 async def disconnect():

@@ -16,8 +16,8 @@ from utils.message_builder import image
 from utils.utils import cn2py
 
 from .config import *
-from .models.buff_prices import BuffPrice
 from .models.open_cases_user import OpenCasesUser
+from .utils import CaseManager
 
 RESULT_MESSAGE = {
     "BLUE": ["这样看着才舒服", "是自己人，大伙把刀收好", "非常舒适~"],
@@ -60,7 +60,7 @@ def add_count(user: OpenCasesUser, skin: BuffSkin):
             user.knife_count += 1
     user.today_open_total += 1
     user.total_count += 1
-    user.make_money += skin.skin_price
+    user.make_money += skin.sell_min_price
     user.spend_money += 17
 
 
@@ -83,9 +83,7 @@ async def get_user_max_count(user_qq: int, group_id: int) -> int:
     return int(initial_open_case_count + impression / each_impression_add_count)  # type: ignore
 
 
-async def open_case(
-    user_qq: int, group_id: int, case_name: str = "狂牙大行动"
-) -> Union[str, Message]:
+async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, Message]:
     """开箱
 
     Args:
@@ -96,8 +94,12 @@ async def open_case(
     Returns:
         Union[str, Message]: 回复消息
     """
-    if case_name not in ["狂牙大行动", "突围大行动", "命悬一线", "裂空", "光谱"]:
-        return "武器箱未收录"
+    if not CaseManager.CURRENT_CASES:
+        return "未收录任何武器箱"
+    if not case_name:
+        case_name = random.choice(CaseManager.CURRENT_CASES)  # type: ignore
+    if case_name not in CaseManager.CURRENT_CASES:
+        return "武器箱未收录, 当前可用武器箱:\n" + "\n".join(CaseManager.CURRENT_CASES)  # type: ignore
     logger.debug(f"尝试开启武器箱: {case_name}", "开箱", user_qq, group_id)
     case = cn2py(case_name)
     user = await OpenCasesUser.get_or_none(user_qq=user_qq, group_id=group_id)
@@ -116,20 +118,16 @@ async def open_case(
     rand = str(rand)[:11]
     add_count(user, skin)
     ridicule_result = random.choice(RESULT_MESSAGE[skin.color])
-    price_result = skin.skin_price
+    price_result = skin.sell_min_price
     if skin.color == "KNIFE":
         user.knifes_name = (
             user.knifes_name
-            + f"{case}||{skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion}) 磨损：{rand}， 价格：{skin.skin_price},"
+            + f"{case}||{skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion}) 磨损：{rand}， 价格：{skin.sell_min_price},"
         )
-    img_path = (
-        IMAGE_PATH
-        / "cases"
-        / case
-        / f"{cn2py(skin.name)} - {cn2py(skin.skin_name)}.png"
-    )
+    name = skin.name + "-" + skin.skin_name + "-" + skin.abrasion
+    img_path = IMAGE_PATH / "csgo_cases" / case / f"{cn2py(name)}.jpg"
     logger.info(
-        f"开启{case_name}武器箱获得 {skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion}) 磨损: [{rand}] 价格: {skin.skin_price}",
+        f"开启{case_name}武器箱获得 {skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion}) 磨损: [{rand}] 价格: {skin.sell_min_price}",
         "开箱",
         user_qq,
         group_id,
@@ -150,6 +148,12 @@ async def open_case(
 async def open_multiple_case(
     user_qq: int, group_id: int, case_name: str, num: int = 10
 ):
+    if not CaseManager.CURRENT_CASES:
+        return "未收录任何武器箱"
+    if not case_name:
+        case_name = random.choice(CaseManager.CURRENT_CASES)  # type: ignore
+    if case_name not in CaseManager.CURRENT_CASES:
+        return "武器箱未收录, 当前可用武器箱:\n" + "\n".join(CaseManager.CURRENT_CASES)  # type: ignore
     user, _ = await OpenCasesUser.get_or_create(user_qq=user_qq, group_id=group_id)
     max_count = await get_user_max_count(user_qq, group_id)
     if user.today_open_total >= max_count:
@@ -173,7 +177,7 @@ async def open_multiple_case(
         return "未抽取到任何皮肤..."
     total_price = 0
     for skin, rand in skin_list:
-        total_price += skin.skin_price
+        total_price += skin.sell_min_price
         rand = str(rand)[:11]
         add_count(user, skin)
         color_name = COLOR2CN[skin.color]
@@ -185,29 +189,22 @@ async def open_multiple_case(
         if skin.color == "KNIFE":
             user.knifes_name = (
                 user.knifes_name
-                + f"{case}||{skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion}) 磨损：{rand}， 价格：{skin.skin_price},"
+                + f"{case}||{skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion}) 磨损：{rand}， 价格：{skin.sell_min_price},"
             )
+        name = skin.name + "-" + skin.skin_name + "-" + skin.abrasion
+        img_path = IMAGE_PATH / "csgo_cases" / case / f"{cn2py(name)}.jpg"
         wImg = BuildImage(200, 270, 200, 200)
-        await wImg.apaste(
-            alpha2white_pil(
-                Image.open(
-                    IMAGE_PATH
-                    / "cases"
-                    / case
-                    / f"{cn2py(skin.name)} - {cn2py(skin.skin_name)}.png"
-                ).resize((200, 200), Image.ANTIALIAS)
-            ),
-            (0, 0),
-        )
+        img = BuildImage(200, 200, background=img_path)
+        await wImg.apaste(img, (0, 0), True)
         await wImg.atext(
             (5, 200),
             f"{skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion})",
         )
         await wImg.atext((5, 220), f"磨损：{rand}")
-        await wImg.atext((5, 240), f"价格：{skin.skin_price}")
+        await wImg.atext((5, 240), f"价格：{skin.sell_min_price}")
         img_list.append(wImg)
         logger.info(
-            f"开启{case_name}武器箱获得 {skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion}) 磨损: [{rand}] 价格: {skin.skin_price}",
+            f"开启{case_name}武器箱获得 {skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion}) 磨损: [{rand}] 价格: {skin.sell_min_price}",
             "开箱",
             user_qq,
             group_id,
