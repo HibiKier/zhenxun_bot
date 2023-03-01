@@ -105,7 +105,6 @@ class GroupInfoUser(Model):
 
     @classmethod
     async def _run_script(cls):
-        await cls.raw(
-            "alter table group_info_users alter user_join_time drop not null;"
-        )
-        """允许 user_join_time 为空"""
+        return [
+            "alter table group_info_users alter user_join_time drop not null;"  # 允许 user_join_time 为空
+        ]

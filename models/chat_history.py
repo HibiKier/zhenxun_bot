@@ -43,10 +43,13 @@ class ChatHistory(Model):
             :param order: 排序类型，desc，des
             :param date_scope: 日期范围
         """
+        o = "-" if order == "DESC" else ""
+        query = cls.filter(group_id=gid)
+        if date_scope:
+            query = query.filter(create_time__range=date_scope)
         return list(
-            await cls.filter(group_id=gid, create_time__range=date_scope)
-            .annotate(count=Count("user_qq"))
-            .order_by(order)
+            await query.annotate(count=Count("user_qq"))
+            .order_by(o + "count")
             .group_by("user_qq")
             .limit(limit)
             .values_list("user_qq", "count")
@@ -107,9 +110,8 @@ class ChatHistory(Model):
 
     @classmethod
     async def _run_script(cls):
-        await cls.raw("alter table chat_history alter group_id drop not null;")
-        """允许 group_id 为空"""
-        await cls.raw("alter table chat_history alter text drop not null;")
-        """允许 text 为空"""
-        await cls.raw("alter table chat_history alter plain_text drop not null;")
-        """允许 plain_text 为空"""
+        return [
+            "alter table chat_history alter group_id drop not null;",  # 允许 group_id 为空
+            "alter table chat_history alter text drop not null;",  # 允许 text 为空
+            "alter table chat_history alter plain_text drop not null;",  # 允许 plain_text 为空
+        ]
