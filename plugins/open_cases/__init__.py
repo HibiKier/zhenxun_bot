@@ -102,7 +102,7 @@ Config.add_plugin_config(
     True,
     help_="被动 每日开箱重置提醒 进群默认开关状态",
     default_value=True,
-    type=int,
+    type=bool,
 )
 
 
