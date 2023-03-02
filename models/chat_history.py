@@ -105,7 +105,7 @@ class ChatHistory(Model):
                     create_time__gte=datetime.now() - timedelta(days=days)
                 )
             elif isinstance(days, tuple):
-                query = query.filter(create_at__range=days)
+                query = query.filter(create_time__range=days)
         return await query.all()  # type: ignore
 
     @classmethod

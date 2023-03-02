@@ -335,6 +335,9 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 * 修复config.yaml中把False也当成None的问题 [@pull/1288](https://github.com/HibiKier/zhenxun_bot/pull/1288)
 * 删除道具表无用字段(props) [@pull/1287](https://github.com/HibiKier/zhenxun_bot/pull/1287)
+* 修复词云
+* 修复我的签到签到图片
+* 更正BuffSkin添加语句
 
 ### 2022/3/1
 
