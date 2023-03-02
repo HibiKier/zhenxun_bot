@@ -162,3 +162,8 @@ class BagUser(Model):
             await user.save(update_fields=["property"])
             return True
         return False
+
+    @classmethod
+    async def _run_script(cls):
+        await cls.raw("ALTER TABLE sign_group_users DROP props;")
+        """删除 props 字段"""
