@@ -1,6 +1,7 @@
 import random
 import re
 import time
+import uuid
 from datetime import datetime
 from typing import Any, List, Optional, Tuple, Union
 
@@ -129,7 +130,7 @@ class WordBank(Model):
             image_path = f"problem/{group_id}/{user_id}_{int(time.time())}.jpg"
         answer, _list = await cls._answer2format(answer, user_id, group_id)
         if not await cls.exists(
-            user_id, group_id, problem, answer, word_scope, word_type
+            user_id, group_id, str(problem), answer, word_scope, word_type
         ):
             await cls.create(
                 user_qq=user_id,
@@ -148,7 +149,7 @@ class WordBank(Model):
 
     @classmethod
     async def _answer2format(
-        cls, answer: Union[str, Message], user_id: int, group_id: int
+        cls, answer: Union[str, Message], user_id: int, group_id: Optional[int]
     ) -> Tuple[str, List[Any]]:
         """
         说明:
@@ -164,24 +165,31 @@ class WordBank(Model):
         text = ""
         index = 0
         for seg in answer:
+            placeholder = uuid.uuid1()
             if isinstance(seg, str):
                 text += seg
             elif seg.type == "text":
                 text += seg.data["text"]
             elif seg.type == "face":
-                text += f"[face:placeholder_{index}]"
+                text += f"[face:placeholder_{placeholder}]"
                 _list.append(seg.data["id"])
             elif seg.type == "at":
-                text += f"[at:placeholder_{index}]"
+                text += f"[at:placeholder_{placeholder}]"
                 _list.append(seg.data["qq"])
             else:
-                text += f"[image:placeholder_{index}]"
+                text += f"[image:placeholder_{placeholder}]"
                 index += 1
-                t = int(time.time())
-                _file = path / "answer" / f"{group_id}" / f"{user_id}_{t}.jpg"
+                _file = (
+                    path
+                    / "answer"
+                    / f"{group_id or user_id}"
+                    / f"{user_id}_{placeholder}.jpg"
+                )
                 _file.parent.mkdir(exist_ok=True, parents=True)
                 await AsyncHttpx.download_file(seg.data["url"], _file)
-                _list.append(f"answer/{group_id}/{user_id}_{t}.jpg")
+                _list.append(
+                    f"answer/{group_id or user_id}/{user_id}_{placeholder}.jpg"
+                )
         return text, _list
 
     @classmethod
@@ -499,5 +507,4 @@ class WordBank(Model):
 
     @classmethod
     async def _run_script(cls):
-        await cls.raw("ALTER TABLE word_bank2 ADD to_me varchar(255);")
-        """添加 to_me 字段"""
+        return ["ALTER TABLE word_bank2 ADD to_me varchar(255);"]  # 添加 to_me 字段
