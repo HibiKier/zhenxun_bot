@@ -6,6 +6,7 @@ from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
 from nonebot.adapters.onebot.v11.permission import GROUP
 from nonebot.params import CommandArg, RegexGroup
 
+from configs.config import Config
 from configs.path_config import DATA_PATH
 from services.log import logger
 from utils.message_builder import image
@@ -75,6 +76,15 @@ __plugin_configs__ = {
         "type": float,
     },
 }
+
+Config.add_plugin_config(
+    "send_setu",
+    "INITIAL_SETU_PROBABILITY",
+    0.7,
+    help_="初始色图概率，总概率 = 初始色图概率 + 好感度",
+    default_value=0.7,
+    type=float,
+)
 
 
 _file = DATA_PATH / "not_show_sign_rank_user.json"

@@ -130,12 +130,12 @@ def _generate_card(
     ava.circle()
     ava_bk.paste(ava, center_type="center")
     ava_bk.paste(ava_border, alpha=True, center_type="center")
-
+    impression = float(user.impression)
     info_img = BuildImage(250, 150, color=(255, 255, 255, 0), font_size=15)
     level, next_impression, previous_impression = get_level_and_next_impression(
-        user.impression
+        impression
     )
-    interpolation = next_impression - user.impression
+    interpolation = next_impression - impression
     if level == "9":
         level = "8"
         interpolation = 0
@@ -237,7 +237,7 @@ def _generate_card(
         )
         if impression_list:
             impression_list.sort(reverse=True)
-            index = impression_list.index(user.impression)
+            index = impression_list.index(impression)
             rank_img = BuildImage(
                 0,
                 0,
@@ -252,7 +252,7 @@ def _generate_card(
         )
         today_data.text((0, 25), f"总金币：{gold}")
         default_setu_prob = (
-            Config.get_config("send_setu", "INITIAL_SETU_PROBABILITY") * 100
+            Config.get_config("send_setu", "INITIAL_SETU_PROBABILITY") * 100  # type: ignore
         )
         today_data.text(
             (0, 50),
