@@ -154,7 +154,11 @@ async def open_multiple_case(
         case_name = random.choice(CaseManager.CURRENT_CASES)  # type: ignore
     if case_name not in CaseManager.CURRENT_CASES:
         return "武器箱未收录, 当前可用武器箱:\n" + "\n".join(CaseManager.CURRENT_CASES)  # type: ignore
-    user, _ = await OpenCasesUser.get_or_create(user_qq=user_qq, group_id=group_id)
+    user, _ = await OpenCasesUser.get_or_create(
+        user_qq=user_qq,
+        group_id=group_id,
+        defaults={"open_cases_time_last": datetime.now()},
+    )
     max_count = await get_user_max_count(user_qq, group_id)
     if user.today_open_total >= max_count:
         return _handle_is_MAX_COUNT()
