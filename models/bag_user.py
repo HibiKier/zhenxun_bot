@@ -8,6 +8,7 @@ from .goods_info import GoodsInfo
 
 
 class BagUser(Model):
+
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_qq = fields.BigIntField()
