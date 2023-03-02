@@ -69,12 +69,12 @@ class BuffSkin(Model):
     async def _run_script(cls):
         return [
             "ALTER TABLE buff_skin ADD img_url varchar(255);",  # 新增img_url
-            "ALTER TABLE buff_skin ADD steam_price float;",  # 新增steam_price
+            "ALTER TABLE buff_skin ADD steam_price float DEFAULT 0;",  # 新增steam_price
             "ALTER TABLE buff_skin ADD weapon_type varchar(255);",  # 新增type
-            "ALTER TABLE buff_skin ADD buy_max_price float;"  # 新增buy_max_price
-            "ALTER TABLE buff_skin ADD buy_num Integer;",  # 新增buy_max_price
-            "ALTER TABLE buff_skin ADD sell_min_price float;",  # 新增sell_min_price
-            "ALTER TABLE buff_skin ADD sell_num Integer;",  # 新增sell_num
-            "ALTER TABLE buff_skin ADD sell_reference_price float;",  # 新增sell_reference_price
+            "ALTER TABLE buff_skin ADD buy_max_price float DEFAULT 0;",  # 新增buy_max_price
+            "ALTER TABLE buff_skin ADD buy_num Integer DEFAULT 0;",  # 新增buy_max_price
+            "ALTER TABLE buff_skin ADD sell_min_price float DEFAULT 0;",  # 新增sell_min_price
+            "ALTER TABLE buff_skin ADD sell_num Integer DEFAULT 0;",  # 新增sell_num
+            "ALTER TABLE buff_skin ADD sell_reference_price float DEFAULT 0;",  # 新增sell_reference_price
             "ALTER TABLE buff_skin DROP COLUMN skin_price;",  # 删除skin_price
         ]

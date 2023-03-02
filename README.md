@@ -331,9 +331,25 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
+### 2023/3/2
+
+* 修复config.yaml中把False也当成None的问题 [@pull/1288](https://github.com/HibiKier/zhenxun_bot/pull/1288)
+* 删除道具表无用字段(props) [@pull/1287](https://github.com/HibiKier/zhenxun_bot/pull/1287)
+
+### 2022/3/1
+
+* 重写开箱更新箱子，允许更新目前所有箱子的皮肤
+* 修复消息统计
+
+### 2023/2/28
+
+* 把Config的type字段默认类型由str改为None [@pull/1283](https://github.com/HibiKier/zhenxun_bot/pull/1283)
+* 修复同意群聊请求以及添加群认证 更新变成查询的问题 [@pull/1282](https://github.com/HibiKier/zhenxun_bot/pull/1282)
+
 ### 2023/2/26
 
 * Config提供`type`字段确定配置项类型
+* 重写开箱功能
 
 ### 2023/2/25
 
