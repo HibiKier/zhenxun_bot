@@ -160,9 +160,12 @@ async def search_skin_page(
         "_": time.time(),
         "use_suggestio": 0,
     }
+    proxy = None
+    if ip := Config.get_config("open_cases", "BUFF_PROXY"):
+        proxy = {"http://": ip, "https://": ip}
     response = await AsyncHttpx.get(
         URL,
-        proxy=Config.get_config("open_cases", "BUFF_PROXY"),
+        proxy=proxy,
         params=params,
         cookies=cookie,  # type: ignore
     )

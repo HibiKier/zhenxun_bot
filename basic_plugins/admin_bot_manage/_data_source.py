@@ -320,8 +320,8 @@ async def update_member_info(group_id: int, remind_superuser: bool = False) -> b
         )
         if user:
             if user.user_name != nickname:
-                user.user_name=nickname
-                await user.save(update_fields=['user_name'])
+                user.user_name = nickname
+                await user.save(update_fields=["user_name"])
                 logger.info(
                     f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新群昵称成功"
                 )
@@ -334,7 +334,10 @@ async def update_member_info(group_id: int, remind_superuser: bool = False) -> b
         await GroupInfoUser.update_or_create(
             user_qq=user_info["user_id"],
             group_id=user_info["group_id"],
-            defaults={"user_name": nickname, "user_join_time": join_time},
+            defaults={
+                "user_name": nickname,
+                "user_join_time": join_time.replace(tzinfo=None),
+            },
         )
         _exist_member_list.append(int(user_info["user_id"]))
         logger.info("更新成功", "更新成员信息", user_info["user_id"], user_info["group_id"])
