@@ -1,23 +1,23 @@
 import asyncio
 import random
-from datetime import datetime
+import re
+from datetime import datetime, timedelta
 from typing import Union
 
-import pypinyin
-from nonebot.adapters.onebot.v11 import Message
-from PIL import Image
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
 
 from configs.config import Config
 from configs.path_config import IMAGE_PATH
 from models.sign_group_user import SignGroupUser
 from services.log import logger
-from utils.image_utils import BuildImage, alpha2white_pil
+from utils.image_utils import BuildImage
 from utils.message_builder import image
-from utils.utils import cn2py
+from utils.utils import cn2py, scheduler
 
 from .config import *
+from .models.open_cases_log import OpenCasesLog
 from .models.open_cases_user import OpenCasesUser
-from .utils import CaseManager
+from .utils import CaseManager, update_case_data
 
 RESULT_MESSAGE = {
     "BLUE": ["这样看着才舒服", "是自己人，大伙把刀收好", "非常舒适~"],
@@ -119,11 +119,6 @@ async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, M
     add_count(user, skin)
     ridicule_result = random.choice(RESULT_MESSAGE[skin.color])
     price_result = skin.sell_min_price
-    if skin.color == "KNIFE":
-        user.knifes_name = (
-            user.knifes_name
-            + f"{case}||{skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion}) 磨损：{rand}， 价格：{skin.sell_min_price},"
-        )
     name = skin.name + "-" + skin.skin_name + "-" + skin.abrasion
     img_path = IMAGE_PATH / "csgo_cases" / case / f"{cn2py(name)}.jpg"
     logger.info(
@@ -133,6 +128,20 @@ async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, M
         group_id,
     )
     await user.save()
+    await OpenCasesLog.create(
+        user_qq=user_qq,
+        group_id=group_id,
+        case_name=case_name,
+        name=skin.name,
+        skin_name=skin.skin_name,
+        is_stattrak=skin.is_stattrak,
+        abrasion=skin.abrasion,
+        color=skin.color,
+        price=skin.sell_min_price,
+        abrasion_value=rand,
+        create_time=datetime.now(),
+    )
+    logger.debug(f"添加 1 条开箱日志", "开箱", user_qq, group_id)
     over_count = max_count - user.today_open_total
     return (
         f"开启{case_name}武器箱.\n剩余开箱次数:{over_count}.\n"
@@ -148,6 +157,17 @@ async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, M
 async def open_multiple_case(
     user_qq: int, group_id: int, case_name: str, num: int = 10
 ):
+    """多连开箱
+
+    Args:
+        user_qq (int): 用户id
+        group_id (int): 群号
+        case_name (str): 箱子名称
+        num (int, optional): 数量. Defaults to 10.
+
+    Returns:
+        _type_: _description_
+    """
     if not CaseManager.CURRENT_CASES:
         return "未收录任何武器箱"
     if not case_name:
@@ -180,6 +200,8 @@ async def open_multiple_case(
     if not skin_list:
         return "未抽取到任何皮肤..."
     total_price = 0
+    log_list = []
+    now = datetime.now()
     for skin, rand in skin_list:
         total_price += skin.sell_min_price
         rand = str(rand)[:11]
@@ -213,7 +235,25 @@ async def open_multiple_case(
             user_qq,
             group_id,
         )
+        log_list.append(
+            OpenCasesLog(
+                user_qq=user_qq,
+                group_id=group_id,
+                case_name=case_name,
+                name=skin.name,
+                skin_name=skin.skin_name,
+                is_stattrak=skin.is_stattrak,
+                abrasion=skin.abrasion,
+                color=skin.color,
+                price=skin.sell_min_price,
+                abrasion_value=rand,
+                create_time=now,
+            )
+        )
     await user.save()
+    if log_list:
+        await OpenCasesLog.bulk_create(log_list, 10)
+        logger.debug(f"添加 {len(log_list)} 条开箱日志", "开箱", user_qq, group_id)
     markImg = BuildImage(1000, h, 200, 270)
     for img in img_list:
         markImg.paste(img)
@@ -291,62 +331,123 @@ async def group_statistics(group: int):
     )
 
 
-async def my_knifes_name(user_id: int, group: int):
-    user, _ = await OpenCasesUser.get_or_create(user_qq=user_id, group_id=group)
+async def get_my_knifes(user_id: int, group_id: int) -> Union[str, MessageSegment]:
+    """获取我的金色
+
+    Args:
+        user_id (int): 用户id
+        group_id (int): 群号
+
+    Returns:
+        Union[str, MessageSegment]: 回复消息或图片
+    """
+    data_list = await get_old_knife(user_id, group_id)
+    data_list += await OpenCasesLog.filter(
+        user_qq=user_id, group_id=group_id, color="KNIFE"
+    ).all()
+    if not data_list:
+        return "您木有开出金色级别的皮肤喔"
+    length = len(data_list)
+    if length < 5:
+        h = 600
+        w = length * 540
+    elif length % 5 == 0:
+        h = 600 * int(length / 5)
+        w = 540 * 5
+    else:
+        h = 600 * int(length / 5) + 600
+        w = 540 * 5
+    A = BuildImage(w, h, 540, 600)
+    for skin in data_list:
+        name = skin.name + "-" + skin.skin_name + "-" + skin.abrasion
+        img_path = (
+            IMAGE_PATH / "csgo_cases" / cn2py(skin.case_name) / f"{cn2py(name)}.jpg"
+        )
+        knife_img = BuildImage(470, 600, 470, 470, font_size=20)
+        await knife_img.apaste(
+            BuildImage(470, 470, background=img_path if img_path.exists() else None),
+            (0, 0),
+            True,
+        )
+        await knife_img.atext(
+            (5, 500), f"\t{skin.name}|{skin.skin_name}({skin.abrasion})"
+        )
+        await knife_img.atext((5, 530), f"\t磨损：{skin.abrasion_value}")
+        await knife_img.atext((5, 560), f"\t价格：{skin.price}")
+        await A.apaste(knife_img)
+    return image(A)
+
+
+async def get_old_knife(user_id: int, group_id: int) -> List[OpenCasesLog]:
+    """获取旧数据字段
+
+    Args:
+        user_id (int): 用户id
+        group_id (int): 群号
+
+    Returns:
+        List[OpenCasesLog]: 旧数据兼容
+    """
+    user, _ = await OpenCasesUser.get_or_create(user_qq=user_id, group_id=group_id)
     knifes_name = user.knifes_name
+    data_list = []
     if knifes_name:
         knifes_list = knifes_name[:-1].split(",")
-        length = len(knifes_list)
-        if length < 5:
-            h = 600
-            w = length * 540
-        elif length % 5 == 0:
-            h = 600 * int(length / 5)
-            w = 540 * 5
-        else:
-            h = 600 * int(length / 5) + 600
-            w = 540 * 5
-        A = await asyncio.get_event_loop().run_in_executor(
-            None, _pst_my_knife, w, h, knifes_list
-        )
-        return image(b64=A.pic2bs4())
-    else:
-        return "您木有开出金色级别的皮肤喔"
+        for knife in knifes_list:
+            try:
+                if r := re.search(
+                    "(.*)\|\|(.*) \| (.*)\((.*)\) 磨损：(.*)， 价格：(.*)", knife
+                ):
+                    case_name_py = r.group(1)
+                    name = r.group(2)
+                    skin_name = r.group(3)
+                    abrasion = r.group(4)
+                    abrasion_value = r.group(5)
+                    price = r.group(6)
+                    name = name.replace("（StatTrak™）", "")
+                    data_list.append(
+                        OpenCasesLog(
+                            user_qq=user_id,
+                            group_id=group_id,
+                            name=name.strip(),
+                            case_name=case_name_py.strip(),
+                            skin_name=skin_name.strip(),
+                            abrasion=abrasion.strip(),
+                            abrasion_value=abrasion_value,
+                            price=price,
+                        )
+                    )
+            except Exception as e:
+                logger.error(f"获取兼容旧数据错误: {knife}", "我的金色", user_id, group_id, e=e)
+    return data_list
 
 
-def _pst_my_knife(w, h, knifes_list):
-    A = BuildImage(w, h, 540, 600)
-    for knife in knifes_list:
-        case = knife.split("||")[0]
-        knife = knife.split("||")[1]
-        name = knife[: knife.find("(")].strip()
-        itype = knife[knife.find("(") + 1 : knife.find(")")].strip()
-        mosun = knife[knife.find("磨损：") + 3 : knife.rfind("价格：")].strip()
-        if mosun[-1] == "," or mosun[-1] == "，":
-            mosun = mosun[:-1]
-        price = knife[knife.find("价格：") + 3 :]
-        skin_name = ""
-        for i in pypinyin.pinyin(
-            name.replace("|", "-").replace("（StatTrak™）", "").strip(),
-            style=pypinyin.NORMAL,
-        ):
-            skin_name += "".join(i)
-        knife_img = BuildImage(470, 600, 470, 470, font_size=20)
-        knife_img.paste(
-            alpha2white_pil(
-                Image.open(IMAGE_PATH / f"cases" / case / f"{skin_name}.png").resize(
-                    (470, 470), Image.ANTIALIAS
-                )
-            ),
-            (0, 0),
-        )
-        knife_img.text((5, 500), f"\t{name}({itype})")
-        knife_img.text((5, 530), f"\t磨损：{mosun}")
-        knife_img.text((5, 560), f"\t价格：{price}")
-        A.paste(knife_img)
-    return A
+@scheduler.scheduled_job(
+    "cron",
+    hour=0,
+    minute=1,
+)
+async def _():
+    now = datetime.now()
+    hour = random.choice([0, 1, 2, 3])
+    date = now + timedelta(hours=hour)
+    scheduler.add_job(
+        update,
+        "date",
+        run_date=date.replace(microsecond=0),
+        id=f"auto_update_csgo_cases",
+    )
 
 
-# G3SG1（StatTrak™） |  血腥迷彩 (战痕累累)
-# G3SG1（StatTrak™） | 血腥迷彩 (战痕累累)
-# G3SG1（StatTrak™） | 血腥迷彩 (战痕累累)
+async def update():
+    if case_list := Config.get_config("open_cases", "DAILY_UPDATE"):
+        logger.debug("尝试自动更新武器箱", "更新武器箱")
+        if "ALL" in case_list:
+            case_list = CASE2ID.keys()
+        logger.debug(f"预计自动更新武器箱 {len(case_list)} 个", "更新武器箱")
+        for case_name in case_list:
+            logger.debug(f"开始自动更新武器箱: {case_name}", "更新武器箱")
+            await update_case_data(case_name)
+            rand = random.randint(300, 500)
+            logger.debug(f"成功自动更新武器箱: {case_name}, 将在 {rand} 秒后再次更新下一武器箱", "更新武器箱")
+            await asyncio.sleep(rand)

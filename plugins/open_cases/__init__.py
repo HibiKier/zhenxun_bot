@@ -1,5 +1,5 @@
 import random
-from typing import Any, Tuple, Type
+from typing import Any, List, Tuple
 
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message, MessageEvent
@@ -14,15 +14,15 @@ from configs.config import Config
 from configs.path_config import IMAGE_PATH
 from utils.utils import is_number, scheduler
 
-from .config import CASE2ID
 from .open_cases_c import (
+    get_my_knifes,
     group_statistics,
-    my_knifes_name,
     open_case,
     open_multiple_case,
     total_open_statistics,
+    update,
 )
-from .utils import CaseManager, reset_count_daily, update_case_data
+from .utils import CASE2ID, CaseManager, reset_count_daily, update_case_data
 
 __zx_plugin_name__ = "开箱"
 __plugin_usage__ = """
@@ -94,6 +94,11 @@ __plugin_configs__ = {
         "help": "BUFF的cookie",
     },
     "BUFF_PROXY": {"value": None, "help": "使用代理访问BUFF"},
+    "DAILY_UPDATE": {
+        "value": None,
+        "help": "每日自动更新的武器箱，存在'ALL'时则更新全部武器箱",
+        "type": List[str],
+    },
 }
 
 Config.add_plugin_config(
@@ -110,8 +115,14 @@ cases_matcher_group = MatcherGroup(priority=5, permission=GROUP, block=True)
 
 
 k_open_case = cases_matcher_group.on_command("开箱")
-
 reload_count = cases_matcher_group.on_command("重置开箱", permission=SUPERUSER)
+total_case_data = cases_matcher_group.on_command(
+    "我的开箱", aliases={"开箱统计", "开箱查询", "查询开箱"}
+)
+group_open_case_statistics = cases_matcher_group.on_command("群开箱统计")
+open_multiple = cases_matcher_group.on_regex("(.*)连开箱(.*)?")
+update_data = on_command("更新武器箱", priority=1, permission=SUPERUSER, block=True)
+my_knifes = on_command("我的金色", priority=1, permission=GROUP, block=True)
 
 
 @reload_count.handle()
@@ -127,11 +138,6 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
     await k_open_case.finish(result, at_sender=True)
 
 
-total_case_data = cases_matcher_group.on_command(
-    "我的开箱", aliases={"开箱统计", "开箱查询", "查询开箱"}
-)
-
-
 @total_case_data.handle()
 async def _(event: GroupMessageEvent):
     await total_case_data.finish(
@@ -140,25 +146,16 @@ async def _(event: GroupMessageEvent):
     )
 
 
-group_open_case_statistics = cases_matcher_group.on_command("群开箱统计")
-
-
 @group_open_case_statistics.handle()
 async def _(event: GroupMessageEvent):
     await group_open_case_statistics.finish(await group_statistics(event.group_id))
 
 
-my_kinfes = on_command("我的金色", priority=1, permission=GROUP, block=True)
-
-
-@my_kinfes.handle()
+@my_knifes.handle()
 async def _(event: GroupMessageEvent):
-    await my_kinfes.finish(
-        await my_knifes_name(event.user_id, event.group_id), at_sender=True
+    await my_knifes.finish(
+        await get_my_knifes(event.user_id, event.group_id), at_sender=True
     )
-
-
-open_multiple: Type[Matcher] = cases_matcher_group.on_regex("(.*)连开箱(.*)?")
 
 
 @open_multiple.handle()
@@ -216,9 +213,6 @@ num_dict = {
     "二十九": 29,
     "三十": 30,
 }
-
-
-update_data = on_command("更新武器箱", priority=1, permission=SUPERUSER, block=True)
 
 
 @update_data.handle()

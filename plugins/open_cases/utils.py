@@ -36,7 +36,7 @@ class CaseManager:
     @classmethod
     async def reload(cls):
         cls.CURRENT_CASES = (
-            await BuffSkin.annotate().distinct().values_list("case_name", flat=True)
+            await BuffSkin.annotate().distinct().values_list("case_name", flat=True)  # type: ignore
         )
 
 
