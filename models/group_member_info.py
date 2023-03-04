@@ -17,7 +17,7 @@ class GroupInfoUser(Model):
     """用户昵称"""
     group_id = fields.BigIntField()
     """群聊id"""
-    user_join_time = fields.DatetimeField(null=True)
+    user_join_time: datetime = fields.DatetimeField(null=True)
     """用户入群时间"""
     nickname = fields.CharField(255, null=True)
     """群聊昵称"""

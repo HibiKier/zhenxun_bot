@@ -1,7 +1,7 @@
 import asyncio
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List
 
@@ -331,14 +331,23 @@ async def update_member_info(group_id: int, remind_superuser: bool = False) -> b
             time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(user_info["join_time"])),
             "%Y-%m-%d %H:%M:%S",
         )
-        await GroupInfoUser.update_or_create(
+        user, _ = await GroupInfoUser.get_or_create(
             user_qq=user_info["user_id"],
             group_id=user_info["group_id"],
             defaults={
                 "user_name": nickname,
-                "user_join_time": join_time.replace(tzinfo=None),
             },
         )
+        # await GroupInfoUser.update_or_create(
+        #     user_qq=user_info["user_id"],
+        #     group_id=user_info["group_id"],
+        #     defaults={
+        #         "user_name": nickname,
+        #         # "user_join_time": datetime.now().replace(tzinfo=None),
+        #     },
+        # )
+        user.user_join_time = join_time
+        await user.save()
         _exist_member_list.append(int(user_info["user_id"]))
         logger.info("更新成功", "更新成员信息", user_info["user_id"], user_info["group_id"])
     _del_member_list = list(
