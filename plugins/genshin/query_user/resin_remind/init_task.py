@@ -101,7 +101,7 @@ async def _():
                         f"genshin_resin_remind add_job：USER：{u.user_qq} UID：{u.uid}启动原神树脂提醒 "
                     )
                 else:
-                    u.resin_recovery_time = None
+                    u.resin_recovery_time = None  # type: ignore
                     update_list.append(u)
                     add_job(u.user_qq, u.uid)
                     logger.info(
