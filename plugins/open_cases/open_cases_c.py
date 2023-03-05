@@ -32,7 +32,7 @@ COLOR2NAME = {"BLUE": "军规", "PURPLE": "受限", "PINK": "保密", "RED": "�
 COLOR2CN = {"BLUE": "蓝", "PURPLE": "紫", "PINK": "粉", "RED": "红", "KNIFE": "金"}
 
 
-def add_count(user: OpenCasesUser, skin: BuffSkin):
+def add_count(user: OpenCasesUser, skin: BuffSkin, case_price: float):
     if skin.color == "BLUE":
         if skin.is_stattrak:
             user.blue_st_count += 1
@@ -61,7 +61,7 @@ def add_count(user: OpenCasesUser, skin: BuffSkin):
     user.today_open_total += 1
     user.total_count += 1
     user.make_money += skin.sell_min_price
-    user.spend_money += 17
+    user.spend_money += 17 + case_price
 
 
 async def get_user_max_count(user_qq: int, group_id: int) -> int:
@@ -116,7 +116,10 @@ async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, M
         return "未抽取到任何皮肤..."
     skin, rand = skin_list[0]
     rand = str(rand)[:11]
-    add_count(user, skin)
+    case_price = 0
+    if case_skin := await BuffSkin.get_or_none(case_name=case_name, color="CASE"):
+        case_price = case_skin.sell_min_price
+    add_count(user, skin, case_price)
     ridicule_result = random.choice(RESULT_MESSAGE[skin.color])
     price_result = skin.sell_min_price
     name = skin.name + "-" + skin.skin_name + "-" + skin.abrasion
@@ -149,7 +152,7 @@ async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, M
         + "\n"
         + f"皮肤:[{COLOR2NAME[skin.color]}]{skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion})\n"
         f"磨损:{rand}\n"
-        f"价格:{price_result}\n"
+        f"价格:{price_result}\n箱子单价:{case_price}\n花费:{17 + case_price}\n"
         f":{ridicule_result}"
     )
 
@@ -202,10 +205,13 @@ async def open_multiple_case(
     total_price = 0
     log_list = []
     now = datetime.now()
+    case_price = 0
+    if case_skin := await BuffSkin.get_or_none(case_name=case_name, color="CASE"):
+        case_price = case_skin.sell_min_price
     for skin, rand in skin_list:
         total_price += skin.sell_min_price
         rand = str(rand)[:11]
-        add_count(user, skin)
+        add_count(user, skin, case_price)
         color_name = COLOR2CN[skin.color]
         if skin.is_stattrak:
             color_name += "(暗金)"
@@ -266,7 +272,7 @@ async def open_multiple_case(
         + image(markImg.pic2bs4())
         + "\n"
         + result[:-1]
-        + f"\n总获取金额：{total_price:.2f}\n总花费：{17 * num}"
+        + f"\n箱子单价：{case_price}\n总获取金额：{total_price:.2f}\n总花费：{(17 + case_price) * num}"
     )
 
 

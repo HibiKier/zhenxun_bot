@@ -226,7 +226,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             else:
                 case_list.append(f"{i+1}.{case_name}")
         await update_data.finish("未指定武器箱, 当前已包含武器箱\n" + "\n".join(case_list))
-    await update_data.send(await update_case_data(msg))
+    await update_data.send(f"开始更新武器箱: {msg}, 请稍等")
+    await update_data.send(await update_case_data(msg), at_sender=True)
 
 
 # 重置开箱

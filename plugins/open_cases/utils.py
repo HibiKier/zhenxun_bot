@@ -186,20 +186,26 @@ async def search_skin_page(
             info = goods_info["info"]
             tags = info["tags"]
             obj["weapon_type"] = tags["type"]["localized_name"]  # 枪械类型
-            if obj["weapon_type"] in ["音乐盒", "印花", "武器箱"]:
+            if obj["weapon_type"] in ["音乐盒", "印花"]:
                 continue
             if obj["weapon_type"] in ["匕首", "手套"]:
                 obj["color"] = "KNIFE"
                 obj["name"] = data["short_name"].split("（")[0].strip()  # 名称
+            if obj["weapon_type"] in ["武器箱"]:
+                obj["color"] = "CASE"
+                obj["name"] = data["short_name"]
             else:
                 obj["color"] = NAME2COLOR[tags["rarity"]["localized_name"]]
                 obj["name"] = tags["weapon"]["localized_name"]  # 名称
+            if obj["weapon_type"] not in ["武器箱"]:
+                obj["abrasion"] = tags["exterior"]["localized_name"]  # 磨损
+                obj["color"] = NAME2COLOR[tags["rarity"]["localized_name"]]  # 品质颜色
+                obj["is_stattrak"] = "StatTrak" in tags["quality"]["localized_name"]  # type: ignore # 是否暗金
+            else:
+                obj["abrasion"] = "CASE"
             obj["skin_name"] = data["short_name"].split("|")[-1].strip()  # 皮肤名称
             obj["img_url"] = goods_info["original_icon_url"]  # 图片url
             obj["steam_price"] = goods_info["steam_price_cny"]  # steam价格
-            obj["abrasion"] = tags["exterior"]["localized_name"]  # 磨损
-            obj["color"] = NAME2COLOR[tags["rarity"]["localized_name"]]  # 品质颜色
-            obj["is_stattrak"] = "StatTrak" in tags["quality"]["localized_name"]  # type: ignore # 是否暗金
             obj["sell_min_price"] = data["sell_min_price"]  # 售卖最低价格
             obj["sell_num"] = data["sell_num"]  # 售卖数量
             obj["sell_reference_price"] = data["sell_reference_price"]  # 参考价格
@@ -210,8 +216,8 @@ async def search_skin_page(
         )
         return update_data, json_data["data"]["total_page"]
     else:
-        logger.warning(f'访问BUFF失败: {json_data["msg"]}')
-    return f'访问失败: {json_data["msg"]}', -1
+        logger.warning(f'访问BUFF失败: {json_data["error"]}')
+    return f'访问失败: {json_data["error"]}', -1
 
 
 async def reset_count_daily():

@@ -33,7 +33,7 @@ class OpenCasesUser(Model):
     """金色"""
     knife_st_count: int = fields.IntField(default=0)
     """金色暗金"""
-    spend_money: int = fields.IntField(default=0)
+    spend_money: float = fields.IntField(default=0)
     """花费金币"""
     make_money: float = fields.FloatField(default=0)
     """赚取金币"""
@@ -52,5 +52,6 @@ class OpenCasesUser(Model):
     @classmethod
     async def _run_script(cls):
         return [
-            "alter table open_cases_users alter COLUMN make_money type float;"  # 将make_money字段改为float
+            "alter table open_cases_users alter COLUMN make_money type float;",  # 将make_money字段改为float
+            "alter table open_cases_users alter COLUMN spend_money type float;",  # 将spend_money字段改为float
         ]
