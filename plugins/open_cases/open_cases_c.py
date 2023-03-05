@@ -429,8 +429,8 @@ async def get_old_knife(user_id: int, group_id: int) -> List[OpenCasesLog]:
 
 @scheduler.scheduled_job(
     "cron",
-    hour=23,
-    minute=9,
+    hour=0,
+    minute=1,
 )
 async def _():
     now = datetime.now()

@@ -117,8 +117,8 @@ class BanUser(Model):
         参数:
             :param user_qq: qq号
         """
-        logger.debug("解除封禁", target=user_qq)
         if user := await cls.filter(user_qq=user_qq).first():
+            logger.debug("解除封禁", target=user_qq)
             await user.delete()
             return True
         return False
