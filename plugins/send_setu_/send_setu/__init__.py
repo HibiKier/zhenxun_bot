@@ -243,12 +243,16 @@ async def _(bot: Bot, event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGro
         num = int(num)
     except ValueError:
         num = 1
-
     limit = Config.get_config("send_setu", "MAX_ONCE_NUM")
     if limit and num > limit:
         num = limit
         await setu.send(f"一次只能给你看 {num} 张哦")
-    await send_setu_handle(bot, setu_reg, event, "色图r" if r18 else "色图", tags + " " + tags2, num, r18)
+    if r18 and not Config.get_config("send_setu", "ALLOW_GROUP_R18"):
+        await setu.finish(
+            random.choice(["这种不好意思的东西怎么可能给这么多人看啦", "羞羞脸！给我滚出克私聊！", "变态变态变态变态大变态！"])
+        )
+    else:
+        await send_setu_handle(bot, setu_reg, event, "色图r" if r18 else "色图", tags + " " + tags2, num, r18)
 
 
 async def send_setu_handle(
