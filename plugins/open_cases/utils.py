@@ -68,8 +68,8 @@ async def update_case_data(case_name: str) -> str:
         data_list_, total = await search_skin_page(case_name, page)
         if isinstance(data_list_, list):
             data_list += data_list_
-    create_list = []
-    update_list = []
+    create_list: List[BuffSkin] = []
+    update_list: List[BuffSkin] = []
     log_list = []
     case_name_py = cn2py(case_name)
     now = datetime.now()
@@ -113,11 +113,42 @@ async def update_case_data(case_name: str) -> str:
         logger.debug(f"更新武器箱: [<u><e>{case_name}</e></u>], 创建 {len(create_list)} 个皮肤!")
         await BuffSkin.bulk_create(create_list, 10)
     if update_list:
+        abrasion_list = []
+        name_list = []
+        skin_name_list = []
+        for skin in update_list:
+            if skin.abrasion not in abrasion_list:
+                abrasion_list.append(skin.abrasion)
+            if skin.name not in name_list:
+                name_list.append(skin.name)
+            if skin.skin_name not in skin_name_list:
+                skin_name_list.append(skin.skin_name)
+        db_data = await BuffSkin.filter(
+            case_name=case_name,
+            skin_name__in=skin_name_list,
+            name__in=name_list,
+            abrasion__in=abrasion_list,
+        ).all()
+        _update_list = []
+        for data in db_data:
+            for skin in update_list:
+                if (
+                    data.name == skin.name
+                    and data.skin_name == skin.skin_name
+                    and data.abrasion == skin.abrasion
+                ):
+                    data.steam_price = skin.steam_price
+                    data.buy_max_price = skin.buy_max_price
+                    data.buy_num = skin.buy_num
+                    data.sell_min_price = skin.sell_min_price
+                    data.sell_num = skin.sell_num
+                    data.sell_reference_price = skin.sell_reference_price
+                    data.update_time = skin.update_time
+                    _update_list.append(data)
         logger.debug(f"更新武器箱: [<u><c>{case_name}</c></u>], 更新 {len(create_list)} 个皮肤!")
         await BuffSkin.bulk_update(
-            update_list,
+            _update_list,
             [
-                "skin_price",
                 "steam_price",
                 "buy_max_price",
                 "buy_num",

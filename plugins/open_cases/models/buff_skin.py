@@ -26,19 +26,19 @@ class BuffSkin(Model):
 
     img_url = fields.CharField(255)
     """图片url"""
-    steam_price = fields.FloatField(default=0)
+    steam_price: float = fields.FloatField(default=0)
     """steam价格"""
     weapon_type = fields.CharField(255)
     """枪械类型"""
-    buy_max_price = fields.FloatField(default=0)
+    buy_max_price: float = fields.FloatField(default=0)
     """最大求购价格"""
-    buy_num = fields.IntField(default=0)
+    buy_num: int = fields.IntField(default=0)
     """求购数量"""
-    sell_min_price = fields.FloatField(default=0)
+    sell_min_price: float = fields.FloatField(default=0)
     """售卖最低价格"""
-    sell_num = fields.IntField(default=0)
+    sell_num: int = fields.IntField(default=0)
     """出售个数"""
-    sell_reference_price = fields.FloatField(default=0)
+    sell_reference_price: float = fields.FloatField(default=0)
     """参考价格"""
 
     create_time: datetime = fields.DatetimeField(auto_add_now=True)
@@ -58,12 +58,21 @@ class BuffSkin(Model):
         abrasion: str,
         is_stattrak: bool = False,
         case_name: Optional[str] = None,
-    ) -> List["BuffSkin"]:
+    ) -> List["BuffSkin"]:  # type: ignore
         query = cls
         if case_name:
             query = query.filter(case_name=case_name)
         query = query.filter(abrasion=abrasion, is_stattrak=is_stattrak, color=color)
-        return await query.annotate(rand=Random()).limit(num)  # type:ignore
+        skin_list = await query.annotate(rand=Random()).limit(num)  # type:ignore
+        num_ = num
+        cnt = 0
+        while len(skin_list) < num:
+            cnt += 1
+            num_ = num - len(skin_list)
+            skin_list += await query.annotate(rand=Random()).limit(num_)
+            if cnt > 10:
+                break
+        return skin_list  # type: ignore
 
     @classmethod
     async def _run_script(cls):

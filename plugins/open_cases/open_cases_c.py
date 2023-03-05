@@ -208,6 +208,8 @@ async def open_multiple_case(
     case_price = 0
     if case_skin := await BuffSkin.get_or_none(case_name=case_name, color="CASE"):
         case_price = case_skin.sell_min_price
+    print(user.today_open_total)
+    cnt = 0
     for skin, rand in skin_list:
         total_price += skin.sell_min_price
         rand = str(rand)[:11]
@@ -218,11 +220,6 @@ async def open_multiple_case(
         if not skin_count.get(color_name):
             skin_count[color_name] = 0
         skin_count[color_name] += 1
-        if skin.color == "KNIFE":
-            user.knifes_name = (
-                user.knifes_name
-                + f"{case}||{skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion}) 磨损：{rand}， 价格：{skin.sell_min_price},"
-            )
         name = skin.name + "-" + skin.skin_name + "-" + skin.abrasion
         img_path = IMAGE_PATH / "csgo_cases" / case / f"{cn2py(name)}.jpg"
         wImg = BuildImage(200, 270, 200, 200)
@@ -232,6 +229,7 @@ async def open_multiple_case(
             (5, 200),
             f"{skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion})",
         )
+        cnt += 1
         await wImg.atext((5, 220), f"磨损：{rand}")
         await wImg.atext((5, 240), f"价格：{skin.sell_min_price}")
         img_list.append(wImg)
@@ -257,6 +255,7 @@ async def open_multiple_case(
             )
         )
     await user.save()
+    print(user.today_open_total)
     if log_list:
         await OpenCasesLog.bulk_create(log_list, 10)
         logger.debug(f"添加 {len(log_list)} 条开箱日志", "开箱", user_qq, group_id)
@@ -430,8 +429,8 @@ async def get_old_knife(user_id: int, group_id: int) -> List[OpenCasesLog]:
 
 @scheduler.scheduled_job(
     "cron",
-    hour=0,
-    minute=1,
+    hour=23,
+    minute=9,
 )
 async def _():
     now = datetime.now()
@@ -453,7 +452,10 @@ async def update():
         logger.debug(f"预计自动更新武器箱 {len(case_list)} 个", "更新武器箱")
         for case_name in case_list:
             logger.debug(f"开始自动更新武器箱: {case_name}", "更新武器箱")
-            await update_case_data(case_name)
-            rand = random.randint(300, 500)
-            logger.debug(f"成功自动更新武器箱: {case_name}, 将在 {rand} 秒后再次更新下一武器箱", "更新武器箱")
-            await asyncio.sleep(rand)
+            try:
+                await update_case_data(case_name)
+                rand = random.randint(300, 500)
+                logger.debug(f"成功自动更新武器箱: {case_name}, 将在 {rand} 秒后再次更新下一武器箱", "更新武器箱")
+                await asyncio.sleep(rand)
+            except Exception as e:
+                logger.error(f"自动更新武器箱: {case_name}", e=e)
