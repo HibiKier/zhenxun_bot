@@ -130,6 +130,7 @@ def _generate_card(
     ava.circle()
     ava_bk.paste(ava, center_type="center")
     ava_bk.paste(ava_border, alpha=True, center_type="center")
+    add_impression = impression
     impression = float(user.impression)
     info_img = BuildImage(250, 150, color=(255, 255, 255, 0), font_size=15)
     level, next_impression, previous_impression = get_level_and_next_impression(
@@ -266,9 +267,9 @@ def _generate_card(
             0, 0, plain_text="今日签到", color=(255, 255, 255, 0), font_size=30
         )
         if is_double:
-            today_data.text((0, 0), f"好感度 + {impression / 2:.2f} × 2")
+            today_data.text((0, 0), f"好感度 + {add_impression / 2:.2f} × 2")
         else:
-            today_data.text((0, 0), f"好感度 + {impression:.2f}")
+            today_data.text((0, 0), f"好感度 + {add_impression:.2f}")
         today_data.text((0, 25), f"金币 + {gold}")
         _type = "sign"
     current_date = datetime.now()
