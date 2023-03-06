@@ -118,11 +118,20 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
         user_info = await bot.get_group_member_info(
             group_id=event.group_id, user_id=event.user_id
         )
-        await GroupInfoUser.update_or_create(
+        user, _ = await GroupInfoUser.get_or_create(
             user_qq=user_info["user_id"],
             group_id=user_info["group_id"],
-            defaults={"user_name": user_info["nickname"], "user_join_time": join_time},
+            defaults={
+                "user_name": user_info["nickname"],
+            },
         )
+        user.user_join_time = join_time
+        await user.save()
+        # await GroupInfoUser.update_or_create(
+        #     user_qq=user_info["user_id"],
+        #     group_id=user_info["group_id"],
+        #     defaults={"user_name": user_info["nickname"], "user_join_time": join_time},
+        # )
         logger.info(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新成功")
 
         # 群欢迎消息

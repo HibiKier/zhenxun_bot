@@ -53,7 +53,7 @@ CASE2ID = {
     "光谱": "set_community_16",
     "手套武器箱": "set_community_15",
     "伽玛2号": "set_gamma_2",
-    "伽玛": "set_gamma_1",
+    "伽玛": "set_community_13",
     "幻彩3号": "set_community_12",
     "野火大行动": "set_community_11",
     "左轮武器箱": "set_community_10",

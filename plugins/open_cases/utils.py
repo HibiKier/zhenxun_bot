@@ -20,7 +20,7 @@ from .models.open_cases_user import OpenCasesUser
 URL = "https://buff.163.com/api/market/goods"
 # proxies = 'http://49.75.59.242:3128'
 
-NAME2COLOR = {"军规级": "BLUE", "受限": "PURPLE", "保密": "PINK", "隐秘": "RED", "非凡": "KNIFE"}
+NAME2COLOR = {"消费级": "WHITE", "工业级": "LIGHTBLUE", "军规级": "BLUE", "受限": "PURPLE", "保密": "PINK", "隐秘": "RED", "非凡": "KNIFE"}
 
 CURRENT_CASES = []
 
@@ -207,40 +207,49 @@ async def search_skin_page(
         for data in data_list:
             obj = {"case_name": case_name}
             name = data["name"]
-            logger.debug(
-                f"武器箱: [<u><e>{case_name}</e></u>] 页数: [<u><y>{page_index}</y></u>] 正在收录皮肤: [<u><c>{name}</c></u>]...",
-                "开箱更新",
-            )
-            obj["buy_max_price"] = data["buy_max_price"]  # 求购最大金额
-            obj["buy_num"] = data["buy_num"]  # 当前求购
-            goods_info = data["goods_info"]
-            info = goods_info["info"]
-            tags = info["tags"]
-            obj["weapon_type"] = tags["type"]["localized_name"]  # 枪械类型
-            if obj["weapon_type"] in ["音乐盒", "印花"]:
-                continue
-            if obj["weapon_type"] in ["匕首", "手套"]:
-                obj["color"] = "KNIFE"
-                obj["name"] = data["short_name"].split("（")[0].strip()  # 名称
-            if obj["weapon_type"] in ["武器箱"]:
-                obj["color"] = "CASE"
-                obj["name"] = data["short_name"]
-            else:
-                obj["color"] = NAME2COLOR[tags["rarity"]["localized_name"]]
-                obj["name"] = tags["weapon"]["localized_name"]  # 名称
-            if obj["weapon_type"] not in ["武器箱"]:
-                obj["abrasion"] = tags["exterior"]["localized_name"]  # 磨损
-                obj["color"] = NAME2COLOR[tags["rarity"]["localized_name"]]  # 品质颜色
-                obj["is_stattrak"] = "StatTrak" in tags["quality"]["localized_name"]  # type: ignore # 是否暗金
-            else:
-                obj["abrasion"] = "CASE"
-            obj["skin_name"] = data["short_name"].split("|")[-1].strip()  # 皮肤名称
-            obj["img_url"] = goods_info["original_icon_url"]  # 图片url
-            obj["steam_price"] = goods_info["steam_price_cny"]  # steam价格
-            obj["sell_min_price"] = data["sell_min_price"]  # 售卖最低价格
-            obj["sell_num"] = data["sell_num"]  # 售卖数量
-            obj["sell_reference_price"] = data["sell_reference_price"]  # 参考价格
-            update_data.append(BuffSkin(**obj))
+            try:
+                logger.debug(
+                    f"武器箱: [<u><e>{case_name}</e></u>] 页数: [<u><y>{page_index}</y></u>] 正在收录皮肤: [<u><c>{name}</c></u>]...",
+                    "开箱更新",
+                )
+                obj["buy_max_price"] = data["buy_max_price"]  # 求购最大金额
+                obj["buy_num"] = data["buy_num"]  # 当前求购
+                goods_info = data["goods_info"]
+                info = goods_info["info"]
+                tags = info["tags"]
+                obj["weapon_type"] = tags["type"]["localized_name"]  # 枪械类型
+                if obj["weapon_type"] in ["音乐盒", "印花", "探员"]:
+                    continue
+                if obj["weapon_type"] in ["匕首", "手套"]:
+                    obj["color"] = "KNIFE"
+                    obj["name"] = data["short_name"].split("（")[0].strip()  # 名称
+                if obj["weapon_type"] in ["武器箱"]:
+                    obj["color"] = "CASE"
+                    obj["name"] = data["short_name"]
+                else:
+                    obj["color"] = NAME2COLOR[tags["rarity"]["localized_name"]]
+                    obj["name"] = tags["weapon"]["localized_name"]  # 名称
+                if obj["weapon_type"] not in ["武器箱"]:
+                    obj["abrasion"] = tags["exterior"]["localized_name"]  # 磨损
+                    obj["is_stattrak"] = "StatTrak" in tags["quality"]["localized_name"]  # type: ignore # 是否暗金
+                    if not obj["color"]:
+                        obj["color"] = NAME2COLOR[
+                            tags["rarity"]["localized_name"]
+                        ]  # 品质颜色
+                else:
+                    obj["abrasion"] = "CASE"
+                obj["skin_name"] = data["short_name"].split("|")[-1].strip()  # 皮肤名称
+                obj["img_url"] = goods_info["original_icon_url"]  # 图片url
+                obj["steam_price"] = goods_info["steam_price_cny"]  # steam价格
+                obj["sell_min_price"] = data["sell_min_price"]  # 售卖最低价格
+                obj["sell_num"] = data["sell_num"]  # 售卖数量
+                obj["sell_reference_price"] = data["sell_reference_price"]  # 参考价格
+                update_data.append(BuffSkin(**obj))
+            except Exception as e:
+                logger.error(
+                    f"更新武器箱: [<u><e>{case_name}</e></u>] 皮肤: [<u><c>{name}</c></u>] 错误",
+                    e=e,
+                )
         logger.debug(
             f"访问武器箱: [<u><e>{case_name}</e></u>] 页数: [<u><y>{page_index}</y></u>] 成功并收录完成",
             "开箱更新",
