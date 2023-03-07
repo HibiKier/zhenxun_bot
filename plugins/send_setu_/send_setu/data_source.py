@@ -138,7 +138,7 @@ async def check_local_exists_or_download(
         file = IMAGE_PATH / path_ / f"{setu_image.local_id}.jpg"
         if file.exists():
             change_img_md5(file)
-            return image(f"{setu_image.local_id}.jpg", path_), 200
+            return image(file), 200
     return await search_online_setu(setu_image.img_url, id_, path_)
 
 
@@ -200,9 +200,9 @@ def gen_message(
             f"id：{local_id}\n"
             f"title：{title}\n"
             f"author：{author}\n"
-            f"PID：{pid}\n" + image(image_path)
+            f"PID：{pid}\n" + (image(image_path) if img_msg else "")
         )
-    return image(image_path)
+    return image(image_path) if img_msg else ""
 
 
 # 罗翔老师！
