@@ -165,5 +165,5 @@ class BagUser(Model):
 
     @classmethod
     async def _run_script(cls):
-        await cls.raw("ALTER TABLE sign_group_users DROP props;")
+        await cls.raw("ALTER TABLE bag_users DROP props;")
         """删除 props 字段"""
