@@ -187,7 +187,7 @@ async def get_setu_list(
 
 # 初始化消息
 def gen_message(
-    setu_image: Setu, img_msg: bool = False
+    setu_image: Setu
 ) -> Union[Message, MessageSegment]:
     local_id = setu_image.local_id
     title = setu_image.title
@@ -200,9 +200,9 @@ def gen_message(
             f"id：{local_id}\n"
             f"title：{title}\n"
             f"author：{author}\n"
-            f"PID：{pid}\n" + (image(image_path) if img_msg else "")
+            f"PID：{pid}\n" + image(image_path)
         )
-    return image(image_path) if img_msg else ""
+    return image(image_path)
 
 
 # 罗翔老师！
