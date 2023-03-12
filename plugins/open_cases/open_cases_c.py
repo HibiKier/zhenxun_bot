@@ -12,7 +12,7 @@ from models.sign_group_user import SignGroupUser
 from services.log import logger
 from utils.image_utils import BuildImage
 from utils.message_builder import image
-from utils.utils import cn2py, scheduler
+from utils.utils import cn2py
 
 from .config import *
 from .models.open_cases_log import OpenCasesLog
@@ -99,7 +99,7 @@ async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, M
     if not case_name:
         case_name = random.choice(CaseManager.CURRENT_CASES)  # type: ignore
     if case_name not in CaseManager.CURRENT_CASES:
-        return "武器箱未收录, 当前可用武器箱:\n" + "\n".join(CaseManager.CURRENT_CASES)  # type: ignore
+        return "武器箱未收录, 当前可用武器箱:\n" + ", ".join(CaseManager.CURRENT_CASES)  # type: ignore
     logger.debug(f"尝试开启武器箱: {case_name}", "开箱", user_qq, group_id)
     case = cn2py(case_name)
     user = await OpenCasesUser.get_or_none(user_qq=user_qq, group_id=group_id)
@@ -152,7 +152,7 @@ async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, M
         + "\n"
         + f"皮肤:[{COLOR2NAME[skin.color]}]{skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion})\n"
         f"磨损:{rand}\n"
-        f"价格:{price_result}\n箱子单价:{case_price}\n花费:{17 + case_price}\n"
+        f"价格:{price_result}\n箱子单价:{case_price}\n花费:{17 + case_price:.2f}\n"
         f":{ridicule_result}"
     )
 
@@ -176,7 +176,7 @@ async def open_multiple_case(
     if not case_name:
         case_name = random.choice(CaseManager.CURRENT_CASES)  # type: ignore
     if case_name not in CaseManager.CURRENT_CASES:
-        return "武器箱未收录, 当前可用武器箱:\n" + "\n".join(CaseManager.CURRENT_CASES)  # type: ignore
+        return "武器箱未收录, 当前可用武器箱:\n" + ", ".join(CaseManager.CURRENT_CASES)  # type: ignore
     user, _ = await OpenCasesUser.get_or_create(
         user_qq=user_qq,
         group_id=group_id,
@@ -208,7 +208,6 @@ async def open_multiple_case(
     case_price = 0
     if case_skin := await BuffSkin.get_or_none(case_name=case_name, color="CASE"):
         case_price = case_skin.sell_min_price
-    print(user.today_open_total)
     cnt = 0
     for skin, rand in skin_list:
         total_price += skin.sell_min_price
@@ -255,7 +254,6 @@ async def open_multiple_case(
             )
         )
     await user.save()
-    print(user.today_open_total)
     if log_list:
         await OpenCasesLog.bulk_create(log_list, 10)
         logger.debug(f"添加 {len(log_list)} 条开箱日志", "开箱", user_qq, group_id)
@@ -271,7 +269,7 @@ async def open_multiple_case(
         + image(markImg.pic2bs4())
         + "\n"
         + result[:-1]
-        + f"\n箱子单价：{case_price}\n总获取金额：{total_price:.2f}\n总花费：{(17 + case_price) * num}"
+        + f"\n箱子单价：{case_price}\n总获取金额：{total_price:.2f}\n总花费：{(17 + case_price) * num:.2f}"
     )
 
 
@@ -427,24 +425,8 @@ async def get_old_knife(user_id: int, group_id: int) -> List[OpenCasesLog]:
     return data_list
 
 
-@scheduler.scheduled_job(
-    "cron",
-    hour=0,
-    minute=1,
-)
-async def _():
-    now = datetime.now()
-    hour = random.choice([0, 1, 2, 3])
-    date = now + timedelta(hours=hour)
-    scheduler.add_job(
-        update,
-        "date",
-        run_date=date.replace(microsecond=0),
-        id=f"auto_update_csgo_cases",
-    )
-
-
-async def update():
+async def auto_update():
+    """自动更新武器箱"""
     if case_list := Config.get_config("open_cases", "DAILY_UPDATE"):
         logger.debug("尝试自动更新武器箱", "更新武器箱")
         if "ALL" in case_list:
@@ -455,7 +437,7 @@ async def update():
             try:
                 await update_case_data(case_name)
                 rand = random.randint(300, 500)
-                logger.debug(f"成功自动更新武器箱: {case_name}, 将在 {rand} 秒后再次更新下一武器箱", "更新武器箱")
+                logger.info(f"成功自动更新武器箱: {case_name}, 将在 {rand} 秒后再次更新下一武器箱", "更新武器箱")
                 await asyncio.sleep(rand)
             except Exception as e:
                 logger.error(f"自动更新武器箱: {case_name}", e=e)

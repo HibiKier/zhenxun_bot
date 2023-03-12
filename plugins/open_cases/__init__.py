@@ -1,4 +1,6 @@
+import asyncio
 import random
+from datetime import datetime, timedelta
 from typing import Any, List, Tuple
 
 from nonebot import on_command
@@ -12,17 +14,25 @@ from nonebot.typing import T_State
 
 from configs.config import Config
 from configs.path_config import IMAGE_PATH
-from utils.utils import is_number, scheduler
+from services.log import logger
+from utils.message_builder import image
+from utils.utils import CN2NUM, is_number, scheduler
 
 from .open_cases_c import (
+    auto_update,
     get_my_knifes,
     group_statistics,
     open_case,
     open_multiple_case,
     total_open_statistics,
-    update,
 )
-from .utils import CASE2ID, CaseManager, reset_count_daily, update_case_data
+from .utils import (
+    CASE2ID,
+    CaseManager,
+    build_case_image,
+    reset_count_daily,
+    update_case_data,
+)
 
 __zx_plugin_name__ = "开箱"
 __plugin_usage__ = """
@@ -35,14 +45,10 @@ usage：
         我的开箱
         我的金色
         群开箱统计
+        查看武器箱?[武器箱]
         * 不包含[武器箱]时随机开箱 *
-    目前支持的武器箱：
-        1.狂牙大行动武器箱
-        2.突围大行动武器箱
-        3.命悬一线武器箱
-        4.裂空武器箱
-        5.光谱武器箱
-    示例：开箱 命悬一线
+        示例: 查看武器箱
+        示例: 查看武器箱英勇
 """.strip()
 __plugin_superuser_usage__ = """
 usage：
@@ -61,6 +67,7 @@ __plugin_cmd__ = [
     "我的开箱",
     "我的金色",
     "群开箱统计",
+    "查看武器箱?[武器箱]",
     "更新开箱图片 ?[武器箱] [_superuser]",
     "更新开箱价格 ?[武器箱] [_superuser]",
 ]
@@ -89,10 +96,7 @@ __plugin_configs__ = {
         "default_value": 3,
         "type": int,
     },
-    "COOKIE": {
-        "value": None,
-        "help": "BUFF的cookie",
-    },
+    "COOKIE": {"value": None, "help": "BUFF的cookie", "type": str},
     "BUFF_PROXY": {"value": None, "help": "使用代理访问BUFF"},
     "DAILY_UPDATE": {
         "value": None,
@@ -121,8 +125,11 @@ total_case_data = cases_matcher_group.on_command(
 )
 group_open_case_statistics = cases_matcher_group.on_command("群开箱统计")
 open_multiple = cases_matcher_group.on_regex("(.*)连开箱(.*)?")
-update_data = on_command("更新武器箱", priority=1, permission=SUPERUSER, block=True)
+update_case = on_command("更新武器箱", priority=1, permission=SUPERUSER, block=True)
+show_case = on_command("查看武器箱", priority=5, block=True)
 my_knifes = on_command("我的金色", priority=1, permission=GROUP, block=True)
+show_skin = on_command("查看皮肤", priority=5, block=True)
+# show_case = on_command("test", priority=1, permission=GROUP, block=True)
 
 
 @reload_count.handle()
@@ -163,9 +170,9 @@ async def _(
     event: GroupMessageEvent, state: T_State, reg_group: Tuple[Any, ...] = RegexGroup()
 ):
     num, case_name = reg_group
-    if is_number(num) or num_dict.get(num):
+    if is_number(num) or CN2NUM.get(num):
         try:
-            num = num_dict[num]
+            num = CN2NUM[num]
         except KeyError:
             num = int(num)
         if num > 30:
@@ -181,41 +188,7 @@ async def _(
     )
 
 
-num_dict = {
-    "一": 1,
-    "二": 2,
-    "三": 3,
-    "四": 4,
-    "五": 5,
-    "六": 6,
-    "七": 7,
-    "八": 8,
-    "九": 9,
-    "十": 10,
-    "十一": 11,
-    "十二": 12,
-    "十三": 13,
-    "十四": 14,
-    "十五": 15,
-    "十六": 16,
-    "十七": 17,
-    "十八": 18,
-    "十九": 19,
-    "二十": 20,
-    "二十一": 21,
-    "二十二": 22,
-    "二十三": 23,
-    "二十四": 24,
-    "二十五": 25,
-    "二十六": 26,
-    "二十七": 27,
-    "二十八": 28,
-    "二十九": 29,
-    "三十": 30,
-}
-
-
-@update_data.handle()
+@update_case.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip()
     if not msg:
@@ -225,9 +198,38 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                 case_list.append(f"{i+1}.{case_name} [已更新]")
             else:
                 case_list.append(f"{i+1}.{case_name}")
-        await update_data.finish("未指定武器箱, 当前已包含武器箱\n" + "\n".join(case_list))
-    await update_data.send(f"开始更新武器箱: {msg}, 请稍等")
-    await update_data.send(await update_case_data(msg), at_sender=True)
+        await update_case.finish("未指定武器箱, 当前已包含武器箱\n" + "\n".join(case_list))
+    if msg == "ALL":
+        await update_case.send(f"即将更新所有武器箱, 请稍等")
+        case_list = list(CASE2ID.keys())
+        for i, case_name in enumerate(case_list):
+            try:
+                await update_case_data(case_name)
+                rand = random.randint(300, 500)
+                result = "更新全部武器箱完成"
+                if i < len(case_list):
+                    next_case = case_list[i + 1]
+                    result = f"将在 {rand} 秒后更新下一武器箱: {next_case}"
+                await update_case.send(f"成功更新武器箱: {case_name}, {result}")
+                logger.info(f"成功更新武器箱: {case_name}, {result}", "更新武器箱")
+                await asyncio.sleep(rand)
+            except Exception as e:
+                logger.error(f"自动更新武器箱: {case_name}", e=e)
+                await update_case.send(f"成功自动更新武器箱: {case_name} 发生错误: {type(e)}: {e}")
+        await update_case.send(f"开始更新全部武器箱完成")
+    else:
+        await update_case.send(f"开始更新武器箱: {msg}, 请稍等")
+        await update_case.send(await update_case_data(msg), at_sender=True)
+
+
+@show_case.handle()
+async def _(arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
+    result = await build_case_image(msg)
+    if isinstance(result, str):
+        await show_case.send(result)
+    else:
+        await show_case.send(image(result))
 
 
 # 重置开箱
@@ -238,3 +240,21 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
 )
 async def _():
     await reset_count_daily()
+
+
+@scheduler.scheduled_job(
+    "cron",
+    hour=23,
+    minute=48,
+)
+async def _():
+    now = datetime.now()
+    hour = random.choice([0, 1, 2, 3])
+    date = now + timedelta(minutes=1)
+    logger.debug(f"将在 {date} 时自动更新武器箱...", "更新武器箱")
+    scheduler.add_job(
+        auto_update,
+        "date",
+        run_date=date.replace(microsecond=0),
+        id=f"auto_update_csgo_cases",
+    )

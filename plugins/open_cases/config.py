@@ -1,6 +1,7 @@
 import random
 from typing import List, Tuple
 
+from configs.path_config import IMAGE_PATH
 from services.log import logger
 
 from .models.buff_skin import BuffSkin
@@ -31,6 +32,41 @@ WELL_WORN_E = 0.44999
 # 战痕
 BATTLE_SCARED_S = 0.45
 BATTLE_SCARED_E = 0.99999
+
+
+NAME2COLOR = {
+    "消费级": "WHITE",
+    "工业级": "LIGHTBLUE",
+    "军规级": "BLUE",
+    "受限": "PURPLE",
+    "保密": "PINK",
+    "隐秘": "RED",
+    "非凡": "KNIFE",
+}
+
+COLOR2NAME = {
+    "WHITE": "消费级",
+    "LIGHTBLUE": "工业级",
+    "BLUE": "军规级",
+    "PURPLE": "受限",
+    "PINK": "保密",
+    "RED": "隐秘",
+    "KNIFE": "非凡",
+}
+
+COLOR2COLOR = {
+    "WHITE": (255, 255, 255),
+    "LIGHTBLUE": (0, 179, 255),
+    "BLUE": (0, 85, 255),
+    "PURPLE": (149, 0, 255),
+    "PINK": (255, 0, 162),
+    "RED": (255, 34, 0),
+    "KNIFE": (255, 225, 0),
+}
+
+ABRASION_SORT = ["崭新出厂", "略有磨损", "久经沙场", "破损不堪", "战横累累"]
+
+CASE_BACKGROUND = IMAGE_PATH / "csgo_cases" / "_background" / "shu"
 
 
 CASE2ID = {

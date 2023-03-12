@@ -5,6 +5,7 @@ from tortoise import fields
 
 from configs.config import Config
 from services.db_context import Model
+from services.log import logger
 
 
 class GroupInfoUser(Model):
@@ -39,7 +40,7 @@ class GroupInfoUser(Model):
         """
         return set(
             await cls.filter(group_id=group_id).values_list("user_qq", flat=True)
-        )
+        )  # type: ignore
 
     @classmethod
     async def set_user_nickname(cls, user_qq: int, group_id: int, nickname: str):
@@ -67,7 +68,7 @@ class GroupInfoUser(Model):
         """
         return list(
             await cls.filter(user_qq=user_qq).values_list("group_id", flat=True)
-        )
+        )  # type: ignore
 
     @classmethod
     async def get_user_nickname(cls, user_qq: int, group_id: int) -> str:
@@ -90,6 +91,9 @@ class GroupInfoUser(Model):
 
     @classmethod
     async def get_group_member_uid(cls, user_qq: int, group_id: int) -> Optional[int]:
+        logger.debug(
+            f"GroupInfoUser 尝试获取 用户[<u><e>{user_qq}</e></u>] 群聊[<u><e>{group_id}</e></u>] UID"
+        )
         user, _ = await cls.get_or_create(user_qq=user_qq, group_id=group_id)
         _max_uid_user, _ = await cls.get_or_create(user_qq=114514, group_id=114514)
         _max_uid = _max_uid_user.uid
@@ -101,6 +105,9 @@ class GroupInfoUser(Model):
             user.uid = _max_uid + 1
             _max_uid_user.uid = _max_uid + 1
             await cls.bulk_update([user, _max_uid_user], ["uid"])
+        logger.debug(
+            f"GroupInfoUser 获取 用户[<u><e>{user_qq}</e></u>] 群聊[<u><e>{group_id}</e></u>] UID: {user.uid}"
+        )
         return user.uid
 
     @classmethod

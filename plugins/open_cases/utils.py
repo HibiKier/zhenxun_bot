@@ -1,4 +1,5 @@
 import asyncio
+import os
 import random
 import time
 from datetime import datetime
@@ -10,9 +11,11 @@ from configs.config import Config
 from configs.path_config import IMAGE_PATH
 from services.log import logger
 from utils.http_utils import AsyncHttpx
+from utils.image_utils import BuildImage
 from utils.utils import broadcast_group, cn2py
 
-from .config import CASE2ID
+from .build_image import generate_skin
+from .config import CASE2ID, CASE_BACKGROUND, COLOR2NAME, NAME2COLOR
 from .models.buff_skin import BuffSkin
 from .models.buff_skin_log import BuffSkinLog
 from .models.open_cases_user import OpenCasesUser
@@ -20,9 +23,6 @@ from .models.open_cases_user import OpenCasesUser
 URL = "https://buff.163.com/api/market/goods"
 # proxies = 'http://49.75.59.242:3128'
 
-NAME2COLOR = {"消费级": "WHITE", "工业级": "LIGHTBLUE", "军规级": "BLUE", "受限": "PURPLE", "保密": "PINK", "隐秘": "RED", "非凡": "KNIFE"}
-
-CURRENT_CASES = []
 
 driver = nonebot.get_driver()
 
@@ -220,10 +220,10 @@ async def search_skin_page(
                 obj["weapon_type"] = tags["type"]["localized_name"]  # 枪械类型
                 if obj["weapon_type"] in ["音乐盒", "印花", "探员"]:
                     continue
-                if obj["weapon_type"] in ["匕首", "手套"]:
+                elif obj["weapon_type"] in ["匕首", "手套"]:
                     obj["color"] = "KNIFE"
                     obj["name"] = data["short_name"].split("（")[0].strip()  # 名称
-                if obj["weapon_type"] in ["武器箱"]:
+                elif obj["weapon_type"] in ["武器箱"]:
                     obj["color"] = "CASE"
                     obj["name"] = data["short_name"]
                 else:
@@ -258,6 +258,151 @@ async def search_skin_page(
     else:
         logger.warning(f'访问BUFF失败: {json_data["error"]}')
     return f'访问失败: {json_data["error"]}', -1
+
+
+async def build_case_image(case_name: str) -> Union[BuildImage, str]:
+    """构造武器箱图片
+
+    Args:
+        case_name (str): 名称
+
+    Returns:
+        Union[BuildImage, str]: 图片
+    """
+    background = random.choice(os.listdir(CASE_BACKGROUND))
+    background_img = BuildImage(0, 0, background=CASE_BACKGROUND / background)
+    if case_name:
+        skin_list_ = await BuffSkin.filter(case_name=case_name).all()
+        case = None
+        skin_list: List[BuffSkin] = []
+        exists_name = []
+        for skin in skin_list_:
+            if skin.color == "CASE":
+                case = skin
+            else:
+                name = skin.name + skin.skin_name
+                if name not in exists_name:
+                    skin_list.append(skin)
+                    exists_name.append(name)
+        generate_img = {}
+        for skin in skin_list:
+            skin_img = await generate_skin(skin)
+            if skin_img:
+                if not generate_img.get(skin.color):
+                    generate_img[skin.color] = []
+                generate_img[skin.color].append(skin_img)
+        skin_image_list = []
+        for color in COLOR2NAME:
+            if generate_img.get(color):
+                skin_image_list = skin_image_list + generate_img[color]
+        img = skin_image_list[0]
+        img_w, img_h = img.size
+        total_size = (img_w + 25) * (img_h + 10) * len(skin_image_list)  # 总面积
+        new_size = get_bk_image_size(total_size, background_img.size, img.size, 250)
+        A = BuildImage(
+            new_size[0] + 50, new_size[1], background=CASE_BACKGROUND / background
+        )
+        await A.afilter("GaussianBlur", 2)
+        if case:
+            case_img = await generate_skin(case)
+            if case_img:
+                A.paste(case_img, (25, 25), True)
+        w = 25
+        h = 230
+        skin_image_list.reverse()
+        for image in skin_image_list:
+            A.paste(image, (w, h), True)
+            w += image.w + 20
+            if w + image.w - 25 > A.w:
+                h += image.h + 10
+                w = 25
+        if h + img_h + 100 < A.h:
+            await A.acrop((0, 0, A.w, h + img_h + 100))
+        return A
+    else:
+        skin_list = await BuffSkin.filter(color="CASE").all()
+        image_list: List[BuildImage] = []
+        for skin in skin_list:
+            if img := await generate_skin(skin):
+                image_list.append(img)
+        if not image_list:
+            return "未收录武器箱"
+        w = 25
+        h = 150
+        img = image_list[0]
+        img_w, img_h = img.size
+        total_size = (img_w + 25) * (img_h + 10) * len(image_list)  # 总面积
+
+        new_size = get_bk_image_size(total_size, background_img.size, img.size, 155)
+        A = BuildImage(
+            new_size[0] + 50, new_size[1], background=CASE_BACKGROUND / background
+        )
+        await A.afilter("GaussianBlur", 2)
+        bk_img = BuildImage(
+            img_w, 120, color=(25, 25, 25, 100), font_size=60, font="CJGaoDeGuo.otf"
+        )
+        await bk_img.atext(
+            (0, 0), f"已收录 {len(image_list)} 个武器箱", (255, 255, 255), center_type="center"
+        )
+        await A.apaste(bk_img, (10, 10), True, "by_width")
+        for image in image_list:
+            A.paste(image, (w, h), True)
+            w += image.w + 20
+            if w + image.w - 25 > A.w:
+                h += image.h + 10
+                w = 25
+        if h + img_h + 100 < A.h:
+            await A.acrop((0, 0, A.w, h + img_h + 100))
+        return A
+
+
+def get_bk_image_size(
+    total_size: int,
+    base_size: Tuple[int, int],
+    img_size: Tuple[int, int],
+    extra_height: int = 0,
+):
+    """获取所需背景大小且不改变图片长宽比
+
+    Args:
+        total_size (int): 总面积
+        base_size (Tuple[int, int]): 初始背景大小
+        img_size (Tuple[int, int]): 贴图大小
+
+    Returns:
+        _type_: 满足所有贴图大小
+    """
+    bk_w, bk_h = base_size
+    img_w, img_h = img_size
+    is_add_title_size = False
+    left_dis = 0
+    right_dis = 0
+    old_size = (0, 0)
+    new_size = (0, 0)
+    ratio = 1.1
+    while 1:
+        w_ = int(ratio * bk_w)
+        h_ = int(ratio * bk_h)
+        size = w_ * h_
+        if size < total_size:
+            left_dis = size
+        else:
+            right_dis = size
+        r = w_ / (img_w + 25)
+        if right_dis and r - int(r) < 0.1:
+            if not is_add_title_size and extra_height:
+                total_size = int(total_size + w_ * extra_height)
+                is_add_title_size = True
+                right_dis = 0
+                continue
+            if total_size - left_dis > right_dis - total_size:
+                new_size = (w_, h_)
+            else:
+                new_size = old_size
+            break
+        old_size = (w_, h_)
+        ratio += 0.1
+    return new_size
 
 
 async def reset_count_daily():
