@@ -138,7 +138,7 @@ async def check_local_exists_or_download(
         file = IMAGE_PATH / path_ / f"{setu_image.local_id}.jpg"
         if file.exists():
             change_img_md5(file)
-            return image(f"{setu_image.local_id}.jpg", path_), 200
+            return image(file), 200
     return await search_online_setu(setu_image.img_url, id_, path_)
 
 
@@ -187,7 +187,7 @@ async def get_setu_list(
 
 # 初始化消息
 def gen_message(
-    setu_image: Setu, img_msg: bool = False
+    setu_image: Setu
 ) -> Union[Message, MessageSegment]:
     local_id = setu_image.local_id
     title = setu_image.title

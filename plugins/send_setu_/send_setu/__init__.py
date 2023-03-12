@@ -1,5 +1,4 @@
 import random
-import re
 from typing import Any, Optional, Tuple, Type
 
 from nonebot import on_command, on_regex
@@ -52,14 +51,15 @@ usage：
         色图 *[tags]: 在线搜索指定tag色图
         色图r *[tags]: 同上
         [1-9]张涩图: 本地随机色图连发
-        [1-9]张[tags]的涩图: 指定tag色图连发
+        [1-9]张[tags]的涩图: 在线搜索指定tag色图连发
+        [1-9]张涩图r[tags]: 同上
     示例：色图 萝莉|少女 白丝|黑丝
     示例：色图 萝莉 猫娘
     注：
         tag至多取前20项，| 为或，萝莉|少女=萝莉或者少女
 """.strip()
 __plugin_des__ = "不要小看涩图啊混蛋！"
-__plugin_cmd__ = ["色图 ?[id]", "色图 ?[tags]", "色图r ?[tags]", "[1-9]张?[tags]色图"]
+__plugin_cmd__ = ["色图 ?[id]", "色图 ?[tags]", "色图r ?[tags]", "[1-9]张?[tags]色图", "[1-9]张色图?[tags]"]
 __plugin_type__ = ("来点好康的",)
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
@@ -117,6 +117,12 @@ __plugin_configs__ = {
         "default_value": None,
         "type": int,
     },
+    "MAX_ONCE_NUM": {
+        "value": 10,
+        "help": "单次发送图片数量限制",
+        "default_value": 10,
+        "type": int,
+    },
 }
 Config.add_plugin_config("pixiv", "PIXIV_NGINX_URL", "i.pixiv.re", help_="Pixiv反向代理")
 
@@ -147,7 +153,7 @@ setu = on_command(
     "色图", aliases={"涩图", "不够色", "来一发", "再来点", "色图r"}, priority=5, block=True
 )
 
-setu_reg = on_regex("(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图$", priority=5, block=True)
+setu_reg = on_regex("(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图(r?)(.*)$", priority=5, block=True)
 
 
 @setu.handle()
@@ -228,7 +234,7 @@ async def _(bot: Bot, event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGro
         luox = get_luoxiang(impression)
         if luox:
             await setu.finish(luox, at_sender=True)
-    num, tags = reg_group
+    num, tags, r18, tags2 = reg_group
     num = num or 1
     tags = tags[:-1] if tags and tags[-1] == "的" else tags
     if num_key.get(num):
@@ -237,7 +243,16 @@ async def _(bot: Bot, event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGro
         num = int(num)
     except ValueError:
         num = 1
-    await send_setu_handle(bot, setu_reg, event, "色图", tags, num, False)
+    if r18 and not Config.get_config("send_setu", "ALLOW_GROUP_R18"):
+        await setu.finish(
+            random.choice(["这种不好意思的东西怎么可能给这么多人看啦", "羞羞脸！给我滚出克私聊！", "变态变态变态变态大变态！"])
+        )
+    else:
+        limit = Config.get_config("send_setu", "MAX_ONCE_NUM")
+        if limit and num > limit:
+            num = limit
+            await setu.send(f"一次只能给你看 {num} 张哦")
+        await send_setu_handle(bot, setu_reg, event, "色图r" if r18 else "色图", tags + " " + tags2, num, r18)
 
 
 async def send_setu_handle(
