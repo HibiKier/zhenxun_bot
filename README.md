@@ -335,6 +335,7 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 * 新增`更新武器箱ALL`命令来更新所有武器箱
 * 新增`查看武器箱`命令
+* 色图bug修复、增加指令 [@pull/1301](https://github.com/HibiKier/zhenxun_bot/pull/1301)
 
 ### 2023/3/9
 
