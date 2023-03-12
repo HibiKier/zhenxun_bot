@@ -331,6 +331,16 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
+### 2023/3/12
+
+* 新增`更新武器箱ALL`命令来更新所有武器箱
+* 新增`查看武器箱`命令
+
+### 2023/3/9
+
+* 更正sql语句 [@pull/1302](https://github.com/HibiKier/zhenxun_bot/pull/1302)
+* 修改签到卡片中签到增加好感度显示错误 [@pull/1299](https://github.com/HibiKier/zhenxun_bot/pull/1299)
+
 ### 2023/3/5
 
 * 更新开箱会记录箱子数据以及开箱时箱子价格加入花费
