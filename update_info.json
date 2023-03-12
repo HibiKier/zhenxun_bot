@@ -10,7 +10,6 @@
       "poetry.lock",
       "pyproject.toml"
     ],
-    "add_file": ["resources/image/other/btn_false.png",
-      "resources/image/other/btn_true.png"],
+    "add_file": ["resources/image/csgo_cases"],
     "delete_file": []
 }

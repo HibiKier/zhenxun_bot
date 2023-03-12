@@ -1,18 +1,20 @@
-from nonebot.adapters.onebot.v11 import Bot, Message
-from utils.image_utils import BuildImage
-from configs.path_config import IMAGE_PATH
-from utils.message_builder import image
-from utils.http_utils import AsyncHttpx
-from typing import List
-from services.log import logger
-from pathlib import Path
-import ujson as json
-import nonebot
 import asyncio
-import platform
-import tarfile
-import shutil
 import os
+import platform
+import shutil
+import tarfile
+from pathlib import Path
+from typing import List, Tuple
+
+import nonebot
+import ujson as json
+from nonebot.adapters.onebot.v11 import Bot, Message
+
+from configs.path_config import IMAGE_PATH
+from services.log import logger
+from utils.http_utils import AsyncHttpx
+from utils.image_utils import BuildImage
+from utils.message_builder import image
 
 # if str(platform.system()).lower() == "windows":
 #     policy = asyncio.WindowsSelectorEventLoopPolicy()
@@ -55,7 +57,7 @@ async def remind(bot: Bot):
         is_restart_file.unlink()
 
 
-async def check_update(bot: Bot) -> 'int, str':
+async def check_update(bot: Bot) -> Tuple[int, str]:
     logger.info("开始检查更新真寻酱....")
     _version = "v0.0.0"
     if _version_file.exists():
@@ -73,7 +75,7 @@ async def check_update(bot: Bot) -> 'int, str':
                 message=f"检测真寻已更新，当前版本：{_version}，最新版本：{latest_version}\n" f"开始更新.....",
             )
             logger.info(f"开始下载真寻最新版文件....")
-            tar_gz_url = (await AsyncHttpx.get(tar_gz_url)).headers.get('Location')
+            tar_gz_url = (await AsyncHttpx.get(tar_gz_url)).headers.get("Location")
             if await AsyncHttpx.download_file(tar_gz_url, zhenxun_latest_tar_gz):
                 logger.info("下载真寻最新版文件完成....")
                 error = await asyncio.get_event_loop().run_in_executor(
@@ -85,23 +87,25 @@ async def check_update(bot: Bot) -> 'int, str':
                 logger.info("开始获取真寻更新日志.....")
                 update_info = data["body"]
                 width = 0
-                height = len(update_info.split('\n')) * 24
+                height = len(update_info.split("\n")) * 24
                 A = BuildImage(width, height, font_size=20)
-                for m in update_info.split('\n'):
+                for m in update_info.split("\n"):
                     w, h = A.getsize(m)
                     if w > width:
                         width = w
                 A = BuildImage(width + 50, height, font_size=20)
                 A.text((10, 10), update_info)
-                A.save(f'{IMAGE_PATH}/update_info.png')
+                A.save(f"{IMAGE_PATH}/update_info.png")
                 await bot.send_private_msg(
                     user_id=int(list(bot.config.superusers)[0]),
-                    message=Message(f"真寻更新完成，版本：{_version} -> {latest_version}\n"
-                                    f"更新日期：{data['created_at']}\n"
-                                    f"更新日志：\n"
-                                    f"{image('update_info.png')}"),
+                    message=Message(
+                        f"真寻更新完成，版本：{_version} -> {latest_version}\n"
+                        f"更新日期：{data['created_at']}\n"
+                        f"更新日志：\n"
+                        f"{image('update_info.png')}"
+                    ),
                 )
-                return 200, ''
+                return 200, ""
             else:
                 logger.warning(f"下载真寻最新版本失败...版本号：{latest_version}")
                 await bot.send_private_msg(
@@ -119,7 +123,7 @@ async def check_update(bot: Bot) -> 'int, str':
         await bot.send_private_msg(
             user_id=int(list(bot.config.superusers)[0]), message=f"自动获取真寻版本失败...."
         )
-    return 999, ''
+    return 999, ""
 
 
 def _file_handle(latest_version: str) -> str:
@@ -128,7 +132,7 @@ def _file_handle(latest_version: str) -> str:
     if backup_dir.exists():
         shutil.rmtree(backup_dir)
     tf = None
-    error = ''
+    error = ""
     # try:
     backup_dir.mkdir(exist_ok=True, parents=True)
     logger.info("开始解压真寻文件压缩包....")
@@ -143,16 +147,16 @@ def _file_handle(latest_version: str) -> str:
     delete_file = update_info["delete_file"]
     config_file = Path() / "configs" / "config.py"
     config_path_file = Path() / "configs" / "path_config.py"
-    for file in [config_file.name]:
-        tmp = ""
-        new_file = Path(zhenxun_latest_file) / "configs" / file
-        old_file = Path() / "configs" / file
-        new_lines = open(new_file, "r", encoding="utf8").readlines()
-        old_lines = open(old_file, "r", encoding="utf8").readlines()
-        for nl in new_lines:
-            tmp += check_old_lines(old_lines, nl)
-        with open(old_file, "w", encoding="utf8") as f:
-            f.write(tmp)
+    # for file in [config_file.name]:
+    #     tmp = ""
+    #     new_file = Path(zhenxun_latest_file) / "configs" / file
+    #     old_file = Path() / "configs" / file
+    #     new_lines = open(new_file, "r", encoding="utf8").readlines()
+    #     old_lines = open(old_file, "r", encoding="utf8").readlines()
+    #     for nl in new_lines:
+    #         tmp += check_old_lines(old_lines, nl)
+    #     with open(old_file, "w", encoding="utf8") as f:
+    #         f.write(tmp)
     for file in delete_file + update_file:
         if file != "configs":
             file = Path() / file
@@ -189,9 +193,7 @@ def _file_handle(latest_version: str) -> str:
         local_update_info_file.unlink()
     with open(_version_file, "w", encoding="utf8") as f:
         f.write(f"__version__: {latest_version}")
-    os.system(
-        f"poetry run pip install -r {(Path() / 'pyproject.toml').absolute()}"
-    )
+    os.system(f"poetry run pip install -r {(Path() / 'pyproject.toml').absolute()}")
     return error
 
 

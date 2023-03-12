@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from loguru import logger as logger_
 from nonebot.log import default_filter, default_format
@@ -49,8 +49,8 @@ class logger:
         cls,
         info: str,
         command: Optional[str] = None,
-        user_id: Optional[int] = None,
-        group_id: Optional[int] = None,
+        user_id: Optional[Union[int, str]] = None,
+        group_id: Optional[Union[int, str]] = None,
         target: Optional[Any] = None,
     ):
         template = cls.__parser_template(info, command, user_id, group_id, target)
@@ -76,8 +76,8 @@ class logger:
         cls,
         info: str,
         command: Optional[str] = None,
-        user_id: Optional[int] = None,
-        group_id: Optional[int] = None,
+        user_id: Optional[Union[int, str]] = None,
+        group_id: Optional[Union[int, str]] = None,
         target: Optional[Any] = None,
         e: Optional[Exception] = None,
     ):
@@ -91,8 +91,8 @@ class logger:
         cls,
         info: str,
         command: Optional[str] = None,
-        user_id: Optional[int] = None,
-        group_id: Optional[int] = None,
+        user_id: Optional[Union[int, str]] = None,
+        group_id: Optional[Union[int, str]] = None,
         target: Optional[Any] = None,
         e: Optional[Exception] = None,
     ):
@@ -106,8 +106,8 @@ class logger:
         cls,
         info: str,
         command: Optional[str] = None,
-        user_id: Optional[int] = None,
-        group_id: Optional[int] = None,
+        user_id: Optional[Union[int, str]] = None,
+        group_id: Optional[Union[int, str]] = None,
         target: Optional[Any] = None,
         e: Optional[Exception] = None,
     ):
@@ -121,8 +121,8 @@ class logger:
         cls,
         info: str,
         command: Optional[str] = None,
-        user_id: Optional[int] = None,
-        group_id: Optional[int] = None,
+        user_id: Optional[Union[int, str]] = None,
+        group_id: Optional[Union[int, str]] = None,
         target: Optional[Any] = None,
     ) -> str:
         arg_list = []

@@ -58,15 +58,15 @@ async def _(bot: Bot, event: MessageEvent):
     try:
         code, error = await check_update(bot)
         if error:
-            logger.error(f"更新真寻未知错误 {error}")
+            logger.error(f"错误: {error}", "检查更新真寻")
             await bot.send_private_msg(
                 user_id=event.user_id, message=f"更新真寻未知错误 {error}"
             )
     except Exception as e:
-        logger.error(f"更新真寻未知错误 {type(e)}：{e}")
+        logger.error(f"更新真寻未知错误", "检查更新真寻", e=e)
         await bot.send_private_msg(
             user_id=event.user_id,
-            message=f"更新真寻未知错误 {type(e)}：{e}",
+            message=f"更新真寻未知错误 {type(e)}: {e}",
         )
     else:
         if code == 200:
@@ -108,7 +108,7 @@ async def _():
         data = await get_latest_version_data()
         if data:
             latest_version = data["name"]
-            if _version != latest_version:
+            if _version.lower() != latest_version.lower():
                 bot = get_bot()
                 await bot.send_private_msg(
                     user_id=int(list(bot.config.superusers)[0]),

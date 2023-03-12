@@ -30,7 +30,7 @@ ModeType = Literal[
 
 
 def compare_image_with_hash(
-    image_file1: str, image_file2: str, max_dif: int = 1.5
+    image_file1: str, image_file2: str, max_dif: float = 1.5
 ) -> bool:
     """
     说明:
@@ -65,7 +65,9 @@ def get_img_hash(image_file: Union[str, Path]) -> ImageHash:
 
 
 def compressed_image(
-    in_file: Union[str, Path], out_file: Union[str, Path] = None, ratio: float = 0.9
+    in_file: Union[str, Path],
+    out_file: Optional[Union[str, Path]] = None,
+    ratio: float = 0.9,
 ):
     """
     说明:
@@ -192,6 +194,7 @@ class BuildImage:
         self._current_h = 0
         self.uid = uuid.uuid1()
         self.font_name = font
+        self.font_size = font_size
         self.font = ImageFont.truetype(str(FONT_PATH / font), int(font_size))
         if not plain_text and not color:
             color = (255, 255, 255)
@@ -224,13 +227,13 @@ class BuildImage:
                 )
         if is_alpha:
             try:
-                array = self.markImg.load()
-                for i in range(w):
-                    for j in range(h):
-                        pos = array[i, j]
-                        is_edit = sum([1 for x in pos[0:3] if x > 240]) == 3
-                        if is_edit:
-                            array[i, j] = (255, 255, 255, 0)
+                if array := self.markImg.load():
+                    for i in range(w):
+                        for j in range(h):
+                            pos = array[i, j]
+                            is_edit = sum([1 for x in pos[0:3] if x > 240]) == 3
+                            if is_edit:
+                                array[i, j] = (255, 255, 255, 0)
             except Exception as e:
                 logger.warning(f"背景透明化发生错误..{type(e)}：{e}")
         self.draw = ImageDraw.Draw(self.markImg)
@@ -246,7 +249,7 @@ class BuildImage:
             self.loop = asyncio.get_event_loop()
 
     @classmethod
-    def load_font(cls, font: str, font_size: int) -> FreeTypeFont:
+    def load_font(cls, font: str, font_size: Optional[int]) -> FreeTypeFont:
         """
         说明:
             加载字体
@@ -254,12 +257,12 @@ class BuildImage:
             :param font: 字体名称
             :param font_size: 字体大小
         """
-        return ImageFont.truetype(str(FONT_PATH / font), font_size)
+        return ImageFont.truetype(str(FONT_PATH / font), font_size or cls.font_size)
 
     async def apaste(
         self,
         img: "BuildImage" or Image,
-        pos: Tuple[int, int] = None,
+        pos: Optional[Tuple[int, int]] = None,
         alpha: bool = False,
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
     ):
@@ -276,8 +279,8 @@ class BuildImage:
 
     def paste(
         self,
-        img: "BuildImage" or Image,
-        pos: Tuple[int, int] = None,
+        img: "BuildImage",
+        pos: Optional[Tuple[int, int]] = None,
         alpha: bool = False,
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
     ):
@@ -308,6 +311,11 @@ class BuildImage:
                 width = pos[0]
                 height = int((self.h - img.h) / 2)
             pos = (width, height)
+        if pos:
+            if pos[0] < 0:
+                pos = (self.w + pos[0], pos[1])
+            if pos[1] < 0:
+                pos = (pos[0], self.h + pos[1])
         if isinstance(img, BuildImage):
             img = img.markImg
         if self._current_w >= self.w:
@@ -335,8 +343,8 @@ class BuildImage:
             :param font: 字体
             :param font_size: 字体大小
         """
-        font = cls.load_font(font, font_size)
-        return font.getsize(msg)
+        font_ = cls.load_font(font, font_size)
+        return font_.getsize(msg)
 
     def getsize(self, msg: str) -> Tuple[int, int]:
         """
@@ -411,7 +419,7 @@ class BuildImage:
         text: str,
         fill: Union[str, Tuple[int, int, int]] = (0, 0, 0),
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
-        font: Union[FreeTypeFont, str] = None,
+        font: Optional[Union[FreeTypeFont, str]] = None,
         font_size: Optional[int] = None,
         **kwargs,
     ):
@@ -436,7 +444,7 @@ class BuildImage:
         text: str,
         fill: Union[str, Tuple[int, int, int]] = (0, 0, 0),
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
-        font: Union[FreeTypeFont, str] = None,
+        font: Optional[Union[FreeTypeFont, str]] = None,
         font_size: Optional[int] = None,
         **kwargs,
     ):
@@ -491,9 +499,7 @@ class BuildImage:
         参数:
             :param path: 图片路径
         """
-        if not path:
-            path = self.background
-        self.markImg.save(path)
+        self.markImg.save(path or self.background)  # type: ignore
 
     def show(self):
         """
@@ -612,7 +618,7 @@ class BuildImage:
         self,
         xy: Tuple[int, int, int, int],
         fill: Optional[Tuple[int, int, int]] = None,
-        outline: str = None,
+        outline: Optional[str] = None,
         width: int = 1,
     ):
         """
@@ -630,7 +636,7 @@ class BuildImage:
         self,
         xy: Tuple[int, int, int, int],
         fill: Optional[Tuple[int, int, int]] = None,
-        outline: str = None,
+        outline: Optional[str] = None,
         width: int = 1,
     ):
         """
@@ -830,7 +836,7 @@ class BuildImage:
         """
         self.markImg.transpose(angle)
 
-    async def afilter(self, filter_: str, aud: int = None):
+    async def afilter(self, filter_: str, aud: Optional[int] = None):
         """
         说明:
             异步 图片变化
@@ -840,7 +846,7 @@ class BuildImage:
         """
         await self.loop.run_in_executor(None, self.filter, filter_, aud)
 
-    def filter(self, filter_: str, aud: int = None):
+    def filter(self, filter_: str, aud: Optional[int] = None):
         """
         说明:
             图片变化
