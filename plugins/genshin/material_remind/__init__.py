@@ -56,8 +56,12 @@ async def _(event: MessageEvent):
     if not (IMAGE_PATH / "genshin" / "material" / f"{file_name}.png").exists():
         await update_image()
     await material.send(
+        # Message(
+        #     image(f"{file_name}.png", "genshin/material")
+        #     + "\n※ 每日素材数据来源于米游社"
+        # )
         Message(
-            image(f"{file_name}.png", "genshin/material")
+            image(IMAGE_PATH / "genshin" / "material" / f"{file_name}.png")
             + "\n※ 每日素材数据来源于米游社"
         )
     )
@@ -83,7 +87,7 @@ async def update_image():
             os.mkdir(f"{IMAGE_PATH}/genshin/material")
         for file in os.listdir(f"{IMAGE_PATH}/genshin/material"):
             os.remove(f"{IMAGE_PATH}/genshin/material/{file}")
-        browser = await get_browser()
+        browser = get_browser()
         if not browser:
             logger.warning("获取 browser 失败，请部署至 linux 环境....")
             return False
@@ -102,16 +106,3 @@ async def update_image():
         if page:
             await page.close()
         return False
-
-
-# 获取背景高度以及修改最后一张图片的黑边
-def get_background_height(weapons_img: List[str]) -> int:
-    height = 0
-    for weapons in weapons_img:
-        height += BuildImage(0, 0, background=weapons).size[1]
-    last_weapon = BuildImage(0, 0, background=weapons_img[-1])
-    w, h = last_weapon.size
-    last_weapon.crop((0, 0, w, h - 10))
-    last_weapon.save(weapons_img[-1])
-
-    return height
