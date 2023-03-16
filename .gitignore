@@ -155,9 +155,23 @@ data/
 .env
 .env.dev
 /resources/text/
-/resources/image/
+# /resources/image/
 /resources/temp/
-!/resources/template/
+/resources/image/genshin/
+/resources/image/draw_card/
+/resources/image/card/
+/resources/image/temp/
+/resources/image/sign/today_card/
+/resources/image/image_management/
+/resources/image/bilibili_sub/
+/resources/image/other/
+/resources/image/_setu/
+/resources/image/_r18/
+/resources/image/csgo_cases/
+!/resources/image/csgo_cases/_background/
+/resources/image/superuser_help.png
+/resources/image/update_img_help.png
+/resources/image/prts/
 /configs/config.py
 configs/config.yaml
 ./.env
