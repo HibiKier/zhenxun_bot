@@ -214,12 +214,16 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                 logger.info(f"成功更新武器箱: {case_name}, {result}", "更新武器箱")
                 await asyncio.sleep(rand)
             except Exception as e:
-                logger.error(f"自动更新武器箱: {case_name}", e=e)
-                await update_case.send(f"成功自动更新武器箱: {case_name} 发生错误: {type(e)}: {e}")
-        await update_case.send(f"开始更新全部武器箱完成")
+                logger.error(f"更新武器箱: {case_name}", e=e)
+                await update_case.send(f"成功更新武器箱: {case_name} 发生错误: {type(e)}: {e}")
+        await update_case.send(f"更新全部武器箱完成")
     else:
         await update_case.send(f"开始更新武器箱: {msg}, 请稍等")
-        await update_case.send(await update_case_data(msg), at_sender=True)
+        try:
+            await update_case.send(await update_case_data(msg), at_sender=True)
+        except Exception as e:
+            logger.error(f"更新武器箱: {msg}", e=e)
+            await update_case.send(f"成功自动更新武器箱: {msg} 发生错误: {type(e)}: {e}")
 
 
 @show_case.handle()
@@ -244,13 +248,13 @@ async def _():
 
 @scheduler.scheduled_job(
     "cron",
-    hour=23,
-    minute=48,
+    hour=0,
+    minute=10,
 )
 async def _():
     now = datetime.now()
     hour = random.choice([0, 1, 2, 3])
-    date = now + timedelta(minutes=1)
+    date = now + timedelta(hours=hour)
     logger.debug(f"将在 {date} 时自动更新武器箱...", "更新武器箱")
     scheduler.add_job(
         auto_update,
