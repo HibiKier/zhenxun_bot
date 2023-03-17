@@ -1,7 +1,7 @@
 import asyncio
 import random
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Union
 
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
