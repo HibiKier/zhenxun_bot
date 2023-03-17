@@ -200,6 +200,7 @@ async def search_skin_page(
         params=params,
         cookies=cookie,  # type: ignore
     )
+    logger.debug(f"访问BUFF API: {response.text}", "更新武器箱")
     json_data = response.json()
     update_data = []
     if json_data["code"] == "OK":
