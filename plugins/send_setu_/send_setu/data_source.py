@@ -3,10 +3,10 @@ import os
 import random
 import re
 from asyncio.exceptions import TimeoutError
-from typing import List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 from asyncpg.exceptions import UniqueViolationError
-from nonebot.adapters.onebot.v11 import Message, MessageSegment
+from nonebot.adapters.onebot.v11 import MessageSegment
 
 from configs.config import NICKNAME, Config
 from configs.path_config import IMAGE_PATH, TEMP_PATH
@@ -14,15 +14,9 @@ from services.log import logger
 from utils.http_utils import AsyncHttpx
 from utils.image_utils import compressed_image, get_img_hash
 from utils.message_builder import image
-from utils.utils import change_img_md5
+from utils.utils import change_img_md5, change_pixiv_image_links
 
 from .._model import Setu
-
-try:
-    import ujson as json
-except ModuleNotFoundError:
-    import json
-
 
 url = "https://api.lolicon.app/setu/v2"
 path = "_setu"
@@ -42,7 +36,7 @@ async def get_setu_urls(
         "size": ["original"],
     }
     for count in range(3):
-        logger.info(f"get_setu_url: count --> {count}")
+        logger.debug(f"尝试获取图片URL第 {count+1} 次", "色图")
         try:
             response = await AsyncHttpx.get(
                 url, timeout=Config.get_config("send_setu", "TIMEOUT"), params=params
@@ -70,10 +64,10 @@ async def get_setu_urls(
                     return x_urls, x_text_lst, add_databases_list, 200
                 else:
                     return ["没找到符合条件的色图..."], [], [], 401
-        except TimeoutError:
-            pass
+        except TimeoutError as e:
+            logger.error(f"获取图片URL超时", "色图", e=e)
         except Exception as e:
-            logger.error(f"send_setu 访问页面错误 {type(e)}：{e}")
+            logger.error(f"访问页面错误", "色图", e=e)
     return ["我网线被人拔了..QAQ"], [], [], 999
 
 
@@ -93,43 +87,40 @@ async def search_online_setu(
     :param id_: 本地id
     :param path_: 存储路径
     """
-    ws_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
-    if ws_url:
-        host_match = re.match(host_pattern, url_)
-        host = host_match.group(1)
-        url_ = url_.replace(host, ws_url)
+    url_ = change_pixiv_image_links(url_)
     index = random.randint(1, 100000) if id_ is None else id_
-    path_ = IMAGE_PATH / path_ if path_ else TEMP_PATH
+    base_path = IMAGE_PATH / path_ if path_ else TEMP_PATH
     file_name = f"{index}_temp_setu.jpg" if path_ == TEMP_PATH else f"{index}.jpg"
-    path_.mkdir(parents=True, exist_ok=True)
+    file = base_path / file_name
+    base_path.mkdir(parents=True, exist_ok=True)
     for i in range(3):
-        logger.info(f"search_online_setu --> {i}")
+        logger.debug(f"尝试在线搜索第 {i+1} 次", "色图")
         try:
             if not await AsyncHttpx.download_file(
                 url_,
-                path_ / file_name,
+                file,
                 timeout=Config.get_config("send_setu", "TIMEOUT"),
             ):
                 continue
             if id_ is not None:
-                if os.path.getsize(path_ / f"{index}.jpg") > 1024 * 1024 * 1.5:
+                if os.path.getsize(base_path / f"{index}.jpg") > 1024 * 1024 * 1.5:
                     compressed_image(
-                        path_ / f"{index}.jpg",
+                        base_path / f"{index}.jpg",
                     )
             logger.info(f"下载 lolicon 图片 {url_} 成功， id：{index}")
-            change_img_md5(path_ / file_name)
-            return image(path_ / file_name), index
-        except TimeoutError:
-            pass
+            change_img_md5(file)
+            return image(file), index
+        except TimeoutError as e:
+            logger.error(f"下载图片超时", "色图", e=e)
         except Exception as e:
-            logger.error(f"send_setu 下载图片错误 {type(e)}：{e}")
+            logger.error(f"下载图片错误", "色图", e=e)
     return "图片被小怪兽恰掉啦..!QAQ", -1
 
 
 # 检测本地是否有id涩图，无的话则下载
 async def check_local_exists_or_download(
     setu_image: Setu,
-) -> Tuple[MessageSegment, int]:
+) -> Tuple[Union[MessageSegment, str], int]:
     path_ = None
     id_ = None
     if Config.get_config("send_setu", "DOWNLOAD_SETU"):
@@ -182,45 +173,45 @@ async def get_setu_list(
         image_list = await Setu.query_image(r18=r18)
     if not image_list:
         return ["没找到符合条件的色图..."], 998
-    return image_list, 200
+    return image_list, 200  # type: ignore
 
 
 # 初始化消息
-def gen_message(
-    setu_image: Setu
-) -> Union[Message, MessageSegment]:
+def gen_message(setu_image: Setu) -> str:
+    """判断是否获取图片信息
+
+    Args:
+        setu_image (Setu): Setu
+
+    Returns:
+        str: 图片信息
+    """
     local_id = setu_image.local_id
     title = setu_image.title
     author = setu_image.author
     pid = setu_image.pid
-    path_ = r18_path if setu_image.is_r18 else path
-    image_path = IMAGE_PATH / path_ / f"{local_id}.jpg"
     if Config.get_config("send_setu", "SHOW_INFO"):
-        return Message(
-            f"id：{local_id}\n"
-            f"title：{title}\n"
-            f"author：{author}\n"
-            f"PID：{pid}\n" + image(image_path)
-        )
-    return image(image_path)
+        return f"id：{local_id}\n" f"title：{title}\n" f"author：{author}\n" f"PID：{pid}\n"
+    return ""
 
 
 # 罗翔老师！
 def get_luoxiang(impression):
-    probability = (
-        float(impression)
-        + Config.get_config("send_setu", "INITIAL_SETU_PROBABILITY") * 100
+    initial_setu_probability = Config.get_config(
+        "send_setu", "INITIAL_SETU_PROBABILITY"
     )
-    if probability < random.randint(1, 101):
-        return (
-            "我为什么要给你发这个？"
-            + image(
-                IMAGE_PATH
-                / "luoxiang"
-                / random.choice(os.listdir(IMAGE_PATH / "luoxiang"))
+    if initial_setu_probability:
+        probability = float(impression) + initial_setu_probability * 100
+        if probability < random.randint(1, 101):
+            return (
+                "我为什么要给你发这个？"
+                + image(
+                    IMAGE_PATH
+                    / "luoxiang"
+                    / random.choice(os.listdir(IMAGE_PATH / "luoxiang"))
+                )
+                + f"\n(快向{NICKNAME}签到提升好感度吧！)"
             )
-            + f"\n(快向{NICKNAME}签到提升好感度吧！)"
-        )
     return None
 
 
@@ -243,17 +234,15 @@ async def find_img_index(img_url, user_id):
 
 
 # 处理色图数据
-def _setu_data_process(data: dict, command: str) -> "list, list, list":
+def _setu_data_process(
+    data: dict, command: str
+) -> Tuple[List[str], List[str], List[Tuple[Any, ...]]]:
     urls = []
     text_list = []
     add_databases_list = []
     for i in range(len(data)):
         img_url = data[i]["urls"]["original"]
-        img_url = (
-            img_url.replace("i.pixiv.cat", "i.pximg.net")
-            if "i.pixiv.cat" in img_url
-            else img_url
-        )
+        img_url = change_pixiv_image_links(img_url)
         title = data[i]["title"]
         author = data[i]["author"]
         pid = data[i]["pid"]

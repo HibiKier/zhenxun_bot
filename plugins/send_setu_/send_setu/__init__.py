@@ -13,12 +13,13 @@ from nonebot.adapters.onebot.v11 import (
 )
 from nonebot.matcher import Matcher
 from nonebot.message import run_postprocessor
-from nonebot.params import Command, CommandArg, RegexGroup
+from nonebot.params import CommandArg, RegexGroup
 from nonebot.typing import T_State
 
 from configs.config import NICKNAME, Config
 from models.sign_group_user import SignGroupUser
 from services.log import logger
+from utils.depends import OneCommand
 from utils.manager import withdraw_message_manager
 from utils.message_builder import custom_forward_msg
 from utils.utils import is_number
@@ -27,7 +28,6 @@ from .._model import Setu
 from .data_source import (
     add_data_to_database,
     check_local_exists_or_download,
-    find_img_index,
     gen_message,
     get_luoxiang,
     get_setu_list,
@@ -59,7 +59,13 @@ usage：
         tag至多取前20项，| 为或，萝莉|少女=萝莉或者少女
 """.strip()
 __plugin_des__ = "不要小看涩图啊混蛋！"
-__plugin_cmd__ = ["色图 ?[id]", "色图 ?[tags]", "色图r ?[tags]", "[1-9]张?[tags]色图", "[1-9]张色图?[tags]"]
+__plugin_cmd__ = [
+    "色图 ?[id]",
+    "色图 ?[tags]",
+    "色图r ?[tags]",
+    "[1-9]张?[tags]色图",
+    "[1-9]张色图?[tags]",
+]
 __plugin_type__ = ("来点好康的",)
 __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
@@ -130,7 +136,7 @@ setu_data_list = []
 
 
 @run_postprocessor
-async def do_something(
+async def _(
     matcher: Matcher,
     exception: Optional[Exception],
     bot: Bot,
@@ -160,7 +166,7 @@ setu_reg = on_regex("(.*)[份|发|张|个|次|点](.*)[瑟|色|涩]图(r?)(.*)$"
 async def _(
     bot: Bot,
     event: MessageEvent,
-    cmd: Tuple[str, ...] = Command(),
+    cmd: str = OneCommand(),
     arg: Message = CommandArg(),
 ):
     msg = arg.extract_plain_text().strip()
@@ -169,16 +175,15 @@ async def _(
             user_qq=event.user_id, group_id=event.group_id
         )
         impression = user.impression
-        luox = get_luoxiang(impression)
-        if luox:
+        if luox := get_luoxiang(impression):
             await setu.finish(luox)
     r18 = False
     num = 1
     # 是否看r18
-    if cmd[0] == "色图r" and isinstance(event, PrivateMessageEvent):
+    if cmd == "色图r" and isinstance(event, PrivateMessageEvent):
         r18 = True
         num = 10
-    elif cmd[0] == "色图r" and isinstance(event, GroupMessageEvent):
+    elif cmd == "色图r" and isinstance(event, GroupMessageEvent):
         if not Config.get_config("send_setu", "ALLOW_GROUP_R18"):
             await setu.finish(
                 random.choice(["这种不好意思的东西怎么可能给这么多人看啦", "羞羞脸！给我滚出克私聊！", "变态变态变态变态大变态！"])
@@ -191,13 +196,12 @@ async def _(
         if code != 200:
             await setu.finish(setu_list[0], at_sender=True)
         setu_img, code = await check_local_exists_or_download(setu_list[0])
-        msg_id = await setu.send(
-            Message(gen_message(setu_list[0])) + setu_img, at_sender=True
-        )
+        msg_id = await setu.send(gen_message(setu_list[0]) + setu_img, at_sender=True)
         logger.info(
-            f"(USER {event.user_id}, GROUP "
-            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-            f" 发送色图 {setu_list[0].local_id}.jpd"
+            f"发送色图 {setu_list[0].local_id}.jpg",
+            cmd,
+            event.user_id,
+            getattr(event, "group_id", None),
         )
         if msg_id:
             withdraw_message_manager.withdraw_message(
@@ -206,7 +210,7 @@ async def _(
                 Config.get_config("send_setu", "WITHDRAW_SETU_MESSAGE"),
             )
         return
-    await send_setu_handle(bot, setu, event, cmd[0], msg, num, r18)
+    await send_setu_handle(bot, setu, event, cmd, msg, num, r18)
 
 
 num_key = {
@@ -231,11 +235,10 @@ async def _(bot: Bot, event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGro
             user_qq=event.user_id, group_id=event.group_id
         )
         impression = user.impression
-        luox = get_luoxiang(impression)
-        if luox:
+        if luox := get_luoxiang(impression):
             await setu.finish(luox, at_sender=True)
     num, tags, r18, tags2 = reg_group
-    num = num or 1
+    num = num or "一"
     tags = tags[:-1] if tags and tags[-1] == "的" else tags
     if num_key.get(num):
         num = num_key[num]
@@ -252,7 +255,9 @@ async def _(bot: Bot, event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGro
         if limit and num > limit:
             num = limit
             await setu.send(f"一次只能给你看 {num} 张哦")
-        await send_setu_handle(bot, setu_reg, event, "色图r" if r18 else "色图", tags + " " + tags2, num, r18)
+        await send_setu_handle(
+            bot, setu_reg, event, "色图r" if r18 else "色图", tags + " " + tags2, num, r18
+        )
 
 
 async def send_setu_handle(
@@ -273,6 +278,7 @@ async def send_setu_handle(
     # 本地先拿图，下载失败补上去
     setu_list, code = None, 200
     setu_count = await Setu.filter(is_r18=r18).count()
+    max_once_num2forward = Config.get_config("send_setu", "MAX_ONCE_NUM2FORWARD")
     if (
         not Config.get_config("send_setu", "ONLY_USE_LOCAL_SETU") and tags
     ) or setu_count <= 0:
@@ -294,14 +300,14 @@ async def send_setu_handle(
                     # 下载成功的话
                     if index != -1:
                         logger.info(
-                            f"(USER {event.user_id}, GROUP "
-                            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-                            f" 发送色图 {index}.png"
+                            f"发送色图 {index}.png",
+                            "command",
+                            event.user_id,
+                            getattr(event, "group_id", None),
                         )
                         if (
-                            Config.get_config("send_setu", "MAX_ONCE_NUM2FORWARD")
-                            and num
-                            >= Config.get_config("send_setu", "MAX_ONCE_NUM2FORWARD")
+                            max_once_num2forward
+                            and num >= max_once_num2forward
                             and isinstance(event, GroupMessageEvent)
                         ):
                             forward_list.append(Message(f"{text_list[i]}\n{setu_img}"))
@@ -318,38 +324,28 @@ async def send_setu_handle(
                             setu_image = random.choice(setu_list)
                             setu_list.remove(setu_image)
                             if (
-                                Config.get_config("send_setu", "MAX_ONCE_NUM2FORWARD")
-                                and num
-                                >= Config.get_config(
-                                    "send_setu", "MAX_ONCE_NUM2FORWARD"
-                                )
+                                max_once_num2forward
+                                and num >= max_once_num2forward
                                 and isinstance(event, GroupMessageEvent)
                             ):
                                 forward_list.append(
-                                    Message(
-                                        gen_message(setu_image)
-                                        + (
-                                            await check_local_exists_or_download(
-                                                setu_image
-                                            )
-                                        )[0]
-                                    )
+                                    gen_message(setu_image)
+                                    + (
+                                        await check_local_exists_or_download(setu_image)
+                                    )[0]
                                 )
                             else:
                                 msg_id = await matcher.send(
-                                    Message(
-                                        gen_message(setu_image)
-                                        + (
-                                            await check_local_exists_or_download(
-                                                setu_image
-                                            )
-                                        )[0]
-                                    )
+                                    gen_message(setu_image)
+                                    + (
+                                        await check_local_exists_or_download(setu_image)
+                                    )[0]
                                 )
                             logger.info(
-                                f"(USER {event.user_id}, GROUP "
-                                f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-                                f" 发送本地色图 {setu_image.local_id}.png"
+                                f"发送本地色图 {setu_image.local_id}.png",
+                                "command",
+                                event.user_id,
+                                getattr(event, "group_id", None),
                             )
                         else:
                             msg_id = await matcher.send(text_list[i] + "\n" + setu_img)
@@ -361,7 +357,7 @@ async def send_setu_handle(
                         )
                 except ActionFailed:
                     await matcher.finish("坏了，这张图色过头了，我自己看看就行了！", at_sender=True)
-            if forward_list:
+            if forward_list and isinstance(event, GroupMessageEvent):
                 msg_id = await bot.send_group_forward_msg(
                     group_id=event.group_id,
                     messages=custom_forward_msg(forward_list, bot.self_id),
@@ -387,8 +383,8 @@ async def send_setu_handle(
         setu_image = random.choice(setu_list)
         setu_list.remove(setu_image)
         if (
-            Config.get_config("send_setu", "MAX_ONCE_NUM2FORWARD")
-            and num >= Config.get_config("send_setu", "MAX_ONCE_NUM2FORWARD")
+            max_once_num2forward
+            and num >= max_once_num2forward
             and isinstance(event, GroupMessageEvent)
         ):
             forward_list.append(
@@ -400,10 +396,8 @@ async def send_setu_handle(
         else:
             try:
                 msg_id = await matcher.send(
-                    Message(
-                        gen_message(setu_image)
-                        + (await check_local_exists_or_download(setu_image))[0]
-                    )
+                    gen_message(setu_image)
+                    + (await check_local_exists_or_download(setu_image))[0]
                 )
                 withdraw_message_manager.withdraw_message(
                     event,
@@ -411,13 +405,14 @@ async def send_setu_handle(
                     Config.get_config("send_setu", "WITHDRAW_SETU_MESSAGE"),
                 )
                 logger.info(
-                    f"(USER {event.user_id}, GROUP "
-                    f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-                    f" 发送本地色图 {setu_image.local_id}.png"
+                    f"发送本地色图 {setu_image.local_id}.png",
+                    "command",
+                    event.user_id,
+                    getattr(event, "group_id", None),
                 )
             except ActionFailed:
                 await matcher.finish("坏了，这张图色过头了，我自己看看就行了！", at_sender=True)
-    if forward_list:
+    if forward_list and isinstance(event, GroupMessageEvent):
         msg_id = await bot.send_group_forward_msg(
             group_id=event.group_id,
             messages=custom_forward_msg(forward_list, bot.self_id),
