@@ -265,6 +265,7 @@ class BuildImage:
         pos: Optional[Tuple[int, int]] = None,
         alpha: bool = False,
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
+        allow_negative: bool = False,
     ):
         """
         说明:
@@ -274,8 +275,9 @@ class BuildImage:
             :param pos: 贴图位置（左上角）
             :param alpha: 图片背景是否为透明
             :param center_type: 居中类型，可能的值 center: 完全居中，by_width: 水平居中，by_height: 垂直居中
+            :param allow_negative: 允许使用负数作为坐标且不超出图片范围，从右侧开始计算
         """
-        await self.loop.run_in_executor(None, self.paste, img, pos, alpha, center_type)
+        await self.loop.run_in_executor(None, self.paste, img, pos, alpha, center_type, allow_negative)
 
     def paste(
         self,
@@ -283,6 +285,7 @@ class BuildImage:
         pos: Optional[Tuple[int, int]] = None,
         alpha: bool = False,
         center_type: Optional[Literal["center", "by_height", "by_width"]] = None,
+        allow_negative: bool = False,
     ):
         """
         说明:
@@ -292,6 +295,7 @@ class BuildImage:
             :param pos: 贴图位置（左上角）
             :param alpha: 图片背景是否为透明
             :param center_type: 居中类型，可能的值 center: 完全居中，by_width: 水平居中，by_height: 垂直居中
+            :param allow_negative: 允许使用负数作为坐标且不超出图片范围，从右侧开始计算
         """
         if center_type:
             if center_type not in ["center", "by_height", "by_width"]:
@@ -311,7 +315,7 @@ class BuildImage:
                 width = pos[0]
                 height = int((self.h - img.h) / 2)
             pos = (width, height)
-        if pos:
+        if pos and allow_negative:
             if pos[0] < 0:
                 pos = (self.w + pos[0], pos[1])
             if pos[1] < 0:

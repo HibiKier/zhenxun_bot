@@ -563,3 +563,67 @@ async def broadcast_group(
                         )
         except Exception as e:
             logger.error(f"Bot: {_bot.self_id} 获取群聊列表失败", command=log_cmd, e=e)
+
+
+async def broadcast_superuser(
+    message: Union[str, Message, MessageSegment],
+    bot: Optional[Union[Bot, List[Bot]]] = None,
+    bot_id: Optional[Union[str, Set[str]]] = None,
+    ignore_superuser: Optional[Set[int]] = None,
+    check_func: Optional[Callable[[int], bool]] = None,
+    log_cmd: Optional[str] = None,
+):
+    """获取所有Bot或指定Bot对象广播超级用户
+
+    Args:
+        message (Any): 广播消息内容
+        bot (Optional[Bot], optional): 指定bot对象. Defaults to None.
+        bot_id (Optional[str], optional): 指定bot id. Defaults to None.
+        ignore_superuser (Optional[List[int]], optional): 忽略的超级用户id. Defaults to None.
+        check_func (Optional[Callable[[int], bool]], optional): 发送前对群聊检测方法，判断是否发送. Defaults to None.
+        log_cmd (Optional[str], optional): 日志标记. Defaults to None.
+    """
+    if not message:
+        raise ValueError("超级用户广播消息不能为空")
+    bot_dict = nonebot.get_bots()
+    bot_list: List[Bot] = []
+    if bot:
+        if isinstance(bot, list):
+            bot_list = bot
+        else:
+            bot_list.append(bot)
+    elif bot_id:
+        _bot_id_list = bot_id
+        if isinstance(bot_id, str):
+            _bot_id_list = [bot_id]
+        for id_ in _bot_id_list:
+            if bot_id in bot_dict:
+                bot_list.append(bot_dict[bot_id])
+            else:
+                logger.warning(f"Bot:{id_} 对象未连接或不存在")
+    else:
+        bot_list = list(bot_dict.values())
+    _used_user = []
+    for _bot in bot_list:
+        try:
+            for user_id in _bot.config.superusers:
+                try:
+                    if (
+                        ignore_superuser and int(user_id) in ignore_superuser
+                    ) or user_id in _used_user:
+                        continue
+                    if check_func and not check_func(int(user_id)):
+                        continue
+                    _used_user.append(user_id)
+                    await _bot.send_private_message(
+                        user_id=int(user_id), message=message
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"广播超级用户发消息失败: {message}",
+                        command=log_cmd,
+                        user_id=user_id,
+                        e=e,
+                    )
+        except Exception as e:
+            logger.error(f"Bot: {_bot.self_id} 获取群聊列表失败", command=log_cmd, e=e)

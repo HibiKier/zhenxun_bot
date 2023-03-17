@@ -26,7 +26,6 @@ from .config import (
     level2attitude,
     lik2level,
     lik2relation,
-    weekdays,
 )
 
 driver: Driver = nonebot.get_driver()
@@ -48,7 +47,7 @@ async def init_image():
 
 
 async def get_card(
-    user: "SignGroupUser",
+    user: SignGroupUser,
     nickname: str,
     add_impression: Optional[float],
     gold: Optional[int],
@@ -146,19 +145,13 @@ def _generate_card(
 
     bar_bk = BuildImage(220, 20, background=SIGN_RESOURCE_PATH / "bar_white.png")
     bar = BuildImage(220, 20, background=SIGN_RESOURCE_PATH / "bar.png")
+    ratio = 1 - (next_impression - user.impression) / (
+        next_impression - previous_impression
+    )
+    bar.resize(w=int(bar.w * ratio), h=bar.h)
     bar_bk.paste(
         bar,
-        (
-            -int(
-                220
-                * (
-                    (next_impression - user.impression)
-                    / (next_impression - previous_impression)
-                )
-            ),
-            0,
-        ),
-        True,
+        alpha=True,
     )
     font_size = 30
     if "好感度双倍加持卡" in gift:

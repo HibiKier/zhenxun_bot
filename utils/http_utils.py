@@ -54,8 +54,8 @@ class AsyncHttpx:
         """
         if not headers:
             headers = get_user_agent()
-        proxy = proxy if proxy else cls.proxy if use_proxy else None
-        async with httpx.AsyncClient(proxies=proxy, verify=verify) as client:
+        proxy_ = proxy if proxy else cls.proxy if use_proxy else None
+        async with httpx.AsyncClient(proxies=proxy_, verify=verify) as client:
             return await client.get(
                 url,
                 params=params,
@@ -75,8 +75,8 @@ class AsyncHttpx:
         files: Any = None,
         verify: bool = True,
         use_proxy: bool = True,
-        proxy: Dict[str, str] = None,
-        json: Optional[Dict[str, Union[Any]]] = None,
+        proxy: Optional[Dict[str, str]] = None,
+        json: Optional[Dict[str, Any]] = None,
         params: Optional[Dict[str, str]] = None,
         headers: Optional[Dict[str, str]] = None,
         cookies: Optional[Dict[str, str]] = None,
@@ -101,8 +101,8 @@ class AsyncHttpx:
         """
         if not headers:
             headers = get_user_agent()
-        proxy = proxy if proxy else cls.proxy if use_proxy else None
-        async with httpx.AsyncClient(proxies=proxy, verify=verify) as client:
+        proxy_ = proxy if proxy else cls.proxy if use_proxy else None
+        async with httpx.AsyncClient(proxies=proxy_, verify=verify) as client:
             return await client.post(
                 url,
                 content=content,
@@ -125,7 +125,7 @@ class AsyncHttpx:
         params: Optional[Dict[str, str]] = None,
         verify: bool = True,
         use_proxy: bool = True,
-        proxy: Dict[str, str] = None,
+        proxy: Optional[Dict[str, str]] = None,
         headers: Optional[Dict[str, str]] = None,
         cookies: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = 30,
@@ -175,10 +175,10 @@ class AsyncHttpx:
                 else:
                     if not headers:
                         headers = get_user_agent()
-                    proxy = proxy if proxy else cls.proxy if use_proxy else None
+                    proxy_ = proxy if proxy else cls.proxy if use_proxy else None
                     try:
                         async with httpx.AsyncClient(
-                            proxies=proxy, verify=verify
+                            proxies=proxy_, verify=verify
                         ) as client:
                             async with client.stream(
                                 "GET",
@@ -230,7 +230,7 @@ class AsyncHttpx:
         limit_async_number: Optional[int] = None,
         params: Optional[Dict[str, str]] = None,
         use_proxy: bool = True,
-        proxy: Dict[str, str] = None,
+        proxy: Optional[Dict[str, str]] = None,
         headers: Optional[Dict[str, str]] = None,
         cookies: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = 30,
