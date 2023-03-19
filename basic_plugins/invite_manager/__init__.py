@@ -41,7 +41,7 @@ x = on_message(priority=999, block=False, rule=lambda: False)
 @friend_req.handle()
 async def _(bot: Bot, event: FriendRequestEvent):
     if time_manager.add_user_request(event.user_id):
-        logger.debug(f"收录 用户[{event.user_id}] 好友请求", "好友请求")
+        logger.debug(f"收录好友请求...", "好友请求", target=event.user_id)
         user = await bot.get_stranger_info(user_id=event.user_id)
         nickname = user["nickname"]
         sex = user["sex"]

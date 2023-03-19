@@ -148,7 +148,7 @@ def _generate_card(
     ratio = 1 - (next_impression - user.impression) / (
         next_impression - previous_impression
     )
-    bar.resize(w=int(bar.w * ratio), h=bar.h)
+    bar.resize(w=int(bar.w * ratio) or 1, h=bar.h)
     bar_bk.paste(
         bar,
         alpha=True,

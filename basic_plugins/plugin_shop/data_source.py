@@ -105,7 +105,7 @@ async def uninstall_plugin(name: str) -> str:
         logger.info(f"插件 {name} 删除成功！")
         return f"插件 {name} 删除成功！"
     except Exception as e:
-        logger.error(f"删除插件 {name} 失败 {type(e)}：{e}")
+        logger.error(f"删除插件失败", target=name, e=e)
         return f"删除插件 {name} 失败 {type(e)}：{e}"
 
 
@@ -183,19 +183,18 @@ async def download_json() -> int:
             shutil.rmtree(extract_path.absolute(), ignore_errors=True)
             return 200
     except Exception as e:
-        logger.error(f"下载插件库压缩包失败或解压失败 {type(e)}：{e}")
+        logger.error(f"下载插件库压缩包失败或解压失败", e=e)
     return 999
 
 
-async def get_plugin_name(name: int) -> Tuple[str, int]:
+async def get_plugin_name(index: int) -> Tuple[str, int]:
     """
     通过下标获取插件名
     :param name: 下标
     """
-    name = int(name)
     if not data:
         await show_plugin_repo()
-    if name < 1 or name > len(data.keys()):
+    if index < 1 or index > len(data.keys()):
         return "下标超过上下限！", 999
-    name = list(data.keys())[name - 1]
+    name = list(data.keys())[index - 1]
     return name, 200

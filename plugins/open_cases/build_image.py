@@ -14,7 +14,7 @@ BASE_PATH = IMAGE_PATH / "csgo_cases"
 ICON_PATH = IMAGE_PATH / "_icon"
 
 
-async def generate_skin(skin: BuffSkin) -> Optional[BuildImage]:
+async def generate_skin(skin: BuffSkin, update_count: int) -> Optional[BuildImage]:
     """构造皮肤图片
 
     Args:
@@ -53,13 +53,19 @@ async def generate_skin(skin: BuffSkin) -> Optional[BuildImage]:
             (340, 116), str(skin.sell_min_price), (0, 255, 98), font_size=30
         )
 
-        price_icon = BuildImage(30, 30, background=ICON_PATH / "num_white.png")
-        await case_bk.apaste(price_icon, (455, 70), True)
+        update_count_icon = BuildImage(
+            40, 40, background=ICON_PATH / "reload_white.png"
+        )
+        await case_bk.apaste(update_count_icon, (575, 10), True)
+        await case_bk.atext((625, 12), str(update_count), (255, 255, 255), font_size=45)
+
+        num_icon = BuildImage(30, 30, background=ICON_PATH / "num_white.png")
+        await case_bk.apaste(num_icon, (455, 70), True)
         await case_bk.atext((490, 75), "在售:", (255, 255, 255))
         await case_bk.atext((535, 72), str(skin.sell_num), (144, 0, 255), font_size=30)
 
-        price_icon = BuildImage(30, 30, background=ICON_PATH / "want_buy_white.png")
-        await case_bk.apaste(price_icon, (455, 114), True)
+        want_buy_icon = BuildImage(30, 30, background=ICON_PATH / "want_buy_white.png")
+        await case_bk.apaste(want_buy_icon, (455, 114), True)
         await case_bk.atext((490, 120), "求购:", (255, 255, 255))
         await case_bk.atext((535, 116), str(skin.buy_num), (144, 0, 255), font_size=30)
 
@@ -81,14 +87,19 @@ async def generate_skin(skin: BuffSkin) -> Optional[BuildImage]:
             235, 250, color=(25, 25, 25, 100), font_size=25, font="CJGaoDeGuo.otf"
         )
         skin_image = BuildImage(205, 153, background=file_path)
-        skin_bk.paste(skin_image, (10, 30), alpha=True)
-        # skin_bk.paste(circular_red, (-20, 10), True)
-        skin_bk.line((10, 180, 220, 180))
-        skin_bk.text((10, 10), skin.name, (255, 255, 255))
-        skin_bk.text((10, 185), f"{skin.skin_name}", (255, 255, 255), "by_width")
-        skin_bk.text((10, 218), "品质:", (255, 255, 255))
-        skin_bk.text((55, 218), COLOR2NAME[skin.color][:2], COLOR2COLOR[skin.color])
-        skin_bk.text((100, 218), "类型:", (255, 255, 255))
-        skin_bk.text((145, 218), skin.weapon_type, (255, 255, 255))
+        update_count_icon = BuildImage(
+            35, 35, background=ICON_PATH / "reload_white.png"
+        )
+        await skin_bk.apaste(skin_image, (10, 30), alpha=True)
+        await skin_bk.aline((10, 180, 220, 180))
+        await skin_bk.atext((10, 10), skin.name, (255, 255, 255))
+        await skin_bk.apaste(update_count_icon, (140, 10), True)
+        await skin_bk.atext((175, 15), str(update_count), (255, 255, 255))
+        await skin_bk.atext((10, 185), f"{skin.skin_name}", (255, 255, 255), "by_width")
+        await skin_bk.atext((10, 218), "品质:", (255, 255, 255))
+        await skin_bk.atext(
+            (55, 218), COLOR2NAME[skin.color][:2], COLOR2COLOR[skin.color]
+        )
+        await skin_bk.atext((100, 218), "类型:", (255, 255, 255))
+        await skin_bk.atext((145, 218), skin.weapon_type, (255, 255, 255))
         return skin_bk
-    return None

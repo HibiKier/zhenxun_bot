@@ -51,9 +51,9 @@ class HelpImageBuild:
             for key in self._data.keys():
                 plugin_data = self._data[key]
                 if plugin_data.plugin_type == PluginType.NORMAL:
-                    if not self._sort_data.get(plugin_data.menu_type[0]):
-                        self._sort_data[plugin_data.menu_type[0]] = []
-                    self._sort_data[plugin_data.menu_type[0]].append(self._data[key])
+                    if not self._sort_data.get(plugin_data.menu_type[0]):  # type: ignore
+                        self._sort_data[plugin_data.menu_type[0]] = []  # type: ignore
+                    self._sort_data[plugin_data.menu_type[0]].append(self._data[key])  # type: ignore
 
     async def build_image(self, group_id: Optional[int]):
         if group_id:
@@ -71,6 +71,7 @@ class HelpImageBuild:
 
     async def build_html_image(self, group_id: Optional[int]) -> bytes:
         from nonebot_plugin_htmlrender import template_to_pic
+
         self.sort_type()
         classify = {}
         for menu in self._sort_data:
@@ -180,9 +181,12 @@ class HelpImageBuild:
                 if (
                     not plugin_data.plugin_status.status
                     and plugin_data.plugin_status.block_type in ["group", "all"]
-                ) or (group_id and not group_manager.get_plugin_super_status(
-                    plugin_data.model, group_id
-                )):
+                ) or (
+                    group_id
+                    and not group_manager.get_plugin_super_status(
+                        plugin_data.model, group_id
+                    )
+                ):
                     w = curr_h + int(B.getsize(plugin_data.name)[1] / 2) + 2
                     pos = (
                         7,
@@ -191,7 +195,7 @@ class HelpImageBuild:
                         w,
                     )
                 if build_type == "VV":
-                    name_image = await self.build_name_image(
+                    name_image = await self.build_name_image(  # type: ignore
                         max_width,
                         plugin_data.name,
                         "black" if not idx % 2 else "white",

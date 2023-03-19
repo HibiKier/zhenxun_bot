@@ -3,8 +3,7 @@ from pathlib import Path
 from typing import List
 
 import nonebot
-from nonebot import on_message
-from nonebot.adapters.onebot.v11 import ActionFailed
+from nonebot import get_bots, on_message
 
 from configs.config import NICKNAME, Config
 from configs.path_config import IMAGE_PATH
@@ -12,7 +11,7 @@ from models.friend_user import FriendUser
 from models.group_info import GroupInfo
 from services.log import logger
 from utils.message_builder import image
-from utils.utils import broadcast_group, get_bot, scheduler
+from utils.utils import broadcast_group, scheduler
 
 __zx_plugin_name__ = "定时任务相关 [Hidden]"
 __plugin_version__ = 0.1
@@ -58,7 +57,7 @@ cx = on_message(priority=9999, block=False, rule=lambda: False)
 async def _():
     img = image(IMAGE_PATH / "zhenxun" / "zao.jpg")
     await broadcast_group("[[_task|zwa]]早上好" + img, log_cmd="被动早晚安")
-    logger.info("每日早安发送")
+    logger.info("每日早安发送...")
 
 
 # 睡觉了
@@ -72,7 +71,7 @@ async def _():
     await broadcast_group(
         f"[[_task|zwa]]{NICKNAME}要睡觉了，你们也要早点睡呀" + img, log_cmd="被动早晚安"
     )
-    logger.info("每日晚安发送")
+    logger.info("每日晚安发送...")
 
 
 # 自动更新群组信息
@@ -100,9 +99,10 @@ async def _():
                         "group_flag": 1,
                     },
                 )
-                logger.info(f"自动更新群组信息成功", group_id=g)
+                logger.debug("自动更新群组信息成功", "自动更新群组", group_id=g)
         except Exception as e:
             logger.error(f"Bot: {bot.self_id} 自动更新群组信息", e=e)
+    logger.info("自动更新群组成员信息成功...")
 
 
 # 自动更新好友信息
@@ -112,16 +112,17 @@ async def _():
     minute=1,
 )
 async def _():
-    try:
-        bot = get_bot()
-        fl = await bot.get_friend_list()
-        for f in fl:
-            await FriendUser.create(user_id=f["user_id"], user_name=f["nickname"])
-            logger.info(f'自动更新好友 {f["user_id"]} 信息成功')
-            # else:
-            #     logger.warning(f'自动更新好友 {f["user_id"]} 信息失败')
-    except Exception as e:
-        logger.error(f"自动更新群组信息错误 e:{e}")
+    bots = nonebot.get_bots()
+    for key in bots:
+        try:
+            bot = bots[key]
+            fl = await bot.get_friend_list()
+            for f in fl:
+                await FriendUser.create(user_id=f["user_id"], user_name=f["nickname"])
+                logger.debug(f"更新好友信息成功", "自动更新好友", f["user_id"])
+        except Exception as e:
+            logger.error(f"自动更新群组信息错误", e=e)
+    logger.info("自动更新好友信息成功...")
 
 
 # 自动备份
@@ -134,22 +135,24 @@ async def _():
     if Config.get_config("_backup", "BACKUP_FLAG"):
         _backup_path = Path() / "backup"
         _backup_path.mkdir(exist_ok=True, parents=True)
-        for x in Config.get_config("_backup", "BACKUP_DIR_OR_FILE"):
-            try:
-                path = Path(x)
-                _p = _backup_path / x
-                if path.exists():
-                    if path.is_dir():
-                        if _p.exists():
-                            shutil.rmtree(_p, ignore_errors=True)
-                        shutil.copytree(x, _p)
-                    else:
-                        if _p.exists():
-                            _p.unlink()
-                        shutil.copy(x, _p)
-                    logger.info(f"已完成自动备份：{x}")
-            except Exception as e:
-                logger.error(f"自动备份文件 {x} 发生错误 {type(e)}:{e}")
+        if backup_dir_or_file := Config.get_config("_backup", "BACKUP_DIR_OR_FILE"):
+            for path_file in backup_dir_or_file:
+                try:
+                    path = Path(path_file)
+                    _p = _backup_path / path_file
+                    if path.exists():
+                        if path.is_dir():
+                            if _p.exists():
+                                shutil.rmtree(_p, ignore_errors=True)
+                            shutil.copytree(path_file, _p)
+                        else:
+                            if _p.exists():
+                                _p.unlink()
+                            shutil.copy(path_file, _p)
+                        logger.debug(f"已完成自动备份：{path_file}", "自动备份")
+                except Exception as e:
+                    logger.error(f"自动备份文件 {path_file} 发生错误", "自动备份", e=e)
+    logger.info("自动备份成功...", "自动备份")
 
     #  一次性任务
 

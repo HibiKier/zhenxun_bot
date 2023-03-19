@@ -68,7 +68,7 @@ add_group = on_request(priority=1, block=False)
 @group_increase_handle.handle()
 async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
     if event.user_id == int(bot.self_id):
-        group = await GroupInfo.filter(group_id=event.group_id).first()
+        group = await GroupInfo.get_or_none(group_id=event.group_id)
         # 群聊不存在或被强制拉群，退出该群
         if (not group or group.group_flag == 0) and Config.get_config(
             "invite_manager", "flag"
@@ -80,15 +80,15 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
                 await bot.set_group_leave(group_id=event.group_id)
                 await bot.send_private_msg(
                     user_id=int(list(bot.config.superusers)[0]),
-                    message=f"触发强制入群保护，已成功退出群聊 {event.group_id}..",
+                    message=f"触发强制入群保护，已成功退出群聊 {event.group_id}...",
                 )
-                logger.info(f"强制拉群或未有群信息，退出群聊 {group} 成功")
+                logger.info(f"强制拉群或未有群信息，退出群聊成功", "入群检测", group_id=event.group_id)
                 requests_manager.remove_request("group", event.group_id)
             except Exception as e:
-                logger.info(f"强制拉群或未有群信息，退出群聊 {group} 失败 e:{e}")
+                logger.info(f"强制拉群或未有群信息，退出群聊失败", "入群检测", group_id=event.group_id, e=e)
                 await bot.send_private_msg(
                     user_id=int(list(bot.config.superusers)[0]),
-                    message=f"触发强制入群保护，退出群聊 {event.group_id} 失败..",
+                    message=f"触发强制入群保护，退出群聊 {event.group_id} 失败...",
                 )
         # 默认群功能开关
         elif event.group_id not in group_manager.get_data().group_manager.keys():
@@ -96,42 +96,53 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
             for plugin in data.keys():
                 if not data[plugin].default_status:
                     group_manager.block_plugin(plugin, event.group_id)
+            admin_default_auth = Config.get_config(
+                "admin_bot_manage", "ADMIN_DEFAULT_AUTH"
+            )
             # 即刻刷新权限
             for user_info in await bot.get_group_member_list(group_id=event.group_id):
-                if user_info["role"] in [
-                    "owner",
-                    "admin",
-                ] and not await LevelUser.is_group_flag(
-                    user_info["user_id"], event.group_id
+                if (
+                    user_info["role"]
+                    in [
+                        "owner",
+                        "admin",
+                    ]
+                    and not await LevelUser.is_group_flag(
+                        user_info["user_id"], event.group_id
+                    )
+                    and admin_default_auth is not None
                 ):
                     await LevelUser.set_level(
                         user_info["user_id"],
                         user_info["group_id"],
-                        Config.get_config("admin_bot_manage", "ADMIN_DEFAULT_AUTH"),
+                        admin_default_auth,
+                    )
+                    logger.debug(
+                        f"添加默认群管理员权限: {admin_default_auth}",
+                        "入群检测",
+                        user_info["user_id"],
+                        user_info["group_id"],
                     )
                 if str(user_info["user_id"]) in bot.config.superusers:
                     await LevelUser.set_level(
                         user_info["user_id"], user_info["group_id"], 9
+                    )
+                    logger.debug(
+                        f"添加超级用户权限: 9",
+                        "入群检测",
+                        user_info["user_id"],
+                        user_info["group_id"],
                     )
     else:
         join_time = datetime.now()
         user_info = await bot.get_group_member_info(
             group_id=event.group_id, user_id=event.user_id
         )
-        user, _ = await GroupInfoUser.get_or_create(
+        await GroupInfoUser.update_or_create(
             user_qq=user_info["user_id"],
             group_id=user_info["group_id"],
-            defaults={
-                "user_name": user_info["nickname"],
-            },
+            defaults={"user_name": user_info["nickname"], "user_join_time": join_time},
         )
-        user.user_join_time = join_time
-        await user.save()
-        # await GroupInfoUser.update_or_create(
-        #     user_qq=user_info["user_id"],
-        #     group_id=user_info["group_id"],
-        #     defaults={"user_name": user_info["nickname"], "user_join_time": join_time},
-        # )
         logger.info(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新成功")
 
         # 群欢迎消息
@@ -147,7 +158,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
                 data = json.load(open(custom_welcome_msg_json, "r"))
                 if data.get(str(event.group_id)):
                     msg = data[str(event.group_id)]
-                    if msg.find("[at]") != -1:
+                    if "[at]" in msg:
                         msg = msg.replace("[at]", "")
                         at_flag = True
             if (DATA_PATH / "custom_welcome_msg" / f"{event.group_id}.jpg").exists():

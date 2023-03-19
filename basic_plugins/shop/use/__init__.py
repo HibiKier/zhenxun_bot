@@ -97,9 +97,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
                     await use_props.send(f"使用道具 {name} {num} 次成功！", at_sender=True)
                 if msg := await effect(bot, event, name, num, text, event.message):
                     await use_props.send(msg, at_sender=True)
-                logger.info(
-                    f"USER {event.user_id} GROUP {event.group_id} 使用道具 {name} {num} 次成功"
-                )
+                logger.info(f"使用道具 {name} {num} 次成功", event.user_id, event.group_id)
                 await UserShopGoldLog.create(
                     user_qq=event.user_id,
                     group_id=event.group_id,
@@ -110,7 +108,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
             else:
                 await use_props.send(f"使用道具 {name} {num} 次失败！", at_sender=True)
                 logger.info(
-                    f"USER {event.user_id} GROUP {event.group_id} 使用道具 {name} {num} 次失败"
+                    f"使用道具 {name} {num} 次失败", "使用道具", event.user_id, event.group_id
                 )
             await func_manager.run_handle(type_="after_handle", param=model, **kwargs)
     else:

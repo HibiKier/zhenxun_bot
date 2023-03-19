@@ -1,5 +1,5 @@
 import time
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from PIL import Image
 
@@ -25,7 +25,7 @@ async def create_shop_help() -> str:
     _dc = {}
     font_h = BuildImage(0, 0).getsize("正")[1]
     h = 10
-    _list = []
+    _list: List[GoodsInfo] = []
     for goods in goods_lst:
         if goods.goods_limit_time == 0 or time.time() < goods.goods_limit_time:
             _list.append(goods)

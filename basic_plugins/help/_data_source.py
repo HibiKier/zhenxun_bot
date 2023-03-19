@@ -1,14 +1,10 @@
+from typing import Optional
+
+from configs.path_config import IMAGE_PATH
+from utils.image_utils import BuildImage
+from utils.manager import admin_manager, plugin_data_manager, plugins2settings_manager
 
 from ._utils import HelpImageBuild
-from utils.image_utils import BuildImage
-from configs.path_config import IMAGE_PATH
-from utils.manager import (
-    plugins2settings_manager,
-    admin_manager,
-)
-from typing import Optional
-import nonebot
-
 
 random_bk_path = IMAGE_PATH / "background" / "help" / "simple_help"
 
@@ -36,36 +32,25 @@ def get_plugin_help(msg: str, is_super: bool = False) -> Optional[str]:
     module = plugins2settings_manager.get_plugin_module(
         msg
     ) or admin_manager.get_plugin_module(msg)
-    if module:
-        try:
-            plugin = nonebot.plugin.get_plugin(module)
-            metadata = plugin.metadata
-            if plugin:
-                if is_super:
-                    result = plugin.module.__getattribute__(
-                        "__plugin_superuser_usage__"
-                    )
-                else:
-                    result = (
-                        metadata.usage
-                        if metadata
-                        else plugin.module.__getattribute__("__plugin_usage__")
-                    )
-                if result:
-                    width = 0
-                    for x in result.split("\n"):
-                        _width = len(x) * 24
-                        width = width if width > _width else _width
-                    height = len(result.split("\n")) * 45
-                    A = BuildImage(width, height, font_size=24)
-                    bk = BuildImage(
-                        width,
-                        height,
-                        background=IMAGE_PATH / "background" / "1.png",
-                    )
-                    A.paste(bk, alpha=True)
-                    A.text((int(width * 0.048), int(height * 0.21)), result)
-                    return A.pic2bs4()
-        except AttributeError:
-            pass
+    if module and (plugin_data := plugin_data_manager.get(module)):
+        plugin_data.superuser_usage
+        if is_super:
+            result = plugin_data.superuser_usage
+        else:
+            result = plugin_data.usage
+        if result:
+            width = 0
+            for x in result.split("\n"):
+                _width = len(x) * 24
+                width = width if width > _width else _width
+            height = len(result.split("\n")) * 45
+            A = BuildImage(width, height, font_size=24)
+            bk = BuildImage(
+                width,
+                height,
+                background=IMAGE_PATH / "background" / "1.png",
+            )
+            A.paste(bk, alpha=True)
+            A.text((int(width * 0.048), int(height * 0.21)), result)
+            return A.pic2bs4()
     return None

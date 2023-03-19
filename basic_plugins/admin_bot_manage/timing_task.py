@@ -1,8 +1,7 @@
-from asyncpg.exceptions import ConnectionDoesNotExistError, UndefinedColumnError
+from nonebot import get_bots
 
-from models.group_info import GroupInfo
 from services.log import logger
-from utils.utils import get_bot, scheduler
+from utils.utils import scheduler
 
 from ._data_source import update_member_info
 
@@ -13,6 +12,23 @@ __plugin_version__ = 0.1
 __plugin_author__ = "HibiKier"
 
 
+async def update():
+    bot_list = get_bots()
+    if bot_list:
+        used_group = []
+        for key in bot_list:
+            bot = bot_list[key]
+            gl = await bot.get_group_list()
+            gl = [g["group_id"] for g in gl if g["group_id"] not in used_group]
+            for g in gl:
+                used_group.append(g)
+                try:
+                    await update_member_info(bot, g)  # type: ignore
+                    logger.debug(f"更新群组成员信息成功", "自动更新群组成员信息", group_id=g)
+                except Exception as e:
+                    logger.error(f"更新群组成员信息错误", "自动更新群组成员信息", group_id=g, e=e)
+
+
 # 自动更新群员信息
 @scheduler.scheduled_job(
     "cron",
@@ -20,16 +36,7 @@ __plugin_author__ = "HibiKier"
     minute=1,
 )
 async def _():
-    bot = get_bot()
-    if bot:
-        gl = await bot.get_group_list()
-        gl = [g["group_id"] for g in gl]
-        for g in gl:
-            try:
-                await update_member_info(g)
-                logger.info(f"更新群组 g:{g} 成功")
-            except Exception as e:
-                logger.error(f"更新群组错误 g:{g} e:{e}")
+    await update()
 
 
 # 快速更新群员信息以及管理员权限
@@ -38,15 +45,4 @@ async def _():
     minutes=5,
 )
 async def _():
-    try:
-        bot = get_bot()
-        if bot:
-            gl = await bot.get_group_list()
-            gl = [g["group_id"] for g in gl]
-            all_group = [x.group_id for x in await GroupInfo.all()]
-            for g in gl:
-                if g not in all_group:
-                    await update_member_info(g, False)
-                    logger.info(f"快速更新群信息以及权限：{g}")
-    except (IndexError, ConnectionDoesNotExistError, UndefinedColumnError):
-        pass
+    await update()

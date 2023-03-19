@@ -92,10 +92,10 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
                 f"限时：{data.get('limit_time')}",
                 at_sender=True,
             )
-            logger.info(f"USER {event.user_id} 添加商品 {msg} 成功")
+            logger.info(f"添加商品 {msg} 成功", "添加商品", event.user_id)
         else:
             await shop_add_goods.send(f"添加商品 {msg} 失败了...", at_sender=True)
-            logger.warning(f"USER {event.user_id} 添加商品 {msg} 失败")
+            logger.warning(f"添加商品 {msg} 失败", "添加商品", event.user_id)
 
 
 @shop_del_goods.handle()
@@ -113,10 +113,10 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             await shop_del_goods.send(f"删除商品 {goods_name} 成功了...", at_sender=True)
             if os.path.exists(f"{IMAGE_PATH}/shop_help.png"):
                 os.remove(f"{IMAGE_PATH}/shop_help.png")
-            logger.info(f"USER {event.user_id} 删除商品 {goods_name} 成功")
+            logger.info(f"删除商品成功", "删除商品", event.user_id, target=goods_name)
         else:
             await shop_del_goods.send(f"删除商品 {goods_name} 失败了...", at_sender=True)
-            logger.info(f"USER {event.user_id} 删除商品 {goods_name} 失败")
+            logger.info(f"删除商品失败", "删除商品", event.user_id, target=goods_name)
 
 
 @shop_update_goods.handle()
@@ -131,10 +131,10 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         flag, name, text = await update_goods(**data)
         if flag:
             await shop_update_goods.send(f"修改商品 {name} 成功了...\n{text}", at_sender=True)
-            logger.info(f"USER {event.user_id} 修改商品 {name} 数据 {text} 成功")
+            logger.info(f"修改商品数据 {text} 成功", "修改商品", event.user_id, target=name)
         else:
             await shop_update_goods.send(name, at_sender=True)
-            logger.info(f"USER {event.user_id} 修改商品 {name} 数据 {text} 失败")
+            logger.info(f"修改商品数据 {text} 失败", "修改商品", event.user_id, target=name)
 
 
 @scheduler.scheduled_job(
@@ -147,7 +147,7 @@ async def _():
         await GoodsInfo.all().update(daily_purchase_limit={})
         logger.info("商品每日限购次数重置成功...")
     except Exception as e:
-        logger.error(f"商品每日限购次数重置出错 {type(e)}：{e}")
+        logger.error(f"商品每日限购次数重置出错", e=e)
 
 
 @scheduler.scheduled_job(

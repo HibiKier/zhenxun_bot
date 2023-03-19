@@ -49,6 +49,7 @@ class BuffSkin(Model):
     class Meta:
         table = "buff_skin"
         table_description = "Buff皮肤数据表"
+        unique_together = ("case_name", "name", "skin_name", "abrasion")
 
     @classmethod
     async def random_skin(

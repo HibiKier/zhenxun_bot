@@ -1,12 +1,13 @@
 from typing import List
 
-from configs.config import Config
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
 from nonebot.adapters.onebot.v11.permission import GROUP
 from nonebot.params import CommandArg
+
+from configs.config import Config
 from services.log import logger
-from utils.depends import ImageList
+from utils.depends import ImageList, OneCommand
 
 from ._data_source import custom_group_welcome
 
@@ -40,7 +41,10 @@ custom_welcome = on_command(
 
 @custom_welcome.handle()
 async def _(
-    event: GroupMessageEvent, arg: Message = CommandArg(), img: List[str] = ImageList()
+    event: GroupMessageEvent,
+    cmd: str = OneCommand(),
+    arg: Message = CommandArg(),
+    img: List[str] = ImageList(),
 ):
     msg = arg.extract_plain_text().strip()
     if not msg and not img:
@@ -52,5 +56,7 @@ async def _(
         )
         logger.info(f"USER {event.user_id} GROUP {event.group_id} 自定义群欢迎消息：{msg}")
     except Exception as e:
-        logger.error(f"自定义进群欢迎消息发生错误 {type(e)}：{e}")
+        logger.error(
+            f"自定义进群欢迎消息发生错误", cmd, event.user_id, getattr(event, "group_id", None), e=e
+        )
         await custom_welcome.send("发生了一些未知错误...")

@@ -27,6 +27,6 @@ update_info = on_command("更新信息", aliases={"更新日志"}, priority=5, b
 @update_info.handle()
 async def _():
     if img := image("update_info.png"):
-        await update_info.finish(image("update_info.png"))
+        await update_info.finish(img)
     else:
         await update_info.finish("目前没有更新信息哦")

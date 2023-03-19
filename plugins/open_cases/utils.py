@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List, Tuple, Union
 
 import nonebot
+from tortoise.functions import Count
 
 from configs.config import Config
 from configs.path_config import IMAGE_PATH
@@ -273,7 +274,14 @@ async def build_case_image(case_name: str) -> Union[BuildImage, str]:
     background = random.choice(os.listdir(CASE_BACKGROUND))
     background_img = BuildImage(0, 0, background=CASE_BACKGROUND / background)
     if case_name:
+        log_list = (
+            await BuffSkinLog.filter(case_name=case_name)
+            .annotate(count=Count("id"))
+            .group_by("skin_name")
+            .values_list("skin_name", "count")
+        )
         skin_list_ = await BuffSkin.filter(case_name=case_name).all()
+        skin2count = {item[0]: item[1] for item in log_list}
         case = None
         skin_list: List[BuffSkin] = []
         exists_name = []
@@ -287,7 +295,7 @@ async def build_case_image(case_name: str) -> Union[BuildImage, str]:
                     exists_name.append(name)
         generate_img = {}
         for skin in skin_list:
-            skin_img = await generate_skin(skin)
+            skin_img = await generate_skin(skin, skin2count[skin.skin_name])
             if skin_img:
                 if not generate_img.get(skin.color):
                     generate_img[skin.color] = []
@@ -305,7 +313,7 @@ async def build_case_image(case_name: str) -> Union[BuildImage, str]:
         )
         await A.afilter("GaussianBlur", 2)
         if case:
-            case_img = await generate_skin(case)
+            case_img = await generate_skin(case, skin2count[f"{case_name}武器箱"])
             if case_img:
                 A.paste(case_img, (25, 25), True)
         w = 25
@@ -321,10 +329,17 @@ async def build_case_image(case_name: str) -> Union[BuildImage, str]:
             await A.acrop((0, 0, A.w, h + img_h + 100))
         return A
     else:
+        log_list = (
+            await BuffSkinLog.filter(color="CASE")
+            .annotate(count=Count("id"))
+            .group_by("case_name")
+            .values_list("case_name", "count")
+        )
+        name2count = {item[0]: item[1] for item in log_list}
         skin_list = await BuffSkin.filter(color="CASE").all()
         image_list: List[BuildImage] = []
         for skin in skin_list:
-            if img := await generate_skin(skin):
+            if img := await generate_skin(skin, name2count[skin.case_name]):
                 image_list.append(img)
         if not image_list:
             return "未收录武器箱"

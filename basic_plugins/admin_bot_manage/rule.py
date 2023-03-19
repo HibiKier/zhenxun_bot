@@ -1,8 +1,10 @@
+import time
+
 from nonebot.adapters.onebot.v11 import Event
+
+from services.log import logger
 from utils.manager import group_manager, plugins2settings_manager
 from utils.utils import get_message_text
-from services.log import logger
-import time
 
 cmd = []
 
@@ -49,5 +51,5 @@ def switch_rule(event: Event) -> bool:
         msg = msg[0] if msg else ""
         return msg in cmd
     except Exception as e:
-        logger.error(f"检测是否为功能开关命令发生错误 {type(e)}: {e}")
+        logger.error(f"检测是否为功能开关命令发生错误", e=e)
     return False

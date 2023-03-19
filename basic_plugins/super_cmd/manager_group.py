@@ -205,40 +205,31 @@ async def _(
     if not msg:
         await manager_group_whitelist.finish("请输入群号")
     error_group = []
-    all_group = [g["group_id"] for g in await bot.get_group_list()]
     for group_id in msg:
         group_id = int(group_id)
-        if is_number(group_id) and group_id in all_group:
-            if cmd[:2] == "添加":
-                try:
-                    group_info = await bot.get_group_info(group_id=group_id)
-                    await GroupInfo.update_or_create(
-                        group_id=group_info["group_id"],
-                        defaults={
-                            "group_flag": 1,
-                            "group_name": group_info["group_name"],
-                            "max_member_count": group_info["max_member_count"],
-                            "member_count": group_info["member_count"],
-                        },
-                    )
-                except Exception as e:
-                    await group_auth.send(f"添加群认证 {group_id} 发生错误！")
-                    logger.error(f"添加群认证发生错误", cmd, target=group_id, e=e)
-                else:
-                    await group_auth.send(f"已为 {group_id} {cmd[:2]}群认证..")
-                    logger.info(f"添加群认证成功", cmd, target=group_id)
+        if cmd[:2] == "添加":
+            try:
+                await GroupInfo.update_or_create(
+                    group_id=group_id,
+                    defaults={
+                        "group_flag": 1,
+                    },
+                )
+            except Exception as e:
+                await group_auth.send(f"添加群认证 {group_id} 发生错误！")
+                logger.error(f"添加群认证发生错误", cmd, target=group_id, e=e)
             else:
-                if group := await GroupInfo.filter(group_id=group_id).first():
-                    await group.update_or_create(
-                        group_id=group_id, defaults={"group_flag": 0}
-                    )
-                    await group_auth.send(f"已删除 {group_id} 群认证..")
-                    logger.info(f"删除群认证成功", cmd, target=group_id)
-                else:
-                    await group_auth.send(f"未查找到群聊: {group_id}")
-                    logger.info(f"未找到群聊", cmd, target=group_id)
+                await group_auth.send(f"已为 {group_id} {cmd[:2]}群认证..")
+                logger.info(f"添加群认证成功", cmd, target=group_id)
         else:
-            logger.debug(f"群号不合法或不存在", cmd, target=group_id)
-            error_group.append(str(group_id))
+            if group := await GroupInfo.filter(group_id=group_id).first():
+                await group.update_or_create(
+                    group_id=group_id, defaults={"group_flag": 0}
+                )
+                await group_auth.send(f"已删除 {group_id} 群认证..")
+                logger.info(f"删除群认证成功", cmd, target=group_id)
+            else:
+                await group_auth.send(f"未查找到群聊: {group_id}")
+                logger.info(f"未找到群聊", cmd, target=group_id)
     if error_group:
         await manager_group_whitelist.send("以下群聊不合法或不存在:\n" + "\n".join(error_group))

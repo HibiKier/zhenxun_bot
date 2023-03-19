@@ -1,11 +1,10 @@
-
 import nonebot
-from configs.path_config import IMAGE_PATH
 from nonebot import Driver
+
+from configs.path_config import IMAGE_PATH
 from services.log import logger
 from utils.image_template import help_template
-from utils.image_utils import (BuildImage, build_sort_image, group_image,
-                               text2image)
+from utils.image_utils import BuildImage, build_sort_image, group_image, text2image
 from utils.manager import plugin_data_manager
 from utils.manager.models import PluginType
 
@@ -52,13 +51,11 @@ async def create_help_image():
                     task_list.append(plugin_data.task[x])
         except Exception as e:
             logger.warning(
-                f"获取超级用户插件 {plugin_data.model}: {plugin_data.name} 设置失败... {type(e)}：{e}"
+                f"获取超级用户插件 {plugin_data.model}: {plugin_data.name} 设置失败...", e=e
             )
     task_str = "\n".join(task_list)
     task_str = "通过私聊 开启被动/关闭被动 + [被动名称] 来控制全局被动\n----------\n" + task_str
-    task_image = await text2image(
-        task_str, padding=5, color=(204, 196, 151)
-    )
+    task_image = await text2image(task_str, padding=5, color=(204, 196, 151))
     task_image = await help_template("被动任务", task_image)
     image_list.append(task_image)
     image_group, _ = group_image(image_list)

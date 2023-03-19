@@ -1,9 +1,11 @@
-from nonebot.exception import MockApiException
-from nonebot.adapters.onebot.v11 import Bot, Message
-from utils.manager import group_manager
-from services.log import logger
-from typing import Dict, Any
 import re
+from typing import Any, Dict
+
+from nonebot.adapters.onebot.v11 import Bot, Message
+from nonebot.exception import MockApiException
+
+from services.log import logger
+from utils.manager import group_manager
 
 
 @Bot.on_calling_api
@@ -40,13 +42,13 @@ async def _(bot: Bot, api: str, data: Dict[str, Any]):
             task = r.group(1)
             group_id = data["group_id"]
     except Exception as e:
-        logger.error(f"TaskHook ERROR {type(e)}：{e}")
+        logger.error(f"TaskHook ERROR", "HOOK", e=e)
     else:
         if task and group_id:
-            if (
-                group_manager.get_group_level(group_id) < 0
-                or not group_manager.check_task_status(task, group_id)
-            ):
+            if group_manager.get_group_level(
+                group_id
+            ) < 0 or not group_manager.check_task_status(task, group_id):
+                logger.debug(f"被动技能 {task} 处于关闭状态")
                 raise MockApiException(f"被动技能 {task} 处于关闭状态...")
             else:
                 msg = str(data["message"]).strip()

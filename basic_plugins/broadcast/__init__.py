@@ -1,4 +1,5 @@
 import asyncio
+from typing import List
 
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageEvent
@@ -7,9 +8,9 @@ from nonebot.permission import SUPERUSER
 
 from configs.config import Config
 from services.log import logger
+from utils.depends import ImageList
 from utils.manager import group_manager
 from utils.message_builder import image
-from utils.utils import get_message_img
 
 __zx_plugin_name__ = "广播 [Superuser]"
 __plugin_usage__ = """
@@ -36,9 +37,13 @@ broadcast = on_command("广播-", priority=1, permission=SUPERUSER, block=True)
 
 
 @broadcast.handle()
-async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
+async def _(
+    bot: Bot,
+    event: MessageEvent,
+    arg: Message = CommandArg(),
+    img_list: List[str] = ImageList(),
+):
     msg = arg.extract_plain_text().strip()
-    img_list = get_message_img(event.json())
     rst = ""
     for img in img_list:
         rst += image(img)
@@ -58,9 +63,9 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
             x += 0.25
         try:
             await bot.send_group_msg(group_id=g, message=msg + rst)
-            logger.info(f"GROUP {g} 投递广播成功")
+            logger.info(f"投递广播成功", "广播", group_id=g)
         except Exception as e:
-            logger.error(f"GROUP {g} 投递广播失败：{type(e)}")
+            logger.error(f"投递广播失败", "广播", group_id=g, e=e)
             error += f"GROUP {g} 投递广播失败：{type(e)}\n"
         await asyncio.sleep(0.5)
     await broadcast.send(f"已播报至 100% 的群聊")

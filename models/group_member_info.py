@@ -113,5 +113,6 @@ class GroupInfoUser(Model):
     @classmethod
     async def _run_script(cls):
         return [
-            "alter table group_info_users alter user_join_time drop not null;"  # 允许 user_join_time 为空
+            "alter table group_info_users alter user_join_time drop not null;",  # 允许 user_join_time 为空
+            "ALTER TABLE group_info_users ALTER COLUMN user_join_time TYPE timestamp with time zone USING user_join_time::timestamp with time zone;",
         ]

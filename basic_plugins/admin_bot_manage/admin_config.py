@@ -23,15 +23,20 @@ async def _(event: GroupAdminNoticeEvent):
     else:
         nickname = event.user_id
     if event.sub_type == "set":
-        await LevelUser.set_level(
-            event.user_id,
-            event.group_id,
-            Config.get_config("admin_bot_manage", "ADMIN_DEFAULT_AUTH"),
-        )
-        logger.info(
-            f"为新晋管理员 {nickname}({event.user_id}) "
-            f"添加权限等级：{Config.get_config('admin_bot_manage', 'ADMIN_DEFAULT_AUTH')}"
-        )
+        admin_default_auth = Config.get_config("admin_bot_manage", "ADMIN_DEFAULT_AUTH")
+        if admin_default_auth is not None:
+            await LevelUser.set_level(
+                event.user_id,
+                event.group_id,
+                admin_default_auth,
+            )
+            logger.info(
+                f"为新晋管理员 {nickname}({event.user_id}) " f"添加权限等级：{admin_default_auth}"
+            )
+        else:
+            logger.warning(
+                f"配置项 MODULE: [<u><y>admin_bot_manage</y></u>] | KEY: [<u><y>ADMIN_DEFAULT_AUTH</y></u>] 为空"
+            )
     elif event.sub_type == "unset":
         await LevelUser.delete_level(event.user_id, event.group_id)
         logger.info(f"将非管理员 {nickname}({event.user_id}) 取消权限等级")

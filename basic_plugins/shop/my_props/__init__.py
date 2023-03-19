@@ -36,6 +36,6 @@ async def _(event: GroupMessageEvent):
     props = await BagUser.get_property(event.user_id, event.group_id)
     if props:
         await my_props.send(image(b64=await create_bag_image(props)))
-        logger.info(f"USER {event.user_id} GROUP {event.group_id} 查看我的道具")
+        logger.info(f"查看我的道具", "我的道具", event.user_id, event.group_id)
     else:
         await my_props.finish("您的背包里没有任何的道具噢~", at_sender=True)

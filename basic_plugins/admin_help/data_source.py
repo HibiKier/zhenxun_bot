@@ -1,10 +1,10 @@
 import nonebot
-from configs.path_config import IMAGE_PATH
 from nonebot import Driver
+
+from configs.path_config import IMAGE_PATH
 from services.log import logger
 from utils.image_template import help_template
-from utils.image_utils import (BuildImage, build_sort_image, group_image,
-                               text2image)
+from utils.image_utils import BuildImage, build_sort_image, group_image, text2image
 from utils.manager import group_manager, plugin_data_manager
 from utils.manager.models import PluginType
 
@@ -23,13 +23,6 @@ async def init_task():
 
 
 async def create_help_image():
-    """
-    创建管理员帮助图片
-    """
-    await _create_help_image()
-
-
-async def _create_help_image():
     """
     创建管理员帮助图片
     """
@@ -57,7 +50,9 @@ async def _create_help_image():
                     task_list.append(plugin_data.task[x])
         except Exception as e:
             logger.warning(
-                f"获取群管理员插件 {plugin_data.model}: {plugin_data.name} 设置失败... {type(e)}：{e}"
+                f"获取群管理员插件 {plugin_data.model}: {plugin_data.name} 设置失败...",
+                "管理员帮助",
+                e=e,
             )
     task_str = "\n".join(task_list)
     task_str = "通过 开启/关闭 来控制群被动\n----------\n" + task_str
