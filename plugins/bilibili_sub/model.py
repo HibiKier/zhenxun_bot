@@ -181,3 +181,9 @@ class BilibiliSub(Model):
             if x.sub_type == "season":
                 season_data.append(x)
         return live_data, up_data, season_data
+
+    @classmethod
+    async def _run_script(cls):
+        return [
+            "ALTER TABLE bilibili_sub ALTER COLUMN season_update_time TYPE timestamp with time zone USING season_update_time::timestamp with time zone;",
+        ]
