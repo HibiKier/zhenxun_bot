@@ -331,6 +331,12 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
+### 2023/3/20
+
+* 修复BuildImage类text居中类型bug [@pull/1301](https://github.com/HibiKier/zhenxun_bot/pull/1317)
+* 修复原神今日素材有时发不出图片的问题 [@pull/1301](https://github.com/HibiKier/zhenxun_bot/pull/1317)
+* 修复首次签到时使用道具后签到报错
+
 ### 2023/3/19
 
 * 优化代码
