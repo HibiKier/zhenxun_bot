@@ -1,7 +1,10 @@
-from typing import List, Optional, Union, Tuple, Dict, overload
-from utils.manager.data_class import StaticData
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple, Union, overload
+
 from ruamel import yaml
+
+from utils.manager.data_class import StaticData
+
 from .models import PluginSetting, PluginType
 
 _yaml = yaml.YAML(typ="safe")
@@ -24,7 +27,7 @@ class Plugins2settingsManager(StaticData[PluginSetting]):
     def add_plugin_settings(
         self,
         plugin: str,
-        cmd: List[str] = None,
+        cmd: Optional[List[str]] = None,
         default_status: bool = True,
         level: int = 5,
         limit_superuser: bool = False,
@@ -36,7 +39,7 @@ class Plugins2settingsManager(StaticData[PluginSetting]):
     def add_plugin_settings(
         self,
         plugin: str,
-        cmd: Union[List[str], PluginSetting] = None,
+        cmd: Optional[Union[List[str], PluginSetting]] = None,
         default_status: bool = True,
         level: int = 5,
         limit_superuser: bool = False,
@@ -76,6 +79,14 @@ class Plugins2settingsManager(StaticData[PluginSetting]):
         """
         return self._data.get(module)
 
+    @overload
+    def get_plugin_module(self, cmd: str) -> str:
+        ...
+
+    @overload
+    def get_plugin_module(self, cmd: str, is_all: bool = True) -> List[str]:
+        ...
+
     def get_plugin_module(
         self, cmd: str, is_all: bool = False
     ) -> Union[str, List[str]]:
@@ -102,7 +113,7 @@ class Plugins2settingsManager(StaticData[PluginSetting]):
         """
         self.__load_file()
 
-    def save(self, path: Union[str, Path] = None):
+    def save(self, path: Optional[Union[str, Path]] = None):
         """
         说明:
             保存文件

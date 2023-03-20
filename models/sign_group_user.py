@@ -16,7 +16,7 @@ class SignGroupUser(Model):
     """群聊id"""
     checkin_count = fields.IntField(default=0)
     """签到次数"""
-    checkin_time_last = fields.DatetimeField(auto_now=True)
+    checkin_time_last = fields.DatetimeField(default=datetime.min)
     """最后签到时间"""
     impression = fields.DecimalField(10, 3, default=0)
     """好感度"""
@@ -40,6 +40,7 @@ class SignGroupUser(Model):
             :param user: 用户
             :param impression: 增加的好感度
         """
+        user.checkin_time_last = datetime.now()
         user.checkin_count = user.checkin_count + 1
         user.add_probability = 0
         user.specify_probability = 0
