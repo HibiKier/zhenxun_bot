@@ -507,4 +507,8 @@ class WordBank(Model):
 
     @classmethod
     async def _run_script(cls):
-        return ["ALTER TABLE word_bank2 ADD to_me varchar(255);"]  # 添加 to_me 字段
+        return [
+            "ALTER TABLE word_bank2 ADD to_me varchar(255);",  # 添加 to_me 字段
+            "ALTER TABLE word_bank2 ALTER COLUMN create_time TYPE timestamp with time zone USING create_time::timestamp with time zone;",
+            "ALTER TABLE word_bank2 ALTER COLUMN update_time TYPE timestamp with time zone USING update_time::timestamp with time zone;",
+        ]

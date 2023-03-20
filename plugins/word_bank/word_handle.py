@@ -87,9 +87,9 @@ add_word = on_regex(
     r"^(全局|私聊)?添加词条\s*?(模糊|正则|图片)?问\s*?(\S*\s?\S*)\s*?答\s?(\S*)", priority=5, block=True
 )
 
-delete_word_matcher = on_command("删除词条", aliases={'删除全局词条'}, priority=5, block=True)
+delete_word_matcher = on_command("删除词条", aliases={"删除全局词条"}, priority=5, block=True)
 
-update_word_matcher = on_command("修改词条", aliases={'修改全局词条'}, priority=5, block=True)
+update_word_matcher = on_command("修改词条", aliases={"修改全局词条"}, priority=5, block=True)
 
 show_word_matcher = on_command("显示词条", aliases={"查看词条"}, priority=5, block=True)
 
@@ -101,11 +101,14 @@ async def _(
     state: T_State,
     reg_group: Tuple[Any, ...] = RegexGroup(),
 ):
-    if isinstance(event, PrivateMessageEvent) and str(event.user_id) not in bot.config.superusers:
-        await add_word.finish('权限不足捏')
+    if (
+        isinstance(event, PrivateMessageEvent)
+        and str(event.user_id) not in bot.config.superusers
+    ):
+        await add_word.finish("权限不足捏")
     word_scope, word_type, problem, answer = reg_group
     if not word_scope and isinstance(event, PrivateMessageEvent):
-        word_scope = '私聊'
+        word_scope = "私聊"
     if (
         word_scope
         and word_scope in ["全局", "私聊"]
@@ -122,25 +125,28 @@ async def _(
     # 对at问题对额外处理
     if get_message_at(event.message):
         for index, seg in enumerate(event.message):
-            if seg.type == 'text' and '答' in str(seg):
+            if seg.type == "text" and "答" in str(seg):
                 _problem = event.message[:index]
                 answer = event.message[index:]
-                answer[0] = str(answer[0])[str(answer[0]).index('答')+1:]
-                _problem[0] = str(_problem[0])[str(_problem[0]).index('问')+1:]
-                if _problem[-1].type != 'at' or seg.data['text'][:seg.data['text'].index('答')].lstrip():
-                    _problem.append(seg.data['text'][:seg.data['text'].index('答')])
-                temp = ''
+                answer[0] = str(answer[0])[str(answer[0]).index("答") + 1 :]
+                _problem[0] = str(_problem[0])[str(_problem[0]).index("问") + 1 :]
+                if (
+                    _problem[-1].type != "at"
+                    or seg.data["text"][: seg.data["text"].index("答")].lstrip()
+                ):
+                    _problem.append(seg.data["text"][: seg.data["text"].index("答")])
+                temp = ""
                 for g in _problem:
                     if isinstance(g, str):
                         temp += g
-                    elif g.type == 'text':
-                        temp += g.data['text']
-                    elif g.type == 'at':
+                    elif g.type == "text":
+                        temp += g.data["text"]
+                    elif g.type == "at":
                         temp += f"[at:{g.data['qq']}]"
                 problem = temp
                 break
     problem = unescape(problem)
-    event.message[0] = event.message[0].data["text"].split('答', maxsplit=1)[-1].strip()
+    event.message[0] = event.message[0].data["text"].split("答", maxsplit=1)[-1].strip()
     state["word_scope"] = word_scope
     state["word_type"] = word_type
     state["problem"] = problem
@@ -170,12 +176,15 @@ async def _(
             nickname = [nk for nk in bot.config.nickname if problem.startswith(nk)]
         await WordBank.add_problem_answer(
             event.user_id,
-            event.group_id if isinstance(event, GroupMessageEvent) and (not word_scope or word_scope == '私聊') else 0,
+            event.group_id
+            if isinstance(event, GroupMessageEvent)
+            and (not word_scope or word_scope == "私聊")
+            else 0,
             scope2int[word_scope] if word_scope else 1,
             type2int[word_type] if word_type else 0,
             problem or problem_image,
             answer,
-            nickname[0] if nickname else None
+            nickname[0] if nickname else None,
         )
     except Exception as e:
         if isinstance(e, FinishedException):
@@ -200,25 +209,23 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
         await delete_word_matcher.finish("此命令之后需要跟随指定词条，通过“显示词条“查看")
     result = await delete_word(msg, event.group_id)
     await delete_word_matcher.send(result)
-    logger.info(
-        f"(USER {event.user_id}, GROUP "
-        f"{event.group_id})"
-        f" 删除词条:" + msg
-    )
+    logger.info(f"(USER {event.user_id}, GROUP " f"{event.group_id})" f" 删除词条:" + msg)
 
 
 @delete_word_matcher.handle()
-async def _(bot: Bot, event: PrivateMessageEvent, arg: Message = CommandArg(), cmd: Tuple[str, ...] = Command()):
+async def _(
+    bot: Bot,
+    event: PrivateMessageEvent,
+    arg: Message = CommandArg(),
+    cmd: Tuple[str, ...] = Command(),
+):
     if str(event.user_id) not in bot.config.superusers:
         await delete_word_matcher.finish("权限不足捏！")
     if not (msg := arg.extract_plain_text().strip()):
         await delete_word_matcher.finish("此命令之后需要跟随指定词条，通过“显示词条“查看")
-    result = await delete_word(msg, word_scope=2 if cmd[0] == '删除词条' else 0)
+    result = await delete_word(msg, word_scope=2 if cmd[0] == "删除词条" else 0)
     await delete_word_matcher.send(result)
-    logger.info(
-        f"(USER {event.user_id})"
-        f" 删除词条:" + msg
-    )
+    logger.info(f"(USER {event.user_id})" f" 删除词条:" + msg)
 
 
 @update_word_matcher.handle()
@@ -229,27 +236,25 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
         await update_word_matcher.finish("此命令需要两个参数，请查看帮助")
     result = await update_word(msg, event.group_id)
     await update_word_matcher.send(result)
-    logger.info(
-        f"(USER {event.user_id}, GROUP "
-        f"{event.group_id})"
-        f" 更新词条词条:" + msg
-    )
+    logger.info(f"(USER {event.user_id}, GROUP " f"{event.group_id})" f" 更新词条词条:" + msg)
 
 
 @update_word_matcher.handle()
-async def _(bot: Bot, event: PrivateMessageEvent, arg: Message = CommandArg(), cmd: Tuple[str, ...] = Command()):
+async def _(
+    bot: Bot,
+    event: PrivateMessageEvent,
+    arg: Message = CommandArg(),
+    cmd: Tuple[str, ...] = Command(),
+):
     if str(event.user_id) not in bot.config.superusers:
         await delete_word_matcher.finish("权限不足捏！")
     if not (msg := arg.extract_plain_text().strip()):
         await update_word_matcher.finish("此命令之后需要跟随指定词条，通过“显示词条“查看")
     if len(msg.split()) < 2:
         await update_word_matcher.finish("此命令需要两个参数，请查看帮助")
-    result = await update_word(msg, word_scope=2 if cmd[0] == '修改词条' else 0)
+    result = await update_word(msg, word_scope=2 if cmd[0] == "修改词条" else 0)
     await update_word_matcher.send(result)
-    logger.info(
-        f"(USER {event.user_id})"
-        f" 更新词条词条:" + msg
-    )
+    logger.info(f"(USER {event.user_id})" f" 更新词条词条:" + msg)
 
 
 @show_word_matcher.handle()
@@ -262,8 +267,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
             if (
                 not is_number(id_)
                 or int(id_) < 0
-                or int(id_)
-                >= len(await WordBank.get_group_all_problem(event.group_id))
+                or int(id_) >= len(await WordBank.get_group_all_problem(event.group_id))
             ):
                 await show_word_matcher.finish("id必须为数字且在范围内")
             id_ = int(id_)
@@ -272,8 +276,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
             if (
                 not is_number(gid)
                 or int(gid) < 0
-                or int(gid)
-                >= len(await WordBank.get_problem_by_scope(0))
+                or int(gid) >= len(await WordBank.get_problem_by_scope(0))
             ):
                 await show_word_matcher.finish("gid必须为数字且在范围内")
             gid = int(gid)
@@ -303,8 +306,7 @@ async def _(event: PrivateMessageEvent, arg: Message = CommandArg()):
             if (
                 not is_number(id_)
                 or int(id_) < 0
-                or int(id_)
-                > len(await WordBank.get_problem_by_scope(2))
+                or int(id_) > len(await WordBank.get_problem_by_scope(2))
             ):
                 await show_word_matcher.finish("id必须为数字且在范围内")
             id_ = int(id_)
@@ -313,12 +315,13 @@ async def _(event: PrivateMessageEvent, arg: Message = CommandArg()):
             if (
                 not is_number(gid)
                 or int(gid) < 0
-                or int(gid)
-                > len(await WordBank.get_problem_by_scope(0))
+                or int(gid) > len(await WordBank.get_problem_by_scope(0))
             ):
                 await show_word_matcher.finish("gid必须为数字且在范围内")
             gid = int(gid)
-        msg_list = await show_word(problem, id_, gid, word_scope=2 if id_ is not None else None)
+        msg_list = await show_word(
+            problem, id_, gid, word_scope=2 if id_ is not None else None
+        )
     else:
         msg_list = await show_word(problem, None, None, word_scope=2)
     if isinstance(msg_list, str):
@@ -326,10 +329,6 @@ async def _(event: PrivateMessageEvent, arg: Message = CommandArg()):
     else:
         t = ""
         for msg in msg_list:
-            t += msg + '\n'
+            t += msg + "\n"
         await show_word_matcher.send(t[:-1])
-    logger.info(
-        f"(USER {event.user_id}, GROUP "
-        f"private)"
-        f" 发送查看词条回答:" + problem
-    )
+    logger.info(f"(USER {event.user_id}, GROUP " f"private)" f" 发送查看词条回答:" + problem)
