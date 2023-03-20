@@ -452,7 +452,7 @@ class BuildImage:
         说明:
             在图片上添加文字
         参数:
-            :param pos: 文字位置(使用center_type后会失效)
+            :param pos: 文字位置(使用center_type中的center后会失效,使用by_width后x失效,使用by_height后y失效)
             :param text: 文字内容
             :param fill: 文字颜色
             :param center_type: 居中类型，可能的值 center: 完全居中，by_width: 水平居中，by_height: 垂直居中
