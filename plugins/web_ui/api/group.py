@@ -5,6 +5,7 @@ from utils.utils import get_bot
 
 from ..auth import Depends, User, token_to_user
 from ..config import *
+from nonebot import get_bots
 
 
 @app.get("/webui/group")
@@ -14,10 +15,11 @@ async def _(user: User = Depends(token_to_user)) -> Result:
     """
     group_list_result = []
     group_info = {}
-    if bot := get_bot():
-        group_list = await bot.get_group_list()
-        for g in group_list:
-            group_info[g["group_id"]] = Group(**g)
+    if bots := get_bots():
+        for bot in bots.values():
+            group_list = await bot.get_group_list()
+            for g in group_list:
+                group_info[g["group_id"]] = Group(**g)
     group_data = group_manager.get_data()
     for group_id in group_data.group_manager:
         try:
