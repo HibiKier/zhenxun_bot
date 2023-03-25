@@ -220,16 +220,16 @@ async def _(event: MessageEvent, arg: Message = CommandArg(), cmd: str = OneComm
     if msg in ["ALL", "ALL1"]:
         if msg == "ALL":
             case_list = list(CASE2ID.keys())
-            result = "武器箱"
+            type_ = "武器箱"
         else:
             case_list = list(KNIFE2ID.keys())
-            result = "罕见皮肤"
-        await update_case.send(f"即将更新所有{result}, 请稍等")
+            type_ = "罕见皮肤"
+        await update_case.send(f"即将更新所有{type_}, 请稍等")
         for i, case_name in enumerate(case_list):
             try:
                 await update_skin_data(case_name)
                 rand = random.randint(300, 500)
-                result = f"更新全部{result}完成"
+                result = f"更新全部{type_}完成"
                 if i < len(case_list):
                     next_case = case_list[i + 1]
                     result = f"将在 {rand} 秒后更新下一{result}: {next_case}"
@@ -237,9 +237,9 @@ async def _(event: MessageEvent, arg: Message = CommandArg(), cmd: str = OneComm
                 logger.info(f"成功更新{result}: {case_name}, {result}", "更新武器箱")
                 await asyncio.sleep(rand)
             except Exception as e:
-                logger.error(f"更新{result}: {case_name}", e=e)
-                await update_case.send(f"更新{result}: {case_name} 发生错误: {type(e)}: {e}")
-        await update_case.send(f"更新全部{result}完成")
+                logger.error(f"更新{type_}: {case_name}", e=e)
+                await update_case.send(f"更新{type_}: {case_name} 发生错误: {type(e)}: {e}")
+        await update_case.send(f"更新全部{type_}完成")
     else:
         await update_case.send(f"开始{cmd}: {msg}, 请稍等")
         try:

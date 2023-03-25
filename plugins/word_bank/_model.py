@@ -138,7 +138,7 @@ class WordBank(Model):
                 word_scope=word_scope,
                 word_type=word_type,
                 status=True,
-                problem=problem,
+                problem=str(problem).strip(),
                 answer=answer,
                 image_path=image_path,
                 placeholder=",".join(_list),
@@ -220,17 +220,17 @@ class WordBank(Model):
                 answer=answer,
             )
         if query and query.placeholder:
-            type_list = re.findall(rf"\[(.*?):placeholder_.*?]", answer)
-            temp_answer = re.sub(rf"\[(.*?):placeholder_.*?]", "{}", answer)
+            type_list = re.findall(rf"\[(.*?):placeholder_.*?]", str(answer))
+            temp_answer = re.sub(rf"\[(.*?):placeholder_.*?]", "{}", str(answer))
             seg_list = []
             for t, p in zip(type_list, query.placeholder.split(",")):
                 if t == "image":
                     seg_list.append(image(path / p))
                 elif t == "face":
-                    seg_list.append(face(p))
+                    seg_list.append(face(int(p)))
                 elif t == "at":
                     seg_list.append(at(p))
-            return MessageTemplate(temp_answer, Message).format(*seg_list)
+            return MessageTemplate(temp_answer, Message).format(*seg_list)  # type: ignore
         return answer
 
     @classmethod
@@ -302,7 +302,7 @@ class WordBank(Model):
             answer = random.choice(data_list)
             return (
                 await cls._format2answer(
-                    problem, answer.answer, answer.user_qq, answer.group_id
+                    answer.problem, answer.answer, answer.user_qq, answer.group_id
                 )
                 if answer.placeholder
                 else answer.answer

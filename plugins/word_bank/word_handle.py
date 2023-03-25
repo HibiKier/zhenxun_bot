@@ -1,5 +1,5 @@
 import re
-from typing import Any, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from nonebot import on_command, on_regex
 from nonebot.adapters.onebot.v11 import (
@@ -18,6 +18,7 @@ from nonebot.typing import T_State
 from configs.config import Config
 from configs.path_config import DATA_PATH
 from services.log import logger
+from utils.depends import AtList, ImageList
 from utils.message_builder import custom_forward_msg
 from utils.utils import get_message_at, get_message_img, is_number
 
@@ -100,6 +101,8 @@ async def _(
     event: MessageEvent,
     state: T_State,
     reg_group: Tuple[Any, ...] = RegexGroup(),
+    img_list: List[str] = ImageList(),
+    at_list: List[int] = AtList(),
 ):
     if (
         isinstance(event, PrivateMessageEvent)
@@ -117,35 +120,50 @@ async def _(
         await add_word.finish("权限不足，无法添加该范围词条")
     if (not problem or not problem.strip()) and word_type != "图片":
         await add_word.finish("词条问题不能为空！")
-    if (not answer or not answer.strip()) and not len(get_message_img(event.message)):
+    if (not answer or not answer.strip()) and not len(img_list) and not len(at_list):
         await add_word.finish("词条回答不能为空！")
     if word_type != "图片":
         state["problem_image"] = "YES"
     answer = event.message
     # 对at问题对额外处理
-    if get_message_at(event.message):
+    if at_list:
+        is_first = True
+        cur_p = None
+        answer = ""
+        problem = ""
         for index, seg in enumerate(event.message):
-            if seg.type == "text" and "答" in str(seg):
-                _problem = event.message[:index]
-                answer = event.message[index:]
-                answer[0] = str(answer[0])[str(answer[0]).index("答") + 1 :]
-                _problem[0] = str(_problem[0])[str(_problem[0]).index("问") + 1 :]
-                if (
-                    _problem[-1].type != "at"
-                    or seg.data["text"][: seg.data["text"].index("答")].lstrip()
-                ):
-                    _problem.append(seg.data["text"][: seg.data["text"].index("答")])
-                temp = ""
-                for g in _problem:
-                    if isinstance(g, str):
-                        temp += g
-                    elif g.type == "text":
-                        temp += g.data["text"]
-                    elif g.type == "at":
-                        temp += f"[at:{g.data['qq']}]"
-                problem = temp
-                break
-    problem = unescape(problem)
+            if seg.type == "text" and "添加词条问" in str(seg) and is_first:
+                is_first = False
+                seg_ = str(seg).split("添加词条问")[-1]
+                cur_p = "problem"
+                # 纯文本
+                if "答" in seg_:
+                    answer_index = seg_.index("答")
+                    problem = unescape(seg_[:answer_index]).strip()
+                    answer = unescape(seg_[answer_index + 1 :]).strip()
+                    cur_p = "answer"
+                else:
+                    problem = unescape(seg_)
+                continue
+            if cur_p == "problem":
+                if seg.type == "text" and "答" in str(seg):
+                    seg_ = str(seg)
+                    answer_index = seg_.index("答")
+                    problem += seg_[:answer_index]
+                    answer += seg_[answer_index + 1 :]
+                    cur_p = "answer"
+                else:
+                    if seg.type == "at":
+                        problem += f"[at:{seg.data['qq']}]"
+                    else:
+                        problem += (
+                            unescape(str(seg)).strip() if seg.type == "text" else seg
+                        )
+            else:
+                if seg.type == "text":
+                    answer += unescape(str(seg))
+                else:
+                    answer += seg
     event.message[0] = event.message[0].data["text"].split("答", maxsplit=1)[-1].strip()
     state["word_scope"] = word_scope
     state["word_type"] = word_type
