@@ -331,6 +331,11 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 ## 更新
 
+### 2023/3/25
+
+* 删除BUFF_SKIN表约束，新增`skin_id`字段
+* 开箱新增更新指定刀具皮肤命令(某些箱子金色无法通过api获取)
+
 ### 2023/3/20
 
 * 修复BuildImage类text居中类型bug [@pull/1301](https://github.com/HibiKier/zhenxun_bot/pull/1317)

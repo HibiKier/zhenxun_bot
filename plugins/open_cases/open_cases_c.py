@@ -17,7 +17,7 @@ from utils.utils import cn2py
 from .config import *
 from .models.open_cases_log import OpenCasesLog
 from .models.open_cases_user import OpenCasesUser
-from .utils import CaseManager, update_case_data
+from .utils import CaseManager, update_skin_data
 
 RESULT_MESSAGE = {
     "BLUE": ["这样看着才舒服", "是自己人，大伙把刀收好", "非常舒适~"],
@@ -435,7 +435,7 @@ async def auto_update():
         for case_name in case_list:
             logger.debug(f"开始自动更新武器箱: {case_name}", "更新武器箱")
             try:
-                await update_case_data(case_name)
+                await update_skin_data(case_name)
                 rand = random.randint(300, 500)
                 logger.info(f"成功自动更新武器箱: {case_name}, 将在 {rand} 秒后再次更新下一武器箱", "更新武器箱")
                 await asyncio.sleep(rand)

@@ -1,4 +1,5 @@
 import random
+from enum import Enum
 from typing import List, Tuple
 
 from configs.path_config import IMAGE_PATH
@@ -32,6 +33,16 @@ WELL_WORN_E = 0.44999
 # 战痕
 BATTLE_SCARED_S = 0.45
 BATTLE_SCARED_E = 0.99999
+
+
+class UpdateType(Enum):
+
+    """
+    更新类型
+    """
+
+    CASE = "case"
+    WEAPON_TYPE = "weapon_type"
 
 
 NAME2COLOR = {
@@ -68,7 +79,30 @@ ABRASION_SORT = ["崭新出厂", "略有磨损", "久经沙场", "破损不堪",
 
 CASE_BACKGROUND = IMAGE_PATH / "csgo_cases" / "_background" / "shu"
 
+# 刀
+KNIFE2ID = {
+    "鲍伊猎刀": "weapon_knife_survival_bowie",
+    "蝴蝶刀": "weapon_knife_butterfly",
+    "弯刀": "weapon_knife_falchion",
+    "折叠刀": "weapon_knife_flip",
+    "穿肠刀": "weapon_knife_gut",
+    "猎杀者匕首": "weapon_knife_tactical",
+    "M9刺刀": "weapon_knife_m9_bayonet",
+    "刺刀": "weapon_bayonet",
+    "爪子刀": "weapon_knife_karambit",
+    "暗影双匕": "weapon_knife_push",
+    "短剑": "weapon_knife_stiletto",
+    "熊刀": "weapon_knife_ursus",
+    "折刀": "weapon_knife_gypsy_jackknife",
+    "锯齿爪刀": "weapon_knife_widowmaker",
+    "海豹短刀": "weapon_knife_css",
+    "系绳匕首": "weapon_knife_cord",
+    "求生匕首": "weapon_knife_canis",
+    "流浪者匕首": "weapon_knife_outdoor",
+    "骷髅匕首": "weapon_knife_skeleton",
+}
 
+# 武器箱
 CASE2ID = {
     "变革": "set_community_32",
     "反冲": "set_community_31",
