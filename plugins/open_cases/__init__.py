@@ -232,9 +232,9 @@ async def _(event: MessageEvent, arg: Message = CommandArg(), cmd: str = OneComm
                 result = f"更新全部{type_}完成"
                 if i < len(case_list):
                     next_case = case_list[i + 1]
-                    result = f"将在 {rand} 秒后更新下一{result}: {next_case}"
-                await update_case.send(f"成功更新{result}: {case_name}, {result}")
-                logger.info(f"成功更新{result}: {case_name}, {result}", "更新武器箱")
+                    result = f"将在 {rand} 秒后更新下一{type_}: {next_case}"
+                await update_case.send(f"成功更新{type_}: {case_name}, {result}")
+                logger.info(f"成功更新{type_}: {case_name}, {result}", "更新武器箱")
                 await asyncio.sleep(rand)
             except Exception as e:
                 logger.error(f"更新{type_}: {case_name}", e=e)
