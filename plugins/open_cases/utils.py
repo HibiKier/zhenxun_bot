@@ -102,6 +102,8 @@ async def update_skin_data(name: str) -> str:
     for skin in data_list:
         if skin.skin_id in exists_id_list:
             continue
+        if skin.case_name:
+            skin.case_name = skin.case_name.replace("“", "").replace("”", "")
         exists_id_list.append(skin.skin_id)
         key = skin.name + skin.skin_name
         name_ = skin.name + skin.skin_name + skin.abrasion
@@ -382,7 +384,7 @@ async def build_case_image(case_name: str) -> Union[BuildImage, str]:
         )
         await A.afilter("GaussianBlur", 2)
         if case:
-            case_img = await generate_skin(case, skin2count[f"{case_name}武器箱"])
+            case_img = await generate_skin(case, skin2count.get(f"{case_name}武器箱", 0))
             if case_img:
                 A.paste(case_img, (25, 25), True)
         w = 25
