@@ -100,7 +100,17 @@ KNIFE2ID = {
     "求生匕首": "weapon_knife_canis",
     "流浪者匕首": "weapon_knife_outdoor",
     "骷髅匕首": "weapon_knife_skeleton",
+    "血猎手套": "weapon_bloodhound_gloves",
+    "驾驶手套": "weapon_driver_gloves",
+    "手部束带": "weapon_hand_wraps",
+    "摩托手套": "weapon_moto_gloves",
+    "专业手套": "weapon_specialist_gloves",
+    "运动手套": "weapon_sport_gloves",
+    "九头蛇手套": "weapon_hydra_gloves",
+    "狂牙手套": "weapon_brokenfang_gloves",
 }
+
+WEAPON2ID = {}
 
 # 武器箱
 CASE2ID = {
