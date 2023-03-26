@@ -214,19 +214,19 @@ async def update_skin_data(name: str) -> str:
 
 
 async def search_skin_page(
-    name: str, page_index: int, type_: UpdateType
+    s_name: str, page_index: int, type_: UpdateType
 ) -> Tuple[Union[List[BuffSkin], str], int]:
     """查询箱子皮肤
 
     Args:
-        name (str): 箱子名称
+        s_name (str): 箱子/皮肤名称
         page_index (int): 页数
 
     Returns:
         Union[List[BuffSkin], str]: BuffSkin
     """
     logger.debug(
-        f"尝试访问武器箱/皮肤: [<u><e>{name}</e></u>] 页数: [<u><y>{page_index}</y></u>]", "开箱更新"
+        f"尝试访问武器箱/皮肤: [<u><e>{s_name}</e></u>] 页数: [<u><y>{page_index}</y></u>]", "开箱更新"
     )
     cookie = {"session": Config.get_config("open_cases", "COOKIE")}
     params = {
@@ -237,9 +237,9 @@ async def search_skin_page(
         "use_suggestio": 0,
     }
     if type_ == UpdateType.CASE:
-        params["itemset"] = CASE2ID[name]
+        params["itemset"] = CASE2ID[s_name]
     elif type_ == UpdateType.WEAPON_TYPE:
-        params["category"] = KNIFE2ID[name]
+        params["category"] = KNIFE2ID[s_name]
     proxy = None
     if ip := Config.get_config("open_cases", "BUFF_PROXY"):
         proxy = {"http://": ip, "https://": ip}
@@ -274,11 +274,11 @@ async def search_skin_page(
             for data in data_list:
                 obj = {}
                 if type_ == UpdateType.CASE:
-                    obj["case_name"] = name
+                    obj["case_name"] = s_name
                 name = data["name"]
                 try:
                     logger.debug(
-                        f"武器箱: [<u><e>{name}</e></u>] 页数: [<u><y>{page_index}</y></u>] 正在收录皮肤: [<u><c>{name}</c></u>]...",
+                        f"武器箱: [<u><e>{s_name}</e></u>] 页数: [<u><y>{page_index}</y></u>] 正在收录皮肤: [<u><c>{name}</c></u>]...",
                         "开箱更新",
                     )
                     obj["skin_id"] = str(data["id"])
@@ -317,11 +317,11 @@ async def search_skin_page(
                     update_data.append(BuffSkin(**obj))
                 except Exception as e:
                     logger.error(
-                        f"更新武器箱: [<u><e>{name}</e></u>] 皮肤: [<u><c>{name}</c></u>] 错误",
+                        f"更新武器箱: [<u><e>{s_name}</e></u>] 皮肤: [<u><c>{s_name}</c></u>] 错误",
                         e=e,
                     )
             logger.debug(
-                f"访问武器箱: [<u><e>{name}</e></u>] 页数: [<u><y>{page_index}</y></u>] 成功并收录完成",
+                f"访问武器箱: [<u><e>{s_name}</e></u>] 页数: [<u><y>{page_index}</y></u>] 成功并收录完成",
                 "开箱更新",
             )
             return update_data, json_data["data"]["total_page"]
