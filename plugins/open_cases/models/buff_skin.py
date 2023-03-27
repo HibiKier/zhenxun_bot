@@ -53,6 +53,14 @@ class BuffSkin(Model):
         table_description = "Buff皮肤数据表"
         # unique_together = ("case_name", "name", "skin_name", "abrasion", "is_stattrak")
 
+    def __eq__(self, other: "BuffSkin"):
+
+        return self.skin_id == other.skin_id
+
+    def __hash__(self):
+
+        return hash(self.case_name + self.name + self.skin_name + str(self.is_stattrak))
+
     @classmethod
     async def random_skin(
         cls,

@@ -165,7 +165,7 @@ async def update_skin_data(name: str) -> str:
             logger.debug(f"皮肤 {name_} 图片已存在...", "开箱更新")
     if create_list:
         logger.debug(f"更新武器箱/皮肤: [<u><e>{name}</e></u>], 创建 {len(create_list)} 个皮肤!")
-        await BuffSkin.bulk_create(create_list, 10)
+        await BuffSkin.bulk_create(set(create_list), 10)
     if update_list:
         abrasion_list = []
         name_list = []
