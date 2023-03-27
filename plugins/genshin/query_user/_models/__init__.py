@@ -93,3 +93,14 @@ class Genshin(Model):
                 await user.save(update_fields=["today_query_uid"])
                 return user.cookie
         return None
+
+    @classmethod
+    async def _run_script(cls):
+        return [
+            "ALTER TABLE genshin ADD auto_sign_time timestamp with time zone;",
+            "ALTER TABLE genshin ADD resin_remind boolean DEFAULT False;",
+            "ALTER TABLE genshin ADD resin_recovery_time timestamp with time zone;",
+            "ALTER TABLE genshin ADD login_ticket VARCHAR(255) DEFAULT '';"
+            "ALTER TABLE genshin ADD stuid VARCHAR(255) DEFAULT '';"
+            "ALTER TABLE genshin ADD stoken VARCHAR(255) DEFAULT '';",
+        ]

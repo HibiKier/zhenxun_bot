@@ -103,7 +103,12 @@ async def update_skin_data(name: str) -> str:
         if skin.skin_id in exists_id_list:
             continue
         if skin.case_name:
-            skin.case_name = skin.case_name.replace("“", "").replace("”", "")
+            skin.case_name = (
+                skin.case_name.replace("”", "")
+                .replace("“", "")
+                .replace("武器箱", "")
+                .replace(" ", "")
+            )
         exists_id_list.append(skin.skin_id)
         key = skin.name + skin.skin_name
         name_ = skin.name + skin.skin_name + skin.abrasion
@@ -123,7 +128,8 @@ async def update_skin_data(name: str) -> str:
                 case_name = "未知武器箱"
             else:
                 weapon2case[key] = case_name
-            case_name = case_name.replace("”", "").replace("“", "")
+            if skin.case_name == "反恐精英20周年":
+                skin.case_name = "CS20"
             skin.case_name = case_name
         if skin.skin_id in db_skin_id_list:
             update_list.append(skin)
@@ -211,7 +217,7 @@ async def update_skin_data(name: str) -> str:
         logger.debug(f"更新武器箱/皮肤: [<u><e>{name}</e></u>], 新增 {len(log_list)} 条皮肤日志!")
         await BuffSkinLog.bulk_create(log_list)
     if name not in CaseManager.CURRENT_CASES:
-        CaseManager.CURRENT_CASES.append(case_name)  # type: ignore
+        CaseManager.CURRENT_CASES.append(name)  # type: ignore
     return f"更新武器箱/皮肤: [{name}] 成功, 共更新 {len(update_list)} 个皮肤, 新创建 {len(create_list)} 个皮肤!"
 
 
@@ -268,7 +274,7 @@ async def search_skin_page(
     if not response:
         return f"访问发生异常: {error}", -1
     if response.status_code == 200:
-        logger.debug(f"访问BUFF API: {response.text}", "开箱更新")
+        # logger.debug(f"访问BUFF API: {response.text}", "开箱更新")
         json_data = response.json()
         update_data = []
         if json_data["code"] == "OK":
@@ -512,7 +518,13 @@ async def get_skin_case(id_: str) -> Optional[str]:
     if response.status_code == 200:
         text = response.text
         if r := re.search('<meta name="description".*,(.*)武器箱.*?>', text):
-            return r.group(1)
+            return (
+                r.group(1)
+                .replace("”", "")
+                .replace("“", "")
+                .replace("武器箱", "")
+                .replace(" ", "")
+            )
     else:
         logger.debug(f"访问皮肤所属武器箱异常 url: {url} code: {response.status_code}")
     return None

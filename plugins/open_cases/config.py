@@ -131,12 +131,12 @@ CASE2ID = {
     "光谱2号": "set_community_18",
     "九头蛇大行动": "set_community_17",
     "光谱": "set_community_16",
-    "手套武器箱": "set_community_15",
+    "手套": "set_community_15",
     "伽玛2号": "set_gamma_2",
     "伽玛": "set_community_13",
     "幻彩3号": "set_community_12",
     "野火大行动": "set_community_11",
-    "左轮武器箱": "set_community_10",
+    "左轮": "set_community_10",
     "暗影": "set_community_9",
     "弯曲猎手": "set_community_8",
     "幻彩2号": "set_community_7",
@@ -211,6 +211,7 @@ async def random_skin(num: int, case_name: str) -> List[Tuple[BuffSkin, float]]:
     """
     随机抽取皮肤
     """
+    case_name = case_name.replace("武器箱", "").replace(" ", "")
     color_map = {}
     for _ in range(num):
         rand = random.random()

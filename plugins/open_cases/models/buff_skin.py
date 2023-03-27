@@ -91,4 +91,6 @@ class BuffSkin(Model):
             "ALTER TABLE buff_skin ADD sell_reference_price float DEFAULT 0;",  # 新增sell_reference_price
             "ALTER TABLE buff_skin DROP COLUMN skin_price;",  # 删除skin_price
             "alter table buff_skin drop constraint if EXISTS uid_buff_skin_case_na_c35c93;",  # 删除唯一约束
+            "UPDATE buff_skin set case_name='手套' where case_name='手套武器箱'",
+            "UPDATE buff_skin set case_name='左轮' where case_name='左轮武器箱'",
         ]

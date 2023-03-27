@@ -42,3 +42,10 @@ class BuffSkinLog(Model):
     class Meta:
         table = "buff_skin_log"
         table_description = "Buff皮肤更新日志表"
+
+    @classmethod
+    async def _run_script(cls):
+        return [
+            "UPDATE buff_skin_log set case_name='手套' where case_name='手套武器箱'",
+            "UPDATE buff_skin_log set case_name='左轮' where case_name='左轮武器箱'",
+        ]
