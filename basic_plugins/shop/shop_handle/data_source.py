@@ -10,11 +10,6 @@ from utils.utils import GDict, is_number
 
 icon_path = IMAGE_PATH / "shop_icon"
 
-
-GDict["run_sql"].append("ALTER TABLE goods_info ADD is_passive boolean DEFAULT False;")
-GDict["run_sql"].append("ALTER TABLE goods_info ADD icon VARCHAR(255);")
-
-
 # 创建商店界面
 async def create_shop_help() -> str:
     """

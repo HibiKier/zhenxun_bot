@@ -194,3 +194,12 @@ class GoodsInfo(Model):
                     goods.daily_limit - goods.daily_purchase_limit[group_id][user_id],
                 )
         return False, 0
+
+    @classmethod
+    def _run_script(cls):
+        return [
+            "ALTER TABLE goods_info ADD daily_limit Integer DEFAULT 0;",
+            "ALTER TABLE goods_info ADD daily_purchase_limit Json DEFAULT '{}';",
+            "ALTER TABLE goods_info ADD is_passive boolean DEFAULT False;",
+            "ALTER TABLE goods_info ADD icon VARCHAR(255);",
+        ]

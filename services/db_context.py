@@ -1,5 +1,6 @@
 from typing import List
 
+from nonebot.utils import is_coroutine_callable
 from tortoise import Tortoise, fields
 from tortoise.connection import connections
 from tortoise.models import Model as Model_
@@ -57,8 +58,13 @@ async def init():
         sql_list = []
         for module, func in SCRIPT_METHOD:
             try:
-                if sql := await func():
+                if is_coroutine_callable(func):
+                    sql = await func()
+                else:
+                    sql = func()
+                if sql:
                     sql_list += sql
+
             except Exception as e:
                 logger.debug(f"{module} 执行SCRIPT_METHOD方法出错...", e=e)
         for sql in sql_list:

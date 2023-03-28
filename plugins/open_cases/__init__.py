@@ -58,8 +58,9 @@ usage：
     更新皮肤指令
     重置开箱： 重置今日开箱所有次数
     指令：
-        更新武器箱 ?[武器箱]
-        更新皮肤 ?[刀具名称]
+        更新武器箱 ?[武器箱/ALL]
+        更新皮肤 ?[名称/ALL1]
+        更新皮肤 ?[名称/ALL1] -S: (必定更新罕见皮肤所属箱子)
     * 不指定武器箱时则全部更新 *
     * 过多的爬取会导致账号API被封 *
 """.strip()
@@ -202,6 +203,8 @@ async def _(
 @update_case.handle()
 async def _(event: MessageEvent, arg: Message = CommandArg(), cmd: str = OneCommand()):
     msg = arg.extract_plain_text().strip()
+    is_update_case_name = "-S" in msg
+    msg = msg.replace("-S", "").strip()
     if not msg:
         case_list = []
         skin_list = []
@@ -227,7 +230,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg(), cmd: str = OneComm
         await update_case.send(f"即将更新所有{type_}, 请稍等")
         for i, case_name in enumerate(case_list):
             try:
-                info = await update_skin_data(case_name)
+                info = await update_skin_data(case_name, is_update_case_name)
                 if "请先登录" in info:
                     await update_case.finish(f"未登录, 已停止更新...")
                 rand = random.randint(300, 500)
@@ -245,7 +248,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg(), cmd: str = OneComm
     else:
         await update_case.send(f"开始{cmd}: {msg}, 请稍等")
         try:
-            await update_case.send(await update_skin_data(msg), at_sender=True)
+            await update_case.send(await update_skin_data(msg, is_update_case_name), at_sender=True)
         except Exception as e:
             logger.error(f"{cmd}: {msg}", e=e)
             await update_case.send(f"成功{cmd}: {msg} 发生错误: {type(e)}: {e}")

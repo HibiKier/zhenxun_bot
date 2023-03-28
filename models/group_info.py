@@ -22,3 +22,9 @@ class GroupInfo(Model):
     class Meta:
         table = "group_info"
         table_description = "群聊信息表"
+
+    @classmethod
+    def _run_script(cls):
+        return [
+            "ALTER TABLE group_info ADD group_flag Integer NOT NULL DEFAULT 0;"  # group_info表添加一个group_flag
+        ]

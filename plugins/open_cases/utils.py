@@ -46,15 +46,16 @@ class CaseManager:
     @classmethod
     async def reload(cls):
         cls.CURRENT_CASES = (
-            await BuffSkin.annotate().distinct().values_list("case_name", flat=True)  # type: ignore
+            await BuffSkin.filter(case_name__not="未知武器箱").annotate().distinct().values_list("case_name", flat=True)  # type: ignore
         )
 
 
-async def update_skin_data(name: str) -> str:
+async def update_skin_data(name: str, is_update_case_name: bool) -> str:
     """更新箱子内皮肤数据
 
     Args:
         name (str): 箱子名称
+        is_update_case_name (bool): 是否必定更新所属箱子
 
     Returns:
         _type_: _description_
@@ -70,15 +71,8 @@ async def update_skin_data(name: str) -> str:
     if not session:
         return "BUFF COOKIE为空捏!"
     weapon2case = {}
-    if type_ == UpdateType.CASE:
-        db_skin_id_list = [
-            skin.skin_id for skin in await BuffSkin.filter(case_name=name).all()
-        ]
-    else:
+    if type_ == UpdateType.WEAPON_TYPE:
         db_data = await BuffSkin.filter(name__contains=name).all()
-        db_skin_id_list = [
-            skin.skin_id for skin in await BuffSkin.filter(name__contains=name).all()
-        ]
         weapon2case = {
             item.name + item.skin_name: item.case_name
             for item in db_data
@@ -99,6 +93,7 @@ async def update_skin_data(name: str) -> str:
     log_list = []
     now = datetime.now()
     exists_id_list = []
+    new_weapon2case = {}
     for skin in data_list:
         if skin.skin_id in exists_id_list:
             continue
@@ -114,24 +109,29 @@ async def update_skin_data(name: str) -> str:
         name_ = skin.name + skin.skin_name + skin.abrasion
         skin.create_time = now
         skin.update_time = now
-        if not skin.case_name:
-            case_name = weapon2case.get(key)
+        if UpdateType.WEAPON_TYPE and not skin.case_name:
+            if is_update_case_name:
+                case_name = new_weapon2case.get(key)
+            else:
+                case_name = weapon2case.get(key)
             if not case_name:
-                case_name = await get_skin_case(skin.skin_id)
-                rand = random.randint(10, 20)
-                logger.debug(
-                    f"获取 {skin.name} | {skin.skin_name} 皮肤所属武器箱: {case_name}, 访问随机等待时间: {rand}",
-                    "开箱更新",
-                )
-                await asyncio.sleep(rand)
+                if case_list := await get_skin_case(skin.skin_id):
+                    case_name = ",".join(case_list)
+                    rand = random.randint(10, 20)
+                    logger.debug(
+                        f"获取 {skin.name} | {skin.skin_name} 皮肤所属武器箱: {case_name}, 访问随机等待时间: {rand}",
+                        "开箱更新",
+                    )
+                    await asyncio.sleep(rand)
             if not case_name:
                 case_name = "未知武器箱"
             else:
                 weapon2case[key] = case_name
+                new_weapon2case[key] = case_name
             if skin.case_name == "反恐精英20周年":
                 skin.case_name = "CS20"
             skin.case_name = case_name
-        if skin.skin_id in db_skin_id_list:
+        if await BuffSkin.exists(skin_id=skin.skin_id):
             update_list.append(skin)
         else:
             create_list.append(skin)
@@ -154,15 +154,16 @@ async def update_skin_data(name: str) -> str:
             )
         )
         name_ = skin.name + "-" + skin.skin_name + "-" + skin.abrasion
-        file_path = BASE_PATH / cn2py(skin.case_name) / f"{cn2py(name_)}.jpg"
-        if not file_path.exists():
-            logger.debug(f"下载皮肤 {name} 图片: {skin.img_url}...", "开箱更新")
-            await AsyncHttpx.download_file(skin.img_url, file_path)
-            rand_time = random.randint(1, 10)
-            await asyncio.sleep(rand_time)
-            logger.debug(f"图片下载随机等待时间: {rand_time}", "开箱更新")
-        else:
-            logger.debug(f"皮肤 {name_} 图片已存在...", "开箱更新")
+        for c_name_ in skin.case_name.split(","):
+            file_path = BASE_PATH / cn2py(c_name_) / f"{cn2py(name_)}.jpg"
+            if not file_path.exists():
+                logger.debug(f"下载皮肤 {name} 图片: {skin.img_url}...", "开箱更新")
+                await AsyncHttpx.download_file(skin.img_url, file_path)
+                rand_time = random.randint(1, 10)
+                await asyncio.sleep(rand_time)
+                logger.debug(f"图片下载随机等待时间: {rand_time}", "开箱更新")
+            else:
+                logger.debug(f"皮肤 {name_} 图片已存在...", "开箱更新")
     if create_list:
         logger.debug(f"更新武器箱/皮肤: [<u><e>{name}</e></u>], 创建 {len(create_list)} 个皮肤!")
         await BuffSkin.bulk_create(set(create_list), 10)
@@ -178,7 +179,7 @@ async def update_skin_data(name: str) -> str:
             if skin.skin_name not in skin_name_list:
                 skin_name_list.append(skin.skin_name)
         db_data = await BuffSkin.filter(
-            case_name=name,
+            case_name__contains=name,
             skin_name__in=skin_name_list,
             name__in=name_list,
             abrasion__in=abrasion_list,
@@ -498,7 +499,7 @@ def get_bk_image_size(
     return new_size
 
 
-async def get_skin_case(id_: str) -> Optional[str]:
+async def get_skin_case(id_: str) -> Optional[List[str]]:
     """获取皮肤所在箱子
 
     Args:
@@ -517,14 +518,19 @@ async def get_skin_case(id_: str) -> Optional[str]:
     )
     if response.status_code == 200:
         text = response.text
-        if r := re.search('<meta name="description".*,(.*)武器箱.*?>', text):
-            return (
-                r.group(1)
-                .replace("”", "")
-                .replace("“", "")
-                .replace("武器箱", "")
-                .replace(" ", "")
-            )
+        if r := re.search('<meta name="description"(.*?)>', text):
+            case_list = []
+            for s in r.group(1).split(","):
+                if "武器箱" in s:
+                    case_list.append(
+                        s.replace("”", "")
+                        .replace("“", "")
+                        .replace('"', "")
+                        .replace("'", "")
+                        .replace("武器箱", "")
+                        .replace(" ", "")
+                    )
+            return case_list
     else:
         logger.debug(f"访问皮肤所属武器箱异常 url: {url} code: {response.status_code}")
     return None
