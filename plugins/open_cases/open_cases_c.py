@@ -58,8 +58,6 @@ def add_count(user: OpenCasesUser, skin: BuffSkin, case_price: float):
             user.knife_st_count += 1
         else:
             user.knife_count += 1
-    user.today_open_total += 1
-    user.total_count += 1
     user.make_money += skin.sell_min_price
     user.spend_money += 17 + case_price
 
@@ -119,6 +117,9 @@ async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, M
     case_price = 0
     if case_skin := await BuffSkin.get_or_none(case_name=case_name, color="CASE"):
         case_price = case_skin.sell_min_price
+    user.today_open_total += 1
+    user.total_count += 1
+    await user.save(update_fields=["today_open_total", "total_count"])
     add_count(user, skin, case_price)
     ridicule_result = random.choice(RESULT_MESSAGE[skin.color])
     price_result = skin.sell_min_price
@@ -205,6 +206,9 @@ async def open_multiple_case(
     total_price = 0
     log_list = []
     now = datetime.now()
+    user.today_open_total += num
+    user.total_count += num
+    await user.save(update_fields=["today_open_total", "total_count"])
     case_price = 0
     if case_skin := await BuffSkin.get_or_none(case_name=case_name, color="CASE"):
         case_price = case_skin.sell_min_price

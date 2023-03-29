@@ -50,7 +50,7 @@ class CaseManager:
         )
 
 
-async def update_skin_data(name: str, is_update_case_name: bool) -> str:
+async def update_skin_data(name: str, is_update_case_name: bool = False) -> str:
     """更新箱子内皮肤数据
 
     Args:
@@ -353,12 +353,12 @@ async def build_case_image(case_name: str) -> Union[BuildImage, str]:
     background_img = BuildImage(0, 0, background=CASE_BACKGROUND / background)
     if case_name:
         log_list = (
-            await BuffSkinLog.filter(case_name=case_name)
+            await BuffSkinLog.filter(case_name__contains=case_name)
             .annotate(count=Count("id"))
             .group_by("skin_name")
             .values_list("skin_name", "count")
         )
-        skin_list_ = await BuffSkin.filter(case_name=case_name).all()
+        skin_list_ = await BuffSkin.filter(case_name__contains=case_name).all()
         skin2count = {item[0]: item[1] for item in log_list}
         case = None
         skin_list: List[BuffSkin] = []
@@ -373,7 +373,7 @@ async def build_case_image(case_name: str) -> Union[BuildImage, str]:
                     exists_name.append(name)
         generate_img = {}
         for skin in skin_list:
-            skin_img = await generate_skin(skin, skin2count[skin.skin_name])
+            skin_img = await generate_skin(skin, skin2count.get(skin.skin_name, 0))
             if skin_img:
                 if not generate_img.get(skin.color):
                     generate_img[skin.color] = []

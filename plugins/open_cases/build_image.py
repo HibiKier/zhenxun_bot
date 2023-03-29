@@ -24,7 +24,7 @@ async def generate_skin(skin: BuffSkin, update_count: int) -> Optional[BuildImag
         Optional[BuildImage]: 图片
     """
     name = skin.name + "-" + skin.skin_name + "-" + skin.abrasion
-    file_path = BASE_PATH / cn2py(skin.case_name) / f"{cn2py(name)}.jpg"
+    file_path = BASE_PATH / cn2py(skin.case_name.split(",")[0]) / f"{cn2py(name)}.jpg"
     if not file_path.exists():
         logger.warning(f"皮肤图片: {name} 不存在", "查看武器箱")
         return None
