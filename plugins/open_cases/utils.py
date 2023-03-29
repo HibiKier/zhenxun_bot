@@ -104,7 +104,7 @@ async def update_skin_data(name: str, is_update_case_name: bool = False) -> str:
                 .replace("武器箱", "")
                 .replace(" ", "")
             )
-        skin.name = skin.name.replace("（★ StatTrak™）", "").replace("（★）", ""z)
+        skin.name = skin.name.replace("（★ StatTrak™）", "").replace("（★）", "")
         exists_id_list.append(skin.skin_id)
         key = skin.name + skin.skin_name
         name_ = skin.name + skin.skin_name + skin.abrasion
