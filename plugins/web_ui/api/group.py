@@ -1,4 +1,5 @@
 from pydantic.error_wrappers import ValidationError
+
 from services.log import logger
 from utils.manager import group_manager
 from utils.utils import get_bot
@@ -7,8 +8,8 @@ from ..auth import Depends, User, token_to_user
 from ..config import *
 
 
-@app.get("/webui/group")
-async def _(user: User = Depends(token_to_user)) -> Result:
+@router.get("/group", dependencies=[token_to_user()])
+async def _() -> Result:
     """
     获取群信息
     """
@@ -47,8 +48,8 @@ async def _(user: User = Depends(token_to_user)) -> Result:
     return Result(code=200, data=group_list_result)
 
 
-@app.post("/webui/group")
-async def _(group: GroupResult, user: User = Depends(token_to_user)) -> Result:
+@router.post("/group", dependencies=[token_to_user()])
+async def _(group: GroupResult) -> Result:
     """
     修改群信息
     """
@@ -58,4 +59,4 @@ async def _(group: GroupResult, user: User = Depends(token_to_user)) -> Result:
         group_manager.turn_on_group_bot_status(group_id)
     else:
         group_manager.shutdown_group_bot_status(group_id)
-    return Result(code=200, data="修改成功！")
+    return Result(data="修改成功！")

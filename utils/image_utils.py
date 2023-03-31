@@ -160,6 +160,7 @@ class BuildImage:
         h: int,
         paste_image_width: int = 0,
         paste_image_height: int = 0,
+        paste_space: int = 0,
         color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]] = None,
         image_mode: ModeType = "RGBA",
         font_size: int = 10,
@@ -177,6 +178,7 @@ class BuildImage:
             :param h: 自定义图片的高度，h=0时为图片原本高度
             :param paste_image_width: 当图片做为背景图时，设置贴图的宽度，用于贴图自动换行
             :param paste_image_height: 当图片做为背景图时，设置贴图的高度，用于贴图自动换行
+            :param paste_space: 自动贴图间隔
             :param color: 生成图片的颜色
             :param image_mode: 图片的类型
             :param font_size: 文字大小
@@ -190,6 +192,7 @@ class BuildImage:
         self.h = int(h)
         self.paste_image_width = int(paste_image_width)
         self.paste_image_height = int(paste_image_height)
+        self.paste_space = int(paste_space)
         self._current_w = 0
         self._current_h = 0
         self.uid = uuid.uuid1()
@@ -277,7 +280,9 @@ class BuildImage:
             :param center_type: 居中类型，可能的值 center: 完全居中，by_width: 水平居中，by_height: 垂直居中
             :param allow_negative: 允许使用负数作为坐标且不超出图片范围，从右侧开始计算
         """
-        await self.loop.run_in_executor(None, self.paste, img, pos, alpha, center_type, allow_negative)
+        await self.loop.run_in_executor(
+            None, self.paste, img, pos, alpha, center_type, allow_negative
+        )
 
     def paste(
         self,
@@ -324,7 +329,7 @@ class BuildImage:
             img = img.markImg
         if self._current_w >= self.w:
             self._current_w = 0
-            self._current_h += self.paste_image_height
+            self._current_h += self.paste_image_height + self.paste_space
         if not pos:
             pos = (self._current_w, self._current_h)
         if alpha:
@@ -335,7 +340,7 @@ class BuildImage:
                 self.markImg.paste(img, pos, img)
         else:
             self.markImg.paste(img, pos)
-        self._current_w += self.paste_image_width
+        self._current_w += self.paste_image_width + self.paste_space
 
     @classmethod
     def get_text_size(cls, msg: str, font: str, font_size: int) -> Tuple[int, int]:
@@ -469,7 +474,7 @@ class BuildImage:
                     "center_type must be 'center', 'by_width' or 'by_height'"
                 )
             w, h = self.w, self.h
-            longgest_text = ''
+            longgest_text = ""
             sentence = text.split("\n")
             for x in sentence:
                 longgest_text = x if len(x) > len(longgest_text) else longgest_text

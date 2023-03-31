@@ -14,6 +14,7 @@ from utils.image_utils import BuildImage
 from utils.message_builder import image
 from utils.utils import cn2py
 
+from .build_image import draw_card
 from .config import *
 from .models.open_cases_log import OpenCasesLog
 from .models.open_cases_user import OpenCasesUser
@@ -147,14 +148,11 @@ async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, M
     )
     logger.debug(f"添加 1 条开箱日志", "开箱", user_qq, group_id)
     over_count = max_count - user.today_open_total
+    img = await draw_card(skin, rand)
     return (
         f"开启{case_name}武器箱.\n剩余开箱次数:{over_count}.\n"
-        + image(img_path)
-        + "\n"
-        + f"皮肤:[{COLOR2NAME[skin.color]}]{skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion})\n"
-        f"磨损:{rand}\n"
-        f"价格:{price_result}\n箱子单价:{case_price}\n花费:{17 + case_price:.2f}\n"
-        f":{ridicule_result}"
+        + image(img)
+        + f"\n箱子单价:{case_price}\n花费:{17 + case_price:.2f}\n:{ridicule_result}"
     )
 
 
@@ -191,12 +189,7 @@ async def open_multiple_case(
             f"今天开箱次数不足{num}次噢，请单抽试试看（也许单抽运气更好？）"
             f"\n剩余开箱次数:{max_count - user.today_open_total}"
         )
-    if num < 5:
-        h = 270
-    elif num % 5 == 0:
-        h = 270 * int(num / 5)
-    else:
-        h = 270 * int(num / 5) + 270
+    logger.debug(f"尝试开启武器箱: {case_name}", "开箱", user_qq, group_id)
     case = cn2py(case_name)
     skin_count = {}
     img_list = []
@@ -212,32 +205,19 @@ async def open_multiple_case(
     case_price = 0
     if case_skin := await BuffSkin.get_or_none(case_name=case_name, color="CASE"):
         case_price = case_skin.sell_min_price
-    cnt = 0
+    img_w, img_h = 0, 0
     for skin, rand in skin_list:
+        img = await draw_card(skin, str(rand)[:11])
+        img_w, img_h = img.size
         total_price += skin.sell_min_price
-        rand = str(rand)[:11]
-        add_count(user, skin, case_price)
         color_name = COLOR2CN[skin.color]
-        if skin.is_stattrak:
-            color_name += "(暗金)"
         if not skin_count.get(color_name):
             skin_count[color_name] = 0
         skin_count[color_name] += 1
-        name = skin.name + "-" + skin.skin_name + "-" + skin.abrasion
-        img_path = IMAGE_PATH / "csgo_cases" / case / f"{cn2py(name)}.jpg"
-        wImg = BuildImage(200, 270, 200, 200)
-        img = BuildImage(200, 200, background=img_path)
-        await wImg.apaste(img, (0, 0), True)
-        await wImg.atext(
-            (5, 200),
-            f"{skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion})",
-        )
-        cnt += 1
-        await wImg.atext((5, 220), f"磨损：{rand}")
-        await wImg.atext((5, 240), f"价格：{skin.sell_min_price}")
-        img_list.append(wImg)
+        add_count(user, skin, case_price)
+        img_list.append(img)
         logger.info(
-            f"开启{case_name}武器箱获得 {skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion}) 磨损: [{rand}] 价格: {skin.sell_min_price}",
+            f"开启{case_name}武器箱获得 {skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion}) 磨损: [{rand:.11f}] 价格: {skin.sell_min_price}",
             "开箱",
             user_qq,
             group_id,
@@ -261,16 +241,26 @@ async def open_multiple_case(
     if log_list:
         await OpenCasesLog.bulk_create(log_list, 10)
         logger.debug(f"添加 {len(log_list)} 条开箱日志", "开箱", user_qq, group_id)
-    markImg = BuildImage(1000, h, 200, 270)
+    img_w += 10
+    img_h += 10
+    w = img_w * 5
+    if num < 5:
+        h = img_h - 10
+        w = img_w * num
+    elif not num % 5:
+        h = img_h * int(num / 5)
+    else:
+        h = img_h * int(num / 5) + img_h
+    markImg = BuildImage(w, h, img_w - 10, img_h - 10, 10)
     for img in img_list:
-        markImg.paste(img)
+        markImg.paste(img, alpha=True)
     over_count = max_count - user.today_open_total
     result = ""
     for color_name in skin_count:
         result += f"[{color_name}:{skin_count[color_name]}] "
     return (
         f"开启{case_name}武器箱\n剩余开箱次数：{over_count}\n"
-        + image(markImg.pic2bs4())
+        + image(markImg)
         + "\n"
         + result[:-1]
         + f"\n箱子单价：{case_price}\n总获取金额：{total_price:.2f}\n总花费：{(17 + case_price) * num:.2f}"

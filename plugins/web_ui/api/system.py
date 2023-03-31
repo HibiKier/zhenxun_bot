@@ -4,6 +4,7 @@ from pathlib import Path
 
 import psutil
 import ujson as json
+
 from configs.path_config import (
     DATA_PATH,
     FONT_PATH,
@@ -28,21 +29,21 @@ memory_data = {"data": []}
 disk_data = {"data": []}
 
 
-@app.get("/webui/system")
+@router.get("/system", dependencies=[token_to_user()])
 async def _() -> Result:
     return await get_system_data()
 
 
-@app.get("/webui/system/status")
-async def _(user: User = Depends(token_to_user)) -> Result:
+@router.get("/webui/system/status", dependencies=[token_to_user()])
+async def _() -> Result:
     return Result(
         code=200,
         data=await asyncio.get_event_loop().run_in_executor(None, _get_system_status),
     )
 
 
-@app.get("/webui/system/disk")
-async def _(type_: Optional[str] = None, user: User = Depends(token_to_user)) -> Result:
+@router.get("/webui/system/disk", dependencies=[token_to_user()])
+async def _(type_: Optional[str] = None) -> Result:
     return Result(
         code=200,
         data=await asyncio.get_event_loop().run_in_executor(
@@ -51,8 +52,8 @@ async def _(type_: Optional[str] = None, user: User = Depends(token_to_user)) ->
     )
 
 
-@app.get("/webui/system/statusList")
-async def _(user: User = Depends(token_to_user)) -> Result:
+@router.get("/webui/system/statusList", dependencies=[token_to_user()])
+async def _() -> Result:
     global cpu_data, memory_data, disk_data
     await asyncio.get_event_loop().run_in_executor(None, _get_system_status)
     cpu_rst = cpu_data["data"][-10:] if len(cpu_data["data"]) > 10 else cpu_data["data"]
@@ -74,7 +75,7 @@ async def _(user: User = Depends(token_to_user)) -> Result:
     )
 
 
-async def get_system_data(user: User = Depends(token_to_user)):
+async def get_system_data():
     """
     说明:
         获取系统信息，资源文件大小，网络状态等
@@ -105,7 +106,7 @@ async def get_system_data(user: User = Depends(token_to_user)):
     )
 
 
-def _get_system_status(user: User = Depends(token_to_user)) -> SystemStatus:
+def _get_system_status() -> SystemStatus:
     """
     说明:
         获取系统信息等
@@ -123,7 +124,7 @@ def _get_system_status(user: User = Depends(token_to_user)) -> SystemStatus:
 
 
 def _get_system_disk(
-    type_: Optional[str], user: User = Depends(token_to_user)
+    type_: Optional[str],
 ) -> Union[SystemFolderSize, Dict[str, Union[float, datetime]]]:
     """
     说明:

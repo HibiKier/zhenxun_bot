@@ -1,9 +1,14 @@
 from pydantic import ValidationError
+
 from configs.config import Config
 from services.log import logger
-from utils.manager import (plugins2block_manager, plugins2cd_manager,
-                           plugins2count_manager, plugins2settings_manager,
-                           plugins_manager)
+from utils.manager import (
+    plugins2block_manager,
+    plugins2cd_manager,
+    plugins2count_manager,
+    plugins2settings_manager,
+    plugins_manager,
+)
 from utils.utils import get_matchers
 
 from ..auth import Depends, User, token_to_user
@@ -12,8 +17,8 @@ from ..config import *
 plugin_name_list = None
 
 
-@app.get("/webui/plugins")
-def _(type_: Optional[str], user: User = Depends(token_to_user)) -> Result:
+@router.get("/plugins", dependencies=[token_to_user()])
+def _(type_: Optional[str]) -> Result:
     """
     获取插件列表
     :param type_: 类型 normal, superuser, hidden, admin
@@ -101,7 +106,7 @@ def _(type_: Optional[str], user: User = Depends(token_to_user)) -> Result:
     return Result(code=200, data=plugin_list)
 
 
-@app.post("/webui/plugins")
+@router.post("/plugins", dependencies=[token_to_user()])
 def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
     """
     修改插件信息
@@ -126,7 +131,9 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
                 ) or isinstance(c.default_value, float):
                     c.value = float(c.value)
                 elif isinstance(c.value, str) and (
-                    isinstance(Config.get_config(plugin.model, c.key, c.value), (list, tuple))
+                    isinstance(
+                        Config.get_config(plugin.model, c.key, c.value), (list, tuple)
+                    )
                     or isinstance(c.default_value, (list, tuple))
                 ):
                     default_value = Config.get_config(plugin.model, c.key, c.value)
@@ -161,7 +168,9 @@ def _(plugin: Plugin, user: User = Depends(token_to_user)) -> Result:
         )
     for key in plugins2settings_manager.keys():
         if isinstance(plugins2settings_manager[key].cmd, str):
-            plugins2settings_manager[key].cmd = plugins2settings_manager[key].cmd.split(',')
+            plugins2settings_manager[key].cmd = plugins2settings_manager[key].cmd.split(
+                ","
+            )
     plugins2settings_manager.save()
     plugins_manager.save()
     return Result(code=200, data="修改成功！")

@@ -6,8 +6,8 @@ from ..auth import Depends, User, token_to_user
 from ..config import *
 
 
-@app.get("/webui/request")
-def _(type_: Optional[str], user: User = Depends(token_to_user)) -> Result:
+@router.get("/webui/request", dependencies=[token_to_user()])
+def _(type_: Optional[str]) -> Result:
     req_data = requests_manager.get_data()
     req_list = []
     if type_ in ["group", "private"]:
@@ -19,8 +19,8 @@ def _(type_: Optional[str], user: User = Depends(token_to_user)) -> Result:
     return Result(code=200, data=req_list)
 
 
-@app.delete("/webui/request")
-def _(type_: Optional[str], user: User = Depends(token_to_user)) -> Result:
+@router.delete("/webui/request", dependencies=[token_to_user()])
+def _(type_: Optional[str]) -> Result:
     """
     清空请求
     :param type_: 类型
@@ -29,8 +29,8 @@ def _(type_: Optional[str], user: User = Depends(token_to_user)) -> Result:
     return Result(code=200)
 
 
-@app.post("/webui/request")
-async def _(parma: RequestParma, user: User = Depends(token_to_user)) -> Result:
+@router.post("/webui/request", dependencies=[token_to_user()])
+async def _(parma: RequestParma) -> Result:
     """
     操作请求
     :param parma: 参数

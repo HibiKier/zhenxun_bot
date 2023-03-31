@@ -72,7 +72,7 @@ class BuffSkin(Model):
     ) -> List["BuffSkin"]:  # type: ignore
         query = cls
         if case_name:
-            query = query.filter(case_name=case_name)
+            query = query.filter(case_name__contains=case_name)
         query = query.filter(abrasion=abrasion, is_stattrak=is_stattrak, color=color)
         skin_list = await query.annotate(rand=Random()).limit(num)  # type:ignore
         num_ = num

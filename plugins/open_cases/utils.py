@@ -45,9 +45,19 @@ class CaseManager:
 
     @classmethod
     async def reload(cls):
-        cls.CURRENT_CASES = (
-            await BuffSkin.filter(case_name__not="未知武器箱").annotate().distinct().values_list("case_name", flat=True)  # type: ignore
+        cls.CURRENT_CASES = []
+        case_list = await BuffSkin.filter(color="CASE").values_list(
+            "case_name", flat=True
         )
+        for case_name in (
+            await BuffSkin.filter(case_name__not="未知武器箱")
+            .annotate()
+            .distinct()
+            .values_list("case_name", flat=True)
+        ):
+            for name in case_name.split(","):  # type: ignore
+                if name not in cls.CURRENT_CASES and name in case_list:
+                    cls.CURRENT_CASES.append(name)
 
 
 async def update_skin_data(name: str, is_update_case_name: bool = False) -> str:

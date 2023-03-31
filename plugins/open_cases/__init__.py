@@ -235,7 +235,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg(), cmd: str = OneComm
                     await update_case.finish(f"未登录, 已停止更新...")
                 rand = random.randint(300, 500)
                 result = f"更新全部{type_}完成"
-                if i < len(case_list):
+                if i < len(case_list) - 1:
                     next_case = case_list[i + 1]
                     result = f"将在 {rand} 秒后更新下一{type_}: {next_case}"
                 await update_case.send(f"{info}, {result}")
@@ -248,7 +248,9 @@ async def _(event: MessageEvent, arg: Message = CommandArg(), cmd: str = OneComm
     else:
         await update_case.send(f"开始{cmd}: {msg}, 请稍等")
         try:
-            await update_case.send(await update_skin_data(msg, is_update_case_name), at_sender=True)
+            await update_case.send(
+                await update_skin_data(msg, is_update_case_name), at_sender=True
+            )
         except Exception as e:
             logger.error(f"{cmd}: {msg}", e=e)
             await update_case.send(f"成功{cmd}: {msg} 发生错误: {type(e)}: {e}")
