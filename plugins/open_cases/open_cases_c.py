@@ -251,7 +251,9 @@ async def open_multiple_case(
         h = img_h * int(num / 5)
     else:
         h = img_h * int(num / 5) + img_h
-    markImg = BuildImage(w, h, img_w - 10, img_h - 10, 10)
+    markImg = BuildImage(
+        w - 10, h - 10, img_w - 10, img_h - 10, 10, color=(255, 255, 255)
+    )
     for img in img_list:
         markImg.paste(img, alpha=True)
     over_count = max_count - user.today_open_total

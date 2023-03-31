@@ -135,13 +135,7 @@ update_case = on_command(
 show_case = on_command("查看武器箱", priority=5, block=True)
 my_knifes = on_command("我的金色", priority=1, permission=GROUP, block=True)
 show_skin = on_command("查看皮肤", priority=5, block=True)
-test = on_command("test", priority=1, permission=GROUP, block=True)
 
-
-@test.handle()
-async def _(event: GroupMessageEvent):
-    a = await get_skin_case("872472")
-    print(a)
 
 
 @reload_count.handle()
