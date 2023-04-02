@@ -1,32 +1,40 @@
+import nonebot
+from fastapi import APIRouter, FastAPI
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent
 from nonebot.matcher import Matcher
-from nonebot.message import IgnoredException, run_preprocessor
+from nonebot.message import run_preprocessor
 from nonebot.typing import T_State
 
 from configs.config import Config as gConfig
+from services.log import logger
 from utils.manager import plugins2settings_manager
 
-from .api import *
-from .auth import *
+from .api.group import router as group_routes
+from .api.plugins import router as plugin_routes
+from .api.request import router as request_routes
+from .api.system import router as system_routes
+
+# from .api.g import *
+from .auth import router as auth_router
+
+driver = nonebot.get_driver()
 
 gConfig.add_plugin_config("web-ui", "username", "admin", name="web-ui", help_="前端管理用户名")
 
 gConfig.add_plugin_config("web-ui", "password", None, name="web-ui", help_="前端管理密码")
 
 
-# 使用webui访问api后plugins2settings中的cmd字段将从list变为str
-# 暂时找不到原因
-# 先使用hook修复
-@run_preprocessor
-async def _(matcher: Matcher, bot: Bot, event: MessageEvent, state: T_State):
-    flag = False
-    for module in plugins2settings_manager.keys():
-        if plugins2settings_manager.get_plugin_data(module).cmd and isinstance(
-            plugins2settings_manager.get_plugin_data(module).cmd, str
-        ):
-            plugins2settings_manager[module].cmd = plugins2settings_manager[
-                module
-            ].cmd.split(",")
-            flag = True
-    if flag:
-        plugins2settings_manager.save()
+BaseApiRouter = APIRouter(prefix="/zhenxun/api")
+
+BaseApiRouter.include_router(auth_router)
+BaseApiRouter.include_router(plugin_routes)
+BaseApiRouter.include_router(group_routes)
+BaseApiRouter.include_router(request_routes)
+BaseApiRouter.include_router(system_routes)
+
+
+@driver.on_startup
+def _():
+    app: FastAPI = nonebot.get_app()
+    app.include_router(BaseApiRouter)
+    logger.info("<g>API启动成功</g>", "Web UI")

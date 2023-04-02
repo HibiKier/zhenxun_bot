@@ -1,9 +1,12 @@
 import asyncio
 import os
+from datetime import datetime
 from pathlib import Path
+from typing import Dict, Optional, Union
 
 import psutil
 import ujson as json
+from fastapi import APIRouter
 
 from configs.path_config import (
     DATA_PATH,
@@ -17,8 +20,15 @@ from configs.path_config import (
 from services.log import logger
 from utils.http_utils import AsyncHttpx
 
-from ..auth import Depends, User, token_to_user
-from ..config import *
+from ..models.model import (
+    Result,
+    SystemFolderSize,
+    SystemNetwork,
+    SystemResult,
+    SystemStatus,
+    SystemStatusList,
+)
+from ..utils import authentication
 
 CPU_DATA_PATH = DATA_PATH / "system" / "cpu.json"
 MEMORY_DATA_PATH = DATA_PATH / "system" / "memory.json"
@@ -28,31 +38,31 @@ cpu_data = {"data": []}
 memory_data = {"data": []}
 disk_data = {"data": []}
 
+router = APIRouter()
 
-@router.get("/system", dependencies=[token_to_user()])
+
+@router.get("/system", dependencies=[authentication()])
 async def _() -> Result:
     return await get_system_data()
 
 
-@router.get("/webui/system/status", dependencies=[token_to_user()])
+@router.get("/status", dependencies=[authentication()])
 async def _() -> Result:
-    return Result(
-        code=200,
-        data=await asyncio.get_event_loop().run_in_executor(None, _get_system_status),
+    return Result.ok(
+        await asyncio.get_event_loop().run_in_executor(None, _get_system_status),
     )
 
 
-@router.get("/webui/system/disk", dependencies=[token_to_user()])
+@router.get("/system/disk", dependencies=[authentication()])
 async def _(type_: Optional[str] = None) -> Result:
-    return Result(
-        code=200,
+    return Result.ok(
         data=await asyncio.get_event_loop().run_in_executor(
             None, _get_system_disk, type_
         ),
     )
 
 
-@router.get("/webui/system/statusList", dependencies=[token_to_user()])
+@router.get("/system/statusList", dependencies=[authentication()])
 async def _() -> Result:
     global cpu_data, memory_data, disk_data
     await asyncio.get_event_loop().run_in_executor(None, _get_system_status)
@@ -65,9 +75,8 @@ async def _() -> Result:
     disk_rst = (
         disk_data["data"][-10:] if len(disk_data["data"]) > 10 else disk_data["data"]
     )
-    return Result(
-        code=200,
-        data=SystemStatusList(
+    return Result.ok(
+        SystemStatusList(
             cpu_data=cpu_rst,
             memory_data=memory_rst,
             disk_data=disk_rst,
@@ -95,12 +104,11 @@ async def get_system_data():
     network = SystemNetwork(baidu=baidu, google=google)
     disk = await asyncio.get_event_loop().run_in_executor(None, _get_system_disk, None)
     status = await asyncio.get_event_loop().run_in_executor(None, _get_system_status)
-    return Result(
-        code=200,
-        data=SystemResult(
+    return Result.ok(
+        SystemResult(
             status=status,
             network=network,
-            disk=disk,
+            disk=disk,  # type: ignore
             check_time=datetime.now().replace(microsecond=0),
         ),
     )

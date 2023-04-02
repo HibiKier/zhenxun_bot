@@ -140,4 +140,4 @@ class PluginData(BaseModel):
         )
 
     def __hash__(self):
-        return hash(self.name + self.menu_type[0])
+        return hash(self.name + str(self.menu_type[0]))
