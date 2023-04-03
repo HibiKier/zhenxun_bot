@@ -80,7 +80,9 @@ def init_plugin_info():
                     if plugin_setting:
                         plugin_setting = PluginSetting(**plugin_setting)
                         plugin_setting.plugin_type = menu_type
-                    plugin_superuser_usage = get_attr(module, "__plugin_super_usage__")
+                    plugin_superuser_usage = get_attr(
+                        module, "__plugin_superuser_usage__"
+                    )
                     plugin_task = get_attr(module, "__plugin_task__")
                     plugin_version = extra.get("__plugin_version__") or get_attr(
                         module, "__plugin_version__"
