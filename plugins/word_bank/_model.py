@@ -210,15 +210,15 @@ class WordBank(Model):
             :param user_id: 用户id
             :param group_id: 群号
         """
-        if query:
-            answer = query.answer
-        else:
+        if not query:
             query = await cls.get_or_none(
                 problem=problem,
                 user_qq=user_id,
                 group_id=group_id,
                 answer=answer,
             )
+        if not answer:
+            answer = query.answer  # type: ignore
         if query and query.placeholder:
             type_list = re.findall(rf"\[(.*?):placeholder_.*?]", str(answer))
             temp_answer = re.sub(rf"\[(.*?):placeholder_.*?]", "{}", str(answer))
@@ -299,13 +299,24 @@ class WordBank(Model):
         """
         data_list = await cls.check_problem(event, problem, word_scope, word_type)
         if data_list:
-            answer = random.choice(data_list)
+            random_answer = random.choice(data_list)
+            temp_answer = random_answer.answer
+            if random_answer.word_type == 2:
+                r = re.search(random_answer.problem, problem)
+                has_placeholder = re.search(rf"\$(\d)", random_answer.answer)
+                if r and r.groups() and has_placeholder:
+                    pats = re.sub(r"\$(\d)", r"\\\1", random_answer.answer)
+                    random_answer.answer = re.sub(random_answer.problem, pats, problem)
             return (
                 await cls._format2answer(
-                    answer.problem, answer.answer, answer.user_qq, answer.group_id
+                    random_answer.problem,
+                    random_answer.answer,
+                    random_answer.user_qq,
+                    random_answer.group_id,
+                    random_answer,
                 )
-                if answer.placeholder
-                else answer.answer
+                if random_answer.placeholder
+                else random_answer.answer
             )
 
     @classmethod
