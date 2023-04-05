@@ -184,7 +184,8 @@ async def _(
     problem_image: Message = Arg("problem_image"),
 ):
     try:
-        if word_type == "正则":
+        if word_type == "正则" and problem:
+            problem = unescape(problem)
             try:
                 re.compile(problem)
             except re.error:
