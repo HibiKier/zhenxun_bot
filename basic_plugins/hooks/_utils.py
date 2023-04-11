@@ -149,20 +149,24 @@ class AuthChecker:
         group_id = getattr(event, "group_id", None)
         try:
             if plugin_name := matcher.plugin_name:
+                # self.auth_hidden(matcher, plugin_name)
                 cost_gold = await self.auth_cost(plugin_name, bot, event)
                 user_id = getattr(event, "user_id", None)
                 group_id = getattr(event, "group_id", None)
-                if user_id and str(user_id) not in bot.config.superusers:
-                    await self.auth_basic(plugin_name, bot, event)
-                    self.auth_group(plugin_name, bot, event)
-                    await self.auth_admin(plugin_name, matcher, bot, event)
-                    await self.auth_plugin(plugin_name, matcher, bot, event)
-                    await self.auth_limit(plugin_name, bot, event)
-                    if cost_gold and user_id and group_id:
-                        await BagUser.spend_gold(user_id, group_id, cost_gold)
-                        logger.debug(f"调用功能花费金币: {cost_gold}", "HOOK", user_id, group_id)
+                # if user_id and str(user_id) not in bot.config.superusers:
+                await self.auth_basic(plugin_name, bot, event)
+                self.auth_group(plugin_name, bot, event)
+                await self.auth_admin(plugin_name, matcher, bot, event)
+                await self.auth_plugin(plugin_name, matcher, bot, event)
+                await self.auth_limit(plugin_name, bot, event)
+                if cost_gold and user_id and group_id:
+                    await BagUser.spend_gold(user_id, group_id, cost_gold)
+                    logger.debug(f"调用功能花费金币: {cost_gold}", "HOOK", user_id, group_id)
         except IsSuperuserException:
             logger.debug(f"超级用户或被ban跳过权限检测...", "HOOK", user_id, group_id)
+
+    # def auth_hidden(self, matcher: Matcher):
+    #     if plugin_data := plugin_data_manager.get(matcher.plugin_name):         # type: ignore
 
     async def auth_limit(self, plugin_name: str, bot: Bot, event: Event):
         """
@@ -388,7 +392,6 @@ class AuthChecker:
                             and plugin_name not in ignore_rst_module
                         ):
                             self._flmt_c.start_cd(event.group_id)
-                            logger.info(f"{event.user_id} ||XXXXXX: {matcher.module}")
                             await bot.send_group_msg(
                                 group_id=event.group_id, message="此功能正在维护..."
                             )
