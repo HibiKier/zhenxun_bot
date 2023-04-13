@@ -28,7 +28,10 @@ def image(
         if file.startswith(("http", "base64://")):
             return MessageSegment.image(file)
         else:
-            return MessageSegment.image(IMAGE_PATH / file)
+            if (IMAGE_PATH / file).exists():
+                return MessageSegment.image(IMAGE_PATH / file)
+            logger.warning(f"图片 {(IMAGE_PATH / file).absolute()}缺失...")
+            return ""
     if isinstance(file, Path):
         if file.exists():
             return MessageSegment.image(file)
