@@ -11,9 +11,9 @@ class BagUser(Model):
 
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
-    user_qq = fields.BigIntField()
+    user_id = fields.CharField(255)
     """用户id"""
-    group_id = fields.BigIntField()
+    group_id = fields.CharField(255)
     """群聊id"""
     gold = fields.IntField(default=100)
     """金币数量"""
@@ -31,18 +31,18 @@ class BagUser(Model):
     class Meta:
         table = "bag_users"
         table_description = "用户道具数据表"
-        unique_together = ("user_qq", "group_id")
+        unique_together = ("user_id", "group_id")
 
     @classmethod
-    async def get_user_total_gold(cls, user_qq: int, group_id: int) -> str:
+    async def get_user_total_gold(cls, user_id: str | int, group_id: str | int) -> str:
         """
         说明:
             获取金币概况
         参数:
-            :param user_qq: qq号
-            :param group_id: 所在群号
+            :param user_id: 用户id
+            :param group_id: 所在群组id
         """
-        user, _ = await cls.get_or_create(user_qq=user_qq, group_id=group_id)
+        user, _ = await cls.get_or_create(user_id=str(user_id), group_id=str(group_id))
         return (
             f"当前金币：{user.gold}\n今日获取金币：{user.get_today_gold}\n今日花费金币：{user.spend_today_gold}"
             f"\n今日收益：{user.get_today_gold - user.spend_today_gold}"
@@ -50,30 +50,30 @@ class BagUser(Model):
         )
 
     @classmethod
-    async def get_gold(cls, user_qq: int, group_id: int) -> int:
+    async def get_gold(cls, user_id: str | int, group_id: str | int) -> int:
         """
         说明:
             获取当前金币
         参数:
-            :param user_qq: qq号
-            :param group_id: 所在群号
+            :param user_id: 用户id
+            :param group_id: 所在群组id
         """
-        user, _ = await cls.get_or_create(user_qq=user_qq, group_id=group_id)
+        user, _ = await cls.get_or_create(user_id=str(user_id), group_id=str(group_id))
         return user.gold
 
     @classmethod
     async def get_property(
-        cls, user_qq: int, group_id: int, only_active: bool = False
+            cls, user_id: str | int, group_id: str | int, only_active: bool = False
     ) -> Dict[str, int]:
         """
         说明:
             获取当前道具
         参数:
-            :param user_qq: qq号
-            :param group_id: 所在群号
+            :param user_id: 用户id
+            :param group_id: 所在群组id
             :param only_active: 仅仅获取主动使用的道具
         """
-        user, _ = await cls.get_or_create(user_qq=user_qq, group_id=group_id)
+        user, _ = await cls.get_or_create(user_id=str(user_id), group_id=str(group_id))
         if only_active and user.property:
             data = {}
             name_list = [
@@ -87,49 +87,49 @@ class BagUser(Model):
         return user.property
 
     @classmethod
-    async def add_gold(cls, user_qq: int, group_id: int, num: int):
+    async def add_gold(cls, user_id: str | int, group_id: str | int, num: int):
         """
         说明:
             增加金币
         参数:
-            :param user_qq: qq号
-            :param group_id: 所在群号
+            :param user_id: 用户id
+            :param group_id: 所在群组id
             :param num: 金币数量
         """
-        user, _ = await cls.get_or_create(user_qq=user_qq, group_id=group_id)
+        user, _ = await cls.get_or_create(user_id=str(user_id), group_id=str(group_id))
         user.gold = user.gold + num
         user.get_total_gold = user.get_total_gold + num
         user.get_today_gold = user.get_today_gold + num
         await user.save(update_fields=["gold", "get_today_gold", "get_total_gold"])
 
     @classmethod
-    async def spend_gold(cls, user_qq: int, group_id: int, num: int):
+    async def spend_gold(cls, user_id: str | int, group_id: str | int, num: int):
         """
         说明:
             花费金币
         参数:
-            :param user_qq: qq号
-            :param group_id: 所在群号
+            :param user_id: 用户id
+            :param group_id: 所在群组id
             :param num: 金币数量
         """
-        user, _ = await cls.get_or_create(user_qq=user_qq, group_id=group_id)
+        user, _ = await cls.get_or_create(user_id=str(user_id), group_id=str(group_id))
         user.gold = user.gold - num
         user.spend_total_gold = user.spend_total_gold + num
         user.spend_today_gold = user.spend_today_gold + num
         await user.save(update_fields=["gold", "spend_total_gold", "spend_today_gold"])
 
     @classmethod
-    async def add_property(cls, user_qq: int, group_id: int, name: str, num: int = 1):
+    async def add_property(cls, user_id: str | int, group_id: str | int, name: str, num: int = 1):
         """
         说明:
             增加道具
         参数:
-            :param user_qq: qq号
-            :param group_id: 所在群号
+            :param user_id: 用户id
+            :param group_id: 所在群组id
             :param name: 道具名称
             :param num: 道具数量
         """
-        user, _ = await cls.get_or_create(user_qq=user_qq, group_id=group_id)
+        user, _ = await cls.get_or_create(user_id=str(user_id), group_id=str(group_id))
         property_ = user.property
         if property_.get(name) is None:
             property_[name] = 0
@@ -139,18 +139,18 @@ class BagUser(Model):
 
     @classmethod
     async def delete_property(
-        cls, user_qq: int, group_id: int, name: str, num: int = 1
+            cls, user_id: str | int, group_id: str | int, name: str, num: int = 1
     ) -> bool:
         """
         说明:
             使用/删除 道具
         参数:
-            :param user_qq: qq号
-            :param group_id: 所在群号
+            :param user_id: 用户id
+            :param group_id: 所在群组id
             :param name: 道具名称
             :param num: 使用个数
         """
-        user, _ = await cls.get_or_create(user_qq=user_qq, group_id=group_id)
+        user, _ = await cls.get_or_create(user_id=str(user_id), group_id=str(group_id))
         property_ = user.property
         if name in property_:
             if (n := property_.get(name, 0)) < num:
@@ -165,5 +165,9 @@ class BagUser(Model):
 
     @classmethod
     async def _run_script(cls):
-        await cls.raw("ALTER TABLE bag_users DROP props;")
-        """删除 props 字段"""
+        return ["ALTER TABLE bag_users DROP props;",  # 删除 props 字段
+                "ALTER TABLE bag_users RENAME COLUMN user_id TO user_id;",  # 将user_id改为user_id
+                "ALTER TABLE bag_users ALTER COLUMN user_id TYPE character varying(255);",
+                # 将user_id字段类型改为character varying(255)
+                "ALTER TABLE bag_users ALTER COLUMN group_id TYPE character varying(255);"
+                ]

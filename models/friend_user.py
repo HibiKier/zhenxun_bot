@@ -8,7 +8,7 @@ class FriendUser(Model):
 
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
-    user_id = fields.BigIntField(unique=True)
+    user_id = fields.CharField(255, unique=True)
     """用户id"""
     user_name = fields.CharField(max_length=255, default="")
     """用户名称"""
@@ -20,26 +20,26 @@ class FriendUser(Model):
         table_description = "好友信息数据表"
 
     @classmethod
-    async def get_user_name(cls, user_id: int) -> str:
+    async def get_user_name(cls, user_id: str | int) -> str:
         """
         说明:
             获取好友用户名称
         参数:
-            :param user_id: qq号
+            :param user_id: 用户id
         """
-        if user := await cls.get_or_none(user_id=user_id):
+        if user := await cls.get_or_none(user_id=str(user_id)):
             return user.user_name
         return ""
 
     @classmethod
-    async def get_user_nickname(cls, user_id: int) -> str:
+    async def get_user_nickname(cls, user_id: str | int) -> str:
         """
         说明:
             获取用户昵称
         参数:
-            :param user_id: qq号
+            :param user_id: 用户id
         """
-        if user := await cls.get_or_none(user_id=user_id):
+        if user := await cls.get_or_none(user_id=str(user_id)):
             if user.nickname:
                 _tmp = ""
                 if black_word := Config.get_config("nickname", "BLACK_WORD"):
@@ -49,12 +49,17 @@ class FriendUser(Model):
         return ""
 
     @classmethod
-    async def set_user_nickname(cls, user_id: int, nickname: str):
+    async def set_user_nickname(cls, user_id: str | int, nickname: str):
         """
         说明:
             设置用户昵称
         参数:
-            :param user_id: qq号
+            :param user_id: 用户id
             :param nickname: 昵称
         """
-        await cls.update_or_create(user_id=user_id, defaults={"nickname": nickname})
+        await cls.update_or_create(user_id=str(user_id), defaults={"nickname": nickname})
+
+    @classmethod
+    async def _run_script(cls):
+        await cls.raw("ALTER TABLE friend_users ALTER COLUMN user_id TYPE character varying(255);")
+        # 将user_id字段类型改为character varying(255))

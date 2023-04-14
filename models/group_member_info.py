@@ -12,11 +12,11 @@ class GroupInfoUser(Model):
 
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
-    user_qq = fields.BigIntField()
+    user_id = fields.CharField(255)
     """用户id"""
     user_name = fields.CharField(255, default="")
     """用户昵称"""
-    group_id = fields.BigIntField()
+    group_id = fields.CharField(255)
     """群聊id"""
     user_join_time: datetime = fields.DatetimeField(null=True)
     """用户入群时间"""
@@ -28,58 +28,58 @@ class GroupInfoUser(Model):
     class Meta:
         table = "group_info_users"
         table_description = "群员信息数据表"
-        unique_together = ("user_qq", "group_id")
+        unique_together = ("user_id", "group_id")
 
     @classmethod
-    async def get_group_member_id_list(cls, group_id: int) -> Set[int]:
+    async def get_group_member_id_list(cls, group_id: str | int) -> Set[int]:
         """
         说明:
-            获取该群所有用户qq
+            获取该群所有用户id
         参数:
             :param group_id: 群号
         """
         return set(
-            await cls.filter(group_id=group_id).values_list("user_qq", flat=True)
+            await cls.filter(group_id=str(group_id)).values_list("user_id", flat=True)
         )  # type: ignore
 
     @classmethod
-    async def set_user_nickname(cls, user_qq: int, group_id: int, nickname: str):
+    async def set_user_nickname(cls, user_id: str | int, group_id: str | int, nickname: str):
         """
         说明:
             设置群员在该群内的昵称
         参数:
-            :param user_qq: qq号
+            :param user_id: 用户id
             :param group_id: 群号
             :param nickname: 昵称
         """
         await cls.update_or_create(
-            user_qq=user_qq,
-            group_id=group_id,
+            user_id=str(user_id),
+            group_id=str(group_id),
             defaults={"nickname": nickname},
         )
 
     @classmethod
-    async def get_user_all_group(cls, user_qq: int) -> List[int]:
+    async def get_user_all_group(cls, user_id: str | int) -> List[int]:
         """
         说明:
             获取该用户所在的所有群聊
         参数:
-            :param user_qq: 用户qq
+            :param user_id: 用户id
         """
         return list(
-            await cls.filter(user_qq=user_qq).values_list("group_id", flat=True)
+            await cls.filter(user_id=str(user_id)).values_list("group_id", flat=True)
         )  # type: ignore
 
     @classmethod
-    async def get_user_nickname(cls, user_qq: int, group_id: int) -> str:
+    async def get_user_nickname(cls, user_id: str | int, group_id: str | int) -> str:
         """
         说明:
             获取用户在该群的昵称
         参数:
-            :param user_qq: qq号
+            :param user_id: 用户id
             :param group_id: 群号
         """
-        if user := await cls.get_or_none(user_qq=user_qq, group_id=group_id):
+        if user := await cls.get_or_none(user_id=str(user_id), group_id=str(group_id)):
             if user.nickname:
                 nickname = ""
                 if black_word := Config.get_config("nickname", "BLACK_WORD"):
@@ -90,15 +90,15 @@ class GroupInfoUser(Model):
         return ""
 
     @classmethod
-    async def get_group_member_uid(cls, user_qq: int, group_id: int) -> Optional[int]:
+    async def get_group_member_uid(cls, user_id: str | int, group_id: str | int) -> Optional[int]:
         logger.debug(
-            f"GroupInfoUser 尝试获取 用户[<u><e>{user_qq}</e></u>] 群聊[<u><e>{group_id}</e></u>] UID"
+            f"GroupInfoUser 尝试获取 用户[<u><e>{user_id}</e></u>] 群聊[<u><e>{group_id}</e></u>] UID"
         )
-        user, _ = await cls.get_or_create(user_qq=user_qq, group_id=group_id)
-        _max_uid_user, _ = await cls.get_or_create(user_qq=114514, group_id=114514)
+        user, _ = await cls.get_or_create(user_id=str(user_id), group_id=str(group_id))
+        _max_uid_user, _ = await cls.get_or_create(user_id=114514, group_id=114514)
         _max_uid = _max_uid_user.uid
         if not user.uid:
-            all_user = await cls.filter(user_qq=user_qq).all()
+            all_user = await cls.filter(user_id=str(user_id)).all()
             for x in all_user:
                 if x.uid:
                     return x.uid
@@ -106,7 +106,7 @@ class GroupInfoUser(Model):
             _max_uid_user.uid = _max_uid + 1
             await cls.bulk_update([user, _max_uid_user], ["uid"])
         logger.debug(
-            f"GroupInfoUser 获取 用户[<u><e>{user_qq}</e></u>] 群聊[<u><e>{group_id}</e></u>] UID: {user.uid}"
+            f"GroupInfoUser 获取 用户[<u><e>{user_id}</e></u>] 群聊[<u><e>{group_id}</e></u>] UID: {user.uid}"
         )
         return user.uid
 
@@ -115,4 +115,8 @@ class GroupInfoUser(Model):
         return [
             "alter table group_info_users alter user_join_time drop not null;",  # 允许 user_join_time 为空
             "ALTER TABLE group_info_users ALTER COLUMN user_join_time TYPE timestamp with time zone USING user_join_time::timestamp with time zone;",
+            "ALTER TABLE group_info_users RENAME COLUMN user_qq TO user_id;",  # 将user_id改为user_id
+            "ALTER TABLE group_info_users ALTER COLUMN user_id TYPE character varying(255);",
+            # 将user_id字段类型改为character varying(255)
+            "ALTER TABLE group_info_users ALTER COLUMN group_id TYPE character varying(255);"
         ]
