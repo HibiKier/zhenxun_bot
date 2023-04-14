@@ -569,8 +569,8 @@ class AuthChecker:
                         event.user_id, event.group_id, psm.cost_gold
                     )
                 await UserShopGoldLog.create(
-                    user_qq=event.user_id,
-                    group_id=event.group_id,
+                    user_qq=str(event.user_id),
+                    group_id=str(event.group_id),
                     type=2,
                     name=plugin_name,
                     num=1,

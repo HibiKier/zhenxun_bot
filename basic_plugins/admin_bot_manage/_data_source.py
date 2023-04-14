@@ -306,7 +306,7 @@ async def update_member_info(
             if user_info["role"] in [
                 "owner",
                 "admin",
-            ] and not await LevelUser.is_group_flag(user_info["user_id"], group_id):
+            ] and not await LevelUser.is_group_flag(user_info["user_id"], str(group_id)):
                 await LevelUser.set_level(
                     user_info["user_id"],
                     user_info["group_id"],

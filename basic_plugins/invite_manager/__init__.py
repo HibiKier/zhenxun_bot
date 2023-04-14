@@ -58,7 +58,7 @@ async def _(bot: Bot, event: FriendRequestEvent):
         if Config.get_config("invite_manager", "AUTO_ADD_FRIEND"):
             logger.debug(f"已开启好友请求自动同意，成功通过该请求", "好友请求", target=event.user_id)
             await bot.set_friend_add_request(flag=event.flag, approve=True)
-            await FriendUser.create(user_id=user["user_id"], user_name=user["nickname"])
+            await FriendUser.create(user_id=str(user["user_id"]), user_name=user["nickname"])
         else:
             requests_manager.add_request(
                 event.user_id,
@@ -87,7 +87,7 @@ async def _(bot: Bot, event: GroupRequestEvent):
                 )
                 group_info = await bot.get_group_info(group_id=event.group_id)
                 await GroupInfo.update_or_create(
-                    group_id=group_info["group_id"],
+                    group_id=str(group_info["group_id"]),
                     defaults={
                         "group_name": group_info["group_name"],
                         "max_member_count": group_info["max_member_count"],

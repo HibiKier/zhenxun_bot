@@ -40,7 +40,7 @@ async def _(bot: Bot, event: MessageEvent):
         try:
             group_info = await bot.get_group_info(group_id=g)
             await GroupInfo.update_or_create(
-                group_id=group_info["group_id"],
+                group_id=str(group_info["group_id"]),
                 defaults={
                     "group_name": group_info["group_name"],
                     "max_member_count": group_info["max_member_count"],
@@ -65,7 +65,7 @@ async def _(bot: Bot, event: MessageEvent):
     for f in fl:
         try:
             await FriendUser.update_or_create(
-                user_id=f["user_id"], defaults={"nickname": f["nickname"]}
+                user_id=str(f["user_id"]), defaults={"nickname": f["nickname"]}
             )
             logger.debug(f"更新好友信息成功", "更新好友信息", event.user_id, target=f["user_id"])
             num += 1
