@@ -35,10 +35,10 @@ driver: Driver = nonebot.get_driver()
 async def init_image():
     SIGN_RESOURCE_PATH.mkdir(parents=True, exist_ok=True)
     SIGN_TODAY_CARD_PATH.mkdir(exist_ok=True, parents=True)
-    if not await GroupInfoUser.get_or_none(user_qq=114514):
+    if not await GroupInfoUser.get_or_none(user_id="A_nmi_114514"):
         await GroupInfoUser.create(
-            user_qq=114514,
-            group_id=114514,
+            user_id="A_nmi_114514",
+            group_id="A_nmi_114514",
             user_name="",
             uid=0,
         )
@@ -55,7 +55,7 @@ async def get_card(
     is_double: bool = False,
     is_card_view: bool = False,
 ) -> MessageSegment:
-    user_id = user.user_qq
+    user_id = user.user_id
     date = datetime.now().date()
     _type = "view" if is_card_view else "sign"
     card_file = (
@@ -83,7 +83,7 @@ async def get_card(
                 )
             is_card_view = True
         ava = BytesIO(await get_user_avatar(user_id))
-        uid = await GroupInfoUser.get_group_member_uid(user.user_qq, user.group_id)
+        uid = await GroupInfoUser.get_group_member_uid(user.user_id, user.group_id)
         impression_list = None
         if is_card_view:
             _, impression_list, _ = await SignGroupUser.get_all_impression(
@@ -109,7 +109,7 @@ async def get_card(
 def _generate_card(
     user: "SignGroupUser",
     nickname: str,
-    user_id: int,
+    user_id: str,
     impression: Optional[float],
     gold: Optional[int],
     gift: str,

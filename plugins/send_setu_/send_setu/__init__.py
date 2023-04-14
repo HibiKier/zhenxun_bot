@@ -172,7 +172,7 @@ async def _(
     msg = arg.extract_plain_text().strip()
     if isinstance(event, GroupMessageEvent):
         user, _ = await SignGroupUser.get_or_create(
-            user_qq=event.user_id, group_id=event.group_id
+            user_id=str(event.user_id), group_id=str(event.group_id)
         )
         impression = user.impression
         if luox := get_luoxiang(impression):
@@ -232,7 +232,7 @@ num_key = {
 async def _(bot: Bot, event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
     if isinstance(event, GroupMessageEvent):
         user, _ = await SignGroupUser.get_or_create(
-            user_qq=event.user_id, group_id=event.group_id
+            user_id=str(event.user_id), group_id=str(event.group_id)
         )
         impression = user.impression
         if luox := get_luoxiang(impression):

@@ -31,7 +31,7 @@ async def _():
         **{"好感度双倍加持卡Ⅰ_prob": 0.1, "好感度双倍加持卡Ⅱ_prob": 0.2, "好感度双倍加持卡Ⅲ_prob": 0.3},
     )
     async def sign_card(user_id: int, group_id: int, prob: float):
-        user, _ = await SignGroupUser.get_or_create(user_qq=user_id, group_id=group_id)
+        user, _ = await SignGroupUser.get_or_create(user_id=str(user_id), group_id=str(group_id))
         user.add_probability = prob
         await user.save(update_fields=["add_probability"])
 

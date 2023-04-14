@@ -56,12 +56,12 @@ async def _(parma: HandleRequest) -> Result:
                 if parma.type == "group":
                     if rid := requests_manager.get_group_id(parma.id):
                         # await GroupInfo.update_or_create(defaults={"group_flag": 1}, )
-                        if group := await GroupInfo.get_or_none(group_id=rid):
+                        if group := await GroupInfo.get_or_none(group_id=str(rid)):
                             await group.update_or_create(group_flag=1)
                         else:
                             group_info = await bot.get_group_info(group_id=rid)
                             await GroupInfo.update_or_create(
-                                group_id=group_info["group_id"],
+                                group_id=str(group_info["group_id"]),
                                 defaults={
                                     "group_name": group_info["group_name"],
                                     "max_member_count": group_info["max_member_count"],

@@ -32,7 +32,7 @@ async def init_rank(
         all_user_id.remove(max_user_id)
         all_user_data.remove(_max)
         if user := await GroupInfoUser.get_or_none(
-            user_qq=max_user_id, group_id=group_id
+            user_qq=str(max_user_id), group_id=str(group_id)
         ):
             user_name = user.user_name
         else:

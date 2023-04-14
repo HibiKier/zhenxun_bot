@@ -162,8 +162,8 @@ async def _(bot: Bot, event: MessageEvent, cmd: Tuple[str, ...] = Command(), arg
     day_index = data["day_index"]
     data = data[arg][key]
     if _type == "group":
-        group = await GroupInfo.filter(group_id=event.group_id).first()
-        name = name.group_name if group else str(event.group_id)
+        group = await GroupInfo.filter(group_id=str(event.group_id)).first()
+        name = group if group else str(event.group_id)
     else:
         name = event.sender.card or event.sender.nickname
     img = await generate_statistics_img(data, arg, name, plugin, day_index)

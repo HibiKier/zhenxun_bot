@@ -94,8 +94,8 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
         event.group_id,
     )
     await UserShopGoldLog.create(
-        user_qq=event.user_id,
-        group_id=event.group_id,
+        user_id=str(event.user_id),
+        group_id=str(event.group_id),
         type=0,
         name=goods.goods_name,
         num=num,

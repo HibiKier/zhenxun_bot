@@ -212,7 +212,7 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent):
         user_name = user.user_name
     else:
         user_name = f"{event.user_id}"
-    await GroupInfoUser.filter(user_qq=str(event.user_id), group_id=str(event.group_id)).delete()
+    await GroupInfoUser.filter(user_id=str(event.user_id), group_id=str(event.group_id)).delete()
     logger.info(
         f"名称: {user_name} 退出群聊",
         "group_decrease_handle",

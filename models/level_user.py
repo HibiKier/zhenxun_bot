@@ -101,7 +101,7 @@ class LevelUser(Model):
 
     @classmethod
     async def _run_script(cls):
-        return ["ALTER TABLE level_users RENAME COLUMN user_id TO user_id;",  # 将user_id改为user_id
+        return ["ALTER TABLE level_users RENAME COLUMN user_qq TO user_id;",  # 将user_id改为user_id
                 "ALTER TABLE level_users ALTER COLUMN user_id TYPE character varying(255);",
                 # 将user_id字段类型改为character varying(255)
                 "ALTER TABLE level_users ALTER COLUMN group_id TYPE character varying(255);"
