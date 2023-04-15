@@ -137,7 +137,6 @@ my_knifes = on_command("我的金色", priority=1, permission=GROUP, block=True)
 show_skin = on_command("查看皮肤", priority=5, block=True)
 
 
-
 @reload_count.handle()
 async def _(event: GroupMessageEvent):
     await reset_count_daily()
@@ -226,7 +225,8 @@ async def _(event: MessageEvent, arg: Message = CommandArg(), cmd: str = OneComm
             try:
                 info = await update_skin_data(case_name, is_update_case_name)
                 if "请先登录" in info:
-                    await update_case.finish(f"未登录, 已停止更新...")
+                    await update_case.send(f"未登录, 已停止更新, 请配置BUFF token...")
+                    return
                 rand = random.randint(300, 500)
                 result = f"更新全部{type_}完成"
                 if i < len(case_list) - 1:
