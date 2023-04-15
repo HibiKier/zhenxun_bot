@@ -1,15 +1,17 @@
-from utils.image_utils import BuildImage
-from configs.path_config import IMAGE_PATH
-from utils.http_utils import AsyncHttpx, get_user_agent
+from io import BytesIO
+
 # from bilibili_api import user
 from bilireq.user import get_user_info
 from httpx import AsyncClient
-from io import BytesIO
 
+from configs.path_config import IMAGE_PATH
+from utils.http_utils import AsyncHttpx, get_user_agent
+from utils.image_utils import BuildImage
 
 BORDER_PATH = IMAGE_PATH / "border"
 BORDER_PATH.mkdir(parents=True, exist_ok=True)
 BASE_URL = "https://api.bilibili.com"
+
 
 async def get_pic(url: str) -> bytes:
     """
@@ -71,7 +73,7 @@ def _create_live_des_image(
     bk.paste(cover, (0, 100), center_type="by_width")
 
 
-async def get_meta(media_id: int, auth=None, reqtype="both", **kwargs):
+async def get_meta(media_id: str, auth=None, reqtype="both", **kwargs):
     """
     根据番剧 ID 获取番剧元数据信息，
     作为bilibili_api和bilireq的替代品。
@@ -81,8 +83,10 @@ async def get_meta(media_id: int, auth=None, reqtype="both", **kwargs):
 
     url = f"{BASE_URL}/pgc/review/user"
     params = {"media_id": media_id}
-    raw_json = await get(url, raw=True, params=params, auth=auth, reqtype=reqtype, **kwargs)
-    return raw_json['result']
+    raw_json = await get(
+        url, raw=True, params=params, auth=auth, reqtype=reqtype, **kwargs
+    )
+    return raw_json["result"]
 
 
 async def get_videos(
@@ -128,7 +132,10 @@ async def get_videos(
             )
         return raw_json["data"]
 
-async def get_user_card(mid, photo: bool = False, auth=None, reqtype="both", **kwargs):
+
+async def get_user_card(
+    mid: str, photo: bool = False, auth=None, reqtype="both", **kwargs
+):
     from bilireq.utils import get
 
     url = f"{BASE_URL}/x/web-interface/card"

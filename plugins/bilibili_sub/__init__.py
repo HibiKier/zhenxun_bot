@@ -78,7 +78,7 @@ show_sub_info = on_regex("^查看订阅$", priority=5, block=True)
 driver: Driver = nonebot.get_driver()
 
 
-sub_manager: Optional[SubManager] = None
+sub_manager: SubManager
 
 
 @driver.on_startup
@@ -99,7 +99,7 @@ async def _(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
         if not await LevelUser.check_level(
             event.user_id,
             event.group_id,
-            Config.get_config("bilibili_sub", "GROUP_BILIBILI_SUB_LEVEL"),
+            Config.get_config("bilibili_sub", "GROUP_BILIBILI_SUB_LEVEL"),  # type: ignore
         ):
             await add_sub.finish(
                 f"您的权限不足，群内订阅的需要 {Config.get_config('bilibili_sub', 'GROUP_BILIBILI_SUB_LEVEL')} 级权限..",
@@ -120,10 +120,10 @@ async def _(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
         if sub_type in ["season", "动漫", "番剧"]:
             rst = "*以为您找到以下番剧，请输入Id选择：*\n"
             state["season_data"] = await get_media_id(id_)
-            if len(state["season_data"]) == 0:
+            if len(state["season_data"]) == 0:  # type: ignore
                 await add_sub.finish(f"未找到番剧：{msg}")
-            for i, x in enumerate(state["season_data"]):
-                rst += f'{i + 1}.{state["season_data"][x]["title"]}\n----------\n'
+            for i, x in enumerate(state["season_data"]):  # type: ignore
+                rst += f'{i + 1}.{state["season_data"][x]["title"]}\n----------\n'  # type: ignore
             await add_sub.send("\n".join(rst.split("\n")[:-1]))
         else:
             await add_sub.finish("Id 必须为全数字！")
@@ -146,7 +146,6 @@ async def _(
         if not is_number(id_) or int(id_) < 1 or int(id_) > len(season_data):
             await add_sub.reject_arg("id", "Id必须为数字且在范围内！请重新输入...")
         id_ = season_data[int(id_) - 1]["media_id"]
-    id_ = int(id_)
     if sub_type in ["主播", "直播"]:
         await add_sub.send(await add_live_sub(id_, sub_user))
     elif sub_type.lower() in ["up", "用户"]:
@@ -243,10 +242,10 @@ async def _():
         if sub:
             logger.debug(f"Bilibili订阅开始检测：{sub.sub_id}")
             rst = await get_sub_status(sub.sub_id, sub.sub_type)
-            await send_sub_msg(rst, sub, bot)
+            await send_sub_msg(rst or "", sub, bot)  # type: ignore
             if sub.sub_type == "live":
                 rst = await get_sub_status(sub.sub_id, "up")
-                await send_sub_msg(rst, sub, bot)
+                await send_sub_msg(rst or "", sub, bot)  # type: ignore
         # except Exception as e:
         #     logger.error(f"B站订阅推送发生错误 sub_id：{sub.sub_id if sub else 0} {type(e)}：{e}")
 

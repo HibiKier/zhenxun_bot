@@ -335,6 +335,8 @@ PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能
 
 * 修复开箱更新未登录时没有停止更新
 * 修复更新色图问题
+* fix bug [@pull/1368](https://github.com/HibiKier/zhenxun_bot/pull/1368)
+* `BilibiliSub`的部分字段改为字符串
 
 ### 2023/4/5
 

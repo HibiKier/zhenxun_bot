@@ -30,7 +30,7 @@ DYNAMIC_PATH.mkdir(exist_ok=True, parents=True)
 resources_manager.add_temp_dir(DYNAMIC_PATH)
 
 
-async def add_live_sub(live_id: int, sub_user: str) -> str:
+async def add_live_sub(live_id: str, sub_user: str) -> str:
     """
     添加直播订阅
     :param live_id: 直播房间号
@@ -57,14 +57,16 @@ async def add_live_sub(live_id: int, sub_user: str) -> str:
             live_status=live_status,
         ):
             await _get_up_status(room_id)
-            uname = (await BilibiliSub.get_or_none(sub_id=room_id)).uname
-            return (
-                "已成功订阅主播：\n"
-                f"\ttitle：{title}\n"
-                f"\tname： {uname}\n"
-                f"\tlive_id：{room_id}\n"
-                f"\tuid：{uid}"
-            )
+            if data := await BilibiliSub.get_or_none(sub_id=room_id):
+                uname = data.uname
+                return (
+                    "已成功订阅主播：\n"
+                    f"\ttitle：{title}\n"
+                    f"\tname： {uname}\n"
+                    f"\tlive_id：{room_id}\n"
+                    f"\tuid：{uid}"
+                )
+            return "添加订阅失败..."
         else:
             return "添加订阅失败..."
     except Exception as e:
@@ -72,7 +74,7 @@ async def add_live_sub(live_id: int, sub_user: str) -> str:
     return "添加订阅失败..."
 
 
-async def add_up_sub(uid: int, sub_user: str) -> str:
+async def add_up_sub(uid: str, sub_user: str) -> str:
     """
     添加订阅 UP
     :param uid: UP uid
@@ -86,12 +88,12 @@ async def add_up_sub(uid: int, sub_user: str) -> str:
             return f"未找到UpId：{uid} 的信息，请检查Id是否正确"
         uname = user_info["name"]
         """bilibili_api.user库中User类的get_dynamics改为bilireq.dynamic库的get_user_dynamics方法"""
-        dynamic_info = await dynamic.get_user_dynamics(uid)
+        dynamic_info = await dynamic.get_user_dynamics(int(uid))
         dynamic_upload_time = 0
         if dynamic_info.get("cards"):
             dynamic_upload_time = dynamic_info["cards"][0]["desc"]["timestamp"]
         """bilibili_api.user库中User类的get_videos改为bilireq.user库的get_videos方法"""
-        video_info = await get_videos(uid)
+        video_info = await get_videos(int(uid))
         latest_video_created = 0
         if video_info["list"].get("vlist"):
             latest_video_created = video_info["list"]["vlist"][0]["created"]
@@ -99,7 +101,7 @@ async def add_up_sub(uid: int, sub_user: str) -> str:
             uid,
             "up",
             sub_user,
-            uid=uid,
+            uid=int(uid),
             uname=uname,
             dynamic_upload_time=dynamic_upload_time,
             latest_video_created=latest_video_created,
@@ -112,7 +114,7 @@ async def add_up_sub(uid: int, sub_user: str) -> str:
     return "添加订阅失败..."
 
 
-async def add_season_sub(media_id: int, sub_user: str) -> str:
+async def add_season_sub(media_id: str, sub_user: str) -> str:
     """
     添加订阅 UP
     :param media_id: 番剧 media_id
@@ -159,7 +161,7 @@ async def delete_sub(sub_id: str, sub_user: str) -> str:
         return f"取消订阅：{sub_id} 失败，请检查是否订阅过该Id...."
 
 
-async def get_media_id(keyword: str) -> dict:
+async def get_media_id(keyword: str) -> Optional[dict]:
     """
     获取番剧的 media_id
     :param keyword: 番剧名称
@@ -189,7 +191,7 @@ async def get_media_id(keyword: str) -> dict:
         return {}
 
 
-async def get_sub_status(id_: int, sub_type: str) -> Optional[str]:
+async def get_sub_status(id_: str, sub_type: str) -> Optional[str]:
     """
     获取订阅状态
     :param id_: 订阅 id
@@ -211,7 +213,7 @@ async def get_sub_status(id_: int, sub_type: str) -> Optional[str]:
     #     return "发生了预料之外的错误..请稍后再试或联系管理员....."
 
 
-async def _get_live_status(id_: int) -> Optional[str]:
+async def _get_live_status(id_: str) -> Optional[str]:
     """
     获取直播订阅状态
     :param id_: 直播间 id
@@ -222,65 +224,67 @@ async def _get_live_status(id_: int) -> Optional[str]:
     room_id = live_info["room_id"]
     live_status = live_info["live_status"]
     cover = live_info["user_cover"]
-    sub = await BilibiliSub.get_or_none(sub_id=id_)
-    if sub.live_status != live_status:
-        await BilibiliSub.sub_handle(id_, live_status=live_status)
-    if sub.live_status in [0, 2] and live_status == 1:
-        return (
-            f""
-            f"{image(cover)}\n"
-            f"{sub.uname} 开播啦！\n"
-            f"标题：{title}\n"
-            f"直链：https://live.bilibili.com/{room_id}"
-        )
+    if sub := await BilibiliSub.get_or_none(sub_id=id_):
+        if sub.live_status != live_status:
+            await BilibiliSub.sub_handle(id_, live_status=live_status)
+        if sub.live_status in [0, 2] and live_status == 1:
+            return (
+                f""
+                f"{image(cover)}\n"
+                f"{sub.uname} 开播啦！\n"
+                f"标题：{title}\n"
+                f"直链：https://live.bilibili.com/{room_id}"
+            )
     return None
 
 
-async def _get_up_status(id_: int) -> Optional[str]:
+async def _get_up_status(id_: str) -> Optional[str]:
     """
     获取用户投稿状态
     :param id_: 订阅 id
     :return:
     """
-    _user = await BilibiliSub.get_or_none(sub_id=id_)
-    """bilibili_api.user库中User类的get_user_info改为bilireq.user库的get_user_info方法"""
-    user_info = await get_user_card(_user.uid)
-    uname = user_info["name"]
-    """bilibili_api.user库中User类的get_videos改为bilireq.user库的get_videos方法"""
-    video_info = await get_videos(_user.uid)
-    latest_video_created = 0
-    video = None
-    dividing_line = "\n-------------\n"
-    if _user.uname != uname:
-        await BilibiliSub.sub_handle(id_, uname=uname)
-    dynamic_img, dynamic_upload_time, link = await get_user_dynamic(_user.uid, _user)
-    if video_info["list"].get("vlist"):
-        video = video_info["list"]["vlist"][0]
-        latest_video_created = video["created"]
     rst = ""
-    if dynamic_img:
-        await BilibiliSub.sub_handle(id_, dynamic_upload_time=dynamic_upload_time)
-        rst += f"{uname} 发布了动态！\n" f"{dynamic_img}\n{link}"
-    if (
-        latest_video_created
-        and _user.latest_video_created
-        and video
-        and _user.latest_video_created < latest_video_created
-    ):
-        rst = rst + dividing_line if rst else rst
-        await BilibiliSub.sub_handle(id_, latest_video_created=latest_video_created)
-        rst += (
-            f'{image(video["pic"])}\n'
-            f"{uname} 投稿了新视频啦\n"
-            f'标题：{video["title"]}\n'
-            f'Bvid：{video["bvid"]}\n'
-            f'直链：https://www.bilibili.com/video/{video["bvid"]}'
+    if _user := await BilibiliSub.get_or_none(sub_id=id_):
+        """bilibili_api.user库中User类的get_user_info改为bilireq.user库的get_user_info方法"""
+        user_info = await get_user_card(_user.uid)
+        uname = user_info["name"]
+        """bilibili_api.user库中User类的get_videos改为bilireq.user库的get_videos方法"""
+        video_info = await get_videos(_user.uid)
+        latest_video_created = 0
+        video = None
+        dividing_line = "\n-------------\n"
+        if _user.uname != uname:
+            await BilibiliSub.sub_handle(id_, uname=uname)
+        dynamic_img, dynamic_upload_time, link = await get_user_dynamic(
+            _user.uid, _user
         )
-    rst = None if rst == dividing_line else rst
+        if video_info["list"].get("vlist"):
+            video = video_info["list"]["vlist"][0]
+            latest_video_created = video["created"]
+        if dynamic_img:
+            await BilibiliSub.sub_handle(id_, dynamic_upload_time=dynamic_upload_time)
+            rst += f"{uname} 发布了动态！\n" f"{dynamic_img}\n{link}"
+        if (
+            latest_video_created
+            and _user.latest_video_created
+            and video
+            and _user.latest_video_created < latest_video_created
+        ):
+            rst = rst + dividing_line if rst else rst
+            await BilibiliSub.sub_handle(id_, latest_video_created=latest_video_created)
+            rst += (
+                f'{image(video["pic"])}\n'
+                f"{uname} 投稿了新视频啦\n"
+                f'标题：{video["title"]}\n'
+                f'Bvid：{video["bvid"]}\n'
+                f'直链：https://www.bilibili.com/video/{video["bvid"]}'
+            )
+        rst = None if rst == dividing_line else rst
     return rst
 
 
-async def _get_season_status(id_) -> Optional[str]:
+async def _get_season_status(id_: str) -> Optional[str]:
     """
     获取 番剧 更新状态
     :param id_: 番剧 id
@@ -288,17 +292,18 @@ async def _get_season_status(id_) -> Optional[str]:
     """bilibili_api.bangumi库中get_meta改为bilireq.bangumi库的get_meta方法"""
     season_info = await get_meta(id_)
     title = season_info["media"]["title"]
-    _idx = (await BilibiliSub.get_or_none(sub_id=id_)).season_current_episode
-    new_ep = season_info["media"]["new_ep"]["index"]
-    if new_ep != _idx:
-        await BilibiliSub.sub_handle(
-            id_, season_current_episode=new_ep, season_update_time=datetime.now()
-        )
-        return (
-            f'{image(season_info["media"]["cover"])}\n'
-            f"[{title}]更新啦\n"
-            f"最新集数：{new_ep}"
-        )
+    if data := await BilibiliSub.get_or_none(sub_id=id_):
+        _idx = data.season_current_episode
+        new_ep = season_info["media"]["new_ep"]["index"]
+        if new_ep != _idx:
+            await BilibiliSub.sub_handle(
+                id_, season_current_episode=new_ep, season_update_time=datetime.now()
+            )
+            return (
+                f'{image(season_info["media"]["cover"])}\n'
+                f"[{title}]更新啦\n"
+                f"最新集数：{new_ep}"
+            )
     return None
 
 

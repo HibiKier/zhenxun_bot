@@ -11,13 +11,13 @@ class BilibiliSub(Model):
 
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
-    sub_id = fields.IntField()
+    sub_id = fields.CharField(255)
     """订阅id"""
     sub_type = fields.CharField(255)
     """订阅类型"""
     sub_users = fields.TextField()
     """订阅用户"""
-    live_short_id = fields.IntField(null=True)
+    live_short_id = fields.CharField(255, null=True)
     """直播短id"""
     live_status = fields.IntField(null=True)
     """直播状态 0: 停播  1: 直播"""
@@ -46,11 +46,11 @@ class BilibiliSub(Model):
     @classmethod
     async def sub_handle(
         cls,
-        sub_id: int,
+        sub_id: str,
         sub_type: Optional[str] = None,
         sub_user: str = "",
         *,
-        live_short_id: Optional[int] = None,
+        live_short_id: Optional[str] = None,
         live_status: Optional[int] = None,
         dynamic_upload_time: int = 0,
         uid: Optional[int] = None,
@@ -183,7 +183,9 @@ class BilibiliSub(Model):
         return live_data, up_data, season_data
 
     @classmethod
-    async def _run_script(cls):
+    def _run_script(cls):
         return [
             "ALTER TABLE bilibili_sub ALTER COLUMN season_update_time TYPE timestamp with time zone USING season_update_time::timestamp with time zone;",
+            "alter table bilibili_sub alter COLUMN sub_id type varchar(255);",  # 将sub_id字段改为字符串
+            "alter table bilibili_sub alter COLUMN live_short_id type varchar(255);",  # 将live_short_id字段改为字符串
         ]
