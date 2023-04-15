@@ -19,7 +19,7 @@ class Setu(Model):
     """作者"""
     pid = fields.BigIntField()
     """pid"""
-    img_hash = fields.TextField()
+    img_hash: str = fields.TextField()
     """图片hash"""
     img_url = fields.CharField(255)
     """pixiv url链接"""
@@ -64,16 +64,16 @@ class Setu(Model):
         return await query.all()
 
     @classmethod
-    async def delete_image(cls, pid: int) -> int:
+    async def delete_image(cls, pid: int, img_url: str) -> int:
         """
         说明:
             删除图片并替换
         参数:
             :param pid: 图片pid
         """
+        print(pid)
         return_id = -1
-        query = await cls.get_or_none(pid=pid)
-        if query:
+        if query := await cls.get_or_none(pid=pid, img_url=img_url):
             num = await cls.filter(is_r18=query.is_r18).count()
             last_image = await cls.get_or_none(is_r18=query.is_r18, local_id=num - 1)
             if last_image:

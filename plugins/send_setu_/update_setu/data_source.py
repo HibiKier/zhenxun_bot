@@ -157,9 +157,10 @@ async def update_setu_img(flag: bool = False):
                         unlink = True
                 if unlink:
                     local_image.unlink()
-                    max_num = await Setu.delete_image(image.pid)
-                    os.rename(path / f"{max_num}.jpg", local_image)
-                    logger.warning(f"更新色图 PID：{image.pid} 404，已删除并替换")
+                    max_num = await Setu.delete_image(image.pid, image.img_url)
+                    if (path / f"{max_num}.jpg").exists():
+                        os.rename(path / f"{max_num}.jpg", local_image)
+                        logger.warning(f"更新色图 PID：{image.pid} 404，已删除并替换")
             except Exception as e:
                 _success -= 1
                 logger.error(f"更新色图 {image.local_id}.jpg 错误 {type(e)}: {e}")
@@ -169,8 +170,9 @@ async def update_setu_img(flag: bool = False):
         else:
             logger.info(f"更新色图 {image.local_id}.jpg 已存在")
     if _success or error_info or flag:
-        await get_bot().send_private_msg(
-            user_id=int(list(get_bot().config.superusers)[0]),
-            message=f'{str(datetime.now()).split(".")[0]} 更新 色图 完成，本地存在 {count} 张，实际更新 {_success} 张，'
-            f"以下为更新时未知错误：\n" + "\n".join(error_info),
-        )
+        if bot := get_bot():
+            await bot.send_private_msg(
+                user_id=int(list(bot.config.superusers)[0]),
+                message=f'{str(datetime.now()).split(".")[0]} 更新 色图 完成，本地存在 {count} 张，实际更新 {_success} 张，'
+                f"以下为更新时未知错误：\n" + "\n".join(error_info),
+            )
