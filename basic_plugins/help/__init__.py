@@ -42,9 +42,9 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
             if str(event.user_id) in bot.config.superusers:
                 is_super = True
             msg = msg.replace("-super", "").strip()
-        msg = get_plugin_help(msg, is_super)
-        if msg:
-            await simple_help.send(image(b64=msg))
+        img_msg = get_plugin_help(msg, is_super)
+        if img_msg:
+            await simple_help.send(image(b64=img_msg))
         else:
             await simple_help.send("没有此功能的帮助信息...")
         logger.info(
