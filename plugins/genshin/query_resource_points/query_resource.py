@@ -21,8 +21,8 @@ except ModuleNotFoundError:
 
 driver: nonebot.Driver = nonebot.get_driver()
 
-LABEL_URL = "https://api-static.mihoyo.com/common/blackboard/ys_obc/v1/map/label/tree?app_sn=ys_obc"
-POINT_LIST_URL = "https://api-static.mihoyo.com/common/blackboard/ys_obc/v1/map/point/list?map_id=2&app_sn=ys_obc"
+LABEL_URL = "https://api-static.mihoyo.com/common/map_user/ys_obc/v1/map/label/tree?map_id=2&app_sn=ys_obc"
+POINT_LIST_URL = "https://api-static.mihoyo.com/common/map_user/ys_obc/v1/map/point/list?map_id=2&app_sn=ys_obc"
 MAP_URL = "https://api-static.mihoyo.com/common/map_user/ys_obc/v1/map/info?map_id=2&app_sn=ys_obc&lang=zh-cn"
 
 icon_path = IMAGE_PATH / "genshin" / "genshin_icon"
