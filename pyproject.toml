@@ -46,6 +46,10 @@ nonebot-plugin-htmlrender = "^0.2.0"
 cachetools = "^5.2.0"
 tortoise-orm = {extras = ["asyncpg"], version = "^0.19.3"}
 cattrs = "^22.2.0"
+requests = "^2.28.2"
+imageio = "^2.27.0"
+wenxin-api = "^0.2.1"
+nonebot-plugin-imageutils = "^0.1.17"
 
 [tool.poetry.dev-dependencies]
 
