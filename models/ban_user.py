@@ -23,7 +23,7 @@ class BanUser(Model):
         table_description = ".ban/b了 封禁人员数据表"
 
     @classmethod
-    async def check_ban_level(cls, user_id: str | int, level: int) -> bool:
+    async def check_ban_level(cls, user_id: Union[int, str], level: int) -> bool:
         """
         说明:
             检测ban掉目标的用户与unban用户的权限等级大小
@@ -41,7 +41,7 @@ class BanUser(Model):
         return False
 
     @classmethod
-    async def check_ban_time(cls, user_id: str | int) -> Union[str, int]:
+    async def check_ban_time(cls, user_id: Union[int, str]) -> Union[str, int]:
         """
         说明:
             检测用户被ban时长
@@ -61,7 +61,7 @@ class BanUser(Model):
         return ""
 
     @classmethod
-    async def is_ban(cls, user_id: str | int) -> bool:
+    async def is_ban(cls, user_id: Union[int, str]) -> bool:
         """
         说明:
             判断用户是否被ban
@@ -76,7 +76,7 @@ class BanUser(Model):
         return False
 
     @classmethod
-    async def is_super_ban(cls, user_id: str | int) -> bool:
+    async def is_super_ban(cls, user_id: Union[int, str]) -> bool:
         """
         说明:
             判断用户是否被超级用户ban / b了
@@ -90,7 +90,7 @@ class BanUser(Model):
         return False
 
     @classmethod
-    async def ban(cls, user_id: str | int, ban_level: int, duration: int):
+    async def ban(cls, user_id: Union[int, str], ban_level: int, duration: int):
         """
         说明:
             ban掉目标用户
@@ -110,7 +110,7 @@ class BanUser(Model):
         )
 
     @classmethod
-    async def unban(cls, user_id: str | int) -> bool:
+    async def unban(cls, user_id: Union[int, str]) -> bool:
         """
         说明:
             unban用户

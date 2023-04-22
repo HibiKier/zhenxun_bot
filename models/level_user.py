@@ -1,7 +1,7 @@
 from tortoise import fields
 
 from services.db_context import Model
-
+from typing import Union
 
 class LevelUser(Model):
 
@@ -22,7 +22,7 @@ class LevelUser(Model):
         unique_together = ("user_id", "group_id")
 
     @classmethod
-    async def get_user_level(cls, user_id: str | int, group_id: str | int) -> int:
+    async def get_user_level(cls, user_id: Union[int, str], group_id: Union[int, str]) -> int:
         """
         说明:
             获取用户在群内的等级
@@ -36,7 +36,7 @@ class LevelUser(Model):
 
     @classmethod
     async def set_level(
-        cls, user_id: str | int, group_id: str | int, level: int, group_flag: int = 0
+        cls, user_id: Union[int, str], group_id: Union[int, str], level: int, group_flag: int = 0
     ):
         """
         说明:
@@ -54,7 +54,7 @@ class LevelUser(Model):
         )
 
     @classmethod
-    async def delete_level(cls, user_id: str | int, group_id: str | int) -> bool:
+    async def delete_level(cls, user_id: Union[int, str], group_id: Union[int, str]) -> bool:
         """
         说明:
             删除用户权限
@@ -68,7 +68,7 @@ class LevelUser(Model):
         return False
 
     @classmethod
-    async def check_level(cls, user_id: str | int, group_id: str | int, level: int) -> bool:
+    async def check_level(cls, user_id: Union[int, str], group_id: Union[int, str], level: int) -> bool:
         """
         说明:
             检查用户权限等级是否大于 level
@@ -87,7 +87,7 @@ class LevelUser(Model):
         return False
 
     @classmethod
-    async def is_group_flag(cls, user_id: str | int, group_id: str | int) -> bool:
+    async def is_group_flag(cls, user_id: Union[int, str], group_id: Union[int, str]) -> bool:
         """
         说明:
             检测是否会被自动更新刷新权限
