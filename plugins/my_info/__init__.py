@@ -32,7 +32,7 @@ async def _(event: GroupMessageEvent):
 
 
 async def get_member_info(user_qq: int, group_id: int) -> str:
-    if user := await GroupInfoUser.get_or_none(user_qq=user_qq, group_id=group_id):
+    if user := await GroupInfoUser.get_or_none(user_id=str(user_qq), group_id=str(group_id)):
         result = ""
         result += "昵称:" + user.user_name + "\n"
         result += "加群时间:" + str(user.user_join_time.date())

@@ -33,7 +33,7 @@ my_props = on_command("我的道具", priority=5, block=True, permission=GROUP)
 
 @my_props.handle()
 async def _(event: GroupMessageEvent):
-    props = await BagUser.get_property(event.user_id, event.group_id)
+    props = await BagUser.get_property(str(event.user_id), str(event.group_id))
     if props:
         await my_props.send(image(b64=await create_bag_image(props)))
         logger.info(f"查看我的道具", "我的道具", event.user_id, event.group_id)

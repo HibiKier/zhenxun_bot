@@ -235,7 +235,7 @@ async def _get_punish(
     ban_4_duration = Config.get_config("black_word", "BAN_4_DURATION")
     # 口头警告内容
     warning_result = Config.get_config("black_word", "WARNING_RESULT")
-    if user := await GroupInfoUser.get_or_none(user_qq=user_id, group_id=group_id):
+    if user := await GroupInfoUser.get_or_none(user_id=str(user_id), group_id=str(group_id)):
         uname = user.user_name
     else:
         uname = user_id

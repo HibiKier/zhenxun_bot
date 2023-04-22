@@ -160,7 +160,7 @@ async def _(event: GroupMessageEvent):
     if rs_player[event.group_id]["at"] == event.user_id:
         at_player_name = (
             await GroupInfoUser.get_or_none(
-                user_qq=event.user_id, group_id=event.group_id
+                user_id=str(event.user_id), group_id=str(event.group_id)
             )
         ).user_name
         await accept.send(

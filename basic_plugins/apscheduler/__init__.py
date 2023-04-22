@@ -91,7 +91,7 @@ async def _():
                 _used_group.append(g)
                 group_info = await bot.get_group_info(group_id=g)
                 await GroupInfo.update_or_create(
-                    group_id=group_info["group_id"],
+                    group_id=str(group_info["group_id"]),
                     defaults={
                         "group_name": group_info["group_name"],
                         "max_member_count": group_info["max_member_count"],
@@ -118,7 +118,7 @@ async def _():
             bot = bots[key]
             fl = await bot.get_friend_list()
             for f in fl:
-                await FriendUser.create(user_id=f["user_id"], user_name=f["nickname"])
+                await FriendUser.create(user_id=str(f["user_id"]), user_name=f["nickname"])
                 logger.debug(f"更新好友信息成功", "自动更新好友", f["user_id"])
         except Exception as e:
             logger.error(f"自动更新群组信息错误", e=e)

@@ -109,13 +109,13 @@ async def _(
         if cmd[:2] == "同意":
             rid = requests_manager.get_group_id(id_)
             if rid:
-                if group := await GroupInfo.get_or_none(group_id=rid):
+                if group := await GroupInfo.get_or_none(group_id=str(rid)):
                     group.group_flag = 1
                     await group.save(update_fields=["group_flag"])
                 else:
                     group_info = await bot.get_group_info(group_id=rid)
                     await GroupInfo.create(
-                        group_id=rid,
+                        group_id=str(rid),
                         group_name=group_info["group_name"],
                         max_member_count=group_info["max_member_count"],
                         member_count=group_info["member_count"],

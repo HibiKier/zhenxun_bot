@@ -17,7 +17,7 @@ admin_notice = on_notice(priority=5)
 @admin_notice.handle()
 async def _(event: GroupAdminNoticeEvent):
     if user := await GroupInfoUser.filter(
-        user_qq=event.user_id, group_id=event.group_id
+        user_id=str(event.user_id), group_id=str(event.group_id)
     ).first():
         nickname = user.nickname
     else:

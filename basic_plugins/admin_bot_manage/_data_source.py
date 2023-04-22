@@ -306,7 +306,7 @@ async def update_member_info(
             if user_info["role"] in [
                 "owner",
                 "admin",
-            ] and not await LevelUser.is_group_flag(user_info["user_id"], group_id):
+            ] and not await LevelUser.is_group_flag(user_info["user_id"], str(group_id)):
                 await LevelUser.set_level(
                     user_info["user_id"],
                     user_info["group_id"],
@@ -317,7 +317,7 @@ async def update_member_info(
                     user_info["user_id"], user_info["group_id"], 9
                 )
             user = await GroupInfoUser.get_or_none(
-                user_qq=user_info["user_id"], group_id=user_info["group_id"]
+                user_id=str(user_info["user_id"]), group_id=str(user_info["group_id"])
             )
             if user:
                 if user.user_name != nickname:
@@ -338,8 +338,8 @@ async def update_member_info(
                 "%Y-%m-%d %H:%M:%S",
             )
             await GroupInfoUser.update_or_create(
-                user_qq=user_info["user_id"],
-                group_id=user_info["group_id"],
+                user_id=str(user_info["user_id"]),
+                group_id=str(user_info["group_id"]),
                 defaults={
                     "user_name": nickname,
                     "user_join_time": join_time.replace(
@@ -356,7 +356,7 @@ async def update_member_info(
         )
         if _del_member_list:
             for del_user in _del_member_list:
-                await GroupInfoUser.filter(user_qq=del_user, group_id=group_id).delete()
+                await GroupInfoUser.filter(user_id=str(del_user), group_id=str(group_id)).delete()
                 logger.info(f"删除已退群用户", "更新群组成员信息", del_user, group_id)
         if _error_member_list and remind_superuser:
             result = ""

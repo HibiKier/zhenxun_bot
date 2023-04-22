@@ -104,7 +104,7 @@ async def _(
 ):
     (msg,) = reg_group
     await FriendUser.set_user_nickname(event.user_id, msg)
-    await GroupInfoUser.filter(user_qq=event.user_id).update(nickname=msg)
+    await GroupInfoUser.filter(user_id=str(event.user_id)).update(nickname=msg)
     logger.info(f"设置全局昵称成功: {msg}", "设置全局昵称", event.user_id)
     await global_nickname.send(f"设置全局昵称成功！亲爱的{msg}")
 

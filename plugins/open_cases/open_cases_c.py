@@ -73,7 +73,7 @@ async def get_user_max_count(user_qq: int, group_id: int) -> int:
     Returns:
         int: 最大开箱次数
     """
-    user, _ = await SignGroupUser.get_or_create(user_qq=user_qq, group_id=group_id)
+    user, _ = await SignGroupUser.get_or_create(user_id=str(user_qq), group_id=str(group_id))
     impression = int(user.impression)
     initial_open_case_count = Config.get_config("open_cases", "INITIAL_OPEN_CASE_COUNT")
     each_impression_add_count = Config.get_config(

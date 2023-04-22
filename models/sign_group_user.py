@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Literal, Optional, Tuple
+from typing import List, Literal, Optional, Tuple, Union
 
 from tortoise import fields
 
@@ -10,9 +10,9 @@ class SignGroupUser(Model):
 
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
-    user_qq = fields.BigIntField()
+    user_id = fields.CharField(255)
     """用户id"""
-    group_id = fields.BigIntField()
+    group_id = fields.CharField(255)
     """群聊id"""
     checkin_count = fields.IntField(default=0)
     """签到次数"""
@@ -29,7 +29,7 @@ class SignGroupUser(Model):
     class Meta:
         table = "sign_group_users"
         table_description = "群员签到数据表"
-        unique_together = ("user_qq", "group_id")
+        unique_together = ("user_id", "group_id")
 
     @classmethod
     async def sign(cls, user: "SignGroupUser", impression: float):
@@ -49,8 +49,8 @@ class SignGroupUser(Model):
 
     @classmethod
     async def get_all_impression(
-        cls, group_id: Optional[int]
-    ) -> Tuple[List[int], List[int], List[float]]:
+        cls, group_id: Union[int, str]
+    ) -> Tuple[List[str], List[str], List[float]]:
         """
         说明:
             获取该群所有用户 id 及对应 好感度
@@ -58,15 +58,23 @@ class SignGroupUser(Model):
             :param group_id: 群号
         """
         if group_id:
-            query = cls.filter(group_id=group_id)
+            query = cls.filter(group_id=str(group_id))
         else:
             query = cls
-        value_list = await query.all().values_list("user_qq", "group_id", "impression")  # type: ignore
-        qq_list = []
+        value_list = await query.all().values_list("user_id", "group_id", "impression")  # type: ignore
+        user_list = []
         group_list = []
         impression_list = []
         for value in value_list:
-            qq_list.append(value[0])
+            user_list.append(value[0])
             group_list.append(value[1])
             impression_list.append(float(value[2]))
-        return qq_list, impression_list, group_list
+        return user_list, group_list, impression_list
+
+    @classmethod
+    async def _run_script(cls):
+        return ["ALTER TABLE sign_group_users RENAME COLUMN user_qq TO user_id;",  # 将user_id改为user_id
+                "ALTER TABLE sign_group_users ALTER COLUMN user_id TYPE character varying(255);",
+                # 将user_id字段类型改为character varying(255)
+                "ALTER TABLE sign_group_users ALTER COLUMN group_id TYPE character varying(255);"
+                ]

@@ -68,7 +68,7 @@ add_group = on_request(priority=1, block=False)
 @group_increase_handle.handle()
 async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
     if event.user_id == int(bot.self_id):
-        group = await GroupInfo.get_or_none(group_id=event.group_id)
+        group = await GroupInfo.get_or_none(group_id=str(event.group_id))
         # 群聊不存在或被强制拉群，退出该群
         if (not group or group.group_flag == 0) and Config.get_config(
             "invite_manager", "flag"
@@ -139,8 +139,8 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
             group_id=event.group_id, user_id=event.user_id
         )
         await GroupInfoUser.update_or_create(
-            user_qq=user_info["user_id"],
-            group_id=user_info["group_id"],
+            user_qq=str(user_info["user_id"]),
+            group_id=str(user_info["group_id"]),
             defaults={"user_name": user_info["nickname"], "user_join_time": join_time},
         )
         logger.info(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新成功")
@@ -187,12 +187,12 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent):
         group_id = event.group_id
         operator_id = event.operator_id
         if user := await GroupInfoUser.get_or_none(
-            user_qq=event.operator_id, group_id=event.group_id
+            user_qq=str(event.operator_id), group_id=str(event.group_id)
         ):
             operator_name = user.user_name
         else:
             operator_name = "None"
-        group = await GroupInfo.filter(group_id=group_id).first()
+        group = await GroupInfo.filter(group_id=str(group_id)).first()
         group_name = group.group_name if group else ""
         coffee = int(list(bot.config.superusers)[0])
         await bot.send_private_msg(
@@ -207,12 +207,12 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent):
         group_manager.delete_group(event.group_id)
         return
     if user := await GroupInfoUser.get_or_none(
-        user_qq=event.user_id, group_id=event.group_id
+        user_qq=str(event.user_id), group_id=str(event.group_id)
     ):
         user_name = user.user_name
     else:
         user_name = f"{event.user_id}"
-    await GroupInfoUser.filter(user_qq=event.user_id, group_id=event.group_id).delete()
+    await GroupInfoUser.filter(user_id=str(event.user_id), group_id=str(event.group_id)).delete()
     logger.info(
         f"名称: {user_name} 退出群聊",
         "group_decrease_handle",

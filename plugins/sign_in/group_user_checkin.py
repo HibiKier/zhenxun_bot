@@ -28,7 +28,7 @@ async def group_user_check_in(
     "Returns string describing the result of checking in"
     present = datetime.now()
     # 取得相应用户
-    user, is_create = await SignGroupUser.get_or_create(user_qq=user_qq, group_id=group)
+    user, is_create = await SignGroupUser.get_or_create(user_id=str(user_qq), group_id=str(group))
     # 如果同一天签到过，特殊处理
     if not is_create and (
         user.checkin_time_last.date() >= present.date()
@@ -49,7 +49,7 @@ async def check_in_all(nickname: str, user_qq: int):
         :param user_qq: 用户qq
     """
     present = datetime.now()
-    for u in await SignGroupUser.filter(user_qq=user_qq).all():
+    for u in await SignGroupUser.filter(user_id=str(user_qq)).all():
         group = u.group_id
         if not (
             u.checkin_time_last.date() >= present.date()
@@ -62,7 +62,7 @@ async def check_in_all(nickname: str, user_qq: int):
 async def _handle_check_in(
     nickname: str, user_qq: int, group: int, present: datetime
 ) -> MessageSegment:
-    user, _ = await SignGroupUser.get_or_create(user_qq=user_qq, group_id=group)
+    user, _ = await SignGroupUser.get_or_create(user_id=str(user_qq), group_id=str(group))
     impression_added = (secrets.randbelow(99) + 1) / 100
     critx2 = random.random()
     add_probability = float(user.add_probability)
@@ -83,7 +83,7 @@ async def _handle_check_in(
         gift += " + 1"
 
     logger.info(
-        f"(USER {user.user_qq}, GROUP {user.group_id})"
+        f"(USER {user.user_id}, GROUP {user.group_id})"
         f" CHECKED IN successfully. score: {user.impression:.2f} "
         f"(+{impression_added:.2f}).获取金币：{gold + gift if gift == 'gold' else gold}"
     )
@@ -95,7 +95,7 @@ async def _handle_check_in(
 
 async def group_user_check(nickname: str, user_qq: int, group: int) -> MessageSegment:
     # heuristic: if users find they have never checked in they are probable to check in
-    user, _ = await SignGroupUser.get_or_create(user_qq=user_qq, group_id=group)
+    user, _ = await SignGroupUser.get_or_create(user_id=str(user_qq), group_id=str(group))
     gold = await BagUser.get_gold(user_qq, group)
     return await get_card(user, nickname, None, gold, "", is_card_view=True)
 
@@ -171,7 +171,7 @@ async def _pst(users: list, impressions: list, groups: list):
             impressions.pop(index)
             users.pop(index)
             groups.pop(index)
-            if user_ := await GroupInfoUser.get_or_none(user_qq=user, group_id=group):
+            if user_ := await GroupInfoUser.get_or_none(user_id=str(user), group_id=str(group)):
                 user_name = user_.user_name
             else:
                 user_name = f"我名字呢？"

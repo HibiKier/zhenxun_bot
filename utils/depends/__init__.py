@@ -75,8 +75,8 @@ def CostGold(gold: int):
             await matcher.finish(at(event.user_id) + f"金币不足..该功能需要{gold}金币..")
         await BagUser.spend_gold(event.user_id, event.group_id, gold)
         await UserShopGoldLog.create(
-            user_qq=event.user_id,
-            group_id=event.group_id,
+            user_qq=str(event.user_id),
+            group_id=str(event.group_id),
             type=2,
             name=matcher.plugin_name,
             num=1,
