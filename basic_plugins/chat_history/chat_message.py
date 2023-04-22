@@ -35,10 +35,10 @@ TEMP_LIST = []
 async def _(event: MessageEvent, msg: str = PlaintText()):
     group_id = None
     if isinstance(event, GroupMessageEvent):
-        group_id = event.group_id
+        group_id = str(event.group_id)
     TEMP_LIST.append(
         {
-            "user_qq": event.user_id,
+            "user_id": str(event.user_id),
             "group_id": group_id,
             "text": str(event.get_message()),
             "plain_text": msg,
