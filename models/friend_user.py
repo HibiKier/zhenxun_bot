@@ -1,5 +1,5 @@
 from tortoise import fields
-
+from typing import Union
 from configs.config import Config
 from services.db_context import Model
 
@@ -20,7 +20,7 @@ class FriendUser(Model):
         table_description = "好友信息数据表"
 
     @classmethod
-    async def get_user_name(cls, user_id: str | int) -> str:
+    async def get_user_name(cls, user_id: Union[int, str]) -> str:
         """
         说明:
             获取好友用户名称
@@ -32,7 +32,7 @@ class FriendUser(Model):
         return ""
 
     @classmethod
-    async def get_user_nickname(cls, user_id: str | int) -> str:
+    async def get_user_nickname(cls, user_id: Union[int, str]) -> str:
         """
         说明:
             获取用户昵称
@@ -49,7 +49,7 @@ class FriendUser(Model):
         return ""
 
     @classmethod
-    async def set_user_nickname(cls, user_id: str | int, nickname: str):
+    async def set_user_nickname(cls, user_id: Union[int, str], nickname: str):
         """
         说明:
             设置用户昵称

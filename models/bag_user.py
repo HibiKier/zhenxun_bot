@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Union
 
 from tortoise import fields
 
@@ -34,7 +34,7 @@ class BagUser(Model):
         unique_together = ("user_id", "group_id")
 
     @classmethod
-    async def get_user_total_gold(cls, user_id: str | int, group_id: str | int) -> str:
+    async def get_user_total_gold(cls, user_id: Union[int, str], group_id: Union[int, str]) -> str:
         """
         说明:
             获取金币概况
@@ -50,7 +50,7 @@ class BagUser(Model):
         )
 
     @classmethod
-    async def get_gold(cls, user_id: str | int, group_id: str | int) -> int:
+    async def get_gold(cls, user_id: Union[int, str], group_id: Union[int, str]) -> int:
         """
         说明:
             获取当前金币
@@ -63,7 +63,7 @@ class BagUser(Model):
 
     @classmethod
     async def get_property(
-            cls, user_id: str | int, group_id: str | int, only_active: bool = False
+            cls, user_id: Union[int, str], group_id: Union[int, str], only_active: bool = False
     ) -> Dict[str, int]:
         """
         说明:
@@ -87,7 +87,7 @@ class BagUser(Model):
         return user.property
 
     @classmethod
-    async def add_gold(cls, user_id: str | int, group_id: str | int, num: int):
+    async def add_gold(cls, user_id: Union[int, str], group_id: Union[int, str], num: int):
         """
         说明:
             增加金币
@@ -103,7 +103,7 @@ class BagUser(Model):
         await user.save(update_fields=["gold", "get_today_gold", "get_total_gold"])
 
     @classmethod
-    async def spend_gold(cls, user_id: str | int, group_id: str | int, num: int):
+    async def spend_gold(cls, user_id: Union[int, str], group_id: Union[int, str], num: int):
         """
         说明:
             花费金币
@@ -119,7 +119,7 @@ class BagUser(Model):
         await user.save(update_fields=["gold", "spend_total_gold", "spend_today_gold"])
 
     @classmethod
-    async def add_property(cls, user_id: str | int, group_id: str | int, name: str, num: int = 1):
+    async def add_property(cls, user_id: Union[int, str], group_id: Union[int, str], name: str, num: int = 1):
         """
         说明:
             增加道具
@@ -139,7 +139,7 @@ class BagUser(Model):
 
     @classmethod
     async def delete_property(
-            cls, user_id: str | int, group_id: str | int, name: str, num: int = 1
+            cls, user_id: Union[int, str], group_id: Union[int, str], name: str, num: int = 1
     ) -> bool:
         """
         说明:

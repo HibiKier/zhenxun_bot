@@ -29,7 +29,7 @@ class ChatHistory(Model):
     @classmethod
     async def get_group_msg_rank(
         cls,
-        gid: str | int,
+        gid: Union[int, str],
         limit: int = 10,
         order: str = "DESC",
         date_scope: Optional[Tuple[datetime, datetime]] = None,
@@ -56,7 +56,7 @@ class ChatHistory(Model):
         )  # type: ignore
 
     @classmethod
-    async def get_group_first_msg_datetime(cls, group_id: str | int) -> Optional[datetime]:
+    async def get_group_first_msg_datetime(cls, group_id: Union[int, str]) -> Optional[datetime]:
         """
         说明:
             获取群第一条记录消息时间

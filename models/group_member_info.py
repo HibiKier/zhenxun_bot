@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Union
 
 from tortoise import fields
 
@@ -31,7 +31,7 @@ class GroupInfoUser(Model):
         unique_together = ("user_id", "group_id")
 
     @classmethod
-    async def get_group_member_id_list(cls, group_id: str | int) -> Set[int]:
+    async def get_group_member_id_list(cls, group_id: Union[int, str]) -> Set[int]:
         """
         说明:
             获取该群所有用户id
@@ -43,7 +43,7 @@ class GroupInfoUser(Model):
         )  # type: ignore
 
     @classmethod
-    async def set_user_nickname(cls, user_id: str | int, group_id: str | int, nickname: str):
+    async def set_user_nickname(cls, user_id: Union[int, str], group_id: Union[int, str], nickname: str):
         """
         说明:
             设置群员在该群内的昵称
@@ -59,7 +59,7 @@ class GroupInfoUser(Model):
         )
 
     @classmethod
-    async def get_user_all_group(cls, user_id: str | int) -> List[int]:
+    async def get_user_all_group(cls, user_id: Union[int, str]) -> List[int]:
         """
         说明:
             获取该用户所在的所有群聊
@@ -71,7 +71,7 @@ class GroupInfoUser(Model):
         )  # type: ignore
 
     @classmethod
-    async def get_user_nickname(cls, user_id: str | int, group_id: str | int) -> str:
+    async def get_user_nickname(cls, user_id: Union[int, str], group_id: Union[int, str]) -> str:
         """
         说明:
             获取用户在该群的昵称
@@ -90,7 +90,7 @@ class GroupInfoUser(Model):
         return ""
 
     @classmethod
-    async def get_group_member_uid(cls, user_id: str | int, group_id: str | int) -> Optional[int]:
+    async def get_group_member_uid(cls, user_id: Union[int, str], group_id: Union[int, str]) -> Optional[int]:
         logger.debug(
             f"GroupInfoUser 尝试获取 用户[<u><e>{user_id}</e></u>] 群聊[<u><e>{group_id}</e></u>] UID"
         )

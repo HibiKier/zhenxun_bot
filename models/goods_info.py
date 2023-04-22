@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from tortoise import fields
 
@@ -145,7 +145,7 @@ class GoodsInfo(Model):
 
     @classmethod
     async def add_user_daily_purchase(
-        cls, goods: "GoodsInfo", user_id_: int, group_id_: int, num: int = 1
+        cls, goods: "GoodsInfo", user_id_: Union[int, str], group_id_: Union[int, str], num: int = 1
     ):
         """
         说明:
@@ -168,7 +168,7 @@ class GoodsInfo(Model):
 
     @classmethod
     async def check_user_daily_purchase(
-        cls, goods: "GoodsInfo", user_id_: int, group_id_: int, num: int = 1
+        cls, goods: "GoodsInfo", user_id_: Union[int, str], group_id_: Union[int, str], num: int = 1
     ) -> Tuple[bool, int]:
         """
         说明:
