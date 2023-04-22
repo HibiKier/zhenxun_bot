@@ -79,6 +79,7 @@ class BilibiliSub(Model):
             :param season_current_episode: 番剧最新集数
             :param season_update_time: 番剧更新时间
         """
+        sub_id = str(sub_id)
         # try:
         data = {
             "sub_type": sub_type,
