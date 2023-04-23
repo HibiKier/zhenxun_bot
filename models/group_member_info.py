@@ -95,7 +95,7 @@ class GroupInfoUser(Model):
             f"GroupInfoUser 尝试获取 用户[<u><e>{user_id}</e></u>] 群聊[<u><e>{group_id}</e></u>] UID"
         )
         user, _ = await cls.get_or_create(user_id=str(user_id), group_id=str(group_id))
-        _max_uid_user, _ = await cls.get_or_create(user_id=114514, group_id=114514)
+        _max_uid_user, _ = await cls.get_or_create(user_id="114514", group_id="114514")
         _max_uid = _max_uid_user.uid
         if not user.uid:
             all_user = await cls.filter(user_id=str(user_id)).all()

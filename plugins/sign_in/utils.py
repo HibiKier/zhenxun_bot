@@ -35,10 +35,10 @@ driver: Driver = nonebot.get_driver()
 async def init_image():
     SIGN_RESOURCE_PATH.mkdir(parents=True, exist_ok=True)
     SIGN_TODAY_CARD_PATH.mkdir(exist_ok=True, parents=True)
-    if not await GroupInfoUser.get_or_none(user_id="A_nmi_114514"):
+    if not await GroupInfoUser.get_or_none(user_id="114514"):
         await GroupInfoUser.create(
-            user_id="A_nmi_114514",
-            group_id="A_nmi_114514",
+            user_id="114514",
+            group_id="114514",
             user_name="",
             uid=0,
         )
