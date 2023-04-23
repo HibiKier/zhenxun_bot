@@ -329,7 +329,7 @@ async def update_member_info(
                         user_info["user_id"],
                         user_info["group_id"],
                     )
-                _exist_member_list.append(int(user_info["user_id"]))
+                _exist_member_list.append(str(user_info["user_id"]))
                 continue
             join_time = datetime.strptime(
                 time.strftime(
@@ -347,7 +347,7 @@ async def update_member_info(
                     ),
                 },
             )
-            _exist_member_list.append(int(user_info["user_id"]))
+            _exist_member_list.append(str(user_info["user_id"]))
             logger.debug("更新成功", "更新成员信息", user_info["user_id"], user_info["group_id"])
         _del_member_list = list(
             set(_exist_member_list).difference(
