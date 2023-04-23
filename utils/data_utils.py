@@ -26,13 +26,13 @@ async def init_rank(
     """
     _uname_lst = []
     _num_lst = []
-    for i in range(len(all_user_id) if len(all_user_id) < total_count else total_count):
+    for i in range(min(len(all_user_id), total_count)):
         _max = max(all_user_data)
         max_user_id = all_user_id[all_user_data.index(_max)]
         all_user_id.remove(max_user_id)
         all_user_data.remove(_max)
         if user := await GroupInfoUser.get_or_none(
-            user_qq=str(max_user_id), group_id=str(group_id)
+            user_id=str(max_user_id), group_id=str(group_id)
         ):
             user_name = user.user_name
         else:
