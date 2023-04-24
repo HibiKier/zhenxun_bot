@@ -53,7 +53,7 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
     else:
         num = 10
     all_users = await BagUser.filter(group_id=event.group_id)
-    all_user_id = [user.user_qq for user in all_users]
+    all_user_id = [user.user_id for user in all_users]
     all_user_data = [user.gold for user in all_users]
     rank_image = await init_rank(
         "金币排行", all_user_id, all_user_data, event.group_id, num
