@@ -7,11 +7,9 @@ from nonebot.params import Command
 
 from configs.config import Config
 from models.bag_user import BagUser
-
 # from models.bag_user import BagUser
 from models.level_user import LevelUser
 from models.user_shop_gold_log import UserShopGoldLog
-
 # from models.user_shop_gold_log import UserShopGoldLog
 from utils.manager import admin_manager
 from utils.message_builder import at
@@ -75,7 +73,7 @@ def CostGold(gold: int):
             await matcher.finish(at(event.user_id) + f"金币不足..该功能需要{gold}金币..")
         await BagUser.spend_gold(event.user_id, event.group_id, gold)
         await UserShopGoldLog.create(
-            user_qq=str(event.user_id),
+            user_id=str(event.user_id),
             group_id=str(event.group_id),
             type=2,
             name=matcher.plugin_name,

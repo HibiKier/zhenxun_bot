@@ -14,7 +14,6 @@ from models.group_member_info import GroupInfoUser
 from services.log import logger
 from utils.message_builder import at, image
 from utils.utils import get_message_at, is_number
-
 from .data_source import rank
 from .model import RussianUser
 
@@ -296,7 +295,7 @@ async def _(
         at_ = at_[0]
         try:
             at_player_name = (
-                await GroupInfoUser.get_or_none(user_qq=at_, group_id=event.group_id)
+                await GroupInfoUser.get_or_none(user_id=at_, group_id=event.group_id)
             ).user_name
         except AttributeError:
             at_player_name = at(at_)
@@ -364,14 +363,14 @@ async def _(bot: Bot, event: GroupMessageEvent):
                     [
                         f"不要打扰 {player1_name} 和 {player2_name} 的决斗啊！",
                         f"给我好好做好一个观众！不然{NICKNAME}就要生气了",
-                        f"不要捣乱啊baka{(await GroupInfoUser.get_or_none(user_qq=event.user_id, group_id=event.group_id)).user_name}！",
+                        f"不要捣乱啊baka{(await GroupInfoUser.get_or_none(user_id=event.user_id, group_id=event.group_id)).user_name}！",
                     ]
                 ),
                 at_sender=True,
             )
         await shot.finish(
             f"你的左轮不是连发的！该 "
-            f'{(await GroupInfoUser.get_or_none(user_qq=int(rs_player[event.group_id]["next"]), group_id=event.group_id)).user_name} 开枪了'
+            f'{(await GroupInfoUser.get_or_none(user_id=int(rs_player[event.group_id]["next"]), group_id=event.group_id)).user_name} 开枪了'
         )
     if rs_player[event.group_id]["bullet"][rs_player[event.group_id]["index"]] != 1:
         await shot.send(
