@@ -9,8 +9,8 @@ from utils.image_utils import BuildMat
 
 async def init_rank(
     title: str,
-    all_user_id: List[int],
-    all_user_data: List[int],
+    all_user_id: List[str],
+    all_user_data: List[Union[int, float]],
     group_id: int,
     total_count: int = 10,
 ) -> BuildMat:

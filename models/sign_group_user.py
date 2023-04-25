@@ -50,7 +50,7 @@ class SignGroupUser(Model):
     @classmethod
     async def get_all_impression(
         cls, group_id: Union[int, str]
-    ) -> Tuple[List[str], List[str], List[float]]:
+    ) -> Tuple[List[str],  List[float], List[str]]:
         """
         说明:
             获取该群所有用户 id 及对应 好感度
@@ -69,7 +69,7 @@ class SignGroupUser(Model):
             user_list.append(value[0])
             group_list.append(value[1])
             impression_list.append(float(value[2]))
-        return user_list, group_list, impression_list
+        return user_list, impression_list, group_list
 
     @classmethod
     async def _run_script(cls):
