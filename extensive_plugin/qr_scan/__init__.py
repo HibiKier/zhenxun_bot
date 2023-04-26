@@ -15,6 +15,7 @@ import zxing
 from configs.config import Config
 from services.log import logger
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent,Message,Event,MessageSegment
+import json
 
 __zx_plugin_name__ = "二维码自动扫描"
 __plugin_usage__ = """
@@ -26,7 +27,7 @@ __plugin_version__ = 0.1
 __plugin_author__ = "Tokeii"
 __plugin_task__ = {"qrcode": "自动扫码"}
 __plugin_settings__ = {
-    "level": 6,
+    "level": 5,
     "default_status": False,
     "limit_superuser": False,
     
@@ -41,19 +42,35 @@ Config.add_plugin_config(
     default_value=False,
     type=bool,
 )
+# __plugin_block_limit__ = {
+#     "check_type": "group",    # 'private'/'group'/'all'，限制私聊/群聊/全部
+#     "limit_type": "717944543",   # 监听对象，以user_id或group_id作为键来限制，'user'：用户id，'group'：群id
+#     "rst": None,            # 回复的话，为None时不回复，可以添加[at]，[uname]，[nickname]来对应艾特，用户群名称，昵称系统昵称
+#     "status": True          # 此限制的开关状态
+# }
 
 
 temppath= 'qrCode/'
 
-QR_message= on_message(priority=6, block=False)
+# QR_message = on_message(priority=5, block=False)
+QR_message = on_command("scan", priority=5, block=True)
 @QR_message.handle()
 
 async def QR_message_(bot: Bot,event: MessageEvent,state: T_State):
     print("触发qrcode")
-    if str(event.message).split(',')[0]=='[CQ:image':
-        message_temp=str(event.message).split(',')
-        url = message_temp[-1].strip('url=')
+    msg = event.json()
+    msg = json.loads(msg)
+    print(type(msg))
+    # print(str(event.json()))
+    if [types['data']['url']  for types in msg['message'] if types['type']=='image']:
+
+    # if "scan" in str(msg):
         
+
+    # if str(event.message).split(',')[0]=='[CQ:image':
+        # message_temp=str(event.message).split(',')
+        url = [types['data']['url']  for types in msg['message'] if types['type']=='image'][0]
+        print(url)
 
         #保存图片到本地
         try:
@@ -92,6 +109,7 @@ async def QR_message_(bot: Bot,event: MessageEvent,state: T_State):
         # 删除保存的图片
         try:
             os.remove(temppath+randomname)
+            print("尝试删除")
             # pass
         except Exception as e:
             error = ('错误明细是' + str(e.__class__.__name__) + str(e))
