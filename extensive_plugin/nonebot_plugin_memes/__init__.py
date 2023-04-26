@@ -94,6 +94,7 @@ __plugin_settings__ = {
 }
 __plugin_resources__ = {
     "images": IMAGE_PATH / "petpet", }
+# ======================== zhenxun import ===============================
 
 # help_cmd = on_command("头像表情包", aliases={"头像相关表情包", "头像相关表情制作"}, block=True, priority=5)
 
