@@ -99,7 +99,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
                     await use_props.send(msg, at_sender=True)
                 logger.info(f"使用道具 {name} {num} 次成功", event.user_id, event.group_id)
                 await UserShopGoldLog.create(
-                    user_qq=event.user_id,
+                    user_id=event.user_id,
                     group_id=event.group_id,
                     type=1,
                     name=name,
