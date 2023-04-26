@@ -4,6 +4,8 @@ from mcstatus import JavaServer
 from PIL import Image, ImageDraw, ImageFilter,ImageFont
 
 fontPath = '.\\extensive_plugin\\mc_status\\Arial-Unicode-Regular.ttf'
+
+# 状态函数
 def mc_status_get(ip):
 
     server = JavaServer.lookup(ip)
