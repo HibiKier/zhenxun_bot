@@ -1,0 +1,38 @@
+{
+    "Chinese":{
+        "where_ip":"不知道你服务器的IP在哪里，在你心里吗?",
+        "where_port":"你看看这是正经端口吗？",
+        "status_success":"(请求和响应解析成功)",
+        "status_connfail":"无法建立服务器连接(服务器脱机，主机名或端口错误？)",
+        "status_timeout":"连接超时(服务器负载过大？防火墙规则是否放行？)",
+        "status_known":"连接已建立，但服务器使用未知/不受支持的 SLP 协议。",
+        "version":"版本：",
+        "slp_protocol":"协议：",
+        "address":"地址：",
+        "port":"端口：",
+        "gamemode":"游戏模式：",
+        "delay":"延迟：",
+        "motd":"Motd：",
+        "players":"人数：",
+        "status":"状态码：",
+        "offline":"服务器不在线！"
+    },
+    "English":{
+        "where_ip":"Where is the IP of your server?",
+        "where_port":"Wrong port!",
+        "status_success":"(Request & response parsing OK)",
+        "status_connfail":"The socket to the server could not be established. (Server offline, wrong hostname or port?)",
+        "status_timeout":"The connection timed out. (Server under too much load? Firewall rules OK?)",
+        "status_known":"The connection was established, but the server spoke an unknown/unsupported SLP protocol.",
+        "version":"Version: ",
+        "slp_protocol":"Protocol: ",
+        "address":"Server IP: ",
+        "port":"Server port: ",
+        "gamemode":"Gamemode: ",
+        "delay":"Delay: ",
+        "motd":"Motd: ",
+        "players":"Players: ",
+        "status":"Status: ",
+        "offline":"Server is offline!"
+    }
+}
