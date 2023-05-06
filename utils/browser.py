@@ -26,7 +26,7 @@ async def shutdown_browser():
     if _browser:
         await _browser.close()
     if _playwright:
-        _playwright.stop()
+        await _playwright.stop()  # type: ignore
 
 
 def get_browser() -> Browser:
