@@ -236,15 +236,8 @@ def get_matchers(distinct: bool = False) -> List[Type[Matcher]]:
     参数:
         distinct: 去重
     """
-    _matchers = []
-    temp = []
-    for i in matchers.keys():
-        for matcher in matchers[i]:
-            if distinct and matcher.plugin_name in temp:
-                continue
-            temp.append(matcher.plugin_name)
-            _matchers.append(matcher)
-    return _matchers
+    _matchers = sum(matchers.values(), [])
+    return list(set(_matchers)) if distinct else _matchers
 
 
 def get_message_at(data: Union[str, Message]) -> List[int]:
