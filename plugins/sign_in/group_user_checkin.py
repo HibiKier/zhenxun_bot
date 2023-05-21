@@ -21,18 +21,21 @@ from utils.utils import get_user_avatar
 from .random_event import random_event
 from .utils import SIGN_TODAY_CARD_PATH, get_card
 
+from pytz import timezone
+
+CN = timezone('Asia/Shanghai')
 
 async def group_user_check_in(
     nickname: str, user_qq: int, group: int
 ) -> MessageSegment:
     "Returns string describing the result of checking in"
-    present = datetime.now()
+    present = datetime.now(CN)
     # 取得相应用户
     user, is_create = await SignGroupUser.get_or_create(user_id=str(user_qq), group_id=str(group))
     # 如果同一天签到过，特殊处理
     if not is_create and (
-        user.checkin_time_last.date() >= present.date()
-        or f"{user}_{group}_sign_{datetime.now().date()}"
+        user.checkin_time_last.astimezone(CN).date() >= present.date()
+        or f"{user}_{group}_sign_{datetime.now(CN).date()}"
         in os.listdir(SIGN_TODAY_CARD_PATH)
     ):
         gold = await BagUser.get_gold(user_qq, group)
