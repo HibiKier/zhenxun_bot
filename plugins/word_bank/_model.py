@@ -324,7 +324,7 @@ class WordBank(Model):
         cls,
         problem: str,
         index: Optional[int] = None,
-        group_id: Optional[int] = None,
+        group_id: Optional[str] = None,
         word_scope: Optional[int] = 0,
     ) -> List[Union[str, Message]]:
         """
@@ -351,7 +351,7 @@ class WordBank(Model):
     async def delete_group_problem(
         cls,
         problem: str,
-        group_id: str,
+        group_id: Optional[str],
         index: Optional[int] = None,
         word_scope: int = 1,
     ):
@@ -386,7 +386,7 @@ class WordBank(Model):
         cls,
         problem: str,
         replace_str: str,
-        group_id: str,
+        group_id: Optional[str],
         index: Optional[int] = None,
         word_scope: int = 1,
     ):
