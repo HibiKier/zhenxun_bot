@@ -17,22 +17,25 @@ from services.log import logger
 from utils.data_utils import init_rank
 from utils.image_utils import BuildImage, BuildMat
 from utils.utils import get_user_avatar
-
 from .random_event import random_event
 from .utils import SIGN_TODAY_CARD_PATH, get_card
+from pytz import timezone
+from dateutil.tz import tzlocal
+
+local_tz = tzlocal()  # 获取系统本地时区
 
 
 async def group_user_check_in(
     nickname: str, user_qq: int, group: int
 ) -> MessageSegment:
     "Returns string describing the result of checking in"
-    present = datetime.now()
+    present = datetime.now().astimezone(local_tz)  # 使用系统本地时区
     # 取得相应用户
     user, is_create = await SignGroupUser.get_or_create(user_id=str(user_qq), group_id=str(group))
     # 如果同一天签到过，特殊处理
     if not is_create and (
-        user.checkin_time_last.date() >= present.date()
-        or f"{user}_{group}_sign_{datetime.now().date()}"
+        user.checkin_time_last.astimezone(local_tz).date() >= present.date()
+        or f"{user}_{group}_sign_{datetime.now(local_tz).date()}"
         in os.listdir(SIGN_TODAY_CARD_PATH)
     ):
         gold = await BagUser.get_gold(user_qq, group)
@@ -48,12 +51,12 @@ async def check_in_all(nickname: str, user_qq: int):
         :param nickname: 昵称
         :param user_qq: 用户qq
     """
-    present = datetime.now()
+    present = datetime.now().astimezone(local_tz)  # 使用系统本地时区
     for u in await SignGroupUser.filter(user_id=str(user_qq)).all():
         group = u.group_id
         if not (
-            u.checkin_time_last.date() >= present.date()
-            or f"{u}_{group}_sign_{datetime.now().date()}"
+            u.checkin_time_last.astimezone(local_tz).date() >= present.date()
+            or f"{u}_{group}_sign_{datetime.now(local_tz).date()}"
             in os.listdir(SIGN_TODAY_CARD_PATH)
         ):
             await _handle_check_in(nickname, user_qq, group, present)
