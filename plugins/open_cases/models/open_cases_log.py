@@ -10,9 +10,9 @@ class OpenCasesLog(Model):
 
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
-    user_qq = fields.BigIntField()
+    user_id = fields.CharField(255)
     """用户id"""
-    group_id = fields.BigIntField()
+    group_id = fields.CharField(255)
     """群聊id"""
     case_name = fields.CharField(255)
     """箱子名称"""
@@ -36,3 +36,11 @@ class OpenCasesLog(Model):
     class Meta:
         table = "open_cases_log"
         table_description = "开箱日志表"
+
+    @classmethod
+    async def _run_script(cls):
+        return [
+            "ALTER TABLE open_cases_log RENAME COLUMN user_qq TO user_id;",  # 将user_qq改为user_id
+            "ALTER TABLE open_cases_log ALTER COLUMN user_id TYPE character varying(255);",
+            "ALTER TABLE open_cases_log ALTER COLUMN group_id TYPE character varying(255);",
+        ]

@@ -102,7 +102,7 @@ async def _(
         and matcher.plugin_name not in ["update_info", "statistics_handle"]
     ):
         await Statistics.create(
-            user_qq=event.user_id,
+            user_id=str(event.user_id),
             group_id=getattr(event, "group_id", None),
             plugin_name=matcher.plugin_name,
             create_time=datetime.now(),

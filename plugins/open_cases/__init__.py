@@ -33,6 +33,7 @@ from .utils import (
     CaseManager,
     build_case_image,
     get_skin_case,
+    init_skin_trends,
     reset_count_daily,
     update_skin_data,
 )
@@ -135,6 +136,31 @@ update_case = on_command(
 show_case = on_command("查看武器箱", priority=5, block=True)
 my_knifes = on_command("我的金色", priority=1, permission=GROUP, block=True)
 show_skin = on_command("查看皮肤", priority=5, block=True)
+price_trends = on_command("价格趋势", priority=5, block=True)
+
+
+@price_trends.handle()
+async def _(event: MessageEvent, arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().replace("武器箱", "").strip()
+    if not msg:
+        await price_trends.finish("未指定皮肤")
+    msg_split = msg.split()
+    if len(msg_split) < 3:
+        await price_trends.finish("参数不足, [类型名称] [皮肤名称] [磨损程度] ?[天数=7]")
+    abrasion = msg_split[2]
+    day = 7
+    if len(msg_split) > 3:
+        if not is_number(msg_split[3]):
+            await price_trends.finish("天数必须为数字")
+        day = int(msg_split[3])
+        if day <= 0 or day > 180:
+            await price_trends.finish("天数必须大于0且小于180")
+    result = await init_skin_trends(msg_split[0], msg_split[1], msg_split[2], day)
+    if not result:
+        await price_trends.finish("未查询到数据")
+    await price_trends.send(
+        image(await init_skin_trends(msg_split[0], msg_split[1], msg_split[2], day))
+    )
 
 
 @reload_count.handle()

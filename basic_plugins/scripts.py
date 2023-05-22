@@ -98,26 +98,6 @@ async def _(bot: Bot):
                 logger.info(f"移除不存在的群聊信息", group_id=group_id)
 
 
-# async def __database_script(_flag: List[str]):
-#     # bag_user 将文本转为字典格式
-#     if "bag_users" in _flag:
-#         for x in await BagUser.get_all_users():
-#             props = {}
-#             if x.props:
-#                 for prop in [p for p in x.props.split(",") if p]:
-#                     if props.get(prop):
-#                         props[prop] += 1
-#                     else:
-#                         props[prop] = 1
-#                 logger.info(
-#                     f"__database_script USER {x.user_qq} GROUP {x.group_id} 更新数据 {props}"
-#                 )
-#             await x.update(
-#                 property=props,
-#                 props="",
-#             ).apply()
-
-
 # 自动更新城市列表
 @scheduler.scheduled_job(
     "cron",

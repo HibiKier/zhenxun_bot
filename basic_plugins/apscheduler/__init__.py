@@ -118,10 +118,15 @@ async def _():
             bot = bots[key]
             fl = await bot.get_friend_list()
             for f in fl:
-                await FriendUser.create(user_id=str(f["user_id"]), user_name=f["nickname"])
-                logger.debug(f"更新好友信息成功", "自动更新好友", f["user_id"])
+                if FriendUser.exists(user_id=str(f["user_id"])):
+                    await FriendUser.create(
+                        user_id=str(f["user_id"]), user_name=f["nickname"]
+                    )
+                    logger.debug(f"更新好友信息成功", "自动更新好友", f["user_id"])
+                else:
+                    logger.debug(f"好友信息已存在", "自动更新好友", f["user_id"])
         except Exception as e:
-            logger.error(f"自动更新群组信息错误", e=e)
+            logger.error(f"自动更新好友信息错误", "自动更新好友", e=e)
     logger.info("自动更新好友信息成功...")
 
 

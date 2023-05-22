@@ -46,6 +46,7 @@ nonebot-plugin-htmlrender = "^0.2.0"
 cachetools = "^5.2.0"
 tortoise-orm = {extras = ["asyncpg"], version = "^0.19.3"}
 cattrs = "^22.2.0"
+starlette = "^0.26.1"
 
 [tool.poetry.dev-dependencies]
 

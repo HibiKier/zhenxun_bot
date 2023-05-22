@@ -7,11 +7,11 @@ from nonebot.adapters.onebot.v11.message import Message, MessageSegment
 from configs.config import NICKNAME
 from configs.path_config import IMAGE_PATH, RECORD_PATH
 from services.log import logger
-from utils.image_utils import BuildImage
+from utils.image_utils import BuildImage, BuildMat
 
 
 def image(
-    file: Optional[Union[str, Path, bytes, BuildImage, io.BytesIO]] = None,
+    file: Optional[Union[str, Path, bytes, BuildImage, io.BytesIO, BuildMat]] = None,
     b64: Optional[str] = None,
 ) -> MessageSegment:
     """
@@ -38,7 +38,7 @@ def image(
         logger.warning(f"图片 {file.absolute()}缺失...")
     if isinstance(file, (bytes, io.BytesIO)):
         return MessageSegment.image(file)
-    if isinstance(file, BuildImage):
+    if isinstance(file, (BuildImage, BuildMat)):
         return MessageSegment.image(file.pic2bs4())
     return MessageSegment.image("")
 

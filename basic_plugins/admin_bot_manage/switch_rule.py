@@ -9,7 +9,7 @@ from nonebot.adapters.onebot.v11 import (
     MessageEvent,
     PrivateMessageEvent,
 )
-from nonebot.params import RegexGroup
+from nonebot.params import CommandArg, RegexGroup
 from nonebot.permission import SUPERUSER
 
 from configs.config import NICKNAME, Config
@@ -111,7 +111,7 @@ async def _(
                 block_type = "all" if block_type == "a" else block_type
                 block_type = "private" if block_type == "p" else block_type
                 block_type = "group" if block_type == "g" else block_type
-                set_plugin_status(_cmd, block_type)
+                set_plugin_status(_cmd, block_type)  # type: ignore
                 if block_type == "all":
                     await switch_rule_matcher.send(f"已{_cmd[:2]}功能：{_cmd[2:]}")
                 elif block_type == "private":

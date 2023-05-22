@@ -9,6 +9,7 @@ from nonebot.typing import T_State
 from configs.config import Config
 from models.level_user import LevelUser
 from services.log import logger
+from utils.depends import GetConfig
 from utils.image_utils import text2image
 from utils.manager import group_manager
 from utils.message_builder import image
@@ -89,7 +90,12 @@ async def _():
 
 @add_sub.handle()
 @del_sub.handle()
-async def _(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
+async def _(
+    event: MessageEvent,
+    state: T_State,
+    arg: Message = CommandArg(),
+    sub_level: Optional[int] = GetConfig(config="GROUP_BILIBILI_SUB_LEVEL"),
+):
     msg = arg.extract_plain_text().strip().split()
     if len(msg) < 2:
         await add_sub.finish("参数不完全，请查看订阅帮助...")
@@ -99,10 +105,10 @@ async def _(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
         if not await LevelUser.check_level(
             event.user_id,
             event.group_id,
-            Config.get_config("bilibili_sub", "GROUP_BILIBILI_SUB_LEVEL"),  # type: ignore
+            sub_level,  # type: ignore
         ):
             await add_sub.finish(
-                f"您的权限不足，群内订阅的需要 {Config.get_config('bilibili_sub', 'GROUP_BILIBILI_SUB_LEVEL')} 级权限..",
+                f"您的权限不足，群内订阅的需要 {sub_level} 级权限..",
                 at_sender=True,
             )
         sub_user = f"{event.user_id}:{event.group_id}"
@@ -155,9 +161,10 @@ async def _(
     else:
         await add_sub.finish("参数错误，第一参数必须为：主播/up/番剧！")
     logger.info(
-        f"(USER {event.user_id}, GROUP "
-        f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-        f" 添加订阅：{sub_type} -> {sub_user} -> {id_}"
+        f"添加订阅：{sub_type} -> {sub_user} -> {id_}",
+        "添加订阅",
+        event.user_id,
+        getattr(event, "group_id", None),
     )
 
 
@@ -171,20 +178,27 @@ async def _(
     sub_user: str = ArgStr("sub_user"),
 ):
     if sub_type in ["主播", "直播"]:
-        result = await BilibiliSub.delete_bilibili_sub(int(id_), sub_user, "live")
+        result = await BilibiliSub.delete_bilibili_sub(id_, sub_user, "live")
     elif sub_type.lower() in ["up", "用户"]:
-        result = await BilibiliSub.delete_bilibili_sub(int(id_), sub_user, "up")
+        result = await BilibiliSub.delete_bilibili_sub(id_, sub_user, "up")
     else:
-        result = await BilibiliSub.delete_bilibili_sub(int(id_), sub_user)
+        result = await BilibiliSub.delete_bilibili_sub(id_, sub_user)
     if result:
         await del_sub.send(f"删除订阅id：{id_} 成功...")
         logger.info(
-            f"(USER {event.user_id}, GROUP "
-            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-            f" 删除订阅 {id_}"
+            f"删除订阅 {id_}",
+            "删除订阅",
+            event.user_id,
+            getattr(event, "group_id", None),
         )
     else:
         await del_sub.send(f"删除订阅id：{id_} 失败...")
+        logger.info(
+            f"删除订阅 {id_} 失败",
+            "删除订阅",
+            event.user_id,
+            getattr(event, "group_id", None),
+        )
 
 
 @show_sub_info.handle()
@@ -236,18 +250,18 @@ async def _():
     bot = get_bot()
     sub = None
     if bot:
-        # try:
         await sub_manager.reload_sub_data()
         sub = await sub_manager.random_sub_data()
         if sub:
-            logger.debug(f"Bilibili订阅开始检测：{sub.sub_id}")
-            rst = await get_sub_status(sub.sub_id, sub.sub_type)
-            await send_sub_msg(rst or "", sub, bot)  # type: ignore
-            if sub.sub_type == "live":
-                rst = await get_sub_status(sub.sub_id, "up")
+            try:
+                logger.debug(f"Bilibili订阅开始检测：{sub.sub_id}")
+                rst = await get_sub_status(sub.sub_id, sub.sub_type)
                 await send_sub_msg(rst or "", sub, bot)  # type: ignore
-        # except Exception as e:
-        #     logger.error(f"B站订阅推送发生错误 sub_id：{sub.sub_id if sub else 0} {type(e)}：{e}")
+                if sub.sub_type == "live":
+                    rst = await get_sub_status(sub.sub_id, "up")
+                    await send_sub_msg(rst or "", sub, bot)  # type: ignore
+            except Exception as e:
+                logger.error(f"B站订阅推送发生错误 sub_id：{sub.sub_id}", e=e)
 
 
 async def send_sub_msg(rst: str, sub: BilibiliSub, bot: Bot):
@@ -284,4 +298,4 @@ async def send_sub_msg(rst: str, sub: BilibiliSub, bot: Bot):
                 else:
                     await bot.send_private_msg(user_id=int(x), message=Message(rst))
             except Exception as e:
-                logger.error(f"B站订阅推送发生错误 sub_id：{sub.sub_id} {type(e)}：{e}")
+                logger.error(f"B站订阅推送发生错误 sub_id：{sub.sub_id}", e=e)

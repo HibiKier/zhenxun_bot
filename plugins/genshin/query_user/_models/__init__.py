@@ -13,7 +13,7 @@ class Genshin(Model):
 
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
-    user_qq = fields.BigIntField()
+    user_id = fields.CharField(255)
     """用户id"""
     uid = fields.BigIntField()
     """uid"""
@@ -43,7 +43,7 @@ class Genshin(Model):
     class Meta:
         table = "genshin"
         table_description = "原神数据表"
-        unique_together = ("user_qq", "uid")
+        unique_together = ("user_id", "uid")
 
     @classmethod
     async def random_sign_time(cls, uid: int) -> Optional[datetime]:
@@ -103,4 +103,6 @@ class Genshin(Model):
             "ALTER TABLE genshin ADD login_ticket VARCHAR(255) DEFAULT '';",
             "ALTER TABLE genshin ADD stuid VARCHAR(255) DEFAULT '';",
             "ALTER TABLE genshin ADD stoken VARCHAR(255) DEFAULT '';",
+            "ALTER TABLE genshin RENAME COLUMN user_qq TO user_id;",  # 将user_qq改为user_id
+            "ALTER TABLE genshin ALTER COLUMN user_id TYPE character varying(255);",
         ]

@@ -37,7 +37,7 @@ show_pix = on_command("查看pix图库", priority=1, block=True)
 
 @my_keyword.handle()
 async def _(event: MessageEvent):
-    data = await PixivKeywordUser.filter(user_qq=event.user_id).values_list(
+    data = await PixivKeywordUser.filter(user_id=str(event.user_id)).values_list(
         "keyword", flat=True
     )
     if not data:

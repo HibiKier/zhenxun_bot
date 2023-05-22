@@ -1,16 +1,17 @@
 import random
 import time
 from pathlib import Path
+from typing import Any, List, Optional, Tuple, Union
 
+import nonebot
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
 
 from services import logger
 from utils.image_utils import text2image
 from utils.message_builder import image
-from ._model import WordBank
-from typing import Optional, Tuple, Union, List, Any
 from utils.utils import is_number
-import nonebot
+
+from ._model import WordBank
 
 driver = nonebot.get_driver()
 
@@ -197,7 +198,7 @@ async def _():
         new_answer_path.mkdir(exist_ok=True, parents=True)
         for word in word_list:
             problem: str = word.problem
-            user_id = word.user_qq
+            user_id = word.user_id
             group_id = word.group_id
             format_ = word.format
             answer = word.answer

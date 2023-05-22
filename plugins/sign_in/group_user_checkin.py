@@ -23,46 +23,48 @@ from .utils import SIGN_TODAY_CARD_PATH, get_card
 
 
 async def group_user_check_in(
-    nickname: str, user_qq: int, group: int
+    nickname: str, user_id: int, group: int
 ) -> MessageSegment:
     "Returns string describing the result of checking in"
     present = datetime.now()
     # 取得相应用户
-    user, is_create = await SignGroupUser.get_or_create(user_id=str(user_qq), group_id=str(group))
+    user, is_create = await SignGroupUser.get_or_create(
+        user_id=str(user_id), group_id=str(group)
+    )
     # 如果同一天签到过，特殊处理
     if not is_create and (
         user.checkin_time_last.date() >= present.date()
         or f"{user}_{group}_sign_{datetime.now().date()}"
         in os.listdir(SIGN_TODAY_CARD_PATH)
     ):
-        gold = await BagUser.get_gold(user_qq, group)
+        gold = await BagUser.get_gold(user_id, group)
         return await get_card(user, nickname, -1, gold, "")
-    return await _handle_check_in(nickname, user_qq, group, present)  # ok
+    return await _handle_check_in(nickname, user_id, group, present)  # ok
 
 
-async def check_in_all(nickname: str, user_qq: int):
+async def check_in_all(nickname: str, user_id: str):
     """
     说明:
         签到所有群
     参数:
         :param nickname: 昵称
-        :param user_qq: 用户qq
+        :param user_id: 用户id
     """
     present = datetime.now()
-    for u in await SignGroupUser.filter(user_id=str(user_qq)).all():
+    for u in await SignGroupUser.filter(user_id=user_id).all():
         group = u.group_id
         if not (
             u.checkin_time_last.date() >= present.date()
             or f"{u}_{group}_sign_{datetime.now().date()}"
             in os.listdir(SIGN_TODAY_CARD_PATH)
         ):
-            await _handle_check_in(nickname, user_qq, group, present)
+            await _handle_check_in(nickname, user_id, group, present)
 
 
 async def _handle_check_in(
-    nickname: str, user_qq: int, group: int, present: datetime
+    nickname: str, user_id: str, group: str, present: datetime
 ) -> MessageSegment:
-    user, _ = await SignGroupUser.get_or_create(user_id=str(user_qq), group_id=str(group))
+    user, _ = await SignGroupUser.get_or_create(user_id=user_id, group_id=group)
     impression_added = (secrets.randbelow(99) + 1) / 100
     critx2 = random.random()
     add_probability = float(user.add_probability)
@@ -75,11 +77,11 @@ async def _handle_check_in(
     gold = random.randint(1, 100)
     gift, gift_type = random_event(float(user.impression))
     if gift_type == "gold":
-        await BagUser.add_gold(user_qq, group, gold + gift)
+        await BagUser.add_gold(user_id, group, gold + gift)
         gift = f"额外金币 + {gift}"
     else:
-        await BagUser.add_gold(user_qq, group, gold)
-        await BagUser.add_property(user_qq, group, gift)
+        await BagUser.add_gold(user_id, group, gold)
+        await BagUser.add_property(user_id, group, gift)
         gift += " + 1"
 
     logger.info(
@@ -93,10 +95,12 @@ async def _handle_check_in(
         return await get_card(user, nickname, impression_added, gold, gift)
 
 
-async def group_user_check(nickname: str, user_qq: int, group: int) -> MessageSegment:
+async def group_user_check(nickname: str, user_id: str, group: str) -> MessageSegment:
     # heuristic: if users find they have never checked in they are probable to check in
-    user, _ = await SignGroupUser.get_or_create(user_id=str(user_qq), group_id=str(group))
-    gold = await BagUser.get_gold(user_qq, group)
+    user, _ = await SignGroupUser.get_or_create(
+        user_id=str(user_id), group_id=str(group)
+    )
+    gold = await BagUser.get_gold(user_id, group)
     return await get_card(user, nickname, None, gold, "", is_card_view=True)
 
 
@@ -171,7 +175,9 @@ async def _pst(users: list, impressions: list, groups: list):
             impressions.pop(index)
             users.pop(index)
             groups.pop(index)
-            if user_ := await GroupInfoUser.get_or_none(user_id=str(user), group_id=str(group)):
+            if user_ := await GroupInfoUser.get_or_none(
+                user_id=str(user), group_id=str(group)
+            ):
                 user_name = user_.user_name
             else:
                 user_name = f"我名字呢？"

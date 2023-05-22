@@ -14,6 +14,7 @@ from models.group_member_info import GroupInfoUser
 from services.log import logger
 from utils.message_builder import at, image
 from utils.utils import get_message_at, is_number
+
 from .data_source import rank
 from .model import RussianUser
 
@@ -445,10 +446,10 @@ async def end_game(bot: Bot, event: GroupMessageEvent):
     await BagUser.add_gold(win_user_id, event.group_id, money - fee)
     await BagUser.spend_gold(lose_user_id, event.group_id, money)
     win_user, _ = await RussianUser.get_or_create(
-        user_qq=win_user_id, group_id=event.group_id
+        user_id=str(win_user_id), group_id=str(event.group_id)
     )
     lose_user, _ = await RussianUser.get_or_create(
-        user_qq=lose_user_id, group_id=event.group_id
+        user_id=str(lose_user_id), group_id=str(event.group_id)
     )
     bullet_str = ""
     for x in rs_player[event.group_id]["bullet"]:
@@ -476,7 +477,7 @@ async def end_game(bot: Bot, event: GroupMessageEvent):
 @record.handle()
 async def _(event: GroupMessageEvent):
     user, _ = await RussianUser.get_or_create(
-        user_qq=event.user_id, group_id=event.group_id
+        user_id=str(event.user_id), group_id=str(event.group_id)
     )
     await record.send(
         f"俄罗斯轮盘\n"

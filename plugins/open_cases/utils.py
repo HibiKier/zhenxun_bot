@@ -3,7 +3,7 @@ import os
 import random
 import re
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional, Tuple, Union
 
 import nonebot
@@ -13,7 +13,7 @@ from configs.config import Config
 from configs.path_config import IMAGE_PATH
 from services.log import logger
 from utils.http_utils import AsyncHttpx
-from utils.image_utils import BuildImage
+from utils.image_utils import BuildImage, BuildMat
 from utils.utils import broadcast_group, cn2py
 
 from .build_image import generate_skin
@@ -545,6 +545,49 @@ async def get_skin_case(id_: str) -> Optional[List[str]]:
     else:
         logger.debug(f"访问皮肤所属武器箱异常 url: {url} code: {response.status_code}")
     return None
+
+
+async def init_skin_trends(
+    name: str, skin: str, abrasion: str, day: int = 7
+) -> Optional[BuildMat]:
+    date = datetime.now() - timedelta(days=day)
+    log_list = (
+        await BuffSkinLog.filter(
+            name__contains=name.upper(),
+            skin_name=skin,
+            abrasion__contains=abrasion,
+            create_time__gt=date,
+            is_stattrak=False,
+        )
+        .order_by("create_time")
+        .limit(day * 5)
+        .all()
+    )
+    if not log_list:
+        return None
+    date_list = []
+    price_list = []
+    for log in log_list:
+        date = str(log.create_time.date())
+        if date not in date_list:
+            date_list.append(date)
+            price_list.append(log.sell_min_price)
+    bar_graph = BuildMat(
+        y=price_list,
+        mat_type="line",
+        title=f"{name}({skin})价格趋势({day})",
+        x_index=date_list,
+        x_min_spacing=90,
+        display_num=True,
+        x_rotate=30,
+        background=[
+            f"{IMAGE_PATH}/background/create_mat/{x}"
+            for x in os.listdir(f"{IMAGE_PATH}/background/create_mat")
+        ],
+        bar_color=["*"],
+    )
+    await asyncio.get_event_loop().run_in_executor(None, bar_graph.gen_graph)
+    return bar_graph
 
 
 async def reset_count_daily():

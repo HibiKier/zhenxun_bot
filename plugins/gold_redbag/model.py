@@ -9,9 +9,9 @@ class RedbagUser(Model):
 
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
-    user_qq = fields.BigIntField()
+    user_id = fields.CharField(255)
     """用户id"""
-    group_id = fields.BigIntField()
+    group_id = fields.CharField(255)
     """群聊id"""
     send_redbag_count = fields.IntField(default=0)
     """发送红包次数"""
@@ -25,23 +25,23 @@ class RedbagUser(Model):
     class Meta:
         table = "redbag_users"
         table_description = "红包统计数据表"
-        unique_together = ("user_qq", "group_id")
+        unique_together = ("user_id", "group_id")
 
     @classmethod
     async def add_redbag_data(
-        cls, user_qq: int, group_id: int, i_type: str, money: int
+        cls, user_id: str, group_id: str, i_type: str, money: int
     ):
         """
         说明:
             添加收发红包数据
         参数:
-            :param user_qq: qq号
+            :param user_id: 用户id
             :param group_id: 群号
             :param i_type: 收或发
             :param money: 金钱数量
         """
 
-        user, _ = await cls.get_or_create(user_qq=user_qq, group_id=group_id)
+        user, _ = await cls.get_or_create(user_id=user_id, group_id=group_id)
         if i_type == "get":
             user.get_redbag_count = user.get_redbag_count + 1
             user.get_gold = user.get_gold + money
@@ -56,3 +56,11 @@ class RedbagUser(Model):
                 "spend_gold",
             ]
         )
+
+    @classmethod
+    async def _run_script(cls):
+        return [
+            "ALTER TABLE redbag_users RENAME COLUMN user_qq TO user_id;",  # 将user_qq改为user_id
+            "ALTER TABLE redbag_users ALTER COLUMN user_id TYPE character varying(255);",
+            "ALTER TABLE redbag_users ALTER COLUMN group_id TYPE character varying(255);",
+        ]

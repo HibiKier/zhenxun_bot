@@ -96,7 +96,7 @@ Config.add_plugin_config(
     "BAN_3_DURATION",
     7,
     help_="Union[int, List[int, int]]Ban时长（天），三级惩罚，可以为指定数字或指定列表区间(随机)，例如 [7, 30]",
-    default_value=360,
+    default_value=7,
     type=int,
 )
 
@@ -171,8 +171,8 @@ async def _(
         and event.is_tome()
         and not msg.startswith("原神绑定")
     ):
-        # if str(event.user_id) not in bot.config.superusers:
-        #     return logger.debug(f"超级用户跳过黑名单词汇检查 Message: {msg}", target=event.user_id)
+        if str(event.user_id) in bot.config.superusers:
+            return logger.debug(f"超级用户跳过黑名单词汇检查 Message: {msg}", target=event.user_id)
         if (
             event.is_tome()
             and matcher.plugin_name == "black_word"
@@ -184,8 +184,8 @@ async def _(
                 and group_manager.get_group_level(event.group_id) < 0
             ):
                 return
-            user_id = event.user_id
-            group_id = event.group_id if isinstance(event, GroupMessageEvent) else None
+            user_id = str(event.user_id)
+            group_id = str(event.group_id) if isinstance(event, GroupMessageEvent) else None
             msg = get_message_text(event.json())
             if await black_word_manager.check(
                 user_id, group_id, msg
@@ -206,8 +206,8 @@ async def _(bot: Bot, reg_group: Tuple[Any, ...] = RegexGroup()):
             await show_black.finish("日期格式错误，需要：年-月-日")
     pic = await show_black_text_image(
         bot,
-        int(user_id.split(":")[1]) if user_id else None,
-        int(group_id.split(":")[1]) if group_id else None,
+        user_id.split(":")[1] if user_id else None,
+        group_id.split(":")[1] if group_id else None,
         date,
         date_type,
     )
@@ -266,11 +266,13 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
         or not is_number(msg[2])
     ):
         await set_punish.finish("参数错误，请查看帮助...", at_sender=True)
-    uid = int(msg[0])
+    uid = msg[0]
     id_ = int(msg[1])
     punish_level = int(msg[2])
     rst = await set_user_punish(uid, id_, punish_level)
     await set_punish.send(rst)
     logger.info(
-        f"USER {event.user_id} 设置惩罚 uid：{uid} id_：{id_} punish_level:{punish_level} --> {rst}"
+        f"设置惩罚 uid：{uid} id_：{id_} punish_level:{punish_level} --> {rst}",
+        "设置惩罚",
+        event.user_id,
     )

@@ -37,12 +37,12 @@ async def _(event: MessageEvent, msg: str = PlaintText()):
     if isinstance(event, GroupMessageEvent):
         group_id = str(event.group_id)
     TEMP_LIST.append(
-        {
-            "user_id": str(event.user_id),
-            "group_id": group_id,
-            "text": str(event.get_message()),
-            "plain_text": msg,
-        }
+        ChatHistory(
+            user_id=str(event.user_id),
+            group_id=group_id,
+            text=str(event.get_message()),
+            plain_text=msg,
+        )
     )
 
 
@@ -55,8 +55,7 @@ async def _():
         message_list = TEMP_LIST.copy()
         TEMP_LIST.clear()
         if message_list:
-            model_list = [ChatHistory(**x) for x in message_list]
-            await ChatHistory.bulk_create(model_list)
+            await ChatHistory.bulk_create(message_list)
         logger.debug(f"批量添加聊天记录 {len(message_list)} 条", "定时任务")
     except Exception as e:
         logger.error(f"定时批量添加聊天记录", "定时任务", e=e)

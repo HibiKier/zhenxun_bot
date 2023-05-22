@@ -55,7 +55,7 @@ bbs_Cookie_url2 = (
 @bind.handle()
 async def _(event: MessageEvent, cmd: str = OneCommand(), arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip()
-    user = await Genshin.get_or_none(user_qq=event.user_id)
+    user = await Genshin.get_or_none(user_id=str(event.user_id))
     if cmd in ["原神绑定uid", "原神绑定米游社id"]:
         if not is_number(msg):
             await bind.finish("uid/id必须为纯数字！", at_senders=True)
@@ -63,9 +63,9 @@ async def _(event: MessageEvent, cmd: str = OneCommand(), arg: Message = Command
     if cmd == "原神绑定uid":
         if user:
             await bind.finish(f"您已绑定过uid：{user.uid}，如果希望更换uid，请先发送原神解绑")
-        if await Genshin.get_or_none(user_qq=event.user_id, uid=msg):
+        if await Genshin.get_or_none(user_id=str(event.user_id), uid=msg):
             await bind.finish("添加失败，该uid可能已存在...")
-        user = await Genshin.create(user_qq=event.user_id, uid=msg)
+        user = await Genshin.create(user_id=str(event.user_id), uid=msg)
         _x = f"已成功添加原神uid：{msg}"
     elif cmd == "原神绑定米游社id":
         if not user:
@@ -144,7 +144,7 @@ async def _(event: MessageEvent, cmd: str = OneCommand(), arg: Message = Command
 
 @unbind.handle()
 async def _(event: MessageEvent):
-    await Genshin.filter(user_qq=event.user_id).delete()
+    await Genshin.filter(user_id=str(event.user_id)).delete()
     await unbind.send("用户数据删除成功...")
     logger.info(
         f"(USER {event.user_id}, GROUP "

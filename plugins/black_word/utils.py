@@ -83,7 +83,7 @@ class BlackWordManager:
                 )
 
     async def check(
-        self, user_id: int, group_id: Optional[int], message: str
+        self, user_id: str, group_id: Optional[str], message: str
     ) -> Optional[Union[str, bool]]:
         """
         检查是否包含黑名单词汇
@@ -91,6 +91,7 @@ class BlackWordManager:
         :param group_id: 群号
         :param message: 消息
         """
+        logger.debug(f"检查文本是否含有黑名单词汇: {message}", "敏感词检测", user_id, group_id)
         if data := self._check(message):
             if data[0]:
                 await _add_user_black_word(
@@ -117,7 +118,7 @@ class BlackWordManager:
         for x in [self._word_list, self._py_list]:
             for level in x:
                 if message in x[level] or py_msg in x[level]:
-                    return message if message in x[level] else py_msg, level
+                    return message if message in x[level] else py_msg, int(level)
         # 模糊匹配
         for x in [self._word_list, self._py_list]:
             for level in x:
@@ -128,8 +129,8 @@ class BlackWordManager:
 
 
 async def _add_user_black_word(
-    user_id: int,
-    group_id: Optional[int],
+    user_id: str,
+    group_id: Optional[str],
     black_word: str,
     message: str,
     punish_level: int,
@@ -144,13 +145,17 @@ async def _add_user_black_word(
     """
     cycle_days = Config.get_config("black_word", "CYCLE_DAYS") or 7
     user_count = await BlackWord.get_user_count(user_id, cycle_days, punish_level)
+    add_punish_level_to_count = Config.get_config(
+        "black_word", "ADD_PUNISH_LEVEL_TO_COUNT"
+    )
     # 周期内超过次数直接提升惩罚
-    if Config.get_config(
-        "black_word", "AUTO_ADD_PUNISH_LEVEL"
-    ) and user_count > Config.get_config("black_word", "ADD_PUNISH_LEVEL_TO_COUNT"):
+    if (
+        Config.get_config("black_word", "AUTO_ADD_PUNISH_LEVEL")
+        and add_punish_level_to_count
+    ):
         punish_level -= 1
     await BlackWord.create(
-        user_qq=user_id,
+        user_id=user_id,
         group_id=group_id,
         plant_text=message,
         black_word=black_word,
@@ -165,7 +170,7 @@ async def _add_user_black_word(
 
 
 async def _punish_handle(
-    user_id: int, group_id: Optional[int], punish_level: int, black_word: str
+    user_id: str, group_id: Optional[str], punish_level: int, black_word: str
 ):
     """
     惩罚措施，级别越低惩罚越严
@@ -218,7 +223,7 @@ async def _punish_handle(
 
 
 async def _get_punish(
-    id_: int, user_id: int, group_id: Optional[int] = None
+    id_: int, user_id: str, group_id: Optional[str] = None
 ) -> Optional[Union[int, str]]:
     """
     通过id_获取惩罚
@@ -230,12 +235,12 @@ async def _get_punish(
     # 忽略的群聊
     # _ignore_group = Config.get_config("black_word", "IGNORE_GROUP")
     # 处罚 id 4 ban 时间：int，List[int]
-    ban_3_duration = Config.get_config("black_word", "BAN_3_DURATION")
+    ban_3_duration = Config.get_config("black_word", "BAN_3_DURATION") or 7
     # 处罚 id 4 ban 时间：int，List[int]
-    ban_4_duration = Config.get_config("black_word", "BAN_4_DURATION")
+    ban_4_duration = Config.get_config("black_word", "BAN_4_DURATION") or 360
     # 口头警告内容
     warning_result = Config.get_config("black_word", "WARNING_RESULT")
-    if user := await GroupInfoUser.get_or_none(user_id=str(user_id), group_id=str(group_id)):
+    if user := await GroupInfoUser.get_or_none(user_id=user_id, group_id=group_id):
         uname = user.user_name
     else:
         uname = user_id
@@ -285,28 +290,30 @@ async def _get_punish(
     # 口头警告
     elif id_ == 5:
         if group_id:
-            await bot.send_group_msg(group_id=group_id, message=warning_result)
+            await bot.send_group_msg(group_id=int(group_id), message=warning_result)
         else:
-            await bot.send_private_msg(user_id=user_id, message=warning_result)
+            await bot.send_private_msg(user_id=int(user_id), message=warning_result)
         logger.info(f"BlackWord 口头警告 USER {user_id}")
         return warning_result
     return None
 
 
-async def send_msg(user_id: int, group_id: Optional[int], message: str):
+async def send_msg(
+    user_id: Union[str, int], group_id: Optional[Union[str, int]], message: str
+):
     """
     发送消息
     :param user_id: user_id
     :param group_id: group_id
     :param message: message
     """
-    bot = get_bot()
-    if not user_id:
-        user_id = int(list(bot.config.superusers)[0])
-    if group_id:
-        await bot.send_group_msg(group_id=group_id, message=message)
-    else:
-        await bot.send_private_msg(user_id=user_id, message=message)
+    if bot := get_bot():
+        if not user_id:
+            user_id = list(bot.config.superusers)[0]
+        if group_id:
+            await bot.send_group_msg(group_id=int(group_id), message=message)
+        else:
+            await bot.send_private_msg(user_id=int(user_id), message=message)
 
 
 async def check_text(text: str) -> bool:
