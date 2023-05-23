@@ -28,7 +28,7 @@ ICON_PATH = IMAGE_PATH / "other"
 GROUP_HELP_PATH = DATA_PATH / "group_help"
 
 
-async def group_current_status(group_id: int) -> str:
+async def group_current_status(group_id: str) -> str:
     """
     说明:
         获取当前群聊所有通知的开关
@@ -144,7 +144,7 @@ def change_global_task_status(cmd: str) -> str:
         return f"已 {status} 全局{_cmd}"
 
 
-async def change_group_switch(cmd: str, group_id: int, is_super: bool = False) -> str:
+async def change_group_switch(cmd: str, group_id: str, is_super: bool = False) -> str:
     """
     说明:
         修改群功能状态
@@ -373,7 +373,7 @@ async def update_member_info(
     return True
 
 
-def set_group_bot_status(group_id: int, status: bool) -> str:
+def set_group_bot_status(group_id: str, status: bool) -> str:
     """
     说明:
         设置群聊bot开关状态

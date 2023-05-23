@@ -116,7 +116,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     if len(msg) < 2:
         await add_group_level.finish("缺失参数...")
     if is_number(msg[0]) and is_number(msg[1]):
-        group_id = int(msg[0])
+        group_id = str(msg[0])
         level = int(msg[1])
     else:
         await add_group_level.finish("参数错误...群号和等级必须是数字..")
@@ -125,7 +125,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
     await add_group_level.send("修改成功...", at_sender=True)
     if level > -1:
         await bot.send_group_msg(
-            group_id=group_id, message=f"管理员修改了此群权限：{old_level} -> {level}"
+            group_id=int(group_id), message=f"管理员修改了此群权限：{old_level} -> {level}"
         )
     logger.info(f"修改群权限：{level}", "修改群权限", event.user_id, target=group_id)
 

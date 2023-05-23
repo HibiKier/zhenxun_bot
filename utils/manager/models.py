@@ -35,7 +35,7 @@ class BaseData(BaseModel):
     群基本信息
     """
 
-    white_group: List[int] = []
+    white_group: List[str] = []
     """白名单"""
     close_task: List[str] = []
     """全局关闭的被动任务"""

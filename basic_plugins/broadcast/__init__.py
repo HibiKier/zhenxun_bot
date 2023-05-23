@@ -50,7 +50,7 @@ async def _(
     gl = [
         g["group_id"]
         for g in await bot.get_group_list()
-        if group_manager.check_group_task_status(g["group_id"], "broadcast")
+        if group_manager.check_group_task_status(str(g["group_id"]), "broadcast")
     ]
     g_cnt = len(gl)
     cnt = 0

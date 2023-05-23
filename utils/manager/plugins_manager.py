@@ -1,7 +1,9 @@
-from typing import Optional, Dict, Callable, Union
 from pathlib import Path
-from utils.manager.data_class import StaticData
+from typing import Callable, Dict, Optional, Union
+
 from utils.manager import group_manager
+from utils.manager.data_class import StaticData
+
 from .models import Plugin
 
 
@@ -77,7 +79,7 @@ class PluginsManager(StaticData[Plugin]):
         )
 
     def block_plugin(
-        self, module: str, group_id: Optional[int] = None, block_type: str = "all"
+        self, module: str, group_id: Optional[str] = None, block_type: str = "all"
     ):
         """
         说明:
@@ -89,7 +91,7 @@ class PluginsManager(StaticData[Plugin]):
         """
         self._set_plugin_status(module, "block", group_id, block_type)
 
-    def unblock_plugin(self, module: str, group_id: Optional[int] = None):
+    def unblock_plugin(self, module: str, group_id: Optional[str] = None):
         """
         说明:
             解锁插件
@@ -124,7 +126,7 @@ class PluginsManager(StaticData[Plugin]):
             return self._data[module].block_type
 
     @init_plugin
-    def get_plugin_error_status(self, module: str) -> bool:
+    def get_plugin_error_status(self, module: str) -> Optional[bool]:
         """
         说明:
             插件是否成功加载
@@ -153,9 +155,9 @@ class PluginsManager(StaticData[Plugin]):
         if module:
             if group_id:
                 if status == "block":
-                    group_manager.block_plugin(f"{module}:super", int(group_id))
+                    group_manager.block_plugin(f"{module}:super", group_id)
                 else:
-                    group_manager.unblock_plugin(f"{module}:super", int(group_id))
+                    group_manager.unblock_plugin(f"{module}:super", group_id)
             else:
                 if status == "block":
                     self._data[module].status = False

@@ -21,7 +21,7 @@ Config.add_plugin_config(
     True,
     help_="默认进群总开关状态",
     default_value=True,
-    type=bool
+    type=bool,
 )
 
 
@@ -36,8 +36,8 @@ def init_group(func: Callable):
     def wrapper(*args, **kwargs):
         self = args[0]
         group_id = list(filter(lambda x: is_number(x), args[1:]))[0]
-        if self and group_id and not self._data.group_manager.get(str(group_id)):
-            self._data.group_manager[str(group_id)] = BaseGroup()
+        if self is not None and group_id and not self._data.group_manager.get(group_id):
+            self._data.group_manager[group_id] = BaseGroup()
         return func(*args, **kwargs)
 
     return wrapper
@@ -84,12 +84,14 @@ class GroupManager(StaticData[BaseData]):
 
     def __init__(self, file: Path):
         super().__init__(file, False)
-        self._data = BaseData.parse_file(file) if file.exists() else BaseData()
+        self._data: BaseData = (
+            BaseData.parse_file(file) if file.exists() else BaseData()
+        )
 
     def get_data(self) -> BaseData:
         return copy.deepcopy(self._data)
 
-    def block_plugin(self, module: str, group_id: int, is_save: bool = True):
+    def block_plugin(self, module: str, group_id: str, is_save: bool = True):
         """
         说明:
             锁定插件
@@ -100,7 +102,7 @@ class GroupManager(StaticData[BaseData]):
         """
         self._set_plugin_status(module, "block", group_id, is_save)
 
-    def unblock_plugin(self, module: str, group_id: int, is_save: bool = True):
+    def unblock_plugin(self, module: str, group_id: str, is_save: bool = True):
         """
         说明:
             解锁插件
@@ -111,7 +113,7 @@ class GroupManager(StaticData[BaseData]):
         """
         self._set_plugin_status(module, "unblock", group_id, is_save)
 
-    def turn_on_group_bot_status(self, group_id: int):
+    def turn_on_group_bot_status(self, group_id: str):
         """
         说明:
             开启群bot开关
@@ -120,7 +122,7 @@ class GroupManager(StaticData[BaseData]):
         """
         self._set_group_bot_status(group_id, True)
 
-    def shutdown_group_bot_status(self, group_id: int):
+    def shutdown_group_bot_status(self, group_id: str):
         """
         说明:
             关闭群bot开关
@@ -130,17 +132,17 @@ class GroupManager(StaticData[BaseData]):
         self._set_group_bot_status(group_id, False)
 
     @init_group
-    def check_group_bot_status(self, group_id: int) -> bool:
+    def check_group_bot_status(self, group_id: str) -> bool:
         """
         说明:
             检查群聊bot总开关状态
         参数:
             :param group_id: 说明
         """
-        return self._data.group_manager[str(group_id)].status
+        return self._data.group_manager[group_id].status
 
     @init_group
-    def set_group_level(self, group_id: int, level: int):
+    def set_group_level(self, group_id: str, level: int):
         """
         说明:
             设置群权限
@@ -148,11 +150,11 @@ class GroupManager(StaticData[BaseData]):
             :param group_id: 群组
             :param level: 权限等级
         """
-        self._data.group_manager[str(group_id)].level = level
+        self._data.group_manager[group_id].level = level
         self.save()
 
     @init_group
-    def get_plugin_status(self, module: str, group_id: int) -> bool:
+    def get_plugin_status(self, module: str, group_id: str) -> bool:
         """
         说明:
             获取插件状态
@@ -162,7 +164,7 @@ class GroupManager(StaticData[BaseData]):
         """
         return module not in self._data.group_manager[str(group_id)].close_plugins
 
-    def get_plugin_super_status(self, module: str, group_id: int) -> bool:
+    def get_plugin_super_status(self, module: str, group_id: str) -> bool:
         """
         说明:
             获取插件是否被超级用户关闭
@@ -170,22 +172,19 @@ class GroupManager(StaticData[BaseData]):
             :param module: 功能模块名
             :param group_id: 群组
         """
-        return (
-            f"{module}:super"
-            not in self._data.group_manager[str(group_id)].close_plugins
-        )
+        return f"{module}:super" not in self._data.group_manager[group_id].close_plugins
 
     @init_group
-    def get_group_level(self, group_id: int) -> int:
+    def get_group_level(self, group_id: str) -> int:
         """
         说明:
             获取群等级
         参数:
             :param group_id: 群号
         """
-        return self._data.group_manager[str(group_id)].level
+        return self._data.group_manager[group_id].level
 
-    def check_group_is_white(self, group_id: int) -> bool:
+    def check_group_is_white(self, group_id: str) -> bool:
         """
         说明:
             检测群聊是否在白名单
@@ -194,7 +193,7 @@ class GroupManager(StaticData[BaseData]):
         """
         return group_id in self._data.white_group
 
-    def add_group_white_list(self, group_id: int):
+    def add_group_white_list(self, group_id: str):
         """
         说明:
             将群聊加入白名单
@@ -204,7 +203,7 @@ class GroupManager(StaticData[BaseData]):
         if group_id not in self._data.white_group:
             self._data.white_group.append(group_id)
 
-    def delete_group_white_list(self, group_id: int):
+    def delete_group_white_list(self, group_id: str):
         """
         说明:
             将群聊从白名单中删除
@@ -214,7 +213,7 @@ class GroupManager(StaticData[BaseData]):
         if group_id in self._data.white_group:
             self._data.white_group.remove(group_id)
 
-    def get_group_white_list(self) -> List[int]:
+    def get_group_white_list(self) -> List[str]:
         """
         说明:
             获取所有群白名单
@@ -227,7 +226,7 @@ class GroupManager(StaticData[BaseData]):
             加载被动技能
         """
         for matcher in get_matchers(True):
-            _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)
+            _plugin = nonebot.plugin.get_plugin(matcher.plugin_name)  # type: ignore
             try:
                 _module = _plugin.module
                 plugin_task = _module.__getattribute__("__plugin_task__")
@@ -239,7 +238,7 @@ class GroupManager(StaticData[BaseData]):
                 pass
 
     @init_group
-    def delete_group(self, group_id: int):
+    def delete_group(self, group_id: str):
         """
         说明:
             删除群配置
@@ -250,7 +249,7 @@ class GroupManager(StaticData[BaseData]):
             self._data.white_group.remove(group_id)
             self.save()
 
-    def open_group_task(self, group_id: int, task: str):
+    def open_group_task(self, group_id: str, task: str):
         """
         说明:
             开启群被动技能
@@ -280,7 +279,7 @@ class GroupManager(StaticData[BaseData]):
         if task in self._data.close_task:
             self._data.close_task.remove(task)
 
-    def close_group_task(self, group_id: int, task: str):
+    def close_group_task(self, group_id: str, task: str):
         """
         说明:
             关闭群被动技能
@@ -290,7 +289,7 @@ class GroupManager(StaticData[BaseData]):
         """
         self._set_group_group_task_status(group_id, task, False)
 
-    def check_task_status(self, task: str, group_id: Optional[int] = None) -> bool:
+    def check_task_status(self, task: str, group_id: Optional[str] = None) -> bool:
         """
         说明:
             检查该被动状态
@@ -306,7 +305,7 @@ class GroupManager(StaticData[BaseData]):
 
     @init_group
     @init_task
-    def check_group_task_status(self, group_id: int, task: str) -> bool:
+    def check_group_task_status(self, group_id: str, task: str) -> bool:
         """
         说明:
             查看群被动技能状态
@@ -314,9 +313,7 @@ class GroupManager(StaticData[BaseData]):
             :param group_id: 群号
             :param task: 被动技能名称
         """
-        return self._data.group_manager[str(group_id)].group_task_status.get(
-            task, False
-        )
+        return self._data.group_manager[group_id].group_task_status.get(task, False)
 
     def check_task_super_status(self, task: str) -> bool:
         """
@@ -336,7 +333,7 @@ class GroupManager(StaticData[BaseData]):
 
     @init_group
     @init_task
-    def group_group_task_status(self, group_id: int) -> str:
+    def group_group_task_status(self, group_id: str) -> str:
         """
         说明:
             查看群被全部动技能状态
@@ -344,14 +341,13 @@ class GroupManager(StaticData[BaseData]):
             :param group_id: 群号
         """
         x = "[群被动技能]:\n"
-        group_id = str(group_id)
         for key in self._data.group_manager[group_id].group_task_status.keys():
-            x += f'{self._data.task[key]}：{"√" if self.check_group_task_status(int(group_id), key) else "×"}\n'
+            x += f'{self._data.task[key]}：{"√" if self.check_group_task_status(group_id, key) else "×"}\n'
         return x[:-1]
 
     @init_group
     @init_task
-    def _set_group_group_task_status(self, group_id: int, task: str, status: bool):
+    def _set_group_group_task_status(self, group_id: str, task: str, status: bool):
         """
         说明:
             管理群被动技能状态
@@ -365,7 +361,7 @@ class GroupManager(StaticData[BaseData]):
 
     @init_group
     def _set_plugin_status(
-        self, module: str, status: str, group_id: int, is_save: bool
+        self, module: str, status: str, group_id: str, is_save: bool
     ):
         """
         说明:
@@ -404,7 +400,7 @@ class GroupManager(StaticData[BaseData]):
             self._data = BaseData.parse_file(self.file)
             self._data.task = t
 
-    def save(self, path: Union[str, Path] = None):
+    def save(self, path: Optional[Union[str, Path]] = None):
         """
         说明:
             保存文件
@@ -428,14 +424,3 @@ class GroupManager(StaticData[BaseData]):
 
     def __getitem__(self, key) -> BaseGroup:
         return self._data.group_manager[key]
-
-    # def get_super_old_data(self) -> Optional[dict]:
-    #     """
-    #     说明:
-    #         获取旧数据，平时使用请不要调用
-    #     """
-    #     if self._data["super"].get("close_plugins"):
-    #         _x = self._data["super"].get("close_plugins")
-    #         del self._data["super"]["close_plugins"]
-    #         return _x
-    #     return None

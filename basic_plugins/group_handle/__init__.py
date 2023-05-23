@@ -95,7 +95,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
             data = plugins2settings_manager.get_data()
             for plugin in data.keys():
                 if not data[plugin].default_status:
-                    group_manager.block_plugin(plugin, event.group_id)
+                    group_manager.block_plugin(plugin, str(event.group_id))
             admin_default_auth = Config.get_config(
                 "admin_bot_manage", "ADMIN_DEFAULT_AUTH"
             )
