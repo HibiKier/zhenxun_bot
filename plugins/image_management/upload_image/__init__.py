@@ -1,13 +1,16 @@
-from nonebot import on_command
-from nonebot.rule import to_me
-from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent, Message
-from configs.config import Config
-from utils.utils import get_message_img
-from .data_source import upload_image_to_local
-from nonebot.params import CommandArg, Arg, ArgStr
 from typing import List
 
+from nonebot import on_command
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageEvent
+from nonebot.params import Arg, ArgStr, CommandArg
+from nonebot.rule import to_me
+from nonebot.typing import T_State
+
+from configs.config import Config
+from utils.depends import ImageList
+from utils.utils import get_message_img
+
+from .data_source import upload_image_to_local
 
 __zx_plugin_name__ = "上传图片 [Admin]"
 __plugin_usage__ = """
@@ -37,27 +40,37 @@ show_gallery = on_command("查看公开图库", priority=1, block=True)
 
 @show_gallery.handle()
 async def _():
+    image_dir_list = Config.get_config("image_management", "IMAGE_DIR_LIST")
+    if not image_dir_list:
+        await show_gallery.finish("未发现任何图库")
     x = "公开图库列表：\n"
-    for i, e in enumerate(Config.get_config("image_management", "IMAGE_DIR_LIST")):
+    for i, e in enumerate(image_dir_list):
         x += f"\t{i+1}.{e}\n"
     await show_gallery.send(x[:-1])
 
 
 @upload_img.handle()
-async def _(event: MessageEvent, state: T_State, arg: Message = CommandArg()):
+async def _(
+    event: MessageEvent,
+    state: T_State,
+    arg: Message = CommandArg(),
+    img_list: List[str] = ImageList(),
+):
+    image_dir_list = Config.get_config("image_management", "IMAGE_DIR_LIST")
+    if not image_dir_list:
+        await show_gallery.finish("未发现任何图库")
     args = arg.extract_plain_text().strip()
-    img_list = get_message_img(event.json())
     if args:
-        if args in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+        if args in image_dir_list:
             state["path"] = args
     if img_list:
         state["img_list"] = arg
+    state["dir_list"] = "\n-".join(image_dir_list)
 
 
 @upload_img.got(
     "path",
-    prompt=f"请选择要上传的图库\n- "
-    + "\n- ".join(Config.get_config("image_management", "IMAGE_DIR_LIST")),
+    prompt=Message.template("请选择要上传的图库\n-{dir_list}"),
 )
 @upload_img.got("img_list", prompt="图呢图呢图呢图呢！GKD！")
 async def _(
@@ -65,13 +78,13 @@ async def _(
     event: MessageEvent,
     state: T_State,
     path: str = ArgStr("path"),
-    img_list: Message = Arg("img_list"),
+    img_list: List[str] = ImageList(),
 ):
-    if path not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+    image_dir_list = Config.get_config("image_management", "IMAGE_DIR_LIST") or []
+    if path not in image_dir_list:
         await upload_img.reject_arg("path", "此目录不正确，请重新输入目录！")
-    if not get_message_img(img_list):
+    if not img_list:
         await upload_img.reject_arg("img_list", "图呢图呢图呢图呢！GKD！")
-    img_list = get_message_img(img_list)
     group_id = 0
     if isinstance(event, GroupMessageEvent):
         group_id = event.group_id
@@ -81,37 +94,41 @@ async def _(
 
 
 @continuous_upload_img.handle()
-async def _(event: MessageEvent, state: T_State):
-    path = get_message_img(event.json())
-    if path in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+async def _(
+    event: MessageEvent,
+    state: T_State,
+    arg: Message = CommandArg(),
+    img_list: List[str] = ImageList(),
+):
+    image_dir_list = Config.get_config("image_management", "IMAGE_DIR_LIST") or []
+    path = arg.extract_plain_text().strip()
+    if path in image_dir_list:
         state["path"] = path
     state["img_list"] = []
+    state["dir_list"] = "\n-".join(image_dir_list)
 
 
-@continuous_upload_img.got(
-    "path",
-    prompt=f"请选择要上传的图库\n- "
-    + "\n- ".join(Config.get_config("image_management", "IMAGE_DIR_LIST")),
-)
+@continuous_upload_img.got("path", prompt=Message.template("请选择要上传的图库\n-{dir_list}"))
 @continuous_upload_img.got("img", prompt="图呢图呢图呢图呢！GKD！【发送‘stop’为停止】")
 async def _(
     event: MessageEvent,
     state: T_State,
-    img_list: List[str] = Arg("img_list"),
+    collect_img_list: List[str] = Arg("img_list"),
     path: str = ArgStr("path"),
     img: Message = Arg("img"),
+    img_list: List[str] = ImageList(),
 ):
-    if path not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+    image_dir_list = Config.get_config("image_management", "IMAGE_DIR_LIST") or []
+    if path not in image_dir_list:
         await upload_img.reject_arg("path", "此目录不正确，请重新输入目录！")
     if not img.extract_plain_text() == "stop":
-        img = get_message_img(img)
-        if img:
-            for i in img:
-                img_list.append(i)
+        if img_list:
+            for i in img_list:
+                collect_img_list.append(i)
         await upload_img.reject_arg("img", "图再来！！【发送‘stop’为停止】")
     group_id = 0
     if isinstance(event, GroupMessageEvent):
         group_id = event.group_id
     await continuous_upload_img.send(
-        await upload_image_to_local(img_list, path, event.user_id, group_id)
+        await upload_image_to_local(collect_img_list, path, event.user_id, group_id)
     )

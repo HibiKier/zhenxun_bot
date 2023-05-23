@@ -51,15 +51,16 @@ _path = IMAGE_PATH / "image_management"
 
 @send_img.handle()
 async def _(event: MessageEvent):
+    image_dir_list = Config.get_config("image_management", "IMAGE_DIR_LIST") or []
     msg = get_message_text(event.json()).split()
     gallery = msg[0]
-    if gallery not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+    if gallery not in image_dir_list:
         return
     img_id = None
     if len(msg) > 1:
         img_id = msg[1]
     path = _path / cn2py(gallery)
-    if gallery in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+    if gallery in image_dir_list:
         if not path.exists() and (path.parent.parent / cn2py(gallery)).exists():
             path = IMAGE_PATH / cn2py(gallery)
         else:
@@ -76,9 +77,10 @@ async def _(event: MessageEvent):
     result = image(path / f"{index}.jpg")
     if result:
         logger.info(
-            f"(USER {event.user_id}, GROUP "
-            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) "
-            f"发送{cn2py(gallery)}:" + result
+            f"发送{cn2py(gallery)}:" + str(path / f"{index}.jpg"),
+            "发送图片",
+            event.user_id,
+            getattr(event, "group_id", None),
         )
         msg_id = await send_img.send(
             f"id：{index}" + result
@@ -92,9 +94,10 @@ async def _(event: MessageEvent):
         )
     else:
         logger.info(
-            f"(USER {event.user_id}, GROUP "
-            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'}) "
-            f"发送 {cn2py(gallery)} 失败"
+            f"发送 {cn2py(gallery)} 失败",
+            "发送图片",
+            event.user_id,
+            getattr(event, "group_id", None),
         )
         await send_img.finish(f"不想给你看Ov|")
 
