@@ -35,7 +35,7 @@ message_sent = on(
 
 @message_sent.handle()
 async def handle_message_sent(bot: Bot, event: Event):
-    msg = getattr(event, "message", "")
+    msg = str(getattr(event, "message", ""))
     self_id = event.self_id
     user_id = getattr(event, "user_id", -1)
     msg_id = getattr(event, "message_id", -1)
