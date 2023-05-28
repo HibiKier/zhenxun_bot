@@ -35,9 +35,11 @@ def init_group(func: Callable):
 
     def wrapper(*args, **kwargs):
         self = args[0]
-        group_id = list(filter(lambda x: is_number(x), args[1:]))[0]
-        if self is not None and group_id and not self._data.group_manager.get(group_id):
-            self._data.group_manager[group_id] = BaseGroup()
+        if arg_list := list(filter(lambda x: is_number(x), args[1:])):
+            group_id = str(arg_list[0])
+            if self is not None and group_id and not self._data.group_manager.get(group_id):
+                self._data.group_manager[group_id] = BaseGroup()
+                self.save()
         return func(*args, **kwargs)
 
     return wrapper

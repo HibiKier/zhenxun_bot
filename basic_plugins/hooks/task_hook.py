@@ -1,7 +1,7 @@
 import re
 from typing import Any, Dict
 
-from nonebot.adapters.onebot.v11 import Bot, Message
+from nonebot.adapters.onebot.v11 import Bot, Message, unescape
 from nonebot.exception import MockApiException
 
 from services.log import logger
@@ -14,27 +14,22 @@ async def _(bot: Bot, api: str, data: Dict[str, Any]):
     task = None
     group_id = None
     try:
+        msg = unescape(
+            data["message"].strip()
+            if isinstance(data["message"], str)
+            else str(data["message"]["text"]).strip()
+        )
         if (
             (
                 (api == "send_msg" and data.get("message_type") == "group")
                 or api == "send_group_msg"
             )
             and (
-                (
-                    r := re.search(
-                        "^\[\[_task\|(.*)]]",
-                        data["message"].strip()
-                        if isinstance(data["message"], str)
-                        else str(data["message"]["text"]).strip(),
-                    )
-                )
-                or (
-                    r := re.search(
-                        "^&#91;&#91;_task\|(.*)&#93;&#93;",
-                        data["message"].strip()
-                        if isinstance(data["message"], str)
-                        else str(data["message"]["text"]).strip(),
-                    )
+                r := re.search(
+                    "^\[\[_task\|(.*)]]",
+                    data["message"].strip()
+                    if isinstance(data["message"], str)
+                    else str(data["message"]["text"]).strip(),
                 )
             )
             and r.group(1) in group_manager.get_task_data().keys()
