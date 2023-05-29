@@ -14,28 +14,23 @@ async def _(bot: Bot, api: str, data: Dict[str, Any]):
     task = None
     group_id = None
     try:
-        msg = unescape(
-            data["message"].strip()
-            if isinstance(data["message"], str)
-            else str(data["message"]["text"]).strip()
-        )
         if (
-            (
-                (api == "send_msg" and data.get("message_type") == "group")
-                or api == "send_group_msg"
+            api == "send_msg" and data.get("message_type") == "group"
+        ) or api == "send_group_msg":
+            msg = unescape(
+                data["message"].strip()
+                if isinstance(data["message"], str)
+                else str(data["message"]["text"]).strip()
             )
-            and (
-                r := re.search(
-                    "^\[\[_task\|(.*)]]",
-                    data["message"].strip()
-                    if isinstance(data["message"], str)
-                    else str(data["message"]["text"]).strip(),
-                )
-            )
-            and r.group(1) in group_manager.get_task_data().keys()
-        ):
-            task = r.group(1)
-            group_id = data["group_id"]
+            if r := re.search(
+                "^\[\[_task\|(.*)]]",
+                data["message"].strip()
+                if isinstance(data["message"], str)
+                else str(data["message"]["text"]).strip(),
+            ):
+                if r.group(1) in group_manager.get_task_data().keys():
+                    task = r.group(1)
+                    group_id = data["group_id"]
     except Exception as e:
         logger.error(f"TaskHook ERROR", "HOOK", e=e)
     else:
