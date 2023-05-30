@@ -24,9 +24,7 @@ async def _(bot: Bot, api: str, data: Dict[str, Any]):
             )
             if r := re.search(
                 "^\[\[_task\|(.*)]]",
-                data["message"].strip()
-                if isinstance(data["message"], str)
-                else str(data["message"]["text"]).strip(),
+                msg,
             ):
                 if r.group(1) in group_manager.get_task_data().keys():
                     task = r.group(1)
