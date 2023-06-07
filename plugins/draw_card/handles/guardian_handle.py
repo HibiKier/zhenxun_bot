@@ -266,15 +266,15 @@ class GuardianHandle(BaseHandle[GuardianData]):
                 try:
                     name = char.xpath("./td[2]/a/@title")[0]
                     avatar = char.xpath("./td[1]/div/div/div/a/img/@src")[0]
-                    star = char.xpath("./td[3]/text()")[0]
-                except IndexError:
-                    continue
-                member_dict = {
-                    "头像": unquote(str(avatar)),
-                    "名称": remove_prohibited_str(name),
-                    "星级": int(str(star).strip()),
-                }
-                guardian_arms_info[member_dict["名称"]] = member_dict
+                    star = char.xpath("@data-param12")[0]
+                    member_dict = {
+                        "头像": unquote(str(avatar)),
+                        "名称": remove_prohibited_str(name),
+                        "星级": int(star),
+                    }
+                    guardian_arms_info[member_dict["名称"]] = member_dict
+                except Exception:
+                    pass
             self.dump_data(guardian_arms_info, "guardian_arms.json")
             logger.info(f"{self.game_name_cn} 武器更新成功")
         url = "https://wiki.biligame.com/gt/盾牌"
@@ -290,15 +290,15 @@ class GuardianHandle(BaseHandle[GuardianData]):
                 try:
                     name = char.xpath("./td[2]/a/@title")[0]
                     avatar = char.xpath("./td[1]/div/div/div/a/img/@src")[0]
-                    star = char.xpath("./td[3]/text()")[0]
-                except IndexError:
-                    continue
-                member_dict = {
-                    "头像": unquote(str(avatar)),
-                    "名称": remove_prohibited_str(name),
-                    "星级": int(str(star).strip()),
-                }
-                guardian_arms_info[member_dict["名称"]] = member_dict
+                    star = char.xpath("@data-param22")[0]
+                    member_dict = {
+                        "头像": unquote(str(avatar)),
+                        "名称": remove_prohibited_str(name),
+                        "星级": int(star),
+                    }
+                    guardian_arms_info[member_dict["名称"]] = member_dict
+                except Exception:
+                    pass
             self.dump_data(guardian_arms_info, "guardian_arms.json")
             logger.info(f"{self.game_name_cn} 盾牌更新成功")
         # 下载头像
