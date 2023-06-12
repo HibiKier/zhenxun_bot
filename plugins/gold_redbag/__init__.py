@@ -1,33 +1,36 @@
-from nonebot import on_command, on_notice
-from nonebot.adapters.onebot.v11 import (
-    Bot,
-    ActionFailed,
-    GroupMessageEvent,
-    PokeNotifyEvent,
-    Message
-)
-from .data_source import (
-    check_gold,
-    generate_send_redbag_pic,
-    open_redbag,
-    generate_open_redbag_pic,
-    return_gold,
-)
-from nonebot.adapters.onebot.v11.permission import GROUP
-from nonebot.message import run_preprocessor, IgnoredException
-from nonebot.matcher import Matcher
-from utils.utils import is_number, scheduler
-from utils.message_builder import image
-from services.log import logger
-from configs.path_config import IMAGE_PATH
-from nonebot.permission import SUPERUSER
-from nonebot.rule import to_me
-from datetime import datetime, timedelta
-from configs.config import NICKNAME
-from apscheduler.jobstores.base import JobLookupError
-from nonebot.params import CommandArg
 import random
 import time
+from datetime import datetime, timedelta
+
+from apscheduler.jobstores.base import JobLookupError
+from nonebot import on_command, on_notice
+from nonebot.adapters.onebot.v11 import (
+    ActionFailed,
+    Bot,
+    GroupMessageEvent,
+    Message,
+    PokeNotifyEvent,
+)
+from nonebot.adapters.onebot.v11.permission import GROUP
+from nonebot.matcher import Matcher
+from nonebot.message import IgnoredException, run_preprocessor
+from nonebot.params import CommandArg
+from nonebot.permission import SUPERUSER
+from nonebot.rule import to_me
+
+from configs.config import NICKNAME
+from configs.path_config import IMAGE_PATH
+from services.log import logger
+from utils.message_builder import image
+from utils.utils import is_number, scheduler
+
+from .data_source import (
+    check_gold,
+    generate_open_redbag_pic,
+    generate_send_redbag_pic,
+    open_redbag,
+    return_gold,
+)
 
 __zx_plugin_name__ = "金币红包"
 __plugin_usage__ = """
@@ -72,7 +75,9 @@ gold_redbag = on_command(
     "塞红包", aliases={"金币红包"}, priority=5, block=True, permission=GROUP
 )
 
-open_ = on_command("开", aliases={"抢"}, priority=5, block=True, permission=GROUP, rule=rule)
+open_ = on_command(
+    "开", aliases={"抢"}, priority=5, block=True, permission=GROUP, rule=rule
+)
 
 poke_ = on_notice(priority=6, block=False)
 
@@ -89,7 +94,10 @@ festive_redbag_data = {}
 
 # 阻断其他poke
 @run_preprocessor
-async def _(matcher: Matcher, event: PokeNotifyEvent, ):
+async def _(
+    matcher: Matcher,
+    event: PokeNotifyEvent,
+):
     try:
         if matcher.type == "notice" and event.self_id == event.target_id:
             flag = check_on_gold_red(event)
@@ -109,10 +117,12 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
     try:
         if time.time() - redbag_data[event.group_id]["time"] > 60:
             amount = (
-                    redbag_data[event.group_id]["amount"]
-                    - redbag_data[event.group_id]["open_amount"]
+                redbag_data[event.group_id]["amount"]
+                - redbag_data[event.group_id]["open_amount"]
             )
-            await return_gold(redbag_data[event.group_id]["user_id"], event.group_id, amount)
+            await return_gold(
+                redbag_data[event.group_id]["user_id"], str(event.group_id), amount
+            )
             await gold_redbag.send(
                 f'{redbag_data[event.group_id]["nickname"]}的红包过时未开完，退还{amount}金币...'
             )
@@ -128,18 +138,18 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip()
     msg = msg.split()
     if len(msg) == 1:
-        flag, amount = await check_gold(event.user_id, event.group_id, msg[0])
+        flag, amount = await check_gold(str(event.user_id), str(event.group_id), msg[0])
         if not flag:
-            await gold_redbag.finish(amount)
+            await gold_redbag.finish(str(amount))
         num = 5
     else:
         amount = msg[0]
         num = msg[1]
         if not is_number(num) or int(num) < 1:
             await gold_redbag.finish("红包个数给我输正确啊！", at_sender=True)
-        flag, amount = await check_gold(event.user_id, event.group_id, amount)
+        flag, amount = await check_gold(str(event.user_id), str(event.group_id), amount)
         if not flag:
-            await gold_redbag.finish(amount, at_sender=True)
+            await gold_redbag.finish(str(amount), at_sender=True)
         group_member_num = (await bot.get_group_info(group_id=event.group_id))[
             "member_count"
         ]
@@ -149,7 +159,12 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
             num = group_member_num
     nickname = event.sender.card or event.sender.nickname
     flag, result = init_redbag(
-        event.user_id, event.group_id, nickname, amount, num, int(bot.self_id)
+        str(event.user_id),
+        str(event.group_id),
+        nickname or str(event.user_id),
+        amount,
+        num,
+        int(bot.self_id),
     )
     if not flag:
         await gold_redbag.finish(result, at_sender=True)
@@ -158,13 +173,11 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
             f"{nickname}发起了金币红包\n金额：{amount}\n数量：{num}\n"
             + image(
                 b64=await generate_send_redbag_pic(
-                    redbag_data[event.group_id]["user_id"]
+                    redbag_data[str(event.group_id)]["user_id"]
                 )
             )
         )
-    logger.info(
-        f"USER {event.user_id} GROUP {event.group_id} 塞入 {num} 个红包，共 {amount} 金币"
-    )
+    logger.info(f"塞入 {num} 个红包，共 {amount} 金币", "金币红包", event.user_id, event.group_id)
 
 
 @open_.handle()
@@ -173,20 +186,20 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
     msg = arg.extract_plain_text().strip()
     msg = (
         msg.replace("!", "")
-            .replace("！", "")
-            .replace(",", "")
-            .replace("，", "")
-            .replace(".", "")
-            .replace("。", "")
+        .replace("！", "")
+        .replace(",", "")
+        .replace("，", "")
+        .replace(".", "")
+        .replace("。", "")
     )
     if msg:
         if "红包" not in msg:
             return
     try:
         await open_.send(
-            image(b64=await get_redbag_img(event.user_id, event.group_id)),
+            image(b64=await get_redbag_img(str(event.user_id), str(event.group_id))),
             at_sender=True,
-            )
+        )
     except KeyError:
         await open_.finish("真贪心，明明已经开过这个红包了的说...", at_sender=True)
 
@@ -199,7 +212,7 @@ async def _poke_(event: PokeNotifyEvent):
         if not flag:
             return
         await poke_.send(
-            image(b64=await get_redbag_img(event.user_id, event.group_id)),
+            image(b64=await get_redbag_img(str(event.user_id), str(event.group_id))),
             at_sender=True,
         )
 
@@ -217,8 +230,8 @@ async def _(event: GroupMessageEvent):
                 at_sender=True,
             )
         await return_gold(
-            event.user_id,
-            event.group_id,
+            str(event.user_id),
+            str(event.group_id),
             redbag_data[event.group_id]["amount"]
             - redbag_data[event.group_id]["open_amount"],
         )
@@ -272,9 +285,7 @@ async def _(bot: Bot, arg: Message = CommandArg()):
                 await end_festive_redbag(bot, g)
             except JobLookupError:
                 pass
-            init_redbag(
-                int(bot.self_id), g, f"{NICKNAME}", amount, num, int(bot.self_id), 1
-            )
+            init_redbag(bot.self_id, g, f"{NICKNAME}", amount, num, int(bot.self_id), 1)
             scheduler.add_job(
                 end_festive_redbag,
                 "date",
@@ -286,7 +297,7 @@ async def _(bot: Bot, arg: Message = CommandArg()):
                 await bot.send_group_msg(
                     group_id=g,
                     message=f"{NICKNAME}发起了金币红包\n金额：{amount}\n数量：{num}\n"
-                            + image(
+                    + image(
                         b64=await generate_send_redbag_pic(int(bot.self_id), greetings)
                     ),
                 )
@@ -297,13 +308,13 @@ async def _(bot: Bot, arg: Message = CommandArg()):
 
 # 红包数据初始化
 def init_redbag(
-        user_id: int,
-        group_id: int,
-        nickname: str,
-        amount: int,
-        num: int,
-        bot_self_id: int,
-        mode: int = 0,
+    user_id: str,
+    group_id: str,
+    nickname: str,
+    amount: int,
+    num: int,
+    bot_self_id: int,
+    mode: int = 0,
 ):
     global redbag_data, festive_redbag_data
     data = redbag_data if mode == 0 else festive_redbag_data
@@ -341,7 +352,7 @@ def random_redbag(amount: int, num: int) -> list:
 
 
 # 返回开红包图片
-async def get_redbag_img(user_id: int, group_id: int):
+async def get_redbag_img(user_id: str, group_id: str):
     global redbag_data, festive_redbag_data
     data = redbag_data
     mode = 0
@@ -389,17 +400,14 @@ def check_on_gold_red(event) -> bool:
     flag1 = True
     flag2 = True
     try:
-        if festive_redbag_data[event.group_id]["user_id"]:
-            if (
-                    event.user_id
-                    in festive_redbag_data[event.group_id]["open_user"]
-            ):
+        if festive_redbag_data[str(event.group_id)]["user_id"]:
+            if event.user_id in festive_redbag_data[str(event.group_id)]["open_user"]:
                 flag1 = False
     except KeyError:
         flag1 = False
     try:
-        if redbag_data[event.group_id]["user_id"]:
-            if event.user_id in redbag_data[event.group_id]["open_user"]:
+        if redbag_data[str(event.group_id)]["user_id"]:
+            if event.user_id in redbag_data[str(event.group_id)]["open_user"]:
                 flag2 = False
     except KeyError:
         flag2 = False

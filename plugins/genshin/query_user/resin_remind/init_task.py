@@ -88,35 +88,27 @@ async def _():
                 if u.resin_recovery_time and u.resin_recovery_time > datetime.now(
                     pytz.timezone("Asia/Shanghai")
                 ):
-                    # date = await Genshin.get_user_resin_recovery_time(u.uid)  # 不能要,因为可能在这期间用户使用了树脂
-                    add_job(u.user_qq, u.uid)
-                    # scheduler.add_job(
-                    #     _remind,
-                    #     "date",
-                    #     run_date=date.replace(microsecond=0),
-                    #     id=f"genshin_resin_remind_{u.uid}_{u.user_qq}",
-                    #     args=[u.user_qq, u.uid],
-                    # )
+                    add_job(u.user_id, u.uid)
                     logger.info(
-                        f"genshin_resin_remind add_job：USER：{u.user_qq} UID：{u.uid}启动原神树脂提醒 "
+                        f"genshin_resin_remind add_job：USER：{u.user_id} UID：{u.uid}启动原神树脂提醒 "
                     )
                 else:
                     u.resin_recovery_time = None  # type: ignore
                     update_list.append(u)
-                    add_job(u.user_qq, u.uid)
+                    add_job(u.user_id, u.uid)
                     logger.info(
-                        f"genshin_resin_remind add_job CHECK：USER：{u.user_qq} UID：{u.uid}启动原神树脂提醒 "
+                        f"genshin_resin_remind add_job CHECK：USER：{u.user_id} UID：{u.uid}启动原神树脂提醒 "
                     )
             else:
-                add_job(u.user_qq, u.uid)
+                add_job(u.user_id, u.uid)
                 logger.info(
-                    f"genshin_resin_remind add_job CHECK：USER：{u.user_qq} UID：{u.uid}启动原神树脂提醒 "
+                    f"genshin_resin_remind add_job CHECK：USER：{u.user_id} UID：{u.uid}启动原神树脂提醒 "
                 )
     if update_list:
         await Genshin.bulk_update(update_list, ["resin_recovery_time"])
 
 
-def add_job(user_id: int, uid: int):
+def add_job(user_id: str, uid: int):
     # 移除
     try:
         scheduler.remove_job(f"genshin_resin_remind_{uid}_{user_id}")
@@ -136,7 +128,7 @@ def add_job(user_id: int, uid: int):
 
 
 async def _remind(user_id: int, uid: str):
-    user = await Genshin.get_or_none(user_qq=user_id, uid=int(uid))
+    user = await Genshin.get_or_none(user_id=str(user_id), uid=int(uid))
     uid = str(uid)
     if uid[0] in ["1", "2"]:
         server_id = "cn_gf01"

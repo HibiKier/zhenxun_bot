@@ -196,11 +196,11 @@ async def _(
         if problem and bot.config.nickname:
             nickname = [nk for nk in bot.config.nickname if problem.startswith(nk)]
         await WordBank.add_problem_answer(
-            event.user_id,
-            event.group_id
+            str(event.user_id),
+            str(event.group_id)
             if isinstance(event, GroupMessageEvent)
             and (not word_scope or word_scope == "私聊")
-            else 0,
+            else "0",
             scope2int[word_scope] if word_scope else 1,
             type2int[word_type] if word_type else 0,
             problem or problem_image,
@@ -211,16 +211,16 @@ async def _(
         if isinstance(e, FinishedException):
             await add_word.finish()
         logger.error(
-            f"(USER {event.user_id}, GROUP "
-            f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-            f" 添加词条 {problem} 发生错误 {type(e)}: {e} "
+            f"添加词条 {problem} 错误...",
+            "添加词条",
+            event.user_id,
+            getattr(event, "group_id", None),
+            e=e,
         )
         await add_word.finish(f"添加词条 {problem} 发生错误！")
     await add_word.send("添加词条 " + (problem or problem_image) + " 成功！")
     logger.info(
-        f"(USER {event.user_id}, GROUP "
-        f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-        f" 添加词条 {problem} 成功！"
+        f"添加词条 {problem} 成功！", "添加词条", event.user_id, getattr(event, "group_id", None)
     )
 
 
@@ -228,9 +228,9 @@ async def _(
 async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
     if not (msg := arg.extract_plain_text().strip()):
         await delete_word_matcher.finish("此命令之后需要跟随指定词条，通过“显示词条“查看")
-    result = await delete_word(msg, event.group_id)
+    result = await delete_word(msg, str(event.group_id))
     await delete_word_matcher.send(result)
-    logger.info(f"(USER {event.user_id}, GROUP " f"{event.group_id})" f" 删除词条:" + msg)
+    logger.info(f"删除词条:" + msg, "删除词条", event.user_id, event.group_id)
 
 
 @delete_word_matcher.handle()
@@ -246,7 +246,7 @@ async def _(
         await delete_word_matcher.finish("此命令之后需要跟随指定词条，通过“显示词条“查看")
     result = await delete_word(msg, word_scope=2 if cmd[0] == "删除词条" else 0)
     await delete_word_matcher.send(result)
-    logger.info(f"(USER {event.user_id})" f" 删除词条:" + msg)
+    logger.info(f"删除词条:" + msg, "删除词条", event.user_id)
 
 
 @update_word_matcher.handle()
@@ -255,9 +255,9 @@ async def _(event: GroupMessageEvent, arg: Message = CommandArg()):
         await update_word_matcher.finish("此命令之后需要跟随指定词条，通过“显示词条“查看")
     if len(msg.split()) < 2:
         await update_word_matcher.finish("此命令需要两个参数，请查看帮助")
-    result = await update_word(msg, event.group_id)
+    result = await update_word(msg, str(event.group_id))
     await update_word_matcher.send(result)
-    logger.info(f"(USER {event.user_id}, GROUP " f"{event.group_id})" f" 更新词条词条:" + msg)
+    logger.info(f"更新词条词条:" + msg, "更新词条", event.user_id, event.group_id)
 
 
 @update_word_matcher.handle()
@@ -275,7 +275,7 @@ async def _(
         await update_word_matcher.finish("此命令需要两个参数，请查看帮助")
     result = await update_word(msg, word_scope=2 if cmd[0] == "修改词条" else 0)
     await update_word_matcher.send(result)
-    logger.info(f"(USER {event.user_id})" f" 更新词条词条:" + msg)
+    logger.info(f"更新词条词条:" + msg, "更新词条", event.user_id)
 
 
 @show_word_matcher.handle()
@@ -288,7 +288,8 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
             if (
                 not is_number(id_)
                 or int(id_) < 0
-                or int(id_) >= len(await WordBank.get_group_all_problem(event.group_id))
+                or int(id_)
+                >= len(await WordBank.get_group_all_problem(str(event.group_id)))
             ):
                 await show_word_matcher.finish("id必须为数字且在范围内")
             id_ = int(id_)
@@ -301,9 +302,9 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
             ):
                 await show_word_matcher.finish("gid必须为数字且在范围内")
             gid = int(gid)
-        msg_list = await show_word(problem, id_, gid, None if gid else event.group_id)
+        msg_list = await show_word(problem, id_, gid, None if gid else str(event.group_id))
     else:
-        msg_list = await show_word(problem, None, None, event.group_id)
+        msg_list = await show_word(problem, None, None, str(event.group_id))
     if isinstance(msg_list, str):
         await show_word_matcher.send(msg_list)
     else:
@@ -311,9 +312,7 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
             group_id=event.group_id, messages=custom_forward_msg(msg_list, bot.self_id)
         )
     logger.info(
-        f"(USER {event.user_id}, GROUP "
-        f"{event.group_id if isinstance(event, GroupMessageEvent) else 'private'})"
-        f" 发送查看词条回答:" + problem
+        f"查看词条回答:" + problem, "显示词条", event.user_id, getattr(event, "group_id", None)
     )
 
 
@@ -352,4 +351,6 @@ async def _(event: PrivateMessageEvent, arg: Message = CommandArg()):
         for msg in msg_list:
             t += msg + "\n"
         await show_word_matcher.send(t[:-1])
-    logger.info(f"(USER {event.user_id}, GROUP " f"private)" f" 发送查看词条回答:" + problem)
+    logger.info(
+        f"查看词条回答:" + problem, "显示词条", event.user_id, getattr(event, "group_id", None)
+    )

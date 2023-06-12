@@ -7,9 +7,9 @@ class OpenCasesUser(Model):
 
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
-    user_qq = fields.BigIntField()
+    user_id = fields.CharField(255)
     """用户id"""
-    group_id = fields.BigIntField()
+    group_id = fields.CharField(255)
     """群聊id"""
     total_count: int = fields.IntField(default=0)
     """总开启次数"""
@@ -47,11 +47,14 @@ class OpenCasesUser(Model):
     class Meta:
         table = "open_cases_users"
         table_description = "开箱统计数据表"
-        unique_together = ("user_qq", "group_id")
+        unique_together = ("user_id", "group_id")
 
     @classmethod
     async def _run_script(cls):
         return [
             "alter table open_cases_users alter COLUMN make_money type float;",  # 将make_money字段改为float
             "alter table open_cases_users alter COLUMN spend_money type float;",  # 将spend_money字段改为float
+            "ALTER TABLE open_cases_users RENAME COLUMN user_qq TO user_id;",  # 将user_qq改为user_id
+            "ALTER TABLE open_cases_users ALTER COLUMN user_id TYPE character varying(255);",
+            "ALTER TABLE open_cases_users ALTER COLUMN group_id TYPE character varying(255);",
         ]

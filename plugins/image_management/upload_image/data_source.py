@@ -1,11 +1,11 @@
-from configs.config import NICKNAME
+import os
 from typing import List
+
+from configs.config import NICKNAME
 from configs.path_config import IMAGE_PATH
 from services.log import logger
-from utils.utils import cn2py
 from utils.http_utils import AsyncHttpx
-import os
-
+from utils.utils import cn2py
 
 _path = IMAGE_PATH / "image_management"
 
@@ -31,8 +31,10 @@ async def upload_image_to_local(
     for img in failed_list:
         failed_result += str(img) + "\n"
     logger.info(
-        f"USER {user_id}  GROUP {group_id}"
-        f" 上传图片至 {_path_name} 共 {len(img_list)} 张，失败 {len(failed_list)} 张，id={success_id[:-1]}"
+        f"上传图片至 {_path_name} 共 {len(img_list)} 张，失败 {len(failed_list)} 张，id={success_id[:-1]}",
+        "上传图片",
+        user_id,
+        group_id,
     )
     if failed_list:
         return (

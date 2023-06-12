@@ -8,7 +8,7 @@ from .model import RussianUser
 
 async def rank(group_id: int, itype: str, num: int) -> Optional[BuildMat]:
     all_users = await RussianUser.filter(group_id=group_id).all()
-    all_user_id = [user.user_qq for user in all_users]
+    all_user_id = [user.user_id for user in all_users]
     if itype == "win_rank":
         rank_name = "胜场排行榜"
         all_user_data = [user.win_count for user in all_users]

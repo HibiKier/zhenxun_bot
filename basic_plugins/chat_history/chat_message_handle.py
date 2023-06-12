@@ -69,7 +69,7 @@ async def _(event: GroupMessageEvent, reg_group: Tuple[Any, ...] = RegexGroup())
         num_str = "发言次数：\n\n"
         idx = 1
         for uid, num in rank_data:
-            if user := await GroupInfoUser.filter(user_id=str(uid), group_id=str(gid)).first():
+            if user := await GroupInfoUser.filter(user_id=uid, group_id=gid).first():
                 user_name = user.user_name
             else:
                 user_name = uid

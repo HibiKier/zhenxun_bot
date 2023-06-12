@@ -35,13 +35,14 @@ _path = IMAGE_PATH / "image_management"
 
 @move_img.handle()
 async def _(state: T_State, arg: Message = CommandArg()):
+    image_dir_list = Config.get_config("image_management", "IMAGE_DIR_LIST") or []
     args = arg.extract_plain_text().strip().split()
     if args:
         if n := len(args):
-            if args[0] in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+            if args[0] in image_dir_list:
                 state["source_path"] = args[0]
         if n > 1:
-            if args[1] in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+            if args[1] in image_dir_list:
                 state["destination_path"] = args[1]
         if n > 2 and is_number(args[2]):
             state["id"] = args[2]
@@ -52,24 +53,25 @@ async def _(state: T_State, arg: Message = CommandArg()):
 @move_img.got("id", prompt="要移动的图片id是？")
 async def _(
     event: MessageEvent,
-    source_path: str = ArgStr("source_path"),
-    destination_path: str = ArgStr("destination_path"),
+    source_path_: str = ArgStr("source_path"),
+    destination_path_: str = ArgStr("destination_path"),
     img_id: str = ArgStr("id"),
 ):
     if (
-        source_path in ["取消", "算了"]
+        source_path_ in ["取消", "算了"]
         or img_id in ["取消", "算了"]
-        or destination_path in ["取消", "算了"]
+        or destination_path_ in ["取消", "算了"]
     ):
         await move_img.finish("已取消操作...")
-    if source_path not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+    image_dir_list = Config.get_config("image_management", "IMAGE_DIR_LIST") or []
+    if source_path_ not in image_dir_list:
         await move_img.reject_arg("source_path", "移除目录不正确，请重新输入！")
-    if destination_path not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+    if destination_path_ not in image_dir_list:
         await move_img.reject_arg("destination_path", "移入目录不正确，请重新输入！")
     if not is_number(img_id):
         await move_img.reject_arg("id", "id不正确！请重新输入数字...")
-    source_path = _path / cn2py(source_path)
-    destination_path = _path / cn2py(destination_path)
+    source_path = _path / cn2py(source_path_)
+    destination_path = _path / cn2py(destination_path_)
     if not source_path.exists():
         if (source_path.parent.parent / cn2py(source_path.name)).exists():
             source_path = source_path.parent.parent / cn2py(source_path.name)

@@ -1,14 +1,16 @@
-from configs.path_config import IMAGE_PATH, TEMP_PATH
-from utils.message_builder import image
-from services.log import logger
+import os
+
 from nonebot import on_command
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message, MessageEvent
+from nonebot.params import Arg, ArgStr, CommandArg
 from nonebot.rule import to_me
 from nonebot.typing import T_State
-from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent, Message
-from utils.utils import is_number, cn2py
+
 from configs.config import Config
-from nonebot.params import CommandArg, Arg
-import os
+from configs.path_config import IMAGE_PATH, TEMP_PATH
+from services.log import logger
+from utils.message_builder import image
+from utils.utils import cn2py, is_number
 
 __zx_plugin_name__ = "删除图片 [Admin]"
 __plugin_usage__ = """
@@ -36,9 +38,10 @@ _path = IMAGE_PATH / "image_management"
 
 @delete_img.handle()
 async def _(state: T_State, arg: Message = CommandArg()):
+    image_dir_list = Config.get_config("image_management", "IMAGE_DIR_LIST") or []
     args = arg.extract_plain_text().strip().split()
     if args:
-        if args[0] in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+        if args[0] in image_dir_list:
             state["path"] = args[0]
         if len(args) > 1 and is_number(args[1]):
             state["id"] = args[1]
@@ -49,16 +52,17 @@ async def _(state: T_State, arg: Message = CommandArg()):
 async def arg_handle(
     event: MessageEvent,
     state: T_State,
-    path: str = Arg("path"),
-    img_id: str = Arg("id"),
+    path_: str = ArgStr("path"),
+    img_id: str = ArgStr("id"),
 ):
-    if path in ["取消", "算了"] or img_id in ["取消", "算了"]:
+    if path_ in ["取消", "算了"] or img_id in ["取消", "算了"]:
         await delete_img.finish("已取消操作...")
-    if path not in Config.get_config("image_management", "IMAGE_DIR_LIST"):
+    image_dir_list = Config.get_config("image_management", "IMAGE_DIR_LIST") or []
+    if path_ not in image_dir_list:
         await delete_img.reject_arg("path", "此目录不正确，请重新输入目录！")
     if not is_number(img_id):
         await delete_img.reject_arg("id", "id不正确！请重新输入数字...")
-    path = _path / cn2py(path)
+    path = _path / cn2py(path_)
     if not path.exists() and (path.parent.parent / cn2py(state["path"])).exists():
         path = path.parent.parent / cn2py(state["path"])
     max_id = len(os.listdir(path)) - 1
@@ -87,6 +91,10 @@ async def arg_handle(
             f" -> id: {img_id} 删除成功"
         )
         await delete_img.finish(
-            f"id: {img_id} 删除成功" + image(TEMP_PATH / f"{event.user_id}_delete.jpg",), at_sender=True
+            f"id: {img_id} 删除成功"
+            + image(
+                TEMP_PATH / f"{event.user_id}_delete.jpg",
+            ),
+            at_sender=True,
         )
     await delete_img.finish(f"id: {img_id} 删除失败！")

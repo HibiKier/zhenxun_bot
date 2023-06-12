@@ -21,7 +21,7 @@ class BilibiliSub(Model):
     """直播短id"""
     live_status = fields.IntField(null=True)
     """直播状态 0: 停播  1: 直播"""
-    uid = fields.BigIntField(null=True)
+    uid = fields.CharField(255, null=True)
     """主播/UP UID"""
     uname = fields.CharField(255, null=True)
     """主播/UP 名称"""
@@ -53,7 +53,7 @@ class BilibiliSub(Model):
         live_short_id: Optional[str] = None,
         live_status: Optional[int] = None,
         dynamic_upload_time: int = 0,
-        uid: Optional[int] = None,
+        uid: Optional[str] = None,
         uname: Optional[str] = None,
         latest_video_created: Optional[int] = None,
         season_name: Optional[str] = None,
@@ -80,59 +80,63 @@ class BilibiliSub(Model):
             :param season_update_time: 番剧更新时间
         """
         sub_id = str(sub_id)
-        # try:
-        data = {
-            "sub_type": sub_type,
-            "sub_user": sub_user,
-            "live_short_id": live_short_id,
-            "live_status": live_status,
-            "dynamic_upload_time": dynamic_upload_time,
-            "uid": uid,
-            "uname": uname,
-            "latest_video_created": latest_video_created,
-            "season_name": season_name,
-            "season_id": season_id,
-            "season_current_episode": season_current_episode,
-            "season_update_time": season_update_time,
-        }
-        if sub_user:
-            sub_user = sub_user if sub_user[-1] == "," else f"{sub_user},"
-        sub = None
-        if sub_type:
-            sub = await cls.get_or_none(sub_id=sub_id, sub_type=sub_type)
-        else:
-            sub = await cls.get_or_none(sub_id=sub_id)
-        if sub:
-            sub_users = sub.sub_users + sub_user
-            data["sub_type"] = sub_type or sub.sub_type
-            data["sub_users"] = sub_users
-            data["live_short_id"] = live_short_id or sub.live_short_id
-            data["live_status"] = (
-                live_status if live_status is not None else sub.live_status
-            )
-            data["dynamic_upload_time"] = dynamic_upload_time or sub.dynamic_upload_time
-            data["uid"] = uid or sub.uid
-            data["uname"] = uname or sub.uname
-            data["latest_video_created"] = (
-                latest_video_created or sub.latest_video_created
-            )
-            data["season_name"] = season_name or sub.season_name
-            data["season_id"] = season_id or sub.season_id
-            data["season_current_episode"] = (
-                season_current_episode or sub.season_current_episode
-            )
-            data["season_update_time"] = season_update_time or sub.season_update_time
-        else:
-            await cls.create(sub_id=sub_id, sub_type=sub_type, sub_users=sub_user)
-        await cls.update_or_create(sub_id=sub_id, defaults=data)
-        return True
-        # except Exception as e:
-        #     logger.info(f"bilibili_sub 添加订阅错误 {type(e)}: {e}")
-        # return False
+        try:
+            data = {
+                "sub_type": sub_type,
+                "sub_user": sub_user,
+                "live_short_id": live_short_id,
+                "live_status": live_status,
+                "dynamic_upload_time": dynamic_upload_time,
+                "uid": uid,
+                "uname": uname,
+                "latest_video_created": latest_video_created,
+                "season_name": season_name,
+                "season_id": season_id,
+                "season_current_episode": season_current_episode,
+                "season_update_time": season_update_time,
+            }
+            if sub_user:
+                sub_user = sub_user if sub_user[-1] == "," else f"{sub_user},"
+            sub = None
+            if sub_type:
+                sub = await cls.get_or_none(sub_id=sub_id, sub_type=sub_type)
+            else:
+                sub = await cls.get_or_none(sub_id=sub_id)
+            if sub:
+                sub_users = sub.sub_users + sub_user
+                data["sub_type"] = sub_type or sub.sub_type
+                data["sub_users"] = sub_users
+                data["live_short_id"] = live_short_id or sub.live_short_id
+                data["live_status"] = (
+                    live_status if live_status is not None else sub.live_status
+                )
+                data["dynamic_upload_time"] = (
+                    dynamic_upload_time or sub.dynamic_upload_time
+                )
+                data["uid"] = uid or sub.uid
+                data["uname"] = uname or sub.uname
+                data["latest_video_created"] = (
+                    latest_video_created or sub.latest_video_created
+                )
+                data["season_name"] = season_name or sub.season_name
+                data["season_id"] = season_id or sub.season_id
+                data["season_current_episode"] = (
+                    season_current_episode or sub.season_current_episode
+                )
+                data["season_update_time"] = (
+                    season_update_time or sub.season_update_time
+                )
+            else:
+                await cls.create(sub_id=sub_id, sub_type=sub_type, sub_users=sub_user)
+            await cls.update_or_create(sub_id=sub_id, defaults=data)
+            return True
+        except Exception as e:
+            logger.error(f"添加订阅 Id: {sub_id} 错误", e=e)
+        return False
 
     @classmethod
     async def delete_bilibili_sub(
-        cls, sub_id: int, sub_user: str, sub_type: Optional[str] = None
+        cls, sub_id: str, sub_user: str, sub_type: Optional[str] = None
     ) -> bool:
         """
         说明:
@@ -142,24 +146,34 @@ class BilibiliSub(Model):
             :param sub_user: 删除此条目的用户
         """
         try:
+            group_id = None
+            contains_str = sub_user
+            if ":" in sub_user:
+                group_id = sub_user.split(":")[1]
+                contains_str = f":{group_id}"
             if sub_type:
-                sub = await cls.filter(
-                    sub_id=sub_id, sub_type=sub_type, sub_users__contains=sub_user
-                ).first()
+                sub = await cls.get_or_none(
+                    sub_id=sub_id, sub_type=sub_type, sub_users__contains=contains_str
+                )
             else:
-                sub = await cls.filter(
-                    sub_id=sub_id, sub_users__contains=sub_user
-                ).first()
+                sub = await cls.get_or_none(
+                    sub_id=sub_id, sub_users__contains=contains_str
+                )
             if not sub:
                 return False
-            sub.sub_users = sub.sub_users.replace(f"{sub_user},", "")
+            if group_id:
+                sub.sub_users = ",".join(
+                    [s for s in sub.sub_users.split(",") if f":{group_id}" not in s]
+                )
+            else:
+                sub.sub_users = sub.sub_users.replace(f"{sub_user},", "")
             if sub.sub_users.strip():
                 await sub.save(update_fields=["sub_users"])
             else:
                 await sub.delete()
             return True
         except Exception as e:
-            logger.info(f"bilibili_sub 删除订阅错误 {type(e)}: {e}")
+            logger.error(f"bilibili_sub 删除订阅错误", target=sub_id, e=e)
         return False
 
     @classmethod
@@ -189,4 +203,5 @@ class BilibiliSub(Model):
             "ALTER TABLE bilibili_sub ALTER COLUMN season_update_time TYPE timestamp with time zone USING season_update_time::timestamp with time zone;",
             "alter table bilibili_sub alter COLUMN sub_id type varchar(255);",  # 将sub_id字段改为字符串
             "alter table bilibili_sub alter COLUMN live_short_id type varchar(255);",  # 将live_short_id字段改为字符串
+            "alter table bilibili_sub alter COLUMN uid type varchar(255);",  # 将live_short_id字段改为字符串
         ]

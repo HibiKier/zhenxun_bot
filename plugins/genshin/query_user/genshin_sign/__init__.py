@@ -43,7 +43,7 @@ genshin_matcher = on_command(
 
 @genshin_matcher.handle()
 async def _(event: MessageEvent, cmd: str = OneCommand()):
-    user = await Genshin.get_or_none(user_qq=event.user_id)
+    user = await Genshin.get_or_none(user_id=str(event.user_id))
     if not user:
         await genshin_matcher.finish("请先绑定user.uid...")
     if cmd == "查看我的cookie":

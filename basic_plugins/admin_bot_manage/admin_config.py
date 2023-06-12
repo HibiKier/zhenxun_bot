@@ -16,10 +16,10 @@ admin_notice = on_notice(priority=5)
 
 @admin_notice.handle()
 async def _(event: GroupAdminNoticeEvent):
-    if user := await GroupInfoUser.filter(
+    if user := await GroupInfoUser.get_or_none(
         user_id=str(event.user_id), group_id=str(event.group_id)
-    ).first():
-        nickname = user.nickname
+    ):
+        nickname = user.user_name
     else:
         nickname = event.user_id
     if event.sub_type == "set":
@@ -31,7 +31,10 @@ async def _(event: GroupAdminNoticeEvent):
                 admin_default_auth,
             )
             logger.info(
-                f"为新晋管理员 {nickname}({event.user_id}) " f"添加权限等级：{admin_default_auth}"
+                f"成为管理员，添加权限: {admin_default_auth}",
+                "群管理员变动监测",
+                event.user_id,
+                event.group_id,
             )
         else:
             logger.warning(
@@ -39,4 +42,4 @@ async def _(event: GroupAdminNoticeEvent):
             )
     elif event.sub_type == "unset":
         await LevelUser.delete_level(event.user_id, event.group_id)
-        logger.info(f"将非管理员 {nickname}({event.user_id}) 取消权限等级")
+        logger.info("撤销管理员,，取消权限等级", "群管理员变动监测", event.user_id, event.group_id)

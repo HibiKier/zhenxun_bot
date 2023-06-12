@@ -6,6 +6,8 @@ from nonebot.adapters.onebot.v11 import (
     GroupMessageEvent,
 )
 
+from services.log import logger
+
 from ._data_source import update_member_info
 
 __zx_plugin_name__ = "更新群组成员列表 [Admin]"
@@ -32,9 +34,11 @@ refresh_member_group = on_command(
 @refresh_member_group.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
     if await update_member_info(bot, event.group_id):
-        await refresh_member_group.finish("更新群员信息成功！", at_sender=True)
+        await refresh_member_group.send("更新群员信息成功！", at_sender=True)
+        logger.info("更新群员信息成功！", "更新群组成员列表", event.user_id, event.group_id)
     else:
-        await refresh_member_group.finish("更新群员信息失败！", at_sender=True)
+        await refresh_member_group.send("更新群员信息失败！", at_sender=True)
+        logger.info("更新群员信息失败！", "更新群组成员列表", event.user_id, event.group_id)
 
 
 group_increase_handle = on_notice(priority=1, block=False)
@@ -42,5 +46,6 @@ group_increase_handle = on_notice(priority=1, block=False)
 
 @group_increase_handle.handle()
 async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
-    if event.user_id == int(bot.self_id):
+    if str(event.user_id) == bot.self_id:
         await update_member_info(bot, event.group_id)
+        logger.info("{NICKNAME}加入群聊更新群组信息", "更新群组成员列表", event.user_id, event.group_id)

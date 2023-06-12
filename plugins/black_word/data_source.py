@@ -1,16 +1,19 @@
-from nonebot.adapters.onebot.v11 import Bot
-from utils.image_utils import BuildImage, text2image
-from services.log import logger
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
+from nonebot.adapters.onebot.v11 import Bot
+
+from services.log import logger
+from utils.image_utils import BuildImage, text2image
+
 from .model import BlackWord
-from .utils import _get_punish, Config
+from .utils import Config, _get_punish
 
 
 async def show_black_text_image(
     bot: Bot,
-    user: Optional[int],
-    group_id: Optional[int],
+    user_id: Optional[str],
+    group_id: Optional[str],
     date: Optional[datetime],
     data_type: str = "=",
 ) -> BuildImage:
@@ -23,7 +26,7 @@ async def show_black_text_image(
     :param data_type: 日期搜索类型
     :return:
     """
-    data = await BlackWord.get_black_data(user, group_id, date, data_type)
+    data = await BlackWord.get_black_data(user_id, group_id, date, data_type)
     A = BuildImage(0, 0, color="#f9f6f2", font_size=20)
     image_list = []
     friend_str = await bot.get_friend_list()
@@ -41,21 +44,21 @@ async def show_black_text_image(
             if x.group_id:
                 user_name = (
                     await bot.get_group_member_info(
-                        group_id=x.group_id, user_id=x.user_qq
+                        group_id=int(x.group_id), user_id=int(x.user_id)
                     )
                 )["card"]
             else:
                 user_name = [
-                    u["nickname"] for u in friend_str if u["user_id"] == x.user_qq
+                    u["nickname"] for u in friend_str if u["user_id"] == int(x.user_id)
                 ][0]
         except Exception as e:
             logger.warning(
-                f"show_black_text_image 获取 USER {x.user_qq} user_name 失败 {type(e)}：{e}"
+                f"show_black_text_image 获取 USER {x.user_id} user_name 失败", e=e
             )
-            user_name = x.user_qq
+            user_name = x.user_id
         id_str += f"{i}\n"
         uname_str += f"{user_name}\n"
-        uid_str += f"{x.user_qq}\n"
+        uid_str += f"{x.user_id}\n"
         gid_str += f"{x.group_id}\n"
         plant_text = " ".join(x.plant_text.split("\n"))
         if A.getsize(plant_text)[0] > 200:
@@ -97,7 +100,7 @@ async def show_black_text_image(
     return A
 
 
-async def set_user_punish(user_id: int, id_: int, punish_level: int) -> str:
+async def set_user_punish(user_id: str, id_: int, punish_level: int) -> str:
     """
     设置惩罚
     :param user_id: 用户id

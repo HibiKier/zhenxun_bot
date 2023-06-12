@@ -35,11 +35,11 @@ class StaticData(Generic[T]):
                     elif file.name.endswith("yaml"):
                         self._data = _yaml.load(f)
 
-    def set(self, key, value) -> NoReturn:
+    def set(self, key, value):
         self._data[key] = value
         self.save()
 
-    def set_module_data(self, module, key, value, auto_save: bool = True) -> NoReturn:
+    def set_module_data(self, module, key, value, auto_save: bool = True):
         if module in self._data.keys():
             self._data[module][key] = value
             if auto_save:
@@ -51,7 +51,7 @@ class StaticData(Generic[T]):
     def keys(self) -> List[str]:
         return self._data.keys()
 
-    def delete(self, key) -> NoReturn:
+    def delete(self, key):
         if self._data.get(key) is not None:
             del self._data[key]
 
@@ -105,3 +105,6 @@ class StaticData(Generic[T]):
 
     def __getitem__(self, key) -> T:
         return self._data[key]
+
+    def __len__(self) -> int:
+        return len(self._data)

@@ -35,10 +35,17 @@ class BaseData(BaseModel):
     群基本信息
     """
 
-    white_group: List[int] = []  # 白名单
-    close_task: List[str] = []  # 全局关闭的被动任务
-    group_manager: Dict[str, BaseGroup] = {}  # 群组管理
-    task: Dict[str, str] = {}  # 被动任务 【英文：中文】
+    white_group: List[str] = []
+    """白名单"""
+    close_task: List[str] = []
+    """全局关闭的被动任务"""
+    group_manager: Dict[str, BaseGroup] = {}
+    """群组管理"""
+    task: Dict[str, str] = {}
+    """被动任务 英文:中文名"""
+
+    def __len__(self) -> int:
+        return len(self.group_manager)
 
 
 class PluginBlock(BaseModel):

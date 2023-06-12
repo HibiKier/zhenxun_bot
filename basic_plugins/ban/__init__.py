@@ -56,7 +56,7 @@ __plugin_configs__ = {
         "value": 5,
         "help": "ban/unban所需要的管理员权限等级",
         "default_value": 5,
-        "type": int
+        "type": int,
     }
 }
 

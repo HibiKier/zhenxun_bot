@@ -52,7 +52,7 @@ resin_remind = on_command("开原神树脂提醒", aliases={"关原神树脂提�
 
 @resin_remind.handle()
 async def _(event: MessageEvent, cmd: str = OneCommand()):
-    user = await Genshin.get_or_none(user_qq=event.user_id)
+    user = await Genshin.get_or_none(user_id=str(event.user_id))
     if not user or not user.uid or not user.cookie:
         await resin_remind.finish("请先绑定uid和cookie！")
     try:

@@ -95,7 +95,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
             data = plugins2settings_manager.get_data()
             for plugin in data.keys():
                 if not data[plugin].default_status:
-                    group_manager.block_plugin(plugin, event.group_id)
+                    group_manager.block_plugin(plugin, str(event.group_id))
             admin_default_auth = Config.get_config(
                 "admin_bot_manage", "ADMIN_DEFAULT_AUTH"
             )
@@ -139,7 +139,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
             group_id=event.group_id, user_id=event.user_id
         )
         await GroupInfoUser.update_or_create(
-            user_qq=str(user_info["user_id"]),
+            user_id=str(user_info["user_id"]),
             group_id=str(user_info["group_id"]),
             defaults={"user_name": user_info["nickname"], "user_join_time": join_time},
         )
@@ -187,7 +187,7 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent):
         group_id = event.group_id
         operator_id = event.operator_id
         if user := await GroupInfoUser.get_or_none(
-            user_qq=str(event.operator_id), group_id=str(event.group_id)
+            user_id=str(event.operator_id), group_id=str(event.group_id)
         ):
             operator_name = user.user_name
         else:
@@ -207,12 +207,14 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent):
         group_manager.delete_group(event.group_id)
         return
     if user := await GroupInfoUser.get_or_none(
-        user_qq=str(event.user_id), group_id=str(event.group_id)
+        user_id=str(event.user_id), group_id=str(event.group_id)
     ):
         user_name = user.user_name
     else:
         user_name = f"{event.user_id}"
-    await GroupInfoUser.filter(user_id=str(event.user_id), group_id=str(event.group_id)).delete()
+    await GroupInfoUser.filter(
+        user_id=str(event.user_id), group_id=str(event.group_id)
+    ).delete()
     logger.info(
         f"名称: {user_name} 退出群聊",
         "group_decrease_handle",

@@ -6,14 +6,12 @@ from services.db_context import Model
 
 
 class PixivKeywordUser(Model):
-    __tablename__ = "pixiv_keyword_users"
-    __table_args__ = {"extend_existing": True}
 
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
-    user_qq = fields.BigIntField()
+    user_id = fields.CharField(255)
     """用户id"""
-    group_id = fields.BigIntField()
+    group_id = fields.CharField(255)
     """群聊id"""
     keyword = fields.CharField(255, unique=True)
     """关键词"""
@@ -46,9 +44,17 @@ class PixivKeywordUser(Model):
             获取黑名单PID
         """
         black_pid = []
-        keyword_list = await cls.filter(user_qq=114514).values_list(
+        keyword_list = await cls.filter(user_id="114514").values_list(
             "keyword", flat=True
         )
         for image in keyword_list:
             black_pid.append(image[6:])
         return black_pid
+
+    @classmethod
+    async def _run_script(cls):
+        return [
+            "ALTER TABLE pixiv_keyword_users RENAME COLUMN user_qq TO user_id;",  # 将user_qq改为user_id
+            "ALTER TABLE pixiv_keyword_users ALTER COLUMN user_id TYPE character varying(255);",
+            "ALTER TABLE pixiv_keyword_users ALTER COLUMN group_id TYPE character varying(255);",
+        ]

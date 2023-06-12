@@ -31,9 +31,9 @@ class WordBank(Model):
 
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
-    user_qq = fields.BigIntField()
+    user_id = fields.CharField(255)
     """用户id"""
-    group_id = fields.BigIntField(null=True)
+    group_id = fields.CharField(255, null=True)
     """群聊id"""
     word_scope = fields.IntField(default=0)
     """生效范围 0: 全局 1: 群聊 2: 私聊"""
@@ -63,8 +63,8 @@ class WordBank(Model):
     @classmethod
     async def exists(
         cls,
-        user_id: Optional[int],
-        group_id: Optional[int],
+        user_id: Optional[str],
+        group_id: Optional[str],
         problem: str,
         answer: Optional[str],
         word_scope: Optional[int] = None,
@@ -83,7 +83,7 @@ class WordBank(Model):
         """
         query = cls.filter(problem=problem)
         if user_id:
-            query = query.filter(user_qq=user_id)
+            query = query.filter(user_id=user_id)
         if group_id:
             query = query.filter(group_id=group_id)
         if answer:
@@ -97,8 +97,8 @@ class WordBank(Model):
     @classmethod
     async def add_problem_answer(
         cls,
-        user_id: int,
-        group_id: Optional[int],
+        user_id: str,
+        group_id: Optional[str],
         word_scope: int,
         word_type: int,
         problem: Union[str, Message],
@@ -133,7 +133,7 @@ class WordBank(Model):
             user_id, group_id, str(problem), answer, word_scope, word_type
         ):
             await cls.create(
-                user_qq=user_id,
+                user_id=user_id,
                 group_id=group_id,
                 word_scope=word_scope,
                 word_type=word_type,
@@ -149,7 +149,7 @@ class WordBank(Model):
 
     @classmethod
     async def _answer2format(
-        cls, answer: Union[str, Message], user_id: int, group_id: Optional[int]
+        cls, answer: Union[str, Message], user_id: str, group_id: Optional[str]
     ) -> Tuple[str, List[Any]]:
         """
         说明:
@@ -213,7 +213,7 @@ class WordBank(Model):
         if not query:
             query = await cls.get_or_none(
                 problem=problem,
-                user_qq=user_id,
+                user_id=user_id,
                 group_id=group_id,
                 answer=answer,
             )
@@ -311,7 +311,7 @@ class WordBank(Model):
                 await cls._format2answer(
                     random_answer.problem,
                     random_answer.answer,
-                    random_answer.user_qq,
+                    random_answer.user_id,
                     random_answer.group_id,
                     random_answer,
                 )
@@ -324,7 +324,7 @@ class WordBank(Model):
         cls,
         problem: str,
         index: Optional[int] = None,
-        group_id: Optional[int] = None,
+        group_id: Optional[str] = None,
         word_scope: Optional[int] = 0,
     ) -> List[Union[str, Message]]:
         """
@@ -351,7 +351,7 @@ class WordBank(Model):
     async def delete_group_problem(
         cls,
         problem: str,
-        group_id: int,
+        group_id: Optional[str],
         index: Optional[int] = None,
         word_scope: int = 1,
     ):
@@ -386,7 +386,7 @@ class WordBank(Model):
         cls,
         problem: str,
         replace_str: str,
-        group_id: int,
+        group_id: Optional[str],
         index: Optional[int] = None,
         word_scope: int = 1,
     ):
@@ -419,7 +419,7 @@ class WordBank(Model):
 
     @classmethod
     async def get_group_all_problem(
-        cls, group_id: int
+        cls, group_id: str
     ) -> List[Tuple[Any, Union[MessageSegment, str]]]:
         """
         说明:
@@ -480,8 +480,8 @@ class WordBank(Model):
     @classmethod
     async def _move(
         cls,
-        user_id: int,
-        group_id: Optional[int],
+        user_id: str,
+        group_id: Optional[str],
         problem: Union[str, Message],
         answer: Union[str, Message],
         placeholder: str,
@@ -503,7 +503,7 @@ class WordBank(Model):
             user_id, group_id, problem, answer, word_scope, word_type
         ):
             await cls.create(
-                user_qq=user_id,
+                user_id=user_id,
                 group_id=group_id,
                 word_scope=word_scope,
                 word_type=word_type,
@@ -522,4 +522,7 @@ class WordBank(Model):
             "ALTER TABLE word_bank2 ADD to_me varchar(255);",  # 添加 to_me 字段
             "ALTER TABLE word_bank2 ALTER COLUMN create_time TYPE timestamp with time zone USING create_time::timestamp with time zone;",
             "ALTER TABLE word_bank2 ALTER COLUMN update_time TYPE timestamp with time zone USING update_time::timestamp with time zone;",
+            "ALTER TABLE word_bank2 RENAME COLUMN user_qq TO user_id;",  # 将user_qq改为user_id
+            "ALTER TABLE word_bank2 ALTER COLUMN user_id TYPE character varying(255);",
+            "ALTER TABLE word_bank2 ALTER COLUMN group_id TYPE character varying(255);",
         ]

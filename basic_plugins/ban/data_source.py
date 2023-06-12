@@ -30,7 +30,7 @@ def parse_ban_time(msg: str) -> Union[int, str]:
             return int(msg_split[0]) * 60 * 60 + int(msg_split[1]) * 60
     except ValueError as e:
         logger.error("解析ban时长错误", ".ban", e=e)
-        return "时长不可以带小数点！"
+        return "时间解析错误！"
 
 
 async def a_ban(
@@ -56,7 +56,7 @@ async def a_ban(
         return "未查询到ban级用户权限"
     if await BanUser.ban(qq, ban_level, time):
         logger.info(
-            f"将 [Target]({qq})封禁 时长 {time / 60} 分钟", ".ban", event.user_id, group_id
+            f"封禁 时长 {time / 60} 分钟", ".ban", event.user_id, group_id, qq
         )
         result = f"已经将 {user_name} 加入{NICKNAME}的黑名单了！"
         if time != -1:

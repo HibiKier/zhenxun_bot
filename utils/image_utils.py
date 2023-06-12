@@ -958,6 +958,7 @@ class BuildMat:
         y_name: Optional[str] = None,
         x_index: List[Union[str, int, float]] = None,
         y_index: List[Union[str, int, float]] = None,
+        x_min_spacing: Optional[int] = None,
         x_rotate: int = 0,
         title: Optional[str] = None,
         size: Tuple[int, int] = (1000, 1000),
@@ -979,6 +980,7 @@ class BuildMat:
             :param y_name: 纵坐标名称
             :param x_index: 横坐标值
             :param y_index: 纵坐标值
+            :param x_min_spacing: x轴最小间距
             :param x_rotate: 横坐标旋转角度
             :param title: 标题
             :param size: 图像大小，建议默认
@@ -1000,6 +1002,7 @@ class BuildMat:
         self.y_name = y_name
         self.x_index = x_index
         self.y_index = y_index
+        self.x_min_spacing = x_min_spacing
         self.x_rotate = x_rotate
         self.title = title
         self.font = font
@@ -1030,7 +1033,10 @@ class BuildMat:
             ]
         if not x_index:
             raise ValueError("缺少 x_index [横坐标值]...")
-        self._x_interval = int((self.line_length - 70) / len(x_index))
+        if x_min_spacing:
+            self._x_interval = x_min_spacing
+        else:
+            self._x_interval = int((self.line_length - 70) / len(x_index))
         self._bar_width = int(30 * (1 - (len(x_index) + 10) / 100))
         # 没有 y_index 时自动生成
         if not y_index:
@@ -1181,7 +1187,7 @@ class BuildMat:
             :param y: 坐标点
             :param display_num: 显示该点的值
         """
-        _black_point = BuildImage(7, 7, color=random.choice(self.bar_color))
+        _black_point = BuildImage(11, 11, color=random.choice(self.bar_color))
         _black_point.circle()
         x_interval = self._x_interval
         current_w = self.padding_w + x_interval
@@ -1196,14 +1202,6 @@ class BuildMat:
                     ),
                     f"{y[i]:.2f}" if isinstance(y[i], float) else f"{y[i]}",
                 )
-            self.markImg.paste(
-                _black_point,
-                (
-                    current_w - 3,
-                    current_h - int(y[i] * self._p * self._deviation) - 3,
-                ),
-                True,
-            )
             if i != len(y) - 1:
                 self.markImg.line(
                     (
@@ -1215,6 +1213,14 @@ class BuildMat:
                     fill=(0, 0, 0),
                     width=2,
                 )
+            self.markImg.paste(
+                _black_point,
+                (
+                    current_w - 3,
+                    current_h - int(y[i] * self._p * self._deviation) - 3,
+                ),
+                True,
+            )
             current_w += x_interval
 
     def _gen_bar_graph(
@@ -1319,6 +1325,11 @@ class BuildMat:
         padding_h = self.padding_h
         line_length = self.line_length
         background = random.choice(self.background) if self.background else None
+        if self.x_min_spacing:
+            length = (len(self.x_index) + 1) * self.x_min_spacing
+            if 2 * padding_w + length > self.w:
+                self.w = 2 * padding_w + length
+            background = None
         A = BuildImage(
             self.w, self.h, font_size=font_size, font=self.font, background=background
         )
@@ -1341,7 +1352,7 @@ class BuildMat:
             (
                 padding_w,
                 padding_h + line_length,
-                padding_w + line_length,
+                self.w - padding_w,
                 padding_h + line_length,
             ),
             (0, 0, 0),

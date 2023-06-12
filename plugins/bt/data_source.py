@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from configs.config import Config
 from utils.http_utils import AsyncHttpx
 
-url = "http://www.eclzz.love"
+url = "http://www.eclzz.ink"
 
 
 async def get_bt_info(keyword: str, page: int):
@@ -17,7 +17,7 @@ async def get_bt_info(keyword: str, page: int):
         return
     soup = BeautifulSoup(text, "lxml")
     item_lst = soup.find_all("div", {"class": "search-item"})
-    bt_max_num = Config.get_config("bt", "BT_MAX_NUM")
+    bt_max_num = Config.get_config("bt", "BT_MAX_NUM") or 10
     bt_max_num = bt_max_num if bt_max_num < len(item_lst) else len(item_lst)
     for item in item_lst[:bt_max_num]:
         divs = item.find_all("div")

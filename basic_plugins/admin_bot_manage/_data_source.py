@@ -17,16 +17,18 @@ from utils.http_utils import AsyncHttpx
 from utils.image_utils import BuildImage
 from utils.manager import group_manager, plugins2settings_manager, plugins_manager
 from utils.message_builder import image
+from utils.typing import BLOCK_TYPE
 from utils.utils import get_matchers
 
-custom_welcome_msg_json = (
-    Path() / "data" / "custom_welcome_msg" / "custom_welcome_msg.json"
-)
+CUSTOM_WELCOME_FILE = Path() / "data" / "custom_welcome_msg" / "custom_welcome_msg.json"
+CUSTOM_WELCOME_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 ICON_PATH = IMAGE_PATH / "other"
 
+GROUP_HELP_PATH = DATA_PATH / "group_help"
 
-async def group_current_status(group_id: int) -> str:
+
+async def group_current_status(group_id: str) -> str:
     """
     说明:
         获取当前群聊所有通知的开关
@@ -66,14 +68,14 @@ async def group_current_status(group_id: int) -> str:
 
 
 async def custom_group_welcome(
-    msg: str, img_list: List[str], user_id: int, group_id: int
+    msg: str, img_list: List[str], user_id: str, group_id: str
 ) -> Union[str, Message]:
     """
     说明:
         替换群欢迎消息
     参数:
         :param msg: 欢迎消息文本
-        :param img_list: 欢迎消息图片，只取第一张
+        :param img_list: 欢迎消息图片
         :param user_id: 用户id，用于log记录
         :param group_id: 群号
     """
@@ -84,18 +86,16 @@ async def custom_group_welcome(
     if msg_image.exists():
         msg_image.unlink()
     data = {}
-    if not custom_welcome_msg_json.exists():
-        custom_welcome_msg_json.parent.mkdir(parents=True, exist_ok=True)
-    else:
-        try:
-            data = json.load(open(custom_welcome_msg_json, "r"))
-        except FileNotFoundError:
-            pass
+    if CUSTOM_WELCOME_FILE.exists():
+        data = json.load(CUSTOM_WELCOME_FILE.open("r", encoding="utf8"))
     try:
         if msg:
-            data[str(group_id)] = str(msg)
+            data[group_id] = msg
             json.dump(
-                data, open(custom_welcome_msg_json, "w"), indent=4, ensure_ascii=False
+                data,
+                CUSTOM_WELCOME_FILE.open("w", encoding="utf8"),
+                indent=4,
+                ensure_ascii=False,
             )
             logger.info(f"更换群欢迎消息 {msg}", "更换群欢迎信息", user_id, group_id)
             result += msg
@@ -144,19 +144,19 @@ def change_global_task_status(cmd: str) -> str:
         return f"已 {status} 全局{_cmd}"
 
 
-async def change_group_switch(cmd: str, group_id: int, is_super: bool = False) -> str:
+async def change_group_switch(cmd: str, group_id: str, is_super: bool = False) -> str:
     """
     说明:
         修改群功能状态
     参数:
         :param cmd: 功能名称
         :param group_id: 群号
-        :param is_super: 是否位超级用户，超级用户用于私聊开关功能状态
+        :param is_super: 是否为超级用户，超级用户用于私聊开关功能状态
     """
     global task_data
     if not task_data:
         task_data = group_manager.get_task_data()
-    group_help_file = DATA_PATH / "group_help" / f"{group_id}.png"
+    help_path = GROUP_HELP_PATH / f"{group_id}.png"
     status = cmd[:2]
     cmd = cmd[2:]
     type_ = "plugin"
@@ -169,8 +169,8 @@ async def change_group_switch(cmd: str, group_id: int, is_super: bool = False) -
             else:
                 if group_manager.check_group_task_status(group_id, task):
                     group_manager.close_group_task(group_id, task)
-        if group_help_file.exists():
-            group_help_file.unlink()
+        if help_path.exists():
+            help_path.unlink()
         return f"已 {status} 全部被动技能！"
     if cmd == "全部功能":
         for f in plugins2settings_manager.get_data():
@@ -179,8 +179,8 @@ async def change_group_switch(cmd: str, group_id: int, is_super: bool = False) -
             else:
                 group_manager.block_plugin(f, group_id, False)
         group_manager.save()
-        if group_help_file.exists():
-            group_help_file.unlink()
+        if help_path.exists():
+            help_path.unlink()
         return f"已 {status} 全部功能！"
     if cmd.lower() in [task_data[x].lower() for x in task_data.keys()]:
         type_ = "task"
@@ -206,27 +206,28 @@ async def change_group_switch(cmd: str, group_id: int, is_super: bool = False) -
                 if not group_manager.get_plugin_status(module, group_id):
                     return f"功能 {cmd} 正处于关闭状态！不要重复关闭."
                 group_manager.block_plugin(module, group_id)
-    if group_help_file.exists():
-        group_help_file.unlink()
+    if help_path.exists():
+        help_path.unlink()
     if is_super:
-        for file in os.listdir(DATA_PATH / "group_help"):
-            file = DATA_PATH / "group_help" / file
+        for file in os.listdir(GROUP_HELP_PATH):
+            file = GROUP_HELP_PATH / file
             file.unlink()
     else:
-        _help_image = DATA_PATH / "group_help" / f"{group_id}.png"
-        if _help_image.exists():
-            _help_image.unlink()
+        if help_path.exists():
+            help_path.unlink()
     return f"{status} {cmd} 功能！"
 
 
-def set_plugin_status(cmd: str, block_type: str = "all"):
+def set_plugin_status(cmd: str, block_type: BLOCK_TYPE = "all"):
     """
     说明:
         设置插件功能状态（超级用户使用）
     参数:
         :param cmd: 功能名称
-        :param block_type: 限制类型, 'all': 私聊+群里, 'private': 私聊, 'group': 群聊
+        :param block_type: 限制类型, 'all': 全局, 'private': 私聊, 'group': 群聊
     """
+    if block_type not in ["all", "private", "group"]:
+        raise TypeError("block_type类型错误, 可选值: ['all', 'private', 'group']")
     status = cmd[:2]
     cmd = cmd[2:]
     module = plugins2settings_manager.get_plugin_module(cmd)
@@ -234,8 +235,8 @@ def set_plugin_status(cmd: str, block_type: str = "all"):
         plugins_manager.unblock_plugin(module)
     else:
         plugins_manager.block_plugin(module, block_type=block_type)
-    for file in os.listdir(DATA_PATH / "group_help"):
-        file = DATA_PATH / "group_help" / file
+    for file in os.listdir(GROUP_HELP_PATH):
+        file = GROUP_HELP_PATH / file
         file.unlink()
 
 
@@ -306,7 +307,9 @@ async def update_member_info(
             if user_info["role"] in [
                 "owner",
                 "admin",
-            ] and not await LevelUser.is_group_flag(user_info["user_id"], str(group_id)):
+            ] and not await LevelUser.is_group_flag(
+                user_info["user_id"], str(group_id)
+            ):
                 await LevelUser.set_level(
                     user_info["user_id"],
                     user_info["group_id"],
@@ -356,7 +359,9 @@ async def update_member_info(
         )
         if _del_member_list:
             for del_user in _del_member_list:
-                await GroupInfoUser.filter(user_id=str(del_user), group_id=str(group_id)).delete()
+                await GroupInfoUser.filter(
+                    user_id=str(del_user), group_id=str(group_id)
+                ).delete()
                 logger.info(f"删除已退群用户", "更新群组成员信息", del_user, group_id)
         if _error_member_list and remind_superuser:
             result = ""
@@ -368,7 +373,7 @@ async def update_member_info(
     return True
 
 
-def set_group_bot_status(group_id: int, status: bool) -> str:
+def set_group_bot_status(group_id: str, status: bool) -> str:
     """
     说明:
         设置群聊bot开关状态

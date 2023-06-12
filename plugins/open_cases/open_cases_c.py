@@ -63,17 +63,19 @@ def add_count(user: OpenCasesUser, skin: BuffSkin, case_price: float):
     user.spend_money += 17 + case_price
 
 
-async def get_user_max_count(user_qq: int, group_id: int) -> int:
+async def get_user_max_count(user_id: str, group_id: int) -> int:
     """获取用户每日最大开箱次数
 
     Args:
-        user_qq (int): 用户id
+        user_id (str): 用户id
         group_id (int): 群号
 
     Returns:
         int: 最大开箱次数
     """
-    user, _ = await SignGroupUser.get_or_create(user_id=str(user_qq), group_id=str(group_id))
+    user, _ = await SignGroupUser.get_or_create(
+        user_id=str(user_id), group_id=str(group_id)
+    )
     impression = int(user.impression)
     initial_open_case_count = Config.get_config("open_cases", "INITIAL_OPEN_CASE_COUNT")
     each_impression_add_count = Config.get_config(
@@ -82,11 +84,11 @@ async def get_user_max_count(user_qq: int, group_id: int) -> int:
     return int(initial_open_case_count + impression / each_impression_add_count)  # type: ignore
 
 
-async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, Message]:
+async def open_case(user_id: str, group_id: int, case_name: str) -> Union[str, Message]:
     """开箱
 
     Args:
-        user_qq (int): 用户id
+        user_id (str): 用户id
         group_id (int): 群号
         case_name (str, optional): 武器箱名称. Defaults to "狂牙大行动".
 
@@ -99,14 +101,14 @@ async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, M
         case_name = random.choice(CaseManager.CURRENT_CASES)  # type: ignore
     if case_name not in CaseManager.CURRENT_CASES:
         return "武器箱未收录, 当前可用武器箱:\n" + ", ".join(CaseManager.CURRENT_CASES)  # type: ignore
-    logger.debug(f"尝试开启武器箱: {case_name}", "开箱", user_qq, group_id)
+    logger.debug(f"尝试开启武器箱: {case_name}", "开箱", user_id, group_id)
     case = cn2py(case_name)
-    user = await OpenCasesUser.get_or_none(user_qq=user_qq, group_id=group_id)
+    user = await OpenCasesUser.get_or_none(user_id=user_id, group_id=group_id)
     if not user:
         user = await OpenCasesUser.create(
-            user_qq=user_qq, group_id=group_id, open_cases_time_last=datetime.now()
+            user_id=user_id, group_id=group_id, open_cases_time_last=datetime.now()
         )
-    max_count = await get_user_max_count(user_qq, group_id)
+    max_count = await get_user_max_count(user_id, group_id)
     # 一天次数上限
     if user.today_open_total >= max_count:
         return _handle_is_MAX_COUNT()
@@ -129,12 +131,12 @@ async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, M
     logger.info(
         f"开启{case_name}武器箱获得 {skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion}) 磨损: [{rand}] 价格: {skin.sell_min_price}",
         "开箱",
-        user_qq,
+        user_id,
         group_id,
     )
     await user.save()
     await OpenCasesLog.create(
-        user_qq=user_qq,
+        user_id=user_id,
         group_id=group_id,
         case_name=case_name,
         name=skin.name,
@@ -146,7 +148,7 @@ async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, M
         abrasion_value=rand,
         create_time=datetime.now(),
     )
-    logger.debug(f"添加 1 条开箱日志", "开箱", user_qq, group_id)
+    logger.debug(f"添加 1 条开箱日志", "开箱", user_id, group_id)
     over_count = max_count - user.today_open_total
     img = await draw_card(skin, rand)
     return (
@@ -157,12 +159,12 @@ async def open_case(user_qq: int, group_id: int, case_name: str) -> Union[str, M
 
 
 async def open_multiple_case(
-    user_qq: int, group_id: int, case_name: str, num: int = 10
+    user_id: str, group_id: int, case_name: str, num: int = 10
 ):
     """多连开箱
 
     Args:
-        user_qq (int): 用户id
+        user_id (int): 用户id
         group_id (int): 群号
         case_name (str): 箱子名称
         num (int, optional): 数量. Defaults to 10.
@@ -177,11 +179,11 @@ async def open_multiple_case(
     if case_name not in CaseManager.CURRENT_CASES:
         return "武器箱未收录, 当前可用武器箱:\n" + ", ".join(CaseManager.CURRENT_CASES)  # type: ignore
     user, _ = await OpenCasesUser.get_or_create(
-        user_qq=user_qq,
+        user_id=user_id,
         group_id=group_id,
         defaults={"open_cases_time_last": datetime.now()},
     )
-    max_count = await get_user_max_count(user_qq, group_id)
+    max_count = await get_user_max_count(user_id, group_id)
     if user.today_open_total >= max_count:
         return _handle_is_MAX_COUNT()
     if max_count - user.today_open_total < num:
@@ -189,7 +191,7 @@ async def open_multiple_case(
             f"今天开箱次数不足{num}次噢，请单抽试试看（也许单抽运气更好？）"
             f"\n剩余开箱次数:{max_count - user.today_open_total}"
         )
-    logger.debug(f"尝试开启武器箱: {case_name}", "开箱", user_qq, group_id)
+    logger.debug(f"尝试开启武器箱: {case_name}", "开箱", user_id, group_id)
     case = cn2py(case_name)
     skin_count = {}
     img_list = []
@@ -219,12 +221,12 @@ async def open_multiple_case(
         logger.info(
             f"开启{case_name}武器箱获得 {skin.name}{'（StatTrak™）' if skin.is_stattrak else ''} | {skin.skin_name} ({skin.abrasion}) 磨损: [{rand:.11f}] 价格: {skin.sell_min_price}",
             "开箱",
-            user_qq,
+            user_id,
             group_id,
         )
         log_list.append(
             OpenCasesLog(
-                user_qq=user_qq,
+                user_id=user_id,
                 group_id=group_id,
                 case_name=case_name,
                 name=skin.name,
@@ -240,7 +242,7 @@ async def open_multiple_case(
     await user.save()
     if log_list:
         await OpenCasesLog.bulk_create(log_list, 10)
-        logger.debug(f"添加 {len(log_list)} 条开箱日志", "开箱", user_qq, group_id)
+        logger.debug(f"添加 {len(log_list)} 条开箱日志", "开箱", user_id, group_id)
     img_w += 10
     img_h += 10
     w = img_w * 5
@@ -273,8 +275,8 @@ def _handle_is_MAX_COUNT() -> str:
     return f"今天已达开箱上限了喔，明天再来吧\n(提升好感度可以增加每日开箱数 #疯狂暗示)"
 
 
-async def total_open_statistics(user_qq: int, group: int) -> str:
-    user, _ = await OpenCasesUser.get_or_create(user_qq=user_qq, group_id=group)
+async def total_open_statistics(user_id: str, group: str) -> str:
+    user, _ = await OpenCasesUser.get_or_create(user_id=user_id, group_id=group)
     return (
         f"开箱总数：{user.total_count}\n"
         f"今日开箱：{user.today_open_total}\n"
@@ -294,7 +296,7 @@ async def total_open_statistics(user_qq: int, group: int) -> str:
     )
 
 
-async def group_statistics(group: int):
+async def group_statistics(group: str):
     user_list = await OpenCasesUser.filter(group_id=group).all()
     #          lan   zi   fen   hong   jin  pricei
     uplist = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0, 0]
@@ -330,19 +332,19 @@ async def group_statistics(group: int):
     )
 
 
-async def get_my_knifes(user_id: int, group_id: int) -> Union[str, MessageSegment]:
+async def get_my_knifes(user_id: str, group_id: str) -> Union[str, MessageSegment]:
     """获取我的金色
 
     Args:
-        user_id (int): 用户id
-        group_id (int): 群号
+        user_id (str): 用户id
+        group_id (str): 群号
 
     Returns:
         Union[str, MessageSegment]: 回复消息或图片
     """
     data_list = await get_old_knife(user_id, group_id)
     data_list += await OpenCasesLog.filter(
-        user_qq=user_id, group_id=group_id, color="KNIFE"
+        user_id=user_id, group_id=group_id, color="KNIFE"
     ).all()
     if not data_list:
         return "您木有开出金色级别的皮肤喔"
@@ -377,17 +379,17 @@ async def get_my_knifes(user_id: int, group_id: int) -> Union[str, MessageSegmen
     return image(A)
 
 
-async def get_old_knife(user_id: int, group_id: int) -> List[OpenCasesLog]:
+async def get_old_knife(user_id: str, group_id: str) -> List[OpenCasesLog]:
     """获取旧数据字段
 
     Args:
-        user_id (int): 用户id
-        group_id (int): 群号
+        user_id (str): 用户id
+        group_id (str): 群号
 
     Returns:
         List[OpenCasesLog]: 旧数据兼容
     """
-    user, _ = await OpenCasesUser.get_or_create(user_qq=user_id, group_id=group_id)
+    user, _ = await OpenCasesUser.get_or_create(user_id=user_id, group_id=group_id)
     knifes_name = user.knifes_name
     data_list = []
     if knifes_name:
@@ -406,7 +408,7 @@ async def get_old_knife(user_id: int, group_id: int) -> List[OpenCasesLog]:
                     name = name.replace("（StatTrak™）", "")
                     data_list.append(
                         OpenCasesLog(
-                            user_qq=user_id,
+                            user_id=user_id,
                             group_id=group_id,
                             name=name.strip(),
                             case_name=case_name_py.strip(),

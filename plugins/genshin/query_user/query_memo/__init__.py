@@ -35,7 +35,7 @@ query_memo_matcher = on_command(
 
 @query_memo_matcher.handle()
 async def _(event: MessageEvent):
-    user = await Genshin.get_or_none(user_qq=event.user_id)
+    user = await Genshin.get_or_none(user_id=str(event.user_id))
     if not user or not user.uid or not user.cookie:
         await query_memo_matcher.finish("请先绑定uid和cookie！")
     if isinstance(event, GroupMessageEvent):

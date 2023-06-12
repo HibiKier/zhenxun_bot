@@ -31,11 +31,11 @@ async def _():
                     _sign,
                     "date",
                     run_date=date.replace(microsecond=0),
-                    id=f"genshin_auto_sign_{u.uid}_{u.user_qq}_0",
-                    args=[u.user_qq, u.uid, 0],
+                    id=f"genshin_auto_sign_{u.uid}_{u.user_id}_0",
+                    args=[u.user_id, u.uid, 0],
                 )
                 logger.info(
-                    f"genshin_sign add_job：USER：{u.user_qq} UID：{u.uid} "
+                    f"genshin_sign add_job：USER：{u.user_id} UID：{u.uid} "
                     f"{date} 原神自动签到"
                 )
 

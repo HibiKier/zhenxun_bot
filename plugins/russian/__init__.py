@@ -12,8 +12,10 @@ from configs.config import NICKNAME, Config
 from models.bag_user import BagUser
 from models.group_member_info import GroupInfoUser
 from services.log import logger
+from utils.image_utils import text2image
 from utils.message_builder import at, image
 from utils.utils import get_message_at, is_number
+
 from .data_source import rank
 from .model import RussianUser
 
@@ -445,10 +447,10 @@ async def end_game(bot: Bot, event: GroupMessageEvent):
     await BagUser.add_gold(win_user_id, event.group_id, money - fee)
     await BagUser.spend_gold(lose_user_id, event.group_id, money)
     win_user, _ = await RussianUser.get_or_create(
-        user_qq=win_user_id, group_id=event.group_id
+        user_id=str(win_user_id), group_id=str(event.group_id)
     )
     lose_user, _ = await RussianUser.get_or_create(
-        user_qq=lose_user_id, group_id=event.group_id
+        user_id=str(lose_user_id), group_id=str(event.group_id)
     )
     bullet_str = ""
     for x in rs_player[event.group_id]["bullet"]:
@@ -457,26 +459,32 @@ async def end_game(bot: Bot, event: GroupMessageEvent):
     rs_player[event.group_id] = {}
     await bot.send(
         event,
-        message=f"结算：\n"
-        f"\t胜者：{win_name}\n"
-        f"\t赢取金币：{money - fee}\n"
-        f"\t累计胜场：{win_user.win_count}\n"
-        f"\t累计赚取金币：{win_user.make_money}\n"
-        f"-------------------\n"
-        f"\t败者：{lose_name}\n"
-        f"\t输掉金币：{money}\n"
-        f"\t累计败场：{lose_user.fail_count}\n"
-        f"\t累计输掉金币：{lose_user.lose_money}\n"
-        f"-------------------\n"
-        f"哼哼，{NICKNAME}从中收取了 {float(rand)}%({fee}金币) 作为手续费！\n"
-        f"子弹排列：{bullet_str[:-1]}",
+        message=image(
+            await text2image(
+                f"结算：\n"
+                f"\t胜者：{win_name}\n"
+                f"\t赢取金币：{money - fee}\n"
+                f"\t累计胜场：{win_user.win_count}\n"
+                f"\t累计赚取金币：{win_user.make_money}\n"
+                f"-------------------\n"
+                f"\t败者：{lose_name}\n"
+                f"\t输掉金币：{money}\n"
+                f"\t累计败场：{lose_user.fail_count}\n"
+                f"\t累计输掉金币：{lose_user.lose_money}\n"
+                f"-------------------\n"
+                f"哼哼，{NICKNAME}从中收取了 {float(rand)}%({fee}金币) 作为手续费！\n"
+                f"子弹排列：{bullet_str[:-1]}",
+                padding=10,
+                color="#f9f6f2",
+            )
+        ),
     )
 
 
 @record.handle()
 async def _(event: GroupMessageEvent):
     user, _ = await RussianUser.get_or_create(
-        user_qq=event.user_id, group_id=event.group_id
+        user_id=str(event.user_id), group_id=str(event.group_id)
     )
     await record.send(
         f"俄罗斯轮盘\n"

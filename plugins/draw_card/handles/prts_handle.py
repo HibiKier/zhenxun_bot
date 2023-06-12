@@ -27,6 +27,7 @@ from utils.image_utils import BuildImage
 class Operator(BaseData):
     recruit_only: bool  # 公招限定
     event_only: bool  # 活动获得干员
+    core_only:bool  #中坚干员
     # special_only: bool  # 升变/异格干员
 
 
@@ -54,7 +55,7 @@ class PrtsHandle(BaseHandle[Operator]):
         all_operators = [
             x
             for x in self.ALL_OPERATOR
-            if x.star == star and not any([x.limited, x.recruit_only, x.event_only])
+            if x.star == star and not any([x.limited, x.recruit_only, x.event_only,x.core_only])
         ]
         acquire_operator = None
 
@@ -151,11 +152,16 @@ class PrtsHandle(BaseHandle[Operator]):
             Operator(
                 name=value["名称"],
                 star=int(value["星级"]),
-                limited="干员寻访" not in value["获取途径"],
+                limited="标准寻访" not in value["获取途径"] and "中坚寻访" not in value["获取途径"],
                 recruit_only=True
-                if "干员寻访" not in value["获取途径"] and "公开招募" in value["获取途径"]
+                if "标准寻访" not in value["获取途径"] and "中坚寻访" not in value["获取途径"] and "公开招募" in value["获取途径"]
                 else False,
-                event_only=True if "活动获取" in value["获取途径"] else False,
+                event_only=True 
+                if "活动获取" in value["获取途径"] 
+                else False,
+                core_only=True
+                if "标准寻访" not in value["获取途径"] and "中坚寻访" in value["获取途径"]
+                else False,
             )
             for key, value in self.load_data().items()
             if "阿米娅" not in key
@@ -271,22 +277,27 @@ class PrtsHandle(BaseHandle[Operator]):
                     for char in chars:
                         star = char.split("（")[0].count("★")
                         name = re.split(r"[：（]", char)[1] if "★（" not in char else re.split("）：", char)[1]  # 有的括号在前面有的在后面
+                        dual_up = False
                         if "\\" in name:
                             names = name.split("\\")
+                            dual_up = True
                         elif "/" in name:
                             names = name.split("/")
+                            dual_up = True
                         else:
                             names = [name]  # 既有用/分割的，又有用\分割的
 
                         names = [name.replace("[限定]", "").strip() for name in names]
+                        zoom = 1
                         if "权值" in char:
-                            match = re.search(r"（在.*?以.*?(\d+).*?倍权值.*?）", char)
+                            zoom = 0.03
                         else:
                             match = re.search(r"（占.*?的.*?(\d+).*?%）", char)
-                        zoom = 1
-                        if match:
-                            zoom = float(match.group(1))
-                            zoom = zoom / 100 if zoom > 10 else zoom
+                            if dual_up == True:
+                                zoom = float(match.group(1))/2
+                            else:
+                                zoom = float(match.group(1))
+                            zoom = zoom / 100 if zoom > 1 else zoom
                         for name in names:
                             up_chars.append(
                                 UpChar(name=name, star=star, limited=False, zoom=zoom)

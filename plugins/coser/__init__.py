@@ -60,6 +60,11 @@ async def _(event: MessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
                 msg_id["message_id"],
                 Config.get_config("coser", "WITHDRAW_COS_MESSAGE"),
             )
+            logger.info(
+                f"发送cos", "cos", event.user_id, getattr(event, "group_id", None)
+            )
         except Exception as e:
             await coser.send("你cos给我看！")
-            logger.error(f"coser 发送了未知错误 {type(e)}：{e}")
+            logger.error(
+                f"coser错误", "cos", event.user_id, getattr(event, "group_id", None), e=e
+            )

@@ -10,7 +10,6 @@ from utils.manager.models import PluginType
 
 driver: Driver = nonebot.get_driver()
 
-background = IMAGE_PATH / "background" / "0.png"
 
 ADMIN_HELP_IMAGE = IMAGE_PATH / "admin_help_img.png"
 

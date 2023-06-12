@@ -110,8 +110,8 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
                                 keyword=f"black:{pid}{f'_p{img_p}' if img_p else ''}"
                             ):
                                 await PixivKeywordUser.create(
-                                    user_qq=114514,
-                                    group_id=114514,
+                                    user_id="114514",
+                                    group_id="114514",
                                     keyword=f"black:{pid}{f'_p{img_p}' if img_p else ''}",
                                     is_pass=False,
                                 )
@@ -168,7 +168,7 @@ async def _(
         if data:
             data.is_pass = flag
             await data.save(update_fields=["is_pass"])
-            user_id, group_id = data.user_qq, data.group_id
+            user_id, group_id = data.user_id, data.group_id
         if not user_id:
             await pass_keyword.send(f"未找到关键词/UID：{x}，请检查关键词/UID是否存在...")
             continue

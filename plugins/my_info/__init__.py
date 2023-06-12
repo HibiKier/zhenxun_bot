@@ -27,12 +27,12 @@ my_level = on_command("我的权限", permission=GROUP, priority=5, block=True)
 
 @get_my_group_info.handle()
 async def _(event: GroupMessageEvent):
-    result = await get_member_info(event.user_id, event.group_id)
+    result = await get_member_info(str(event.user_id), str(event.group_id))
     await get_my_group_info.finish(result)
 
 
-async def get_member_info(user_qq: int, group_id: int) -> str:
-    if user := await GroupInfoUser.get_or_none(user_id=str(user_qq), group_id=str(group_id)):
+async def get_member_info(user_id: str, group_id: str) -> str:
+    if user := await GroupInfoUser.get_or_none(user_id=user_id, group_id=group_id):
         result = ""
         result += "昵称:" + user.user_name + "\n"
         result += "加群时间:" + str(user.user_join_time.date())

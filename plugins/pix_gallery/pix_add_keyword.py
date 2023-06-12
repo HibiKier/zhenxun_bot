@@ -54,8 +54,8 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         # ):
         if not await PixivKeywordUser.exists(keyword=msg):
             await PixivKeywordUser.create(
-                user_qq=event.user_id,
-                group_id=group_id,
+                user_id=str(event.user_id),
+                group_id=str(group_id),
                 keyword=msg,
                 is_pass=str(event.user_id) in bot.config.superusers,
             )
@@ -104,8 +104,8 @@ async def _(
             # ):
             if not await PixivKeywordUser.exists(keyword=msg):
                 await PixivKeywordUser.create(
-                    user_qq=event.user_id,
-                    group_id=group_id,
+                    user_id=str(event.user_id),
+                    group_id=str(group_id),
                     keyword=msg,
                     is_pass=str(event.user_id) in bot.config.superusers,
                 )
@@ -138,7 +138,7 @@ async def _(bot: Bot, event: MessageEvent, arg: Message = CommandArg()):
         keyword=f"black:{pid}{f'_p{img_p}' if img_p else ''}"
     ):
         await PixivKeywordUser.create(
-            user_qq=114514,
+            user_id=114514,
             group_id=114514,
             keyword=f"black:{pid}{f'_p{img_p}' if img_p else ''}",
             is_pass=str(event.user_id) in bot.config.superusers,

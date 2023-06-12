@@ -9,7 +9,7 @@ from nonebot.adapters.onebot.v11 import (
     MessageEvent,
     PrivateMessageEvent,
 )
-from nonebot.params import RegexGroup
+from nonebot.params import CommandArg, RegexGroup
 from nonebot.permission import SUPERUSER
 
 from configs.config import NICKNAME, Config
@@ -111,7 +111,7 @@ async def _(
                 block_type = "all" if block_type == "a" else block_type
                 block_type = "private" if block_type == "p" else block_type
                 block_type = "group" if block_type == "g" else block_type
-                set_plugin_status(_cmd, block_type)
+                set_plugin_status(_cmd, block_type)  # type: ignore
                 if block_type == "all":
                     await switch_rule_matcher.send(f"已{_cmd[:2]}功能：{_cmd[2:]}")
                 elif block_type == "private":
@@ -130,15 +130,15 @@ async def _():
 
 @group_task_status.handle()
 async def _(event: GroupMessageEvent):
-    await group_task_status.send(image(b64=await group_current_status(event.group_id)))
+    await group_task_status.send(image(b64=await group_current_status(str(event.group_id))))
 
 
 @group_status.handle()
 async def _(event: GroupMessageEvent, reg_group: Tuple[Any, ...] = RegexGroup()):
     cmd = reg_group[0]
     if cmd == "休息吧":
-        msg = set_group_bot_status(event.group_id, False)
+        msg = set_group_bot_status(str(event.group_id), False)
     else:
-        msg = set_group_bot_status(event.group_id, True)
+        msg = set_group_bot_status(str(event.group_id), True)
     await group_status.send(msg)
     logger.info(f"使用总开关命令: {cmd}", cmd, event.user_id, event.group_id)

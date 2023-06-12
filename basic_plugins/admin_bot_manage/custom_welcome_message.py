@@ -16,8 +16,8 @@ __plugin_usage__ = """
 usage：
     指令：
         自定义进群欢迎消息 ?[文本] ?[图片]
-        示例：自定义进群欢迎消息 欢迎新人！[图片]
         Note：可以通过[at]来确认是否艾特新成员
+        示例：自定义进群欢迎消息 欢迎新人！[图片]
         示例：自定义进群欢迎消息 欢迎你[at]
 """.strip()
 __plugin_des__ = "简易的自定义群欢迎消息"
@@ -51,10 +51,12 @@ async def _(
         await custom_welcome.finish(__plugin_usage__)
     try:
         await custom_welcome.send(
-            await custom_group_welcome(msg, img, event.user_id, event.group_id),
+            await custom_group_welcome(
+                msg, img, str(event.user_id), str(event.group_id)
+            ),
             at_sender=True,
         )
-        logger.info(f"USER {event.user_id} GROUP {event.group_id} 自定义群欢迎消息：{msg}")
+        logger.info(f"自定义群欢迎消息：{msg}", cmd, event.user_id, event.group_id)
     except Exception as e:
         logger.error(
             f"自定义进群欢迎消息发生错误", cmd, event.user_id, getattr(event, "group_id", None), e=e

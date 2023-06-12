@@ -44,7 +44,7 @@ async def _(event: MessageEvent, arg: Message = CommandArg()):
             await query_role_info_matcher.finish("查询uid必须为数字！")
         msg = int(msg)
     uid = None
-    user = await Genshin.get_or_none(user_qq=event.user_id)
+    user = await Genshin.get_or_none(user_id=str(event.user_id))
     if not msg and user:
         uid = user.uid
     else:

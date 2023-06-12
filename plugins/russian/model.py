@@ -1,4 +1,3 @@
-
 from tortoise import fields
 
 from services.db_context import Model
@@ -8,9 +7,9 @@ class RussianUser(Model):
 
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
-    user_qq = fields.BigIntField()
+    user_id = fields.CharField(255)
     """用户id"""
-    group_id = fields.BigIntField()
+    group_id = fields.CharField(255)
     """群聊id"""
     win_count = fields.IntField(default=0)
     """胜利次数"""
@@ -32,19 +31,19 @@ class RussianUser(Model):
     class Meta:
         table = "russian_users"
         table_description = "俄罗斯轮盘数据表"
-        unique_together = ("user_qq", "group_id")
+        unique_together = ("user_id", "group_id")
 
     @classmethod
-    async def add_count(cls, user_qq: int, group_id: int, itype: str):
+    async def add_count(cls, user_id: str, group_id: str, itype: str):
         """
         说明:
             添加用户输赢次数
         说明:
-            :param user_qq: qq号
+            :param user_id: qq号
             :param group_id: 群号
             :param itype: 输或赢 'win' or 'lose'
         """
-        user, _ = await cls.get_or_create(user_qq=user_qq, group_id=group_id)
+        user, _ = await cls.get_or_create(user_id=user_id, group_id=group_id)
         if itype == "win":
             _max = (
                 user.max_winning_streak
@@ -83,19 +82,27 @@ class RussianUser(Model):
             )
 
     @classmethod
-    async def money(cls, user_qq: int, group_id: int, itype: str, count: int) -> bool:
+    async def money(cls, user_id: str, group_id: str, itype: str, count: int) -> bool:
         """
         说明:
             添加用户输赢金钱
         参数:
-            :param user_qq: qq号
+            :param user_id: qq号
             :param group_id: 群号
             :param itype: 输或赢 'win' or 'lose'
             :param count: 金钱数量
         """
-        user, _ = await cls.get_or_create(user_qq=user_qq, group_id=group_id)
+        user, _ = await cls.get_or_create(user_id=str(user_id), group_id=group_id)
         if itype == "win":
             user.make_money = user.make_money + count
         elif itype == "lose":
             user.lose_money = user.lose_money + count
         await user.save(update_fields=["make_money", "lose_money"])
+
+    @classmethod
+    async def _run_script(cls):
+        return [
+            "ALTER TABLE russian_users RENAME COLUMN user_qq TO user_id;",  # 将user_qq改为user_id
+            "ALTER TABLE russian_users ALTER COLUMN user_id TYPE character varying(255);",
+            "ALTER TABLE russian_users ALTER COLUMN group_id TYPE character varying(255);",
+        ]

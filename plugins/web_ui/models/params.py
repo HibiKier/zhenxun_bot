@@ -41,7 +41,7 @@ class UpdateConfig(BaseModel):
 
 class UpdateGroup(BaseModel):
 
-    group_id: int
+    group_id: str
     """群号"""
     status: bool
     """状态"""
@@ -57,5 +57,3 @@ class HandleRequest(BaseModel):
     id: int
     handle: str
     type: str
-
-
