@@ -96,35 +96,37 @@ async def _(flag: str = ArgStr("flag")):
 )
 async def _(bot: Bot):
     if Config.get_config("check_zhenxun_update", "UPDATE_REMIND"):
-        _version = "v0.0.0"
-        _version_file = Path() / "__version__"
-        if _version_file.exists():
-            _version = (
-                open(_version_file, "r", encoding="utf8")
-                .readline()
-                .split(":")[-1]
-                .strip()
+        return
+    _version = "v0.0.0"
+    _version_file = Path() / "__version__"
+    if _version_file.exists():
+        _version = (
+            open(_version_file, "r", encoding="utf8")
+            .readline()
+            .split(":")[-1]
+            .strip()
+        )
+    data = await get_latest_version_data()
+    if data:
+        latest_version = data["name"]
+        if _version.lower() != latest_version.lower():
+            #bot = get_bot()
+            await bot.send_private_msg(
+                user_id=int(list(bot.config.superusers)[0]),
+                message=f"检测到真寻版本更新\n" f"当前版本：{_version}，最新版本：{latest_version}",
             )
-        data = await get_latest_version_data()
-        if data:
-            latest_version = data["name"]
-            if _version.lower() != latest_version.lower():
-                await bot.send_private_msg(
-                    user_id=int(list(bot.config.superusers)[0]),
-                    message=f"检测到真寻版本更新\n" f"当前版本：{_version}，最新版本：{latest_version}",
-                )
-                if Config.get_config("check_zhenxun_update", "AUTO_UPDATE_ZHENXUN"):
-                    try:
-                        code = await check_update(bot)
-                    except Exception as e:
-                        logger.error(f"更新真寻未知错误 {type(e)}：{e}")
+            if Config.get_config("check_zhenxun_update", "AUTO_UPDATE_ZHENXUN"):
+                try:
+                    code = await check_update(bot)
+                except Exception as e:
+                    logger.error(f"更新真寻未知错误 {type(e)}：{e}")
+                    await bot.send_private_msg(
+                        user_id=int(list(bot.config.superusers)[0]),
+                        message=f"更新真寻未知错误 {type(e)}：{e}\n",
+                    )
+                else:
+                    if code == 200:
                         await bot.send_private_msg(
                             user_id=int(list(bot.config.superusers)[0]),
-                            message=f"更新真寻未知错误 {type(e)}：{e}\n",
+                            message=f"更新完毕，请重启{NICKNAME}....",
                         )
-                    else:
-                        if code == 200:
-                            await bot.send_private_msg(
-                                user_id=int(list(bot.config.superusers)[0]),
-                                message=f"更新完毕，请重启{NICKNAME}....",
-                            )
