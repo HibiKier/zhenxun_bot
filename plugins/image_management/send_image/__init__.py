@@ -12,6 +12,7 @@ from utils.message_builder import image
 from utils.utils import FreqLimiter, cn2py, get_message_text, is_number
 
 from .rule import rule
+from .anti import pix_random_change_file
 
 __zx_plugin_name__ = "本地图库"
 __plugin_usage__ = f"""
@@ -74,6 +75,8 @@ async def _(event: MessageEvent):
         return
     if int(index) > length - 1 or int(index) < 0:
         await send_img.finish(f"超过当前上下限！({length - 1})")
+    abs_path = os.path.join(os.getcwd(), path / f"{index}.jpg")
+    pix_random_change_file(abs_path)
     result = image(path / f"{index}.jpg")
     if result:
         logger.info(
