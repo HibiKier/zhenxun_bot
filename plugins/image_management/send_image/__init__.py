@@ -1,18 +1,21 @@
 import os
 import random
+from typing import List
 
 from nonebot import on_message, on_regex
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent
+from nonebot.adapters.onebot.v11 import Message, MessageEvent
+from nonebot.params import CommandArg
 
 from configs.config import Config
 from configs.path_config import IMAGE_PATH
 from services.log import logger
+from utils.depends import GetConfig
 from utils.manager import withdraw_message_manager
 from utils.message_builder import image
 from utils.utils import FreqLimiter, cn2py, get_message_text, is_number
 
-from .rule import rule
 from .anti import pix_random_change_file
+from .rule import rule
 
 __zx_plugin_name__ = "本地图库"
 __plugin_usage__ = f"""
@@ -51,9 +54,11 @@ _path = IMAGE_PATH / "image_management"
 
 
 @send_img.handle()
-async def _(event: MessageEvent):
-    image_dir_list = Config.get_config("image_management", "IMAGE_DIR_LIST") or []
-    msg = get_message_text(event.json()).split()
+async def _(
+    event: MessageEvent,
+    image_dir_list: List[str] = GetConfig("image_management", "IMAGE_DIR_LIST", []),
+):
+    msg = get_message_text(event.message).split()
     gallery = msg[0]
     if gallery not in image_dir_list:
         return
@@ -67,17 +72,15 @@ async def _(event: MessageEvent):
         else:
             path.mkdir(parents=True, exist_ok=True)
     length = len(os.listdir(path))
-    if length == 0:
+    if not length:
         logger.warning(f"图库 {cn2py(gallery)} 为空，调用取消！")
-        await send_img.finish("该图库中没有图片噢")
+        await send_img.finish("该图库中没有图片噢...")
     index = img_id if img_id else str(random.randint(0, length - 1))
     if not is_number(index):
         return
     if int(index) > length - 1 or int(index) < 0:
-        await send_img.finish(f"超过当前上下限！({length - 1})")
-    abs_path = os.path.join(os.getcwd(), path / f"{index}.jpg")
-    pix_random_change_file(abs_path)
-    result = image(path / f"{index}.jpg")
+        await send_img.finish(f"超过当前图库的上下限了哦！({length - 1})")
+    result = image(pix_random_change_file(path / f"{index}.jpg"))
     if result:
         logger.info(
             f"发送{cn2py(gallery)}:" + str(path / f"{index}.jpg"),
@@ -97,7 +100,7 @@ async def _(event: MessageEvent):
         )
     else:
         logger.info(
-            f"发送 {cn2py(gallery)} 失败",
+            f"发送 {cn2py(gallery)} 不存在",
             "发送图片",
             event.user_id,
             getattr(event, "group_id", None),
@@ -109,6 +112,9 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     if _flmt.check(event.user_id):
         _flmt.start_cd(event.user_id)
+        path = IMAGE_PATH / "pa"
+        if not path.exists() or not os.listdir(IMAGE_PATH / "pa"):
+            await pa_reg.finish("该图库中没有图片噢...")
         await pa_reg.finish(
             image(IMAGE_PATH / "pa" / random.choice(os.listdir(IMAGE_PATH / "pa")))
         )

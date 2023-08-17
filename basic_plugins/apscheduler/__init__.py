@@ -51,8 +51,8 @@ cx = on_message(priority=9999, block=False, rule=lambda: False)
 # 早上好
 @scheduler.scheduled_job(
     "cron",
-    hour=20,
-    minute=44,
+    hour=6,
+    minute=1,
 )
 async def _():
     img = image(IMAGE_PATH / "zhenxun" / "zao.jpg")

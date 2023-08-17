@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent
 from nonebot.internal.matcher import Matcher
@@ -87,7 +87,7 @@ def CostGold(gold: int):
 def GetConfig(
     module: Optional[str] = None,
     config: str = "",
-    default_value: Optional[str] = None,
+    default_value: Any = None,
     prompt: Optional[str] = None,
 ):
     """

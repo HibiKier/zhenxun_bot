@@ -2,7 +2,7 @@ import time
 from typing import Any, Tuple
 
 from nonebot import on_regex
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent
+from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.params import RegexGroup
 
 from configs.config import Config
