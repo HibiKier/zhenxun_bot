@@ -48,7 +48,9 @@ async def init():
     if not i_bind:
         i_bind = f"{sql_name}://{user}:{password}@{address}:{port}/{database}"
     try:
-        await Tortoise.init(db_url=i_bind, modules={"models": MODELS})
+        await Tortoise.init(
+            db_url=i_bind, modules={"models": MODELS}, timezone="Asia/Shanghai"
+        )
         await Tortoise.generate_schemas()
         logger.info(f"Database loaded successfully!")
     except Exception as e:
