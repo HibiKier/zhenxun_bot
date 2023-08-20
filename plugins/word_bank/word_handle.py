@@ -134,9 +134,10 @@ async def _(
         answer = ""
         problem = ""
         for index, seg in enumerate(event.message):
-            if seg.type == "text" and "添加词条问" in str(seg) and is_first:
+            r = re.search("添加词条(模糊|正则|图片)?问", str(seg))
+            if seg.type == "text" and r and is_first:
                 is_first = False
-                seg_ = str(seg).split("添加词条问")[-1]
+                seg_ = str(seg).split(f"添加词条{r.group(1) or ''}问")[-1]
                 cur_p = "problem"
                 # 纯文本
                 if "答" in seg_:
@@ -302,7 +303,9 @@ async def _(bot: Bot, event: GroupMessageEvent, arg: Message = CommandArg()):
             ):
                 await show_word_matcher.finish("gid必须为数字且在范围内")
             gid = int(gid)
-        msg_list = await show_word(problem, id_, gid, None if gid else str(event.group_id))
+        msg_list = await show_word(
+            problem, id_, gid, None if gid else str(event.group_id)
+        )
     else:
         msg_list = await show_word(problem, None, None, str(event.group_id))
     if isinstance(msg_list, str):
