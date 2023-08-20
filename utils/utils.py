@@ -411,7 +411,7 @@ def is_chinese(word: str) -> bool:
     return True
 
 
-async def get_user_avatar(qq: int) -> Optional[bytes]:
+async def get_user_avatar(qq: Union[int, str]) -> Optional[bytes]:
     """
     说明:
         快捷获取用户头像
@@ -423,8 +423,8 @@ async def get_user_avatar(qq: int) -> Optional[bytes]:
         for _ in range(3):
             try:
                 return (await client.get(url)).content
-            except TimeoutError:
-                pass
+            except Exception as e:
+                logger.error("获取用户头像错误", "Util", target=qq)
     return None
 
 
@@ -440,8 +440,8 @@ async def get_group_avatar(group_id: int) -> Optional[bytes]:
         for _ in range(3):
             try:
                 return (await client.get(url)).content
-            except TimeoutError:
-                pass
+            except Exception as e:
+                logger.error("获取群头像错误", "Util", target=group_id)
     return None
 
 

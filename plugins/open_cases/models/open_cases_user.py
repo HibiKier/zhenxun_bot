@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from tortoise import fields
 
 from services.db_context import Model
@@ -39,7 +41,7 @@ class OpenCasesUser(Model):
     """赚取金币"""
     today_open_total: int = fields.IntField(default=0)
     """今日开箱数量"""
-    open_cases_time_last = fields.DatetimeField()
+    open_cases_time_last: datetime = fields.DatetimeField()
     """最后开箱日期"""
     knifes_name: str = fields.TextField(default="")
     """已获取金色"""
