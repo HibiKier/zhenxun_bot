@@ -63,7 +63,9 @@ def add_count(user: OpenCasesUser, skin: BuffSkin, case_price: float):
     user.spend_money += 17 + case_price
 
 
-async def get_user_max_count(user_id: str, group_id: int) -> int:
+async def get_user_max_count(
+    user_id: Union[int, str], group_id: Union[str, int]
+) -> int:
     """获取用户每日最大开箱次数
 
     Args:
@@ -84,7 +86,9 @@ async def get_user_max_count(user_id: str, group_id: int) -> int:
     return int(initial_open_case_count + impression / each_impression_add_count)  # type: ignore
 
 
-async def open_case(user_id: str, group_id: int, case_name: str) -> Union[str, Message]:
+async def open_case(
+    user_id: Union[int, str], group_id: Union[int, str], case_name: str
+) -> Union[str, Message]:
     """开箱
 
     Args:
@@ -95,6 +99,8 @@ async def open_case(user_id: str, group_id: int, case_name: str) -> Union[str, M
     Returns:
         Union[str, Message]: 回复消息
     """
+    user_id = str(user_id)
+    group_id = str(group_id)
     if not CaseManager.CURRENT_CASES:
         return "未收录任何武器箱"
     if not case_name:
@@ -162,7 +168,7 @@ async def open_case(user_id: str, group_id: int, case_name: str) -> Union[str, M
 
 
 async def open_multiple_case(
-    user_id: str, group_id: int, case_name: str, num: int = 10
+    user_id: Union[int, str], group_id: Union[str, int], case_name: str, num: int = 10
 ):
     """多连开箱
 
@@ -175,6 +181,8 @@ async def open_multiple_case(
     Returns:
         _type_: _description_
     """
+    user_id = str(user_id)
+    group_id = str(group_id)
     if not CaseManager.CURRENT_CASES:
         return "未收录任何武器箱"
     if not case_name:

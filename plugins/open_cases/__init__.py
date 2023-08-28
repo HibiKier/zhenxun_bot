@@ -32,6 +32,7 @@ from .utils import (
     KNIFE2ID,
     CaseManager,
     build_case_image,
+    download_image,
     get_skin_case,
     init_skin_trends,
     reset_count_daily,
@@ -62,6 +63,7 @@ usage：
         更新武器箱 ?[武器箱/ALL]
         更新皮肤 ?[名称/ALL1]
         更新皮肤 ?[名称/ALL1] -S: (必定更新罕见皮肤所属箱子)
+        更新武器箱图片
     * 不指定武器箱时则全部更新 *
     * 过多的爬取会导致账号API被封 *
 """.strip()
@@ -75,6 +77,7 @@ __plugin_cmd__ = [
     "查看武器箱?[武器箱]",
     "更新武器箱 ?[武器箱] [_superuser]",
     "更新皮肤 ?[刀具名称] [_superuser]",
+    "更新武器箱图片 [_superuser]",
 ]
 __plugin_type__ = ("抽卡相关", 1)
 __plugin_version__ = 0.1
@@ -133,6 +136,7 @@ open_multiple = cases_matcher_group.on_regex("(.*)连开箱(.*)?")
 update_case = on_command(
     "更新武器箱", aliases={"更新皮肤"}, priority=1, permission=SUPERUSER, block=True
 )
+update_case_image = on_command("更新武器箱图片", priority=1, permission=SUPERUSER, block=True)
 show_case = on_command("查看武器箱", priority=5, block=True)
 my_knifes = on_command("我的金色", priority=1, permission=GROUP, block=True)
 show_skin = on_command("查看皮肤", priority=5, block=True)
@@ -284,6 +288,14 @@ async def _(arg: Message = CommandArg()):
         await show_case.send(result)
     else:
         await show_case.send(image(result))
+
+
+@update_case_image.handle()
+async def _(arg: Message = CommandArg()):
+    msg = arg.extract_plain_text().strip()
+    await update_case_image.send("开始更新图片...")
+    await download_image(msg)
+    await update_case_image.send("更新图片完成...", at_sender=True)
 
 
 # 重置开箱

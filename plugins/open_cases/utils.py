@@ -603,6 +603,41 @@ async def reset_count_daily():
         logger.error(f"开箱重置错误", e=e)
 
 
+async def download_image(case_name: Optional[str] = None):
+    """下载皮肤图片
+
+    参数:
+        case_name: 箱子名称.
+    """
+    skin_list = (
+        await BuffSkin.filter(case_name=case_name).all()
+        if case_name
+        else await BuffSkin.all()
+    )
+    for skin in skin_list:
+        name_ = skin.name + "-" + skin.skin_name + "-" + skin.abrasion
+        for c_name_ in skin.case_name.split(","):
+            try:
+                file_path = BASE_PATH / cn2py(c_name_) / f"{cn2py(name_)}.jpg"
+                if not file_path.exists():
+                    logger.debug(
+                        f"下载皮肤 {c_name_}/{skin.name} 图片: {skin.img_url}...",
+                        "开箱图片更新",
+                    )
+                    await AsyncHttpx.download_file(skin.img_url, file_path)
+                    rand_time = random.randint(1, 5)
+                    await asyncio.sleep(rand_time)
+                    logger.debug(f"图片下载随机等待时间: {rand_time}", "开箱图片更新")
+                else:
+                    logger.debug(f"皮肤 {c_name_}/{skin.name} 图片已存在...", "开箱图片更新")
+            except Exception as e:
+                logger.error(
+                    f"下载皮肤 {c_name_}/{skin.name} 图片: {skin.img_url}",
+                    "开箱图片更新",
+                    e=e,
+                )
+
+
 @driver.on_startup
 async def _():
     await CaseManager.reload()
