@@ -13,7 +13,7 @@ from playwright.async_api import BrowserContext, Page
 from retrying import retry
 
 from services.log import logger
-from utils.user_agent import get_user_agent
+from utils.user_agent import get_user_agent, get_user_agent_str
 
 from .browser import get_browser
 from .message_builder import image
@@ -218,7 +218,7 @@ class AsyncHttpx:
             else:
                 logger.error(f"下载 {url} 下载超时.. Path：{path.absolute()}")
         except Exception as e:
-            logger.error(f"下载 {url} 未知错误 {type(e)}：{e}.. Path：{path.absolute()}")
+            logger.error(f"下载 {url} 错误 Path：{path.absolute()}", e=e)
         return False
 
     @classmethod
@@ -329,6 +329,7 @@ class AsyncPlaywright:
         ] = "networkidle",
         timeout: Optional[float] = None,
         type_: Optional[Literal["jpeg", "png"]] = None,
+        user_agent: Optional[str] = None,
         **kwargs,
     ) -> Optional[MessageSegment]:
         """
@@ -353,7 +354,11 @@ class AsyncPlaywright:
             element_list = [element]
         else:
             element_list = element
-        async with cls.new_page(viewport=viewport_size) as page:
+        async with cls.new_page(
+            viewport=viewport_size,
+            user_agent=user_agent,
+            **kwargs,
+        ) as page:
             await page.goto(url, timeout=timeout, wait_until=wait_until)
             card = page
             for e in element_list:

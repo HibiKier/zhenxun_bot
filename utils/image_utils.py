@@ -7,7 +7,7 @@ import uuid
 from io import BytesIO
 from math import ceil
 from pathlib import Path
-from typing import Awaitable, Callable, List, Literal, Optional, Tuple, Union
+from typing import Any, Awaitable, Callable, List, Literal, Optional, Tuple, Union
 
 import cv2
 import imagehash
@@ -353,16 +353,16 @@ class BuildImage:
             :param font_size: 字体大小
         """
         font_ = cls.load_font(font, font_size)
-        return font_.getsize(msg)
+        return font_.getsize(msg)  # type: ignore
 
-    def getsize(self, msg: str) -> Tuple[int, int]:
+    def getsize(self, msg: Any) -> Tuple[int, int]:
         """
         说明:
             获取文字在该图片 font_size 下所需要的空间
         参数:
             :param msg: 文字内容
         """
-        return self.font.getsize(msg)
+        return self.font.getsize(str(msg))  # type: ignore
 
     async def apoint(
         self, pos: Tuple[int, int], fill: Optional[Tuple[int, int, int]] = None
