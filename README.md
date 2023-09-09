@@ -7,6 +7,10 @@
 # 绪山真寻Bot
 
 ****
+
+“真寻是<strong>[椛椛](https://github.com/FloatTech/ZeroBot-Plugin)</strong>的好朋友！”
+
+****
 此项目基于 Nonebot2 和 go-cqhttp 开发，以 postgresql 作为数据库的QQ群娱乐机器人
 
 ## 关于
