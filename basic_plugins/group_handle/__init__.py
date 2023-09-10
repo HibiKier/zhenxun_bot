@@ -155,7 +155,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
                 Path() / "data" / "custom_welcome_msg" / "custom_welcome_msg.json"
             )
             if custom_welcome_msg_json.exists():
-                data = json.load(open(custom_welcome_msg_json, "r"))
+                data = json.load(open(custom_welcome_msg_json, "r", encoding='utf-8'))
                 if data.get(str(event.group_id)):
                     msg = data[str(event.group_id)]
                     if "[at]" in msg:
