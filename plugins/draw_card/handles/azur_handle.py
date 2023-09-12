@@ -175,16 +175,16 @@ class AzurHandle(BaseHandle[AzurChar]):
             char_list = content.xpath("./div[@id='CardSelectTr']/div")
             for char in char_list:
                 try:
-                    name = char.xpath("./div/a/@title")[0]
+                    name = char.xpath("./div/div/a/@title")[0]
                     frame = char.xpath("./div/div/a/img/@alt")[0]
-                    avatar = char.xpath("./div/a/img/@srcset")[0]
+                    avatar = char.xpath("./div/img/@srcset")[0]
                 except IndexError:
                     continue
                 member_dict = {
                     "名称": remove_prohibited_str(name),
                     "头像": unquote(str(avatar).split(" ")[-2]),
                     "星级": self.parse_star(frame),
-                    "类型": char.xpath("./@data-param1")[0].split(",")[1],
+                    "类型": char.xpath("@data-param1")[0].split(",")[1],
                 }
                 info[member_dict["名称"]] = member_dict
         # 更新额外信息
@@ -198,7 +198,7 @@ class AzurHandle(BaseHandle[AzurChar]):
             try:
                 dom = etree.HTML(result, etree.HTMLParser())
                 time = dom.xpath(
-                    "//table[@class='wikitable sv-general']/tbody[1]/tr[4]/td[2]//text()"
+                    "//table[@class='wikitable sv-general']/tbody[1]/tr[7]/td[2]//text()"
                 )[0]
                 sources = []
                 if "无法建造" in time:
