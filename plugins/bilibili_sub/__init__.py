@@ -278,7 +278,7 @@ async def send_sub_msg(rst: str, sub: BilibiliSub, bot: Bot):
     :param bot: Bot
     """
     temp_group = []
-    if rst:
+    if rst and rst.strip():
         for x in sub.sub_users.split(",")[:-1]:
             try:
                 if ":" in x and x.split(":")[1] not in temp_group:
