@@ -1,6 +1,6 @@
 import asyncio
 import re
-from typing import Awaitable, Callable, ClassVar, Dict, Generic, List, Set, TypeVar
+from typing import Awaitable, Callable, Dict, Generic, List, Set, TypeVar
 from urllib.parse import urlparse
 
 PATTERN = r"\x1b(\[.*?[@-~]|\].*?(\x07|\x1b\\))"
@@ -10,6 +10,11 @@ LogListener = Callable[[_T], Awaitable[None]]
 
 
 class LogStorage(Generic[_T]):
+
+    """
+    日志存储
+    """
+
     def __init__(self, rotation: float = 5 * 60):
         self.count, self.rotation = 0, rotation
         self.logs: Dict[int, str] = {}
@@ -42,4 +47,4 @@ class LogStorage(Generic[_T]):
         return
 
 
-LOG_STORAGE = LogStorage[str]()
+LOG_STORAGE: LogStorage[str] = LogStorage[str]()

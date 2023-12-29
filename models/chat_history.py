@@ -21,6 +21,8 @@ class ChatHistory(Model):
     """纯文本"""
     create_time = fields.DatetimeField(auto_now_add=True)
     """创建时间"""
+    bot_id = fields.CharField(255, null=True)
+    """bot记录id"""
 
     class Meta:
         table = "chat_history"
@@ -56,7 +58,9 @@ class ChatHistory(Model):
         )  # type: ignore
 
     @classmethod
-    async def get_group_first_msg_datetime(cls, group_id: Union[int, str]) -> Optional[datetime]:
+    async def get_group_first_msg_datetime(
+        cls, group_id: Union[int, str]
+    ) -> Optional[datetime]:
         """
         说明:
             获取群第一条记录消息时间
@@ -117,4 +121,6 @@ class ChatHistory(Model):
             "ALTER TABLE chat_history RENAME COLUMN user_qq TO user_id;",  # 将user_id改为user_id
             "ALTER TABLE chat_history ALTER COLUMN user_id TYPE character varying(255);",
             "ALTER TABLE chat_history ALTER COLUMN group_id TYPE character varying(255);",
+            "ALTER TABLE chat_history ADD bot_id VARCHAR(255);",  # 添加bot_id字段
+            "ALTER TABLE chat_history ALTER COLUMN bot_id TYPE character varying(255);",
         ]

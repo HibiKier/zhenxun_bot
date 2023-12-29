@@ -5,7 +5,7 @@ import nonebot
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
-from ..models.model import Result
+from ..base_model import Result
 from ..utils import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     create_token,

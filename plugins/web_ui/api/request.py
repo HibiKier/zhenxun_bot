@@ -8,7 +8,7 @@ from services.log import logger
 from utils.manager import requests_manager
 from utils.utils import get_bot
 
-from ..models.model import RequestResult, Result
+from ..base_model import RequestResult, Result
 from ..models.params import HandleRequest
 from ..utils import authentication
 
@@ -42,46 +42,46 @@ def _(request_type: Optional[str]) -> Result:
     return Result.ok(info="成功清除了数据")
 
 
-@router.post("/handle_request", dependencies=[authentication()])
-async def _(parma: HandleRequest) -> Result:
-    """
-    操作请求
-    :param parma: 参数
-    """
-    try:
-        result = "操作成功！"
-        flag = 3
-        if bot := get_bot():
-            if parma.handle == "approve":
-                if parma.type == "group":
-                    if rid := requests_manager.get_group_id(parma.id):
-                        # await GroupInfo.update_or_create(defaults={"group_flag": 1}, )
-                        if group := await GroupInfo.get_or_none(group_id=str(rid)):
-                            await group.update_or_create(group_flag=1)
-                        else:
-                            group_info = await bot.get_group_info(group_id=rid)
-                            await GroupInfo.update_or_create(
-                                group_id=str(group_info["group_id"]),
-                                defaults={
-                                    "group_name": group_info["group_name"],
-                                    "max_member_count": group_info["max_member_count"],
-                                    "member_count": group_info["member_count"],
-                                    "group_flag": 1,
-                                },
-                            )
-                flag = await requests_manager.approve(bot, parma.id, parma.type)
-            elif parma.handle == "refuse":
-                flag = await requests_manager.refused(bot, parma.id, parma.type)
-            elif parma.handle == "delete":
-                requests_manager.delete_request(parma.id, parma.type)
-            if parma.handle != "delete":
-                if flag == 1:
-                    result = "该请求已失效"
-                    requests_manager.delete_request(parma.id, parma.type)
-                elif flag == 2:
-                    result = "未找到此Id"
-            return Result.ok(result, "成功处理了请求!")
-        return Result.fail("Bot未连接")
-    except Exception as e:
-        logger.error("调用API错误", "/get_group", e=e)
-        return Result.fail(f"{type(e)}: {e}")
+# @router.post("/handle_request", dependencies=[authentication()])
+# async def _(parma: HandleRequest) -> Result:
+#     """
+#     操作请求
+#     :param parma: 参数
+#     """
+#     try:
+#         result = "操作成功！"
+#         flag = 3
+#         if bot := get_bot():
+#             if parma.handle == "approve":
+#                 if parma.type == "group":
+#                     if rid := requests_manager.get_group_id(parma.id):
+#                         # await GroupInfo.update_or_create(defaults={"group_flag": 1}, )
+#                         if group := await GroupInfo.get_or_none(group_id=str(rid)):
+#                             await group.update_or_create(group_flag=1)
+#                         else:
+#                             group_info = await bot.get_group_info(group_id=rid)
+#                             await GroupInfo.update_or_create(
+#                                 group_id=str(group_info["group_id"]),
+#                                 defaults={
+#                                     "group_name": group_info["group_name"],
+#                                     "max_member_count": group_info["max_member_count"],
+#                                     "member_count": group_info["member_count"],
+#                                     "group_flag": 1,
+#                                 },
+#                             )
+#                 flag = await requests_manager.approve(bot, parma.id, parma.type)
+#             elif parma.handle == "refuse":
+#                 flag = await requests_manager.refused(bot, parma.id, parma.type)
+#             elif parma.handle == "delete":
+#                 requests_manager.delete_request(parma.id, parma.type)
+#             if parma.handle != "delete":
+#                 if flag == 1:
+#                     result = "该请求已失效"
+#                     requests_manager.delete_request(parma.id, parma.type)
+#                 elif flag == 2:
+#                     result = "未找到此Id"
+#             return Result.ok(result, "成功处理了请求!")
+#         return Result.fail("Bot未连接")
+#     except Exception as e:
+#         logger.error("调用API错误", "/get_group", e=e)
+#         return Result.fail(f"{type(e)}: {e}")

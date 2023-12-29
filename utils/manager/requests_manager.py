@@ -1,11 +1,13 @@
-from utils.manager.data_class import StaticData
-from nonebot.adapters.onebot.v11 import Bot, ActionFailed
-from services.log import logger
-from typing import Optional
-from utils.image_utils import BuildImage
-from utils.utils import get_user_avatar
-from pathlib import Path
 from io import BytesIO
+from pathlib import Path
+from typing import Optional
+
+from nonebot.adapters.onebot.v11 import ActionFailed, Bot
+
+from services.log import logger
+from utils.image_utils import BuildImage
+from utils.manager.data_class import StaticData
+from utils.utils import get_user_avatar
 
 
 class RequestManager(StaticData):
@@ -21,6 +23,7 @@ class RequestManager(StaticData):
 
     def add_request(
         self,
+        bot_id: str,
         id_: int,
         type_: str,
         flag: str,
@@ -36,6 +39,7 @@ class RequestManager(StaticData):
     ):
         """
         添加一个请求
+        :param bot_id: bot_id
         :param id_: id，用户id或群id
         :param type_: 类型，private 或 group
         :param flag: event.flag
@@ -49,6 +53,7 @@ class RequestManager(StaticData):
         :param group_name: 群聊名称
         """
         self._data[type_][str(len(self._data[type_].keys()))] = {
+            "bot_id": bot_id,
             "id": id_,
             "flag": flag,
             "nickname": nickname,
@@ -102,7 +107,9 @@ class RequestManager(StaticData):
         """
         return await self._set_add_request(bot, id_, type_, False)
 
-    def clear(self, type_: Optional[str] = None):   # type_: Optional[Literal["group", "private"]] = None
+    def clear(
+        self, type_: Optional[str] = None
+    ):  # type_: Optional[Literal["group", "private"]] = None
         """
         清空所有请求信息，无视请求
         :param type_: 类型
@@ -113,7 +120,9 @@ class RequestManager(StaticData):
             self._data = {"private": {}, "group": {}}
         self.save()
 
-    def delete_request(self, id_: int, type_: str):     # type_: Literal["group", "private"]
+    def delete_request(
+        self, id_: int, type_: str
+    ):  # type_: Literal["group", "private"]
         """
         删除请求
         :param id_: id
@@ -230,7 +239,7 @@ class RequestManager(StaticData):
         return bk.pic2bs4()
 
     async def _set_add_request(
-        self, bot: Bot, id_: int, type_: str, approve: bool
+        self, bot: Bot, idx: int, type_: str, approve: bool
     ) -> int:
         """
         处理请求
@@ -239,7 +248,7 @@ class RequestManager(StaticData):
         :param type_: 类型，private 或 group
         :param approve: 是否同意
         """
-        id_ = str(id_)
+        id_ = str(idx)
         if id_ in self._data[type_].keys():
             try:
                 if type_ == "private":
@@ -259,7 +268,7 @@ class RequestManager(StaticData):
                     f"同意{self._data[type_][id_]['nickname']}({self._data[type_][id_]['id']})"
                     f"的{'好友' if type_ == 'private' else '入群'}请求失败了..."
                 )
-                return 1    # flag失效
+                return 1  # flag失效
             else:
                 logger.info(
                     f"{'同意' if approve else '拒绝'}{self._data[type_][id_]['nickname']}({self._data[type_][id_]['id']})"
@@ -268,4 +277,4 @@ class RequestManager(StaticData):
             del self._data[type_][id_]
             self.save()
             return rid
-        return 2    # 未找到id
+        return 2  # 未找到id
