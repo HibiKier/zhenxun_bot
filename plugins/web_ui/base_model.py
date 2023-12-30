@@ -1,13 +1,15 @@
 from datetime import datetime
 from logging import warning
-from typing import Any, Dict, List, Optional, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, TypeVar, Union
 
 from nonebot.adapters.onebot.v11 import Bot
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 from configs.utils import Config
 from utils.manager.models import Plugin as PluginManager
 from utils.manager.models import PluginBlock, PluginCd, PluginCount, PluginSetting
+
+T = TypeVar("T")
 
 
 class User(BaseModel):
@@ -47,6 +49,31 @@ class Result(BaseModel):
     @classmethod
     def ok(cls, data: Any = None, info: str = "操作成功", code: int = 200) -> "Result":
         return cls(suc=True, info=info, code=code, data=data)
+
+
+class QueryModel(BaseModel, Generic[T]):
+    """
+    基本查询条件
+    """
+
+    index: int
+    """页数"""
+    size: int
+    """每页数量"""
+    data: T
+    """携带数据"""
+
+    @validator("index")
+    def index_validator(cls, index):
+        if index < 1:
+            raise ValueError("查询下标小于1...")
+        return index
+
+    @validator("size")
+    def size_validator(cls, size):
+        if size < 1:
+            raise ValueError("每页数量小于1...")
+        return size
 
 
 # class PluginConfig(BaseModel):

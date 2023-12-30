@@ -16,9 +16,7 @@ from utils.manager import plugins2settings_manager
 # from .api.group import router as group_routes
 from .api.logs import router as ws_log_routes
 from .api.logs.log_manager import LOG_STORAGE
-
-# from .api.plugins import router as plugin_routes
-from .api.request import router as request_routes
+from .api.tabs.database import router as database_router
 
 # from .api.system import router as system_routes
 from .api.tabs.main import router as main_router
@@ -27,6 +25,10 @@ from .api.tabs.manage import router as manage_router
 
 # from .api.g import *
 from .auth import router as auth_router
+
+# from .api.plugins import router as plugin_routes
+# from .api.request import router as request_routes
+
 
 driver = nonebot.get_driver()
 
@@ -40,10 +42,11 @@ BaseApiRouter = APIRouter(prefix="/zhenxun/api")
 BaseApiRouter.include_router(auth_router)
 # BaseApiRouter.include_router(plugin_routes)
 # BaseApiRouter.include_router(group_routes)
-BaseApiRouter.include_router(request_routes)
+# BaseApiRouter.include_router(request_routes)
 # BaseApiRouter.include_router(system_routes)
 BaseApiRouter.include_router(main_router)
 BaseApiRouter.include_router(manage_router)
+BaseApiRouter.include_router(database_router)
 
 
 @driver.on_startup
