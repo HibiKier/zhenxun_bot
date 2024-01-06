@@ -76,38 +76,38 @@ class QueryModel(BaseModel, Generic[T]):
         return size
 
 
-# class PluginConfig(BaseModel):
-#     """
-#     插件配置项
-#     """
+class PluginConfig(BaseModel):
+    """
+    插件配置项
+    """
 
-#     module: str
-#     key: str
-#     value: Optional[Any]
-#     help: Optional[str]
-#     default_value: Optional[Any]
-#     has_type: bool
+    module: str
+    key: str
+    value: Optional[Any]
+    help: Optional[str]
+    default_value: Optional[Any]
+    has_type: bool
 
 
-# class Plugin(BaseModel):
-#     """
-#     插件
-#     """
+class Plugin(BaseModel):
+    """
+    插件
+    """
 
-#     model: str
-#     """模块名称"""
-#     plugin_settings: Optional[PluginSetting]
-#     """settings"""
-#     plugin_manager: Optional[PluginManager]
-#     """manager"""
-#     plugin_config: Optional[Dict[str, PluginConfig]]
-#     """配置项"""
-#     cd_limit: Optional[PluginCd]
-#     """cd限制"""
-#     block_limit: Optional[PluginBlock]
-#     """阻断限制"""
-#     count_limit: Optional[PluginCount]
-#     """次数限制"""
+    model: str
+    """模块名称"""
+    plugin_settings: Optional[PluginSetting]
+    """settings"""
+    plugin_manager: Optional[PluginManager]
+    """manager"""
+    plugin_config: Optional[Dict[str, PluginConfig]]
+    """配置项"""
+    cd_limit: Optional[PluginCd]
+    """cd限制"""
+    block_limit: Optional[PluginBlock]
+    """阻断限制"""
+    count_limit: Optional[PluginCount]
+    """次数限制"""
 
 
 class SystemStatus(BaseModel):

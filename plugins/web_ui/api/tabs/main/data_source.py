@@ -3,7 +3,7 @@ from typing import Optional
 
 import nonebot
 from nonebot import Driver
-from nonebot.adapters.onebot.v12 import Bot
+from nonebot.adapters.onebot.v11 import Bot
 
 driver: Driver = nonebot.get_driver()
 
