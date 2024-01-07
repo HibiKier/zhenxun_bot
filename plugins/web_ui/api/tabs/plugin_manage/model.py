@@ -3,13 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel
 
 from utils.manager.models import Plugin as PluginManager
-from utils.manager.models import (
-    PluginBlock,
-    PluginCd,
-    PluginCount,
-    PluginSetting,
-    PluginType,
-)
+from utils.manager.models import PluginBlock, PluginCd, PluginCount, PluginSetting
 from utils.typing import BLOCK_TYPE
 
 
@@ -50,14 +44,14 @@ class UpdatePlugin(BaseModel):
     """限制超级用户"""
     cost_gold: int
     """金币花费"""
-    cmd: str
-    """插件别名"""
     menu_type: str
     """插件菜单类型"""
     level: int
     """插件所需群权限"""
-    block_type: BLOCK_TYPE
+    block_type: Optional[BLOCK_TYPE] = None
     """禁用类型"""
+    configs: Optional[Dict[str, Any]] = None
+    """配置项"""
 
 
 class PluginInfo(BaseModel):
@@ -69,7 +63,7 @@ class PluginInfo(BaseModel):
     """插件名称"""
     plugin_name: str
     """插件中文名称"""
-    default_switch: bool
+    default_status: bool
     """默认开关"""
     limit_superuser: bool
     """限制超级用户"""
@@ -85,6 +79,8 @@ class PluginInfo(BaseModel):
     """当前状态"""
     author: Optional[str] = None
     """作者"""
+    block_type: BLOCK_TYPE = None
+    """禁用类型"""
 
 
 class PluginConfig(BaseModel):
@@ -93,11 +89,20 @@ class PluginConfig(BaseModel):
     """
 
     module: str
+    """模块"""
     key: str
+    """键"""
     value: Any
-    help: Optional[str]
+    """值"""
+    help: Optional[str] = None
+    """帮助"""
     default_value: Any
-    has_type: bool
+    """默认值"""
+    type: Optional[Any] = None
+    """值类型"""
+    type_inner: Optional[List[str]] = None
+    """List Tuple等内部类型检验"""
+    
 
 
 class Plugin(BaseModel):
@@ -133,3 +138,11 @@ class PluginCount(BaseModel):
     """超级用户插件"""
     other: int = 0
     """其他插件"""
+
+
+class PluginDetail(PluginInfo):
+    """
+    插件详情
+    """
+
+    config_list: List[PluginConfig]

@@ -29,3 +29,6 @@ class PluginDataManager(StaticData[PluginData]):
 
     def __getitem__(self, item) -> Optional[PluginData]:
         return self._data.get(item)
+    
+    def reload(self):
+        pass

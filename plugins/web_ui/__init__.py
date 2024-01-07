@@ -30,6 +30,7 @@ gConfig.add_plugin_config("web-ui", "password", None, name="web-ui", help_="前�
 
 BaseApiRouter = APIRouter(prefix="/zhenxun/api")
 
+
 BaseApiRouter.include_router(auth_router)
 BaseApiRouter.include_router(main_router)
 BaseApiRouter.include_router(manage_router)
@@ -37,12 +38,24 @@ BaseApiRouter.include_router(database_router)
 BaseApiRouter.include_router(plugin_router)
 
 
+WsApiRouter = APIRouter(prefix="/zhenxun/socket")
+
+WsApiRouter.include_router(ws_log_routes)
+WsApiRouter.include_router(status_routes)
+
+
 @driver.on_startup
 def _():
     try:
-        loop = asyncio.get_running_loop()
-
-        def log_sink(message: str):
+        async def log_sink(message: str):
+            loop =  None
+            if not loop:
+                try:
+                    loop = asyncio.get_running_loop()
+                except Exception as e:
+                    logger.warning('Web Ui log_sink', e=e)
+            if not loop:
+                loop = asyncio.new_event_loop()
             loop.create_task(LOG_STORAGE.add(message.rstrip("\n")))
 
         logger_.add(
@@ -51,8 +64,7 @@ def _():
 
         app: FastAPI = nonebot.get_app()
         app.include_router(BaseApiRouter)
-        app.include_router(ws_log_routes)
-        app.include_router(status_routes)
+        app.include_router(WsApiRouter)
         logger.info("<g>API启动成功</g>", "Web UI")
     except Exception as e:
         logger.error("<g>API启动失败</g>", "Web UI", e=e)
