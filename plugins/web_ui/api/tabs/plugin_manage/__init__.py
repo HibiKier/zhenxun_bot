@@ -111,10 +111,10 @@ def _(plugin: UpdatePlugin) -> Result:
             for key in plugin.configs:
                 if c := configs.configs.get(key):
                     value = plugin.configs[key]
-                    if isinstance(c.value, (list, tuple)) or isinstance(
-                        c.default_value, (list, tuple)
-                    ):
-                        value = value.split(",")
+                    # if isinstance(c.value, (list, tuple)) or isinstance(
+                    #     c.default_value, (list, tuple)
+                    # ):
+                    #     value = value.split(",")
                     if c.type and value is not None:
                         value = cattrs.structure(value, c.type)
                     Config.set_config(module, key, value)
