@@ -27,10 +27,20 @@ class Task(BaseModel):
 
     name: str
     """被动名称"""
-    nameZh: str
+    zh_name: str
     """被动中文名称"""
     status: bool
     """状态"""
+
+class Plugin(BaseModel):
+    """
+    插件
+    """
+    
+    module: str
+    """模块名"""
+    plugin_name: str
+    """中文名"""
 
 
 class GroupResult(BaseModel):
@@ -38,16 +48,12 @@ class GroupResult(BaseModel):
     群组返回数据
     """
 
-    group: Group
-    """Group"""
-    level: int
-    """群等级"""
-    status: bool
-    """状态"""
-    close_plugins: List[str]
-    """关闭的插件"""
-    task: List[Task]
-    """被动列表"""
+    group_id: Union[str, int]
+    """群组id"""
+    group_name: str
+    """群组名称"""
+    ava_url: str
+    """群组头像"""
 
 
 class Friend(BaseModel):
@@ -61,7 +67,8 @@ class Friend(BaseModel):
     """昵称"""
     remark: str = ""
     """备注"""
-
+    ava_url: str = ""
+    """头像url"""
 
 class UpdateGroup(BaseModel):
     """
@@ -74,8 +81,10 @@ class UpdateGroup(BaseModel):
     """状态"""
     level: int
     """群权限"""
-    task_status: Dict[str, bool]
+    task: List[str]
     """被动状态"""
+    close_plugins: List[str]
+    """关闭插件"""
 
 
 class FriendRequestResult(BaseModel):
@@ -103,6 +112,10 @@ class FriendRequestResult(BaseModel):
     """来自"""
     comment: Optional[str]
     """备注信息"""
+    ava_url: str
+    """头像"""
+    type: str
+    """类型 private group"""
 
 
 class GroupRequestResult(FriendRequestResult):
@@ -121,10 +134,10 @@ class HandleRequest(BaseModel):
     操作请求接收数据
     """
 
-    bot_id: str
+    bot_id: Optional[str] = None
     """bot_id"""
-    id: int
-    """id"""
+    flag: str
+    """flag"""
     request_type: Literal["private", "group"]
     """类型"""
 
@@ -149,3 +162,97 @@ class DeleteFriend(BaseModel):
     """bot_id"""
     user_id: str
     """用户id"""
+
+class ReqResult(BaseModel):
+    """
+    好友/群组请求列表
+    """
+
+    friend: List[FriendRequestResult] = []
+    """好友请求列表"""
+    group: List[GroupRequestResult] = []
+    """群组请求列表"""
+
+
+class UserDetail(BaseModel):
+    """
+    用户详情
+    """
+
+    user_id: str
+    """用户id"""
+    ava_url: str
+    """头像url"""
+    nickname: str
+    """昵称"""
+    remark: str
+    """备注"""
+    is_ban: bool
+    """是否被ban"""
+    chat_count: int
+    """发言次数"""
+    call_count: int
+    """功能调用次数"""
+    like_plugin: Dict[str, int]
+    """最喜爱的功能"""
+
+
+class GroupDetail(BaseModel):
+    """
+    用户详情
+    """
+
+    group_id: str
+    """群组id"""
+    ava_url: str
+    """头像url"""
+    name: str
+    """名称"""
+    member_count: int
+    """成员数"""
+    max_member_count: int
+    """最大成员数"""
+    chat_count: int
+    """发言次数"""
+    call_count: int
+    """功能调用次数"""
+    like_plugin: Dict[str, int]
+    """最喜爱的功能"""
+    level: int
+    """群权限"""
+    status: bool
+    """状态（睡眠）"""
+    close_plugins: List[Plugin]
+    """关闭的插件"""
+    task: List[Task]
+    """被动列表"""
+
+
+class Message(BaseModel):
+    """
+    消息
+    """
+
+    user_id: str
+    """用户id"""
+    group_id: Optional[str] = None
+    """群组id"""
+    message: str
+    """消息"""
+    name: str
+    """用户名称"""
+    ava_url: str
+    """用户头像"""
+
+class SendMessage(BaseModel):
+    """
+    发送消息
+    """
+    bot_id: str
+    """bot id"""
+    user_id: Optional[str] = None
+    """用户id"""
+    group_id: Optional[str] = None
+    """群组id"""
+    message: str
+    """消息"""

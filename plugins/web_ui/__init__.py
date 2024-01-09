@@ -18,6 +18,7 @@ from .api.tabs.database import router as database_router
 from .api.tabs.main import router as main_router
 from .api.tabs.main import ws_router as status_routes
 from .api.tabs.manage import router as manage_router
+from .api.tabs.manage import ws_router as chat_routes
 from .api.tabs.plugin_manage import router as plugin_router
 from .auth import router as auth_router
 
@@ -42,6 +43,7 @@ WsApiRouter = APIRouter(prefix="/zhenxun/socket")
 
 WsApiRouter.include_router(ws_log_routes)
 WsApiRouter.include_router(status_routes)
+WsApiRouter.include_router(chat_routes)
 
 
 @driver.on_startup

@@ -5,7 +5,6 @@ from typing import List, Optional
 
 import nonebot
 from fastapi import APIRouter, WebSocket
-from nonebot.utils import escape_tag
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 from tortoise.functions import Count
 from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
@@ -18,19 +17,16 @@ from services.log import logger
 from utils.manager import plugin_data_manager, plugins2settings_manager, plugins_manager
 
 from ....base_model import Result
-from ....config import QueryDateType
+from ....config import AVA_URL, GROUP_AVA_URL, QueryDateType
 from ....utils import authentication, get_system_status
 from .data_source import bot_live
 from .model import ActiveGroup, BaseInfo, ChatHistoryCount, HotPlugin
-
-AVA_URL = "http://q1.qlogo.cn/g?b=qq&nk={}&s=160"
-
-GROUP_AVA_URL = "http://p.qlogo.cn/gh/{}/{}/640/"
 
 run_time = time.time()
 
 ws_router = APIRouter()
 router = APIRouter()
+
 
 
 @router.get("/get_base_info", dependencies=[authentication()], description="基础信息")
