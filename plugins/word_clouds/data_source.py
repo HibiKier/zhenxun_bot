@@ -123,7 +123,7 @@ async def get_list_msg(user_id, group_id, days):
         uid=user_id, gid=group_id, type_="group", days=days
     )
     if messages_list:
-        messages = [i.text for i in messages_list]
+        messages = [i.plain_text for i in messages_list]
         return messages
     else:
         return False
