@@ -25,7 +25,7 @@ from .model import ActiveGroup, BaseInfo, ChatHistoryCount, HotPlugin
 run_time = time.time()
 
 ws_router = APIRouter()
-router = APIRouter()
+router = APIRouter(prefix="/main")
 
 
 
@@ -183,7 +183,7 @@ async def _(date_type: Optional[QueryDateType] = None) -> Result:
     if date_type == QueryDateType.YEAR:
         query = ChatHistory.filter(create_time__gte=now - timedelta(days=365))
     data_list = (
-        await query.annotate(count=Count("id"))
+        await query.annotate(count=Count("id")).filter(group_id__not_isnull=True)
         .group_by("group_id").order_by("-count").limit(5)
         .values_list("group_id", "count")
     )

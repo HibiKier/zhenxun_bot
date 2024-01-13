@@ -41,6 +41,8 @@ class Plugin(BaseModel):
     """模块名"""
     plugin_name: str
     """中文名"""
+    is_super_block: bool
+    """是否超级用户禁用"""
 
 
 class GroupResult(BaseModel):
@@ -227,22 +229,32 @@ class GroupDetail(BaseModel):
     task: List[Task]
     """被动列表"""
 
+class MessageItem(BaseModel):
+
+    type: str
+    """消息类型"""
+    msg: str
+    """内容"""
 
 class Message(BaseModel):
     """
     消息
     """
 
+    object_id: str
+    """主体id user_id 或 group_id"""
     user_id: str
     """用户id"""
     group_id: Optional[str] = None
     """群组id"""
-    message: str
+    message: List[MessageItem]
     """消息"""
     name: str
     """用户名称"""
     ava_url: str
     """用户头像"""
+
+
 
 class SendMessage(BaseModel):
     """

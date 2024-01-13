@@ -17,7 +17,7 @@ from ....utils import authentication
 from .models.model import SqlModel, SqlText
 from .models.sql_log import SqlLog
 
-router = APIRouter()
+router = APIRouter(prefix="/database")
 
 
 driver: Driver = nonebot.get_driver()
@@ -25,6 +25,18 @@ driver: Driver = nonebot.get_driver()
 
 SQL_DICT = {}
 
+
+SELECT_TABLE_SQL = """
+select a.tablename as name,d.description as desc from pg_tables a
+    left join pg_class c on relname=tablename
+    left join pg_description d on oid=objoid and objsubid=0 where a.schemaname = 'public'
+"""
+
+SELECT_TABLE_COLUMN_SQL = """
+SELECT column_name, data_type, character_maximum_length as max_length, is_nullable
+FROM information_schema.columns
+WHERE table_name = '{}';
+"""
 
 @driver.on_startup
 async def _():
@@ -45,6 +57,18 @@ async def _():
                 )
                 SQL_DICT[plugin_name] = SqlModel
 
+@router.get("/get_table_list", dependencies=[authentication()], description="获取数据库表")
+async def _() -> Result:       
+    db = Tortoise.get_connection("default")
+    query = await db.execute_query_dict(SELECT_TABLE_SQL)
+    return Result.ok(query)
+
+@router.get("/get_table_column", dependencies=[authentication()], description="获取表字段")
+async def _(table_name: str) -> Result:       
+    db = Tortoise.get_connection("default")
+    print(SELECT_TABLE_COLUMN_SQL.format(table_name))
+    query = await db.execute_query_dict(SELECT_TABLE_COLUMN_SQL.format(table_name))
+    return Result.ok(query)
 
 @router.post("/exec_sql", dependencies=[authentication()], description="执行sql")
 async def _(sql: SqlText, request: Request) -> Result:

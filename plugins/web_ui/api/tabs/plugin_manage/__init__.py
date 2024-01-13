@@ -2,7 +2,7 @@ import re
 from typing import List, Optional
 
 import cattrs
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from configs.config import Config
 from services.log import logger
@@ -17,26 +17,26 @@ from .model import (
     PluginDetail,
     PluginInfo,
     PluginSwitch,
-    UpdateConfig,
     UpdatePlugin,
 )
 
-router = APIRouter()
+router = APIRouter(prefix="/plugin")
 
 
 @router.get("/get_plugin_list", dependencies=[authentication()], deprecated="获取插件列表")
 def _(
-    plugin_type: PluginType, menu_type: Optional[str] = None
+    plugin_type: List[PluginType] = Query(None), menu_type: Optional[str] = None
 ) -> Result:
     """
     获取插件列表
     :param plugin_type: 类型 normal, superuser, hidden, admin
+    :param menu_type: 菜单类型
     """
     try:
         plugin_list: List[PluginInfo] = [] 
         for module in plugin_data_manager.keys():
             plugin_data: Optional[PluginData] = plugin_data_manager[module]
-            if plugin_data and plugin_data.plugin_type == plugin_type:
+            if plugin_data and plugin_data.plugin_type in plugin_type:
                 setting = plugin_data.plugin_setting or PluginSetting()
                 plugin = plugin_data.plugin_status
                 menu_type_ = getattr(setting, "plugin_type", ["无"])[0]

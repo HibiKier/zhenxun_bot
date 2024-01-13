@@ -33,6 +33,7 @@ from .model import (
     HandleRequest,
     LeaveGroup,
     Message,
+    MessageItem,
     Plugin,
     ReqResult,
     SendMessage,
@@ -42,13 +43,15 @@ from .model import (
 )
 
 ws_router = APIRouter()
-router = APIRouter()
+router = APIRouter(prefix="/manage")
 
 SUB_PATTERN = r"\x1b(\[.*?[@-~]|\].*?(\x07|\x1b\\))"
 
 GROUP_PATTERN = r'.*?Message (-?\d*) from (\d*)@\[群:(\d*)] "(.*)"'
 
 PRIVATE_PATTERN = r'.*?Message (-?\d*) from (\d*) "(.*)"'
+
+IMAGE_PATTERN = r'\[CQ:image,.*,url=(.*);.*?\]'
 
 @router.get("/get_group_list", dependencies=[authentication()], description="获取群组列表")
 async def _(bot_id: str) -> Result:
@@ -323,8 +326,10 @@ async def _(bot_id: str, group_id: str) -> Result:
                     like_plugin[name] = data[1]
                 close_plugins = []
                 for module in g.close_plugins:
-                    plugin = Plugin(module=module, plugin_name=module)
-                    if plugin_data := plugin_data_manager.get(module):
+                    module_ = module.replace(":super", "")
+                    is_super_block = module.endswith(":super")
+                    plugin = Plugin(module=module_, plugin_name=module, is_super_block=is_super_block)
+                    if plugin_data := plugin_data_manager.get(module_):
                         plugin.plugin_name = plugin_data.name
                     close_plugins.append(plugin)
                 task_list = []
@@ -374,48 +379,71 @@ async def _(param: SendMessage) -> Result:
 
 MSG_LIST = []
 
+ID2NAME = {}
+
+
+async def message_handle(sub_log: str, type: Literal["private", "group"]):
+    global MSG_LIST, ID2NAME
+    pattern = PRIVATE_PATTERN if type == 'private' else GROUP_PATTERN
+    msg_id = None
+    uid = None
+    gid = None
+    msg = None
+    img_list =  re.findall(IMAGE_PATTERN, sub_log)
+    if r := re.search(pattern, sub_log):
+        if type == 'private':
+            msg_id = r.group(1)
+            uid = r.group(2)
+            msg = r.group(3)
+            if uid not in ID2NAME:
+                user = await FriendUser.filter(user_id=uid).first()
+                ID2NAME[uid] = user.user_name or user.nickname
+        else:
+            msg_id = r.group(1)
+            uid = r.group(2)
+            gid = r.group(3)
+            msg = r.group(4)
+            if gid not in ID2NAME:
+                user = await GroupInfoUser.filter(user_id=uid, group_id=gid).first()
+                ID2NAME[gid] = user.user_name or user.nickname
+    if msg_id in MSG_LIST:
+        return
+    MSG_LIST.append(msg_id)
+    messages = []
+    rep = re.split(r'\[CQ:image.*\]', msg)
+    if img_list:
+        for i in range(len(rep)):
+            messages.append(MessageItem(type="text", msg=rep[i]))
+            if i < len(img_list):
+                messages.append(MessageItem(type="img", msg=img_list[i]))
+    else:
+        messages = [MessageItem(type="text", msg=x) for x in rep]
+    return Message(
+            object_id=uid if type == 'private' else gid,
+            user_id=uid,
+            group_id=gid,
+            message=messages,
+            name=ID2NAME[uid],
+            ava_url=AVA_URL.format(uid),
+        )
+
 @ws_router.websocket("/chat")
-async def _(websocket: WebSocket, group_id: Optional[str] = None, user_id: Optional[str] = None):
-    global MSG_LIST
+async def _(websocket: WebSocket):
     await websocket.accept()
 
     async def log_listener(log: str):
+        global MSG_LIST, ID2NAME
         sub_log = re.sub(SUB_PATTERN, "", log)
+        img_list =  re.findall(IMAGE_PATTERN, sub_log)
         if "message.private.friend" in log:
-            if r := re.search(PRIVATE_PATTERN, sub_log):
-                msg_id = r.group(1)
-                uid = r.group(2)
-                msg = r.group(3)
-                user = await FriendUser.filter(user_id=user_id).first()
-                name = user.user_name
-                if uid and uid == user_id and msg_id not in MSG_LIST:
-                    MSG_LIST.append(msg_id)
-                    message = Message(
-                        user_id=uid,
-                        message=msg,
-                        name=name,
-                        ava_url=AVA_URL.format(uid)
-                    )
-                    await websocket.send_json(message.dict())
+            if message := await message_handle(sub_log, 'private'):
+                await websocket.send_json(message.dict())
         else:
             if r := re.search(GROUP_PATTERN, sub_log):
-                msg_id = r.group(1)
-                uid = r.group(2)
-                gid = r.group(3)
-                msg = r.group(4)
-                user = await GroupInfoUser.filter(user_id=uid, group_id=gid).first()
-                name = user.user_name or user.nickname
-                if gid and gid == group_id and msg_id not in MSG_LIST:
-                    MSG_LIST.append(msg_id)
-                    message = Message(
-                        user_id=uid,
-                        group_id=gid,
-                        message=msg,
-                        name=name,
-                        ava_url=AVA_URL.format(uid)
-                    )
+                if message := await message_handle(sub_log, 'group'):
                     await websocket.send_json(message.dict())
-
+        if len(MSG_LIST) > 30:
+            MSG_LIST = MSG_LIST[-1:]
     LOG_STORAGE.listeners.add(log_listener)
     try:
         while websocket.client_state == WebSocketState.CONNECTED:
