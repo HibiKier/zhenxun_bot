@@ -87,20 +87,6 @@ class BaseResultModel(BaseModel):
     """数据"""
 
 
-class PluginConfig(BaseModel):
-    """
-    插件配置项
-    """
-
-    module: str
-    key: str
-    value: Optional[Any]
-    help: Optional[str]
-    default_value: Optional[Any]
-    has_type: bool
-
-
-
 class SystemStatus(BaseModel):
     """
     系统状态
@@ -112,13 +98,6 @@ class SystemStatus(BaseModel):
     check_time: datetime
 
 
-class SystemNetwork(BaseModel):
-    """
-    系统网络状态
-    """
-
-    baidu: int
-    google: int
 
 
 class SystemFolderSize(BaseModel):
@@ -136,22 +115,3 @@ class SystemFolderSize(BaseModel):
     check_time: datetime
 
 
-class SystemStatusList(BaseModel):
-    """
-    状态记录
-    """
-
-    cpu_data: List[Dict[str, Union[float, str]]]
-    memory_data: List[Dict[str, Union[float, str]]]
-    disk_data: List[Dict[str, Union[float, str]]]
-
-
-class SystemResult(BaseModel):
-    """
-    系统api返回
-    """
-
-    status: SystemStatus
-    network: SystemNetwork
-    disk: SystemFolderSize
-    check_time: datetime

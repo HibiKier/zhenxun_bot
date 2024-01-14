@@ -246,14 +246,14 @@ async def _(date_type: Optional[QueryDateType] = None) -> Result:
 
 
 @ws_router.websocket("/system_status")
-async def system_logs_realtime(websocket: WebSocket):
+async def system_logs_realtime(websocket: WebSocket, sleep: Optional[int] = 5):
     await websocket.accept()
     logger.debug("ws system_status is connect")
     try:
         while websocket.client_state == WebSocketState.CONNECTED:
             system_status = await get_system_status()
             await websocket.send_text(system_status.json())
-            await asyncio.sleep(5)
+            await asyncio.sleep(sleep)
     except (WebSocketDisconnect, ConnectionClosedError, ConnectionClosedOK):
         pass
     return

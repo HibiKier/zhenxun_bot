@@ -20,6 +20,7 @@ from .api.tabs.main import ws_router as status_routes
 from .api.tabs.manage import router as manage_router
 from .api.tabs.manage import ws_router as chat_routes
 from .api.tabs.plugin_manage import router as plugin_router
+from .api.tabs.system import router as system_router
 from .auth import router as auth_router
 
 driver = nonebot.get_driver()
@@ -37,6 +38,7 @@ BaseApiRouter.include_router(main_router)
 BaseApiRouter.include_router(manage_router)
 BaseApiRouter.include_router(database_router)
 BaseApiRouter.include_router(plugin_router)
+BaseApiRouter.include_router(system_router)
 
 
 WsApiRouter = APIRouter(prefix="/zhenxun/socket")

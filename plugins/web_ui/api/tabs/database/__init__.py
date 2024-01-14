@@ -101,4 +101,4 @@ async def _(query: QueryModel) -> Result:
 async def _(plugin_name: Optional[str] = None) -> Result:
     if plugin_name:
         return Result.ok(SQL_DICT.get(plugin_name))
-    return Result.ok(SQL_DICT)
+    return Result.ok(str(SQL_DICT))
