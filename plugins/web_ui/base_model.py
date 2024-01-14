@@ -74,6 +74,17 @@ class QueryModel(BaseModel, Generic[T]):
         if size < 1:
             raise ValueError("每页数量小于1...")
         return size
+    
+
+class BaseResultModel(BaseModel):
+    """
+    基础返回
+    """
+
+    total: int
+    """总页数"""
+    data: Any
+    """数据"""
 
 
 class PluginConfig(BaseModel):
@@ -88,26 +99,6 @@ class PluginConfig(BaseModel):
     default_value: Optional[Any]
     has_type: bool
 
-
-class Plugin(BaseModel):
-    """
-    插件
-    """
-
-    model: str
-    """模块名称"""
-    plugin_settings: Optional[PluginSetting]
-    """settings"""
-    plugin_manager: Optional[PluginManager]
-    """manager"""
-    plugin_config: Optional[Dict[str, PluginConfig]]
-    """配置项"""
-    cd_limit: Optional[PluginCd]
-    """cd限制"""
-    block_limit: Optional[PluginBlock]
-    """阻断限制"""
-    count_limit: Optional[PluginCount]
-    """次数限制"""
 
 
 class SystemStatus(BaseModel):

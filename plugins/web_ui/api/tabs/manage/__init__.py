@@ -51,6 +51,8 @@ GROUP_PATTERN = r'.*?Message (-?\d*) from (\d*)@\[群:(\d*)] "(.*)"'
 
 PRIVATE_PATTERN = r'.*?Message (-?\d*) from (\d*) "(.*)"'
 
+AT_PATTERN = r'\[CQ:at,qq=(.*)\]'
+
 IMAGE_PATTERN = r'\[CQ:image,.*,url=(.*);.*?\]'
 
 @router.get("/get_group_list", dependencies=[authentication()], description="获取群组列表")
@@ -405,7 +407,12 @@ async def message_handle(sub_log: str, type: Literal["private", "group"]):
             msg = r.group(4)
             if gid not in ID2NAME:
                 user = await GroupInfoUser.filter(user_id=uid, group_id=gid).first()
-                ID2NAME[gid] = user.user_name or user.nickname
+                ID2NAME[uid] = user.user_name or user.nickname
+            if at_list := re.findall(AT_PATTERN, msg):
+                user_list = await GroupInfoUser.filter(user_id__in=at_list, group_id=gid).all()
+                id2name = {u.user_id: (u.user_name or u.nickname) for u in user_list}
+                for qq in at_list:
+                    msg = re.sub(rf'\[CQ:at,qq={qq}\]', f"@{id2name[qq] or ''}", msg)
     if msg_id in MSG_LIST:
         return
     MSG_LIST.append(msg_id)
@@ -423,7 +430,7 @@ async def message_handle(sub_log: str, type: Literal["private", "group"]):
             user_id=uid,
             group_id=gid,
             message=messages,
-            name=ID2NAME[uid],
+            name=ID2NAME.get(uid) or "",
             ava_url=AVA_URL.format(uid),
         )
 

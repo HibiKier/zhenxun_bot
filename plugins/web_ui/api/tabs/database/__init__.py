@@ -11,7 +11,7 @@ from configs.config import NICKNAME
 from services.db_context import TestSQL
 from utils.utils import get_matchers
 
-from ....base_model import QueryModel, Result
+from ....base_model import BaseResultModel, QueryModel, Result
 from ....config import QueryDateType
 from ....utils import authentication
 from .models.model import SqlModel, SqlText
@@ -77,6 +77,7 @@ async def _(sql: SqlText, request: Request) -> Result:
         if sql.sql.lower().startswith("select"):
             db = Tortoise.get_connection("default")
             res = await db.execute_query_dict(sql.sql)
+            await SqlLog.add(ip or "0.0.0.0", sql.sql, "")
             return Result.ok(res, "执行成功啦!")
         else:
             result = await TestSQL.raw(sql.sql)
@@ -89,11 +90,14 @@ async def _(sql: SqlText, request: Request) -> Result:
 
 @router.post("/get_sql_log", dependencies=[authentication()], description="sql日志列表")
 async def _(query: QueryModel) -> Result:
-    data = await SqlLog.all().offset((query.index - 1) * query.size).limit(query.size)
-    return Result.ok(data)
+    total = await SqlLog.all().count()
+    if (total % query.size):
+        total += 1
+    data = await SqlLog.all().order_by("-id").offset((query.index - 1) * query.size).limit(query.size)
+    return Result.ok(BaseResultModel(total=total, data=data))
 
 
-@router.get("/get_sql", dependencies=[authentication()], description="常用sql")
+@router.get("/get_common_sql", dependencies=[authentication()], description="常用sql")
 async def _(plugin_name: Optional[str] = None) -> Result:
     if plugin_name:
         return Result.ok(SQL_DICT.get(plugin_name))

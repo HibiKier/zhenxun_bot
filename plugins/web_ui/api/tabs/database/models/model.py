@@ -14,6 +14,9 @@ class SqlText(BaseModel):
 
 
 class SqlModel(BaseModel):
+    """
+    常用sql
+    """
 
     name: str
     """插件中文名称"""
