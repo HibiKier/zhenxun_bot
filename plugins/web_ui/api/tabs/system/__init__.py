@@ -22,5 +22,5 @@ async def _(path: Optional[str] = None) -> Result:
 
 
 @router.get("/get_resources_size", dependencies=[authentication()], description="获取文件列表")
-async def _(type: Optional[str] = None) -> Result:
-  return Result.ok(await get_system_disk(type))
+async def _(full_path: Optional[str] = None) -> Result:
+  return Result.ok(await get_system_disk(full_path))

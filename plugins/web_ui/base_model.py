@@ -105,13 +105,13 @@ class SystemFolderSize(BaseModel):
     资源文件占比
     """
 
-    font_dir_size: float
-    image_dir_size: float
-    text_dir_size: float
-    record_dir_size: float
-    temp_dir_size: float
-    data_dir_size: float
-    log_dir_size: float
-    check_time: datetime
+    name: str
+    """名称"""
+    size: float
+    """大小"""
+    full_path: Optional[str]
+    """完整路径"""
+    is_dir: bool
+    """是否为文件夹"""
 
 

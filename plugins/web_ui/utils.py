@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import psutil
 import ujson as json
@@ -123,47 +123,48 @@ def get_system_status() -> SystemStatus:
 
 @run_sync
 def get_system_disk(
-    type_: Optional[str],
-) -> Union[SystemFolderSize, Dict[str, Union[float, datetime]]]:
+    full_path: Optional[str],
+) -> List[SystemFolderSize]:
     """
     说明:
         获取资源文件大小等
     """
-    if not type_:
-        disk = SystemFolderSize(
-            font_dir_size=_get_dir_size(FONT_PATH) / 1024 / 1024,
-            image_dir_size=_get_dir_size(IMAGE_PATH) / 1024 / 1024,
-            text_dir_size=_get_dir_size(TEXT_PATH) / 1024 / 1024,
-            record_dir_size=_get_dir_size(RECORD_PATH) / 1024 / 1024,
-            temp_dir_size=_get_dir_size(TEMP_PATH) / 1024 / 102,
-            data_dir_size=_get_dir_size(DATA_PATH) / 1024 / 1024,
-            log_dir_size=_get_dir_size(LOG_PATH) / 1024 / 1024,
-            check_time=datetime.now().replace(microsecond=0),
-        )
-        return disk
-    else:
-        if type_ == "image":
-            dir_path = IMAGE_PATH
-        elif type_ == "font":
-            dir_path = FONT_PATH
-        elif type_ == "text":
-            dir_path = TEXT_PATH
-        elif type_ == "record":
-            dir_path = RECORD_PATH
-        elif type_ == "data":
-            dir_path = DATA_PATH
-        elif type_ == "temp":
-            dir_path = TEMP_PATH
+    base_path = Path(full_path) if full_path else Path()
+    other_size = 0
+    data_list = []
+    for file in os.listdir(base_path):
+        f = base_path / file
+        if f.is_dir():
+            size = _get_dir_size(f) / 1024 / 1024
+            data_list.append(SystemFolderSize(name=file, size=size, full_path=str(f), is_dir=True))
         else:
-            dir_path = LOG_PATH
-        dir_map = {}
-        other_file_size = 0
-        for file in os.listdir(dir_path):
-            file = Path(dir_path / file)
-            if file.is_dir():
-                dir_map[file.name] = _get_dir_size(file) / 1024 / 1024
-            else:
-                other_file_size += os.path.getsize(file) / 1024 / 1024
-        dir_map["其他文件"] = other_file_size
-        dir_map["check_time"] = datetime.now().replace(microsecond=0)
-        return dir_map
+            other_size += f.stat().st_size / 1024 / 1024
+    if other_size:
+        data_list.append(SystemFolderSize(name='other_file', size=other_size, full_path=full_path, is_dir=False))
+    return data_list
+    # else:
+    #     if type_ == "image":
+    #         dir_path = IMAGE_PATH
+    #     elif type_ == "font":
+    #         dir_path = FONT_PATH
+    #     elif type_ == "text":
+    #         dir_path = TEXT_PATH
+    #     elif type_ == "record":
+    #         dir_path = RECORD_PATH
+    #     elif type_ == "data":
+    #         dir_path = DATA_PATH
+    #     elif type_ == "temp":
+    #         dir_path = TEMP_PATH
+    #     else:
+    #         dir_path = LOG_PATH
+    #     dir_map = {}
+    #     other_file_size = 0
+    #     for file in os.listdir(dir_path):
+    #         file = Path(dir_path / file)
+    #         if file.is_dir():
+    #             dir_map[file.name] = _get_dir_size(file) / 1024 / 1024
+    #         else:
+    #             other_file_size += os.path.getsize(file) / 1024 / 1024
+    #     dir_map["其他文件"] = other_file_size
+    #     dir_map["check_time"] = datetime.now().replace(microsecond=0)
+    #     return dir_map
