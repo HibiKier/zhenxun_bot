@@ -19,3 +19,35 @@ class DirFile(BaseModel):
   """文件夹或文件名称"""
   parent: Optional[str] = None
   """父级"""
+
+class DeleteFile(BaseModel):
+
+  """
+  删除文件
+  """
+
+  full_path: str
+  """文件全路径"""
+
+class RenameFile(BaseModel):
+
+  """
+  删除文件
+  """
+  parent: Optional[str]
+  """父路径"""
+  old_name: str
+  """旧名称"""
+  name: str
+  """新名称"""
+
+
+class AddFile(BaseModel):
+
+  """
+  新建文件
+  """
+  parent: Optional[str]
+  """父路径"""
+  name: str
+  """新名称"""
