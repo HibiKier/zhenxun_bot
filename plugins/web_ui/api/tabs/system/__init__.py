@@ -85,3 +85,27 @@ async def _(param: AddFile) -> Result:
     return Result.ok('新建文件成功!')
   except Exception as e:
     return Result.warning_('新建文件失败: ' + str(e))
+  
+
+@router.post("/add_folder", dependencies=[authentication()], description="新建文件夹")
+async def _(param: AddFile) -> Result:
+  path = (Path(param.parent) / param.name) if param.parent else Path(param.name)
+  if path.exists():
+    return Result.warning_("文件夹已存在...")
+  try:
+    path.mkdir()
+    return Result.ok('新建文件夹成功!')
+  except Exception as e:
+    return Result.warning_('新建文件夹失败: ' + str(e))
+
+
+@router.get("/read_file", dependencies=[authentication()], description="读取文件")
+async def _(full_path: str) -> Result:
+  path = Path(full_path)
+  if not path.exists():
+    return Result.warning_("文件不存在...")
+  try:
+    text = path.read_text(encoding='utf-8')
+    return Result.ok(text)
+  except Exception as e:
+    return Result.warning_('新建文件夹失败: ' + str(e))
