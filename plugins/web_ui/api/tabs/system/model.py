@@ -51,3 +51,14 @@ class AddFile(BaseModel):
   """父路径"""
   name: str
   """新名称"""
+
+
+class SaveFile(BaseModel):
+  
+  """
+  保存文件
+  """
+  full_path: str
+  """全路径"""
+  content: str
+  """内容"""

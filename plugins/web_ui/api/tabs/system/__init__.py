@@ -7,7 +7,7 @@ from fastapi import APIRouter
 
 from ....base_model import Result
 from ....utils import authentication, get_system_disk
-from .model import AddFile, DeleteFile, DirFile, RenameFile
+from .model import AddFile, DeleteFile, DirFile, RenameFile, SaveFile
 
 router = APIRouter(prefix="/system")
 
@@ -107,5 +107,15 @@ async def _(full_path: str) -> Result:
   try:
     text = path.read_text(encoding='utf-8')
     return Result.ok(text)
+  except Exception as e:
+    return Result.warning_('新建文件夹失败: ' + str(e))
+  
+@router.post("/save_file", dependencies=[authentication()], description="读取文件")
+async def _(param: SaveFile) -> Result:
+  path = Path(param.full_path)
+  try:
+    with path.open('w') as f:
+      f.write(param.content)
+    return Result.ok("更新成功!")
   except Exception as e:
     return Result.warning_('新建文件夹失败: ' + str(e))
