@@ -1,6 +1,7 @@
 import asyncio
 import time
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import List, Optional
 
 import nonebot
@@ -84,7 +85,13 @@ async def _(bot_id: Optional[str] = None) -> Result:
         if select_bot.connect_time:
             connect_date = datetime.fromtimestamp(select_bot.connect_time)
             select_bot.connect_date = connect_date.strftime("%Y-%m-%d %H:%M:%S")
-
+        version_file = Path() / "__version__"
+        if version_file.exists():
+            if text := version_file.open().read():
+                if ver := text.replace("__version__: ", "").strip():
+                    select_bot.version = ver
+        day_call = await Statistics.filter(create_time__gte=now - timedelta(hours=now.hour)).count()
+        select_bot.day_call = day_call
         return Result.ok(bot_list, "拿到信息啦!")
     return Result.warning_("无Bot连接...")
 

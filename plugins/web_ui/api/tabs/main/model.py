@@ -35,14 +35,6 @@ class BaseInfo(BaseModel):
     """群聊数量"""
     received_messages: int = 0
     """今日 累计接收消息"""
-    # received_messages_day: int = 0
-    # """今日累计接收消息"""
-    # received_messages_week: int = 0
-    # """一周内累计接收消息"""
-    # received_messages_month: int = 0
-    # """一月内累计接收消息"""
-    # received_messages_year: int = 0
-    # """一年内累计接受消息"""
     connect_time: int = 0
     """连接时间"""
     connect_date: Optional[datetime] = None
@@ -60,6 +52,11 @@ class BaseInfo(BaseModel):
 
     config: Optional[Config] = None
     """nb配置"""
+    day_call: int = 0
+    """今日调用插件次数"""
+    version: str = "unknown"
+    """真寻版本"""
+    
 
     class Config:
         arbitrary_types_allowed = True
