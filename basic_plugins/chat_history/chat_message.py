@@ -1,5 +1,5 @@
 from nonebot import on_message
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent
 
 from configs.config import Config
 from models.chat_history import ChatHistory
@@ -32,7 +32,7 @@ TEMP_LIST = []
 
 
 @chat_history.handle()
-async def _(event: MessageEvent, msg: str = PlaintText()):
+async def _(bot: Bot, event: MessageEvent, msg: str = PlaintText()):
     group_id = None
     if isinstance(event, GroupMessageEvent):
         group_id = str(event.group_id)
@@ -42,6 +42,7 @@ async def _(event: MessageEvent, msg: str = PlaintText()):
             group_id=group_id,
             text=str(event.get_message()),
             plain_text=msg,
+            bot_id=str(bot.self_id),
         )
     )
 

@@ -2,7 +2,6 @@ import asyncio
 from typing import Optional
 
 from nonebot import get_driver
-from nonebot.log import logger
 from playwright.async_api import Browser, Playwright, async_playwright
 
 from services.log import logger
@@ -26,7 +25,7 @@ async def shutdown_browser():
     if _browser:
         await _browser.close()
     if _playwright:
-        _playwright.stop()
+        await _playwright.stop()  # type: ignore
 
 
 def get_browser() -> Browser:

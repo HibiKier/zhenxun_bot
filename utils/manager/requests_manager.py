@@ -1,11 +1,13 @@
-from utils.manager.data_class import StaticData
-from nonebot.adapters.onebot.v11 import Bot, ActionFailed
-from services.log import logger
-from typing import Optional
-from utils.image_utils import BuildImage
-from utils.utils import get_user_avatar
-from pathlib import Path
 from io import BytesIO
+from pathlib import Path
+from typing import Optional, Union, overload
+
+from nonebot.adapters.onebot.v11 import ActionFailed, Bot
+
+from services.log import logger
+from utils.image_utils import BuildImage
+from utils.manager.data_class import StaticData
+from utils.utils import get_user_avatar
 
 
 class RequestManager(StaticData):
@@ -21,6 +23,7 @@ class RequestManager(StaticData):
 
     def add_request(
         self,
+        bot_id: str,
         id_: int,
         type_: str,
         flag: str,
@@ -36,6 +39,7 @@ class RequestManager(StaticData):
     ):
         """
         添加一个请求
+        :param bot_id: bot_id
         :param id_: id，用户id或群id
         :param type_: 类型，private 或 group
         :param flag: event.flag
@@ -49,6 +53,7 @@ class RequestManager(StaticData):
         :param group_name: 群聊名称
         """
         self._data[type_][str(len(self._data[type_].keys()))] = {
+            "bot_id": bot_id,
             "id": id_,
             "flag": flag,
             "nickname": nickname,
@@ -62,14 +67,24 @@ class RequestManager(StaticData):
         }
         self.save()
 
+    @overload
+    def remove_request(self, type_: str, flag: str):
+        ...
+
+    @overload
     def remove_request(self, type_: str, id_: int):
+        ...
+
+    def remove_request(self, type_: str, id_: Union[int, str]):
         """
         删除一个请求数据
         :param type_: 类型
         :param id_: id，user_id 或 group_id
         """
         for x in self._data[type_].keys():
-            if self._data[type_][x].get("id") == id_:
+            a_id = self._data[type_][x].get("id")
+            a_flag = self._data[type_][x].get("flag")
+            if a_id == id_ or a_flag == id_:
                 del self._data[type_][x]
                 break
         self.save()
@@ -83,8 +98,17 @@ class RequestManager(StaticData):
         if data:
             return data["invite_group"]
         return None
-
+    
+    @overload
     async def approve(self, bot: Bot, id_: int, type_: str) -> int:
+        ...
+
+    @overload
+    async def approve(self, bot: Bot, flag: str, type_: str) -> int:
+        ...
+    
+
+    async def approve(self, bot: Bot, id_: Union[int, str], type_: str) -> int:
         """
         同意请求
         :param bot: Bot
@@ -92,8 +116,16 @@ class RequestManager(StaticData):
         :param type_: 类型，private 或 group
         """
         return await self._set_add_request(bot, id_, type_, True)
+    
+    @overload
+    async def refused(self, bot: Bot, id_: int, type_: str) -> int:
+        ...
 
-    async def refused(self, bot: Bot, id_: int, type_: str) -> Optional[int]:
+    @overload
+    async def refused(self, bot: Bot, flag: str, type_: str) -> int:
+        ...
+
+    async def refused(self, bot: Bot, id_: Union[int, str], type_: str) -> Optional[int]:
         """
         拒绝请求
         :param bot: Bot
@@ -102,7 +134,9 @@ class RequestManager(StaticData):
         """
         return await self._set_add_request(bot, id_, type_, False)
 
-    def clear(self, type_: Optional[str] = None):   # type_: Optional[Literal["group", "private"]] = None
+    def clear(
+        self, type_: Optional[str] = None
+    ):  # type_: Optional[Literal["group", "private"]] = None
         """
         清空所有请求信息，无视请求
         :param type_: 类型
@@ -113,16 +147,32 @@ class RequestManager(StaticData):
             self._data = {"private": {}, "group": {}}
         self.save()
 
-    def delete_request(self, id_: int, type_: str):     # type_: Literal["group", "private"]
+    @overload
+    async def delete_request(self, id_: int, type_: str) -> int:
+        ...
+
+    @overload
+    async def delete_request(self, flag: str, type_: str) -> int:
+        ...
+
+    def delete_request(
+        self, id_: Union[str, int], type_: str
+    ):  # type_: Literal["group", "private"]
         """
         删除请求
         :param id_: id
         :param type_: 类型
         """
-        id_ = str(id_)
-        if self._data[type_].get(id_):
-            del self._data[type_][id_]
-            self.save()
+        if type(id_) == int:
+            if self._data[type_].get(id_):
+                del self._data[type_][id_]
+                self.save()
+        else:
+            for k, item in self._data[type_].items():
+                if item['flag'] == id_:
+                    del self._data[type_][k]
+                    self.save()
+                    break
 
     def set_group_name(self, group_name: str, group_id: int):
         """
@@ -230,7 +280,7 @@ class RequestManager(StaticData):
         return bk.pic2bs4()
 
     async def _set_add_request(
-        self, bot: Bot, id_: int, type_: str, approve: bool
+        self, bot: Bot, idx: Union[str, int], type_: str, approve: bool
     ) -> int:
         """
         处理请求
@@ -239,8 +289,13 @@ class RequestManager(StaticData):
         :param type_: 类型，private 或 group
         :param approve: 是否同意
         """
-        id_ = str(id_)
-        if id_ in self._data[type_].keys():
+        flag = None
+        id_ = None
+        if type(idx) == str:
+            flag = idx
+        else:
+            id_ = str(idx)
+        if id_ and id_ in self._data[type_].keys():
             try:
                 if type_ == "private":
                     await bot.set_friend_add_request(
@@ -259,7 +314,7 @@ class RequestManager(StaticData):
                     f"同意{self._data[type_][id_]['nickname']}({self._data[type_][id_]['id']})"
                     f"的{'好友' if type_ == 'private' else '入群'}请求失败了..."
                 )
-                return 1    # flag失效
+                return 1  # flag失效
             else:
                 logger.info(
                     f"{'同意' if approve else '拒绝'}{self._data[type_][id_]['nickname']}({self._data[type_][id_]['id']})"
@@ -268,4 +323,25 @@ class RequestManager(StaticData):
             del self._data[type_][id_]
             self.save()
             return rid
-        return 2    # 未找到id
+        if flag:
+            rm_id = None
+            for k, item in self._data[type_].items():
+                if item['flag'] == flag:
+                    rm_id = k
+                    if type_ == 'private':
+                        await bot.set_friend_add_request(
+                            flag=item['flag'], approve=approve
+                        )
+                        rid = item["id"]
+                    else:
+                        await bot.set_group_add_request(
+                        flag=item['flag'],
+                        sub_type="invite",
+                        approve=approve,
+                    )
+                    rid = item["invite_group"]
+            if rm_id is not None:
+                del self._data[type_][rm_id]
+            self.save()
+            return rid
+        return 2  # 未找到id

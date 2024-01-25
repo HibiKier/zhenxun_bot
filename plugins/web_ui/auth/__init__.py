@@ -5,7 +5,9 @@ import nonebot
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
-from ..models.model import Result
+from configs.config import Config
+
+from ..base_model import Result
 from ..utils import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     create_token,
@@ -22,13 +24,14 @@ router = APIRouter()
 
 @router.post("/login")
 async def login_get_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    if user := get_user(form_data.username):
-        if user.password != form_data.password:
-            return Result.fail("真笨, 密码都能记错!", 999)
-    else:
+    username = Config.get_config("web-ui", "username")
+    password = Config.get_config("web-ui", "password")
+    if not username or not password:
         return Result.fail("你滴配置文件里用户名密码配置项为空", 998)
+    if username != form_data.username or password != form_data.password:
+        return Result.fail("真笨, 账号密码都能记错!", 999)
     access_token = create_token(
-        user=user, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        user=get_user(form_data.username), expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     token_data["token"].append(access_token)
     if len(token_data["token"]) > 3:

@@ -5,6 +5,7 @@ import nonebot
 from fastapi import APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from strenum import StrEnum
 
 app = nonebot.get_app()
 
@@ -19,85 +20,67 @@ app.add_middleware(
 )
 
 
-class RequestResult(BaseModel):
-    """
-    好友/群组请求管理
-    """
+AVA_URL = "http://q1.qlogo.cn/g?b=qq&nk={}&s=160"
 
-    oid: str
-    id: int
-    flag: str
-    nickname: Optional[str]
-    level: Optional[int]
-    sex: Optional[str]
-    age: Optional[int]
-    from_: Optional[str]
-    comment: Optional[str]
-    invite_group: Optional[int]
-    group_name: Optional[str]
+GROUP_AVA_URL = "http://p.qlogo.cn/gh/{}/{}/640/"
 
 
-class RequestParma(BaseModel):
+class QueryDateType(StrEnum):
+
     """
-    操作请求接收数据
+    查询日期类型
     """
 
-    id: int
-    handle: str
-    type: str
+    DAY = "day"
+    """日"""
+    WEEK = "week"
+    """周"""
+    MONTH = "month"
+    """月"""
+    YEAR = "year"
+    """年"""
 
 
-class SystemStatus(BaseModel):
-    """
-    系统状态
-    """
+# class SystemNetwork(BaseModel):
+#     """
+#     系统网络状态
+#     """
 
-    cpu: int
-    memory: int
-    disk: int
-    check_time: datetime
+#     baidu: int
+#     google: int
 
 
-class SystemNetwork(BaseModel):
-    """
-    系统网络状态
-    """
+# class SystemFolderSize(BaseModel):
+#     """
+#     资源文件占比
+#     """
 
-    baidu: int
-    google: int
-
-
-class SystemFolderSize(BaseModel):
-    """
-    资源文件占比
-    """
-
-    font_dir_size: float
-    image_dir_size: float
-    text_dir_size: float
-    record_dir_size: float
-    temp_dir_size: float
-    data_dir_size: float
-    log_dir_size: float
-    check_time: datetime
+#     font_dir_size: float
+#     image_dir_size: float
+#     text_dir_size: float
+#     record_dir_size: float
+#     temp_dir_size: float
+#     data_dir_size: float
+#     log_dir_size: float
+#     check_time: datetime
 
 
-class SystemStatusList(BaseModel):
-    """
-    状态记录
-    """
+# class SystemStatusList(BaseModel):
+#     """
+#     状态记录
+#     """
 
-    cpu_data: List[Dict[str, Union[float, str]]]
-    memory_data: List[Dict[str, Union[float, str]]]
-    disk_data: List[Dict[str, Union[float, str]]]
+#     cpu_data: List[Dict[str, Union[float, str]]]
+#     memory_data: List[Dict[str, Union[float, str]]]
+#     disk_data: List[Dict[str, Union[float, str]]]
 
 
-class SystemResult(BaseModel):
-    """
-    系统api返回
-    """
+# class SystemResult(BaseModel):
+#     """
+#     系统api返回
+#     """
 
-    status: SystemStatus
-    network: SystemNetwork
-    disk: SystemFolderSize
-    check_time: datetime
+#     status: SystemStatus
+#     network: SystemNetwork
+#     disk: SystemFolderSize
+#     check_time: datetime
