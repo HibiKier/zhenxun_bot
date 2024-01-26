@@ -131,7 +131,7 @@ __plugin_configs__ = {
     },
     "proxy": {
         "value": "i.pixiv.re",
-        "help": "反代地址,设置为空可得到原始的 i.pximg.net 图片地址",
+        "help": "pixiv反代地址,设置为空可得到原始的 i.pximg.net 图片地址",
         "default_value": "i.pixiv.re",
         "type": str,
     },
