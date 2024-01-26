@@ -18,7 +18,9 @@ from utils.utils import change_img_md5, change_pixiv_image_links
 
 from .._model import Setu
 
-url = "https://api.lolicon.app/setu/v2"
+proxy_url = Config.get_config("send_setu", "PROXY")
+excludeai = Config.get_config("send_setu", "EXCLUDEAI")
+url = f"https://api.lolicon.app/setu/v2?excludeAI={excludeai}&proxy={proxy_url}"
 path = "_setu"
 r18_path = "_r18"
 host_pattern = re.compile(r"https?://([^/]+)")
