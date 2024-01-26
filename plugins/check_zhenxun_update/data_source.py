@@ -52,7 +52,7 @@ async def remind(bot: Bot):
     if is_restart_file.exists():
         await bot.send_private_msg(
             user_id=int(list(bot.config.superusers)[0]),
-            message=f"真寻重启完毕...",
+            message="真寻重启完毕...",
         )
         is_restart_file.unlink()
 
@@ -74,7 +74,7 @@ async def check_update(bot: Bot) -> Tuple[int, str]:
                 user_id=int(list(bot.config.superusers)[0]),
                 message=f"检测真寻已更新，当前版本：{_version}，最新版本：{latest_version}\n" f"开始更新.....",
             )
-            logger.info(f"开始下载真寻最新版文件....")
+            logger.info("开始下载真寻最新版文件....")
             tar_gz_url = (await AsyncHttpx.get(tar_gz_url)).headers.get("Location")
             if await AsyncHttpx.download_file(tar_gz_url, zhenxun_latest_tar_gz):
                 logger.info("下载真寻最新版文件完成....")
@@ -121,7 +121,7 @@ async def check_update(bot: Bot) -> Tuple[int, str]:
     else:
         logger.warning("自动获取真寻版本失败....")
         await bot.send_private_msg(
-            user_id=int(list(bot.config.superusers)[0]), message=f"自动获取真寻版本失败...."
+            user_id=int(list(bot.config.superusers)[0]), message="自动获取真寻版本失败...."
         )
     return 999, ""
 
@@ -176,10 +176,14 @@ def _file_handle(latest_version: str) -> str:
     for file in add_file + update_file:
         new_file = Path(zhenxun_latest_file) / file
         old_file = Path() / file
-        if old_file not in [config_file, config_path_file] and file != "configs":
-            if not old_file.exists() and new_file.exists():
-                shutil.move(new_file.absolute(), old_file.absolute())
-                logger.info(f"已更新文件：{file}")
+        if (
+            old_file not in [config_file, config_path_file]
+            and file != "configs"
+            and not old_file.exists()
+            and new_file.exists()
+        ):
+            shutil.move(new_file.absolute(), old_file.absolute())
+            logger.info(f"已更新文件：{file}")
     # except Exception as e:
     #     error = f'{type(e)}：{e}'
     if tf:
@@ -215,7 +219,12 @@ async def get_latest_version_data() -> dict:
 def check_old_lines(lines: List[str], line: str) -> str:
     if "=" not in line:
         return line
-    for l in lines:
-        if "=" in l and l.split("=")[0].strip() == line.split("=")[0].strip():
-            return l
-    return line
+    return next(
+        (
+            l
+            for l in lines
+            if "=" in l
+            and l.split("=")[0].strip() == line.split("=")[0].strip()
+        ),
+        line,
+    )
