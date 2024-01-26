@@ -129,8 +129,20 @@ __plugin_configs__ = {
         "default_value": 10,
         "type": int,
     },
+    "proxy": {
+        "value": "i.pixiv.re",
+        "help": "反代地址,设置为空可得到原始的 i.pximg.net 图片地址",
+        "default_value": "i.pixiv.re",
+        "type": str,
+    },
+    "excludeAI": {
+        "value": False,
+        "help": "排除ai作品",
+        "default_value": False,
+        "type": bool,
+    },
 }
-Config.add_plugin_config("pixiv", "PIXIV_NGINX_URL", "i.pixiv.re", help_="Pixiv反向代理")
+#Config.add_plugin_config("pixiv", "PIXIV_NGINX_URL", "i.pixiv.re", help_="Pixiv反向代理")
 
 setu_data_list = []
 
