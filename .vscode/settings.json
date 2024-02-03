@@ -1,0 +1,15 @@
+{
+  "C_Cpp.errorSquiggles": "enabled",
+  "terminal.integrated.env.linux": {
+    "PYTHONPATH": "${workspaceFolder}${pathSeparator}${env:PYTHONPATH}"
+  },
+  "cSpell.words": [
+    "Alconna",
+    "arclet",
+    "Arparma",
+    "getbbox",
+    "httpx",
+    "nonebot",
+    "zhenxun"
+  ]
+}

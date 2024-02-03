@@ -232,7 +232,7 @@
   后将gocq的配置文件config.yml中的universal改为universal: ws://127.0.0.1:8080/onebot/v11/ws
 
 # 获取代码
-git clone https://github.com/HibiKier/zhenxun_bot.git
+git clone https://github.com/HibiKier/zhenxun.git
 
 # 进入目录
 cd zhenxun_bot
