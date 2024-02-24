@@ -29,6 +29,10 @@ nonebot2 = "^2.1.3"
 nonebot-adapter-discord = "^0.1.3"
 nonebot-adapter-dodo = "^0.1.4"
 pillow = "9.5"
+retrying = "^1.3.4"
+aiofiles = "^23.2.1"
+nonebot-plugin-htmlrender = "^0.3.0"
+nonebot-plugin-userinfo = "^0.1.3"
 
 [tool.poetry.dev-dependencies]
 

@@ -22,6 +22,7 @@ class PluginLimit(Model):
         on_delete=fields.CASCADE,
         description="所属插件",
     )
+    """所属插件"""
     limit_type = fields.CharEnumField(PluginLimitType, description="限制类型")
     """限制类型"""
     watch_type = fields.CharEnumField(LimitWatchType, description="监听类型")

@@ -1,6 +1,6 @@
 import copy
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Type, Union
+from typing import Any, Callable, Dict, Type
 
 import cattrs
 from pydantic import BaseModel
@@ -17,7 +17,6 @@ _yaml.allow_unicode = True
 
 
 class RegisterConfig(BaseModel):
-
     """
     注册配置项
     """
@@ -39,7 +38,6 @@ class RegisterConfig(BaseModel):
 
 
 class ConfigModel(BaseModel):
-
     """
     配置项
     """
@@ -57,7 +55,6 @@ class ConfigModel(BaseModel):
 
 
 class ConfigGroup(BaseModel):
-
     """
     配置组
     """
@@ -72,7 +69,7 @@ class ConfigGroup(BaseModel):
     def get(self, c: str, default: Any = None) -> Any:
         cfg = self.configs.get(c)
         if cfg is not None:
-            return cfg
+            return cfg.value
         return default
 
 
@@ -130,6 +127,17 @@ class PluginSetting(BaseModel):
     """调用插件花费金币"""
 
 
+class Task(BaseBlock):
+    module: str
+    """被动技能模块名"""
+    name: str
+    """被动技能名称"""
+    status: bool = True
+    """全局开关状态"""
+    run_time: str | None = None
+    """运行时间"""
+
+
 class PluginExtraData(BaseModel):
     """
     插件扩展信息
@@ -139,18 +147,20 @@ class PluginExtraData(BaseModel):
     """作者"""
     version: str | None = None
     """版本"""
-    plugin_type: PluginType | None = None
+    plugin_type: PluginType = PluginType.NORMAL
     """插件类型"""
     menu_type: str = "功能"
     """菜单类型"""
     admin_level: int | None = None
     """管理员插件所需权限等级"""
-    configs: List[RegisterConfig] | None = None
+    configs: list[RegisterConfig] | None = None
     """插件配置"""
     setting: PluginSetting | None = None
     """插件基本配置"""
-    limits: List[BaseBlock | PluginCdBlock | PluginCountBlock] | None = None
+    limits: list[BaseBlock | PluginCdBlock | PluginCountBlock] | None = None
     """插件限制"""
+    tasks: list[Task] | None = None
+    """技能被动"""
 
 
 class NoSuchConfig(Exception):
@@ -287,7 +297,9 @@ class ConfigsManager:
             if not config:
                 config = self._data[module].configs.get(f"{key} [LEVEL]")
             if not config:
-                raise NoSuchConfig(f"未查询到配置项 MODULE: [ {module} ] | KEY: [ {key} ]")
+                raise NoSuchConfig(
+                    f"未查询到配置项 MODULE: [ {module} ] | KEY: [ {key} ]"
+                )
             if config.arg_parser:
                 value = config.arg_parser(value or config.default_value)
             else:

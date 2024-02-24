@@ -1,15 +1,38 @@
 from strenum import StrEnum
 
 
+class GoldHandle(StrEnum):
+    """
+    金币处理
+    """
+
+    BUY = "BUY"
+    """购买"""
+    GET = "GET"
+    """获取"""
+
+
+class PropHandle(StrEnum):
+    """
+    道具处理
+    """
+
+    BUY = "BUY"
+    """购买"""
+    USE = "USE"
+    """使用"""
+
+
 class PluginType(StrEnum):
     """
     插件类型
     """
 
-    SUPERUSER = "超级管理员插件"
-    ADMIN = "管理员插件"
-    NORMAL = "普通插件"
-    HIDDEN = "被动插件"
+    SUPERUSER = "SUPERUSER"
+    ADMIN = "ADMIN"
+    SUPER_AND_ADMIN = "ADMIN_SUPER"
+    NORMAL = "NORMAL"
+    HIDDEN = "HIDDEN"
 
 
 class BlockType(StrEnum):

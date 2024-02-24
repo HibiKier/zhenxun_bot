@@ -2,7 +2,8 @@ import time
 from datetime import datetime
 from typing import Dict
 
-from nonebot import on_message, on_request
+import nonebot
+from nonebot import drivers, on_message, on_request
 from nonebot.adapters.onebot.v11 import (
     ActionFailed,
     Bot,
@@ -18,7 +19,7 @@ from zhenxun.configs.config import NICKNAME, Config
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.models.fg_request import FgRequest
 from zhenxun.models.friend_user import FriendUser
-from zhenxun.models.group_info import GroupInfo
+from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType, RequestType
 
@@ -26,7 +27,7 @@ base_config = Config.get("invite_manager")
 
 __plugin_meta__ = PluginMetadata(
     name="记录请求",
-    description="自定义群欢迎消息",
+    description="记录 好友/群组 请求",
     usage="",
     extra=PluginExtraData(
         author="HibiKier",
@@ -61,6 +62,8 @@ class Timer:
         cls.data = {k: v for k, v in cls.data.items() if v - now < 5 * 60}
 
 
+# TODO: 其他平台请求
+
 friend_req = on_request(priority=5, block=True)
 group_req = on_request(priority=5, block=True)
 _t = on_message(priority=999, block=False, rule=lambda: False)
@@ -69,13 +72,14 @@ _t = on_message(priority=999, block=False, rule=lambda: False)
 @friend_req.handle()
 async def _(bot: Bot, event: FriendRequestEvent, session: EventSession):
     if event.user_id and Timer.check(event.user_id):
+        superuser = nonebot.get_driver().config.platform_superusers["qq"][0]
         logger.debug(f"收录好友请求...", "好友请求", target=event.user_id)
         user = await bot.get_stranger_info(user_id=event.user_id)
         nickname = user["nickname"]
         # sex = user["sex"]
         # age = str(user["age"])
         comment = event.comment
-        superuser = int(list(bot.config.superusers)[0])
+        superuser = int(superuser)
         await Text(
             f"*****一份好友申请*****\n"
             f"昵称：{nickname}({event.user_id})\n"
@@ -84,7 +88,11 @@ async def _(bot: Bot, event: FriendRequestEvent, session: EventSession):
             f"备注：{event.comment}"
         ).send_to(target=TargetQQPrivate(user_id=superuser), bot=bot)
         if base_config.get("AUTO_ADD_FRIEND"):
-            logger.debug(f"已开启好友请求自动同意，成功通过该请求", "好友请求", target=event.user_id)
+            logger.debug(
+                f"已开启好友请求自动同意，成功通过该请求",
+                "好友请求",
+                target=event.user_id,
+            )
             await bot.set_friend_add_request(flag=event.flag, approve=True)
             await FriendUser.create(
                 user_id=str(user["user_id"]), user_name=user["nickname"]
@@ -119,7 +127,7 @@ async def _(bot: Bot, event: GroupRequestEvent, session: EventSession):
                     flag=event.flag, sub_type="invite", approve=True
                 )
                 group_info = await bot.get_group_info(group_id=event.group_id)
-                await GroupInfo.update_or_create(
+                await GroupConsole.update_or_create(
                     group_id=str(group_info["group_id"]),
                     defaults={
                         "group_name": group_info["group_name"],

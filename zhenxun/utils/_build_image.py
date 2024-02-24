@@ -1,8 +1,9 @@
 import base64
 import math
+import uuid
 from io import BytesIO
 from pathlib import Path
-from typing import List, Literal, Tuple, TypeAlias, overload
+from typing import Literal, Tuple, TypeAlias, overload
 
 from nonebot.utils import run_sync
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -40,12 +41,13 @@ class BuildImage:
         self,
         width: int = 0,
         height: int = 0,
-        color: ColorAlias = None,
+        color: ColorAlias = (255, 255, 255),
         mode: ModeType = "RGBA",
         font: str | Path | FreeTypeFont = "HYWenHei-85W.ttf",
         font_size: int = 20,
         background: str | BytesIO | Path | None = None,
     ) -> None:
+        self.uid = uuid.uuid1()
         self.width = width
         self.height = height
         self.color = color
@@ -72,7 +74,7 @@ class BuildImage:
     async def build_text_image(
         cls,
         text: str,
-        font: str | Path = "HYWenHei-85W.ttf",
+        font: str | FreeTypeFont | Path = "HYWenHei-85W.ttf",
         size: int = 10,
         font_color: str | Tuple[int, int, int] = (0, 0, 0),
         color: ColorAlias = None,
@@ -91,12 +93,16 @@ class BuildImage:
         返回:
             Self: Self
         """
-        _font = cls.load_font(font, size)
-        width, height = cls.get_text_size(text, _font)
-        if type(padding) == int:
+        _font = None
+        if isinstance(font, FreeTypeFont):
+            _font = font
+        elif isinstance(font, (str, Path)):
+            _font = cls.load_font(font, size)
+        width, height = cls.get_text_size(text or "A", _font)
+        if isinstance(padding, int):
             width += padding * 2
             height += padding * 2
-        elif type(padding) == tuple:
+        elif isinstance(padding, tuple):
             width += padding[1] + padding[3]
             height += padding[0] + padding[2]
         markImg = cls(width, height, color)
@@ -112,9 +118,9 @@ class BuildImage:
         row: int,
         space: int = 10,
         padding: int = 50,
-        color: ColorAlias = (255, 255, 255, 0),
+        color: ColorAlias = (255, 255, 255),
         background: str | BytesIO | Path | None = None,
-    ) -> Self | None:
+    ) -> Self:
         """自动贴图
 
         参数:
@@ -129,11 +135,15 @@ class BuildImage:
             Self: Self
         """
         if not img_list:
-            return None
+            raise ValueError("贴图类别为空...")
         width, height = img_list[0].size
         background_width = width * row + space * (row - 1) + padding * 2
-        column = math.ceil(len(img_list) / row)
-        background_height = height * column + space * (column - 1) + padding * 2
+        row_count = math.ceil(len(img_list) / row)
+        if row_count == 1:
+            background_width = (
+                sum([img.width for img in img_list]) + space * (row - 1) + padding * 2
+            )
+        background_height = height * row_count + space * (row_count - 1) + padding * 2
         background_image = cls(
             background_width, background_height, color=color, background=background
         )
@@ -141,15 +151,16 @@ class BuildImage:
         for img in img_list:
             await background_image.paste(img, (_cur_width, _cur_height))
             _cur_width += space + img.width
-            _cur_height += space + img.height
             if _cur_width + padding >= background_image.width:
+                _cur_height += space + img.height
                 _cur_width = padding
         return background_image
 
     @classmethod
-    def load_font(cls, font: str | Path, font_size: int) -> FreeTypeFont:
-        """
-        加载字体
+    def load_font(
+        cls, font: str | Path = "HYWenHei-85W.ttf", font_size: int = 10
+    ) -> FreeTypeFont:
+        """加载字体
 
         参数:
             font: 字体名称
@@ -165,19 +176,20 @@ class BuildImage:
     @classmethod
     def get_text_size(
         cls, text: str, font: FreeTypeFont | None = None
-    ) -> Tuple[int, int]:
-        ...
+    ) -> Tuple[int, int]: ...
 
     @overload
     @classmethod
     def get_text_size(
         cls, text: str, font: str | None = None, font_size: int = 10
-    ) -> Tuple[int, int]:
-        ...
+    ) -> Tuple[int, int]: ...
 
     @classmethod
     def get_text_size(
-        cls, text: str, font: str | FreeTypeFont | None = None, font_size: int = 10
+        cls,
+        text: str,
+        font: str | FreeTypeFont | None = "HYWenHei-85W.ttf",
+        font_size: int = 10,
     ) -> Tuple[int, int]:
         """获取该字体下文本需要的长宽
 
@@ -192,7 +204,7 @@ class BuildImage:
         _font = font
         if font and type(font) == str:
             _font = cls.load_font(font, font_size)
-        return _font.getsize(text)  # type: ignore
+        return _font.getsize(str(text))  # type: ignore
 
     def getsize(self, msg: str) -> Tuple[int, int]:
         """
@@ -265,7 +277,10 @@ class BuildImage:
             _image = image.markImg
         if _image.width and _image.height and center_type:
             pos = self.__center_xy(pos, _image.width, _image.height, center_type)
-        self.markImg.paste(_image, pos, _image)  # type: ignore
+        try:
+            self.markImg.paste(_image, pos, _image)  # type: ignore
+        except ValueError:
+            self.markImg.paste(_image, pos)  # type: ignore
         return self
 
     @run_sync
@@ -335,6 +350,7 @@ class BuildImage:
         异常:
             ValueError: 居中类型错误
         """
+        text = str(text)
         if center_type and center_type not in ["center", "height", "width"]:
             raise ValueError("center_type must be 'center', 'width' or 'height'")
         width, height = 0, 0
@@ -484,7 +500,7 @@ class BuildImage:
     @run_sync
     def polygon(
         self,
-        xy: List[Tuple[int, int]],
+        xy: list[Tuple[int, int]],
         fill: Tuple[int, int, int] = (0, 0, 0),
         outline: int = 1,
     ) -> Self:
@@ -560,7 +576,7 @@ class BuildImage:
     def circle_corner(
         self,
         radii: int = 30,
-        point_list: List[Literal["lt", "rt", "lb", "rb"]] = ["lt", "rt", "lb", "rb"],
+        point_list: list[Literal["lt", "rt", "lb", "rb"]] = ["lt", "rt", "lb", "rb"],
     ) -> Self:
         """
         矩形四角变圆
@@ -654,3 +670,11 @@ class BuildImage:
                 self.markImg = self.markImg.filter(_type)
         self.draw = ImageDraw.Draw(self.markImg)
         return self
+
+    def tobytes(self) -> bytes:
+        """转换为bytes
+
+        返回:
+            bytes: bytes
+        """
+        return self.markImg.tobytes()

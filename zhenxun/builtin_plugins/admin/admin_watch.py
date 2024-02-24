@@ -9,11 +9,6 @@ from zhenxun.models.level_user import LevelUser
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 
-__zx_plugin_name__ = "群管理员变动监测 [Hidden]"
-__plugin_version__ = 0.1
-__plugin_author__ = "HibiKier"
-
-
 __plugin_meta__ = PluginMetadata(
     name="群管理员变动监测",
     description="检测群管理员变动, 添加与删除管理员默认权限, 当配置项 ADMIN_DEFAULT_AUTH 为空时, 不会添加管理员权限",
@@ -40,20 +35,25 @@ async def _(event: GroupAdminNoticeEvent):
         admin_default_auth = base_config.get("ADMIN_DEFAULT_AUTH")
         if admin_default_auth is not None:
             await LevelUser.set_level(
-                event.user_id,
-                event.group_id,
+                str(event.user_id),
+                str(event.group_id),
                 admin_default_auth,
             )
             logger.info(
                 f"成为管理员，添加权限: {admin_default_auth}",
                 "群管理员变动监测",
-                event.user_id,
-                event.group_id,
+                session=event.user_id,
+                group_id=event.group_id,
             )
         else:
             logger.warning(
                 f"配置项 MODULE: [<u><y>admin_bot_manage</y></u>] | KEY: [<u><y>ADMIN_DEFAULT_AUTH</y></u>] 为空"
             )
     elif event.sub_type == "unset":
-        await LevelUser.delete_level(event.user_id, event.group_id)
-        logger.info("撤销群管理员, 取消权限等级", "群管理员变动监测", event.user_id, event.group_id)
+        await LevelUser.delete_level(str(event.user_id), str(event.group_id))
+        logger.info(
+            "撤销群管理员, 取消权限等级",
+            "群管理员变动监测",
+            session=event.user_id,
+            group_id=event.group_id,
+        )

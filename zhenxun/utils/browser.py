@@ -1,14 +1,12 @@
-from typing import Optional
-
 from nonebot import get_driver
 from playwright.async_api import Browser, Playwright, async_playwright
 
-from services.log import logger
+from zhenxun.services.log import logger
 
 driver = get_driver()
 
-_playwright: Optional[Playwright] = None
-_browser: Optional[Browser] = None
+_playwright: Playwright | None = None
+_browser: Browser | None = None
 
 
 @driver.on_startup

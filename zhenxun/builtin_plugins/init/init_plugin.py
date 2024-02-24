@@ -1,26 +1,15 @@
-from pathlib import Path
-from typing import List
-
 import nonebot
 from nonebot import get_loaded_plugins
 from nonebot.drivers import Driver
 from nonebot.plugin import Plugin
-from ruamel import yaml
-from ruamel.yaml import YAML, round_trip_dump, round_trip_load
-from ruamel.yaml.comments import CommentedMap
+from ruamel.yaml import YAML
 
-from zhenxun.configs.config import Config
-from zhenxun.configs.path_config import DATA_PATH
-from zhenxun.configs.utils import (
-    BaseBlock,
-    PluginExtraData,
-    PluginSetting,
-    RegisterConfig,
-)
+from zhenxun.configs.utils import PluginExtraData, PluginSetting
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.plugin_limit import PluginLimit
+from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
-from zhenxun.utils.enum import PluginLimitType
+from zhenxun.utils.enum import PluginType
 
 _yaml = YAML(pure=True)
 _yaml.allow_unicode = True
@@ -29,8 +18,11 @@ _yaml.indent = 2
 driver: Driver = nonebot.get_driver()
 
 
-def _handle_setting(
-    plugin: Plugin, plugin_list: List[PluginInfo], limit_list: List[PluginLimit]
+async def _handle_setting(
+    plugin: Plugin,
+    plugin_list: list[PluginInfo],
+    limit_list: list[PluginLimit],
+    task_list: list[TaskInfo],
 ):
     """处理插件设置
 
@@ -45,6 +37,8 @@ def _handle_setting(
         extra_data = PluginExtraData(**extra)
         logger.debug(f"{metadata.name}:{plugin.name} -> {extra}", "初始化插件数据")
         setting = extra_data.setting or PluginSetting()
+        if metadata.type == "library":
+            extra_data.plugin_type = PluginType.HIDDEN
         plugin_list.append(
             PluginInfo(
                 module=plugin.name,
@@ -76,6 +70,16 @@ def _handle_setting(
                         max_count=getattr(limit, "max_count", None),
                     )
                 )
+        if extra_data.tasks:
+            for task in extra_data.tasks:
+                task_list.append(
+                    TaskInfo(
+                        module=task.module,
+                        name=task.name,
+                        status=task.status,
+                        run_time=task.run_time,
+                    )
+                )
 
 
 @driver.on_startup
@@ -83,14 +87,15 @@ async def _():
     """
     初始化插件数据配置
     """
-    plugin_list: List[PluginInfo] = []
-    limit_list: List[PluginLimit] = []
+    plugin_list: list[PluginInfo] = []
+    limit_list: list[PluginLimit] = []
+    task_list: list[TaskInfo] = []
     module2id = {}
     if module_list := await PluginInfo.all().values("id", "module_path"):
         module2id = {m["module_path"]: m["id"] for m in module_list}
     for plugin in get_loaded_plugins():
         if plugin.metadata:
-            _handle_setting(plugin, plugin_list, limit_list)
+            await _handle_setting(plugin, plugin_list, limit_list, task_list)
     create_list = []
     update_list = []
     for plugin in plugin_list:
@@ -124,3 +129,23 @@ async def _():
                         limit_create.append(limit)
         if limit_create:
             await PluginLimit.bulk_create(limit_create, 10)
+    if task_list:
+        module_dict = {
+            t[1]: t[0] for t in await TaskInfo.all().values_list("id", "module")
+        }
+        create_list = []
+        update_list = []
+        for task in task_list:
+            if task.module not in module_list:
+                create_list.append(task)
+            else:
+                task.id = module_dict[task.module]
+                update_list.append(task)
+        if create_list:
+            await TaskInfo.bulk_create(create_list, 10)
+        if update_list:
+            await TaskInfo.bulk_update(
+                update_list,
+                ["run_time", "status", "name"],
+                10,
+            )

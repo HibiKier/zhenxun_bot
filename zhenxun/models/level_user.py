@@ -24,9 +24,8 @@ class LevelUser(Model):
         unique_together = ("user_id", "group_id")
 
     @classmethod
-    async def get_user_level(cls, user_id: int | str, group_id: int | str) -> int:
-        """
-        获取用户在群内的等级
+    async def get_user_level(cls, user_id: str, group_id: str | None) -> int:
+        """获取用户在群内的等级
 
         参数:
             user_id: 用户id
@@ -35,20 +34,21 @@ class LevelUser(Model):
         返回:
             int: 权限等级
         """
-        if user := await cls.get_or_none(user_id=str(user_id), group_id=str(group_id)):
+        if not group_id:
+            return 0
+        if user := await cls.get_or_none(user_id=user_id, group_id=group_id):
             return user.user_level
         return 0
 
     @classmethod
     async def set_level(
         cls,
-        user_id: int | str,
-        group_id: int | str,
+        user_id: str,
+        group_id: str,
         level: int,
         group_flag: int = 0,
     ):
-        """
-        设置用户在群内的权限
+        """设置用户在群内的权限
 
         参数:
             user_id: 用户id
@@ -57,8 +57,8 @@ class LevelUser(Model):
             group_flag: 是否被自动更新刷新权限 0:是, 1:否.
         """
         await cls.update_or_create(
-            user_id=str(user_id),
-            group_id=str(group_id),
+            user_id=user_id,
+            group_id=group_id,
             defaults={
                 "user_level": level,
                 "group_flag": group_flag,
@@ -66,9 +66,8 @@ class LevelUser(Model):
         )
 
     @classmethod
-    async def delete_level(cls, user_id: int | str, group_id: int | str) -> bool:
-        """
-        删除用户权限
+    async def delete_level(cls, user_id: str, group_id: str) -> bool:
+        """删除用户权限
 
         参数:
             user_id: 用户id
@@ -77,17 +76,14 @@ class LevelUser(Model):
         返回:
             bool: 是否含有用户权限
         """
-        if user := await cls.get_or_none(user_id=str(user_id), group_id=str(group_id)):
+        if user := await cls.get_or_none(user_id=user_id, group_id=group_id):
             await user.delete()
             return True
         return False
 
     @classmethod
-    async def check_level(
-        cls, user_id: int | str, group_id: int | str, level: int
-    ) -> bool:
-        """
-        检查用户权限等级是否大于 level
+    async def check_level(cls, user_id: str, group_id: str, level: int) -> bool:
+        """检查用户权限等级是否大于 level
 
         参数:
             user_id: 用户id
@@ -98,20 +94,17 @@ class LevelUser(Model):
             bool: 是否大于level
         """
         if group_id:
-            if user := await cls.get_or_none(
-                user_id=str(user_id), group_id=str(group_id)
-            ):
+            if user := await cls.get_or_none(user_id=user_id, group_id=group_id):
                 return user.user_level >= level
         else:
-            user_list = await cls.filter(user_id=str(user_id)).all()
+            user_list = await cls.filter(user_id=user_id).all()
             user = max(user_list, key=lambda x: x.user_level)
             return user.user_level >= level
         return False
 
     @classmethod
-    async def is_group_flag(cls, user_id: int | str, group_id: int | str) -> bool:
-        """
-        检测是否会被自动更新刷新权限
+    async def is_group_flag(cls, user_id: str, group_id: str) -> bool:
+        """检测是否会被自动更新刷新权限
 
         参数:
             user_id: 用户id
@@ -120,7 +113,7 @@ class LevelUser(Model):
         返回:
             bool: 是否会被自动更新权限刷新
         """
-        if user := await cls.get_or_none(user_id=str(user_id), group_id=str(group_id)):
+        if user := await cls.get_or_none(user_id=user_id, group_id=group_id):
             return user.group_flag == 1
         return False
 

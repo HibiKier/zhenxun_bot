@@ -7,9 +7,15 @@
     "Alconna",
     "arclet",
     "Arparma",
+    "displayname",
     "getbbox",
     "httpx",
+    "kaiheila",
     "nonebot",
+    "onebot",
+    "tobytes",
+    "userinfo",
     "zhenxun"
-  ]
+  ],
+  "python.analysis.autoImportCompletions": true
 }

@@ -40,6 +40,7 @@ class logger:
     TEMPLATE_USER = "用户[<u><e>{}</e></u>] "
     TEMPLATE_GROUP = "群聊[<u><e>{}</e></u>] "
     TEMPLATE_COMMAND = "CMD[<u><c>{}</c></u>] "
+    TEMPLATE_PLATFORM = "平台[<u><m>{}</m></u>] "
     TEMPLATE_TARGET = "[Target]([<u><e>{}</e></u>]) "
 
     SUCCESS_TEMPLATE = "[<u><c>{}</c></u>]: {} | 参数[{}] 返回: [<y>{}</y>]"
@@ -59,8 +60,8 @@ class logger:
         group_id: int | str | None = None,
         adapter: str | None = None,
         target: Any = None,
-    ):
-        ...
+        platform: str | None = None,
+    ): ...
 
     @overload
     @classmethod
@@ -71,8 +72,8 @@ class logger:
         *,
         session: Session | None = None,
         target: Any = None,
-    ):
-        ...
+        platform: str | None = None,
+    ): ...
 
     @classmethod
     def info(
@@ -84,16 +85,20 @@ class logger:
         group_id: int | str | None = None,
         adapter: str | None = None,
         target: Any = None,
+        platform: str | None = None,
     ):
         user_id: str | None = session  # type: ignore
         group_id = None
         if type(session) == Session:
             user_id = session.id1
             adapter = session.bot_type
-            if session.id3 or session.id2:
+            if session.id3:
                 group_id = f"{session.id3}:{session.id2}"
+            elif session.id2:
+                group_id = f"{session.id2}"
+            platform = platform or session.platform
         template = cls.__parser_template(
-            info, command, user_id, group_id, adapter, target
+            info, command, user_id, group_id, adapter, target, platform
         )
         logger_.opt(colors=True).info(template)
 
@@ -123,9 +128,9 @@ class logger:
         group_id: int | str | None = None,
         adapter: str | None = None,
         target: Any = None,
+        platform: str | None = None,
         e: Exception | None = None,
-    ):
-        ...
+    ): ...
 
     @overload
     @classmethod
@@ -137,9 +142,9 @@ class logger:
         session: Session | None = None,
         adapter: str | None = None,
         target: Any = None,
+        platform: str | None = None,
         e: Exception | None = None,
-    ):
-        ...
+    ): ...
 
     @classmethod
     def warning(
@@ -151,6 +156,7 @@ class logger:
         group_id: int | str | None = None,
         adapter: str | None = None,
         target: Any = None,
+        platform: str | None = None,
         e: Exception | None = None,
     ):
         user_id: str | None = session  # type: ignore
@@ -158,10 +164,13 @@ class logger:
         if type(session) == Session:
             user_id = session.id1
             adapter = session.bot_type
-            if session.id3 or session.id2:
+            if session.id3:
                 group_id = f"{session.id3}:{session.id2}"
+            elif session.id2:
+                group_id = f"{session.id2}"
+            platform = platform or session.platform
         template = cls.__parser_template(
-            info, command, user_id, group_id, adapter, target
+            info, command, user_id, group_id, adapter, target, platform
         )
         if e:
             template += f" || 错误<r>{type(e)}: {e}</r>"
@@ -178,9 +187,9 @@ class logger:
         group_id: int | str | None = None,
         adapter: str | None = None,
         target: Any = None,
+        platform: str | None = None,
         e: Exception | None = None,
-    ):
-        ...
+    ): ...
 
     @overload
     @classmethod
@@ -191,9 +200,9 @@ class logger:
         *,
         session: Session | None = None,
         target: Any = None,
+        platform: str | None = None,
         e: Exception | None = None,
-    ):
-        ...
+    ): ...
 
     @classmethod
     def error(
@@ -205,6 +214,7 @@ class logger:
         group_id: int | str | None = None,
         adapter: str | None = None,
         target: Any = None,
+        platform: str | None = None,
         e: Exception | None = None,
     ):
         user_id: str | None = session  # type: ignore
@@ -212,10 +222,13 @@ class logger:
         if type(session) == Session:
             user_id = session.id1
             adapter = session.bot_type
-            if session.id3 or session.id2:
+            if session.id3:
                 group_id = f"{session.id3}:{session.id2}"
+            elif session.id2:
+                group_id = f"{session.id2}"
+            platform = platform or session.platform
         template = cls.__parser_template(
-            info, command, user_id, group_id, adapter, target
+            info, command, user_id, group_id, adapter, target, platform
         )
         if e:
             template += f" || 错误 <r>{type(e)}: {e}</r>"
@@ -232,9 +245,9 @@ class logger:
         group_id: int | str | None = None,
         adapter: str | None = None,
         target: Any = None,
+        platform: str | None = None,
         e: Exception | None = None,
-    ):
-        ...
+    ): ...
 
     @overload
     @classmethod
@@ -245,9 +258,9 @@ class logger:
         *,
         session: Session | None = None,
         target: Any = None,
+        platform: str | None = None,
         e: Exception | None = None,
-    ):
-        ...
+    ): ...
 
     @classmethod
     def debug(
@@ -259,6 +272,7 @@ class logger:
         group_id: int | str | None = None,
         adapter: str | None = None,
         target: Any = None,
+        platform: str | None = None,
         e: Exception | None = None,
     ):
         user_id: str | None = session  # type: ignore
@@ -266,10 +280,13 @@ class logger:
         if type(session) == Session:
             user_id = session.id1
             adapter = session.bot_type
-            if session.id3 or session.id2:
+            if session.id3:
                 group_id = f"{session.id3}:{session.id2}"
+            elif session.id2:
+                group_id = f"{session.id2}"
+            platform = platform or session.platform
         template = cls.__parser_template(
-            info, command, user_id, group_id, adapter, target
+            info, command, user_id, group_id, adapter, target, platform
         )
         if e:
             template += f" || 错误 <r>{type(e)}: {e}</r>"
@@ -284,12 +301,16 @@ class logger:
         group_id: int | str | None = None,
         adapter: str | None = None,
         target: Any = None,
+        platform: str | None = None,
     ) -> str:
         arg_list = []
         template = ""
         if adapter is not None:
             template += cls.TEMPLATE_ADAPTER
             arg_list.append(adapter)
+        if platform is not None:
+            template += cls.TEMPLATE_PLATFORM
+            arg_list.append(platform)
         if group_id is not None:
             template += cls.TEMPLATE_GROUP
             arg_list.append(group_id)

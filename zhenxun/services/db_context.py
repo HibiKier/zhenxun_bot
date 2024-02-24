@@ -1,10 +1,7 @@
-from typing import List
-
 from nonebot.utils import is_coroutine_callable
 from tortoise import Tortoise, fields
 from tortoise.connection import connections
 from tortoise.models import Model as Model_
-from tortoise.queryset import RawSQLQuery
 
 from zhenxun.configs.config import (
     address,
@@ -18,7 +15,7 @@ from zhenxun.configs.config import (
 
 from .log import logger
 
-MODELS: List[str] = []
+MODELS: list[str] = []
 
 SCRIPT_METHOD = []
 
@@ -60,12 +57,14 @@ async def init():
         modules={"models": MODELS},
         # timezone="Asia/Shanghai"
     )
-    await Tortoise.generate_schemas()
     logger.info(f"Database loaded successfully!")
     # except Exception as e:
     #     raise Exception(f"数据库连接错误... {type(e)}: {e}")
     if SCRIPT_METHOD:
-        logger.debug(f"即将运行SCRIPT_METHOD方法, 合计 <u><y>{len(SCRIPT_METHOD)}</y></u> 个...")
+        db = Tortoise.get_connection("default")
+        logger.debug(
+            f"即将运行SCRIPT_METHOD方法, 合计 <u><y>{len(SCRIPT_METHOD)}</y></u> 个..."
+        )
         sql_list = []
         for module, func in SCRIPT_METHOD:
             try:
@@ -75,15 +74,16 @@ async def init():
                     sql = func()
                 if sql:
                     sql_list += sql
-
             except Exception as e:
                 logger.debug(f"{module} 执行SCRIPT_METHOD方法出错...", e=e)
         for sql in sql_list:
             logger.debug(f"执行SQL: {sql}")
             try:
-                await TestSQL.raw(sql)
+                await db.execute_query_dict(sql)
+                # await TestSQL.raw(sql)
             except Exception as e:
                 logger.debug(f"执行SQL: {sql} 错误...", e=e)
+    await Tortoise.generate_schemas()
 
 
 async def disconnect():

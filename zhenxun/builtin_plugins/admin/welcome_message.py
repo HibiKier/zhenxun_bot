@@ -1,26 +1,22 @@
+import os
 import shutil
-from typing import Dict
+from typing import Annotated, Dict
 
 import ujson as json
-from arclet.alconna import Args, Option
+from nonebot import on_command
+from nonebot.params import Command
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_alconna import (
-    Alconna,
-    AlconnaMatch,
-    Arparma,
-    Match,
-    on_alconna,
-    store_true,
-)
-from nonebot_plugin_alconna.matcher import AlconnaMatcher
-from nonebot_plugin_saa import Text
+from nonebot_plugin_alconna import Image
+from nonebot_plugin_alconna import Text as alcText
+from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.path_config import DATA_PATH
-from zhenxun.configs.utils import PluginCdBlock, PluginExtraData, RegisterConfig
+from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.rules import admin_check, ensure_group
 
 base_config = Config.get("admin_bot_manage")
@@ -48,17 +44,14 @@ __plugin_meta__ = PluginMetadata(
     ).dict(),
 )
 
-_matcher = on_alconna(
-    Alconna(
-        "设置欢迎消息",
-        Args["message", str],
-        Option("-at", action=store_true, help_text="是否at新入群用户"),
-    ),
+_matcher = on_command(
+    "设置欢迎消息",
     rule=admin_check("admin_bot_manage", "SET_GROUP_WELCOME_MESSAGE_LEVEL")
     & ensure_group,
     priority=5,
     block=True,
 )
+
 
 BASE_PATH = DATA_PATH / "welcome_message"
 BASE_PATH.mkdir(parents=True, exist_ok=True)
@@ -86,31 +79,43 @@ if old_file.exists():
 @_matcher.handle()
 async def _(
     session: EventSession,
-    matcher: AlconnaMatcher,
-    arparma: Arparma,
-    message: str,
+    message: UniMsg,
+    command: Annotated[tuple[str, ...], Command()],
 ):
-    file = (
-        BASE_PATH
-        / f"{session.platform or session.bot_type}"
-        / f"{session.id2}"
-        / "text.json"
-    )
+    path = BASE_PATH / f"{session.platform or session.bot_type}" / f"{session.id2}"
     if session.id3:
-        file = (
+        path = (
             BASE_PATH
             / f"{session.platform or session.bot_type}"
             / f"{session.id3}"
             / f"{session.id2}"
-            / "text.json"
         )
+    file = path / "text.json"
+    idx = 0
+    text = ""
+    for f in os.listdir(path):
+        (path / f).unlink()
+    message[0].text = message[0].text.replace(command[0], "").strip()
+    for msg in message:
+        if isinstance(msg, alcText):
+            text += msg.text
+        elif isinstance(msg, Image):
+            if msg.url:
+                text += f"[image:{idx}]"
+                await AsyncHttpx.download_file(msg.url, path / f"{idx}.png")
+                idx += 1
+            else:
+                logger.debug("图片 URL 为空...", command[0])
     if not file.exists():
         file.parent.mkdir(exist_ok=True, parents=True)
+    is_at = "-at" in message
+    text = text.replace("-at", "")
     json.dump(
-        {"at": arparma.find("at"), "message": message},
+        {"at": is_at, "message": text},
         file.open("w"),
         ensure_ascii=False,
         indent=4,
     )
-    logger.info(f"设置群欢迎消息成功: {message}", arparma.header_result, session=session)
-    await Text(f"设置欢迎消息成功: \n{message}").send()
+    uni_msg = alcText("设置欢迎消息成功: \n") + message
+    await uni_msg.send()
+    logger.info(f"设置群欢迎消息成功: {text}", command[0], session=session)

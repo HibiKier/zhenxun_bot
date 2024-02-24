@@ -17,7 +17,7 @@ class PluginInfo(Model):
     """插件名称"""
     status = fields.BooleanField(default=True, description="全局开关状态")
     """全局开关状态"""
-    block_type = fields.CharEnumField(
+    block_type: BlockType | None = fields.CharEnumField(
         BlockType, default=None, null=True, description="禁用类型"
     )
     """禁用类型"""
