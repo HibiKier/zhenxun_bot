@@ -36,9 +36,7 @@ class ShopManage:
                 goods = filter_goods[0]
             else:
                 return "道具名称不存在..."
-        user, _ = await UserConsole.get_or_create(
-            user_id=user_id, defaults={"platform": platform}
-        )
+        user = await UserConsole.get_user(user_id, platform)
         price = goods.goods_price * num * goods.goods_discount
         if user.gold < price:
             return "糟糕! 您的金币好像不太够哦..."
@@ -77,9 +75,7 @@ class ShopManage:
         返回:
             BuildImage | None: 道具背包图片
         """
-        user, _ = await UserConsole.get_or_create(
-            user_id=user_id, defaults={"platform": platform}
-        )
+        user = await UserConsole.get_user(user_id, platform)
         if not user.props:
             return None
         result = await GoodsInfo.filter(uuid__in=user.props.keys()).all()
@@ -113,9 +109,7 @@ class ShopManage:
         返回:
             int: 金币数量
         """
-        user, _ = await UserConsole.get_or_create(
-            user_id=user_id, defaults={"platform": platform}
-        )
+        user = await UserConsole.get_user(user_id, platform)
         return user.gold
 
     @classmethod

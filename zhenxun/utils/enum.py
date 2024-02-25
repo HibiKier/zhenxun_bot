@@ -10,6 +10,8 @@ class GoldHandle(StrEnum):
     """购买"""
     GET = "GET"
     """获取"""
+    PLUGIN = "PLUGIN"
+    """插件花费"""
 
 
 class PropHandle(StrEnum):
@@ -40,7 +42,7 @@ class BlockType(StrEnum):
     禁用状态
     """
 
-    FRIEND = "PRIVATE"
+    PRIVATE = "PRIVATE"
     GROUP = "GROUP"
     ALL = "ALL"
 
@@ -72,6 +74,7 @@ class LimitWatchType(StrEnum):
 
     USER = "USER"
     GROUP = "GROUP"
+    ALL = "ALL"
 
 
 class RequestType(StrEnum):

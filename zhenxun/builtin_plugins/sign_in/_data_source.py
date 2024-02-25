@@ -94,13 +94,7 @@ class SignManage:
         if not session.id1:
             return None
         now = datetime.now(pytz.timezone("Asia/Shanghai"))
-        user_console, _ = await UserConsole.get_or_create(
-            user_id=session.id1,
-            defaults={
-                "uid": await UserConsole.get_new_uid(),
-                "platform": session.platform,
-            },
-        )
+        user_console = await UserConsole.get_user(session.id1, session.platform)
         user, _ = await SignUser.get_or_create(
             user_id=session.id1,
             defaults={"user_console": user_console, "platform": session.platform},
@@ -112,7 +106,6 @@ class SignManage:
             or (new_log and now > new_log.create_time)
             or file_name in os.listdir(SIGN_TODAY_CARD_PATH)
         ):
-            user_console, _ = await UserConsole.get_or_create(user_id=session.id1)
             path = await get_card(user, nickname, -1, user_console.gold, "")
         else:
             path = await cls._handle_sign_in(user, nickname, session, is_view_card)

@@ -27,7 +27,9 @@ def admin_check(a: int | str, key: str | None = None) -> Rule:
             if type(a) == str and key:
                 level = Config.get_config(a, key)
             if level is not None:
-                return bool(LevelUser.check_level(session.id1, session.id2, int(level)))
+                return bool(
+                    await LevelUser.check_level(session.id1, session.id2, int(level))
+                )
         return False
 
     return Rule(_rule)

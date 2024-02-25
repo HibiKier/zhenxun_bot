@@ -84,7 +84,7 @@ class HelpImageBuild:
                         sta = 2
                     if not group_id and plugin.block_type in [
                         BlockType.ALL,
-                        BlockType.FRIEND,
+                        BlockType.PRIVATE,
                     ]:
                         sta = 2
                 if group_id and (

@@ -35,19 +35,14 @@ async def _():
         **{"好感度双倍加持卡Ⅰ_prob": 0.1, "好感度双倍加持卡Ⅱ_prob": 0.2, "好感度双倍加持卡Ⅲ_prob": 0.3},  # type: ignore
     )
     async def _(session: EventSession, user_id: int, group_id: int, prob: float):
-        user_console, _ = await UserConsole.get_or_create(
-            user_id=session.id1,
-            defaults={
-                "uid": await UserConsole.get_new_uid(),
-                "platform": session.platform,
-            },
-        )
-        user, _ = await SignUser.get_or_create(
-            user_id=user_id,
-            defaults={"platform": session.platform, "user_console": user_console},
-        )
-        user.add_probability = Decimal(prob)
-        await user.save(update_fields=["add_probability"])
+        if session.id1:
+            user_console = await UserConsole.get_user(session.id1, session.platform)
+            user, _ = await SignUser.get_or_create(
+                user_id=user_id,
+                defaults={"platform": session.platform, "user_console": user_console},
+            )
+            user.add_probability = Decimal(prob)
+            await user.save(update_fields=["add_probability"])
 
     @shop_register(
         name="测试道具A",

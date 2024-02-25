@@ -26,7 +26,7 @@ class PluginLimit(Model):
     limit_type = fields.CharEnumField(PluginLimitType, description="限制类型")
     """限制类型"""
     watch_type = fields.CharEnumField(LimitWatchType, description="监听类型")
-    """限制类型"""
+    """监听类型"""
     status = fields.BooleanField(default=True, description="限制的开关状态")
     """限制的开关状态"""
     check_type = fields.CharEnumField(

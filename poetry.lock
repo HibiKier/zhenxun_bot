@@ -96,13 +96,13 @@ reference = "ali"
 
 [[package]]
 name = "arclet-alconna"
-version = "1.7.42"
+version = "1.7.44"
 description = "A High-performance, Generality, Humane Command Line Arguments Parser Library."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "arclet_alconna-1.7.42-py3-none-any.whl", hash = "sha256:fa78944121d4afa4e2c0247a98967ddb1e76cf63b94c8c3f4f393c52f6d23e75"},
-    {file = "arclet_alconna-1.7.42.tar.gz", hash = "sha256:a5a1cca37d0c3d58607ee22485e636fa0b01d40eb43194e542b2c3d6a5d2e70b"},
+    {file = "arclet_alconna-1.7.44-py3-none-any.whl", hash = "sha256:e5751a2aa854b7b2c01cac87986ad11b397986a725c9536d5f9ff81a84e85614"},
+    {file = "arclet_alconna-1.7.44.tar.gz", hash = "sha256:9c8a70a3f75e8358fa9c71befd3687c8c9781a19b1d28cb53cbe08fbc36cf720"},
 ]
 
 [package.dependencies]
@@ -1356,20 +1356,20 @@ reference = "ali"
 
 [[package]]
 name = "nonebot-plugin-alconna"
-version = "0.36.3"
+version = "0.37.1"
 description = "Alconna Adapter for Nonebot"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "nonebot_plugin_alconna-0.36.3-py3-none-any.whl", hash = "sha256:8f26f96c711d3adadc538ebf40d51ba2249c18fe1689bf36baed0e4d1e05246a"},
-    {file = "nonebot_plugin_alconna-0.36.3.tar.gz", hash = "sha256:ed8e4f2fd845d0c3d8becdd68678c203ee76109b9104a3b1c18f63525e85c6d4"},
+    {file = "nonebot_plugin_alconna-0.37.1-py3-none-any.whl", hash = "sha256:fcc46f04ac89bf43730afebd97fa46e5910bc404a9e24cab7950da58be36246d"},
+    {file = "nonebot_plugin_alconna-0.37.1.tar.gz", hash = "sha256:5e9989ee7debd79d61c97aa41c88aac5fe452cc9c47f2d48b829d81d26dfe130"},
 ]
 
 [package.dependencies]
-arclet-alconna = ">=1.7.42,<2.0.0"
-arclet-alconna-tools = ">=0.6.11,<0.7.0"
-nepattern = ">=0.5.14,<0.6.0"
-nonebot2 = ">=2.1.0"
+arclet-alconna = ">=1.7.44"
+arclet-alconna-tools = ">=0.6.11"
+nepattern = ">=0.5.15"
+nonebot2 = ">=2.2.0"
 
 [package.source]
 type = "legacy"
@@ -2982,4 +2982,4 @@ reference = "ali"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "2e5c4963196533949601dff69762b6f5586056a8775419c2ee1aef0df91b016a"
+content-hash = "858e616442c77d1a328e37af331056a7b870611b22247fcebfe5dbe41a3fd4f0"

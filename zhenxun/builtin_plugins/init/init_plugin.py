@@ -136,7 +136,7 @@ async def _():
         create_list = []
         update_list = []
         for task in task_list:
-            if task.module not in module_list:
+            if task.module not in module_dict:
                 create_list.append(task)
             else:
                 task.id = module_dict[task.module]

@@ -119,7 +119,7 @@ async def build_task(group_id: str | None) -> BuildImage:
                     task.name,
                     "开启" if task.module not in group.block_task else "关闭",
                     "开启" if task.status else "关闭",
-                    task.run_time,
+                    task.run_time or "-",
                 ]
             )
         else:
@@ -129,7 +129,7 @@ async def build_task(group_id: str | None) -> BuildImage:
                     task.module,
                     task.name,
                     "开启" if task.status else "关闭",
-                    task.run_time,
+                    task.run_time or "-",
                 ]
             )
     return await ImageTemplate.table_page(
@@ -142,6 +142,20 @@ async def build_task(group_id: str | None) -> BuildImage:
 
 
 class PluginManage:
+
+    @classmethod
+    async def is_wake(cls, group_id: str) -> bool:
+        if c := await GroupConsole.get_or_none(group_id=group_id):
+            return c.status
+        return False
+
+    @classmethod
+    async def sleep(cls, group_id: str):
+        await GroupConsole.filter(group_id=group_id).update(status=False)
+
+    @classmethod
+    async def wake(cls, group_id: str):
+        await GroupConsole.filter(group_id=group_id).update(status=True)
 
     @classmethod
     async def block(cls, module: str):
@@ -191,8 +205,13 @@ class PluginManage:
         返回:
             str: 返回信息
         """
+
+        if plugin_name.isdigit():
+            plugin = await PluginInfo.get_or_none(id=int(plugin_name))
+        else:
+            plugin = await PluginInfo.get_or_none(name=plugin_name)
         status_str = "开启" if status else "关闭"
-        if plugin := await PluginInfo.get_or_none(name=plugin_name):
+        if plugin:
             group, _ = await GroupConsole.get_or_create(group_id=group_id)
             if status:
                 if plugin.module in group.block_plugin:
@@ -200,12 +219,12 @@ class PluginManage:
                         f"{plugin.module},", ""
                     )
                     await group.save(update_fields=["block_plugin"])
-                    return f"已成功{status_str} {plugin_name} 功能!"
+                    return f"已成功{status_str} {plugin.name} 功能!"
             else:
                 if plugin.module not in group.block_plugin:
                     group.block_plugin += f"{plugin.module},"
                     await group.save(update_fields=["block_plugin"])
-                    return f"已成功{status_str} {plugin_name} 功能!"
+                    return f"已成功{status_str} {plugin.name} 功能!"
             return f"该功能已经{status_str}了喔，不要重复{status_str}..."
         return "没有找到这个功能喔..."
 
@@ -223,7 +242,11 @@ class PluginManage:
         返回:
             str: 返回信息
         """
-        if plugin := await PluginInfo.get_or_none(name=plugin_name):
+        if plugin_name.isdigit():
+            plugin = await PluginInfo.get_or_none(id=int(plugin_name))
+        else:
+            plugin = await PluginInfo.get_or_none(name=plugin_name)
+        if plugin:
             if group_id:
                 if group := await GroupConsole.get_or_none(group_id=group_id):
                     if f"super:{plugin_name}," not in group.block_plugin:
@@ -238,7 +261,7 @@ class PluginManage:
             plugin.status = not bool(block_type)
             await plugin.save(update_fields=["status", "block_type"])
             if not block_type:
-                return f"已成功将 {plugin_name} 全局启用!"
+                return f"已成功将 {plugin.name} 全局启用!"
             else:
-                return f"已成功将 {plugin_name} 全局关闭!"
+                return f"已成功将 {plugin.name} 全局关闭!"
         return "没有找到这个功能喔..."

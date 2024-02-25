@@ -1,10 +1,12 @@
 import os
 import time
 from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import httpx
+import pytz
 
 from zhenxun.services.log import logger
 
@@ -78,21 +80,31 @@ class ResourceDirManager:
 
 class CountLimiter:
     """
-    次数检测工具，检测调用次数是否超过设定值
+    每日调用命令次数限制
     """
 
-    def __init__(self, max_count: int):
+    tz = pytz.timezone("Asia/Shanghai")
+
+    def __init__(self, max_num):
+        self.today = -1
         self.count = defaultdict(int)
-        self.max_count = max_count
+        self.max = max_num
 
-    def add(self, key: Any):
-        self.count[key] += 1
+    def check(self, key) -> bool:
+        day = datetime.now(self.tz).day
+        if day != self.today:
+            self.today = day
+            self.count.clear()
+        return bool(self.count[key] < self.max)
 
-    def check(self, key: Any) -> bool:
-        if self.count[key] >= self.max_count:
-            self.count[key] = 0
-            return True
-        return False
+    def get_num(self, key):
+        return self.count[key]
+
+    def increase(self, key, num=1):
+        self.count[key] += num
+
+    def reset(self, key):
+        self.count[key] = 0
 
 
 class UserBlockLimiter:

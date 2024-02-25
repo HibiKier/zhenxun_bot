@@ -453,13 +453,23 @@ class BuildImage:
         return self
 
     def pic2bs4(self) -> str:
-        """
-        BuildImage 转 base64
+        """BuildImage 转 base64
+
+        返回:
+            str: base64
         """
         buf = BytesIO()
         self.markImg.save(buf, format="PNG")
         base64_str = base64.b64encode(buf.getvalue()).decode()
         return "base64://" + base64_str
+
+    def pic2io(self) -> BytesIO:
+        """图片转 BytesIO
+
+        返回:
+            BytesIO: BytesIO
+        """
+        return BytesIO(self.tobytes())
 
     def convert(self, type_: ModeType) -> Self:
         """

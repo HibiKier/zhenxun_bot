@@ -4,6 +4,7 @@ from tortoise import fields
 
 from zhenxun.services.db_context import Model
 from zhenxun.utils.enum import GoldHandle
+from zhenxun.utils.exception import InsufficientGold
 
 from .user_gold_log import UserGoldLog
 
@@ -32,7 +33,29 @@ class UserConsole(Model):
         table_description = "用户数据表"
 
     @classmethod
-    async def get_new_uid(cls):
+    async def get_user(cls, user_id: str, platform: str | None = None) -> "UserConsole":
+        """获取用户
+
+        参数:
+            user_id: 用户id
+            platform: 平台.
+
+        返回:
+            UserConsole: UserConsole
+        """
+        user, _ = await UserConsole.get_or_create(
+            user_id=user_id,
+            defaults={"platform": platform, "uid": await cls.get_new_uid()},
+        )
+        return user
+
+    @classmethod
+    async def get_new_uid(cls) -> int:
+        """获取最新uid
+
+        返回:
+            int: 最新uid
+        """
         if user := await cls.annotate().order_by("uid").first():
             return user.uid + 1
         return 1
@@ -56,6 +79,38 @@ class UserConsole(Model):
         await user.save(update_fields=["gold"])
         await UserGoldLog.create(
             user_id=user_id, gold=gold, handle=GoldHandle.GET, source=source
+        )
+
+    @classmethod
+    async def reduce_gold(
+        cls,
+        user_id: str,
+        gold: int,
+        handle: GoldHandle,
+        plugin_module: str,
+        platform: str | None = None,
+    ):
+        """消耗金币
+
+        参数:
+            user_id: 用户id
+            gold: 金币
+            handle: 金币处理
+            plugin_name: 插件模块
+            platform: 平台.
+
+        异常:
+            InsufficientGold: 金币不足
+        """
+        user, _ = await cls.get_or_create(
+            user_id=user_id, defaults={"platform": platform, "uid": cls.get_new_uid()}
+        )
+        if user.gold < gold:
+            raise InsufficientGold()
+        user.gold -= gold
+        await user.save(update_fields=["gold"])
+        await UserGoldLog.create(
+            user_id=user_id, gold=gold, handle=handle, source=plugin_module
         )
 
     @classmethod
