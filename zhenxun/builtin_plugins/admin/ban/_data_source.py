@@ -1,33 +1,35 @@
 import time
+from typing import Literal
 
 from nonebot_plugin_session import EventSession
 
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.level_user import LevelUser
-from zhenxun.utils.image_utils import ImageTemplate
+from zhenxun.utils.image_utils import BuildImage, ImageTemplate
 
 
 class BanManage:
 
     @classmethod
-    async def build_ban_image(cls, user_id: str | None, group_id: str | None):
+    async def build_ban_image(
+        cls,
+        filter_type: Literal["group", "user"] | None,
+    ) -> BuildImage | None:
+        """构造Ban列表图片
+
+        参数:
+            filter_type: 过滤类型
+
+        返回:
+            BuildImage | None: Ban列表图片
+        """
         data_list = None
-        if not user_id and not group_id:
+        if not filter_type:
             data_list = await BanConsole.all()
-        elif user_id:
-            if group_id:
-                data_list = await BanConsole.filter(
-                    user_id=user_id, group_id=group_id
-                ).all()
-            else:
-                data_list = await BanConsole.filter(
-                    user_id=user_id, group_id__isnull=True
-                ).all()
-        else:
-            if group_id:
-                data_list = await BanConsole.filter(
-                    user_id__isnull=True, group_id=group_id
-                ).all()
+        elif filter_type == "user":
+            data_list = await BanConsole.filter(group_id__isnull=True).all()
+        elif filter_type == "group":
+            data_list = await BanConsole.filter(user_id__isnull=True).all()
         if not data_list:
             return None
         column_name = [
@@ -41,8 +43,8 @@ class BanManage:
         row_data = []
         for data in data_list:
             duration = int((data.ban_time + data.duration - time.time()) / 60)
-            if duration < 0:
-                duration = 0
+            if data.duration < 0:
+                duration = "∞"
             row_data.append(
                 [
                     data.id,

@@ -34,7 +34,7 @@ class ChatHistory(Model):
     @classmethod
     async def get_group_msg_rank(
         cls,
-        gid: str,
+        gid: str | None,
         limit: int = 10,
         order: str = "DESC",
         date_scope: tuple[datetime, datetime] | None = None,
@@ -48,7 +48,7 @@ class ChatHistory(Model):
             date_scope: 日期范围
         """
         o = "-" if order == "DESC" else ""
-        query = cls.filter(group_id=gid)
+        query = cls.filter(group_id=gid) if gid else cls
         if date_scope:
             query = query.filter(create_time__range=date_scope)
         return list(
@@ -60,18 +60,23 @@ class ChatHistory(Model):
         )  # type: ignore
 
     @classmethod
-    async def get_group_first_msg_datetime(cls, group_id: str) -> datetime | None:
+    async def get_group_first_msg_datetime(
+        cls, group_id: str | None
+    ) -> datetime | None:
         """获取群第一条记录消息时间
 
         参数:
             group_id: 群组id
         """
-        if (
-            message := await cls.filter(group_id=group_id)
-            .order_by("create_time")
-            .first()
-        ):
+        if group_id:
+            message = (
+                await cls.filter(group_id=group_id).order_by("create_time").first()
+            )
+        else:
+            message = await cls.all().order_by("create_time").first()
+        if message:
             return message.create_time
+        return None
 
     @classmethod
     async def get_message(

@@ -40,8 +40,6 @@ _status_matcher = on_alconna(
     block=True,
 )
 
-# TODO: shortcut
-
 _group_status_matcher = on_alconna(
     Alconna("group-status", Args["status", ["sleep", "wake"]]),
     rule=admin_check("admin_bot_manage", "CHANGE_GROUP_SWITCH_LEVEL")

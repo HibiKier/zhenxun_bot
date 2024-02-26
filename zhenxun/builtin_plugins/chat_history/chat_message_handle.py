@@ -5,10 +5,12 @@ from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import (
     Alconna,
+    AlconnaMatch,
     Args,
     Arparma,
     Match,
     Option,
+    Query,
     on_alconna,
     store_true,
 )
@@ -39,11 +41,18 @@ __plugin_meta__ = PluginMetadata(
 _matcher = on_alconna(
     Alconna(
         "消息排行",
-        Option("--des", default=False, action=store_true),
+        Option("--des", action=store_true, help_text="逆序"),
         Args["type?", ["日", "周", "月", "年"]]["count?", int, 10],
     ),
     priority=5,
     block=True,
+)
+
+_matcher.shortcut(
+    r"(?P<type>.+)?消息排行",
+    command="消息排行",
+    arguments=["type", "{type}"],
+    prefix=True,
 )
 
 
@@ -53,11 +62,9 @@ async def _(
     session: EventSession,
     arparma: Arparma,
     type: Match[str],
-    count: Match[int],
+    count: Query[int] = Query("count", 10),
 ):
     group_id = session.id3 or session.id2
-    if not group_id:
-        await Text("群组id为空...").finish()
     time_now = datetime.now()
     date_scope = None
     zero_today = time_now - timedelta(

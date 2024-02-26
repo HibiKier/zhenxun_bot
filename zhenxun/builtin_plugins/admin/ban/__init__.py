@@ -29,12 +29,31 @@ __plugin_meta__ = PluginMetadata(
     name="封禁用户/群组",
     description="你被逮捕了！丢进小黑屋！封禁用户以及群组，屏蔽消息",
     usage="""
-    .ban [at] ?[小时] ?[分钟]
-    .unban
-    示例：.ban @user
-    示例：.ban @user 6
-    示例：.ban @user 3 10
-    示例：.unban @user
+    普通管理员
+        格式:
+        ban [At用户] [时长]
+
+        示例:
+        ban @用户       : 永久拉黑用户
+        ban @用户 100   : 拉黑用户100分钟
+        unban @用户     : 从小黑屋中拉出来
+
+    超级管理员额外命令
+        格式:
+        ban [At用户/用户Id] [时长]
+        ban列表: 获取所有Ban数据
+        群组ban列表: 获取群组Ban数据
+        用户ban列表: 获取用户Ban数据
+
+        私聊下:
+            示例:
+            ban 123456789       : 永久拉黑用户123456789
+            ban 123456789 100   : 拉黑用户123456789 100分钟
+
+            ban -g 999999       : 拉黑群组为999999的群组
+
+            unban 123456789     : 从小黑屋中拉出来
+            unban -g 999999     : 将群组9999999从小黑屋中拉出来
     """.strip(),
     extra=PluginExtraData(
         author="HibiKier",
@@ -54,19 +73,22 @@ __plugin_meta__ = PluginMetadata(
 )
 
 
-_matcher = on_alconna(
+_ban_matcher = on_alconna(
     Alconna(
-        "ban-console",
-        Subcommand(
-            "ban",
-            Args["user?", [str, At]]["duration?", int],
-            Option("-g|--group", Args["group_id", str]),
-        ),
-        Subcommand(
-            "unban",
-            Args["user?", [str, At]],
-            Option("-g|--group", Args["group_id", str]),
-        ),
+        "ban",
+        Args["user?", [str, At]]["duration?", int],
+        Option("-g|--group", Args["group_id", str]),
+    ),
+    rule=admin_check("ban", "BAN_LEVEL"),
+    priority=5,
+    block=True,
+)
+
+_unban_matcher = on_alconna(
+    Alconna(
+        "unban",
+        Args["user?", [str, At]],
+        Option("-g|--group", Args["group_id", str]),
     ),
     rule=admin_check("ban", "BAN_LEVEL"),
     priority=5,
@@ -76,14 +98,35 @@ _matcher = on_alconna(
 _status_matcher = on_alconna(
     Alconna(
         "ban-status",
-        Option("-u|--user", Args["user_id", str]),
-        Option("-g|--group", Args["group_id", str]),
+        Option("-u|--user", action=store_true, help_text="过滤用户"),
+        Option("-g|--group", action=store_true, help_text="过滤群组"),
     ),
     permission=SUPERUSER,
     priority=1,
     block=True,
 )
-# TODO: shortcut
+
+_status_matcher.shortcut(
+    "ban列表",
+    command="ban-status",
+    arguments=[],
+    prefix=True,
+)
+
+
+_status_matcher.shortcut(
+    "用户ban列表",
+    command="ban-status",
+    arguments=["--user"],
+    prefix=True,
+)
+
+_status_matcher.shortcut(
+    "群组ban列表",
+    command="ban-status",
+    arguments=["--group"],
+    prefix=True,
+)
 
 
 @_status_matcher.handle()
@@ -94,15 +137,20 @@ async def _(
     user_id: Match[str],
     group_id: Match[str],
 ):
+    filter_type = None
+    if arparma.find("user"):
+        filter_type = "user"
+    if arparma.find("group"):
+        filter_type = "group"
     _user_id = user_id.result if user_id.available else None
     _group_id = group_id.result if group_id.available else None
-    if image := await BanManage.build_ban_image(_user_id, _group_id):
+    if image := await BanManage.build_ban_image(filter_type):
         await Image(image.pic2bs4()).finish(reply=True)
     else:
         await Text("数据为空捏...").finish(reply=True)
 
 
-@_matcher.assign("ban")
+@_ban_matcher.handle()
 async def _(
     bot: Bot,
     session: EventSession,
@@ -150,7 +198,7 @@ async def _(
         await Text(f"对 {at_msg} 狠狠惩戒了一番，一脚踢进了小黑屋!").finish(reply=True)
 
 
-@_matcher.assign("unban")
+@_unban_matcher.handle()
 async def _(
     bot: Bot,
     session: EventSession,
