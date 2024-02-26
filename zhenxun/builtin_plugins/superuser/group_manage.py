@@ -71,6 +71,8 @@ _matcher = on_alconna(
     block=True,
 )
 
+# TODO: shortcut
+
 
 def CheckGroupId():
     """
@@ -92,7 +94,7 @@ def CheckGroupId():
     return Depends(dependency)
 
 
-@_matcher.assign("modify-level", parameterless=[])
+@_matcher.assign("modify-level", parameterless=[CheckGroupId()])
 async def _(session: EventSession, arparma: Arparma, state: T_State, level: int):
     gid = state["group_id"]
     group, _ = await GroupConsole.get_or_create(group_id=gid)
@@ -108,7 +110,7 @@ async def _(session: EventSession, arparma: Arparma, state: T_State, level: int)
     )
 
 
-@_matcher.assign("super-handle")
+@_matcher.assign("super-handle", parameterless=[CheckGroupId()])
 async def _(session: EventSession, arparma: Arparma, state: T_State):
     gid = state["group_id"]
     group = await GroupConsole.get_or_none(group_id=gid)
@@ -121,7 +123,7 @@ async def _(session: EventSession, arparma: Arparma, state: T_State):
     logger.info(f"{s}群白名单", arparma.header_result, session=session, target=gid)
 
 
-@_matcher.assign("auth-handle")
+@_matcher.assign("auth-handle", parameterless=[CheckGroupId()])
 async def _(session: EventSession, arparma: Arparma, state: T_State):
     gid = state["group_id"]
     await GroupConsole.update_or_create(

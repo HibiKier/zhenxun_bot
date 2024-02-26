@@ -249,8 +249,8 @@ class PluginManage:
         if plugin:
             if group_id:
                 if group := await GroupConsole.get_or_none(group_id=group_id):
-                    if f"super:{plugin_name}," not in group.block_plugin:
-                        group.block_plugin += f"super:{plugin_name},"
+                    if f"super:{plugin.module}," not in group.block_plugin:
+                        group.block_plugin += f"super:{plugin.module},"
                         await group.save(update_fields=["block_plugin"])
                         return (
                             f"已成功关闭群组 {group.group_name} 的 {plugin_name} 功能!"
@@ -263,5 +263,10 @@ class PluginManage:
             if not block_type:
                 return f"已成功将 {plugin.name} 全局启用!"
             else:
-                return f"已成功将 {plugin.name} 全局关闭!"
+                if block_type == BlockType.ALL:
+                    return f"已成功将 {plugin.name} 全局关闭!"
+                if block_type == BlockType.GROUP:
+                    return f"已成功将 {plugin.name} 全局群组关闭!"
+                if block_type == BlockType.PRIVATE:
+                    return f"已成功将 {plugin.name} 全局私聊关闭!"
         return "没有找到这个功能喔..."

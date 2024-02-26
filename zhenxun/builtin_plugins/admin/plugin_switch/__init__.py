@@ -1,24 +1,13 @@
 from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_alconna import (
-    Alconna,
-    Args,
-    Arparma,
-    Match,
-    Option,
-    Subcommand,
-    on_alconna,
-    store_true,
-)
+from nonebot_plugin_alconna import Arparma, Match
 from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
-from requests import session
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import BlockType, PluginType
-from zhenxun.utils.rules import admin_check, ensure_group
 
 from ._data_source import PluginManage, build_plugin, build_task
 from .command import _group_status_matcher, _status_matcher
@@ -54,44 +43,7 @@ __plugin_meta__ = PluginMetadata(
 )
 
 
-# _status_matcher = on_alconna(
-#     Alconna(
-#         "switch",
-#         Option("-t|--task", action=store_true, help_text="被动技能"),
-#         Subcommand(
-#             "open",
-#             Args["name", str],
-#             Option(
-#                 "-g|--group",
-#                 Args["group_id", str],
-#             ),
-#         ),
-#         Subcommand(
-#             "close",
-#             Args["name", str],
-#             Option(
-#                 "-t|--type",
-#                 Args["block_type", ["all", "a", "private", "p", "group", "g"]],
-#             ),
-#             Option(
-#                 "-g|--group",
-#                 Args["group_id", str],
-#             ),
-#         ),
-#     ),
-#     rule=admin_check("admin_bot_manage", "CHANGE_GROUP_SWITCH_LEVEL"),
-#     priority=5,
-#     block=True,
-# )
-
-# # TODO: shortcut
-
-# _group_status_matcher = on_alconna(
-#     Alconna("group-status", Args["status", ["sleep", "wake"]]),
-#     rule=admin_check("admin_bot_manage", "CHANGE_GROUP_SWITCH_LEVEL") & ensure_group,
-#     priority=5,
-#     block=True,
-# )
+# TODO: shortcut
 
 
 @_status_matcher.assign("$main")

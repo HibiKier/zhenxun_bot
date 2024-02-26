@@ -145,7 +145,7 @@ class LimitManage:
             key_type = user_id
             if group_id and limit.watch_type == LimitWatchType.GROUP:
                 key_type = channel_id or group_id
-            if is_limit and limiter.check(key_type):
+            if is_limit and not limiter.check(key_type):
                 if limit.result:
                     await Text(limit.result).send()
                 logger.debug(
@@ -153,7 +153,7 @@ class LimitManage:
                     "HOOK",
                     session=session,
                 )
-                raise IgnoredException(f"{limit.module} 正在cd中...")
+                raise IgnoredException(f"{limit.module} 正在限制中...")
             else:
                 if isinstance(limiter, FreqLimiter):
                     limiter.start_cd(key_type)
@@ -207,6 +207,8 @@ class AuthChecker:
         if user_id and matcher.plugin and (module := matcher.plugin.name):
             user = await UserConsole.get_user(user_id, session.platform)
             if plugin := await PluginInfo.get_or_none(module=module):
+                if plugin.plugin_type == PluginType.HIDDEN:
+                    return
                 try:
                     cost_gold = await self.auth_cost(user, plugin, session)
                     if session.id1 in bot.config.superusers:
@@ -277,6 +279,19 @@ class AuthChecker:
             channel_id = None
         if user_id:
             if group_id:
+                if await GroupConsole.is_super_block_plugin(
+                    group_id, plugin.module, channel_id
+                ):
+                    """超级用户群组插件状态"""
+                    if self._flmt_s.check(group_id or user_id):
+                        self._flmt_s.start_cd(group_id or user_id)
+                        await Text("超级管理员禁用了该群此功能...").send(reply=True)
+                    logger.debug(
+                        f"{plugin.name}({plugin.module}) 超级管理员禁用了该群此功能...",
+                        "HOOK",
+                        session=session,
+                    )
+                    raise IgnoredException("超级管理员禁用了该群此功能...")
                 if await GroupConsole.is_block_plugin(
                     group_id, plugin.module, channel_id
                 ):
@@ -290,42 +305,33 @@ class AuthChecker:
                         session=session,
                     )
                     raise IgnoredException("该群未开启此功能...")
-                if await GroupConsole.is_super_block_plugin(
-                    group_id, plugin.module, channel_id
-                ):
-                    """群组插件状态"""
-                    if self._flmt_s.check(group_id or user_id):
-                        self._flmt_s.start_cd(group_id or user_id)
-                        await Text("超级管理员禁用了该群此功能...").send(reply=True)
-                    logger.debug(
-                        f"{plugin.name}({plugin.module}) 超级管理员禁用了该群此功能...",
-                        "HOOK",
-                        session=session,
-                    )
-                    raise IgnoredException("超级管理员禁用了该群此功能...")
-                    # 群聊禁用
                 if not plugin.status and plugin.block_type == BlockType.GROUP:
+                    """全局群组禁用"""
                     try:
                         if self._flmt_c.check(group_id):
                             self._flmt_c.start_cd(group_id)
-                            await Text("该功能在群聊中已被禁用...").send(reply=True)
-                    except Exception:
-                        pass
+                            await Text("该功能在群组中已被禁用...").send(reply=True)
+                    except Exception as e:
+                        logger.error(
+                            "auth_plugin 发送消息失败", "HOOK", session=session, e=e
+                        )
                     logger.debug(
-                        f"{plugin.name}({plugin.module}) 该插件在群聊中已被禁用...",
+                        f"{plugin.name}({plugin.module}) 该插件在群组中已被禁用...",
                         "HOOK",
                         session=session,
                     )
-                    raise IgnoredException("该插件在群聊中已被禁用...")
+                    raise IgnoredException("该插件在群组中已被禁用...")
             else:
-                # 私聊禁用
                 if not plugin.status and plugin.block_type == BlockType.PRIVATE:
+                    """全局私聊禁用"""
                     try:
                         if self._flmt_c.check(user_id):
                             self._flmt_c.start_cd(user_id)
                             await Text("该功能在私聊中已被禁用...").send()
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.error(
+                            "auth_admin 发送消息失败", "HOOK", session=session, e=e
+                        )
                     logger.debug(
                         f"{plugin.name}({plugin.module}) 该插件在私聊中已被禁用...",
                         "HOOK",
@@ -356,9 +362,11 @@ class AuthChecker:
         """
         user_id = session.id1
         group_id = session.id3 or session.id2
-        if user_id and group_id and plugin.admin_level:
+        if user_id and plugin.admin_level:
             if group_id:
-                if await LevelUser.check_level(user_id, group_id, plugin.admin_level):
+                if not await LevelUser.check_level(
+                    user_id, group_id, plugin.admin_level
+                ):
                     try:
                         if self._flmt.check(user_id):
                             self._flmt.start_cd(user_id)
@@ -369,9 +377,11 @@ class AuthChecker:
                                         f"你的权限不足喔，该功能需要的权限等级: {plugin.admin_level}"
                                     ),
                                 ]
-                            ).finish(reply=True)
-                    except Exception:
-                        pass
+                            ).send(reply=True)
+                    except Exception as e:
+                        logger.error(
+                            "auth_admin 发送消息失败", "HOOK", session=session, e=e
+                        )
                     logger.debug(
                         f"{plugin.name}({plugin.module}) 管理员权限不足...",
                         "HOOK",
@@ -379,13 +389,15 @@ class AuthChecker:
                     )
                     raise IgnoredException("管理员权限不足...")
             else:
-                if not await LevelUser.check_level(user_id, "", plugin.admin_level):
+                if not await LevelUser.check_level(user_id, None, plugin.admin_level):
                     try:
                         await Text(
                             f"你的权限不足喔，该功能需要的权限等级: {plugin.admin_level}"
-                        ).finish()
-                    except Exception:
-                        pass
+                        ).send()
+                    except Exception as e:
+                        logger.error(
+                            "auth_admin 发送消息失败", "HOOK", session=session, e=e
+                        )
                     logger.debug(
                         f"{plugin.name}({plugin.module}) 管理员权限不足...",
                         "HOOK",
@@ -406,7 +418,7 @@ class AuthChecker:
         if group_id := session.id3 or session.id2:
             text = message.extract_plain_text()
             group, _ = await GroupConsole.get_or_create(group_id=group_id)
-            if group.level < -1:
+            if group.level < 0:
                 """群权限小于0"""
                 logger.debug(
                     f"{plugin.name}({plugin.module}) 群黑名单, 群权限-1...",
@@ -441,8 +453,8 @@ class AuthChecker:
             """插件消耗金币不足"""
             try:
                 await Text(f"金币不足..该功能需要{plugin.cost_gold}金币..").send()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error("auth_cost 发送消息失败", "HOOK", session=session, e=e)
             logger.debug(
                 f"{plugin.name}({plugin.module}) 金币限制..该功能需要{plugin.cost_gold}金币..",
                 "HOOK",

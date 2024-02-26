@@ -19,7 +19,7 @@ _status_matcher = on_alconna(
             Args["name", [str, int]],
             Option(
                 "-g|--group",
-                Args["group_id", str],
+                Args["group", str],
             ),
         ),
         Subcommand(
@@ -31,7 +31,7 @@ _status_matcher = on_alconna(
             ),
             Option(
                 "-g|--group",
-                Args["group_id", str],
+                Args["group", str],
             ),
         ),
     ),
