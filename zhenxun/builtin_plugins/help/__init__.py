@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot_plugin_alconna import Alconna, Args, Match, on_alconna
@@ -57,7 +59,7 @@ async def _(
     if name.available:
         if result := await get_plugin_help(name.result):
             if isinstance(result, BuildImage):
-                await Image(result.pic2bs4()).send(reply=True)
+                await Image(result.pic2bytes()).send(reply=True)
             else:
                 await Text(result).send(reply=True)
         else:

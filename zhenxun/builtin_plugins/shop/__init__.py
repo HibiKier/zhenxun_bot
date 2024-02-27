@@ -20,7 +20,6 @@ __plugin_meta__ = PluginMetadata(
         我的道具
         使用道具 [名称/Id]
         购买道具 [名称/Id]
-    * 修改商品只需添加需要值即可 *
     """.strip(),
     extra=PluginExtraData(
         author="HibiKier",
@@ -77,7 +76,7 @@ _matcher.shortcut(
 async def _(session: EventSession, arparma: Arparma):
     image = await ShopManage.build_shop_image()
     logger.info("查看商店", arparma.header_result, session=session)
-    await Image(image.pic2bs4()).send()
+    await Image(image.pic2bytes()).send()
 
 
 @_matcher.assign("my-cost")
@@ -101,7 +100,7 @@ async def _(
             user_info.user_displayname or user_info.user_name,
             session.platform,
         ):
-            await Image(image.pic2bs4()).finish(reply=True)
+            await Image(image.pic2bytes()).finish(reply=True)
         return await Text(f"你的道具为空捏...").send(reply=True)
     else:
         await Text(f"用户id为空...").send(reply=True)

@@ -35,6 +35,17 @@ class ImageTemplate:
         row_space: int = 10,
         padding: int = 30,
     ) -> BuildImage:
+        """列文档 (如插件帮助)
+
+        参数:
+            head_text: 头标签文本
+            items: 列内容
+            row_space: 列间距.
+            padding: 间距.
+
+        返回:
+            BuildImage: 图片
+        """
         font = BuildImage.load_font("HYWenHei-85W.ttf", 20)
         width, height = BuildImage.get_text_size(head_text, font)
         for title, item in items.items():
@@ -47,7 +58,7 @@ class ImageTemplate:
         A = BuildImage(width + padding * 2, height + padding * 2, color="#FAF9FE")
         top_head = BuildImage(width, 100, color="#FFFFFF", font_size=40)
         await top_head.line((0, 1, width, 1), "#C2CEFE", 2)
-        await top_head.text((15, 20), "签到", "#9FA3B2", "center")
+        await top_head.text((15, 20), head_text, "#9FA3B2", "center")
         await top_head.circle_corner()
         await A.paste(top_head, (0, 20), "width")
         _min_width = top_head.width - 60

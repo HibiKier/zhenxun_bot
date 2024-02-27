@@ -145,7 +145,7 @@ async def _(
     _user_id = user_id.result if user_id.available else None
     _group_id = group_id.result if group_id.available else None
     if image := await BanManage.build_ban_image(filter_type):
-        await Image(image.pic2bs4()).finish(reply=True)
+        await Image(image.pic2bytes()).finish(reply=True)
     else:
         await Text("数据为空捏...").finish(reply=True)
 

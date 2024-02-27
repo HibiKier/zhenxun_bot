@@ -34,7 +34,7 @@ __plugin_meta__ = PluginMetadata(
         author="HibiKier",
         version="0.1",
         plugin_type=PluginType.NORMAL,
-        menu_type="商店",
+        menu_type="其他",
         configs=[
             RegisterConfig(
                 key="BLACK_WORD",

@@ -171,39 +171,38 @@ class HelpImageBuild:
                 color="white" if not idx % 2 else "black",
             )
             curr_h = 10
-            if group := await GroupConsole.get_or_none(group_id=group_id):
-                for i, plugin in enumerate(plugin_list):
-                    text_color = (255, 255, 255) if idx % 2 else (0, 0, 0)
-                    if f"{plugin.module}," in group.block_plugin:
-                        text_color = (252, 75, 13)
-                    pos = None
-                    # 禁用状态划线
-                    if (
-                        plugin.block_type in [BlockType.ALL, BlockType.GROUP]
-                        or f"{plugin.module}:super," in group.block_plugin
-                    ):
-                        w = curr_h + int(B.getsize(plugin.name)[1] / 2) + 2
-                        pos = (
-                            7,
-                            w,
-                            B.getsize(plugin.name)[0] + 35,
-                            w,
-                        )
-                    if build_type == "VV":
-                        name_image = await self.build_name_image(  # type: ignore
-                            max_width,
-                            plugin.name,
-                            "black" if not idx % 2 else "white",
-                            text_color,
-                            pos,
-                        )
-                        await B.paste(name_image, (0, curr_h), center_type="width")
-                        curr_h += name_image.h + 5
-                    else:
-                        await B.text((10, curr_h), f"{i + 1}.{plugin.name}", text_color)
-                        if pos:
-                            await B.line(pos, (236, 66, 7), 3)
-                        curr_h += font_size + 5
+            group = await GroupConsole.get_or_none(group_id=group_id)
+            for i, plugin in enumerate(plugin_list):
+                text_color = (255, 255, 255) if idx % 2 else (0, 0, 0)
+                if group and f"{plugin.module}," in group.block_plugin:
+                    text_color = (252, 75, 13)
+                pos = None
+                # 禁用状态划线
+                if plugin.block_type in [BlockType.ALL, BlockType.GROUP] or (
+                    group and f"super:{plugin.module}," in group.block_plugin
+                ):
+                    w = curr_h + int(B.getsize(plugin.name)[1] / 2) + 2
+                    pos = (
+                        7,
+                        w,
+                        B.getsize(plugin.name)[0] + 35,
+                        w,
+                    )
+                if build_type == "VV":
+                    name_image = await self.build_name_image(  # type: ignore
+                        max_width,
+                        plugin.name,
+                        "black" if not idx % 2 else "white",
+                        text_color,
+                        pos,
+                    )
+                    await B.paste(name_image, (0, curr_h), center_type="width")
+                    curr_h += name_image.h + 5
+                else:
+                    await B.text((10, curr_h), f"{i + 1}.{plugin.name}", text_color)
+                    if pos:
+                        await B.line(pos, (236, 66, 7), 3)
+                    curr_h += font_size + 5
             if menu_type == "normal":
                 menu_type = "功能"
             await bk.text((0, 14), menu_type, center_type="width")

@@ -145,7 +145,7 @@ async def _(
     if session.id1:
         if image := await SignManage.rank(session.id1, num):
             logger.info("查看签到排行", arparma.header_result, session=session)
-            await Image(image.pic2bs4()).finish()
+            await Image(image.pic2bytes()).finish()
     return Text("用户id为空...").send()
 
 

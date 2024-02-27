@@ -66,7 +66,7 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma):
     if session.id1 in bot.config.superusers:
         image = await build_plugin()
     if image:
-        await Image(image.pic2bs4()).send(reply=True)
+        await Image(image.pic2bytes()).send(reply=True)
         logger.info(
             f"查看功能列表",
             arparma.header_result,
@@ -78,7 +78,7 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma):
 async def _(bot: Bot, session: EventSession, arparma: Arparma):
     image = None
     if image := await build_task(session.id3 or session.id2):
-        await Image(image.pic2bs4()).send(reply=True)
+        await Image(image.pic2bytes()).send(reply=True)
         logger.info(
             f"查看被动列表",
             arparma.header_result,

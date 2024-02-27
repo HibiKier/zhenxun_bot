@@ -227,7 +227,7 @@ async def _(
         if not req_image_list:
             await Text("没有任何请求喔...").finish(reply=True)
         if len(req_image_list) == 1:
-            await Image(req_image_list[0].pic2bs4()).finish()
+            await Image(req_image_list[0].pic2bytes()).finish()
         width = sum([img.width for img in req_image_list])
         height = max([img.height for img in req_image_list])
         background = BuildImage(width, height)
@@ -235,7 +235,7 @@ async def _(
         await req_image_list[1].line((0, 10, 1, req_image_list[1].height - 10), width=1)
         await background.paste(req_image_list[1], (req_image_list[1].width, 0))
         logger.info("查看请求", arparma.header_result, session=session)
-        await Image(background.pic2bs4()).finish()
+        await Image(background.pic2bytes()).finish()
     await Text("没有任何请求喔...").finish(reply=True)
 
 

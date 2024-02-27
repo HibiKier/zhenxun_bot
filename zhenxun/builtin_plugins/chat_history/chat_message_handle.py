@@ -119,7 +119,7 @@ async def _(
         logger.info(
             f"查看消息排行 数量={count.result}", arparma.header_result, session=session
         )
-        await Image(A.pic2bs4()).finish(reply=True)
+        await Image(A.pic2bytes()).finish(reply=True)
     await Text("群组消息记录为空...").finish()
 
 

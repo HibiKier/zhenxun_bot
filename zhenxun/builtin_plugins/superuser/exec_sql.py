@@ -79,7 +79,7 @@ async def _(session: EventSession):
             data_list.append([table["name"], table["desc"]])
         logger.info("查看数据库所有表", "查看所有表", session=session)
         table = await ImageTemplate.table_page("数据库表", "", column_name, data_list)
-        await Image(table.pic2bs4()).send()
+        await Image(table.pic2bytes()).send()
     except Exception as e:
         logger.error("获取表数据失败...", session=session, e=e)
         await Text(f"获取表数据失败... {type(e)}").send()
