@@ -25,7 +25,8 @@ __plugin_meta__ = PluginMetadata(
     usage="""
     每日签到
     会影响色图概率和开箱次数，以及签到的随机道具获取
-    指令：
+    指令:
+        签到
         我的签到
         好感度排行
     * 签到时有 3% 概率 * 2 *
@@ -88,7 +89,19 @@ _sign_matcher = on_alconna(
     block=True,
 )
 
-# TODO: shortcut
+_sign_matcher.shortcut(
+    "我的签到",
+    command="签到",
+    arguments=["--my"],
+    prefix=True,
+)
+
+_sign_matcher.shortcut(
+    "好感度排行",
+    command="签到",
+    arguments=["--list"],
+    prefix=True,
+)
 
 
 @_sign_matcher.assign("$main")

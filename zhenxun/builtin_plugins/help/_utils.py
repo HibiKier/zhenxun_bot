@@ -54,7 +54,7 @@ class HelpImageBuild:
                     self._sort_data[menu_type] = []
                 self._sort_data[menu_type].append(plugin)
 
-    async def build_image(self, group_id: int | None):
+    async def build_image(self, group_id: str | None):
         if group_id:
             help_image = GROUP_HELP_PATH / f"{group_id}.png"
         else:
@@ -68,7 +68,7 @@ class HelpImageBuild:
             img = await self.build_pil_image(group_id)
             await img.save(help_image)
 
-    async def build_html_image(self, group_id: int | None) -> bytes:
+    async def build_html_image(self, group_id: str | None) -> bytes:
         from nonebot_plugin_htmlrender import template_to_pic
 
         await self.sort_type()
@@ -133,7 +133,7 @@ class HelpImageBuild:
         )
         return pic
 
-    async def build_pil_image(self, group_id: int | None) -> BuildImage:
+    async def build_pil_image(self, group_id: str | None) -> BuildImage:
         """构造帮助图片
 
         参数:

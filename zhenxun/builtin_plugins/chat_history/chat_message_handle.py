@@ -25,9 +25,20 @@ from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import ImageTemplate
 
 __plugin_meta__ = PluginMetadata(
-    name="消息统计查询",
+    name="消息统计",
     description="消息统计查询",
-    usage="",
+    usage="""
+    格式:
+    消息排行 ?[type [日,周,月,年]] ?[--des]
+
+    快捷:
+    [日,周,月,年]消息排行
+
+    示例:
+    消息排行            : 所有记录排行
+    日消息排行          : 今日记录排行
+    消息排行 周 --des    : 逆序周记录排行
+    """.strip(),
     extra=PluginExtraData(
         author="HibiKier",
         version="0.1",
@@ -36,7 +47,6 @@ __plugin_meta__ = PluginMetadata(
     ).dict(),
 )
 
-# TODO: shortcut
 
 _matcher = on_alconna(
     Alconna(
@@ -51,7 +61,7 @@ _matcher = on_alconna(
 _matcher.shortcut(
     r"(?P<type>.+)?消息排行",
     command="消息排行",
-    arguments=["type", "{type}"],
+    arguments=["{type}"],
     prefix=True,
 )
 

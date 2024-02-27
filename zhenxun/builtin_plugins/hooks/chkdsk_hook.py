@@ -77,7 +77,7 @@ async def _(matcher: Matcher, bot: Bot, session: EventSession, state: T_State):
         raise ValueError("模块: [hook], 配置项: [MALICIOUS_BAN_TIME] 为空或小于0")
     if user_id:
         command = state["_prefix"]["raw_command"]
-        if state["_alc_result"]:
+        if state.get("_alc_result"):
             command = state["_alc_result"].source.command
         if command:
             if _blmt.check(f"{user_id}__{command}"):

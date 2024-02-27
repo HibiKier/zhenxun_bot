@@ -107,6 +107,7 @@ class BroadcastManage:
                 ]
             return channel_id_list
         if isinstance(bot, KaiheilaBot):
+            # TODO: kaiheila获取群组列表
             pass
             # group_list = await bot.guild_list()
             # if group_list.guilds:

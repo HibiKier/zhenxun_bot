@@ -1,9 +1,9 @@
-from email.mime import image
+import random
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Dict
 
-from nonebot.plugin import PluginMetadata
+from fastapi import background
 from PIL.ImageFont import FreeTypeFont
 from pydantic import BaseModel
 
@@ -25,13 +25,60 @@ class RowStyle(BaseModel):
 
 class ImageTemplate:
 
+    color_list = ["#C2CEFE", "#FFA94C", "#3FE6A0", "#D1D4F5"]
+
+    @classmethod
+    async def hl_page(
+        cls,
+        head_text: str,
+        items: Dict[str, str],
+        row_space: int = 10,
+        padding: int = 30,
+    ) -> BuildImage:
+        font = BuildImage.load_font("HYWenHei-85W.ttf", 20)
+        width, height = BuildImage.get_text_size(head_text, font)
+        for title, item in items.items():
+            title_width, title_height = await cls.__get_text_size(title, font)
+            it_width, it_height = await cls.__get_text_size(item, font)
+            width = max([width, title_width, it_width])
+            height += title_height + it_height
+        width = max([width + padding * 2 + 100, 300])
+        height = max([height + padding * 2 + 150, 100])
+        A = BuildImage(width + padding * 2, height + padding * 2, color="#FAF9FE")
+        top_head = BuildImage(width, 100, color="#FFFFFF", font_size=40)
+        await top_head.line((0, 1, width, 1), "#C2CEFE", 2)
+        await top_head.text((15, 20), "签到", "#9FA3B2", "center")
+        await top_head.circle_corner()
+        await A.paste(top_head, (0, 20), "width")
+        _min_width = top_head.width - 60
+        cur_h = top_head.height + 35 + row_space * len(items)
+        for title, item in items.items():
+            title_width, title_height = BuildImage.get_text_size(title, font)
+            title_background = BuildImage(
+                title_width + 6, title_height + 10, font=font, color="#C1CDFF"
+            )
+            await title_background.text((3, 5), title)
+            await title_background.circle_corner(5)
+            _text_width, _text_height = await cls.__get_text_size(item, font)
+            _width = max([title_background.width, _text_width, _min_width])
+            text_image = await cls.__build_text_image(
+                item, _width, _text_height, font, color="#FDFCFA"
+            )
+            B = BuildImage(_width + 20, title_height + text_image.height + 40)
+            await B.paste(title_background, (10, 10))
+            await B.paste(text_image, (10, 20 + title_background.height))
+            await B.line((0, 0, 0, B.height), random.choice(cls.color_list))
+            await A.paste(B, (0, cur_h), "width")
+            cur_h += B.height + row_space
+        return A
+
     @classmethod
     async def table_page(
         cls,
         head_text: str,
         tip_text: str | None,
         column_name: list[str],
-        data_list: list[list[str]],
+        data_list: list[list[str | tuple[Path | BuildImage, int, int]]],
         row_space: int = 35,
         column_space: int = 30,
         padding: int = 5,
@@ -71,7 +118,7 @@ class ImageTemplate:
     async def table(
         cls,
         column_name: list[str],
-        data_list: list[list[str | tuple[Path, int, int]]],
+        data_list: list[list[str | tuple[Path | BuildImage, int, int]]],
         row_space: int = 25,
         column_space: int = 10,
         padding: int = 5,
@@ -154,3 +201,63 @@ class ImageTemplate:
         return await BuildImage.auto_paste(
             column_image_list, len(column_image_list), column_space
         )
+
+    @classmethod
+    async def __build_text_image(
+        cls,
+        text: str,
+        width: int,
+        height: int,
+        font: FreeTypeFont,
+        font_color: str | tuple[int, int, int] = (0, 0, 0),
+        color: str | tuple[int, int, int] = (255, 255, 255),
+    ) -> BuildImage:
+        """文本转图片
+
+        参数:
+            text: 文本
+            width: 宽度
+            height: 长度
+            font: 字体
+            font_color: 文本颜色
+            color: 背景颜色
+
+        返回:
+            BuildImage: 文本转图片
+        """
+        _, h = BuildImage.get_text_size("A", font)
+        A = BuildImage(width, height, color=color)
+        cur_h = 0
+        for s in text.split("\n"):
+            text_image = await BuildImage.build_text_image(
+                s, font, font_color=font_color
+            )
+            await A.paste(text_image, (0, cur_h))
+            cur_h += h
+        return A
+
+    @classmethod
+    async def __get_text_size(
+        cls,
+        text: str,
+        font: FreeTypeFont,
+    ) -> tuple[int, int]:
+        """获取文本所占大小
+
+        参数:
+            text: 文本
+            font: 字体
+
+        返回:
+            tuple[int, int]: 宽, 高
+        """
+        width = 0
+        height = 0
+        _, h = BuildImage.get_text_size("A", font)
+        image_list = []
+        for s in text.split("\n"):
+            s = s.strip() or "A"
+            w, _ = BuildImage.get_text_size(s, font)
+            width = width if width > w else w
+            height += h
+        return width, height

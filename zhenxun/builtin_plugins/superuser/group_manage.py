@@ -30,13 +30,25 @@ __plugin_meta__ = PluginMetadata(
     群权限 | 群白名单 | 退出群 操作
     退群，添加/删除群白名单，添加/删除群认证，当在群组中这五个命令且没有指定群号时，默认指定当前群组
     指令:
-        退群 ?[group_id]
-        修改群权限 [group_id] [等级]
-        修改群权限 [等级]: 该命令仅在群组时生效，默认修改当前群组
-        添加群白名单 ?*[group_id]
-        删除群白名单 ?*[group_id]
-        添加群认证 ?*[group_id]
-        删除群认证 ?*[group_id]
+        格式:
+        group-manage modify-level [权限等级] ?[群组Id]      : 修改群权限
+        group-manage super-handle [群组Id] [--del 删除操作] : 添加/删除群白名单
+        group-manage auth-handle [群组Id] [--del 删除操作]  : 添加/删除群认证
+        group-manage del-group [群组Id]                    : 退出指定群
+
+        快捷:
+        group-manage modify-level : 修改群权限
+        group-manage super-handle : 添加/删除群白名单
+        group-manage auth-handle  : 添加/删除群认证
+        group-manage del-group    : 退群
+        
+        示例:
+        修改群权限 7                              : 在群组中修改当前群组权限为7
+        group-manage modify-level 7             : 在群组中修改当前群组权限为7
+        group-manage modify-level 7 1234556     : 修改 123456 群组的权限等级为7
+        添加/删除群白名单 1234567                  : 添加/删除 1234567 为群白名单
+        添加/删除群认证 1234567                    : 添加/删除 1234567 为群认证
+        退群 12344566                            : 退出指定群组
     """.strip(),
     extra=PluginExtraData(
         author="HibiKier",
@@ -62,7 +74,7 @@ _matcher = on_alconna(
             "auth-handle",
             Option("--del", action=store_true, help_text="删除"),
             Args["group_id", int],
-            help_text="添加群白名单",
+            help_text="添加/删除群认证",
         ),
         Subcommand("del-group", Args["group_id", int], help_text="退出群组"),
     ),
@@ -71,7 +83,47 @@ _matcher = on_alconna(
     block=True,
 )
 
-# TODO: shortcut
+_matcher.shortcut(
+    "修改群权限",
+    command="group-manage",
+    arguments=["modify-level", "{%0}"],
+    prefix=True,
+)
+
+_matcher.shortcut(
+    "添加群白名单",
+    command="group-manage",
+    arguments=["super-handle", "{%0}"],
+    prefix=True,
+)
+
+_matcher.shortcut(
+    "删除群白名单",
+    command="group-manage",
+    arguments=["super-handle", "{%0}", "--del"],
+    prefix=True,
+)
+
+_matcher.shortcut(
+    "添加群认证",
+    command="group-manage",
+    arguments=["auth-handle", "{%0}"],
+    prefix=True,
+)
+
+_matcher.shortcut(
+    "删除群认证",
+    command="group-manage",
+    arguments=["auth-handle", "{%0}", "--del"],
+    prefix=True,
+)
+
+_matcher.shortcut(
+    "退群",
+    command="group-manage",
+    arguments=["del-group", "{%0}"],
+    prefix=True,
+)
 
 
 def CheckGroupId():
