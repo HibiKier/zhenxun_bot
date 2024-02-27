@@ -16,13 +16,10 @@ __plugin_meta__ = PluginMetadata(
     usage="""
     商品操作
     指令：
-        添加商品 name:[名称] price:[价格] des:[描述] ?discount:[折扣](小数) ?limit_time:[限时时间](小时)
-        删除商品 [名称或序号]
-        修改商品 name:[名称或序号] price:[价格] des:[描述] discount:[折扣] limit_time:[限时]
-        示例：添加商品 name:萝莉酒杯 price:9999 des:普通的酒杯，但是里面.. discount:0.4 limit_time:90
-        示例：添加商品 name:可疑的药 price:5 des:效果未知
-        示例：删除商品 2
-        示例：修改商品 name:1 price:900   修改序号为1的商品的价格为900
+        我的金币
+        我的道具
+        使用道具 [名称/Id]
+        购买道具 [名称/Id]
     * 修改商品只需添加需要值即可 *
     """.strip(),
     extra=PluginExtraData(
@@ -34,11 +31,10 @@ __plugin_meta__ = PluginMetadata(
     ).dict(),
 )
 
-# TODO: 修改操作，shortcut
 
 _matcher = on_alconna(
     Alconna(
-        "shop",
+        "商店",
         Subcommand("my-cost", help_text="我的金币"),
         Subcommand("my-props", help_text="我的道具"),
         Subcommand("buy", Args["name", str]["num", int, 1], help_text="购买道具"),
@@ -46,6 +42,34 @@ _matcher = on_alconna(
     ),
     priority=5,
     block=True,
+)
+
+_matcher.shortcut(
+    "我的金币",
+    command="商店",
+    arguments=["my-cost"],
+    prefix=True,
+)
+
+_matcher.shortcut(
+    "我的道具",
+    command="商店",
+    arguments=["my-props"],
+    prefix=True,
+)
+
+_matcher.shortcut(
+    "购买道具",
+    command="商店",
+    arguments=["buy", "{%0}"],
+    prefix=True,
+)
+
+_matcher.shortcut(
+    "使用道具",
+    command="商店",
+    arguments=["use", "{%0}"],
+    prefix=True,
 )
 
 
