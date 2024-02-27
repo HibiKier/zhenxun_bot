@@ -8,6 +8,7 @@ from zhenxun.configs.path_config import DATA_PATH, IMAGE_PATH
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.image_utils import BuildImage
 
 from ._data_source import create_help_img, get_plugin_help
 from ._utils import GROUP_HELP_PATH
@@ -47,20 +48,20 @@ _matcher = on_alconna(
     block=True,
 )
 
-# TODO: 插件使用详情 图片形式的帮助回复
-
 
 @_matcher.handle()
 async def _(
     name: Match[str],
     session: EventSession,
 ):
-
     if name.available:
-        if text := await get_plugin_help(name.result):
-            await Text(text).send(reply=True)
+        if result := await get_plugin_help(name.result):
+            if isinstance(result, BuildImage):
+                await Image(result.pic2bs4()).send(reply=True)
+            else:
+                await Text(result).send(reply=True)
         else:
-            await Text("没有此功能的帮助信息...").send()
+            await Text("没有此功能的帮助信息...").send(reply=True)
         logger.info(
             f"查看帮助详情: {name.result}",
             "帮助",
