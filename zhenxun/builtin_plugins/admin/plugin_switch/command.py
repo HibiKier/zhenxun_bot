@@ -63,10 +63,26 @@ _status_matcher.shortcut(
     prefix=True,
 )
 
+
+_status_matcher.shortcut(
+    r"开启群被动(?P<name>.+)",
+    command="switch",
+    arguments=["open", "{name}", "--task"],
+    prefix=True,
+)
+
+
 _status_matcher.shortcut(
     r"开启(?P<name>.+)",
     command="switch",
     arguments=["open", "{name}"],
+    prefix=True,
+)
+
+_status_matcher.shortcut(
+    r"关闭群被动(?P<name>.+)",
+    command="switch",
+    arguments=["close", "{name}", "--task"],
     prefix=True,
 )
 
@@ -76,6 +92,7 @@ _status_matcher.shortcut(
     arguments=["close", "{name}"],
     prefix=True,
 )
+
 
 _group_status_matcher.shortcut(
     r"醒来",

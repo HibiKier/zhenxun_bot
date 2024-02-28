@@ -1,6 +1,6 @@
 from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_alconna import Arparma, Match
+from nonebot_plugin_alconna import AlconnaQuery, Arparma, Match, Query
 from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
@@ -21,14 +21,16 @@ __plugin_meta__ = PluginMetadata(
     usage="""
     普通管理员
         格式:
-        开启/关闭[功能名称]    : 开关功能
-        群被动状态            : 查看被动技能开关状态
-        醒来                 : 结束休眠
-        休息吧                : 群组休眠, 不会再响应命令
+        开启/关闭[功能名称]         : 开关功能
+        开启/关闭群被动[被动名称]    : 群被动开关
+        群被动状态                 : 查看被动技能开关状态
+        醒来                      : 结束休眠
+        休息吧                    : 群组休眠, 不会再响应命令
 
         示例:
         开启签到              : 开启签到
         关闭签到              : 关闭签到
+        开启群被动早晚安       : 关闭被动任务早晚安
 
     超级管理员额外命令
         格式:
@@ -61,26 +63,21 @@ __plugin_meta__ = PluginMetadata(
 
 
 @_status_matcher.assign("$main")
-async def _(bot: Bot, session: EventSession, arparma: Arparma):
+async def _(
+    bot: Bot,
+    session: EventSession,
+    arparma: Arparma,
+    task: Query[bool] = AlconnaQuery("task.value", False),
+):
     image = None
-    if session.id1 in bot.config.superusers:
+    if task.result:
+        image = await build_task(session.id3 or session.id2)
+    elif session.id1 in bot.config.superusers:
         image = await build_plugin()
     if image:
         await Image(image.pic2bytes()).send(reply=True)
         logger.info(
-            f"查看功能列表",
-            arparma.header_result,
-            session=session,
-        )
-
-
-@_status_matcher.assign("task")
-async def _(bot: Bot, session: EventSession, arparma: Arparma):
-    image = None
-    if image := await build_task(session.id3 or session.id2):
-        await Image(image.pic2bytes()).send(reply=True)
-        logger.info(
-            f"查看被动列表",
+            f"查看{'功能' if arparma.find('task') else '被动'}列表",
             arparma.header_result,
             session=session,
         )
@@ -93,21 +90,35 @@ async def _(
     arparma: Arparma,
     name: str,
     group: Match[str],
+    task: Query[bool] = AlconnaQuery("task.value", False),
 ):
     if gid := session.id3 or session.id2:
-        result = await PluginManage.block_group_plugin(name, gid)
+        if task.result:
+            result = await PluginManage.unblock_group_task(name, gid)
+        else:
+            result = await PluginManage.block_group_plugin(name, gid)
         await Text(result).send(reply=True)
         logger.info(f"开启功能 {name}", arparma.header_result, session=session)
     elif session.id1 in bot.config.superusers:
         group_id = group.result if group.available else None
-        result = await PluginManage.superuser_block(name, None, group_id)
-        await Text(result).send(reply=True)
-        logger.info(
-            f"超级用户开启功能 {name}",
-            arparma.header_result,
-            session=session,
-            target=group_id,
-        )
+        if task.result:
+            result = await PluginManage.superuser_task_handle(name, group_id, True)
+            await Text(result).send(reply=True)
+            logger.info(
+                f"超级用户开启被动技能 {name}",
+                arparma.header_result,
+                session=session,
+                target=group_id,
+            )
+        else:
+            result = await PluginManage.superuser_block(name, None, group_id)
+            await Text(result).send(reply=True)
+            logger.info(
+                f"超级用户开启功能 {name}",
+                arparma.header_result,
+                session=session,
+                target=group_id,
+            )
 
 
 @_status_matcher.assign("close")
@@ -118,27 +129,41 @@ async def _(
     name: str,
     block_type: Match[str],
     group: Match[str],
+    task: Query[bool] = AlconnaQuery("task.value", False),
 ):
     if gid := session.id3 or session.id2:
-        result = await PluginManage.unblock_group_plugin(name, gid)
+        if task.result:
+            result = await PluginManage.block_group_task(name, gid)
+        else:
+            result = await PluginManage.unblock_group_plugin(name, gid)
         await Text(result).send(reply=True)
         logger.info(f"关闭功能 {name}", arparma.header_result, session=session)
     elif session.id1 in bot.config.superusers:
         group_id = group.result if group.available else None
-        _type = BlockType.ALL
-        if block_type.available:
-            if block_type.result in ["p", "private"]:
-                _type = BlockType.PRIVATE
-            elif block_type.result in ["g", "group"]:
-                _type = BlockType.GROUP
-        result = await PluginManage.superuser_block(name, _type, group_id)
-        await Text(result).send(reply=True)
-        logger.info(
-            f"超级用户关闭功能 {name}, 禁用类型: {_type}",
-            arparma.header_result,
-            session=session,
-            target=group_id,
-        )
+        if task.result:
+            result = await PluginManage.superuser_task_handle(name, group_id, False)
+            await Text(result).send(reply=True)
+            logger.info(
+                f"超级用户关闭被动技能 {name}",
+                arparma.header_result,
+                session=session,
+                target=group_id,
+            )
+        else:
+            _type = BlockType.ALL
+            if block_type.available:
+                if block_type.result in ["p", "private"]:
+                    _type = BlockType.PRIVATE
+                elif block_type.result in ["g", "group"]:
+                    _type = BlockType.GROUP
+            result = await PluginManage.superuser_block(name, _type, group_id)
+            await Text(result).send(reply=True)
+            logger.info(
+                f"超级用户关闭功能 {name}, 禁用类型: {_type}",
+                arparma.header_result,
+                session=session,
+                target=group_id,
+            )
 
 
 @_group_status_matcher.handle()

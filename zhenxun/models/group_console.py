@@ -108,6 +108,12 @@ class GroupConsole(Model):
         返回:
             bool: 是否禁用被动
         """
+        if not channel_id:
+            return await cls.exists(
+                group_id=group_id,
+                channel_id__isnull=True,
+                block_task__contains=f"{task},",
+            )
         return await cls.exists(
             group_id=group_id, channel_id=channel_id, block_task__contains=f"{task},"
         )

@@ -104,7 +104,9 @@ async def build_task(group_id: str | None) -> BuildImage:
     column_name = ["ID", "模块", "名称", "群组状态", "全局状态", "运行时间"]
     group = None
     if group_id:
-        group = await GroupConsole.get_or_none(group_id=group_id)
+        group = await GroupConsole.get_or_none(
+            group_id=group_id, channel_id__isnull=True
+        )
         if not group:
             raise GroupInfoNotFound()
     else:
@@ -145,17 +147,23 @@ class PluginManage:
 
     @classmethod
     async def is_wake(cls, group_id: str) -> bool:
-        if c := await GroupConsole.get_or_none(group_id=group_id):
+        if c := await GroupConsole.get_or_none(
+            group_id=group_id, channel_id__isnull=True
+        ):
             return c.status
         return False
 
     @classmethod
     async def sleep(cls, group_id: str):
-        await GroupConsole.filter(group_id=group_id).update(status=False)
+        await GroupConsole.filter(group_id=group_id, channel_id__isnull=True).update(
+            status=False
+        )
 
     @classmethod
     async def wake(cls, group_id: str):
-        await GroupConsole.filter(group_id=group_id).update(status=True)
+        await GroupConsole.filter(group_id=group_id, channel_id__isnull=True).update(
+            status=True
+        )
 
     @classmethod
     async def block(cls, module: str):
@@ -179,6 +187,32 @@ class PluginManage:
         return await cls._change_group_plugin(plugin_name, group_id, True)
 
     @classmethod
+    async def unblock_group_task(cls, task_name: str, group_id: str) -> str:
+        """启用被动技能
+
+        参数:
+            task_name: 被动技能名称
+            group_id: 群组id
+
+        返回:
+            str: 返回信息
+        """
+        return await cls._change_group_task(task_name, group_id, False)
+
+    @classmethod
+    async def block_group_task(cls, task_name: str, group_id: str) -> str:
+        """禁用被动技能
+
+        参数:
+            task_name: 被动技能名称
+            group_id: 群组id
+
+        返回:
+            str: 返回信息
+        """
+        return await cls._change_group_task(task_name, group_id, True)
+
+    @classmethod
     async def unblock_group_plugin(cls, plugin_name: str, group_id: str) -> str:
         """启用群组插件
 
@@ -190,6 +224,33 @@ class PluginManage:
             str: 返回信息
         """
         return await cls._change_group_plugin(plugin_name, group_id, False)
+
+    @classmethod
+    async def _change_group_task(
+        cls, task_name: str, group_id: str, status: bool
+    ) -> str:
+        """改变群组被动技能状态
+
+        参数:
+            task_name: 被动技能名称
+            group_id: 群组Id
+            status: 状态
+
+        返回:
+            str: 返回信息
+        """
+        if task := await TaskInfo.get_or_none(name=task_name):
+            status_str = "关闭" if status else "开启"
+            group, _ = await GroupConsole.get_or_create(
+                group_id=group_id, channel_id__isnull=True
+            )
+            if status:
+                group.block_task += f"{task.module},"
+            else:
+                group.block_task = group.block_task.replace(f"{task.module},", "")
+            await group.save(update_fields=["block_task"])
+            return f"已成功{status_str} {task_name} 被动技能!"
+        return "没有找到这个被动技能喔..."
 
     @classmethod
     async def _change_group_plugin(
@@ -212,7 +273,9 @@ class PluginManage:
             plugin = await PluginInfo.get_or_none(name=plugin_name)
         status_str = "开启" if status else "关闭"
         if plugin:
-            group, _ = await GroupConsole.get_or_create(group_id=group_id)
+            group, _ = await GroupConsole.get_or_create(
+                group_id=group_id, channel_id__isnull=True
+            )
             if status:
                 if plugin.module in group.block_plugin:
                     group.block_plugin = group.block_plugin.replace(
@@ -229,10 +292,43 @@ class PluginManage:
         return "没有找到这个功能喔..."
 
     @classmethod
+    async def superuser_task_handle(
+        cls, task_name: str, group_id: str | None, status: bool
+    ) -> str:
+        """超级用户禁用被动技能
+
+        参数:
+            task_name: 被动技能名称
+            group_id: 群组id
+            status: 状态
+
+        返回:
+            str: 返回信息
+        """
+        if task := await TaskInfo.get_or_none(name=task_name):
+            status_str = "开启" if status else "关闭"
+            if group_id:
+                group, _ = await GroupConsole.get_or_create(
+                    group_id=group_id, channel_id__isnull=True
+                )
+                if status:
+                    group.block_task = group.block_task.replace(
+                        f"super:{task.module},", ""
+                    )
+                else:
+                    group.block_task += f"super:{task.module},"
+                await group.save(update_fields=["block_task"])
+            else:
+                task.status = status
+                await task.save(update_fields=["status"])
+            return f"已成功将被动技能 {task_name} 全局{status_str}!"
+        return "没有找到这个功能喔..."
+
+    @classmethod
     async def superuser_block(
         cls, plugin_name: str, block_type: BlockType | None, group_id: str | None
     ) -> str:
-        """超级用户禁用
+        """超级用户禁用插件
 
         参数:
             plugin_name: 插件名称
@@ -248,7 +344,9 @@ class PluginManage:
             plugin = await PluginInfo.get_or_none(name=plugin_name)
         if plugin:
             if group_id:
-                if group := await GroupConsole.get_or_none(group_id=group_id):
+                if group := await GroupConsole.get_or_none(
+                    group_id=group_id, channel_id__isnull=True
+                ):
                     if f"super:{plugin.module}," not in group.block_plugin:
                         group.block_plugin += f"super:{plugin.module},"
                         await group.save(update_fields=["block_plugin"])

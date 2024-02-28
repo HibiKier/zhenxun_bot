@@ -5,6 +5,7 @@ from nonebot.adapters import Bot
 from nonebot.params import Command
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
+from nonebot_plugin_alconna import Text as alcText
 from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
@@ -51,8 +52,11 @@ async def _(
     message: UniMsg,
     command: Annotated[tuple[str, ...], Command()],
 ):
-    message[0].text = message[0].text.replace(command[0], "").strip()
-    # await Text("正在发送..请等一下哦!").send()
+    for msg in message:
+        if isinstance(msg, alcText) and msg.text.strip().startswith(command[0]):
+            msg.text = msg.text.replace(command[0], "", 1).strip()
+            break
+    await Text("正在发送..请等一下哦!").send()
     count, error_count = await BroadcastManage.send(bot, message, session)
     result = f"成功广播 {count} 个群组"
     if error_count:

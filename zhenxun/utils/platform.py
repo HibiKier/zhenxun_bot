@@ -1,9 +1,20 @@
+from typing import Awaitable, Callable, Literal, Set
+
+import nonebot
 from nonebot.adapters import Bot
 from nonebot.adapters.discord import Bot as DiscordBot
 from nonebot.adapters.dodo import Bot as DodoBot
 from nonebot.adapters.kaiheila import Bot as KaiheilaBot
 from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
+from nonebot.utils import is_coroutine_callable
+from nonebot_plugin_saa import (
+    MessageFactory,
+    TargetDoDoChannel,
+    TargetKaiheilaChannel,
+    TargetQQGroup,
+    Text,
+)
 
 from zhenxun.models.friend_user import FriendUser
 from zhenxun.models.group_console import GroupConsole
@@ -23,7 +34,7 @@ class PlatformManage:
             int: 更新个数
         """
         create_list = []
-        group_list, platform = await cls.__get_group_list(bot)
+        group_list, platform = await cls.get_group_list(bot)
         if group_list:
             exists_group_list = await GroupConsole.all().values_list(
                 "group_id", "channel_id"
@@ -42,7 +53,25 @@ class PlatformManage:
         return len(create_list)
 
     @classmethod
-    async def __get_group_list(cls, bot: Bot) -> tuple[list[GroupConsole], str]:
+    def get_platform(cls, bot: Bot) -> str | None:
+        """获取平台
+
+        参数:
+            bot: Bot
+
+        返回:
+            str | None: 平台
+        """
+        if isinstance(bot, (v11Bot, v12Bot)):
+            return "qq"
+        if isinstance(bot, DodoBot):
+            return "dodo"
+        if isinstance(bot, KaiheilaBot):
+            return "kaiheila"
+        return None
+
+    @classmethod
+    async def get_group_list(cls, bot: Bot) -> tuple[list[GroupConsole], str]:
         """获取群组列表
 
         参数:
@@ -121,7 +150,7 @@ class PlatformManage:
             int: 更新个数
         """
         create_list = []
-        friend_list, platform = await cls.__get_friend_list(bot)
+        friend_list, platform = await cls.get_friend_list(bot)
         if friend_list:
             user_id_list = await FriendUser.all().values_list("user_id", flat=True)
             for friend in friend_list:
@@ -133,7 +162,7 @@ class PlatformManage:
         return len(create_list)
 
     @classmethod
-    async def __get_friend_list(cls, bot: Bot) -> tuple[list[FriendUser], str]:
+    async def get_friend_list(cls, bot: Bot) -> tuple[list[FriendUser], str]:
         """获取好友列表
 
         参数:
@@ -167,3 +196,116 @@ class PlatformManage:
             # TODO: discord好友列表
             pass
         return [], ""
+
+    @classmethod
+    def get_target(cls, bot: Bot, group_id: str | None, channel_id: str | None):
+        """获取发生Target
+
+        参数:
+            bot: Bot
+            group_id: 群组id
+            channel_id: 频道id
+
+        返回:
+            target: 对应平台Target
+        """
+        target = None
+        if isinstance(bot, (v11Bot, v12Bot)):
+            if group_id:
+                target = TargetQQGroup(group_id=int(group_id))
+        if channel_id:
+            if isinstance(bot, DodoBot):
+                target = TargetDoDoChannel(channel_id=channel_id)
+            elif isinstance(bot, KaiheilaBot):
+                target = TargetKaiheilaChannel(channel_id=channel_id)
+        return target
+
+
+async def broadcast_group(
+    message: str | MessageFactory,
+    bot: Bot | list[Bot] | None = None,
+    bot_id: str | Set[str] | None = None,
+    ignore_group: Set[int] | None = None,
+    check_func: Callable[[str, str | None], Awaitable] | None = None,
+    log_cmd: str | None = None,
+    platform: Literal["qq", "dodo", "kaiheila"] | None = None,
+):
+    """获取所有Bot或指定Bot对象广播群聊
+
+    Args:
+        message: 广播消息内容
+        bot: 指定bot对象.
+        bot_id: 指定bot id.
+        ignore_group: 忽略群聊列表.
+        check_func: 发送前对群聊检测方法，判断是否发送.
+        log_cmd: 日志标记.
+        platform: 指定平台
+    """
+    if platform and platform not in ["qq", "dodo", "kaiheila"]:
+        raise ValueError("指定平台不支持")
+    if not message:
+        raise ValueError("群聊广播消息不能为空")
+    bot_dict = nonebot.get_bots()
+    bot_list: list[Bot] = []
+    if bot:
+        if isinstance(bot, list):
+            bot_list = bot
+        else:
+            bot_list.append(bot)
+    elif bot_id:
+        _bot_id_list = bot_id
+        if isinstance(bot_id, str):
+            _bot_id_list = [bot_id]
+        for id_ in _bot_id_list:
+            if bot_id in bot_dict:
+                bot_list.append(bot_dict[bot_id])
+            else:
+                logger.warning(f"Bot:{id_} 对象未连接或不存在")
+    else:
+        bot_list = list(bot_dict.values())
+    _used_group = []
+    for _bot in bot_list:
+        try:
+            if platform and platform != PlatformManage.get_platform(_bot):
+                continue
+            group_list, _ = await PlatformManage.get_group_list(_bot)
+            if group_list:
+                for group in group_list:
+                    key = f"{group.group_id}:{group.channel_id}"
+                    try:
+                        if (
+                            ignore_group
+                            and (
+                                group.group_id in ignore_group
+                                or group.channel_id in ignore_group
+                            )
+                        ) or key in _used_group:
+                            continue
+                        is_continue = False
+                        if check_func:
+                            if is_coroutine_callable(check_func):
+                                is_continue = not await check_func(
+                                    group.group_id, group.channel_id
+                                )
+                            else:
+                                is_continue = not check_func(
+                                    group.group_id, group.channel_id
+                                )
+                        if is_continue:
+                            continue
+                        target = PlatformManage.get_target(
+                            _bot, group.group_id, group.channel_id
+                        )
+                        if target:
+                            _used_group.append(key)
+                            message_list = message
+                            if isinstance(message, str):
+                                message_list = MessageFactory([Text(message)])
+                            await MessageFactory(message_list).send_to(target, _bot)
+                            logger.debug("发送成功", log_cmd, target=key)
+                        else:
+                            logger.warning("target为空", log_cmd, target=key)
+                    except Exception as e:
+                        logger.error("发送失败", log_cmd, target=key, e=e)
+        except Exception as e:
+            logger.error(f"Bot: {_bot.self_id} 获取群聊列表失败", command=log_cmd, e=e)
