@@ -10,21 +10,21 @@ from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
 
 
-class FgUpdateManage:
+class PlatformManage:
 
     @classmethod
-    async def update_group(cls, bot: Bot, platform: str) -> int:
+    async def update_group(cls, bot: Bot) -> int:
         """更新群组信息
 
         参数:
             bot: Bot
-            platform: 平台
 
         返回:
             int: 更新个数
         """
         create_list = []
-        if group_list := await cls.__get_group_list(bot):
+        group_list, platform = await cls.__get_group_list(bot)
+        if group_list:
             exists_group_list = await GroupConsole.all().values_list(
                 "group_id", "channel_id"
             )
@@ -42,7 +42,7 @@ class FgUpdateManage:
         return len(create_list)
 
     @classmethod
-    async def __get_group_list(cls, bot: Bot) -> list[GroupConsole]:
+    async def __get_group_list(cls, bot: Bot) -> tuple[list[GroupConsole], str]:
         """获取群组列表
 
         参数:
@@ -61,7 +61,7 @@ class FgUpdateManage:
                     member_count=g["member_count"],
                 )
                 for g in group_list
-            ]
+            ], "qq"
         if isinstance(bot, v12Bot):
             group_list = await bot.get_group_list()
             return [
@@ -70,7 +70,7 @@ class FgUpdateManage:
                     user_name=g.group_name,  # type: ignore
                 )
                 for g in group_list
-            ]
+            ], "qq"
         if isinstance(bot, DodoBot):
             island_list = await bot.get_island_list()
             source_id_list = [
@@ -88,28 +88,41 @@ class FgUpdateManage:
                     )
                     for c in channel_list
                 ]
-            return group_list
+            return group_list, "dodo"
         if isinstance(bot, KaiheilaBot):
-            # TODO: kaiheila群组列表
-            pass
+            group_list = []
+            guilds = await bot.guild_list()
+            if guilds.guilds:
+                for guild_id, name in [(g.id_, g.name) for g in guilds.guilds if g.id_]:
+                    view = await bot.guild_view(guild_id=guild_id)
+                    group_list.append(GroupConsole(group_id=guild_id, group_name=name))
+                    if view.channels:
+                        group_list += [
+                            GroupConsole(
+                                group_id=guild_id, group_name=c.name, channel_id=c.id_
+                            )
+                            for c in view.channels
+                            if c.type != 0
+                        ]
+            return group_list, "kaiheila"
         if isinstance(bot, DiscordBot):
             # TODO: discord群组列表
             pass
-        return []
+        return [], ""
 
     @classmethod
-    async def update_friend(cls, bot: Bot, platform: str) -> int:
+    async def update_friend(cls, bot: Bot) -> int:
         """更新好友信息
 
         参数:
             bot: Bot
-            platform: 平台
 
         返回:
             int: 更新个数
         """
         create_list = []
-        if friend_list := await cls.__get_friend_list(bot):
+        friend_list, platform = await cls.__get_friend_list(bot)
+        if friend_list:
             user_id_list = await FriendUser.all().values_list("user_id", flat=True)
             for friend in friend_list:
                 friend.platform = platform
@@ -120,7 +133,7 @@ class FgUpdateManage:
         return len(create_list)
 
     @classmethod
-    async def __get_friend_list(cls, bot: Bot) -> list[FriendUser]:
+    async def __get_friend_list(cls, bot: Bot) -> tuple[list[FriendUser], str]:
         """获取好友列表
 
         参数:
@@ -134,7 +147,7 @@ class FgUpdateManage:
             return [
                 FriendUser(user_id=str(f["user_id"]), user_name=f["nickname"])
                 for f in friend_list
-            ]
+            ], "qq"
         if isinstance(bot, v12Bot):
             friend_list = await bot.get_friend_list()
             return [
@@ -143,7 +156,7 @@ class FgUpdateManage:
                     user_name=f.user_displayname or f.user_remark or f.user_name,  # type: ignore
                 )
                 for f in friend_list
-            ]
+            ], "qq"
         if isinstance(bot, DodoBot):
             # TODO: dodo好友列表
             pass
@@ -153,4 +166,4 @@ class FgUpdateManage:
         if isinstance(bot, DiscordBot):
             # TODO: discord好友列表
             pass
-        return []
+        return [], ""

@@ -1,5 +1,4 @@
 from nonebot.adapters import Bot
-from nonebot.adapters.kaiheila.exception import ApiNotAvailable
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
@@ -8,11 +7,9 @@ from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
-from zhenxun.models.friend_user import FriendUser
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
-
-from ._data_source import FgUpdateManage
+from zhenxun.utils.platform import PlatformManage
 
 __plugin_meta__ = PluginMetadata(
     name="更新群组/好友信息",
@@ -57,7 +54,7 @@ async def _(
     arparma: Arparma,
 ):
     try:
-        num = await FgUpdateManage.update_group(bot, session.platform)
+        num = await PlatformManage.update_group(bot)
         logger.info(
             f"更新群聊信息完成，共更新了 {num} 个群组的信息!",
             arparma.header_result,
@@ -78,7 +75,7 @@ async def _(
     arparma: Arparma,
 ):
     try:
-        num = await FgUpdateManage.update_friend(bot, session.platform)
+        num = await PlatformManage.update_friend(bot, session.platform)
         logger.info(
             f"更新好友信息完成，共更新了 {num} 个好友的信息!",
             arparma.header_result,
