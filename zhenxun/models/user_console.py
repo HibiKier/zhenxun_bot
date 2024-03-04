@@ -15,7 +15,7 @@ class UserConsole(Model):
     """自增id"""
     user_id = fields.CharField(255, unique=True, description="用户id")
     """用户id"""
-    uid = fields.IntField(description="UID")
+    uid = fields.IntField(description="UID", unique=True)
     """UID"""
     gold = fields.IntField(default=100, description="金币数量")
     """金币数量"""

@@ -47,7 +47,7 @@ class TestSQL(Model):
 
 async def init():
     if not bind and not any([user, password, address, port, database]):
-        raise ValueError("\n数据库配置未填写.......")
+        raise ValueError("\n数据库配置未填写...")
     i_bind = bind
     if not i_bind:
         i_bind = f"{sql_name}://{user}:{password}@{address}:{port}/{database}"

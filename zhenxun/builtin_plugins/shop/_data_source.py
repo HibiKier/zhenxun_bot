@@ -1,5 +1,8 @@
 import time
-from typing import Dict
+from typing import Any, Callable, Dict
+
+from nonebot.adapters import Event
+from pydantic import BaseModel, create_model
 
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.models.goods_info import GoodsInfo
@@ -13,7 +16,79 @@ from zhenxun.utils.image_utils import BuildImage, ImageTemplate, text2image
 ICON_PATH = IMAGE_PATH / "shop_icon"
 
 
+class Goods(BaseModel):
+
+    before_handle: list[Callable] = []
+    after_handle: list[Callable] = []
+    func: Callable | None = None
+    params: Any | None = None
+    send_success_msg: bool = True
+    max_num_limit: int = 1
+    model: Any | None = None
+
+
+class ShopParam(BaseModel):
+
+    goods_name: str
+    """商品名称"""
+    user_id: int
+    """用户id"""
+    group_id: int
+    """群聊id"""
+    bot: Any
+    """bot"""
+    event: Event
+    """event"""
+    num: int
+    """道具单次使用数量"""
+    message: str
+    """message"""
+    text: str
+    """text"""
+    send_success_msg: bool = True
+    """是否发送使用成功信息"""
+    max_num_limit: int = 1
+    """单次使用最大次数"""
+
+
 class ShopManage:
+
+    uuid2goods: Dict[str, Goods] = {}
+
+    @classmethod
+    async def register_use(
+        cls,
+        uuid: str,
+        func: Callable,
+        send_success_msg: bool = True,
+        max_num_limit: int = 1,
+        before_handle: list[Callable] = [],
+        after_handle: list[Callable] = [],
+        **kwargs,
+    ):
+        """注册使用方法
+
+        参数:
+            uuid: uuid
+            func: 使用函数
+            send_success_msg: 使用成功时发送消息.
+            max_num_limit: 单次最大使用限制.
+            before_handle: 使用前函数.
+            after_handle: 使用后函数.
+
+        异常:
+            ValueError: 该商品使用函数已被注册！
+        """
+        if uuid in cls.uuid2goods:
+            raise ValueError("该商品使用函数已被注册！")
+        kwargs["send_success_msg"] = send_success_msg
+        kwargs["max_num_limit"] = max_num_limit
+        cls.uuid2func = Goods(
+            model=create_model(f"{uuid}_model", __base__=ShopParam, **kwargs),
+            params=kwargs,
+            before_handle=before_handle,
+            after_handle=after_handle,
+        )
 
     @classmethod
     async def buy_prop(

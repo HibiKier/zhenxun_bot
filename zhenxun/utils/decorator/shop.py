@@ -1,70 +1,116 @@
-from typing import Callable, Union, Tuple, Optional
-from nonebot.adapters.onebot.v11 import MessageSegment, Message
+from typing import Any, Callable, Dict
+
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
 from nonebot.plugin import require
+from pydantic import BaseModel
+
+from zhenxun.models.goods_info import GoodsInfo
+
+
+class Goods(BaseModel):
+
+    before_handle: list[Callable] = []
+    after_handle: list[Callable] = []
+    price: int
+    des: str = ""
+    discount: float
+    limit_time: int
+    daily_limit: int
+    icon: str | None = None
+    is_passive: bool
+    func: Callable
+    kwargs: Dict[str, str] = {}
+    send_success_msg: bool
+    max_num_limit: int
 
 
 class ShopRegister(dict):
+
     def __init__(self, *args, **kwargs):
         super(ShopRegister, self).__init__(*args, **kwargs)
-        self._data = {}
+        self._data: Dict[str, Goods] = {}
         self._flag = True
 
-    def before_handle(self, name: Union[str, Tuple[str, ...]], load_status: bool = True):
-        """
-        说明:
-            使用前检查方法
+    def before_handle(self, name: str | tuple[str, ...], load_status: bool = True):
+        """使用前检查方法
+
         参数:
-            :param name: 道具名称
-            :param load_status: 加载状态
+            name: 道具名称
+            load_status: 加载状态
         """
-        def register_before_handle(name_list: Tuple[str, ...], func: Callable):
+
+        def register_before_handle(name_list: tuple[str, ...], func: Callable):
             if load_status:
                 for name_ in name_list:
-                    if not self._data[name_]:
-                        self._data[name_] = {}
-                    if not self._data[name_].get('before_handle'):
-                        self._data[name_]['before_handle'] = []
-                    self._data[name]['before_handle'].append(func)
+                    if goods := self._data.get(name_):
+                        self._data[name_].before_handle.append(func)
+
         _name = (name,) if isinstance(name, str) else name
         return lambda func: register_before_handle(_name, func)
 
-    def after_handle(self, name: Union[str, Tuple[str, ...]], load_status: bool = True):
-        """
-        说明:
-            使用后执行方法
+    def after_handle(self, name: str | tuple[str, ...], load_status: bool = True):
+        """使用后执行方法
+
         参数:
-            :param name: 道具名称
-            :param load_status: 加载状态
+            name: 道具名称
+            load_status: 加载状态
         """
-        def register_after_handle(name_list: Tuple[str, ...], func: Callable):
+
+        def register_after_handle(name_list: tuple[str, ...], func: Callable):
             if load_status:
                 for name_ in name_list:
-                    if not self._data[name_]:
-                        self._data[name_] = {}
-                    if not self._data[name_].get('after_handle'):
-                        self._data[name_]['after_handle'] = []
-                    self._data[name_]['after_handle'].append(func)
+                    if goods := self._data.get(name_):
+                        self._data[name_].after_handle.append(func)
+
         _name = (name,) if isinstance(name, str) else name
         return lambda func: register_after_handle(_name, func)
 
     def register(
         self,
-        name: Tuple[str, ...],
-        price: Tuple[float, ...],
-        des: Tuple[str, ...],
-        discount: Tuple[float, ...],
-        limit_time: Tuple[int, ...],
-        load_status: Tuple[bool, ...],
-        daily_limit: Tuple[int, ...],
-        is_passive: Tuple[bool, ...],
-        icon: Tuple[str, ...],
+        name: tuple[str, ...],
+        price: tuple[float, ...],
+        des: tuple[str, ...],
+        discount: tuple[float, ...],
+        limit_time: tuple[int, ...],
+        load_status: tuple[bool, ...],
+        daily_limit: tuple[int, ...],
+        is_passive: tuple[bool, ...],
+        icon: tuple[str, ...],
+        send_success_msg: tuple[bool, ...],
+        max_num_limit: tuple[int, ...],
         **kwargs,
     ):
+        """注册商品
+
+        参数:
+            name: 商品名称
+            price: 价格
+            des: 简介
+            discount: 折扣
+            limit_time: 售卖限时时间
+            load_status: 是否加载
+            daily_limit: 每日限购
+            is_passive: 是否被动道具
+            icon: 图标
+            send_success_msg: 成功时发送消息
+            max_num_limit: 单次最大使用次数
+        """
+
         def add_register_item(func: Callable):
             if name in self._data.keys():
                 raise ValueError("该商品已注册，请替换其他名称！")
-            for n, p, d, dd, l, s, dl, pa, i in zip(
-                name, price, des, discount, limit_time, load_status, daily_limit, is_passive, icon
+            for n, p, d, dd, l, s, dl, pa, i, ssm, mnl in zip(
+                name,
+                price,
+                des,
+                discount,
+                limit_time,
+                load_status,
+                daily_limit,
+                is_passive,
+                icon,
+                send_success_msg,
+                max_num_limit,
             ):
                 if s:
                     _temp_kwargs = {}
@@ -73,62 +119,89 @@ class ShopRegister(dict):
                             _temp_kwargs[key.split("_", maxsplit=1)[-1]] = value
                         else:
                             _temp_kwargs[key] = value
-                    temp = self._data.get(n, {})
-                    temp.update({
-                        "price": p,
-                        "des": d,
-                        "discount": dd,
-                        "limit_time": l,
-                        "daily_limit": dl,
-                        "icon": i,
-                        "is_passive": pa,
-                        "func": func,
-                        "kwargs": _temp_kwargs,
-                    })
-                    self._data[n] = temp
+                    goods = self._data.get(n) or Goods(
+                        price=p,
+                        des=d,
+                        discount=dd,
+                        limit_time=l,
+                        daily_limit=dl,
+                        is_passive=pa,
+                        func=func,
+                        send_success_msg=ssm,
+                        max_num_limit=mnl,
+                    )
+                    goods.price = p
+                    goods.des = d
+                    goods.discount = dd
+                    goods.limit_time = l
+                    goods.daily_limit = dl
+                    goods.icon = i
+                    goods.is_passive = pa
+                    goods.func = func
+                    goods.kwargs = _temp_kwargs
+                    goods.send_success_msg = ssm
+                    goods.max_num_limit = mnl
             return func
 
         return lambda func: add_register_item(func)
 
     async def load_register(self):
-        require("use")
-        require("shop_handle")
-        from basic_plugins.shop.use.data_source import register_use, func_manager
-        from basic_plugins.shop.shop_handle.data_source import register_goods
+        require("shop")
+        from zhenxun.builtin_plugins.shop._data_source import ShopManage
+
         # 统一进行注册
         if self._flag:
             # 只进行一次注册
             self._flag = False
             for name in self._data.keys():
-                await register_goods(
-                    name,
-                    self._data[name]["price"],
-                    self._data[name]["des"],
-                    self._data[name]["discount"],
-                    self._data[name]["limit_time"],
-                    self._data[name]["daily_limit"],
-                    self._data[name]["is_passive"],
-                    self._data[name]["icon"],
-                )
-                register_use(
-                    name, self._data[name]["func"], **self._data[name]["kwargs"]
-                )
-                func_manager.register_use_before_handle(name, self._data[name].get('before_handle', []))
-                func_manager.register_use_after_handle(name, self._data[name].get('after_handle', []))
+                if goods := self._data.get(name):
+                    uuid = await GoodsInfo.add_goods(
+                        name,
+                        goods.price,
+                        goods.des,
+                        goods.discount,
+                        goods.limit_time,
+                        goods.daily_limit,
+                        goods.is_passive,
+                        goods.icon,
+                    )
+                    if uuid:
+                        await ShopManage.register_use(
+                            uuid,
+                            goods.func,
+                            goods.send_success_msg,
+                            goods.max_num_limit,
+                            goods.before_handle,
+                            goods.after_handle,
+                            **self._data[name].kwargs,
+                        )
 
     def __call__(
         self,
-        name: Union[str, Tuple[str, ...]],                  # 名称
-        price: Union[float, Tuple[float, ...]],             # 价格
-        des: Union[str, Tuple[str, ...]],                   # 简介
-        discount: Union[float, Tuple[float, ...]] = 1,      # 折扣
-        limit_time: Union[int, Tuple[int, ...]] = 0,        # 限时
-        load_status: Union[bool, Tuple[bool, ...]] = True,  # 加载状态
-        daily_limit: Union[int, Tuple[int, ...]] = 0,       # 每日限购
-        is_passive: Union[bool, Tuple[bool, ...]] = False,  # 被动道具（无法被'使用道具'命令消耗）
-        icon: Union[str, Tuple[str, ...]] = False,          # 图标
+        name: str | tuple[str, ...],
+        price: float | tuple[float, ...],
+        des: str | tuple[str, ...],
+        discount: float | tuple[float, ...] = 1,
+        limit_time: int | tuple[int, ...] = 0,
+        load_status: bool | tuple[bool, ...] = True,
+        daily_limit: int | tuple[int, ...] = 0,
+        is_passive: bool | tuple[bool, ...] = False,
+        icon: str | tuple[str, ...] = "",
         **kwargs,
     ):
+        """注册商品
+
+        参数:
+            name: 商品名称
+            price: 价格
+            des: 简介
+            discount: 折扣
+            limit_time: 售卖限时时间
+            load_status: 是否加载
+            daily_limit: 每日限购
+            is_passive: 是否被动道具
+            icon: 图标
+        """
         _tuple_list = []
         _current_len = -1
         for x in [name, price, des, discount, limit_time, load_status]:
@@ -163,7 +236,11 @@ class ShopRegister(dict):
         )
 
     def __get(self, value, _current_len):
-        return value if isinstance(value, tuple) else tuple([value for _ in range(_current_len)])
+        return (
+            value
+            if isinstance(value, tuple)
+            else tuple([value for _ in range(_current_len)])
+        )
 
     def __setitem__(self, key, value):
         self._data[key] = value
@@ -188,12 +265,11 @@ class ShopRegister(dict):
 
 
 class NotMeetUseConditionsException(Exception):
-
     """
     不满足条件异常类
     """
 
-    def __init__(self, info: Optional[Union[str, MessageSegment, Message]]):
+    def __init__(self, info: str | MessageSegment | Message | None):
         super().__init__(self)
         self._info = info
 

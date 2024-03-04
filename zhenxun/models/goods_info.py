@@ -46,7 +46,7 @@ class GoodsInfo(Model):
         daily_limit: int = 0,
         is_passive: bool = False,
         icon: str | None = None,
-    ):
+    ) -> str | None:
         """添加商品
 
         参数:
@@ -60,8 +60,9 @@ class GoodsInfo(Model):
             icon: 图标
         """
         if not await cls.exists(goods_name=goods_name):
+            uuid_ = uuid.uuid1()
             await cls.create(
-                uuid=uuid.uuid1(),
+                uuid=uuid_,
                 goods_name=goods_name,
                 goods_price=goods_price,
                 goods_description=goods_description,
@@ -71,6 +72,8 @@ class GoodsInfo(Model):
                 is_passive=is_passive,
                 icon=icon,
             )
+            return str(uuid_)
+        return None
 
     @classmethod
     async def delete_goods(cls, goods_name: str) -> bool:

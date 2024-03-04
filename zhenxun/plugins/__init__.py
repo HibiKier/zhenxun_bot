@@ -1,31 +1,13 @@
 import os
 
-from nonebot import require
+import nonebot
+import ujson as json
 from tortoise import Tortoise
 
 from zhenxun.models.goods_info import GoodsInfo
 from zhenxun.models.sign_user import SignUser
 from zhenxun.models.user_console import UserConsole
 from zhenxun.services.log import logger
-from zhenxun.utils.decorator.shop import shop_register
-
-require("nonebot_plugin_apscheduler")
-require("nonebot_plugin_alconna")
-require("nonebot_plugin_session")
-require("nonebot_plugin_saa")
-
-from nonebot_plugin_saa import enable_auto_select_bot
-
-enable_auto_select_bot()
-from pathlib import Path
-
-import nonebot
-import ujson as json
-
-path = Path(__file__).parent / "platform"
-for d in os.listdir(path):
-    nonebot.load_plugins(str((path / d).resolve()))
-
 
 driver = nonebot.get_driver()
 
@@ -52,10 +34,9 @@ from public.bag_users t1
 """
 
 
-@driver.on_bot_connect
-async def _():
+@driver.on_startup
+async def _test():
     global flag
-    await shop_register.load_register()
     if (
         flag
         and not await UserConsole.annotate().count()

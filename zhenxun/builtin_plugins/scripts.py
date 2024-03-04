@@ -1,13 +1,18 @@
 from asyncio.exceptions import TimeoutError
 
 import nonebot
-import ujson as json
 from nonebot.drivers import Driver
 from nonebot_plugin_apscheduler import scheduler
 
 from zhenxun.configs.path_config import TEXT_PATH
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
+
+try:
+    import ujson as json
+except ModuleNotFoundError:
+    import json
+
 
 driver: Driver = nonebot.get_driver()
 
@@ -40,13 +45,13 @@ async def update_city():
                     data[provinces_data[province]].append(city_data[city])
             with open(china_city, "w", encoding="utf8") as f:
                 json.dump(data, f, indent=4, ensure_ascii=False)
-            logger.info("自动更新城市列表完成...")
+            logger.info("自动更新城市列表完成.....")
         except TimeoutError as e:
             logger.warning("自动更新城市列表超时...", e=e)
         except ValueError as e:
-            logger.warning("自动城市列表失败...", e=e)
+            logger.warning("自动城市列表失败.....", e=e)
         except Exception as e:
-            logger.error(f"自动城市列表未知错误...", e=e)
+            logger.error(f"自动城市列表未知错误", e=e)
 
 
 # 自动更新城市列表

@@ -39,6 +39,7 @@ async def _handle_setting(
         setting = extra_data.setting or PluginSetting()
         if metadata.type == "library":
             extra_data.plugin_type = PluginType.HIDDEN
+            extra_data.menu_type = ""
         plugin_list.append(
             PluginInfo(
                 module=plugin.name,
