@@ -1,7 +1,13 @@
+import asyncio
+import inspect
 import time
-from typing import Any, Callable, Dict
+from types import MappingProxyType
+from typing import Any, Callable, Dict, Literal
 
-from nonebot.adapters import Event
+from nonebot.adapters import Bot, Event
+from nonebot_plugin_alconna import UniMsg
+from nonebot_plugin_saa import MessageFactory
+from nonebot_plugin_session import EventSession
 from pydantic import BaseModel, create_model
 
 from zhenxun.configs.path_config import IMAGE_PATH
@@ -18,13 +24,24 @@ ICON_PATH = IMAGE_PATH / "shop_icon"
 
 class Goods(BaseModel):
 
+    name: str
+    """商品名称"""
     before_handle: list[Callable] = []
+    """使用前函数"""
     after_handle: list[Callable] = []
+    """使用后函数"""
     func: Callable | None = None
-    params: Any | None = None
+    """使用函数"""
+    params: Any = None
+    """参数"""
     send_success_msg: bool = True
+    """使用成功是否发送消息"""
     max_num_limit: int = 1
-    model: Any | None = None
+    """单次使用最大次数"""
+    model: Any = None
+    """model"""
+    session: EventSession | None = None
+    """EventSession"""
 
 
 class ShopParam(BaseModel):
@@ -41,14 +58,14 @@ class ShopParam(BaseModel):
     """event"""
     num: int
     """道具单次使用数量"""
-    message: str
-    """message"""
     text: str
     """text"""
     send_success_msg: bool = True
     """是否发送使用成功信息"""
     max_num_limit: int = 1
     """单次使用最大次数"""
+    session: EventSession | None = None
+    """EventSession"""
 
 
 class ShopManage:
@@ -56,8 +73,206 @@ class ShopManage:
     uuid2goods: Dict[str, Goods] = {}
 
     @classmethod
+    def __build_params(
+        cls,
+        bot: Bot,
+        event: Event,
+        session: EventSession,
+        message: UniMsg,
+        goods: Goods,
+        num: int,
+        text: str,
+    ) -> tuple[ShopParam, Dict[str, Any]]:
+        """构造参数
+
+        参数:
+            bot: bot
+            event: event
+            goods_name: 商品名称
+            num: 数量
+            text: 其他信息
+        """
+        _kwargs = goods.params
+        model = goods.model(
+            **{
+                "goods_name": goods.name,
+                "bot": bot,
+                "event": event,
+                "user_id": session.id1,
+                "group_id": session.id3 or session.id2,
+                "num": num,
+                "text": text,
+                "session": session,
+            }
+        )
+        return model, {
+            **_kwargs,
+            "_bot": bot,
+            "event": event,
+            "user_id": session.id1,
+            "group_id": session.id3 or session.id2,
+            "num": num,
+            "text": text,
+            "goods_name": goods.name,
+        }
+
+    @classmethod
+    def __parse_args(
+        cls,
+        args: MappingProxyType,
+        param: ShopParam,
+        session: EventSession,
+        message: UniMsg,
+        **kwargs,
+    ) -> list[Any]:
+        """解析参数
+
+        参数:
+            args: MappingProxyType
+            param: ShopParam
+
+        返回:
+            list[Any]: 参数
+        """
+        param_list = []
+        _bot = param.bot
+        param.bot = None
+        param_json = param.dict()
+        param_json["bot"] = _bot
+        for par in args.keys():
+            if par in ["shop_param"]:
+                param_list.append(param)
+            elif par in ["session"]:
+                param_list.append(session)
+            elif par in ["message"]:
+                param_list.append(message)
+            elif par not in ["args", "kwargs"]:
+                param_list.append(param_json.get(par))
+                if kwargs.get(par) is not None:
+                    del kwargs[par]
+        return param_list
+
+    @classmethod
+    async def run_before_after(
+        cls,
+        goods: Goods,
+        param: ShopParam,
+        run_type: Literal["after", "before"],
+        **kwargs,
+    ):
+        """运行使用前使用后函数
+
+        参数:
+            goods: Goods
+            param: 参数
+            run_type: 运行类型
+        """
+        fun_list = goods.before_handle if run_type == "before" else goods.after_handle
+        if fun_list:
+            for func in fun_list:
+                args = inspect.signature(func).parameters
+                if args and list(args.keys())[0] != "kwargs":
+                    if asyncio.iscoroutinefunction(func):
+                        await func(*cls.__parse_args(args, param, **kwargs))
+                    else:
+                        func(*cls.__parse_args(args, param, **kwargs))
+                else:
+                    if asyncio.iscoroutinefunction(func):
+                        await func(**kwargs)
+                    else:
+                        func(**kwargs)
+
+    @classmethod
+    async def __run(
+        cls,
+        goods: Goods,
+        param: ShopParam,
+        session: EventSession,
+        message: UniMsg,
+        **kwargs,
+    ) -> str | MessageFactory | None:
+        """运行道具函数
+
+        参数:
+            goods: Goods
+            param: ShopParam
+
+        返回:
+            str | MessageFactory | None: 使用完成后返回信息
+        """
+        args = inspect.signature(goods.func).parameters  # type: ignore
+        if goods.func:
+            if args and list(args.keys())[0] != "kwargs":
+                if asyncio.iscoroutinefunction(goods.func):
+                    return await goods.func(
+                        *cls.__parse_args(args, param, session, message, **kwargs)
+                    )
+                else:
+                    return goods.func(
+                        *cls.__parse_args(args, param, session, message, **kwargs)
+                    )
+            else:
+                if asyncio.iscoroutinefunction(goods.func):
+                    return await goods.func(
+                        **kwargs,
+                    )
+                else:
+                    return goods.func(**kwargs)
+
+    @classmethod
+    async def use(
+        cls,
+        bot: Bot,
+        event: Event,
+        session: EventSession,
+        message: UniMsg,
+        goods_name: str,
+        num: int,
+        text: str,
+    ) -> str | MessageFactory | None:
+        """使用道具
+
+        参数:
+            bot: Bot
+            event: Event
+            session: Session
+            message: 消息
+            goods_name: 商品名称
+            num: 使用数量
+            text: 其他信息
+
+        返回:
+            str | MessageFactory | None: 使用完成后返回信息
+        """
+        if goods_name.isdigit():
+            user = await UserConsole.get_user(user_id=session.id1)  # type: ignore
+            uuid = list(user.props.keys())[int(goods_name)]
+            goods_info = await GoodsInfo.get_or_none(uuid=uuid)
+        else:
+            goods_info = await GoodsInfo.get_or_none(goods_name=goods_name)
+        if not goods_info:
+            return f"{goods_name} 不存在..."
+        if goods_info.is_passive:
+            return f"{goods_name} 是被动道具, 无法使用..."
+        goods = cls.uuid2goods.get(goods_info.uuid)
+        if not goods or not goods.func:
+            return f"{goods_name} 未注册使用函数, 无法使用..."
+        param, kwargs = cls.__build_params(
+            bot, event, session, message, goods, num, text
+        )
+        if num > param.max_num_limit:
+            return f"{goods_name} 单次使用最大数量为{param.max_num_limit}..."
+        await cls.run_before_after(goods, param, "before", **kwargs)
+        result = await cls.__run(goods, param, session, message, **kwargs)
+        await cls.run_before_after(goods, param, "after", **kwargs)
+        if not result and param.send_success_msg:
+            result = f"使用道具 {goods.name} {num} 次成功！"
+        return result
+
+    @classmethod
     async def register_use(
         cls,
+        name: str,
         uuid: str,
         func: Callable,
         send_success_msg: bool = True,
@@ -83,22 +298,35 @@ class ShopManage:
             raise ValueError("该商品使用函数已被注册！")
         kwargs["send_success_msg"] = send_success_msg
         kwargs["max_num_limit"] = max_num_limit
-        cls.uuid2func = Goods(
+        cls.uuid2goods[uuid] = Goods(
             model=create_model(f"{uuid}_model", __base__=ShopParam, **kwargs),
             params=kwargs,
             before_handle=before_handle,
             after_handle=after_handle,
+            name=name,
+            func=func,
         )
 
     @classmethod
     async def buy_prop(
         cls, user_id: str, name: str, num: int = 1, platform: str | None = None
     ) -> str:
+        """购买道具
+
+        参数:
+            user_id: 用户id
+            name: 道具名称
+            num: 购买数量.
+            platform: 平台.
+
+        返回:
+            str: 返回小
+        """
         if name == "神秘药水":
             return "你们看看就好啦，这是不可能卖给你们的~"
         if num < 0:
             return "购买的数量要大于0!"
-        goods_list = await GoodsInfo.annotate().order_by("-id").all()
+        goods_list = await GoodsInfo.annotate().order_by("id").all()
         goods_list = [
             goods
             for goods in goods_list

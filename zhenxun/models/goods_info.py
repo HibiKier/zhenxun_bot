@@ -46,7 +46,7 @@ class GoodsInfo(Model):
         daily_limit: int = 0,
         is_passive: bool = False,
         icon: str | None = None,
-    ) -> str | None:
+    ) -> str:
         """添加商品
 
         参数:
@@ -73,7 +73,8 @@ class GoodsInfo(Model):
                 icon=icon,
             )
             return str(uuid_)
-        return None
+        else:
+            return (await cls.get(goods_name=goods_name)).uuid
 
     @classmethod
     async def delete_goods(cls, goods_name: str) -> bool:

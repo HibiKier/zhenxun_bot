@@ -141,6 +141,7 @@ class ShopRegister(dict):
                     goods.kwargs = _temp_kwargs
                     goods.send_success_msg = ssm
                     goods.max_num_limit = mnl
+                    self._data[n] = goods
             return func
 
         return lambda func: add_register_item(func)
@@ -167,6 +168,7 @@ class ShopRegister(dict):
                     )
                     if uuid:
                         await ShopManage.register_use(
+                            name,
                             uuid,
                             goods.func,
                             goods.send_success_msg,
@@ -187,6 +189,8 @@ class ShopRegister(dict):
         daily_limit: int | tuple[int, ...] = 0,
         is_passive: bool | tuple[bool, ...] = False,
         icon: str | tuple[str, ...] = "",
+        send_success_msg: bool | tuple[bool, ...] = True,
+        max_num_limit: int | tuple[int, ...] = 1,
         **kwargs,
     ):
         """注册商品
@@ -201,6 +205,8 @@ class ShopRegister(dict):
             daily_limit: 每日限购
             is_passive: 是否被动道具
             icon: 图标
+            send_success_msg: 成功时发送消息
+            max_num_limit: 单次最大使用次数
         """
         _tuple_list = []
         _current_len = -1
@@ -222,6 +228,8 @@ class ShopRegister(dict):
         _daily_limit = self.__get(daily_limit, _current_len)
         _is_passive = self.__get(is_passive, _current_len)
         _icon = self.__get(icon, _current_len)
+        _send_success_msg = self.__get(send_success_msg, _current_len)
+        _max_num_limit = self.__get(max_num_limit, _current_len)
         return self.register(
             _name,
             _price,
@@ -232,6 +240,8 @@ class ShopRegister(dict):
             _daily_limit,
             _is_passive,
             _icon,
+            _send_success_msg,
+            _max_num_limit,
             **kwargs,
         )
 

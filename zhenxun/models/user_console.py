@@ -43,11 +43,15 @@ class UserConsole(Model):
         返回:
             UserConsole: UserConsole
         """
-        user, _ = await UserConsole.get_or_create(
-            user_id=user_id,
-            defaults={"platform": platform, "uid": await cls.get_new_uid()},
-        )
-        return user
+        if not await cls.exists(user_id=user_id):
+            await cls.create(
+                user_id=user_id, platform=platform, uid=await cls.get_new_uid()
+            )
+        # user, _ = await UserConsole.get_or_create(
+        #     user_id=user_id,
+        #     defaults={"platform": platform, "uid": await cls.get_new_uid()},
+        # )
+        return await cls.get(user_id=user_id)
 
     @classmethod
     async def get_new_uid(cls) -> int:
@@ -56,7 +60,7 @@ class UserConsole(Model):
         返回:
             int: 最新uid
         """
-        if user := await cls.annotate().order_by("uid").first():
+        if user := await cls.annotate().order_by("-uid").first():
             return user.uid + 1
         return 1
 

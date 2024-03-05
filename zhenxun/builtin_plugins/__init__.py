@@ -1,6 +1,7 @@
 import os
 
 from nonebot import require
+from nonebot.drivers import Driver
 from tortoise import Tortoise
 
 from zhenxun.models.goods_info import GoodsInfo
@@ -27,7 +28,7 @@ for d in os.listdir(path):
     nonebot.load_plugins(str((path / d).resolve()))
 
 
-driver = nonebot.get_driver()
+driver: Driver = nonebot.get_driver()
 
 flag = True
 
@@ -52,7 +53,7 @@ from public.bag_users t1
 """
 
 
-@driver.on_bot_connect
+@driver.on_startup
 async def _():
     global flag
     await shop_register.load_register()

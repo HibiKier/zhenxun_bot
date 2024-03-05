@@ -1,6 +1,14 @@
+from nonebot.adapters import Bot, Event
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_alconna import Alconna, Args, Arparma, Subcommand, on_alconna
-from nonebot_plugin_saa import Image, Text
+from nonebot_plugin_alconna import (
+    Alconna,
+    Args,
+    Arparma,
+    Subcommand,
+    UniMsg,
+    on_alconna,
+)
+from nonebot_plugin_saa import Image, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 
@@ -121,5 +129,18 @@ async def _(session: EventSession, arparma: Arparma, name: str, num: int):
 
 
 @_matcher.assign("use")
-async def _(session: EventSession, arparma: Arparma, name: str, num: int):
-    pass
+async def _(
+    bot: Bot,
+    event: Event,
+    message: UniMsg,
+    session: EventSession,
+    arparma: Arparma,
+    name: str,
+    num: int,
+):
+    result = await ShopManage.use(bot, event, session, message, name, num, "")
+    logger.info(f"使用道具 {name}, 数量: {num}", arparma.header_result, session=session)
+    if isinstance(result, str):
+        await Text(result).send(reply=True)
+    elif isinstance(result, MessageFactory):
+        await result.finish(reply=True)
