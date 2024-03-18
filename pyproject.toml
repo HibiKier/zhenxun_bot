@@ -36,6 +36,7 @@ nonebot-plugin-alconna = "^0.37.1"
 pypinyin = "^0.51.0"
 beautifulsoup4 = "^4.12.3"
 lxml = "^5.1.0"
+psutil = "^5.9.8"
 
 [tool.poetry.dev-dependencies]
 

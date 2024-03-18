@@ -19,8 +19,8 @@ __plugin_meta__ = PluginMetadata(
     * 拒绝反冲斗士！ *
     指令:
         bt [关键词] ?[页数]
-        示例：bt 钢铁侠
-        示例：bt 钢铁侠 3
+        示例: bt 钢铁侠
+        示例: bt 钢铁侠 3
     """.strip(),
     extra=PluginExtraData(
         author="HibiKier",
