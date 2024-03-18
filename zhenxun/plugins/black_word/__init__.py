@@ -32,7 +32,7 @@ from .utils import black_word_manager
 
 __plugin_meta__ = PluginMetadata(
     name="敏感词检测",
-    description="请注意你的发言！！",
+    description="请注意你的发言！",
     usage="""
     惩罚机制: 检测内容提示
     设置惩罚 [uid] [id] [level]: 设置惩罚内容, 此id需要通过`记录名单 -u:uid`来获取
