@@ -16,33 +16,6 @@ from zhenxun.utils.depends import UserName
 
 from .data_source import get_chat_result, hello, no_result
 
-__zx_plugin_name__ = "AI"
-__plugin_usage__ = f"""
-usage：
-    与{NICKNAME}普普通通的对话吧！
-"""
-__plugin_version__ = 0.1
-__plugin_author__ = "HibiKier"
-__plugin_settings__ = {
-    "level": 5,
-    "cmd": ["Ai", "ai", "AI", "aI"],
-}
-__plugin_configs__ = {
-    "TL_KEY": {"value": [], "help": "图灵Key", "type": List[str]},
-    "ALAPI_AI_CHECK": {
-        "value": False,
-        "help": "是否检测青云客骂娘回复",
-        "default_value": False,
-        "type": bool,
-    },
-    "TEXT_FILTER": {
-        "value": ["鸡", "口交"],
-        "help": "文本过滤器，将敏感词更改为*",
-        "default_value": [],
-        "type": List[str],
-    },
-}
-
 __plugin_meta__ = PluginMetadata(
     name="AI",
     description="屑Ai",

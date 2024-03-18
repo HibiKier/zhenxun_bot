@@ -34,6 +34,8 @@ nonebot-plugin-htmlrender = "^0.3.0"
 nonebot-plugin-userinfo = "^0.1.3"
 nonebot-plugin-alconna = "^0.37.1"
 pypinyin = "^0.51.0"
+beautifulsoup4 = "^4.12.3"
+lxml = "^5.1.0"
 
 [tool.poetry.dev-dependencies]
 

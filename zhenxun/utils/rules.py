@@ -46,3 +46,16 @@ def ensure_group(session: EventSession) -> bool:
         bool: bool
     """
     return session.level in [SessionLevel.LEVEL2, SessionLevel.LEVEL3]
+
+
+def ensure_private(session: EventSession) -> bool:
+    """
+    是否在私聊中
+
+    参数:
+        session: session
+
+    返回:
+        bool: bool
+    """
+    return not session.id3 and not session.id2
