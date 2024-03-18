@@ -1860,6 +1860,22 @@ url = "https://mirrors.aliyun.com/pypi/simple"
 reference = "ali"
 
 [[package]]
+name = "pypinyin"
+version = "0.51.0"
+description = "汉字拼音转换模块/工具."
+optional = false
+python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*, <4"
+files = [
+    {file = "pypinyin-0.51.0-py2.py3-none-any.whl", hash = "sha256:ae8878f08fee15d0c5c11053a737e68a4158c22c63dc632b4de060af5c95bf84"},
+    {file = "pypinyin-0.51.0.tar.gz", hash = "sha256:cede34fc35a79ef6c799f161e2c280e7b6755ee072fb741cae5ce2a60c4ae0c5"},
+]
+
+[package.source]
+type = "legacy"
+url = "https://mirrors.aliyun.com/pypi/simple"
+reference = "ali"
+
+[[package]]
 name = "python-dateutil"
 version = "2.8.2"
 description = "Extensions to the standard Python datetime module"
@@ -2982,4 +2998,4 @@ reference = "ali"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "858e616442c77d1a328e37af331056a7b870611b22247fcebfe5dbe41a3fd4f0"
+content-hash = "535f64938d522045aff2fa03ec967470085477b9d5bf1b9b803bcfceac60c7b6"

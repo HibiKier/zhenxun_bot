@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+import pypinyin
 import pytz
 
 from zhenxun.services.log import logger
@@ -149,6 +150,18 @@ class FreqLimiter:
 
     def left_time(self, key: Any) -> float:
         return self.next_time[key] - time.time()
+
+
+def cn2py(word: str) -> str:
+    """将字符串转化为拼音
+
+    参数:
+        word: 文本
+    """
+    temp = ""
+    for i in pypinyin.pinyin(word, style=pypinyin.NORMAL):
+        temp += "".join(i)
+    return temp
 
 
 async def get_user_avatar(uid: int | str) -> bytes | None:

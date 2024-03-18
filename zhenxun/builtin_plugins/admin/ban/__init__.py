@@ -31,7 +31,7 @@ __plugin_meta__ = PluginMetadata(
     usage="""
     普通管理员
         格式:
-        ban [At用户] [时长]
+        ban [At用户] [时长(分钟)]
 
         示例:
         ban @用户       : 永久拉黑用户

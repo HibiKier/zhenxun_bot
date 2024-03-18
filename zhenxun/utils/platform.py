@@ -9,10 +9,14 @@ from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
 from nonebot.utils import is_coroutine_callable
 from nonebot_plugin_saa import (
+    Image,
     MessageFactory,
     TargetDoDoChannel,
+    TargetDoDoPrivate,
     TargetKaiheilaChannel,
+    TargetKaiheilaPrivate,
     TargetQQGroup,
+    TargetQQPrivate,
     Text,
 )
 
@@ -22,6 +26,31 @@ from zhenxun.services.log import logger
 
 
 class PlatformManage:
+
+    @classmethod
+    async def send_message(
+        cls,
+        bot: Bot,
+        user_id: str | None,
+        group_id: str | None,
+        message: str | Text | MessageFactory | Image,
+    ) -> bool:
+        """发送消息
+
+        参数:
+            bot: Bot
+            user_id: 用户id
+            group_id: 群组id或频道id
+            message: 消息文本
+
+        返回:
+            bool: 是否发送成功
+        """
+        if target := cls.get_target(bot, user_id, group_id):
+            send_message = Text(message) if isinstance(message, str) else message
+            await send_message.send_to(target, bot)
+            return True
+        return False
 
     @classmethod
     async def update_group(cls, bot: Bot) -> int:
@@ -198,13 +227,18 @@ class PlatformManage:
         return [], ""
 
     @classmethod
-    def get_target(cls, bot: Bot, group_id: str | None, channel_id: str | None):
+    def get_target(
+        cls,
+        bot: Bot,
+        user_id: str | None = None,
+        group_id: str | None = None,
+    ):
         """获取发生Target
 
         参数:
             bot: Bot
             group_id: 群组id
-            channel_id: 频道id
+            channel_id: 频道id或群组id
 
         返回:
             target: 对应平台Target
@@ -213,11 +247,19 @@ class PlatformManage:
         if isinstance(bot, (v11Bot, v12Bot)):
             if group_id:
                 target = TargetQQGroup(group_id=int(group_id))
-        if channel_id:
-            if isinstance(bot, DodoBot):
-                target = TargetDoDoChannel(channel_id=channel_id)
-            elif isinstance(bot, KaiheilaBot):
-                target = TargetKaiheilaChannel(channel_id=channel_id)
+            elif user_id:
+                target = TargetQQPrivate(user_id=int(user_id))
+        elif isinstance(bot, DodoBot):
+            if group_id:
+                target = TargetDoDoChannel(channel_id=group_id)
+            elif user_id:
+                # target = TargetDoDoPrivate(user_id=user_id)
+                pass
+        elif isinstance(bot, KaiheilaBot):
+            if group_id:
+                target = TargetKaiheilaChannel(channel_id=group_id)
+            elif user_id:
+                target = TargetKaiheilaPrivate(user_id=user_id)
         return target
 
 
@@ -294,7 +336,7 @@ async def broadcast_group(
                         if is_continue:
                             continue
                         target = PlatformManage.get_target(
-                            _bot, group.group_id, group.channel_id
+                            _bot, None, group.group_id, group.channel_id
                         )
                         if target:
                             _used_group.append(key)

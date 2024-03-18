@@ -40,4 +40,4 @@ Config.add_plugin_config(
     type=int,
 )
 
-# nonebot.load_plugins(str(Path(__file__).parent.resolve()))
+nonebot.load_plugins(str(Path(__file__).parent.resolve()))

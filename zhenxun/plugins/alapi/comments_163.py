@@ -9,11 +9,6 @@ from zhenxun.services.log import logger
 
 from ._data_source import get_data
 
-comments_163 = on_regex(
-    "^(网易云热评|网易云评论|到点了|12点了)$", priority=5, block=True
-)
-
-
 comments_163_url = "https://v2.alapi.cn/api/comment"
 
 __plugin_meta__ = PluginMetadata(
@@ -44,7 +39,7 @@ _matcher.shortcut(
 )
 
 
-@comments_163.handle()
+@_matcher.handle()
 async def _(session: EventSession, arparma: Arparma):
     data, code = await get_data(comments_163_url)
     if code != 200 and isinstance(data, str):

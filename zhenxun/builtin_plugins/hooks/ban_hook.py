@@ -38,10 +38,8 @@ async def _(
         ban_result = Config.get_config("hook", "BAN_RESULT")
         if user_id in bot.config.superusers:
             return
-        if await BanConsole.is_ban(user_id) or await BanConsole.is_ban(
-            user_id, group_id
-        ):
-            time = await BanConsole.check_ban_time(user_id)
+        if await BanConsole.is_ban(user_id, group_id):
+            time = await BanConsole.check_ban_time(user_id, group_id)
             if time == -1:
                 time_str = "∞"
             else:
@@ -49,7 +47,13 @@ async def _(
                 if time < 60:
                     time_str = str(time) + " 秒"
                 else:
-                    time_str = str(int(time / 60)) + " 分钟"
+                    minute = int(time / 60)
+                    if minute > 60:
+                        hours = int(minute / 60)
+                        minute = minute % 60
+                        time_str = f"{hours} 小时 {minute}分钟"
+                    else:
+                        time_str = f"{minute} 分钟"
             if ban_result and _flmt.check(user_id):
                 _flmt.start_cd(user_id)
                 await MessageFactory(

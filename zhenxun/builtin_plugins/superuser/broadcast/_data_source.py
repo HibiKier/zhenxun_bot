@@ -6,11 +6,7 @@ from nonebot.adapters.kaiheila import Bot as KaiheilaBot
 from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
 from nonebot_plugin_alconna import UniMsg
-from nonebot_plugin_saa import (
-    Image,
-    MessageFactory,
-    Text,
-)
+from nonebot_plugin_saa import Image, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.models.group_console import GroupConsole
@@ -49,7 +45,7 @@ class BroadcastManage:
                         group.group_id, "broadcast", group.channel_id
                     ):
                         target = PlatformManage.get_target(
-                            bot, group.group_id, group.channel_id
+                            bot, None, group.group_id, group.channel_id
                         )
                         if target:
                             await MessageFactory(message_list).send_to(target, bot)
