@@ -12,7 +12,7 @@ from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
-from zhenxun.utils.platform import PlatformManage
+from zhenxun.utils.platform import PlatformUtils
 from zhenxun.utils.utils import cn2py
 
 from .model import BlackWord
@@ -173,7 +173,7 @@ async def _add_user_black_word(
         plant_text=message,
         black_word=black_word,
         punish_level=punish_level,
-        platform=PlatformManage.get_platform(bot),
+        platform=PlatformUtils.get_platform(bot),
     )
     logger.info(
         f"已将 USER {user_id} GROUP {group_id} 添加至黑名单词汇记录 Black_word：{black_word} Plant_text：{message}"
@@ -325,7 +325,7 @@ async def _get_punish(
         return ban_4_duration
     # 口头警告
     elif id_ == 5:
-        await PlatformManage.send_message(bot, user_id, group_id, warning_result)
+        await PlatformUtils.send_message(bot, user_id, group_id, warning_result)
         logger.info(f"BlackWord 口头警告 USER {user_id}")
         return warning_result
     return None
@@ -341,9 +341,9 @@ async def send_msg(bot: Bot, user_id: str, group_id: str | None, message: str):
         message: message
     """
     if not user_id:
-        platform = PlatformManage.get_platform(bot)
+        platform = PlatformUtils.get_platform(bot)
         user_id = bot.config.platform_superusers[platform][0]
-    await PlatformManage.send_message(bot, user_id, group_id, message)
+    await PlatformUtils.send_message(bot, user_id, group_id, message)
 
 
 async def check_text(text: str) -> bool:

@@ -9,7 +9,7 @@ from nonebot_plugin_session import EventSession
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
-from zhenxun.utils.platform import PlatformManage
+from zhenxun.utils.platform import PlatformUtils
 
 __plugin_meta__ = PluginMetadata(
     name="更新群组/好友信息",
@@ -54,7 +54,7 @@ async def _(
     arparma: Arparma,
 ):
     try:
-        num = await PlatformManage.update_group(bot)
+        num = await PlatformUtils.update_group(bot)
         logger.info(
             f"更新群聊信息完成，共更新了 {num} 个群组的信息!",
             arparma.header_result,
@@ -75,7 +75,7 @@ async def _(
     arparma: Arparma,
 ):
     try:
-        num = await PlatformManage.update_friend(bot, session.platform)
+        num = await PlatformUtils.update_friend(bot, session.platform)
         logger.info(
             f"更新好友信息完成，共更新了 {num} 个好友的信息!",
             arparma.header_result,

@@ -25,7 +25,7 @@ from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
 
 
-class PlatformManage:
+class PlatformUtils:
 
     @classmethod
     async def send_message(
@@ -97,6 +97,8 @@ class PlatformManage:
             return "dodo"
         if isinstance(bot, KaiheilaBot):
             return "kaiheila"
+        if isinstance(bot, DiscordBot):
+            return "discord"
         return None
 
     @classmethod
@@ -308,9 +310,9 @@ async def broadcast_group(
     _used_group = []
     for _bot in bot_list:
         try:
-            if platform and platform != PlatformManage.get_platform(_bot):
+            if platform and platform != PlatformUtils.get_platform(_bot):
                 continue
-            group_list, _ = await PlatformManage.get_group_list(_bot)
+            group_list, _ = await PlatformUtils.get_group_list(_bot)
             if group_list:
                 for group in group_list:
                     key = f"{group.group_id}:{group.channel_id}"
@@ -335,7 +337,7 @@ async def broadcast_group(
                                 )
                         if is_continue:
                             continue
-                        target = PlatformManage.get_target(
+                        target = PlatformUtils.get_target(
                             _bot, None, group.group_id, group.channel_id
                         )
                         if target:

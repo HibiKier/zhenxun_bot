@@ -11,7 +11,7 @@ from nonebot_plugin_session import EventSession
 
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
-from zhenxun.utils.platform import PlatformManage
+from zhenxun.utils.platform import PlatformUtils
 
 
 class BroadcastManage:
@@ -36,7 +36,7 @@ class BroadcastManage:
                 message_list.append(Image(msg.url))
             elif isinstance(msg, alc.Text):
                 message_list.append(Text(msg.text))
-        group_list, _ = await PlatformManage.get_group_list(bot)
+        group_list, _ = await PlatformUtils.get_group_list(bot)
         if group_list:
             error_count = 0
             for group in group_list:
@@ -44,7 +44,7 @@ class BroadcastManage:
                     if not await GroupConsole.is_block_task(
                         group.group_id, "broadcast", group.channel_id
                     ):
-                        target = PlatformManage.get_target(
+                        target = PlatformUtils.get_target(
                             bot, None, group.group_id, group.channel_id
                         )
                         if target:
