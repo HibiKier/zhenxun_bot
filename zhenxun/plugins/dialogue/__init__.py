@@ -117,7 +117,7 @@ async def _(
             msg = msg.split()
             group_id = ""
             user_id = ""
-            if msg[0].isdigit():
+            if msg[0].replace("-", "", 1).isdigit():
                 if len(msg[0]) < 4:
                     _id = int(msg[0])
                     if _id >= 0:
