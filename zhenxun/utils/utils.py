@@ -12,34 +12,6 @@ import pytz
 from zhenxun.services.log import logger
 
 
-class WithdrawManager:
-    """
-    消息撤回
-    """
-
-    _data = {}
-
-    @classmethod
-    def append(cls, message_id: str, second: int):
-        """添加一个撤回消息id和时间
-
-        参数:
-            message_id: 撤回消息id
-            time: 延迟时间
-        """
-        cls._data[message_id] = second
-
-    @classmethod
-    def remove(cls, message_id: str):
-        """删除一个数据
-
-        参数:
-            message_id: 撤回消息id
-        """
-        if message_id in cls._data:
-            del cls._data[message_id]
-
-
 class ResourceDirManager:
     """
     临时文件管理器
