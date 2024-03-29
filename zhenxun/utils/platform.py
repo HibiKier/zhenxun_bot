@@ -276,7 +276,7 @@ async def broadcast_group(
 ):
     """获取所有Bot或指定Bot对象广播群聊
 
-    Args:
+    参数:
         message: 广播消息内容
         bot: 指定bot对象.
         bot_id: 指定bot id.
