@@ -88,7 +88,7 @@ class RequestType(StrEnum):
 
 class RequestHandleType(StrEnum):
     """
-    请求类型
+    请求处理类型
     """
 
     APPROVE = "APPROVE"

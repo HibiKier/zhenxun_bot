@@ -161,6 +161,8 @@ class PluginExtraData(BaseModel):
     """插件限制"""
     tasks: list[Task] | None = None
     """技能被动"""
+    superuser_help: str | None = None
+    """超级用户帮助"""
 
 
 class NoSuchConfig(Exception):

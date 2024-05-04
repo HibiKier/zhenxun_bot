@@ -99,8 +99,7 @@ class UserBlockLimiter:
     def check(self, key: Any) -> bool:
         if time.time() - self.time > 30:
             self.set_false(key)
-            return False
-        return self.flag_data[key]
+        return not self.flag_data[key]
 
 
 class FreqLimiter:
@@ -156,7 +155,7 @@ async def get_group_avatar(gid: int | str) -> bytes | None:
     """快捷获取用群头像
 
     参数:
-        :param gid: 群号
+        gid: 群号
     """
     url = f"http://p.qlogo.cn/gh/{gid}/{gid}/640/"
     async with httpx.AsyncClient() as client:

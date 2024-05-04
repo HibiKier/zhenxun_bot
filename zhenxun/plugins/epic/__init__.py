@@ -7,9 +7,8 @@ from nonebot_plugin_apscheduler import scheduler
 from nonebot_plugin_saa import MessageFactory, Text
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.utils import PluginExtraData, RegisterConfig
+from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
-from zhenxun.utils.platform import broadcast_group
 
 from .data_source import get_epic_free
 
@@ -22,16 +21,6 @@ __plugin_meta__ = PluginMetadata(
     extra=PluginExtraData(
         author="AkashiCoin",
         version="0.1",
-        configs=[
-            RegisterConfig(
-                module="_task",
-                key="DEFAULT_EPIC_FREE_GAME",
-                value=True,
-                help="被动 epic免费游戏 进群默认开关状态",
-                default_value=True,
-                type=bool,
-            ),
-        ],
     ).dict(),
 )
 
@@ -39,7 +28,7 @@ _matcher = on_alconna(Alconna("epic"), priority=5, block=True)
 
 
 @_matcher.handle()
-async def handle(bot: Bot, session: EventSession, arparma: Arparma):
+async def _(bot: Bot, session: EventSession, arparma: Arparma):
     gid = session.id3 or session.id2
     type_ = "Group" if gid else "Private"
     msg_list, code = await get_epic_free(bot, type_)

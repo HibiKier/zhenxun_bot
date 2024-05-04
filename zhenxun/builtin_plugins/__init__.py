@@ -3,6 +3,7 @@ import os
 from nonebot import require
 from nonebot.drivers import Driver
 from tortoise import Tortoise
+from tortoise.exceptions import OperationalError
 
 from zhenxun.models.goods_info import GoodsInfo
 from zhenxun.models.sign_user import SignUser
@@ -62,64 +63,69 @@ async def _():
         and not await UserConsole.annotate().count()
         and not await SignUser.annotate().count()
     ):
-        flag = False
-        db = Tortoise.get_connection("default")
-        old_sign_list = await db.execute_query_dict(SIGN_SQL)
-        old_bag_list = await db.execute_query_dict(BAG_SQL)
-        goods = {
-            g["goods_name"]: g["uuid"]
-            for g in await GoodsInfo.annotate().values("goods_name", "uuid")
-        }
-        create_list = []
-        sign_id_list = []
-        uid = await UserConsole.get_new_uid()
-        for old_sign in old_sign_list:
-            sign_id_list.append(old_sign["user_id"])
-            old_bag = [b for b in old_bag_list if b["user_id"] == old_sign["user_id"]]
-            if old_bag:
-                old_bag = old_bag[0]
-                property = json.loads(old_bag["property"])
-                props = {}
-                if property:
-                    for name, num in property.items():
-                        if name in goods:
-                            props[goods[name]] = num
+        try:
+            flag = False
+            db = Tortoise.get_connection("default")
+            old_sign_list = await db.execute_query_dict(SIGN_SQL)
+            old_bag_list = await db.execute_query_dict(BAG_SQL)
+            goods = {
+                g["goods_name"]: g["uuid"]
+                for g in await GoodsInfo.annotate().values("goods_name", "uuid")
+            }
+            create_list = []
+            sign_id_list = []
+            uid = await UserConsole.get_new_uid()
+            for old_sign in old_sign_list:
+                sign_id_list.append(old_sign["user_id"])
+                old_bag = [
+                    b for b in old_bag_list if b["user_id"] == old_sign["user_id"]
+                ]
+                if old_bag:
+                    old_bag = old_bag[0]
+                    property = json.loads(old_bag["property"])
+                    props = {}
+                    if property:
+                        for name, num in property.items():
+                            if name in goods:
+                                props[goods[name]] = num
+                    create_list.append(
+                        UserConsole(
+                            user_id=old_sign["user_id"],
+                            platform="qq",
+                            uid=uid,
+                            props=props,
+                            gold=old_bag["gold"],
+                        )
+                    )
+                else:
+                    create_list.append(
+                        UserConsole(user_id=old_sign["user_id"], platform="qq", uid=uid)
+                    )
+                uid += 1
+            if create_list:
+                logger.info("开始迁移用户数据...")
+                await UserConsole.bulk_create(create_list, 10)
+                logger.info("迁移用户数据完成!")
+            create_list.clear()
+            uc_dict = {u.user_id: u for u in await UserConsole.all()}
+            for old_sign in old_sign_list:
+                user_console = uc_dict.get(old_sign["user_id"])
+                if not user_console:
+                    user_console = await UserConsole.get_user(old_sign["user_id"], "qq")
                 create_list.append(
-                    UserConsole(
+                    SignUser(
                         user_id=old_sign["user_id"],
+                        user_console=user_console,
                         platform="qq",
-                        uid=uid,
-                        props=props,
-                        gold=old_bag["gold"],
+                        sign_count=old_sign["checkin_count"],
+                        impression=old_sign["impression"],
+                        add_probability=old_sign["add_probability"],
+                        specify_probability=old_sign["specify_probability"],
                     )
                 )
-            else:
-                create_list.append(
-                    UserConsole(user_id=old_sign["user_id"], platform="qq", uid=uid)
-                )
-            uid += 1
-        if create_list:
-            logger.info("开始迁移用户数据...")
-            await UserConsole.bulk_create(create_list, 10)
-            logger.info("迁移用户数据完成!")
-        create_list.clear()
-        uc_dict = {u.user_id: u for u in await UserConsole.all()}
-        for old_sign in old_sign_list:
-            user_console = uc_dict.get(old_sign["user_id"])
-            if not user_console:
-                user_console = await UserConsole.get_user(old_sign["user_id"], "qq")
-            create_list.append(
-                SignUser(
-                    user_id=old_sign["user_id"],
-                    user_console=user_console,
-                    platform="qq",
-                    sign_count=old_sign["checkin_count"],
-                    impression=old_sign["impression"],
-                    add_probability=old_sign["add_probability"],
-                    specify_probability=old_sign["specify_probability"],
-                )
-            )
-        if create_list:
-            logger.info("开始迁移签到数据...")
-            await SignUser.bulk_create(create_list, 10)
-            logger.info("迁移签到数据完成!")
+            if create_list:
+                logger.info("开始迁移签到数据...")
+                await SignUser.bulk_create(create_list, 10)
+                logger.info("迁移签到数据完成!")
+        except OperationalError as e:
+            logger.warning("数据迁移", e=e)

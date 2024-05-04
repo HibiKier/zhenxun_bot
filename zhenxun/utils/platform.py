@@ -1,5 +1,6 @@
 from typing import Awaitable, Callable, Literal, Set
 
+import httpx
 import nonebot
 from nonebot.adapters import Bot
 from nonebot.adapters.discord import Bot as DiscordBot
@@ -26,6 +27,53 @@ from zhenxun.services.log import logger
 
 
 class PlatformUtils:
+
+    @classmethod
+    async def get_user_avatar(cls, user_id: str, platform: str) -> bytes | None:
+        """快捷获取用户头像
+
+        参数:
+            user_id: 用户id
+            platform: 平台
+        """
+        if platform == "qq":
+            url = f"http://q1.qlogo.cn/g?b=qq&nk={user_id}&s=160"
+            async with httpx.AsyncClient() as client:
+                for _ in range(3):
+                    try:
+                        return (await client.get(url)).content
+                    except Exception as e:
+                        logger.error(
+                            "获取用户头像错误",
+                            "Util",
+                            target=user_id,
+                            platform=platform,
+                        )
+        else:
+            pass
+        return None
+
+    @classmethod
+    async def get_group_avatar(cls, gid: str, platform: str) -> bytes | None:
+        """快捷获取用群头像
+
+        参数:
+            gid: 群组id
+            platform: 平台
+        """
+        if platform == "qq":
+            url = f"http://p.qlogo.cn/gh/{gid}/{gid}/640/"
+            async with httpx.AsyncClient() as client:
+                for _ in range(3):
+                    try:
+                        return (await client.get(url)).content
+                    except Exception as e:
+                        logger.error(
+                            "获取群头像错误", "Util", target=gid, platform=platform
+                        )
+        else:
+            pass
+        return None
 
     @classmethod
     async def send_message(
@@ -109,7 +157,7 @@ class PlatformUtils:
             bot: Bot
 
         返回:
-            list[GroupConsole]: 群组列表
+            tuple[list[GroupConsole], str]: 群组列表, 平台
         """
         if isinstance(bot, v11Bot):
             group_list = await bot.get_group_list()
@@ -239,8 +287,8 @@ class PlatformUtils:
 
         参数:
             bot: Bot
-            group_id: 群组id
-            channel_id: 频道id或群组id
+            user_id: 用户id
+            group_id: 频道id或群组id
 
         返回:
             target: 对应平台Target

@@ -77,7 +77,8 @@ class UserConsole(Model):
             platform: 平台.
         """
         user, _ = await cls.get_or_create(
-            user_id=user_id, defaults={"platform": platform, "uid": cls.get_new_uid()}
+            user_id=user_id,
+            defaults={"platform": platform, "uid": await cls.get_new_uid()},
         )
         user.gold += gold
         await user.save(update_fields=["gold"])
