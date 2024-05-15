@@ -60,6 +60,9 @@ class BuildImage:
             self.markImg = Image.open(background)
             if width and height:
                 self.markImg = self.markImg.resize((width, height), Image.LANCZOS)
+            else:
+                self.width = self.markImg.width
+                self.height = self.markImg.height
         else:
             if not width or not height:
                 raise ValueError("长度和宽度不能为空...")
