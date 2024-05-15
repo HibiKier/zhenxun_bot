@@ -4,6 +4,7 @@
     "PYTHONPATH": "${workspaceFolder}${pathSeparator}${env:PYTHONPATH}"
   },
   "cSpell.words": [
+    "aiofiles",
     "Alconna",
     "arclet",
     "Arparma",

@@ -21,19 +21,30 @@ async def create_help_img(group_id: str | None):
     await HelpImageBuild().build_image(group_id)
 
 
-async def get_plugin_help(name: str) -> str | BuildImage:
+async def get_plugin_help(name: str, is_superuser: bool) -> str | BuildImage:
     """获取功能的帮助信息
 
     参数:
         name: 插件名称
+        is_superuser: 是否为超级用户
     """
-    if plugin := await PluginInfo.get_or_none(name=name):
+    if plugin := await PluginInfo.get_or_none(name__iexact=name):
         _plugin = nonebot.get_plugin_by_module_name(plugin.module_path)
         if _plugin and _plugin.metadata:
-            items = {
-                "简介": _plugin.metadata.description,
-                "用法": _plugin.metadata.usage,
-            }
-            return await ImageTemplate.hl_page(name, items)
+            items = None
+            if is_superuser:
+                extra = _plugin.metadata.extra
+                if usage := extra.get("superuser_help"):
+                    items = {
+                        "简介": _plugin.metadata.description,
+                        "用法": usage,
+                    }
+            else:
+                items = {
+                    "简介": _plugin.metadata.description,
+                    "用法": _plugin.metadata.usage,
+                }
+            if items:
+                return await ImageTemplate.hl_page(name, items)
         return "糟糕! 该功能没有帮助喔..."
     return "没有查找到这个功能噢..."

@@ -1,8 +1,9 @@
 from pathlib import Path
+from nonebot.adapters import Bot
 
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
-from nonebot_plugin_alconna import Alconna, Args, Match, on_alconna
+from nonebot_plugin_alconna import Alconna, AlconnaQuery, Args, Match, Option, Query, on_alconna, store_true
 from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
@@ -43,6 +44,7 @@ _matcher = on_alconna(
     Alconna(
         "功能",
         Args["name?", str],
+        Option("-s|--superuser", action=store_true, help_text="超级用户帮助")
     ),
     aliases={"help", "帮助"},
     rule=to_me(),
@@ -53,11 +55,18 @@ _matcher = on_alconna(
 
 @_matcher.handle()
 async def _(
+    bot: Bot,
     name: Match[str],
     session: EventSession,
+    is_superuser: Query[bool] = AlconnaQuery("superuser.value", False)
 ):
+    _is_superuser = False
+    if is_superuser.available:
+        _is_superuser = is_superuser.result
     if name.available:
-        if result := await get_plugin_help(name.result):
+        if _is_superuser and session.id1 not in bot.config.superusers:
+            _is_superuser = False
+        if result := await get_plugin_help(name.result, _is_superuser):
             if isinstance(result, BuildImage):
                 await Image(result.pic2bytes()).send(reply=True)
             else:

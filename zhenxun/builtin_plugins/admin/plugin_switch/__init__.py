@@ -32,22 +32,24 @@ __plugin_meta__ = PluginMetadata(
         关闭签到              : 关闭签到
         开启群被动早晚安       : 关闭被动任务早晚安
 
-    超级管理员额外命令
-        格式:
-        插件列表
-        开启/关闭[功能名称] ?[-t ["private", "p", "group", "g"](关闭类型)] ?[-g 群组Id]
-
-        私聊下:
-            示例:
-            开启签到                : 全局开启签到
-            关闭签到                : 全局关闭签到
-            关闭签到 p              : 全局私聊关闭签到
-            关闭签到 -g 12345678    : 关闭群组12345678的签到功能(普通管理员无法开启)
     """.strip(),
     extra=PluginExtraData(
         author="HibiKier",
         version="0.1",
         plugin_type=PluginType.SUPER_AND_ADMIN,
+        superuser_help="""
+        超级管理员额外命令
+            格式:
+            插件列表
+            开启/关闭[功能名称] ?[-t ["private", "p", "group", "g"](关闭类型)] ?[-g 群组Id]
+
+            私聊下:
+                示例:
+                开启签到                : 全局开启签到
+                关闭签到                : 全局关闭签到
+                关闭签到 p              : 全局私聊关闭签到
+                关闭签到 -g 12345678    : 关闭群组12345678的签到功能(普通管理员无法开启)
+        """,
         admin_level=base_config.get("CHANGE_GROUP_SWITCH_LEVEL", 2),
         configs=[
             RegisterConfig(

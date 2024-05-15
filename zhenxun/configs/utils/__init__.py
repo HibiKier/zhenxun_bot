@@ -194,6 +194,21 @@ class ConfigsManager:
                     f"**********************************************"
                 )
 
+    def set_name(self, module: str, name: str):
+        """设置插件配置中文名出
+
+        参数:
+            module: 模块名
+            name: 中文名称
+
+        异常:
+            ValueError: module不能为为空
+        """
+        if not module:
+            raise ValueError("set_name: module不能为为空")
+        if data := self._data.get(module):
+            data.name = name
+
     def add_plugin_config(
         self,
         module: str,
@@ -219,8 +234,8 @@ class ConfigsManager:
             _override: 强制覆盖值.
 
         异常:
-            ValueError: _description_
-            ValueError: _description_
+            ValueError: module和key不能为为空
+            ValueError: 填写错误
         """
 
         if not module or not key:
@@ -297,7 +312,7 @@ class ConfigsManager:
         if module in self._data.keys():
             config = self._data[module].configs.get(key)
             if not config:
-                config = self._data[module].configs.get(f"{key} [LEVEL]")
+                config = self._data[module].configs.get(key)
             if not config:
                 raise NoSuchConfig(
                     f"未查询到配置项 MODULE: [ {module} ] | KEY: [ {key} ]"

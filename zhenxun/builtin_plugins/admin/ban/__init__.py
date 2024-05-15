@@ -26,7 +26,7 @@ from ._data_source import BanManage
 base_config = Config.get("ban")
 
 __plugin_meta__ = PluginMetadata(
-    name="封禁用户/群组",
+    name="Ban",
     description="你被逮捕了！丢进小黑屋！封禁用户以及群组，屏蔽消息",
     usage="""
     普通管理员
@@ -37,8 +37,13 @@ __plugin_meta__ = PluginMetadata(
         ban @用户       : 永久拉黑用户
         ban @用户 100   : 拉黑用户100分钟
         unban @用户     : 从小黑屋中拉出来
-
-    超级管理员额外命令
+    """.strip(),
+    extra=PluginExtraData(
+        author="HibiKier",
+        version="0.1",
+        plugin_type=PluginType.SUPER_AND_ADMIN,
+        superuser_help="""
+        超级管理员额外命令
         格式:
         ban [At用户/用户Id] [时长]
         ban列表: 获取所有Ban数据
@@ -54,11 +59,7 @@ __plugin_meta__ = PluginMetadata(
 
             unban 123456789     : 从小黑屋中拉出来
             unban -g 999999     : 将群组9999999从小黑屋中拉出来
-    """.strip(),
-    extra=PluginExtraData(
-        author="HibiKier",
-        version="0.1",
-        plugin_type=PluginType.SUPER_AND_ADMIN,
+        """,
         admin_level=base_config.get("BAN_LEVEL", 5),
         configs=[
             RegisterConfig(
