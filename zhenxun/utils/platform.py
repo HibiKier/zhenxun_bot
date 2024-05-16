@@ -20,13 +20,208 @@ from nonebot_plugin_saa import (
     TargetQQPrivate,
     Text,
 )
+from pydantic import BaseModel
 
 from zhenxun.models.friend_user import FriendUser
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
 
 
+class UserData(BaseModel):
+
+    name: str
+    """昵称"""
+    card: str | None = None
+    """名片/备注"""
+    user_id: str
+    """用户id"""
+    group_id: str | None = None
+    """群组id"""
+    role: str | None = None
+    """角色"""
+    avatar_url: str | None = None
+    """头像url"""
+    join_time: int | None = None
+    """加入时间"""
+
+
 class PlatformUtils:
+
+    @classmethod
+    async def get_group_member_list(cls, bot: Bot, group_id: str) -> list[UserData]:
+        """获取群组/频道成员列表
+
+        参数:
+            bot: Bot
+            group_id: 群组/频道id
+
+        返回:
+            list[UserData]: 用户数据列表
+        """
+        if isinstance(bot, v11Bot):
+            if member_list := await bot.get_group_member_list(group_id=int(group_id)):
+                return [
+                    UserData(
+                        name=user["nickname"],
+                        card=user["card"],
+                        user_id=user["user_id"],
+                        group_id=user["group_id"],
+                        role=user["role"],
+                        join_time=user["join_time"],
+                    )
+                    for user in member_list
+                ]
+        if isinstance(bot, v12Bot):
+            if member_list := await bot.get_group_member_list(group_id=group_id):
+                return [
+                    UserData(
+                        name=user["user_name"],
+                        card=user["user_displayname"],
+                        user_id=user["user_id"],
+                        group_id=group_id,
+                    )
+                    for user in member_list
+                ]
+        if isinstance(bot, DodoBot):
+            if result_data := await bot.get_member_list(
+                island_source_id=group_id, page_size=100, max_id=0
+            ):
+                max_id = result_data.max_id
+                result_list = result_data.list
+                data_list = []
+                while max_id == 100:
+                    result_data = await bot.get_member_list(
+                        island_source_id=group_id, page_size=100, max_id=0
+                    )
+                    result_list += result_data.list
+                    max_id = result_data.max_id
+                for user in result_list:
+                    data_list.append(
+                        UserData(
+                            name=user.nick_name,
+                            card=user.personal_nick_name,
+                            avatar_url=user.avatar_url,
+                            user_id=user.dodo_source_id,
+                            group_id=user.island_source_id,
+                            join_time=int(user.join_time.timestamp()),
+                        )
+                    )
+                return data_list
+        if isinstance(bot, KaiheilaBot):
+            if result_data := await bot.guild_userList(guild_id=group_id):
+                if result_data.users:
+                    data_list = []
+                    for user in result_data.users:
+                        second = None
+                        if user.joined_at:
+                            second = int(user.joined_at / 1000)
+                        data_list.append(
+                            UserData(
+                                name=user.nickname or "",
+                                avatar_url=user.avatar,
+                                user_id=user.id_,  # type: ignore
+                                group_id=group_id,
+                                join_time=second,
+                            )
+                        )
+                    return data_list
+        if isinstance(bot, DiscordBot):
+            # TODO: discord获取用户
+            pass
+        return []
+
+    @classmethod
+    async def get_user(
+        cls, bot: Bot, user_id: str, group_id: str | None = None
+    ) -> UserData | None:
+        """获取用户信息
+
+        参数:
+            bot: Bot
+            user_id: 用户id
+            group_id: 群组/频道id.
+
+        返回:
+            UserData | None: 用户数据
+        """
+        if isinstance(bot, v11Bot):
+            if group_id:
+                if user := await bot.get_group_member_info(
+                    group_id=int(group_id), user_id=int(user_id)
+                ):
+                    return UserData(
+                        name=user["nickname"],
+                        card=user["card"],
+                        user_id=user["user_id"],
+                        group_id=user["group_id"],
+                        role=user["role"],
+                        join_time=user["join_time"],
+                    )
+            else:
+                if friend_list := await bot.get_friend_list():
+                    for f in friend_list:
+                        if f["user_id"] == int(user_id):
+                            return UserData(
+                                name=f["nickname"],
+                                card=f["remark"],
+                                user_id=f["user_id"],
+                            )
+        if isinstance(bot, v12Bot):
+            if group_id:
+                if user := await bot.get_group_member_info(
+                    group_id=group_id, user_id=user_id
+                ):
+                    return UserData(
+                        name=user["user_name"],
+                        card=user["user_displayname"],
+                        user_id=user["user_id"],
+                        group_id=group_id,
+                    )
+            else:
+                if friend_list := await bot.get_friend_list():
+                    for f in friend_list:
+                        if f["user_id"] == int(user_id):
+                            return UserData(
+                                name=f["user_name"],
+                                card=f["user_remark"],
+                                user_id=f["user_id"],
+                            )
+        if isinstance(bot, DodoBot):
+            if group_id:
+                if user := await bot.get_member_info(
+                    island_source_id=group_id, dodo_source_id=user_id
+                ):
+                    return UserData(
+                        name=user.nick_name,
+                        card=user.personal_nick_name,
+                        avatar_url=user.avatar_url,
+                        user_id=user.dodo_source_id,
+                        group_id=user.island_source_id,
+                        join_time=int(user.join_time.timestamp()),
+                    )
+            else:
+                # TODO: DoDo个人数据
+                pass
+        if isinstance(bot, KaiheilaBot):
+            if group_id:
+                if user := await bot.user_view(guild_id=group_id, user_id=user_id):
+                    second = None
+                    if user.joined_at:
+                        second = int(user.joined_at / 1000)
+                    return UserData(
+                        name=user.nickname or "",
+                        avatar_url=user.avatar,
+                        user_id=user_id,
+                        group_id=group_id,
+                        join_time=second,
+                    )
+            else:
+                # TODO: kaiheila用户详情
+                pass
+        if isinstance(bot, DiscordBot):
+            # TODO: discord获取用户
+            pass
+        return None
 
     @classmethod
     async def get_user_avatar(cls, user_id: str, platform: str) -> bytes | None:

@@ -72,7 +72,7 @@ class AsyncHttpx:
         cls,
         url: str,
         *,
-        data: Dict[str, str] | None = None,
+        data: Dict[str, Any] | None = None,
         content: Any = None,
         files: Any = None,
         verify: bool = True,
