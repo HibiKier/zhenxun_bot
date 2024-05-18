@@ -7,7 +7,7 @@ from typing import Awaitable, Callable
 from nonebot.utils import is_coroutine_callable
 
 from ._build_image import BuildImage, ColorAlias
-from ._build_mat import BuildMat
+from ._build_mat import BuildMat, MatType
 from ._image_template import ImageTemplate, RowStyle
 
 # TODO: text2image 长度错误
