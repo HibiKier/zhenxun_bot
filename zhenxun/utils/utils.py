@@ -9,6 +9,7 @@ import httpx
 import pypinyin
 import pytz
 
+from zhenxun.configs.config import Config
 from zhenxun.services.log import logger
 
 
@@ -165,3 +166,50 @@ async def get_group_avatar(gid: int | str) -> bytes | None:
             except Exception as e:
                 logger.error("获取群头像错误", "Util", target=gid)
     return None
+
+
+def change_pixiv_image_links(
+    url: str, size: str | None = None, nginx_url: str | None = None
+) -> str:
+    """根据配置改变图片大小和反代链接
+
+    参数:
+        url: 图片原图链接
+        size: 模式
+        nginx_url: 反代
+
+    返回:
+        str: url
+    """
+    if size == "master":
+        img_sp = url.rsplit(".", maxsplit=1)
+        url = img_sp[0]
+        img_type = img_sp[1]
+        url = url.replace("original", "master") + f"_master1200.{img_type}"
+    if not nginx_url:
+        nginx_url = Config.get_config("pixiv", "PIXIV_NGINX_URL")
+    if nginx_url:
+        url = (
+            url.replace("i.pximg.net", nginx_url)
+            .replace("i.pixiv.cat", nginx_url)
+            .replace("_webp", "")
+        )
+    return url
+
+
+def change_img_md5(path_file: str | Path) -> bool:
+    """改变图片MD5
+
+    参数:
+        path_file: 图片路径
+
+    返还:
+        bool: 是否修改成功
+    """
+    try:
+        with open(path_file, "a") as f:
+            f.write(str(int(time.time() * 1000)))
+        return True
+    except Exception as e:
+        logger.warning(f"改变图片MD5错误 Path：{path_file}", e=e)
+    return False

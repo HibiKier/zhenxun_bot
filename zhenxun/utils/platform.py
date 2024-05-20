@@ -1,3 +1,4 @@
+import random
 from typing import Awaitable, Callable, Literal, Set
 
 import httpx
@@ -20,11 +21,13 @@ from nonebot_plugin_saa import (
     TargetQQPrivate,
     Text,
 )
+from nonebot_plugin_saa.abstract_factories import Receipt
 from pydantic import BaseModel
 
 from zhenxun.models.friend_user import FriendUser
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
+from zhenxun.utils.exception import NotFindSuperuser
 
 
 class UserData(BaseModel):
@@ -46,6 +49,34 @@ class UserData(BaseModel):
 
 
 class PlatformUtils:
+
+    @classmethod
+    async def send_superuser(
+        cls,
+        bot: Bot,
+        message: str | MessageFactory | Text | Image,
+        superuser_id: str | None = None,
+    ) -> Receipt | None:
+        """发送消息给超级用户
+
+        参数:
+            bot: Bot
+            message: 消息
+            superuser_id: 指定超级用户id.
+
+        异常:
+            NotFindSuperuser: 未找到超级用户id
+
+        返回:
+            Receipt | None: Receipt
+        """
+        if not superuser_id:
+            platform = cls.get_platform(bot)
+            platform_superusers = bot.config.PLATFORM_SUPERUSERS.get(platform) or []
+            if not platform_superusers:
+                raise NotFindSuperuser()
+            superuser_id = random.choice(platform_superusers)
+        return await cls.send_message(bot, superuser_id, None, message)
 
     @classmethod
     async def get_group_member_list(cls, bot: Bot, group_id: str) -> list[UserData]:
@@ -277,7 +308,7 @@ class PlatformUtils:
         user_id: str | None,
         group_id: str | None,
         message: str | Text | MessageFactory | Image,
-    ) -> bool:
+    ) -> Receipt | None:
         """发送消息
 
         参数:
@@ -287,13 +318,12 @@ class PlatformUtils:
             message: 消息文本
 
         返回:
-            bool: 是否发送成功
+            Receipt | None: 是否发送成功
         """
         if target := cls.get_target(bot, user_id, group_id):
             send_message = Text(message) if isinstance(message, str) else message
-            await send_message.send_to(target, bot)
-            return True
-        return False
+            return await send_message.send_to(target, bot)
+        return None
 
     @classmethod
     async def update_group(cls, bot: Bot) -> int:
@@ -581,7 +611,10 @@ async def broadcast_group(
                         if is_continue:
                             continue
                         target = PlatformUtils.get_target(
-                            _bot, None, group.group_id, group.channel_id
+                            _bot,
+                            None,
+                            group.group_id,
+                            # , group.channel_id
                         )
                         if target:
                             _used_group.append(key)

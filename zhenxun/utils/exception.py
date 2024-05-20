@@ -36,3 +36,11 @@ class InsufficientGold(Exception):
     """
 
     pass
+
+
+class NotFindSuperuser(Exception):
+    """
+    未找到超级用户
+    """
+
+    pass

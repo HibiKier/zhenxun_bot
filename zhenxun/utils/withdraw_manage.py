@@ -64,7 +64,11 @@ class WithdrawManager:
 
     @classmethod
     async def withdraw_message(
-        cls, bot: Bot, message_id: str | int, time: int | None = None
+        cls,
+        bot: Bot,
+        message_id: str | int,
+        time: int | tuple[int, int] | None = None,
+        session: EventSession | None = None,
     ):
         """消息撤回
 
@@ -74,8 +78,24 @@ class WithdrawManager:
             time: 延迟时间
         """
         if time:
-            logger.debug(f"将在 {time}秒 内撤回消息ID: {message_id}", "WithdrawManager")
-            await asyncio.sleep(time)
+            gid = None
+            _time = 1
+            if isinstance(time, tuple):
+                if time[0] == 0:
+                    return
+                if session:
+                    gid = session.id3 or session.id2
+                if not gid and int(time[1]) not in [0, 2]:
+                    return
+                if gid and int(time[1]) not in [1, 2]:
+                    return
+                _time = time[0]
+            else:
+                _time = time
+            logger.debug(
+                f"将在 {_time}秒 内撤回消息ID: {message_id}", "WithdrawManager"
+            )
+            await asyncio.sleep(_time)
         if isinstance(bot, v11Bot):
             logger.debug(f"v11Bot 撤回消息ID: {message_id}", "WithdrawManager")
             await bot.delete_msg(message_id=int(message_id))
