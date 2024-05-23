@@ -1,6 +1,6 @@
 import copy
 from pathlib import Path
-from typing import Any, Callable, Dict, Type
+from typing import Any, Callable, Dict, Set, Type
 
 import cattrs
 from pydantic import BaseModel
@@ -163,6 +163,8 @@ class PluginExtraData(BaseModel):
     """技能被动"""
     superuser_help: str | None = None
     """超级用户帮助"""
+    aliases: Set[str] = set()
+    """额外名称"""
 
 
 class NoSuchConfig(Exception):

@@ -213,3 +213,20 @@ def change_img_md5(path_file: str | Path) -> bool:
     except Exception as e:
         logger.warning(f"改变图片MD5错误 Path：{path_file}", e=e)
     return False
+
+
+def is_valid_date(date_text: str, separator: str = "-") -> bool:
+    """日期是否合法
+
+    参数:
+        date_text: 日期
+        separator: 分隔符
+
+    返回:
+        bool: 日期是否合法
+    """
+    try:
+        datetime.strptime(date_text, f"%Y{separator}%m{separator}%d")
+        return True
+    except ValueError:
+        return False
