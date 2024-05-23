@@ -1,4 +1,3 @@
-from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, on_alconna
 from nonebot_plugin_saa import Text
@@ -30,7 +29,7 @@ __plugin_meta__ = PluginMetadata(
                 value=20,
                 help="搜索动漫返回的最大数量",
                 default_value=20,
-                type=10,
+                type=int,
             )
         ],
     ).dict(),
