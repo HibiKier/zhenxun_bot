@@ -1,16 +1,20 @@
 from asyncio.exceptions import TimeoutError
-from configs.config import Config
-from utils.http_utils import AsyncHttpx
-from services.log import logger
 
+from zhenxun.configs.config import Config
+from zhenxun.services.log import logger
+from zhenxun.utils.http_utils import AsyncHttpx
 
 url = "https://buff.163.com/api/market/goods"
 
 
-async def get_price(d_name: str) -> "str, int":
-    """
-    查看皮肤价格
-    :param d_name: 武器皮肤，如：awp 二西莫夫
+async def get_price(d_name: str) -> tuple[str, int]:
+    """查看皮肤价格
+
+    参数:
+        d_name: 武器皮肤，如：awp 二西莫夫
+
+    返回:
+        tuple[str, int]: 查询数据和状态
     """
     cookie = {"session": Config.get_config("search_buff_skin_price", "COOKIE")}
     name_list = []
