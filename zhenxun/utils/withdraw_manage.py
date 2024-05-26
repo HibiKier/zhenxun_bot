@@ -7,6 +7,7 @@ from nonebot.adapters.kaiheila import Bot as KaiheilaBot
 from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
 from nonebot_plugin_session import EventSession
+from ruamel.yaml.comments import CommentedSeq
 
 from zhenxun.services.log import logger
 
@@ -80,7 +81,7 @@ class WithdrawManager:
         if time:
             gid = None
             _time = 1
-            if isinstance(time, tuple):
+            if isinstance(time, (tuple, CommentedSeq)):
                 if time[0] == 0:
                     return
                 if session:

@@ -51,39 +51,39 @@ async def init():
     i_bind = bind
     if not i_bind:
         i_bind = f"{sql_name}://{user}:{password}@{address}:{port}/{database}"
-    # try:
-    await Tortoise.init(
-        db_url=i_bind,
-        modules={"models": MODELS},
-        # timezone="Asia/Shanghai"
-    )
-    logger.info(f"Database loaded successfully!")
-    # except Exception as e:
-    #     raise Exception(f"数据库连接错误... {type(e)}: {e}")
-    if SCRIPT_METHOD:
-        db = Tortoise.get_connection("default")
-        logger.debug(
-            f"即将运行SCRIPT_METHOD方法, 合计 <u><y>{len(SCRIPT_METHOD)}</y></u> 个..."
+    try:
+        await Tortoise.init(
+            db_url=i_bind,
+            modules={"models": MODELS},
+            # timezone="Asia/Shanghai"
         )
-        sql_list = []
-        for module, func in SCRIPT_METHOD:
-            try:
-                if is_coroutine_callable(func):
-                    sql = await func()
-                else:
-                    sql = func()
-                if sql:
-                    sql_list += sql
-            except Exception as e:
-                logger.debug(f"{module} 执行SCRIPT_METHOD方法出错...", e=e)
-        for sql in sql_list:
-            logger.debug(f"执行SQL: {sql}")
-            try:
-                await db.execute_query_dict(sql)
-                # await TestSQL.raw(sql)
-            except Exception as e:
-                logger.debug(f"执行SQL: {sql} 错误...", e=e)
-    await Tortoise.generate_schemas()
+        if SCRIPT_METHOD:
+            db = Tortoise.get_connection("default")
+            logger.debug(
+                f"即将运行SCRIPT_METHOD方法, 合计 <u><y>{len(SCRIPT_METHOD)}</y></u> 个..."
+            )
+            sql_list = []
+            for module, func in SCRIPT_METHOD:
+                try:
+                    if is_coroutine_callable(func):
+                        sql = await func()
+                    else:
+                        sql = func()
+                    if sql:
+                        sql_list += sql
+                except Exception as e:
+                    logger.debug(f"{module} 执行SCRIPT_METHOD方法出错...", e=e)
+            for sql in sql_list:
+                logger.debug(f"执行SQL: {sql}")
+                try:
+                    await db.execute_query_dict(sql)
+                    # await TestSQL.raw(sql)
+                except Exception as e:
+                    logger.debug(f"执行SQL: {sql} 错误...", e=e)
+        await Tortoise.generate_schemas()
+        logger.info(f"Database loaded successfully!")
+    except Exception as e:
+        raise Exception(f"数据库连接错误...", e=e)
 
 
 async def disconnect():

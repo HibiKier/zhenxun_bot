@@ -38,6 +38,7 @@ beautifulsoup4 = "^4.12.3"
 lxml = "^5.1.0"
 psutil = "^5.9.8"
 feedparser = "^6.0.11"
+opencv-python = "^4.9.0.80"
 
 [tool.poetry.dev-dependencies]
 
