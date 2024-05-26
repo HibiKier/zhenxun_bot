@@ -135,7 +135,7 @@ async def _generate_card(
     )
     if next_impression == 0:
         ratio = 0
-    await bar.resize(width=int(bar.width * ratio) or bar.width, height=bar.height)
+    await bar.resize(width=int(bar.width * ratio) or 1, height=bar.height)
     await bar_bk.paste(bar)
     font_size = 30
     if "好感度双倍加持卡" in gift:
@@ -163,7 +163,7 @@ async def _generate_card(
     nickname_img = await BuildImage.build_text_image(
         nickname, size=50, font_color=(255, 255, 255)
     )
-    user_console = await user.user_console.first()
+    user_console = await user.user_console
     if user_console and user_console.uid:
         uid = f"{user_console.uid}".rjust(12, "0")
         uid = uid[:4] + " " + uid[4:8] + " " + uid[8:]
@@ -188,7 +188,7 @@ async def _generate_card(
         today_sign_text_img = await BuildImage.build_text_image("", size=30)
         value_list = (
             await SignUser.annotate()
-            .order_by("impression")
+            .order_by("-impression")
             .values_list("user_id", flat=True)
         )
         index = value_list.index(user.user_id) + 1  # type: ignore
