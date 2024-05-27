@@ -33,7 +33,7 @@ class BuildMatData(BaseModel):
     """显示轴坐标值"""
     y_index: list[int | float] = []
     """数据轴坐标值"""
-    space: tuple[int, int] = (15, 15)
+    space: tuple[int, int] = (20, 20)
     """坐标值间隔(X, Y)"""
     rotate: tuple[int, int] = (0, 0)
     """坐标值旋转(X, Y)"""
@@ -68,9 +68,13 @@ class BuildMat:
         mark_image: BuildImage
         """BuildImage"""
         x_height: int
-        """横坐标高度"""
+        """横坐标开始高度"""
+        y_width: int
+        """纵坐标开始宽度"""
         x_point: list[int]
         """横坐标坐标"""
+        y_point: list[int]
+        """纵坐标坐标"""
         graph_height: int
         """坐标轴高度"""
 
@@ -233,9 +237,9 @@ class BuildMat:
                     else:
                         raise ValueError("y轴坐标值必须有序...")
 
-    async def build(self):
+    async def build(self) -> BuildImage:
         """构造图片"""
-        A = None
+        A = BuildImage(1, 1)
         bar_color = self.build_data.bar_color
         if "*" in bar_color:
             bar_color = [
@@ -252,12 +256,12 @@ class BuildMat:
         if self.build_data.mat_type == MatType.LINE:
             mark_image = await self._build_line_graph(init_graph, bar_color)
         if self.build_data.mat_type == MatType.BAR:
-            pass
+            mark_image = await self._build_bar_graph(init_graph, bar_color)
         if self.build_data.mat_type == MatType.BARH:
-            pass
+            mark_image = await self._build_barh_graph(init_graph, bar_color)
         if mark_image:
             padding_width, padding_height = self.build_data.padding
-            width = mark_image.width + padding_width * 2
+            width = mark_image.width + padding_width
             height = mark_image.height + padding_height * 2
             if self.build_data.background:
                 if isinstance(self.build_data.background, bytes):
@@ -269,7 +273,7 @@ class BuildMat:
             else:
                 A = BuildImage(width, height, self.build_data.background_color)
             if A:
-                await A.paste(mark_image, (padding_width, padding_height))
+                await A.paste(mark_image, (10, padding_height))
                 if self.build_data.title:
                     font = BuildImage.load_font(
                         self.build_data.font, self.build_data.font_size + 7
@@ -305,108 +309,169 @@ class BuildMat:
         padding_width = 0
         padding_height = 0
         font = BuildImage.load_font(self.build_data.font, self.build_data.font_size)
-        width_list = []
-        height_list = []
+        x_width_list = []
+        y_height_list = []
         for x in self.build_data.x_index:
             text_size = BuildImage.get_text_size(x, font)
             if text_size[1] > padding_height:
                 padding_height = text_size[1]
-            width_list.append(text_size[0])
+            x_width_list.append(text_size)
         if not self.build_data.y_index:
             """没有指定y_index时，使用data自动生成"""
             max_num = max(self.build_data.data)
+            if max_num < 5:
+                max_num = 5
             s = int(max_num / 5)
             _y_index = [max_num]
             for _n in range(4):
                 max_num -= s
                 _y_index.append(max_num)
             _y_index.sort()
-            self.build_data.y_index = _y_index
+            # if len(_y_index) > 1:
+            #     if _y_index[0] == _y_index[-1]:
+            #         _tmp = ["_" for _ in range(len(_y_index) - 1)]
+            #         _tmp.append(str(_y_index[0]))
+            #         _y_index = _tmp
+            self.build_data.y_index = _y_index  # type: ignore
         for item in self.build_data.y_index:
             text_size = BuildImage.get_text_size(str(item), font)
             if text_size[0] > padding_width:
                 padding_width = text_size[0]
-            height_list.append(text_size[1])
-        width = (
-            sum([w + self.build_data.space[0] for w in width_list])
-            + height_list[0]
-            + self.build_data.space[0] * 2
-            + 20
-        )
+            y_height_list.append(text_size)
+        if self.build_data.mat_type == MatType.BARH:
+            _tmp = x_width_list
+            x_width_list = y_height_list
+            y_height_list = _tmp
+        old_space = self.build_data.space
+        width = padding_width * 2 + self.build_data.space[0] * 2 + 20
         height = (
-            sum([h + self.build_data.space[1] for h in height_list])
+            sum([h[1] + self.build_data.space[1] for h in y_height_list])
             + self.build_data.space[1] * 2
             + 30
         )
+        _x_index = self.build_data.x_index
+        _y_index = self.build_data.y_index
+        _barh_max_text_width = 0
         if self.build_data.mat_type == MatType.BARH:
-            """横向柱状图时xy轴长度调换"""
-            _tmp = height
-            height = width
-            width = _tmp
+            """XY轴下标互换"""
+            _tmp = _y_index
+            _y_index = _x_index
+            _x_index = _tmp
+            """额外增加字体宽度"""
+            for s in self.build_data.x_index:
+                s_w, s_h = BuildImage.get_text_size(s, font)
+                if s_w > _barh_max_text_width:
+                    _barh_max_text_width = s_w
+            width += _barh_max_text_width
+            width += self.build_data.space[0] * 2 - old_space[0] * 2
+            """X轴重新等均分配"""
+            x_length = width - padding_width * 2 - _barh_max_text_width
+            x_space = int((x_length - 20) / (len(_x_index) + 1))
+            if x_space < 50:
+                """加大间距更加美观"""
+                x_space = 50
+            self.build_data.space = (x_space, self.build_data.space[1])
+            width += self.build_data.space[0] * (len(_x_index) - 1)
+        else:
+            """非横向柱状图时加字体宽度"""
+            width += sum([w[0] + self.build_data.space[0] for w in x_width_list])
+
         A = BuildImage(
-            width,
+            width + 5,
             (height + 10),
+            # color=(255, 255, 255),
             color=(255, 255, 255, 0),
         )
         padding_height += 5
+        """高"""
         await A.line(
             (
-                padding_width + 5,
+                padding_width + 5 + _barh_max_text_width,
                 padding_height,
-                padding_width + 5,
+                padding_width + 5 + _barh_max_text_width,
                 height - padding_height,
             ),
             width=2,
         )
+        """长"""
         await A.line(
             (
-                padding_width + 5,
+                padding_width + 5 + _barh_max_text_width,
                 height - padding_height,
                 width - padding_width + 5,
                 height - padding_height,
             ),
             width=2,
         )
-        _x_index = self.build_data.x_index
-        _y_index = self.build_data.y_index
-        if self.build_data.mat_type == MatType.BARH:
-            _tmp = _y_index
-            _y_index = _x_index
-            _x_index = _tmp
-        cur_width = padding_width + self.build_data.space[0] * 2
-        cur_height = height - height_list[0] - 5
+        x_cur_width = (
+            padding_width + _barh_max_text_width + self.build_data.space[0] + 5
+        )
+        if self.build_data.mat_type != MatType.BARH:
+            """添加字体宽度"""
+            x_cur_width += x_width_list[0][0]
+        x_cur_height = height - y_height_list[0][1] - 5
+        # await A.point((x_cur_width, x_cur_height), (0, 0, 0))
         x_point = []
         for i, _x in enumerate(_x_index):
             """X轴数值"""
-            grid_height = cur_height
+            grid_height = x_cur_height
             if self.build_data.is_grid:
                 grid_height = padding_height
-            await A.line((cur_width, cur_height - 1, cur_width, grid_height - 5))
-            x_point.append(cur_width - 1)
-            mid_point = cur_width - int(width_list[i] / 2)
-            await A.text((mid_point, cur_height), str(_x), font=font)
-            cur_width += width_list[i] + self.build_data.space[0]
-        cur_width = padding_width
-        cur_height = height - self.build_data.padding[1]
+            await A.line(
+                (
+                    x_cur_width,
+                    x_cur_height - 1,
+                    x_cur_width,
+                    grid_height - 5,
+                )
+            )
+            x_point.append(x_cur_width - 1)
+            mid_point = x_cur_width - int(x_width_list[i][0] / 2)
+            await A.text((mid_point, x_cur_height), str(_x), font=font)
+            x_cur_width += self.build_data.space[0]
+            if self.build_data.mat_type != MatType.BARH:
+                """添加字体宽度"""
+                x_cur_width += x_width_list[i][0]
+        y_cur_width = padding_width + _barh_max_text_width
+        y_cur_height = height - self.build_data.padding[1] - 9
+        start_height = y_cur_height
+        # await A.point((y_cur_width, y_cur_height), (0, 0, 0))
+        y_point = []
         for i, _y in enumerate(_y_index):
             """Y轴数值"""
-            grid_width = cur_width
+            grid_width = y_cur_width
             if self.build_data.is_grid:
                 grid_width = width - padding_width + 5
-            await A.line((cur_width + 5, cur_height, grid_width + 11, cur_height))
+            y_point.append(y_cur_height)
+            await A.line((y_cur_width + 5, y_cur_height, grid_width + 11, y_cur_height))
             text_width = BuildImage.get_text_size(str(_y), font)[0]
             await A.text(
-                (cur_width - text_width, cur_height - int(height_list[i] / 2) - 3),
+                (
+                    y_cur_width - text_width,
+                    y_cur_height - int(y_height_list[i][1] / 2) - 3,
+                ),
                 str(_y),
                 font=font,
             )
-            cur_height -= height_list[i] + self.build_data.space[1]
-        graph_height = height - self.build_data.padding[1] - cur_height + 5
+            y_cur_height -= y_height_list[i][1] + self.build_data.space[1]
+        graph_height = 0
+        if self.build_data.mat_type == MatType.BARH:
+            graph_height = (
+                x_cur_width
+                - self.build_data.space[0]
+                - _barh_max_text_width
+                - padding_width
+                - 5
+            )
+        else:
+            graph_height = start_height - y_cur_height + 7
         return self.InitGraph(
             mark_image=A,
-            x_height=height - height_list[0] - 5,
+            x_height=height - y_height_list[0][1] - 5,
+            y_width=padding_width + 5 + _barh_max_text_width,
             graph_height=graph_height,
             x_point=x_point,
+            y_point=y_point,
         )
 
     async def _build_line_graph(
@@ -432,9 +497,9 @@ class BuildMat:
         point_list = []
         for x_p, y in zip(init_graph.x_point, self.build_data.data):
             """折线图标点"""
-            y_height = int(y / max_num * init_graph.graph_height)
-            await mark_image.paste(_black_point, (x_p, x_height - y_height))
-            point_list.append((x_p + 4, x_height - y_height + 4))
+            y_height = int(y / max_num * graph_height)
+            await mark_image.paste(_black_point, (x_p - 3, x_height - y_height))
+            point_list.append((x_p + 1, x_height - y_height + 1))
         for i in range(len(point_list) - 1):
             """画线"""
             a_x, a_y = point_list[i]
@@ -462,8 +527,41 @@ class BuildMat:
         )
         return mark_image
 
-    async def _build_bar_graph(self):
+    async def _build_bar_graph(self, init_graph: InitGraph, bar_color: list[str]):
+        """构建折线图
+
+        参数:
+            init_graph: InitGraph
+            bar_color: 颜色列表
+
+        返回:
+            BuildImage: 折线图
+        """
         pass
 
-    async def _build_barh_graph(self):
-        pass
+    async def _build_barh_graph(self, init_graph: InitGraph, bar_color: list[str]):
+        """构建折线图
+
+        参数:
+            init_graph: InitGraph
+            bar_color: 颜色列表
+
+        返回:
+            BuildImage: 横向柱状图
+        """
+        font = BuildImage.load_font(self.build_data.font, self.build_data.font_size)
+        mark_image = init_graph.mark_image
+        y_width = init_graph.y_width
+        graph_height = init_graph.graph_height
+        random_color = random.choice(bar_color)
+        max_num = max(self.y_index)
+        for y_p, y in zip(init_graph.y_point, self.build_data.data):
+            bar_width = int(y / max_num * graph_height)
+            bar = BuildImage(bar_width, 18, random_color)
+            await mark_image.paste(bar, (y_width + 1, y_p - 9))
+            if self.build_data.display_num:
+                """显示数值"""
+                await mark_image.text(
+                    (y_width + bar_width + 5, y_p - 12), str(y), font=font
+                )
+        return mark_image

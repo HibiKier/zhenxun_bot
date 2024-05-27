@@ -189,7 +189,7 @@ async def _(
         if result := SetuManage.get_luo(float(user.impression)):
             await result.finish()
     is_r18 = arparma.find("r")
-    _num = num.result
+    _num = num.result if num.available else 1
     if is_r18 and gid:
         """群聊中禁止查看r18"""
         if not base_config.get("ALLOW_GROUP_R18"):

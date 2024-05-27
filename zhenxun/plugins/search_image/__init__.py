@@ -50,15 +50,6 @@ async def get_image_info(mod: str, url: str) -> str | list[Image | Text] | None:
         return await get_saucenao_image(url)
 
 
-# def parse_image(key: str):
-#     async def _key_parser(state: T_State, img: Message = Arg(key)):
-#         if not get_message_img(img):
-#             await search_image.reject_arg(key, "请发送要识别的图片！")
-#         state[key] = img
-
-#     return _key_parser
-
-
 @_matcher.handle()
 async def _(mode: Match[str], img: Match[alcImg]):
     if mode.available:
