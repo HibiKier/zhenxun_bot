@@ -4,7 +4,7 @@ from typing import Tuple
 from nonebot.adapters import Bot
 from nonebot.params import RegexGroup
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, on_alconna
+from nonebot_plugin_alconna import Alconna, Args, Arparma, on_alconna
 from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
