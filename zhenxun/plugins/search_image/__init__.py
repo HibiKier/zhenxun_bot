@@ -51,13 +51,13 @@ async def get_image_info(mod: str, url: str) -> str | list[Image | Text] | None:
 
 
 @_matcher.handle()
-async def _(mode: Match[str], img: Match[alcImg]):
+async def _(mode: Match[str], image: Match[alcImg]):
     if mode.available:
         _matcher.set_path_arg("mode", mode.result)
     else:
         _matcher.set_path_arg("mode", "saucenao")
-    if img.available:
-        _matcher.set_path_arg("image", img.result)
+    if image.available:
+        _matcher.set_path_arg("image", image.result)
 
 
 @_matcher.got_path("image", prompt="图来！")
