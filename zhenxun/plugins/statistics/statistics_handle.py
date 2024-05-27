@@ -1,7 +1,3 @@
-import asyncio
-import os
-
-import ujson as json
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import (
     Alconna,
@@ -15,12 +11,8 @@ from nonebot_plugin_alconna import (
 from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.path_config import DATA_PATH, IMAGE_PATH
 from zhenxun.configs.utils import PluginExtraData
-from zhenxun.models.group_info import GroupInfo
-from zhenxun.utils.depends import OneCommand
 from zhenxun.utils.enum import PluginType
-from zhenxun.utils.image_utils import BuildMat
 
 from ._data_source import StatisticsManage
 
