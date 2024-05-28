@@ -5,7 +5,10 @@ from pathlib import Path
 from typing import Awaitable, Callable
 
 import cv2
+import imagehash
+from imagehash import ImageHash
 from nonebot.utils import is_coroutine_callable
+from PIL import Image
 
 from zhenxun.configs.path_config import IMAGE_PATH
 
@@ -364,3 +367,17 @@ def compressed_image(
         cv2.imread(str(in_file.absolute())), (int(w * ratio), int(h * ratio))
     )
     cv2.imwrite(str(out_file.absolute()), img)
+
+
+def get_img_hash(image_file: str | Path) -> str:
+    """获取图片的hash值
+
+    参数:
+        image_file: 图片文件路径
+
+    返回:
+        str: 哈希值
+    """
+    with open(image_file, "rb") as fp:
+        hash_value = imagehash.average_hash(Image.open(fp))
+    return str(hash_value)
