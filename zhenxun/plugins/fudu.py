@@ -15,7 +15,7 @@ from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.http_utils import AsyncHttpx
-from zhenxun.utils.image_utils import get_img_hash
+from zhenxun.utils.image_utils import get_download_image_hash, get_img_hash
 from zhenxun.utils.rules import ensure_group
 
 __plugin_meta__ = PluginMetadata(
@@ -91,7 +91,7 @@ class Fudu:
 
 
 _manage = Fudu()
- 
+
 
 _matcher = on_message(rule=ensure_group, priority=999)
 
@@ -115,7 +115,7 @@ async def _(message: UniMsg, event: Event, session: EventSession):
     if plain_text and plain_text.startswith(f"@可爱的{NICKNAME}"):
         await Text("复制粘贴的虚空艾特？").send(reply=True)
     if image_list:
-        img_hash = await get_fudu_img_hash(image_list[0], group_id)
+        img_hash = await get_download_image_hash(image_list[0], group_id)
     else:
         img_hash = ""
     add_msg = plain_text + "|-|" + img_hash
@@ -147,26 +147,3 @@ async def _(message: UniMsg, event: Event, session: EventSession):
                 rst = Text(plain_text)
             if rst:
                 await rst.finish()
-
-
-async def get_fudu_img_hash(url: str, group_id: str) -> str:
-    """下载图片获取哈希值
-
-    参数:
-        url: 图片url
-        group_id: 群组id
-
-    返回:
-        str: 哈希值
-    """
-    try:
-        if await AsyncHttpx.download_file(
-            url, TEMP_PATH / f"compare_{group_id}_img.jpg"
-        ):
-            img_hash = get_img_hash(TEMP_PATH / f"compare_{group_id}_img.jpg")
-            return str(img_hash)
-        else:
-            logger.warning(f"复读下载图片失败...")
-    except Exception as e:
-        logger.warning(f"复读读取图片Hash出错 {type(e)}：{e}")
-    return ""

@@ -10,7 +10,9 @@ from imagehash import ImageHash
 from nonebot.utils import is_coroutine_callable
 from PIL import Image
 
-from zhenxun.configs.path_config import IMAGE_PATH
+from zhenxun.configs.path_config import IMAGE_PATH, TEMP_PATH
+from zhenxun.services.log import logger
+from zhenxun.utils.http_utils import AsyncHttpx
 
 from ._build_image import BuildImage, ColorAlias
 from ._build_mat import BuildMat, MatType
@@ -381,3 +383,24 @@ def get_img_hash(image_file: str | Path) -> str:
     with open(image_file, "rb") as fp:
         hash_value = imagehash.average_hash(Image.open(fp))
     return str(hash_value)
+
+
+async def get_download_image_hash(url: str, mark: str) -> str:
+    """下载图片获取哈希值
+
+    参数:
+        url: 图片url
+        mark: 随机标志符
+
+    返回:
+        str: 哈希值
+    """
+    try:
+        if await AsyncHttpx.download_file(
+            url, TEMP_PATH / f"compare_download_{mark}_img.jpg"
+        ):
+            img_hash = get_img_hash(TEMP_PATH / f"compare_download_{mark}_img.jpg")
+            return str(img_hash)
+    except Exception as e:
+        logger.warning(f"下载读取图片Hash出错", e=e)
+    return ""

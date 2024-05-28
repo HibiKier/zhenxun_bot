@@ -51,6 +51,23 @@ class UserData(BaseModel):
 class PlatformUtils:
 
     @classmethod
+    async def ban_user(cls, bot: Bot, user_id: str, group_id: str, duration: int):
+        """禁言
+
+        参数:
+            bot: Bot
+            user_id: 用户id
+            group_id: 群组id
+            duration: 禁言时长(分钟)
+        """
+        if isinstance(bot, v11Bot):
+            await bot.set_group_ban(
+                group_id=int(group_id),
+                user_id=int(user_id),
+                duration=duration * 60,
+            )
+
+    @classmethod
     async def send_superuser(
         cls,
         bot: Bot,
