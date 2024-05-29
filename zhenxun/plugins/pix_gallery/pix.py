@@ -223,9 +223,6 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, tags: Match[list[
         and gid
     ):
         for msg in msg_list:
-            # receipt = await PlatformUtils.send_message(
-            #     bot, None, group_id=gid, message=msg
-            # )
             receipt = await msg.send()
             if receipt:
                 message_id = receipt.extract_message_id().message_id
@@ -238,9 +235,6 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, tags: Match[list[
     else:
         for msg in msg_list:
             receipt = await msg.send()
-            # receipt = await PlatformUtils.send_message(
-            #     bot, session.id1, group_id=gid, message=msg
-            # )
             if receipt:
                 message_id = receipt.extract_message_id().message_id
                 await WithdrawManager.withdraw_message(
