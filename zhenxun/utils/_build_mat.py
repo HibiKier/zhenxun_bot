@@ -556,7 +556,7 @@ class BuildMat:
         random_color = random.choice(bar_color)
         max_num = max(self.y_index)
         for y_p, y in zip(init_graph.y_point, self.build_data.data):
-            bar_width = int(y / max_num * graph_height)
+            bar_width = int(y / max_num * graph_height) or 1
             bar = BuildImage(bar_width, 18, random_color)
             await mark_image.paste(bar, (y_width + 1, y_p - 9))
             if self.build_data.display_num:
