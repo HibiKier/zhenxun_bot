@@ -43,6 +43,12 @@ __plugin_meta__ = PluginMetadata(
             插件列表
             开启/关闭[功能名称] ?[-t ["private", "p", "group", "g"](关闭类型)] ?[-g 群组Id]
 
+            开启/关闭插件df[功能名称]: 开启/关闭指定插件进群默认状态
+            开启/关闭所有插件df: 开启/关闭所有插件进群默认状态
+            开启/关闭所有插件:
+                私聊中: 开启/关闭所有插件全局状态
+                群组中: 开启/关闭当前群组所有插件状态
+
             私聊下:
                 示例:
                 开启签到                : 全局开启签到
@@ -90,19 +96,69 @@ async def _(
     bot: Bot,
     session: EventSession,
     arparma: Arparma,
-    name: str,
+    plugin_name: Match[str],
     group: Match[str],
     task: Query[bool] = AlconnaQuery("task.value", False),
+    default_status: Query[bool] = AlconnaQuery("default.value", False),
+    all: Query[bool] = AlconnaQuery("all.value", False),
 ):
-    if gid := session.id3 or session.id2:
+    if not all.result and not plugin_name.available:
+        await Text("请输入功能名称").finish(reply=True)
+    name = plugin_name.result
+    gid = session.id3 or session.id2
+    if gid:
+        """群组中使用命令"""
         if task.result:
             result = await PluginManage.unblock_group_task(name, gid)
+            logger.info(f"开启群组被动 {name}", arparma.header_result, session=session)
         else:
-            result = await PluginManage.block_group_plugin(name, gid)
+            if session.id1 in bot.config.superusers and (
+                all.result or default_status.result
+            ):
+                if all.result:
+                    """所有插件"""
+                    result = await PluginManage.set_all_plugin_status(
+                        True, default_status.result, gid
+                    )
+                    logger.info(
+                        f"超级用户开启群组中全部功能",
+                        arparma.header_result,
+                        session=session,
+                    )
+                else:
+                    """单个插件的进群默认修改"""
+                    result = await PluginManage.set_default_status(name, True)
+                    logger.info(
+                        f"超级用户开启 {name} 功能进群默认开关",
+                        arparma.header_result,
+                        session=session,
+                    )
+            else:
+                result = await PluginManage.block_group_plugin(name, gid)
+                logger.info(f"开启功能 {name}", arparma.header_result, session=session)
         await Text(result).send(reply=True)
-        logger.info(f"开启功能 {name}", arparma.header_result, session=session)
     elif session.id1 in bot.config.superusers:
+        """私聊"""
         group_id = group.result if group.available else None
+        if all.result:
+            result = await PluginManage.set_all_plugin_status(
+                True, default_status.result, group_id
+            )
+            logger.info(
+                f"超级用户开启全部功能全局开关 {f'指定群组: {group_id}' if group_id else ''}",
+                arparma.header_result,
+                session=session,
+            )
+            await Text(result).finish(reply=True)
+        if default_status.result:
+            result = await PluginManage.set_default_status(name, True)
+            logger.info(
+                f"超级用户开启 {name} 功能进群默认开关",
+                arparma.header_result,
+                session=session,
+                target=group_id,
+            )
+            await Text(result).finish(reply=True)
         if task.result:
             result = await PluginManage.superuser_task_handle(name, group_id, True)
             await Text(result).send(reply=True)
@@ -128,20 +184,67 @@ async def _(
     bot: Bot,
     session: EventSession,
     arparma: Arparma,
-    name: str,
+    plugin_name: Match[str],
     block_type: Match[str],
     group: Match[str],
     task: Query[bool] = AlconnaQuery("task.value", False),
+    default_status: Query[bool] = AlconnaQuery("default.value", False),
+    all: Query[bool] = AlconnaQuery("all.value", False),
 ):
-    if gid := session.id3 or session.id2:
+    if not all.result and not plugin_name.available:
+        await Text("请输入功能名称").finish(reply=True)
+    name = plugin_name.result
+    gid = session.id3 or session.id2
+    if gid:
         if task.result:
             result = await PluginManage.block_group_task(name, gid)
         else:
-            result = await PluginManage.unblock_group_plugin(name, gid)
+            if session.id1 in bot.config.superusers and (
+                all.result or default_status.result
+            ):
+                if all.result:
+                    """所有插件"""
+                    result = await PluginManage.set_all_plugin_status(
+                        False, default_status.result, gid
+                    )
+                    logger.info(
+                        f"超级用户开启群组中全部功能",
+                        arparma.header_result,
+                        session=session,
+                    )
+                else:
+                    """单个插件的进群默认修改"""
+                    result = await PluginManage.set_default_status(name, False)
+                    logger.info(
+                        f"超级用户开启 {name} 功能进群默认开关",
+                        arparma.header_result,
+                        session=session,
+                    )
+            else:
+                result = await PluginManage.unblock_group_plugin(name, gid)
+                logger.info(f"关闭功能 {name}", arparma.header_result, session=session)
         await Text(result).send(reply=True)
-        logger.info(f"关闭功能 {name}", arparma.header_result, session=session)
     elif session.id1 in bot.config.superusers:
         group_id = group.result if group.available else None
+        if all.result:
+            result = await PluginManage.set_all_plugin_status(
+                False, default_status.result, group_id
+            )
+            logger.info(
+                f"超级用户关闭全部功能全局开关 {f'指定群组: {group_id}' if group_id else ''}",
+                arparma.header_result,
+                session=session,
+            )
+            await Text(result).finish(reply=True)
+        if default_status.result:
+            result = await PluginManage.set_default_status(name, False)
+            logger.info(
+                f"超级用户关闭 {name} 功能进群默认开关",
+                arparma.header_result,
+                session=session,
+                target=group_id,
+            )
+            await Text(result).finish(reply=True)
         if task.result:
             result = await PluginManage.superuser_task_handle(name, group_id, False)
             await Text(result).send(reply=True)

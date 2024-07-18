@@ -14,6 +14,7 @@ from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 
 from zhenxun.configs.utils import PluginCdBlock, PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
+from zhenxun.utils.depends import UserName
 
 from ._data_source import SignManage
 from .goods_register import driver
@@ -106,29 +107,23 @@ _sign_matcher.shortcut(
 
 @_sign_matcher.assign("$main")
 async def _(
-    session: EventSession, arparma: Arparma, user_info: UserInfo = EventUserInfo()
+    session: EventSession, arparma: Arparma, nickname: str = UserName()
 ):
-    nickname = (
-        user_info.user_displayname or user_info.user_remark or user_info.user_name
-    )
     if session.id1:
         if path := await SignManage.sign(session, nickname):
             logger.info("签到成功", arparma.header_result, session=session)
-            await Image(path).finish(reply=True)
+            await Image(path).finish()
     return Text("用户id为空...").send()
 
 
 @_sign_matcher.assign("my")
 async def _(
-    session: EventSession, arparma: Arparma, user_info: UserInfo = EventUserInfo()
+    session: EventSession, arparma: Arparma, nickname: str = UserName()
 ):
-    nickname = (
-        user_info.user_displayname or user_info.user_remark or user_info.user_name
-    )
     if session.id1:
         if image := await SignManage.sign(session, nickname, True):
             logger.info("查看我的签到", arparma.header_result, session=session)
-            await Image(image).finish(reply=True)
+            await Image(image).finish()
     return Text("用户id为空...").send()
 
 
@@ -137,11 +132,8 @@ async def _(
     session: EventSession,
     arparma: Arparma,
     num: int,
-    user_info: UserInfo = EventUserInfo(),
+    nickname: str = UserName()
 ):
-    nickname = (
-        user_info.user_displayname or user_info.user_remark or user_info.user_name
-    )
     if session.id1:
         if image := await SignManage.rank(session.id1, num):
             logger.info("查看签到排行", arparma.header_result, session=session)

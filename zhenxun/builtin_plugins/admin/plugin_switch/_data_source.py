@@ -146,7 +146,74 @@ async def build_task(group_id: str | None) -> BuildImage:
 class PluginManage:
 
     @classmethod
+    async def set_default_status(cls, plugin_name: str, status: bool) -> str:
+        """设置插件进群默认状态
+
+        参数:
+            plugin_name: 插件名称
+            status: 状态
+
+        返回:
+            str: 返回信息
+        """
+        if plugin_name.isdigit():
+            plugin = await PluginInfo.get_or_none(id=int(plugin_name))
+        else:
+            plugin = await PluginInfo.get_or_none(name=plugin_name)
+        if plugin:
+            plugin.default_status = status
+            await plugin.save(update_fields=["default_status"])
+            return f'成功将 {plugin.name} 进群默认状态修改为: {"开启" if status else "关闭"}'
+        return f"没有找到这个功能喔..."
+
+    @classmethod
+    async def set_all_plugin_status(
+        cls, status: bool, is_default: bool = False, group_id: str | None = None
+    ) -> str:
+        """修改所有插件状态
+
+        参数:
+            status: 状态
+            is_default: 是否进群默认.
+            group_id: 指定群组id.
+
+        返回:
+            str: 返回信息
+        """
+        if is_default:
+            await PluginInfo.filter(plugin_type=PluginType.NORMAL).update(
+                default_status=status
+            )
+            return f'成功将所有功能进群默认状态修改为: {"开启" if status else "关闭"}'
+        if group_id:
+            if group := await GroupConsole.get_or_none(
+                group_id=group_id, channel_id__isnull=True
+            ):
+                if status:
+                    group.block_plugin = ""
+                else:
+                    module_list = await PluginInfo.filter(
+                        plugin_type=PluginType.NORMAL
+                    ).values_list("module", flat=True)
+                    group.block_plugin = ",".join(module_list) + ","  # type: ignore
+                await group.save(update_fields=["block_plugin"])
+                return f'成功将此群组所有功能状态修改为: {"开启" if status else "关闭"}'
+            return "获取群组失败..."
+        await PluginInfo.filter(plugin_type=PluginType.NORMAL).update(
+            status=status, block_type=BlockType.ALL if not status else None
+        )
+        return f'成功将所有功能全局状态修改为: {"开启" if status else "关闭"}'
+
+    @classmethod
     async def is_wake(cls, group_id: str) -> bool:
+        """是否醒来
+
+        参数:
+            group_id: 群组id
+
+        返回:
+            bool: 是否醒来
+        """
         if c := await GroupConsole.get_or_none(
             group_id=group_id, channel_id__isnull=True
         ):
@@ -155,22 +222,42 @@ class PluginManage:
 
     @classmethod
     async def sleep(cls, group_id: str):
+        """休眠
+
+        参数:
+            group_id: 群组id
+        """
         await GroupConsole.filter(group_id=group_id, channel_id__isnull=True).update(
             status=False
         )
 
     @classmethod
     async def wake(cls, group_id: str):
+        """醒来
+
+        参数:
+            group_id: 群组id
+        """
         await GroupConsole.filter(group_id=group_id, channel_id__isnull=True).update(
             status=True
         )
 
     @classmethod
     async def block(cls, module: str):
+        """禁用
+
+        参数:
+            module: 模块名
+        """
         await PluginInfo.filter(module=module).update(status=False)
 
     @classmethod
     async def unblock(cls, module: str):
+        """启用
+
+        参数:
+            module: 模块名
+        """
         await PluginInfo.filter(module=module).update(status=True)
 
     @classmethod

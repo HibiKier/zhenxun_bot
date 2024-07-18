@@ -14,9 +14,11 @@ _status_matcher = on_alconna(
     Alconna(
         "switch",
         Option("-t|--task", action=store_true, help_text="被动技能"),
+        Option("-df|--default", action=store_true, help_text="进群默认开关"),
+        Option("--all", action=store_true, help_text="全部插件"),
         Subcommand(
             "open",
-            Args["name", [str, int]],
+            Args["plugin_name?", [str, int]],
             Option(
                 "-g|--group",
                 Args["group", str],
@@ -24,7 +26,7 @@ _status_matcher = on_alconna(
         ),
         Subcommand(
             "close",
-            Args["name", [str, int]],
+            Args["plugin_name?", [str, int]],
             Option(
                 "-t|--type",
                 Args["block_type", ["all", "a", "private", "p", "group", "g"]],
@@ -73,16 +75,60 @@ _status_matcher.shortcut(
 
 
 _status_matcher.shortcut(
+    r"开启所有插件",
+    command="switch",
+    arguments=["open", "s", "--all"],
+    prefix=True,
+)
+
+_status_matcher.shortcut(
+    r"开启所有插件df",
+    command="switch",
+    arguments=["open", "s", "-df", "--all"],
+    prefix=True,
+)
+
+_status_matcher.shortcut(
+    r"开启插件df(?P<name>.+)",
+    command="switch",
+    arguments=["open", "{name}", "-df"],
+    prefix=True,
+)
+
+_status_matcher.shortcut(
     r"开启(?P<name>.+)",
     command="switch",
     arguments=["open", "{name}"],
     prefix=True,
 )
 
+
 _status_matcher.shortcut(
     r"关闭群被动(?P<name>.+)",
     command="switch",
     arguments=["close", "{name}", "--task"],
+    prefix=True,
+)
+
+
+_status_matcher.shortcut(
+    r"关闭所有插件",
+    command="switch",
+    arguments=["close", "s", "--all"],
+    prefix=True,
+)
+
+_status_matcher.shortcut(
+    r"关闭所有插件df",
+    command="switch",
+    arguments=["close", "s", "-df", "--all"],
+    prefix=True,
+)
+
+_status_matcher.shortcut(
+    r"关闭插件df(?P<name>.+)",
+    command="switch",
+    arguments=["close", "{name}", "-df"],
     prefix=True,
 )
 
@@ -92,7 +138,6 @@ _status_matcher.shortcut(
     arguments=["close", "{name}"],
     prefix=True,
 )
-
 
 _group_status_matcher.shortcut(
     r"醒来",

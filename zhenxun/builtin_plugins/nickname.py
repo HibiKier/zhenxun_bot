@@ -18,6 +18,7 @@ from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.friend_user import FriendUser
 from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.services.log import logger
+from zhenxun.utils.depends import UserName
 from zhenxun.utils.enum import PluginType
 
 __plugin_meta__ = PluginMetadata(
@@ -177,7 +178,7 @@ async def _(
 @_global_nickname_matcher.handle(parameterless=[CheckNickname()])
 async def _(
     session: EventSession,
-    user_info: UserInfo = EventUserInfo(),
+    nickname: str = UserName(),
     reg_group: tuple[Any, ...] = RegexGroup(),
 ):
     if session.id1:
@@ -185,7 +186,7 @@ async def _(
         await FriendUser.set_user_nickname(
             session.id1,
             name,
-            user_info.user_displayname or user_info.user_remark or user_info.user_name,
+            nickname,
             session.platform,
         )
         await GroupInfoUser.filter(user_id=session.id1).update(nickname=name)

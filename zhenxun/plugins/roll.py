@@ -11,6 +11,7 @@ from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 from zhenxun.configs.config import NICKNAME
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
+from zhenxun.utils.depends import UserName
 
 __plugin_meta__ = PluginMetadata(
     name="roll",
@@ -34,14 +35,11 @@ _matcher = on_command("roll", priority=5, block=True)
 async def _(
     session: EventSession,
     message: UniMsg,
-    user_info: UserInfo = EventUserInfo(),
+    user_name: str = UserName(),
 ):
     text = message.extract_plain_text().strip().replace("roll", "", 1).split()
     if not text:
         await Text(f"roll: {random.randint(0, 100)}").finish(reply=True)
-    user_name = (
-        user_info.user_displayname or user_info.user_remark or user_info.user_name
-    )
     await Text(
         random.choice(
             [

@@ -40,6 +40,7 @@ psutil = "^5.9.8"
 feedparser = "^6.0.11"
 opencv-python = "^4.9.0.80"
 imagehash = "^4.3.1"
+black = "^24.4.2"
 
 [tool.poetry.dev-dependencies]
 
