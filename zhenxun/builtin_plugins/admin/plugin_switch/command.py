@@ -37,14 +37,14 @@ _status_matcher = on_alconna(
             ),
         ),
     ),
-    rule=admin_check("admin_bot_manage", "CHANGE_GROUP_SWITCH_LEVEL"),
+    rule=admin_check("plugin_switch", "CHANGE_GROUP_SWITCH_LEVEL"),
     priority=5,
     block=True,
 )
 
 _group_status_matcher = on_alconna(
     Alconna("group-status", Args["status", ["sleep", "wake"]]),
-    rule=admin_check("admin_bot_manage", "CHANGE_GROUP_SWITCH_LEVEL")
+    rule=admin_check("plugin_switch", "CHANGE_GROUP_SWITCH_LEVEL")
     & ensure_group
     & to_me(),
     priority=5,
@@ -75,21 +75,21 @@ _status_matcher.shortcut(
 
 
 _status_matcher.shortcut(
-    r"开启所有插件",
+    r"开启所有(插件|功能)",
     command="switch",
     arguments=["open", "s", "--all"],
     prefix=True,
 )
 
 _status_matcher.shortcut(
-    r"开启所有插件df",
+    r"开启所有(插件|功能)df",
     command="switch",
     arguments=["open", "s", "-df", "--all"],
     prefix=True,
 )
 
 _status_matcher.shortcut(
-    r"开启插件df(?P<name>.+)",
+    r"开启(插件|功能)df(?P<name>.+)",
     command="switch",
     arguments=["open", "{name}", "-df"],
     prefix=True,
@@ -112,21 +112,21 @@ _status_matcher.shortcut(
 
 
 _status_matcher.shortcut(
-    r"关闭所有插件",
+    r"关闭所有(插件|功能)",
     command="switch",
     arguments=["close", "s", "--all"],
     prefix=True,
 )
 
 _status_matcher.shortcut(
-    r"关闭所有插件df",
+    r"关闭所有(插件|功能)df",
     command="switch",
     arguments=["close", "s", "-df", "--all"],
     prefix=True,
 )
 
 _status_matcher.shortcut(
-    r"关闭插件df(?P<name>.+)",
+    r"关闭(插件|功能)df(?P<name>.+)",
     command="switch",
     arguments=["close", "{name}", "-df"],
     prefix=True,
