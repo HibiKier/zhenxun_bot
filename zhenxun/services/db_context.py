@@ -80,10 +80,12 @@ async def init():
                     # await TestSQL.raw(sql)
                 except Exception as e:
                     logger.debug(f"执行SQL: {sql} 错误...", e=e)
+            if sql_list:
+                logger.debug("SCRIPT_METHOD方法执行完毕!")
         await Tortoise.generate_schemas()
         logger.info(f"Database loaded successfully!")
     except Exception as e:
-        raise Exception(f"数据库连接错误...", e=e)
+        raise Exception(f"数据库连接错误...")
 
 
 async def disconnect():

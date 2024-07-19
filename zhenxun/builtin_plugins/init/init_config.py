@@ -4,8 +4,7 @@ import nonebot
 from nonebot import get_loaded_plugins
 from nonebot.drivers import Driver
 from nonebot.plugin import Plugin
-from ruamel import yaml
-from ruamel.yaml import YAML, round_trip_dump, round_trip_load
+from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
 from zhenxun.configs.config import Config
