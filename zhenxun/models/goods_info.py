@@ -153,10 +153,6 @@ class GoodsInfo(Model):
 
     @classmethod
     async def _run_script(cls):
-        if goods_list := await cls.filter(uuid__isnull=True).all():
-            for goods in goods_list:
-                goods.uuid = uuid.uuid1()
-            await cls.bulk_update(goods_list, ["uuid"], 10)
         return [
             "ALTER TABLE goods_info ADD uuid VARCHAR(255);",
             "ALTER TABLE goods_info ADD daily_limit Integer DEFAULT 0;",

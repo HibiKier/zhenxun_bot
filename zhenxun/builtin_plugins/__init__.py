@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from nonebot import require
 from nonebot.drivers import Driver
@@ -57,6 +58,10 @@ from public.bag_users t1
 @driver.on_startup
 async def _():
     global flag
+    if goods_list := await GoodsInfo.filter(uuid__isnull=True).all():
+        for goods in goods_list:
+            goods.uuid = uuid.uuid1()  # type: ignore
+        await GoodsInfo.bulk_update(goods_list, ["uuid"], 10)
     await shop_register.load_register()
     if (
         flag
