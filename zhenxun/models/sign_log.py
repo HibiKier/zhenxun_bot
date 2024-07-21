@@ -10,7 +10,7 @@ class SignLog(Model):
 
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
-    user_id = fields.CharField(255, unique=True, description="用户id")
+    user_id = fields.CharField(255, description="用户id")
     """用户id"""
     impression = fields.DecimalField(10, 3, default=0, description="好感度")
     """好感度"""

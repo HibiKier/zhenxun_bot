@@ -69,7 +69,10 @@ class ConfigGroup(BaseModel):
     def get(self, c: str, default: Any = None) -> Any:
         cfg = self.configs.get(c)
         if cfg is not None:
-            return cfg.value
+            if cfg.value is not None:
+                return cfg.value
+            if cfg.default_value is not None:
+                return cfg.default_value
         return default
 
 

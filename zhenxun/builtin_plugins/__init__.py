@@ -54,7 +54,7 @@ from public.bag_users t1
 """
 
 
-# @driver.on_startup
+@driver.on_startup
 async def _():
     global flag
     await shop_register.load_register()

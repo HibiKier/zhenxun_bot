@@ -24,7 +24,7 @@ anime_data = json.load(open(DATA_PATH / "anime.json", "r", encoding="utf8"))
 
 async def get_chat_result(
     message: UniMsg, user_id: str, nickname: str
-) -> Text | MessageFactory:
+) -> Text | MessageFactory | None:
     """获取 AI 返回值，顺序： 特殊回复 -> 图灵 -> 青云客
 
     参数:
@@ -54,7 +54,7 @@ async def get_chat_result(
     if not rst:
         rst = await xie_ai(text)
     if not rst:
-        return no_result()
+        return None
     if nickname:
         if len(nickname) < 5:
             if random.random() < 0.5:

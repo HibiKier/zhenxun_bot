@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from zhenxun.configs.config import Config
 from zhenxun.configs.path_config import DATA_PATH
 
-base_config = Config.get("mute")
+base_config = Config.get("mute_setting")
 
 
 class GroupData(BaseModel):

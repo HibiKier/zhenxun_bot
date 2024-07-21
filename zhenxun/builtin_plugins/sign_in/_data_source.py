@@ -80,14 +80,14 @@ class SignManage:
 
     @classmethod
     async def sign(
-        cls, session: EventSession, nickname: str, is_view_card: bool = False
+        cls, session: EventSession, nickname: str, is_card_view: bool = False
     ) -> Path | None:
         """签到
 
         参数:
             session: Session
             nickname: 用户昵称
-            is_view_card: 是否展示卡片
+            is_card_view: 是否展示卡片
 
         返回:
             Path: 卡片路径
@@ -100,17 +100,15 @@ class SignManage:
             user_id=session.id1,
             defaults={"user_console": user_console, "platform": session.platform},
         )
-        new_log = await SignLog.filter(user_id=session.id1).first()
-        file_name = f"{user}_sign_{datetime.now().date()}.png"
-        if (
-            user.sign_count != 0
-            or (new_log and now > new_log.create_time)
-            or file_name in os.listdir(SIGN_TODAY_CARD_PATH)
-        ):
-            path = await get_card(user, nickname, -1, user_console.gold, "")
-        else:
-            path = await cls._handle_sign_in(user, nickname, session, is_view_card)
-        return path
+        new_log = (
+            await SignLog.filter(user_id=session.id1).order_by("-create_time").first()
+        )
+        if not is_card_view:
+            if not new_log or (new_log and new_log.create_time.date() != now.date()):
+                return await cls._handle_sign_in(user, nickname, session)
+        return await get_card(
+            user, nickname, -1, user_console.gold, "", is_card_view=is_card_view
+        )
 
     @classmethod
     async def _handle_sign_in(
@@ -118,7 +116,6 @@ class SignManage:
         user: SignUser,
         nickname: str,
         session: EventSession,
-        is_view_card: bool,
     ) -> Path:
         """签到处理
 
@@ -126,7 +123,6 @@ class SignManage:
             user: SignUser
             nickname: 用户昵称
             session: Session
-            is_view_card: 是否展示卡片
 
         返回:
             Path: 卡片路径
@@ -165,5 +161,4 @@ class SignManage:
             gold,
             gift,
             rand + add_probability > 0.97 or rand < specify_probability,
-            is_view_card,
         )

@@ -172,9 +172,8 @@ async def _generate_card(
     uid_img = await BuildImage.build_text_image(
         f"UID: {uid}", size=30, font_color=(255, 255, 255)
     )
-    sign_count = await SignLog.filter(user_id=user.user_id).count()
     sign_day_img = await BuildImage.build_text_image(
-        f"{sign_count}", size=40, font_color=(211, 64, 33)
+        f"{user.sign_count}", size=40, font_color=(211, 64, 33)
     )
     lik_text1_img = await BuildImage.build_text_image("当前", size=20)
     lik_text2_img = await BuildImage.build_text_image(
