@@ -79,31 +79,14 @@ async def _(
 ):
     if session.id1 in bot.config.superusers:
         image = await build_plugin()
-        await Image(image.pic2bytes()).send(reply=True)
         logger.info(
             f"查看功能列表",
             arparma.header_result,
             session=session,
         )
+        await Image(image.pic2bytes()).finish(reply=True)
     else:
-        await Text("权限不足捏...").send(reply=True)
-
-
-@_status_matcher.assign("task")
-async def _(
-    session: EventSession,
-    arparma: Arparma,
-):
-    image = await build_task(session.id3 or session.id2)
-    if image:
-        await Image(image.pic2bytes()).send(reply=True)
-        logger.info(
-            f"查看群被动列表",
-            arparma.header_result,
-            session=session,
-        )
-    else:
-        await Text("获取群被动任务失败...").send(reply=True)
+        await Text("权限不足捏...").finish(reply=True)
 
 
 @_status_matcher.assign("open")
@@ -151,7 +134,7 @@ async def _(
                     logger.info(
                         f"开启功能 {name}", arparma.header_result, session=session
                     )
-        await Text(result).send(reply=True)
+        await Text(result).finish(reply=True)
     elif session.id1 in bot.config.superusers:
         """私聊"""
         group_id = group.result if group.available else None
@@ -176,22 +159,22 @@ async def _(
             await Text(result).finish(reply=True)
         if task.result:
             result = await PluginManage.superuser_task_handle(name, group_id, True)
-            await Text(result).send(reply=True)
             logger.info(
                 f"超级用户开启被动技能 {name}",
                 arparma.header_result,
                 session=session,
                 target=group_id,
             )
+            await Text(result).finish(reply=True)
         else:
             result = await PluginManage.superuser_block(name, None, group_id)
-            await Text(result).send(reply=True)
             logger.info(
                 f"超级用户开启功能 {name}",
                 arparma.header_result,
                 session=session,
                 target=group_id,
             )
+            await Text(result).finish(reply=True)
 
 
 @_status_matcher.assign("close")
@@ -238,7 +221,7 @@ async def _(
                     logger.info(
                         f"关闭功能 {name}", arparma.header_result, session=session
                     )
-        await Text(result).send(reply=True)
+        await Text(result).finish(reply=True)
     elif session.id1 in bot.config.superusers:
         group_id = group.result if group.available else None
         if all.result:
@@ -262,13 +245,13 @@ async def _(
             await Text(result).finish(reply=True)
         if task.result:
             result = await PluginManage.superuser_task_handle(name, group_id, False)
-            await Text(result).send(reply=True)
             logger.info(
                 f"超级用户关闭被动技能 {name}",
                 arparma.header_result,
                 session=session,
                 target=group_id,
             )
+            await Text(result).finish(reply=True)
         else:
             _type = BlockType.ALL
             if block_type.available:
@@ -277,13 +260,13 @@ async def _(
                 elif block_type.result in ["g", "group"]:
                     _type = BlockType.GROUP
             result = await PluginManage.superuser_block(name, _type, group_id)
-            await Text(result).send(reply=True)
             logger.info(
                 f"超级用户关闭功能 {name}, 禁用类型: {_type}",
                 arparma.header_result,
                 session=session,
                 target=group_id,
             )
+            await Text(result).finish(reply=True)
 
 
 @_group_status_matcher.handle()
@@ -305,3 +288,20 @@ async def _(
             logger.info("醒来", arparma.header_result, session=session)
             await Text("呜..醒来了...").finish()
     return Text("群组id为空...").send()
+
+
+@_status_matcher.assign("task")
+async def _(
+    session: EventSession,
+    arparma: Arparma,
+):
+    image = await build_task(session.id3 or session.id2)
+    if image:
+        logger.info(
+            f"查看群被动列表",
+            arparma.header_result,
+            session=session,
+        )
+        await Image(image.pic2bytes()).finish(reply=True)
+    else:
+        await Text("获取群被动任务失败...").finish(reply=True)
