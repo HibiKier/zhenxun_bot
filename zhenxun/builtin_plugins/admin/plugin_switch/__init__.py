@@ -76,20 +76,34 @@ async def _(
     bot: Bot,
     session: EventSession,
     arparma: Arparma,
-    task: Query[bool] = AlconnaQuery("task.value", False),
 ):
-    image = None
-    if task.result:
-        image = await build_task(session.id3 or session.id2)
-    elif session.id1 in bot.config.superusers:
+    if session.id1 in bot.config.superusers:
         image = await build_plugin()
-    if image:
         await Image(image.pic2bytes()).send(reply=True)
         logger.info(
-            f"查看{'功能' if arparma.find('task') else '被动'}列表",
+            f"查看功能列表",
             arparma.header_result,
             session=session,
         )
+    else:
+        await Text("权限不足捏...").send(reply=True)
+
+
+@_status_matcher.assign("task")
+async def _(
+    session: EventSession,
+    arparma: Arparma,
+):
+    image = await build_task(session.id3 or session.id2)
+    if image:
+        await Image(image.pic2bytes()).send(reply=True)
+        logger.info(
+            f"查看群被动列表",
+            arparma.header_result,
+            session=session,
+        )
+    else:
+        await Text("获取群被动任务失败...").send(reply=True)
 
 
 @_status_matcher.assign("open")

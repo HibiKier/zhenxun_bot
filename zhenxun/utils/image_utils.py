@@ -380,8 +380,12 @@ def get_img_hash(image_file: str | Path) -> str:
     返回:
         str: 哈希值
     """
-    with open(image_file, "rb") as fp:
-        hash_value = imagehash.average_hash(Image.open(fp))
+    hash_value = ""
+    try:
+        with open(image_file, "rb") as fp:
+            hash_value = imagehash.average_hash(Image.open(fp))
+    except Exception as e:
+        logger.warning(f"获取图片Hash出错", "禁言检测", e=e)
     return str(hash_value)
 
 

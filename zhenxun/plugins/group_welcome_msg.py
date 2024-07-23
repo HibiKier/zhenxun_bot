@@ -47,7 +47,7 @@ async def _(
     file = path / "text.json"
     if not file.exists():
         await Text("未设置群欢迎消息...").finish(reply=True)
-    message = json.load(open(file))["message"]
+    message = json.load(open(file, encoding="utf8"))["message"]
     message_split = re.split(r"\[image:\d+\]", message)
     if len(message_split) == 1:
         await Text(message_split[0]).finish(reply=True)
