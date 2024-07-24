@@ -20,9 +20,9 @@
 
 如果该项目的图片等等侵犯猫豆腐老师权益请联系我删除！  
 
-是新手！希望有个地方讨论绪山真寻Bot，或者有问题或建议，可以发送issues或加入[ <strong>[是真寻酱哒(萌新版)](https://jq.qq.com/?_wv=1027&k=u8PgBkMZ) </strong>]
+希望有个地方讨论绪山真寻Bot，渴望吹水聊天，可以加入[ <strong>[是真寻酱哒(萌新版)](https://jq.qq.com/?_wv=1027&k=u8PgBkMZ) </strong>]
 
-[//]: # (是老手！讨论插件开发，nonebot2开发，可以加入[ <strong>[真寻酱的技术群]&#40;https://jq.qq.com/?_wv=1027&k=u8PgBkMZ&#41; </strong>])
+讨论插件开发，nonebot2开发，或者有问题或建议，可以发送issues或加入[ <strong>[真寻酱的技术群]&#40;https://jq.qq.com/?_wv=1027&k=u8PgBkMZ&#41; </strong>])
 
 ## 声明
 
