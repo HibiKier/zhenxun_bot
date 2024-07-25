@@ -22,7 +22,7 @@
 
 希望有个地方讨论绪山真寻Bot，渴望吹水聊天，可以加入[ <strong>[是真寻酱哒](https://jq.qq.com/?_wv=1027&k=u8PgBkMZ) </strong>]
 
-讨论插件开发，nonebot2开发，或者有安装使用问题或开发建议，可以发送issues或加入[ <strong>[真寻酱的技术群](https://jq.qq.com/?_wv=1027&k=u8PgBkMZ) </strong>]
+讨论插件开发，nonebot2开发，或者有安装使用问题或开发建议，可以发送issues或加入[ <strong>[真寻酱的技术群](https://jq.qq.com/?_wv=1027&k=u8PgBkMZ) </strong>] （在这里请不要吹水！）
 
 ## 声明
 
