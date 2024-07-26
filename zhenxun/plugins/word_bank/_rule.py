@@ -8,7 +8,6 @@ from nonebot_plugin_alconna import Text as alcText
 from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_session import EventSession
 from PIL import Image
-from requests import session
 
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
