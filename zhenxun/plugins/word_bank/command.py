@@ -1,12 +1,5 @@
 from nonebot import on_regex
-from nonebot_plugin_alconna import (
-    Alconna,
-    Args,
-    Option,
-    Subcommand,
-    on_alconna,
-    store_true,
-)
+from nonebot_plugin_alconna import Alconna, Args, Option, on_alconna, store_true
 
 from zhenxun.utils.rules import admin_check, ensure_group
 

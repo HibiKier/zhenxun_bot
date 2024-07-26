@@ -1,7 +1,7 @@
 import re
 from typing import Any
 
-from nonebot.adapters import Bot, Message
+from nonebot.adapters import Bot
 from nonebot.adapters.onebot.v11 import unescape
 from nonebot.exception import FinishedException
 from nonebot.internal.params import Arg, ArgStr
@@ -10,9 +10,7 @@ from nonebot.plugin import PluginMetadata
 from nonebot.typing import T_State
 from nonebot_plugin_alconna import AlconnaQuery, Arparma
 from nonebot_plugin_alconna import Image as alcImage
-from nonebot_plugin_alconna import Match, Query
-from nonebot_plugin_alconna import Text as alcText
-from nonebot_plugin_alconna import UniMsg
+from nonebot_plugin_alconna import Match, Query, UniMsg
 from nonebot_plugin_saa import Image, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 

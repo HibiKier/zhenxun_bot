@@ -1,6 +1,3 @@
-import re
-
-from nonebot.adapters.onebot.v11 import unescape
 from nonebot_plugin_alconna import At as alcAt
 from nonebot_plugin_alconna import Image as alcImage
 from nonebot_plugin_alconna import Text as alcText
