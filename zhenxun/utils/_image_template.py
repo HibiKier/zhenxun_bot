@@ -110,11 +110,20 @@ class ImageTemplate:
         返回:
             BuildImage: 表格图片
         """
+        font = BuildImage.load_font(font_size=50)
+        min_width, _ = BuildImage.get_text_size(head_text, font)
         table = await cls.table(
-            column_name, data_list, row_space, column_space, padding, text_style
+            column_name,
+            data_list,
+            row_space,
+            column_space,
+            padding,
+            text_style,
         )
         await table.circle_corner()
-        table_bk = BuildImage(table.width + 100, table.height + 50, "#EAEDF2")
+        table_bk = BuildImage(
+            max(table.width, min_width) + 100, table.height + 50, "#EAEDF2"
+        )
         await table_bk.paste(table, center_type="center")
         height = table_bk.height + 200
         background = BuildImage(table_bk.width, height, (255, 255, 255), font_size=50)
@@ -144,13 +153,12 @@ class ImageTemplate:
             column_space: 列间距.
             padding: 文本内间距.
             text_style: 文本样式.
+            min_width: 最低宽度
 
         返回:
             BuildImage: 表格图片
         """
         font = BuildImage.load_font("HYWenHei-85W.ttf", 20)
-        column_num = max([len(l) for l in data_list])
-        list_data = []
         column_data = []
         for i in range(len(column_name)):
             c = []
@@ -163,7 +171,7 @@ class ImageTemplate:
         build_data_list = []
         _, base_h = BuildImage.get_text_size("A", font)
         for i, column_list in enumerate(column_data):
-            name_width, name_height = BuildImage.get_text_size(column_name[i], font)
+            name_width, _ = BuildImage.get_text_size(column_name[i], font)
             _temp = {"width": name_width, "data": column_list}
             for s in column_list:
                 if isinstance(s, tuple):
@@ -207,8 +215,8 @@ class ImageTemplate:
                     )
                 cur_h += base_h + row_space
             column_image_list.append(background)
-        height = max([bk.height for bk in column_image_list])
-        width = sum([bk.width for bk in column_image_list])
+        # height = max([bk.height for bk in column_image_list])
+        # width = sum([bk.width for bk in column_image_list])
         return await BuildImage.auto_paste(
             column_image_list, len(column_image_list), column_space
         )

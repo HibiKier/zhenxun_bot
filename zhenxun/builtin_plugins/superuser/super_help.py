@@ -121,7 +121,7 @@ async def build_help() -> BuildImage:
             )
     if task_list := await TaskInfo.all():
         task_str = "\n".join([task.name for task in task_list])
-        task_str = "通过 开启/关闭 来控制群被动\n----------\n" + task_str
+        task_str = "通过 开启/关闭群被动 来控制群被动\n----------\n" + task_str
         task_image = await text2image(task_str, padding=5, color=(255, 255, 255))
         await task_image.circle_corner(10)
         A = BuildImage(task_image.width + 50, task_image.height + 85, "#EAEDF2")
