@@ -78,7 +78,10 @@ async def _(matcher: Matcher, bot: Bot, session: EventSession, state: T_State):
     if user_id:
         command = state["_prefix"]["raw_command"]
         if state.get("_alc_result"):
-            command = state["_alc_result"].source.command
+            try:
+                command = state["_alc_result"].source.command
+            except AttributeError:
+                pass
         if command:
             if _blmt.check(f"{user_id}__{command}"):
                 await BanConsole.ban(

@@ -45,7 +45,7 @@ class BroadcastManage:
                         group.group_id, "broadcast", group.channel_id
                     ):
                         target = PlatformUtils.get_target(
-                            bot, None, group.group_id, group.channel_id
+                            bot, None, group.channel_id or group.group_id
                         )
                         if target:
                             await MessageFactory(message_list).send_to(target, bot)

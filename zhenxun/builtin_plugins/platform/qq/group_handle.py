@@ -225,7 +225,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
                 img_file = path / f"{i}.png"
                 if img_file.exists():
                     msg_list.append(Image(img_file))
-            if GroupConsole.is_block_task(group_id, "group_welcome"):
+            if not GroupConsole.is_block_task(group_id, "group_welcome"):
                 logger.info(f"发送群欢迎消息...", "入群检测", group_id=group_id)
                 if msg_list:
                     await MessageFactory(msg_list).send()
@@ -293,5 +293,5 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent | GroupMemberDecreaseEvent
         )
         operator_name = operator["card"] if operator["card"] else operator["nickname"]
         result = f"{user_name} 被 {operator_name} 送走了."
-    if GroupConsole.is_block_task(str(event.group_id), "refund_group_remind"):
+    if not GroupConsole.is_block_task(str(event.group_id), "refund_group_remind"):
         await group_decrease_handle.send(f"{result}")
