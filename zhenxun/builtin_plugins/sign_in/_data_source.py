@@ -1,4 +1,3 @@
-import os
 import random
 import secrets
 from datetime import datetime
@@ -103,8 +102,13 @@ class SignManage:
         new_log = (
             await SignLog.filter(user_id=session.id1).order_by("-create_time").first()
         )
+        log_time = None
+        if new_log:
+            log_time = new_log.create_time.astimezone(
+                pytz.timezone("Asia/Shanghai")
+            ).date()
         if not is_card_view:
-            if not new_log or (new_log and new_log.create_time.date() != now.date()):
+            if not new_log or (log_time and log_time != now.date()):
                 return await cls._handle_sign_in(user, nickname, session)
         return await get_card(
             user, nickname, -1, user_console.gold, "", is_card_view=is_card_view

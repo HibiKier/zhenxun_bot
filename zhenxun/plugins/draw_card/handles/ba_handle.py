@@ -110,7 +110,7 @@ class BaHandle(BaseHandle[BaChar]):
     async def _update_info(self):
         # TODO: ba获取链接失效
         info = {}
-        url = "https://lonqie.github.io/SchaleDB/data/cn/students.min.json?v=49"
+        url = "https://schale.gg/data/cn/students.min.json?v=49"
         result = (await AsyncHttpx.get(url)).json()
         if not result:
             logger.warning(f"更新 {self.game_name_cn} 出错")
@@ -119,11 +119,13 @@ class BaHandle(BaseHandle[BaChar]):
             for char in result:
                 try:
                     name = char["Name"]
+                    id = str(char["Id"])
                     avatar = (
-                        "https://github.com/lonqie/SchaleDB/raw/main/images/student/icon/"
-                        + char["CollectionTexture"]
-                        + ".png"
+                        "https://github.com/SchaleDB/SchaleDB/raw/main/images/student/icon/"
+                        + id
+                        + ".webp"
                     )
+                    star = char["StarGrade"]
                     star = char["StarGrade"]
                 except IndexError:
                     continue

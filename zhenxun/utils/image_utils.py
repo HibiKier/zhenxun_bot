@@ -1,6 +1,7 @@
 import os
 import random
 import re
+from io import BytesIO
 from pathlib import Path
 from typing import Awaitable, Callable
 
@@ -408,3 +409,14 @@ async def get_download_image_hash(url: str, mark: str) -> str:
     except Exception as e:
         logger.warning(f"下载读取图片Hash出错", e=e)
     return ""
+
+
+def pic2bytes(image) -> bytes:
+    """获取bytes
+
+    返回:
+        bytes: bytes
+    """
+    buf = BytesIO()
+    image.save(buf, format="PNG")
+    return buf.getvalue()
