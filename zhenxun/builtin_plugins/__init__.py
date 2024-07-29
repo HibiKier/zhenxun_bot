@@ -7,6 +7,7 @@ from tortoise import Tortoise
 from tortoise.exceptions import OperationalError
 
 from zhenxun.models.goods_info import GoodsInfo
+from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.models.sign_user import SignUser
 from zhenxun.models.user_console import UserConsole
 from zhenxun.services.log import logger
@@ -69,6 +70,8 @@ async def _():
         and not await SignUser.annotate().count()
     ):
         try:
+            group_user = await GroupInfoUser.filter(uid__isnull=False).all()
+            user2uid = {u.user_id: u.uid for u in group_user}
             flag = False
             db = Tortoise.get_connection("default")
             old_sign_list = await db.execute_query_dict(SIGN_SQL)
@@ -79,7 +82,7 @@ async def _():
             }
             create_list = []
             sign_id_list = []
-            uid = await UserConsole.get_new_uid()
+            max_uid = max(user2uid.values()) + 1
             for old_sign in old_sign_list:
                 sign_id_list.append(old_sign["user_id"])
                 old_bag = [
@@ -97,16 +100,20 @@ async def _():
                         UserConsole(
                             user_id=old_sign["user_id"],
                             platform="qq",
-                            uid=uid,
+                            uid=user2uid.get(old_sign["user_id"]) or max_uid,
                             props=props,
                             gold=old_bag["gold"],
                         )
                     )
+                    if not user2uid.get(old_sign["user_id"]):
+                        max_uid += 1
                 else:
                     create_list.append(
-                        UserConsole(user_id=old_sign["user_id"], platform="qq", uid=uid)
+                        UserConsole(
+                            user_id=old_sign["user_id"], platform="qq", uid=max_uid
+                        )
                     )
-                uid += 1
+                    max_uid += 1
             if create_list:
                 logger.info("开始迁移用户数据...")
                 await UserConsole.bulk_create(create_list, 10)

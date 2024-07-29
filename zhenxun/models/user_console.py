@@ -131,7 +131,8 @@ class UserConsole(Model):
             platform: 平台.
         """
         user, _ = await cls.get_or_create(
-            user_id=user_id, defaults={"platform": platform, "uid": cls.get_new_uid()}
+            user_id=user_id,
+            defaults={"platform": platform, "uid": await cls.get_new_uid()},
         )
         if goods_uuid not in user.props:
             user.props[goods_uuid] = 0
