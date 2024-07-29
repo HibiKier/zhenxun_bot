@@ -19,14 +19,14 @@ from .information_container import InformationContainer
 from .parse_url import parse_bili_url
 
 __plugin_meta__ = PluginMetadata(
-    name="B站转发解析",
-    description="B站转发解析",
+    name="B站内容解析",
+    description="B站内容解析",
     usage="""
     usage：
-        B站转发解析，解析b站分享信息，支持bv，bilibili链接，b站手机端转发卡片，cv，b23.tv，且30秒内内不解析相同url
+        被动监听插件，解析B站视频、直播、专栏，支持小程序卡片及文本链接，5分钟内不解析相同内容
     """.strip(),
     extra=PluginExtraData(
-        author="HibiKier",
+        author="leekooyo",
         version="0.1",
         menu_type="其他",
         configs=[
