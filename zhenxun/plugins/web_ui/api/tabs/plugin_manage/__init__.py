@@ -44,7 +44,7 @@ async def _(
                 limit_superuser=plugin.limit_superuser,
                 cost_gold=plugin.cost_gold,
                 menu_type=plugin.menu_type,
-                version=plugin.version or 0,
+                version=plugin.version or "0",
                 level=plugin.level,
                 status=plugin.status,
                 author=plugin.author,
