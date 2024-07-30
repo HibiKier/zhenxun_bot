@@ -33,7 +33,6 @@ for d in os.listdir(path):
 
 driver: Driver = nonebot.get_driver()
 
-flag = True
 
 SIGN_SQL = """
 select distinct on("user_id") t1.user_id, t1.checkin_count, t1.add_probability, t1.specify_probability, t1.impression
@@ -58,15 +57,14 @@ from public.bag_users t1
 
 @driver.on_startup
 async def _():
-    global flag
+    """签到与用户的数据迁移"""
     if goods_list := await GoodsInfo.filter(uuid__isnull=True).all():
         for goods in goods_list:
             goods.uuid = uuid.uuid1()  # type: ignore
         await GoodsInfo.bulk_update(goods_list, ["uuid"], 10)
     await shop_register.load_register()
     if (
-        flag
-        and not await UserConsole.annotate().count()
+        not await UserConsole.annotate().count()
         and not await SignUser.annotate().count()
     ):
         try:

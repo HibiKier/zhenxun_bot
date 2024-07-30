@@ -1,12 +1,7 @@
 from tortoise import fields
 
 from zhenxun.services.db_context import Model
-from zhenxun.utils.enum import (
-    BlockType,
-    LimitCheckType,
-    LimitWatchType,
-    PluginLimitType,
-)
+from zhenxun.utils.enum import LimitCheckType, LimitWatchType, PluginLimitType
 
 
 class PluginLimit(Model):
@@ -30,7 +25,7 @@ class PluginLimit(Model):
     status = fields.BooleanField(default=True, description="限制的开关状态")
     """限制的开关状态"""
     check_type = fields.CharEnumField(
-        LimitCheckType, default=BlockType.ALL, description="检查类型"
+        LimitCheckType, default=LimitCheckType.ALL, description="检查类型"
     )
     """检查类型"""
     result = fields.CharField(max_length=255, null=True, description="返回信息")
