@@ -45,6 +45,8 @@ aiohttp = "^3.9.5"
 dateparser = "^1.2.0"
 nonebot-plugin-alconna = "^0.50.2"
 bilireq = "0.2.3post0"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+python-multipart = "^0.0.9"
 
 [tool.poetry.dev-dependencies]
 

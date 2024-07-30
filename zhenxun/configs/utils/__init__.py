@@ -168,6 +168,8 @@ class PluginExtraData(BaseModel):
     """超级用户帮助"""
     aliases: Set[str] = set()
     """额外名称"""
+    sql_list: list[str] | None = None
+    """常用sql"""
 
 
 class NoSuchConfig(Exception):

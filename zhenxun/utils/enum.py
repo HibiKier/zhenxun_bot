@@ -97,3 +97,5 @@ class RequestHandleType(StrEnum):
     """拒绝"""
     IGNORE = "IGNORE"
     """忽略"""
+    EXPIRE = "EXPIRE"
+    """过期或失效"""
