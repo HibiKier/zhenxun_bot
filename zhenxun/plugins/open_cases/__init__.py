@@ -112,28 +112,6 @@ __plugin_meta__ = PluginMetadata(
 )
 
 
-# cases_matcher_group = MatcherGroup(priority=5, permission=GROUP, block=True)
-
-
-# k_open_case = cases_matcher_group.on_command("开箱")
-# reload_count = cases_matcher_group.on_command("重置开箱", permission=SUPERUSER)
-# total_case_data = cases_matcher_group.on_command(
-#     "我的开箱", aliases={"开箱统计", "开箱查询", "查询开箱"}
-# )
-# group_open_case_statistics = cases_matcher_group.on_command("群开箱统计")
-# open_multiple = cases_matcher_group.on_regex("(.*)连开箱(.*)?")
-# update_case = on_command(
-#     "更新武器箱", aliases={"更新皮肤"}, priority=1, permission=SUPERUSER, block=True
-# )
-# update_case_image = on_command(
-#     "更新武器箱图片", priority=1, permission=SUPERUSER, block=True
-# )
-# show_case = on_command("查看武器箱", priority=5, block=True)
-# my_knifes = on_command("我的金色", priority=1, permission=GROUP, block=True)
-# show_skin = on_command("查看皮肤", priority=5, block=True)
-# price_trends = on_command("价格趋势", priority=5, block=True)
-
-
 @_price_matcher.handle()
 async def _(
     session: EventSession,

@@ -31,7 +31,7 @@ _multiple_matcher = on_alconna(
 )
 
 _multiple_matcher.shortcut(
-    r"(?P<num>\d)连开箱(?P<name>.*?)",
+    r"(?P<num>\d+)连开箱(?P<name>.*?)",
     command="multiple-open",
     arguments=["{num}", "{name}"],
     prefix=True,

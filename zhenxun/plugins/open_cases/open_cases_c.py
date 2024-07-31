@@ -319,7 +319,7 @@ async def open_multiple_case(
             Text(f"开启{case_name}武器箱\n剩余开箱次数：{over_count}\n"),
             Image(mark_image.pic2bytes()),
             Text(
-                f"\nresult[:-1]\n箱子单价：{case_price}\n总获取金额：{total_price:.2f}\n总花费：{(17 + case_price) * num:.2f}"
+                f"\n{result[:-1]}\n箱子单价：{case_price}\n总获取金额：{total_price:.2f}\n总花费：{(17 + case_price) * num:.2f}"
             ),
         ]
     )
