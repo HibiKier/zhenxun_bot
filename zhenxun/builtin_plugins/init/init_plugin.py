@@ -162,6 +162,7 @@ async def _():
                 10,
             )
     await data_migration()
+    await PluginInfo.filter(module__in=load_plugin).update(load_status=True)
     await PluginInfo.filter(module__not_in=load_plugin).update(load_status=False)
 
 
