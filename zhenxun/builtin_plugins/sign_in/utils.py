@@ -237,7 +237,7 @@ async def _generate_card(
     await bk.paste(A, (0, 150))
     await bk.text((30, 167), "Accumulative check-in for")
     _x = bk.getsize("Accumulative check-in for")[0] + sign_day_img.width + 45
-    await bk.paste(sign_day_img, (380, 158))
+    await bk.paste(sign_day_img, (398, 158))
     await bk.text((_x, 167), "days")
     await bk.paste(data_img, (220, 370))
     await bk.paste(lik_text1_img, (220, 240))
