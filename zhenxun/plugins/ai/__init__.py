@@ -19,7 +19,7 @@ from .data_source import get_chat_result, hello, no_result
 __plugin_meta__ = PluginMetadata(
     name="AI",
     description="屑Ai",
-    usage="""
+    usage=f"""
     与{NICKNAME}普普通通的对话吧！
     """.strip(),
     extra=PluginExtraData(

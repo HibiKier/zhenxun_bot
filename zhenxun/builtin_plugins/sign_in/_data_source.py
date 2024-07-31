@@ -41,7 +41,7 @@ class SignManage:
             .values_list("user_id", flat=True)
         )
         index = all_list.index(user_id) + 1  # type: ignore
-        user_list = await SignUser.annotate().order_by("impression").limit(num).all()
+        user_list = await SignUser.annotate().order_by("-impression").limit(num).all()
         user_id_list = [u.user_id for u in user_list]
         log_list = (
             await SignLog.filter(user_id__in=user_id_list)
