@@ -101,9 +101,11 @@ async def _():
     limit_list: list[PluginLimit] = []
     task_list: list[TaskInfo] = []
     module2id = {}
+    load_plugin = []
     if module_list := await PluginInfo.all().values("id", "module_path"):
         module2id = {m["module_path"]: m["id"] for m in module_list}
     for plugin in get_loaded_plugins():
+        load_plugin.append(plugin.name)
         if plugin.metadata:
             await _handle_setting(plugin, plugin_list, limit_list, task_list)
     create_list = []
@@ -160,6 +162,7 @@ async def _():
                 10,
             )
     await data_migration()
+    await PluginInfo.filter(module__not_in=load_plugin).update(load_status=False)
 
 
 async def data_migration():

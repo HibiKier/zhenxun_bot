@@ -25,10 +25,14 @@ async def get_plugin_help(name: str, is_superuser: bool) -> str | BuildImage:
     """获取功能的帮助信息
 
     参数:
-        name: 插件名称
+        name: 插件名称或id
         is_superuser: 是否为超级用户
     """
-    if plugin := await PluginInfo.get_or_none(name__iexact=name):
+    if name.isdigit():
+        plugin = await PluginInfo.get_or_none(id=int(name), load_status=True)
+    else:
+        plugin = await PluginInfo.get_or_none(name__iexact=name, load_status=True)
+    if plugin:
         _plugin = nonebot.get_plugin_by_module_name(plugin.module_path)
         if _plugin and _plugin.metadata:
             items = None
@@ -45,6 +49,6 @@ async def get_plugin_help(name: str, is_superuser: bool) -> str | BuildImage:
                     "用法": _plugin.metadata.usage,
                 }
             if items:
-                return await ImageTemplate.hl_page(name, items)
+                return await ImageTemplate.hl_page(plugin.name, items)
         return "糟糕! 该功能没有帮助喔..."
     return "没有查找到这个功能噢..."

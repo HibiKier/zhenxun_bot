@@ -46,7 +46,9 @@ class HelpImageBuild:
         对插件按照菜单类型分类
         """
         if not self._data:
-            self._data = await PluginInfo.filter(plugin_type=PluginType.NORMAL)
+            self._data = await PluginInfo.filter(
+                plugin_type=PluginType.NORMAL, load_status=True
+            )
         if not self._sort_data:
             for plugin in self._data:
                 menu_type = plugin.menu_type or "normal"
@@ -143,18 +145,19 @@ class HelpImageBuild:
         await self.sort_type()
         font_size = 24
         build_type = Config.get_config("help", "TYPE")
-        _image = BuildImage.build_text_image("1", size=font_size)
         font = BuildImage.load_font("HYWenHei-85W.ttf", 20)
         for idx, menu_type in enumerate(self._sort_data.keys()):
             plugin_list = self._sort_data[menu_type]
-            wh_list = [BuildImage.get_text_size(x.name, font) for x in plugin_list]
+            wh_list = [
+                BuildImage.get_text_size(f"{x.id}.{x.name}", font) for x in plugin_list
+            ]
             wh_list.append(BuildImage.get_text_size(menu_type, font))
             # sum_height = sum([x[1] for x in wh_list])
             if build_type == "VV":
                 sum_height = 50 * len(plugin_list) + 10
             else:
                 sum_height = (font_size + 6) * len(plugin_list) + 10
-            max_width = max([x[0] for x in wh_list]) + 20
+            max_width = max([x[0] for x in wh_list]) + 30
             bk = BuildImage(
                 max_width + 40,
                 sum_height + 50,
@@ -199,7 +202,7 @@ class HelpImageBuild:
                     await B.paste(name_image, (0, curr_h), center_type="width")
                     curr_h += name_image.h + 5
                 else:
-                    await B.text((10, curr_h), f"{i + 1}.{plugin.name}", text_color)
+                    await B.text((10, curr_h), f"{plugin.id}.{plugin.name}", text_color)
                     if pos:
                         await B.line(pos, (236, 66, 7), 3)
                     curr_h += font_size + 5
@@ -221,7 +224,7 @@ class HelpImageBuild:
         h = 10
         for msg in [
             "目前支持的功能列表:",
-            "可以通过 ‘帮助[功能名称]’ 来获取对应功能的使用方法",
+            "可以通过 ‘帮助 [功能名称或功能Id]’ 来获取对应功能的使用方法",
         ]:
             text = await BuildImage.build_text_image(msg, "HYWenHei-85W.ttf", 24)
             await B.paste(text, (w, h))
