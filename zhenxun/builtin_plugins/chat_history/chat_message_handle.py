@@ -54,6 +54,7 @@ _matcher = on_alconna(
         Option("--des", action=store_true, help_text="逆序"),
         Args["type?", ["日", "周", "月", "年"]]["count?", int, 10],
     ),
+    aliases={"消息统计"},
     priority=5,
     block=True,
 )
