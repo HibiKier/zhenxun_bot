@@ -417,7 +417,9 @@ class AuthChecker:
         """
         if group_id := session.id3 or session.id2:
             text = message.extract_plain_text()
-            group, _ = await GroupConsole.get_or_create(group_id=group_id)
+            group, _ = await GroupConsole.get_or_create(
+                group_id=group_id, channel_id__isnull=True
+            )
             if group.level < 0:
                 """群权限小于0"""
                 logger.debug(
