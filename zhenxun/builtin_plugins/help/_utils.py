@@ -52,6 +52,8 @@ class HelpImageBuild:
         if not self._sort_data:
             for plugin in self._data:
                 menu_type = plugin.menu_type or "normal"
+                if menu_type == "normal":
+                    menu_type = "功能"
                 if not self._sort_data.get(menu_type):
                     self._sort_data[menu_type] = []
                 self._sort_data[menu_type].append(plugin)
@@ -206,19 +208,21 @@ class HelpImageBuild:
                     if pos:
                         await B.line(pos, (236, 66, 7), 3)
                     curr_h += font_size + 5
-            if menu_type == "normal":
-                menu_type = "功能"
             await bk.text((0, 14), menu_type, center_type="width")
             await bk.paste(B, (0, 50))
             await bk.transparent(2)
             # await bk.acircle_corner(point_list=['lt', 'rt'])
             self._image_list.append(bk)
         image_group, h = group_image(self._image_list)
+
+        async def _a(image: BuildImage):
+            await image.filter("GaussianBlur", 5)
+
         B = await build_sort_image(
             image_group,
             h,
             background_path=BACKGROUND_PATH,
-            background_handle=lambda image: image.filter("GaussianBlur", 5),
+            background_handle=_a,
         )
         w = 10
         h = 10
