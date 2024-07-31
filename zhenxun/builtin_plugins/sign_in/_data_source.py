@@ -37,7 +37,7 @@ class SignManage:
     async def rank(cls, user_id: str, num: int) -> BuildImage:
         all_list = (
             await SignUser.annotate()
-            .order_by("impression")
+            .order_by("-impression")
             .values_list("user_id", flat=True)
         )
         index = all_list.index(user_id) + 1  # type: ignore
@@ -49,7 +49,6 @@ class SignManage:
             .group_by("user_id")
             .values_list("user_id", "count")
         )
-        uid2cnt = {l[0]: l[1] for l in log_list}
         column_name = ["排名", "-", "名称", "好感度", "签到次数", "平台"]
         friend_list = await FriendUser.filter(user_id__in=user_id_list).values_list(
             "user_id", "user_name"
@@ -69,7 +68,7 @@ class SignManage:
                     (bytes, 30, 30) if user.platform == "qq" else "",
                     uid2name.get(user.user_id),
                     user.impression,
-                    uid2cnt.get(user.user_id) or 0,
+                    user.sign_count,
                     (PLATFORM_PATH.get(user.platform), 30, 30),
                 ]
             )
