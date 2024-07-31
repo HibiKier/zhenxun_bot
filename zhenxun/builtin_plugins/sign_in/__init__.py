@@ -30,6 +30,7 @@ __plugin_meta__ = PluginMetadata(
         签到
         我的签到
         好感度排行
+        好感度总排行
     * 签到时有 3% 概率 * 2 *
     """.strip(),
     extra=PluginExtraData(
@@ -83,8 +84,12 @@ _sign_matcher = on_alconna(
         "签到",
         Option("--my", action=store_true, help_text="我的签到"),
         Option(
-            "-l|--list", Args["num", int, 10], action=store_true, help_text="好感度排行"
+            "-l|--list",
+            Args["num", int, 10],
+            action=store_true,
+            help_text="好感度排行",
         ),
+        Option("-g|--global", action=store_true, help_text="全局排行"),
     ),
     priority=5,
     block=True,
@@ -104,11 +109,16 @@ _sign_matcher.shortcut(
     prefix=True,
 )
 
+_sign_matcher.shortcut(
+    "好感度总排行",
+    command="签到",
+    arguments=["--list", "--global"],
+    prefix=True,
+)
+
 
 @_sign_matcher.assign("$main")
-async def _(
-    session: EventSession, arparma: Arparma, nickname: str = UserName()
-):
+async def _(session: EventSession, arparma: Arparma, nickname: str = UserName()):
     if session.id1:
         if path := await SignManage.sign(session, nickname):
             logger.info("签到成功", arparma.header_result, session=session)
@@ -117,9 +127,7 @@ async def _(
 
 
 @_sign_matcher.assign("my")
-async def _(
-    session: EventSession, arparma: Arparma, nickname: str = UserName()
-):
+async def _(session: EventSession, arparma: Arparma, nickname: str = UserName()):
     if session.id1:
         if image := await SignManage.sign(session, nickname, True):
             logger.info("查看我的签到", arparma.header_result, session=session)
@@ -128,14 +136,14 @@ async def _(
 
 
 @_sign_matcher.assign("list")
-async def _(
-    session: EventSession,
-    arparma: Arparma,
-    num: int,
-    nickname: str = UserName()
-):
+async def _(session: EventSession, arparma: Arparma, num: int):
+    gid = session.id3 or session.id2
+    if not arparma.find("global") and not gid:
+        await Text("私聊中无法查看 '好感度排行'，请发送 '好感度总排行'").finish()
     if session.id1:
-        if image := await SignManage.rank(session.id1, num):
+        if arparma.find("global"):
+            gid = None
+        if image := await SignManage.rank(session.id1, num, gid):
             logger.info("查看签到排行", arparma.header_result, session=session)
             await Image(image.pic2bytes()).finish()
     return Text("用户id为空...").send()

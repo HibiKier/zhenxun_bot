@@ -19,7 +19,7 @@ from zhenxun.utils.utils import get_user_avatar
 
 from ._random_event import random_event
 from .goods_register import driver
-from .utils import SIGN_TODAY_CARD_PATH, get_card
+from .utils import get_card
 
 ICON_PATH = IMAGE_PATH / "_icon"
 
@@ -34,21 +34,33 @@ PLATFORM_PATH = {
 class SignManage:
 
     @classmethod
-    async def rank(cls, user_id: str, num: int) -> BuildImage:
+    async def rank(
+        cls, user_id: str, num: int, group_id: str | None = None
+    ) -> BuildImage:
+        """好感度排行
+
+        参数:
+            user_id: 用户id
+            num: 排行榜数量
+            group_id: 群组id
+
+        返回:
+            BuildImage: 构造图片
+        """
+        query = SignUser
+        if group_id:
+            user_list = await GroupInfoUser.filter(group_id=group_id).values_list(
+                "user_id", flat=True
+            )
+            query = query.filter(user_id__in=user_list)
         all_list = (
-            await SignUser.annotate()
+            await query.annotate()
             .order_by("-impression")
             .values_list("user_id", flat=True)
         )
         index = all_list.index(user_id) + 1  # type: ignore
-        user_list = await SignUser.annotate().order_by("-impression").limit(num).all()
+        user_list = await query.annotate().order_by("-impression").limit(num).all()
         user_id_list = [u.user_id for u in user_list]
-        log_list = (
-            await SignLog.filter(user_id__in=user_id_list)
-            .annotate(count=Count("id"))
-            .group_by("user_id")
-            .values_list("user_id", "count")
-        )
         column_name = ["排名", "-", "名称", "好感度", "签到次数", "平台"]
         friend_list = await FriendUser.filter(user_id__in=user_id_list).values_list(
             "user_id", "user_name"
@@ -72,9 +84,13 @@ class SignManage:
                     (PLATFORM_PATH.get(user.platform), 30, 30),
                 ]
             )
-        return await ImageTemplate.table_page(
-            "好感度排行", f"你的排名在第 {index} 位哦!", column_name, data_list
-        )
+        if group_id:
+            title = "好感度群组内排行"
+            tip = f"你的排名在本群第 {index} 位哦!"
+        else:
+            title = "好感度全局排行"
+            tip = f"你的排名在全局第 {index} 位哦!"
+        return await ImageTemplate.table_page(title, tip, column_name, data_list)
 
     @classmethod
     async def sign(
