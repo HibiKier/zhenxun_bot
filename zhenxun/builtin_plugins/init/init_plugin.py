@@ -338,7 +338,9 @@ async def plugin_migration():
                         elif get_block == "group":
                             block_type = BlockType.GROUP
                         plugin.block_type = block_type
-                await PluginInfo.bulk_update(plugins, ["status", "block_type"], 10)
+                        await plugin.save(update_fields=["status", "block_type"])
+                # TODO: tortoise.exceptions.OperationalError: syntax error at or near "ALL"
+                # await PluginInfo.bulk_update(plugins, ["status", "block_type"], 10)
         plugin_file.unlink()
         logger.info("迁移插件数据完成!")
 
