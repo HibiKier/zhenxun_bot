@@ -100,7 +100,10 @@ class logger:
         template = cls.__parser_template(
             info, command, user_id, group_id, adapter, target, platform
         )
-        logger_.opt(colors=True).info(template)
+        try:
+            logger_.opt(colors=True).info(template)
+        except Exception as e:
+            logger_.info(template)
 
     @classmethod
     def success(
@@ -174,7 +177,10 @@ class logger:
         )
         if e:
             template += f" || 错误<r>{type(e)}: {e}</r>"
-        logger_.opt(colors=True).warning(template)
+        try:
+            logger_.opt(colors=True).warning(template)
+        except Exception as e:
+            logger_.warning(template)
 
     @overload
     @classmethod
@@ -232,7 +238,10 @@ class logger:
         )
         if e:
             template += f" || 错误 <r>{type(e)}: {e}</r>"
-        logger_.opt(colors=True).error(template)
+        try:
+            logger_.opt(colors=True).error(template)
+        except Exception as e:
+            logger_.error(template)
 
     @overload
     @classmethod
@@ -290,7 +299,10 @@ class logger:
         )
         if e:
             template += f" || 错误 <r>{type(e)}: {e}</r>"
-        logger_.opt(colors=True).debug(template)
+        try:
+            logger_.opt(colors=True).debug(template)
+        except Exception as e:
+            logger_.debug(template)
 
     @classmethod
     def __parser_template(
