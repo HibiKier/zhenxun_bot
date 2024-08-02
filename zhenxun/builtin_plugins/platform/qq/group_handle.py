@@ -27,7 +27,7 @@ from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.models.level_user import LevelUser
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.services.log import logger
-from zhenxun.utils.enum import PluginType, RequestHandleType, RequestType
+from zhenxun.utils.enum import PluginType, RequestHandleType
 from zhenxun.utils.utils import FreqLimiter
 
 __plugin_meta__ = PluginMetadata(
@@ -110,7 +110,9 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
     group_id = str(event.group_id)
     if user_id == bot.self_id:
         """新成员为bot本身"""
-        group = await GroupConsole.get_or_none(group_id=group_id)
+        group = await GroupConsole.get_or_none(
+            group_id=group_id, channel_id__isnull=True
+        )
         if (not group or group.group_flag == 0) and base_config.get("flag"):
             """群聊不存在或被强制拉群，退出该群"""
             try:
@@ -142,9 +144,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
                     user_id=int(superuser),
                     message=f"触发强制入群保护，退出群聊 {event.group_id} 失败...",
                 )
-        elif group_id not in await GroupConsole.all().values_list(
-            "group_id", flat=True
-        ):
+        elif not GroupConsole.exists(group_id=group_id, channel_id__isnull=True):
             """默认群功能开关"""
             block_plugin = ""
             if plugin_list := await PluginInfo.filter(default_status=False).all():
@@ -230,14 +230,15 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
                 if msg_list:
                     await MessageFactory(msg_list).send()
                 else:
+                    image = (
+                        IMAGE_PATH
+                        / "qxz"
+                        / random.choice(os.listdir(IMAGE_PATH / "qxz"))
+                    )
                     await MessageFactory(
                         [
                             Text("新人快跑啊！！本群现状↓（快使用自定义！）"),
-                            Image(
-                                IMAGE_PATH
-                                / "qxz"
-                                / random.choice(os.listdir(IMAGE_PATH / "qxz"))
-                            ),
+                            Image(image),
                         ]
                     ).send()
 
@@ -256,7 +257,7 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent | GroupMemberDecreaseEvent
             operator_name = "None"
         group = await GroupConsole.filter(group_id=str(group_id)).first()
         group_name = group.group_name if group else ""
-        coffee = int(list(bot.config.superusers)[0])
+        coffee = int(superuser)
         await bot.send_private_msg(
             user_id=coffee,
             message=f"****呜..一份踢出报告****\n"

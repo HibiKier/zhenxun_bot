@@ -1,4 +1,3 @@
-import os
 import uuid
 
 from nonebot import require
@@ -22,15 +21,9 @@ require("nonebot_plugin_userinfo")
 from nonebot_plugin_saa import enable_auto_select_bot
 
 enable_auto_select_bot()
-from pathlib import Path
 
 import nonebot
 import ujson as json
-
-path = Path(__file__).parent / "platform"
-for d in os.listdir(path):
-    nonebot.load_plugins(str((path / d).resolve()))
-
 
 driver: Driver = nonebot.get_driver()
 

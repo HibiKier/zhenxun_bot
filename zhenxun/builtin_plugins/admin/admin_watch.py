@@ -4,7 +4,6 @@ from nonebot.plugin import PluginMetadata
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.utils import PluginExtraData
-from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.models.level_user import LevelUser
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
@@ -26,11 +25,6 @@ base_config = Config.get("admin_bot_manage")
 
 @admin_notice.handle()
 async def _(event: GroupAdminNoticeEvent):
-    nickname = event.user_id
-    if user := await GroupInfoUser.get_or_none(
-        user_id=str(event.user_id), group_id=str(event.group_id)
-    ):
-        nickname = user.user_name
     if event.sub_type == "set":
         admin_default_auth = base_config.get("ADMIN_DEFAULT_AUTH")
         if admin_default_auth is not None:
