@@ -74,6 +74,18 @@ class BuildImage:
         return self.markImg.size
 
     @classmethod
+    def open(cls, path: str | Path) -> Self:
+        """打开图片
+
+        参数:
+            path: 图片路径
+
+        返回:
+            Self: BuildImage
+        """
+        return cls(background=path)
+
+    @classmethod
     async def build_text_image(
         cls,
         text: str,

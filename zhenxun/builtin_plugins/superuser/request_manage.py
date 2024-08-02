@@ -64,6 +64,7 @@ _req_matcher = on_alconna(
     permission=SUPERUSER,
     priority=1,
     rule=to_me(),
+    block=True,
 )
 
 _read_matcher = on_alconna(
@@ -81,6 +82,7 @@ _read_matcher = on_alconna(
     permission=SUPERUSER,
     priority=1,
     rule=to_me(),
+    block=True,
 )
 
 _clear_matcher = on_alconna(
@@ -98,6 +100,7 @@ _clear_matcher = on_alconna(
     permission=SUPERUSER,
     priority=1,
     rule=to_me(),
+    block=True,
 )
 
 reg_arg_list = [
@@ -126,7 +129,6 @@ async def _(
     id: int,
     arparma: Arparma,
 ):
-    request_type = RequestType.FRIEND if handle.startswith("-f") else RequestType.GROUP
     type_dict = {
         "a": RequestHandleType.APPROVE,
         "r": RequestHandleType.REFUSED,
@@ -135,11 +137,11 @@ async def _(
     handle_type = type_dict[handle[-1]]
     try:
         if handle_type == RequestHandleType.APPROVE:
-            await FgRequest.approve(bot, id, request_type)
+            await FgRequest.approve(bot, id)
         if handle_type == RequestHandleType.REFUSED:
-            await FgRequest.refused(bot, id, request_type)
+            await FgRequest.refused(bot, id)
         if handle_type == RequestHandleType.IGNORE:
-            await FgRequest.ignore(bot, id, request_type)
+            await FgRequest.ignore(id)
     except NotFoundError:
         await Text("未发现此id的请求...").finish(reply=True)
     except Exception:
@@ -158,8 +160,8 @@ async def _(
     if all_request := await FgRequest.filter(handle_type__isnull=True).all():
         req_list = list(all_request)
         req_list.reverse()
-        friend_req = []
-        group_req = []
+        friend_req: list[FgRequest] = []
+        group_req: list[FgRequest] = []
         for req in req_list:
             if req.request_type == RequestType.FRIEND:
                 friend_req.append(req)
@@ -193,9 +195,14 @@ async def _(
                     )
                     await background.paste(platform_icon, (46, 10))
                 await background.text((150, 12), req.nickname)
-                comment_img = await BuildImage.build_text_image(
-                    f"对方留言：{req.comment}", size=15, font_color=(140, 140, 143)
-                )
+                if i == 0:
+                    comment_img = await BuildImage.build_text_image(
+                        f"对方留言：{req.comment}", size=15, font_color=(140, 140, 143)
+                    )
+                else:
+                    comment_img = await BuildImage.build_text_image(
+                        f"群组：{req.group_id}", size=15, font_color=(140, 140, 143)
+                    )
                 await background.paste(comment_img, (150, 65))
                 tag = await BuildImage.build_text_image(
                     f"{req.platform}",

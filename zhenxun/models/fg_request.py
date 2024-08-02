@@ -107,7 +107,7 @@ class FgRequest(Model):
         req = await cls.get_or_none(id=id)
         if not req:
             raise NotFoundError
-        req.handle_type = RequestHandleType
+        req.handle_type = handle_type
         await req.save(update_fields=["handle_type"])
         if bot and handle_type not in [
             RequestHandleType.IGNORE,

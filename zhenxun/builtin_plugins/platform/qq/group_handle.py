@@ -265,6 +265,8 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent | GroupMemberDecreaseEvent
             f"踢出了 {group_name}({group_id})\n"
             f"日期：{str(datetime.now()).split('.')[0]}",
         )
+        if group:
+            await group.delete()
         return
     if str(event.user_id) == bot.self_id:
         """踢出Bot"""

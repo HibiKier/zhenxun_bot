@@ -18,7 +18,7 @@ from zhenxun.models.fg_request import FgRequest
 from zhenxun.models.friend_user import FriendUser
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
-from zhenxun.utils.enum import PluginType, RequestType
+from zhenxun.utils.enum import PluginType, RequestHandleType, RequestType
 
 base_config = Config.get("invite_manager")
 
@@ -95,6 +95,12 @@ async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSessi
                 user_id=str(user["user_id"]), user_name=user["nickname"]
             )
         else:
+            # 旧请求全部设置为过期
+            await FgRequest.filter(
+                request_type=RequestType.FRIEND,
+                user_id=str(event.user_id),
+                handle_type__isnull=True,
+            ).update(handle_type=RequestHandleType.EXPIRE)
             await FgRequest.create(
                 request_type=RequestType.FRIEND,
                 platform=session.platform,
@@ -121,9 +127,6 @@ async def _(bot: v12Bot | v11Bot, event: GroupRequestEvent, session: EventSessio
                     session=event.user_id,
                     target=event.group_id,
                 )
-                await bot.set_group_add_request(
-                    flag=event.flag, sub_type="invite", approve=True
-                )
                 if isinstance(bot, v11Bot):
                     group_info = await bot.get_group_info(group_id=event.group_id)
                     max_member_count = group_info["max_member_count"]
@@ -140,6 +143,9 @@ async def _(bot: v12Bot | v11Bot, event: GroupRequestEvent, session: EventSessio
                         "member_count": member_count,
                         "group_flag": 1,
                     },
+                )
+                await bot.set_group_add_request(
+                    flag=event.flag, sub_type="invite", approve=True
                 )
             except ActionFailed as e:
                 logger.error(
@@ -169,6 +175,13 @@ async def _(bot: v12Bot | v11Bot, event: GroupRequestEvent, session: EventSessio
                     "请确保已经群主或群管理沟通过！\n"
                     "等待管理员处理吧！",
                 )
+                # 旧请求全部设置为过期
+                await FgRequest.filter(
+                    request_type=RequestType.GROUP,
+                    user_id=str(event.user_id),
+                    group_id=str(event.group_id),
+                    handle_type__isnull=True,
+                ).update(handle_type=RequestHandleType.EXPIRE)
                 await FgRequest.create(
                     request_type=RequestType.GROUP,
                     platform=session.platform,
