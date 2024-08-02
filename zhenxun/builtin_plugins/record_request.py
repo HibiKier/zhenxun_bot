@@ -1,15 +1,12 @@
 import time
 from datetime import datetime
-from typing import Dict
 
 import nonebot
-from nonebot import drivers, on_message, on_request
-from nonebot.adapters.onebot.v11 import (
-    ActionFailed,
-    Bot,
-    FriendRequestEvent,
-    GroupRequestEvent,
-)
+from nonebot import on_message, on_request
+from nonebot.adapters.onebot.v11 import ActionFailed
+from nonebot.adapters.onebot.v11 import Bot as v11Bot
+from nonebot.adapters.onebot.v11 import FriendRequestEvent, GroupRequestEvent
+from nonebot.adapters.onebot.v12 import Bot as v12Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_apscheduler import scheduler
 from nonebot_plugin_saa import TargetQQPrivate, Text
@@ -48,7 +45,7 @@ __plugin_meta__ = PluginMetadata(
 
 
 class Timer:
-    data: Dict[str, float] = {}
+    data: dict[str, float] = {}
 
     @classmethod
     def check(cls, uid: int | str):
@@ -70,9 +67,9 @@ _t = on_message(priority=999, block=False, rule=lambda: False)
 
 
 @friend_req.handle()
-async def _(bot: Bot, event: FriendRequestEvent, session: EventSession):
+async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSession):
+    superuser = nonebot.get_driver().config.platform_superusers["qq"][0]
     if event.user_id and Timer.check(event.user_id):
-        superuser = nonebot.get_driver().config.platform_superusers["qq"][0]
         logger.debug(f"收录好友请求...", "好友请求", target=event.user_id)
         user = await bot.get_stranger_info(user_id=event.user_id)
         nickname = user["nickname"]
@@ -112,7 +109,8 @@ async def _(bot: Bot, event: FriendRequestEvent, session: EventSession):
 
 
 @group_req.handle()
-async def _(bot: Bot, event: GroupRequestEvent, session: EventSession):
+async def _(bot: v12Bot | v11Bot, event: GroupRequestEvent, session: EventSession):
+    superuser = nonebot.get_driver().config.platform_superusers["qq"][0]
     # 邀请
     if event.sub_type == "invite":
         if str(event.user_id) in bot.config.superusers:
@@ -126,13 +124,20 @@ async def _(bot: Bot, event: GroupRequestEvent, session: EventSession):
                 await bot.set_group_add_request(
                     flag=event.flag, sub_type="invite", approve=True
                 )
-                group_info = await bot.get_group_info(group_id=event.group_id)
+                if isinstance(bot, v11Bot):
+                    group_info = await bot.get_group_info(group_id=event.group_id)
+                    max_member_count = group_info["max_member_count"]
+                    member_count = group_info["member_count"]
+                else:
+                    group_info = await bot.get_group_info(group_id=str(event.group_id))
+                    max_member_count = 0
+                    member_count = 0
                 await GroupConsole.update_or_create(
-                    group_id=str(group_info["group_id"]),
+                    group_id=str(event.group_id),
                     defaults={
                         "group_name": group_info["group_name"],
-                        "max_member_count": group_info["max_member_count"],
-                        "member_count": group_info["member_count"],
+                        "max_member_count": max_member_count,
+                        "member_count": member_count,
                         "group_flag": 1,
                     },
                 )
@@ -151,9 +156,7 @@ async def _(bot: Bot, event: GroupRequestEvent, session: EventSession):
                     "群聊请求",
                     target=event.group_id,
                 )
-                user = await bot.get_stranger_info(user_id=event.user_id)
-                nickname = await FriendUser.get_user_name(event.user_id)
-                superuser = int(list(bot.config.superusers)[0])
+                nickname = await FriendUser.get_user_name(str(event.user_id))
                 await Text(
                     f"*****一份入群申请*****\n"
                     f"申请人：{nickname}({event.user_id})\n"
@@ -167,12 +170,13 @@ async def _(bot: Bot, event: GroupRequestEvent, session: EventSession):
                     "等待管理员处理吧！",
                 )
                 await FgRequest.create(
-                    request_type=RequestType.FRIEND,
+                    request_type=RequestType.GROUP,
                     platform=session.platform,
                     bot_id=bot.self_id,
                     flag=event.flag,
-                    user_id=event.user_id,
+                    user_id=str(event.user_id),
                     nickname=nickname,
+                    group_id=str(event.group_id),
                 )
             else:
                 logger.debug(
