@@ -67,7 +67,7 @@ class ConfigGroup(BaseModel):
     """配置项列表"""
 
     def get(self, c: str, default: Any = None) -> Any:
-        cfg = self.configs.get(c)
+        cfg = self.configs.get(c.upper())
         if cfg is not None:
             if cfg.value is not None:
                 return cfg.value

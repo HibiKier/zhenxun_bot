@@ -35,6 +35,7 @@ __plugin_meta__ = PluginMetadata(
         admin_level=base_config.get("SET_GROUP_WELCOME_MESSAGE_LEVEL", 2),
         configs=[
             RegisterConfig(
+                module="admin_bot_manage",
                 key="SET_GROUP_WELCOME_MESSAGE_LEVEL",
                 value=2,
                 help="设置群欢迎消息所需要的管理员权限等级",

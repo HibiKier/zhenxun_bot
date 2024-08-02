@@ -21,8 +21,6 @@ from zhenxun.utils.image_utils import (
 )
 from zhenxun.utils.rules import admin_check, ensure_group
 
-base_config = Config.get("admin_bot_manage")
-
 __plugin_meta__ = PluginMetadata(
     name="群组管理员帮助",
     description="管理员帮助列表",

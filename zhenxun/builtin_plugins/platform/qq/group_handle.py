@@ -49,7 +49,7 @@ __plugin_meta__ = PluginMetadata(
                 module="invite_manager",
                 key="flag",
                 value=True,
-                help="强制拉群后进群回复的内容",
+                help="强制拉群后进群退出并回复内容",
                 default_value=True,
                 type=bool,
             ),
@@ -113,91 +113,106 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
         group = await GroupConsole.get_or_none(
             group_id=group_id, channel_id__isnull=True
         )
-        if (not group or group.group_flag == 0) and base_config.get("flag"):
-            """群聊不存在或被强制拉群，退出该群"""
-            try:
-                if result_msg := base_config.get("message"):
-                    await bot.send_group_msg(
-                        group_id=event.group_id, message=result_msg
+        if not group or group.group_flag == 0:
+            """群聊不存在或被强制拉群"""
+            if base_config.get("flag"):
+                """退出群组"""
+                try:
+                    if result_msg := base_config.get("message"):
+                        await bot.send_group_msg(
+                            group_id=event.group_id, message=result_msg
+                        )
+                    await bot.set_group_leave(group_id=event.group_id)
+                    await bot.send_private_msg(
+                        user_id=int(superuser),
+                        message=f"触发强制入群保护，已成功退出群聊 {group_id}...",
                     )
-                await bot.set_group_leave(group_id=event.group_id)
-                await bot.send_private_msg(
-                    user_id=int(superuser),
-                    message=f"触发强制入群保护，已成功退出群聊 {group_id}...",
-                )
-                logger.info(
-                    f"强制拉群或未有群信息，退出群聊成功",
-                    "入群检测",
-                    group_id=event.group_id,
-                )
-                if req := await FgRequest.get_or_none(group_id=group_id):
-                    req.handle_type = RequestHandleType.IGNORE
-                    await req.save(update_fields=["handle_type"])
-            except Exception as e:
-                logger.error(
-                    f"强制拉群或未有群信息，退出群聊失败",
-                    "入群检测",
-                    group_id=event.group_id,
-                    e=e,
-                )
-                await bot.send_private_msg(
-                    user_id=int(superuser),
-                    message=f"触发强制入群保护，退出群聊 {event.group_id} 失败...",
-                )
-        elif not GroupConsole.exists(group_id=group_id, channel_id__isnull=True):
-            """默认群功能开关"""
-            block_plugin = ""
-            if plugin_list := await PluginInfo.filter(default_status=False).all():
-                for plugin in plugin_list:
-                    block_plugin += f"{plugin.module},"
-            group_info = await bot.get_group_info(group_id=event.group_id)
-            await GroupConsole.create(
-                group_id=group_info["group_id"],
-                group_name=group_info["group_name"],
-                max_member_count=group_info["max_member_count"],
-                member_count=group_info["member_count"],
-                group_flag=1,
-                block_plugin=block_plugin,
-                platform="qq",
-            )
-            admin_default_auth = Config.get_config(
-                "admin_bot_manage", "ADMIN_DEFAULT_AUTH"
-            )
-            # 即刻刷新权限
-            for user_info in await bot.get_group_member_list(group_id=event.group_id):
-                """即刻刷新权限"""
-                if (
-                    user_info["role"]
-                    in [
-                        "owner",
-                        "admin",
-                    ]
-                    and not await LevelUser.is_group_flag(
-                        user_info["user_id"], group_id
+                    logger.info(
+                        f"强制拉群或未有群信息，退出群聊成功",
+                        "入群检测",
+                        group_id=event.group_id,
                     )
-                    and admin_default_auth is not None
+                    if req := await FgRequest.get_or_none(
+                        group_id=group_id, handle_type__isnull=True
+                    ):
+                        req.handle_type = RequestHandleType.IGNORE
+                        await req.save(update_fields=["handle_type"])
+                except Exception as e:
+                    logger.error(
+                        f"强制拉群或未有群信息，退出群聊失败",
+                        "入群检测",
+                        group_id=event.group_id,
+                        e=e,
+                    )
+                    await bot.send_private_msg(
+                        user_id=int(superuser),
+                        message=f"触发强制入群保护，退出群聊 {event.group_id} 失败...",
+                    )
+                await GroupConsole.filter(group_id=group_id).delete()
+            else:
+                """允许群组并设置群认证，默认群功能开关"""
+                if group:
+                    await GroupConsole.filter(
+                        group_id=group_id, channel_id__isnull=True
+                    ).update(group_flag=1)
+                else:
+                    block_plugin = ""
+                    if plugin_list := await PluginInfo.filter(
+                        default_status=False
+                    ).all():
+                        for plugin in plugin_list:
+                            block_plugin += f"{plugin.module},"
+                    group_info = await bot.get_group_info(group_id=event.group_id)
+                    await GroupConsole.create(
+                        group_id=group_info["group_id"],
+                        group_name=group_info["group_name"],
+                        max_member_count=group_info["max_member_count"],
+                        member_count=group_info["member_count"],
+                        group_flag=1,
+                        block_plugin=block_plugin,
+                        platform="qq",
+                    )
+                """刷新群管理员权限"""
+                admin_default_auth = Config.get_config(
+                    "admin_bot_manage", "ADMIN_DEFAULT_AUTH"
+                )
+                # 即刻刷新权限
+                for user_info in await bot.get_group_member_list(
+                    group_id=event.group_id
                 ):
-                    await LevelUser.set_level(
-                        user_info["user_id"],
-                        user_info["group_id"],
-                        admin_default_auth,
-                    )
-                    logger.debug(
-                        f"添加默认群管理员权限: {admin_default_auth}",
-                        "入群检测",
-                        session=user_info["user_id"],
-                        group_id=user_info["group_id"],
-                    )
-                if str(user_info["user_id"]) in bot.config.superusers:
-                    await LevelUser.set_level(
-                        user_info["user_id"], user_info["group_id"], 9
-                    )
-                    logger.debug(
-                        f"添加超级用户权限: 9",
-                        "入群检测",
-                        session=user_info["user_id"],
-                        group_id=user_info["group_id"],
-                    )
+                    """即刻刷新权限"""
+                    if (
+                        user_info["role"]
+                        in [
+                            "owner",
+                            "admin",
+                        ]
+                        and not await LevelUser.is_group_flag(
+                            user_info["user_id"], group_id
+                        )
+                        and admin_default_auth is not None
+                    ):
+                        await LevelUser.set_level(
+                            user_info["user_id"],
+                            user_info["group_id"],
+                            admin_default_auth,
+                        )
+                        logger.debug(
+                            f"添加默认群管理员权限: {admin_default_auth}",
+                            "入群检测",
+                            session=user_info["user_id"],
+                            group_id=user_info["group_id"],
+                        )
+                    if str(user_info["user_id"]) in bot.config.superusers:
+                        await LevelUser.set_level(
+                            user_info["user_id"], user_info["group_id"], 9
+                        )
+                        logger.debug(
+                            f"添加超级用户权限: 9",
+                            "入群检测",
+                            session=user_info["user_id"],
+                            group_id=user_info["group_id"],
+                        )
     else:
         join_time = datetime.now()
         user_info = await bot.get_group_member_info(
