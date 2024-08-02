@@ -145,8 +145,8 @@ async def _(
 ):
     plugin_name = name.result if name.available else None
     st = search_type.result if search_type.available else None
-    uid = session.id1 if arparma.find("my") else None
     gid = session.id3 or session.id2
+    uid = session.id1 if (arparma.find("my") or not gid) else None
     is_global = arparma.find("global")
     if uid and is_global:
         """个人全局"""
