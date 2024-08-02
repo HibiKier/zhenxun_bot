@@ -17,7 +17,7 @@ from zhenxun.utils.enum import PluginType
 from ._data_source import StatisticsManage
 
 __plugin_meta__ = PluginMetadata(
-    name="功能调用统计可视化",
+    name="功能调用统计",
     description="功能调用统计可视化",
     usage="""
     usage：
@@ -36,7 +36,7 @@ __plugin_meta__ = PluginMetadata(
     extra=PluginExtraData(
         author="HibiKier",
         version="0.1",
-        plugin_type=PluginType.ADMIN,
+        plugin_type=PluginType.NORMAL,
         menu_type="数据统计",
         aliases={"功能调用统计"},
         superuser_help="""
