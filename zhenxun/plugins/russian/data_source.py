@@ -77,6 +77,17 @@ class RussianManage:
             bullet_list[i] = 1
         return bullet_list
 
+    def __remove_job(self, group_id: str):
+        """移除定时任务
+
+        参数:
+            group_id: 群组id
+        """
+        try:
+            scheduler.remove_job(f"russian_job_{group_id}")
+        except JobLookupError:
+            pass
+
     def __build_job(
         self, bot: Bot, group_id: str, is_add: bool = False, platform: str | None = None
     ):
@@ -88,10 +99,7 @@ class RussianManage:
             is_add: 是否添加新定时任务.
             platform: 平台
         """
-        try:
-            scheduler.remove_job(f"russian_job_{group_id}")
-        except JobLookupError:
-            pass
+        self.__remove_job(group_id)
         if is_add:
             date = datetime.now() + timedelta(seconds=31)
             scheduler.add_job(
@@ -164,7 +172,7 @@ class RussianManage:
         else:
             message_list = [
                 Text(
-                    "若30秒内无人接受挑战则此次对决作废【首次游玩请发送 ’俄罗斯轮盘帮助‘ 来查看命令】"
+                    "若30秒内无人接受挑战则此次对决作废【首次游玩请at我发送 ’帮助俄罗斯轮盘‘ 来查看命令】"
                 )
             ]
         result = Text(
@@ -191,6 +199,8 @@ class RussianManage:
                 return Text("又不是找你决斗，你接受什么啊！气！")
             if russian.player2:
                 return Text("当前决斗已被其他玩家接受！请等待下局对决！")
+            if russian.player1[0] == user_id:
+                return Text("你发起的对决，你接受什么啊！气！")
             russian.player2 = (user_id, uname)
             russian.next_user = russian.player1[0]
             return MessageFactory(
@@ -321,11 +331,11 @@ class RussianManage:
                     del self._data[group_id]
                     return Text("规定时间内还未有人接受决斗，当前决斗过期...")
                 return Text("决斗还未开始,，无法结算哦...")
-            if user_id and user_id not in [russian.player1[0], russian.player1[0]]:
-                return Text("吃瓜群众不要捣乱！黄牌警告！")
+            if user_id and user_id not in [russian.player1[0], russian.player2[0]]:
+                return Text(f"吃瓜群众不要捣乱！黄牌警告！")
             if not self.__check_is_timeout(group_id):
                 return Text(
-                    f"{russian.player1[1]} 和 {russian.player1[1]} 比赛并未超时，请继续比赛..."
+                    f"{russian.player1[1]} 和 {russian.player2[1]} 比赛并未超时，请继续比赛..."
                 )
             win_user = None
             lose_user = None
@@ -379,6 +389,7 @@ class RussianManage:
                     padding=10,
                     color="#f9f6f2",
                 )
+                self.__remove_job(group_id)
                 result.append(Image(image.pic2bytes()))
                 del self._data[group_id]
                 return MessageFactory(result)

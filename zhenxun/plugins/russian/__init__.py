@@ -2,7 +2,7 @@ from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Arparma
 from nonebot_plugin_alconna import At as alcAt
-from nonebot_plugin_alconna import Match
+from nonebot_plugin_alconna import Match, UniMsg
 from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
@@ -64,10 +64,13 @@ async def _(money: int, num: Match[int], at_user: Match[alcAt]):
         _russian_matcher.set_path_arg("at_user", at_user.result.target)
 
 
-@_russian_matcher.got_path("num", prompt="请输入装填子弹的数量！(最多6颗)")
+@_russian_matcher.got_path(
+    "num", prompt="请输入装填子弹的数量！(最多6颗，输入取消来取消装弹)"
+)
 async def _(
     bot: Bot,
     session: EventSession,
+    message: UniMsg,
     arparma: Arparma,
     money: int,
     num: int,
@@ -75,10 +78,16 @@ async def _(
     uname: str = UserName(),
 ):
     gid = session.id2
+    if message.extract_plain_text() == "取消":
+        await Text("已取消装弹...").finish()
     if not session.id1:
         await Text("用户id为空...").finish()
     if not gid:
         await Text("群组id为空...").finish()
+    if money <= 0:
+        await Text("赌注金额必须大于0!").finish(reply=True)
+    if num < 0 or num > 6:
+        await Text("子弹数量必须在1-6之间!").finish(reply=True)
     _at_user = at_user.result.target if at_user.available else None
     rus = Russian(
         at_user=_at_user, player1=(session.id1, uname), money=money, bullet_num=num
@@ -94,7 +103,6 @@ async def _(
 
 @_accept_matcher.handle()
 async def _(session: EventSession, arparma: Arparma, uname: str = UserName()):
-    global a
     gid = session.id2
     if not session.id1:
         await Text("用户id为空...").finish()

@@ -2,6 +2,8 @@ from tortoise import fields
 
 from zhenxun.services.db_context import Model
 
+from .group_console import GroupConsole
+
 
 class TaskInfo(Model):
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
@@ -20,3 +22,21 @@ class TaskInfo(Model):
     class Meta:
         table = "task_info"
         table_description = "被动技能基本信息"
+
+    @classmethod
+    async def is_block(cls, module: str, group_id: str | None) -> bool:
+        """判断被动技能是否被禁用
+
+        参数:
+            module: 被动技能模块名
+            group_id: 群组id
+
+        返回:
+            bool: 是否被禁用
+        """
+        if task := await cls.get_or_none(module=module):
+            if task.status:
+                return True
+        if group_id:
+            return await GroupConsole.is_block_task(group_id, module)
+        return False
