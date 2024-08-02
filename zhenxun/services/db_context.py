@@ -53,9 +53,7 @@ async def init():
         i_bind = f"{sql_name}://{user}:{password}@{address}:{port}/{database}"
     try:
         await Tortoise.init(
-            db_url=i_bind,
-            modules={"models": MODELS},
-            # timezone="Asia/Shanghai"
+            db_url=i_bind, modules={"models": MODELS}, timezone="Asia/Shanghai"
         )
         if SCRIPT_METHOD:
             db = Tortoise.get_connection("default")
