@@ -560,7 +560,7 @@ async def broadcast_group(
     bot: Bot | list[Bot] | None = None,
     bot_id: str | Set[str] | None = None,
     ignore_group: Set[int] | None = None,
-    check_func: Callable[[str, str | None], Awaitable] | None = None,
+    check_func: Callable[[str], Awaitable] | None = None,
     log_cmd: str | None = None,
     platform: Literal["qq", "dodo", "kaiheila"] | None = None,
 ):

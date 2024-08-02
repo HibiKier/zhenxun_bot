@@ -12,10 +12,8 @@ from zhenxun.configs.config import NICKNAME, Config
 from zhenxun.configs.path_config import TEMP_PATH
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig, Task
 from zhenxun.models.task_info import TaskInfo
-from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
-from zhenxun.utils.http_utils import AsyncHttpx
-from zhenxun.utils.image_utils import get_download_image_hash, get_img_hash
+from zhenxun.utils.image_utils import get_download_image_hash
 from zhenxun.utils.rules import ensure_group
 
 __plugin_meta__ = PluginMetadata(
@@ -98,12 +96,11 @@ _matcher = on_message(rule=ensure_group, priority=999)
 
 @_matcher.handle()
 async def _(message: UniMsg, event: Event, session: EventSession):
-    task = await TaskInfo.get_or_none(module="fudu")
-    if task and not task.status:
+    group_id = session.id2 or ""
+    if await TaskInfo.is_block("fudu", group_id):
         return
     if event.is_tome():
         return
-    group_id = session.id2 or ""
     plain_text = message.extract_plain_text()
     image_list = []
     for m in message:

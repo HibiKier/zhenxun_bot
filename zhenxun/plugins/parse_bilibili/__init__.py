@@ -45,13 +45,7 @@ __plugin_meta__ = PluginMetadata(
 
 
 async def _rule(session: EventSession) -> bool:
-    task = await TaskInfo.get_or_none(module="bilibili_parse")
-    if not task or not task.status:
-        logger.debug("b站转发解析被动全局关闭，已跳过...")
-        return False
-    if gid := session.id3 or session.id2:
-        return not await GroupConsole.is_block_task(gid, "bilibili_parse")
-    return False
+    return not TaskInfo.is_block("bilibili_parse", session.id3 or session.id2)
 
 
 _matcher = on_message(priority=1, block=False, rule=_rule)

@@ -26,6 +26,7 @@ from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.models.level_user import LevelUser
 from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType, RequestHandleType
 from zhenxun.utils.utils import FreqLimiter
@@ -240,7 +241,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
                 img_file = path / f"{i}.png"
                 if img_file.exists():
                     msg_list.append(Image(img_file))
-            if not GroupConsole.is_block_task(group_id, "group_welcome"):
+            if not TaskInfo.is_block("group_welcome", group_id):
                 logger.info(f"发送群欢迎消息...", "入群检测", group_id=group_id)
                 if msg_list:
                     await MessageFactory(msg_list).send()
@@ -311,5 +312,5 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent | GroupMemberDecreaseEvent
         )
         operator_name = operator["card"] if operator["card"] else operator["nickname"]
         result = f"{user_name} 被 {operator_name} 送走了."
-    if not GroupConsole.is_block_task(str(event.group_id), "refund_group_remind"):
+    if not TaskInfo.is_block("refund_group_remind", str(event.group_id)):
         await group_decrease_handle.send(f"{result}")

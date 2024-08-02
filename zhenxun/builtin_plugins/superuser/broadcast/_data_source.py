@@ -10,6 +10,7 @@ from nonebot_plugin_saa import Image, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
 from zhenxun.utils.platform import PlatformUtils
 
@@ -41,8 +42,9 @@ class BroadcastManage:
             error_count = 0
             for group in group_list:
                 try:
-                    if not await GroupConsole.is_block_task(
-                        group.group_id, "broadcast", group.channel_id
+                    if not await TaskInfo.is_block(
+                        group.group_id,
+                        "broadcast",  # group.channel_id
                     ):
                         target = PlatformUtils.get_target(
                             bot, None, group.channel_id or group.group_id

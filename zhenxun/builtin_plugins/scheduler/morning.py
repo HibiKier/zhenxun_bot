@@ -40,11 +40,8 @@ async def _():
         )
 
 
-async def check(group_id: str, channel_id: str | None) -> bool:
-    task = await TaskInfo.get_or_none(module="morning_goodnight")
-    if not task or not task.status:
-        return False
-    return await GroupConsole.is_block_task(group_id, "morning_goodnight")
+async def check(group_id: str) -> bool:
+    return not await TaskInfo.is_block("morning_goodnight", group_id)
 
 
 # 早上好
