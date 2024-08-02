@@ -386,16 +386,16 @@ class ShopManage:
         uuid2goods = {item.uuid: item for item in result}
         column_name = ["-", "使用ID", "名称", "数量", "简介"]
         for i, p in enumerate(user.props):
-            prop = uuid2goods[p]
-            data_list.append(
-                [
-                    (ICON_PATH / prop.icon, 33, 33) if prop.icon else "",
-                    i,
-                    prop.goods_name,
-                    user.props[p],
-                    prop.goods_description,
-                ]
-            )
+            if prop := uuid2goods.get(p):
+                data_list.append(
+                    [
+                        (ICON_PATH / prop.icon, 33, 33) if prop.icon else "",
+                        i,
+                        prop.goods_name,
+                        user.props[p],
+                        prop.goods_description,
+                    ]
+                )
 
         return await ImageTemplate.table_page(
             f"{name}的道具仓库", "", column_name, data_list
