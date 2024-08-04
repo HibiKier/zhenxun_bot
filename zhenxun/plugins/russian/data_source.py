@@ -12,6 +12,7 @@ from zhenxun.configs.config import NICKNAME, Config
 from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.models.user_console import UserConsole
 from zhenxun.utils.enum import GoldHandle
+from zhenxun.utils.exception import InsufficientGold
 from zhenxun.utils.image_utils import BuildImage, BuildMat, MatType, text2image
 from zhenxun.utils.platform import PlatformUtils
 
@@ -183,7 +184,9 @@ class RussianManage:
         self.__build_job(bot, group_id, True)
         return MessageFactory(message_list)
 
-    def accept(self, group_id: str, user_id: str, uname: str) -> Text | MessageFactory:
+    async def accept(
+        self, group_id: str, user_id: str, uname: str
+    ) -> Text | MessageFactory:
         """接受对决
 
         参数:
@@ -201,6 +204,9 @@ class RussianManage:
                 return Text("当前决斗已被其他玩家接受！请等待下局对决！")
             if russian.player1[0] == user_id:
                 return Text("你发起的对决，你接受什么啊！气！")
+            user = await UserConsole.get_user(user_id)
+            if user.gold < russian.money:
+                return Text("你没有足够的钱来接受这场挑战...")
             russian.player2 = (user_id, uname)
             russian.next_user = russian.player1[0]
             return MessageFactory(
@@ -368,9 +374,18 @@ class RussianManage:
                 await UserConsole.add_gold(
                     win_user[0], russian.money - fee, "russian", platform
                 )
-                await UserConsole.reduce_gold(
-                    lose_user[0], russian.money, GoldHandle.PLUGIN, "russian", platform
-                )
+                try:
+                    await UserConsole.reduce_gold(
+                        lose_user[0],
+                        russian.money,
+                        GoldHandle.PLUGIN,
+                        "russian",
+                        platform,
+                    )
+                except InsufficientGold:
+                    if u := await UserConsole.get_user(lose_user[0]):
+                        u.gold = 0
+                        await u.save(update_fields=["gold"])
                 result = [Text("这场决斗是 "), Mention(win_user[0]), Text(" 胜利了!")]
                 image = await text2image(
                     f"结算：\n"

@@ -24,6 +24,7 @@ from zhenxun.utils.enum import (
     PluginLimitType,
     PluginType,
 )
+from zhenxun.utils.exception import InsufficientGold
 from zhenxun.utils.utils import CountLimiter, FreqLimiter, UserBlockLimiter
 
 
@@ -233,13 +234,18 @@ class AuthChecker:
                     )
         if cost_gold and user_id:
             """花费金币"""
-            await UserConsole.reduce_gold(
-                user_id,
-                cost_gold,
-                GoldHandle.PLUGIN,
-                matcher.plugin.name if matcher.plugin else "",
-                session.platform,
-            )
+            try:
+                await UserConsole.reduce_gold(
+                    user_id,
+                    cost_gold,
+                    GoldHandle.PLUGIN,
+                    matcher.plugin.name if matcher.plugin else "",
+                    session.platform,
+                )
+            except InsufficientGold:
+                if u := await UserConsole.get_user(user_id):
+                    u.gold = 0
+                    await u.save(update_fields=["gold"])
             logger.debug(f"调用功能花费金币: {cost_gold}", "HOOK", session=session)
         if is_ignore:
             raise IgnoredException("权限检测 ignore")
