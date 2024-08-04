@@ -14,22 +14,31 @@ class BanManage:
     async def build_ban_image(
         cls,
         filter_type: Literal["group", "user"] | None,
+        user_id: str | None = None,
+        group_id: str | None = None,
     ) -> BuildImage | None:
         """构造Ban列表图片
 
         参数:
             filter_type: 过滤类型
+            user_id: 用户id
+            group_id: 群组id
 
         返回:
             BuildImage | None: Ban列表图片
         """
         data_list = None
-        if not filter_type:
-            data_list = await BanConsole.all()
-        elif filter_type == "user":
-            data_list = await BanConsole.filter(group_id__isnull=True).all()
-        elif filter_type == "group":
-            data_list = await BanConsole.filter(user_id__isnull=True).all()
+        query = BanConsole
+        if user_id:
+            query = query.filter(user_id=user_id)
+        elif group_id:
+            query = query.filter(group_id=group_id)
+        else:
+            if filter_type == "user":
+                query = query.filter(group_id__isnull=True)
+            elif filter_type == "group":
+                query = query.filter(user_id__isnull=True)
+        data_list = await query.all()
         if not data_list:
             return None
         column_name = [

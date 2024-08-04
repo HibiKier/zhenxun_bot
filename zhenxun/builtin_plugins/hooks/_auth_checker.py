@@ -10,6 +10,7 @@ from nonebot_plugin_session import EventSession
 from pydantic import BaseModel
 
 from zhenxun.configs.config import Config
+from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.level_user import LevelUser
 from zhenxun.models.plugin_info import PluginInfo

@@ -116,7 +116,7 @@ class BanConsole(Model):
         if await cls.check_ban_time(user_id, group_id):
             return True
         else:
-            if await cls.check_ban_time(user_id):
+            if await cls.check_ban_time(user_id, group_id):
                 return True
             await cls.unban(user_id, group_id)
         return False
@@ -140,7 +140,7 @@ class BanConsole(Model):
             operator: 操作者id
         """
         logger.debug(
-            f"封禁用户，等级:{ban_level}，时长: {duration}",
+            f"封禁用户/群组，等级:{ban_level}，时长: {duration}",
             target=f"{group_id}:{user_id}",
         )
         user = await cls._get_data(user_id, group_id)

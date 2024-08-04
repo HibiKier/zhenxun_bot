@@ -34,6 +34,11 @@ async def _(
                 return
     user_id = session.id1
     group_id = session.id3 or session.id2
+    if group_id:
+        if user_id in bot.config.superusers:
+            return
+        if await BanConsole.is_ban(None, group_id):
+            raise IgnoredException("群组处于黑名单中...")
     if user_id:
         ban_result = Config.get_config("hook", "BAN_RESULT")
         if user_id in bot.config.superusers:
@@ -62,4 +67,4 @@ async def _(
                         Text(f"{ban_result}\n在..在 {time_str} 后才会理你喔"),
                     ]
                 ).send()
-            raise IgnoredException("用户处于黑名单中")
+            raise IgnoredException("用户处于黑名单中...")
