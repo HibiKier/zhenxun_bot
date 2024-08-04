@@ -3,11 +3,10 @@ from typing import Any, List
 
 from nonebot import on_regex
 from nonebot.adapters import Bot
-from nonebot.matcher import Matcher
 from nonebot.params import Depends, RegexGroup
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
-from nonebot_plugin_alconna import Alconna, Option, UniMsg, on_alconna, store_true
+from nonebot_plugin_alconna import Alconna, Option, on_alconna, store_true
 from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 from nonebot_plugin_userinfo import EventUserInfo, UserInfo
@@ -70,6 +69,20 @@ _matcher = on_alconna(
     block=True,
 )
 
+_matcher.shortcut(
+    "我(是谁|叫什么)",
+    command="nickname",
+    arguments=["--name"],
+    prefix=True,
+)
+
+_matcher.shortcut(
+    "取消昵称",
+    command="nickname",
+    arguments=["--cancel"],
+    prefix=True,
+)
+
 
 CALL_NAME = [
     "好啦好啦，我知道啦，{}，以后就这么叫你吧",
@@ -104,9 +117,7 @@ def CheckNickname():
 
     async def dependency(
         bot: Bot,
-        matcher: Matcher,
         session: EventSession,
-        message: UniMsg,
         reg_group: tuple[Any, ...] = RegexGroup(),
     ):
         black_word = Config.get_config("nickname", "BLACK_WORD")
