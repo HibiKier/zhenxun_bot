@@ -91,7 +91,7 @@ class MemberUpdateManage:
             nickname = user_info["card"] or user_info["nickname"]
             role = user_info["role"]
             if default_auth:
-                if role in ["owner", "admin"] and not LevelUser.is_group_flag(
+                if role in ["owner", "admin"] and not await LevelUser.is_group_flag(
                     str(user_id), group_id
                 ):
                     await LevelUser.set_level(user_id, group_id, default_auth)
