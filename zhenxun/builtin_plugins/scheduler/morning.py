@@ -58,8 +58,8 @@ async def _():
 # # 睡觉了
 @scheduler.scheduled_job(
     "cron",
-    hour=0,
-    minute=19,
+    hour=23,
+    minute=59,
 )
 async def _():
     img = Image(IMAGE_PATH / "zhenxun" / "sleep.jpg")
