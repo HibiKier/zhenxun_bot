@@ -615,22 +615,18 @@ async def broadcast_group(
                             )
                         ) or key in _used_group:
                             continue
-                        is_continue = False
+                        is_run = False
                         if check_func:
                             if is_coroutine_callable(check_func):
-                                is_continue = not await check_func(
-                                    group.group_id, group.channel_id
-                                )
+                                is_run = await check_func(group.group_id)
                             else:
-                                is_continue = not check_func(
-                                    group.group_id, group.channel_id
-                                )
-                        if is_continue:
+                                is_run = check_func(group.group_id)
+                        if not is_run:
                             continue
                         target = PlatformUtils.get_target(
                             _bot,
                             None,
-                            group.group_id,
+                            group.channel_id or group.group_id,
                             # , group.channel_id
                         )
                         if target:

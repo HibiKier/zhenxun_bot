@@ -35,7 +35,7 @@ class TaskInfo(Model):
             bool: 是否被禁用
         """
         if task := await cls.get_or_none(module=module):
-            if task.status:
+            if not task.status:
                 return True
         if group_id:
             return await GroupConsole.is_block_task(group_id, module)
