@@ -41,10 +41,9 @@ __plugin_meta__ = PluginMetadata(
         group-manage super-handle : 添加/删除群白名单
         group-manage auth-handle  : 添加/删除群认证
         group-manage del-group    : 退群
-        
+
         示例:
         修改群权限 7                              : 在群组中修改当前群组权限为7
-        group-manage modify-level 7             : 在群组中修改当前群组权限为7
         group-manage modify-level 7 1234556     : 修改 123456 群组的权限等级为7
         添加/删除群白名单 1234567                  : 添加/删除 1234567 为群白名单
         添加/删除群认证 1234567                    : 添加/删除 1234567 为群认证
@@ -84,9 +83,9 @@ _matcher = on_alconna(
 )
 
 _matcher.shortcut(
-    "修改群权限",
+    r"修改群权限\s?(?P<level>-?\d+)\s?(?P<group_id>\d+)?",
     command="group-manage",
-    arguments=["modify-level", "{%0}"],
+    arguments=["modify-level", "{level}", "{group_id}"],
     prefix=True,
 )
 
