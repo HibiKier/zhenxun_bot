@@ -54,7 +54,9 @@ select a.tablename as name,d.description as desc from pg_tables a
 async def _(session: EventSession, message: UniMsg):
     sql_text = message.extract_plain_text().strip()
     if sql_text.startswith("exec"):
-        sql_text = sql_text[4:]
+        sql_text = sql_text[4:].strip()
+    if not sql_text:
+        await Text("需要执行的的SQL语句!").finish()
     logger.info(f"执行SQL语句: {sql_text}", "exec", session=session)
     try:
         if not sql_text.lower().startswith("select"):
@@ -62,6 +64,20 @@ async def _(session: EventSession, message: UniMsg):
         else:
             db = Tortoise.get_connection("default")
             res = await db.execute_query_dict(sql_text)
+            _column = []
+            for r in res:
+                if len(r) > len(_column):
+                    _column = r.keys()
+            data_list = []
+            for r in res:
+                data = []
+                for c in _column:
+                    data.append(r.get(c))
+                data_list.append(data)
+            table = await ImageTemplate.table_page(
+                "EXEC", f"总共有 {len(data_list)} 条数据捏", list(_column), data_list
+            )
+            await Image(table.pic2bytes()).send()
     except Exception as e:
         logger.error("执行 SQL 语句失败...", session=session, e=e)
         await Text(f"执行 SQL 语句失败... {type(e)}").finish()
@@ -78,7 +94,9 @@ async def _(session: EventSession):
         for table in query:
             data_list.append([table["name"], table["desc"]])
         logger.info("查看数据库所有表", "查看所有表", session=session)
-        table = await ImageTemplate.table_page("数据库表", "", column_name, data_list)
+        table = await ImageTemplate.table_page(
+            "数据库表", f"总共有 {len(data_list)} 张表捏", column_name, data_list
+        )
         await Image(table.pic2bytes()).send()
     except Exception as e:
         logger.error("获取表数据失败...", session=session, e=e)
