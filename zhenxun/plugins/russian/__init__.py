@@ -108,7 +108,7 @@ async def _(session: EventSession, arparma: Arparma, uname: str = UserName()):
         await Text("用户id为空...").finish()
     if not gid:
         await Text("群组id为空...").finish()
-    result = russian_manage.accept(gid, session.id1, uname)
+    result = await russian_manage.accept(gid, session.id1, uname)
     await result.send()
     logger.info(f"俄罗斯轮盘接受对决", arparma.header_result, session=session)
 
