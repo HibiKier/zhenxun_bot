@@ -1,5 +1,4 @@
 from nonebot import on_message
-from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_apscheduler import scheduler

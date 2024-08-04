@@ -1,13 +1,20 @@
-from pathlib import Path
 from nonebot.adapters import Bot
-
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
-from nonebot_plugin_alconna import Alconna, AlconnaQuery, Args, Match, Option, Query, on_alconna, store_true
+from nonebot_plugin_alconna import (
+    Alconna,
+    AlconnaQuery,
+    Args,
+    Match,
+    Option,
+    Query,
+    on_alconna,
+    store_true,
+)
 from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.path_config import DATA_PATH, IMAGE_PATH
+from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
@@ -44,7 +51,7 @@ _matcher = on_alconna(
     Alconna(
         "功能",
         Args["name?", str],
-        Option("-s|--superuser", action=store_true, help_text="超级用户帮助")
+        Option("-s|--superuser", action=store_true, help_text="超级用户帮助"),
     ),
     aliases={"help", "帮助"},
     rule=to_me(),
@@ -58,7 +65,7 @@ async def _(
     bot: Bot,
     name: Match[str],
     session: EventSession,
-    is_superuser: Query[bool] = AlconnaQuery("superuser.value", False)
+    is_superuser: Query[bool] = AlconnaQuery("superuser.value", False),
 ):
     _is_superuser = False
     if is_superuser.available:
