@@ -5,7 +5,6 @@ from nonebot_plugin_alconna.matcher import AlconnaMatcher
 from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import Config
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.plugin_info import PluginInfo

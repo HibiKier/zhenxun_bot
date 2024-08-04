@@ -1,11 +1,9 @@
 from datetime import datetime, timedelta
 
 import pytz
-from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import (
     Alconna,
-    AlconnaMatch,
     Args,
     Arparma,
     Match,
@@ -32,11 +30,14 @@ __plugin_meta__ = PluginMetadata(
     消息排行 ?[type [日,周,月,年]] ?[--des]
 
     快捷:
-    [日,周,月,年]消息排行
+    [日,周,月,年]消息排行 ?[数量]
 
     示例:
-    消息排行            : 所有记录排行
-    日消息排行          : 今日记录排行
+    消息排行             : 所有记录排行
+    日消息排行           : 今日记录排行
+    周消息排行           : 今日记录排行
+    月消息排行           : 今日记录排行
+    年消息排行           : 今日记录排行
     消息排行 周 --des    : 逆序周记录排行
     """.strip(),
     extra=PluginExtraData(
@@ -60,16 +61,15 @@ _matcher = on_alconna(
 )
 
 _matcher.shortcut(
-    r"(?P<type>.+)?消息排行",
+    r"(?P<type>['日', '周', '月', '年'])?消息(排行|统计)\s?(?P<cnt>\d+)?",
     command="消息排行",
-    arguments=["{type}"],
+    arguments=["{type}", "{cnt}"],
     prefix=True,
 )
 
 
 @_matcher.handle()
 async def _(
-    bot: Bot,
     session: EventSession,
     arparma: Arparma,
     type: Match[str],
@@ -111,7 +111,7 @@ async def _(
                 ).replace(microsecond=0)
             else:
                 date_scope = time_now.replace(microsecond=0)
-            date_str = f"{date_scope} - 至今"
+            date_str = f"{str(date_scope).split('+')[0]} - 至今"
         else:
             date_str = f"{date_scope[0].replace(microsecond=0)} - {date_scope[1].replace(microsecond=0)}"
         A = await ImageTemplate.table_page(
