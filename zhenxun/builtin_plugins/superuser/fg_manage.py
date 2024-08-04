@@ -4,13 +4,10 @@ from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot_plugin_alconna import Alconna, on_alconna
-from nonebot_plugin_alconna.matcher import AlconnaMatcher
 from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import Config
-from zhenxun.configs.path_config import DATA_PATH
-from zhenxun.configs.utils import ConfigModel, PluginExtraData
+from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.rules import admin_check, ensure_group

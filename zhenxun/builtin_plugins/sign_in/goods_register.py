@@ -4,7 +4,6 @@ import nonebot
 from nonebot.drivers import Driver
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import Config
 from zhenxun.models.sign_user import SignUser
 from zhenxun.models.user_console import UserConsole
 from zhenxun.utils.decorator.shop import NotMeetUseConditionsException, shop_register

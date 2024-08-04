@@ -6,7 +6,6 @@ from nonebot_plugin_saa import Image
 from zhenxun.configs.config import NICKNAME
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.configs.utils import PluginExtraData, Task
-from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType

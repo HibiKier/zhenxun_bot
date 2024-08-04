@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytz
 from nonebot_plugin_session import EventSession
-from tortoise.functions import Count
 
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.models.friend_user import FriendUser

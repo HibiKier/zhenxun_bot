@@ -10,7 +10,6 @@ from nonebot_plugin_alconna import (
 from nonebot_plugin_apscheduler import scheduler
 from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
-from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 
 from zhenxun.configs.utils import PluginCdBlock, PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger

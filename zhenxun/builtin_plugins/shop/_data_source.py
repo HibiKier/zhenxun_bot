@@ -2,7 +2,7 @@ import asyncio
 import inspect
 import time
 from types import MappingProxyType
-from typing import Any, Callable, Dict, Literal
+from typing import Any, Callable, Literal
 
 from nonebot.adapters import Bot, Event
 from nonebot_plugin_alconna import UniMsg
@@ -70,7 +70,7 @@ class ShopParam(BaseModel):
 
 class ShopManage:
 
-    uuid2goods: Dict[str, Goods] = {}
+    uuid2goods: dict[str, Goods] = {}
 
     @classmethod
     def __build_params(
@@ -82,7 +82,7 @@ class ShopManage:
         goods: Goods,
         num: int,
         text: str,
-    ) -> tuple[ShopParam, Dict[str, Any]]:
+    ) -> tuple[ShopParam, dict[str, Any]]:
         """构造参数
 
         参数:

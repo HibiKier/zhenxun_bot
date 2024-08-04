@@ -1,8 +1,6 @@
 import nonebot
 from nonebot_plugin_apscheduler import scheduler
 
-from zhenxun.models.friend_user import FriendUser
-from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
 from zhenxun.utils.platform import PlatformUtils
 
@@ -15,7 +13,6 @@ from zhenxun.utils.platform import PlatformUtils
 )
 async def _():
     bots = nonebot.get_bots()
-    _used_group = []
     for bot in bots.values():
         try:
             await PlatformUtils.update_group(bot)
