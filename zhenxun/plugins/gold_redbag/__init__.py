@@ -279,7 +279,6 @@ async def _(
     text: Match[str],
     groups: Match[str],
 ):
-    # TODO: 指定多个群
     greetings = "恭喜发财 大吉大利"
     if text.available:
         greetings = text.result
