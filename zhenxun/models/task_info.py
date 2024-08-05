@@ -2,6 +2,7 @@ from tortoise import fields
 
 from zhenxun.services.db_context import Model
 
+from .ban_console import BanConsole
 from .group_console import GroupConsole
 
 
@@ -25,18 +26,30 @@ class TaskInfo(Model):
 
     @classmethod
     async def is_block(cls, module: str, group_id: str | None) -> bool:
-        """判断被动技能是否被禁用
+        """判断被动技能是否可以发送
 
         参数:
             module: 被动技能模块名
             group_id: 群组id
 
         返回:
-            bool: 是否被禁用
+            bool: 是否可以发送
         """
         if task := await cls.get_or_none(module=module):
+            """被动全局状态"""
             if not task.status:
                 return True
         if group_id:
-            return await GroupConsole.is_block_task(group_id, module)
+            if await GroupConsole.is_block_task(group_id, module):
+                """群组是否禁用被动"""
+                return True
+            if g := await GroupConsole.get_or_none(
+                group_id=group_id, channel_id__isnull=True
+            ):
+                """群组权限是否小于0"""
+                if g.level < 0:
+                    return True
+            if await BanConsole.is_ban(None, group_id):
+                """群组是否被ban"""
+                return True
         return False

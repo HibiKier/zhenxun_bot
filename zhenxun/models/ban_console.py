@@ -116,8 +116,6 @@ class BanConsole(Model):
         if await cls.check_ban_time(user_id, group_id):
             return True
         else:
-            if await cls.check_ban_time(user_id, group_id):
-                return True
             await cls.unban(user_id, group_id)
         return False
 

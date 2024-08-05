@@ -10,7 +10,6 @@ from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.path_config import TEMP_PATH
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig, Task
-from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
@@ -45,7 +44,7 @@ __plugin_meta__ = PluginMetadata(
 
 
 async def _rule(session: EventSession) -> bool:
-    return not TaskInfo.is_block("bilibili_parse", session.id3 or session.id2)
+    return not await TaskInfo.is_block("bilibili_parse", session.id3 or session.id2)
 
 
 _matcher = on_message(priority=1, block=False, rule=_rule)
