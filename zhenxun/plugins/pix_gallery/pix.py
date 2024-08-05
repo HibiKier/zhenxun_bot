@@ -79,7 +79,7 @@ __plugin_meta__ = PluginMetadata(
 _matcher = on_alconna(
     Alconna(
         "pix",
-        Args["tags?", list[str]],
+        Args["tags?", str] / "\n",
         Option("-s", action=store_true, help_text="色图"),
         Option("-r", action=store_true, help_text="r18"),
     ),
@@ -92,7 +92,7 @@ OMEGA_RATIO = None
 
 
 @_matcher.handle()
-async def _(bot: Bot, session: EventSession, arparma: Arparma, tags: Match[list[str]]):
+async def _(bot: Bot, session: EventSession, arparma: Arparma, tags: Match[str]):
     global PIX_RATIO, OMEGA_RATIO
     gid = session.id3 or session.id2
     if not session.id1:
@@ -106,7 +106,7 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, tags: Match[list[
     num = 1
     # keyword = arg.extract_plain_text().strip()
     keyword = ""
-    spt = tags.result if tags.available else []
+    spt = tags.result.split() if tags.available else []
     if arparma.find("s"):
         nsfw_tag = 1
     elif arparma.find("r"):

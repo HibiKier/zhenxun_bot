@@ -293,7 +293,7 @@ class RussianManage:
                 return result, settle
             else:
                 """存活"""
-                p = (russian.bullet_index + 1) / len(russian.bullet_arr) * 100
+                p = (russian.bullet_index + russian.bullet_num + 1) / len(russian.bullet_arr) * 100
                 result = (
                     random.choice(
                         [
