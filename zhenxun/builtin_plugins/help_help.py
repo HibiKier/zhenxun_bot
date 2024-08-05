@@ -25,7 +25,7 @@ __plugin_meta__ = PluginMetadata(
 )
 
 
-_matcher = on_message(rule=to_me(), priority=997)
+_matcher = on_message(rule=to_me(), priority=996)
 
 
 _path = IMAGE_PATH / "_base" / "laugh"

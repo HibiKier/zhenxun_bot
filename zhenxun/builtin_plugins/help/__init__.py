@@ -53,7 +53,7 @@ _matcher = on_alconna(
         Args["name?", str],
         Option("-s|--superuser", action=store_true, help_text="超级用户帮助"),
     ),
-    aliases={"help", "帮助"},
+    aliases={"help", "帮助", "菜单"},
     rule=to_me(),
     priority=1,
     block=True,
