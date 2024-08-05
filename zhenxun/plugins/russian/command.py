@@ -9,7 +9,7 @@ _russian_matcher = on_alconna(
         "俄罗斯轮盘",
         Args["money", int]["num?", int]["at_user?", alcAt],
     ),
-    aliases={"装弹"},
+    aliases={"装弹", "俄罗斯转盘"},
     rule=ensure_group,
     priority=5,
     block=True,

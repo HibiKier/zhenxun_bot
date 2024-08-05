@@ -18,8 +18,7 @@ __plugin_meta__ = PluginMetadata(
     示例:b封面 av86863038
     """.strip(),
     extra=PluginExtraData(
-        author="HibiKier",
-        version="0.1",
+        author="HibiKier", version="0.1", menu_type="一些工具"
     ).dict(),
 )
 
