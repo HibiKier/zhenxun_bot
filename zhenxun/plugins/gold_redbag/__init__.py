@@ -1,7 +1,6 @@
 import time
 import uuid
 from datetime import datetime, timedelta
-from typing import List
 
 from apscheduler.jobstores.base import JobLookupError
 from nonebot.adapters import Bot
@@ -44,7 +43,7 @@ __plugin_meta__ = PluginMetadata(
         author="HibiKier",
         version="0.1",
         superuser_help="""
-        节日红包 [金额] [红包数] ?[指定主题文字] ? -g [群id]
+        节日红包 [金额] [红包数] ?[指定主题文字] ? -g [群id] [群id] ...
 
         * 不同群组同一个节日红包用户只能开一次
 
@@ -116,7 +115,7 @@ _festive_matcher = on_alconna(
     Alconna(
         "节日红包",
         Args["amount", int]["num", int]["text?", str],
-        Option("-g|--group", Args["group_list", str], help_text="指定群"),
+        Option("-g|--group", Args["groups", str] / "\n", help_text="指定群"),
     ),
     priority=1,
     block=True,
@@ -275,25 +274,24 @@ async def _(
 async def _(
     bot: Bot,
     session: EventSession,
-    arparma: Arparma,
     amount: int,
     num: int,
     text: Match[str],
-    group_list: Match[str],
-    user_name: str = UserName(),
+    groups: Match[str],
 ):
     # TODO: 指定多个群
     greetings = "恭喜发财 大吉大利"
     if text.available:
         greetings = text.result
     gl = []
-    if group_list.available:
-        gl = [group_list.result]
+    if groups.available:
+        gl = groups.result.strip().split()
     else:
         g_l, platform = await PlatformUtils.get_group_list(bot)
         gl = [g.channel_id or g.group_id for g in g_l]
     _uuid = str(uuid.uuid1())
     FestiveRedBagManage.add(_uuid)
+    _suc_cnt = 0
     for g in gl:
         if target := PlatformUtils.get_target(bot, group_id=g):
             group_red_bag = RedBagManager.get_group_data(g)
@@ -350,6 +348,9 @@ async def _(
                         Image(image_result.pic2bytes()),
                     ]
                 ).send_to(target=target, bot=bot)
+                _suc_cnt += 1
                 logger.debug("节日红包图片信息发送成功...", "节日红包", group_id=g)
             except ActionFailed:
                 logger.warning(f"节日红包图片信息发送失败...", "节日红包", group_id=g)
+    if gl:
+        await Text(f"节日红包发送成功，累计成功发送 {_suc_cnt} 个群组!").send()
