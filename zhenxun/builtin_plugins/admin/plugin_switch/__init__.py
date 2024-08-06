@@ -51,6 +51,19 @@ __plugin_meta__ = PluginMetadata(
                 私聊中: 开启/关闭所有插件全局状态
                 群组中: 开启/关闭当前群组所有插件状态
 
+            开启/关闭群被动[name] ?[-g [group_id]]
+                私聊中: 开启/关闭全局指定的被动状态
+                群组中: 开启/关闭当前群组指定的被动状态
+                示例:
+                    关闭群被动早晚安
+                    关闭群被动早晚安 -g 12355555
+
+            开启/关闭所有群被动 -[g ?[group_id]]
+                私聊中: 开启/关闭全局或指定群组被动状态
+                示例:
+                    开启所有群被动: 开启全局所有被动
+                    开启所有群被动 -g 12345678: 开启群组12345678所有被动
+
             私聊下:
                 示例:
                 开启签到                : 全局开启签到
@@ -106,7 +119,7 @@ async def _(
     name = plugin_name.result
     gid = session.id3 or session.id2
     if gid:
-        """群组中使用命令"""
+        """修改当前群组的数据"""
         if task.result:
             if all.result:
                 result = await PluginManage.unblock_group_all_task(gid)
@@ -137,7 +150,7 @@ async def _(
                         session=session,
                     )
                 else:
-                    result = await PluginManage.block_group_plugin(name, gid)
+                    result = await PluginManage.unblock_group_plugin(name, gid)
                     logger.info(
                         f"开启功能 {name}", arparma.header_result, session=session
                     )
@@ -146,14 +159,21 @@ async def _(
         """私聊"""
         group_id = group.result if group.available else None
         if all.result:
-            result = await PluginManage.set_all_plugin_status(
-                True, default_status.result, group_id
-            )
-            logger.info(
-                f"超级用户开启全部功能全局开关 {f'指定群组: {group_id}' if group_id else ''}",
-                arparma.header_result,
-                session=session,
-            )
+            if task.result:
+                """关闭全局或指定群全部被动"""
+                if group_id:
+                    result = await PluginManage.unblock_group_all_task(group_id)
+                else:
+                    result = await PluginManage.unblock_global_all_task()
+            else:
+                result = await PluginManage.set_all_plugin_status(
+                    True, default_status.result, group_id
+                )
+                logger.info(
+                    f"超级用户开启全部功能全局开关 {f'指定群组: {group_id}' if group_id else ''}",
+                    arparma.header_result,
+                    session=session,
+                )
             await Text(result).finish(reply=True)
         if default_status.result:
             result = await PluginManage.set_default_status(name, True)
@@ -165,13 +185,25 @@ async def _(
             )
             await Text(result).finish(reply=True)
         if task.result:
-            result = await PluginManage.superuser_task_handle(name, group_id, True)
-            logger.info(
-                f"超级用户开启被动技能 {name}",
-                arparma.header_result,
-                session=session,
-                target=group_id,
-            )
+            split_list = name.split()
+            if len(split_list) > 1:
+                name = split_list[0]
+                group_id = split_list[1]
+            if group_id:
+                result = await PluginManage.superuser_task_handle(name, group_id, True)
+                logger.info(
+                    f"超级用户开启被动技能 {name}",
+                    arparma.header_result,
+                    session=session,
+                    target=group_id,
+                )
+            else:
+                result = await PluginManage.unblock_global_task(name)
+                logger.info(
+                    f"超级用户开启全局被动技能 {name}",
+                    arparma.header_result,
+                    session=session,
+                )
             await Text(result).finish(reply=True)
         else:
             result = await PluginManage.superuser_block(name, None, group_id)
@@ -201,6 +233,7 @@ async def _(
     name = plugin_name.result
     gid = session.id3 or session.id2
     if gid:
+        """修改当前群组的数据"""
         if task.result:
             if all.result:
                 result = await PluginManage.block_group_all_task(gid)
@@ -231,7 +264,7 @@ async def _(
                         session=session,
                     )
                 else:
-                    result = await PluginManage.unblock_group_plugin(name, gid)
+                    result = await PluginManage.block_group_plugin(name, gid)
                     logger.info(
                         f"关闭功能 {name}", arparma.header_result, session=session
                     )
@@ -239,14 +272,21 @@ async def _(
     elif session.id1 in bot.config.superusers:
         group_id = group.result if group.available else None
         if all.result:
-            result = await PluginManage.set_all_plugin_status(
-                False, default_status.result, group_id
-            )
-            logger.info(
-                f"超级用户关闭全部功能全局开关 {f'指定群组: {group_id}' if group_id else ''}",
-                arparma.header_result,
-                session=session,
-            )
+            if task.result:
+                """关闭全局或指定群全部被动"""
+                if group_id:
+                    result = await PluginManage.block_group_all_task(group_id)
+                else:
+                    result = await PluginManage.block_global_all_task()
+            else:
+                result = await PluginManage.set_all_plugin_status(
+                    False, default_status.result, group_id
+                )
+                logger.info(
+                    f"超级用户关闭全部功能全局开关 {f'指定群组: {group_id}' if group_id else ''}",
+                    arparma.header_result,
+                    session=session,
+                )
             await Text(result).finish(reply=True)
         if default_status.result:
             result = await PluginManage.set_default_status(name, False)
@@ -258,13 +298,25 @@ async def _(
             )
             await Text(result).finish(reply=True)
         if task.result:
-            result = await PluginManage.superuser_task_handle(name, group_id, False)
-            logger.info(
-                f"超级用户关闭被动技能 {name}",
-                arparma.header_result,
-                session=session,
-                target=group_id,
-            )
+            split_list = name.split()
+            if len(split_list) > 1:
+                name = split_list[0]
+                group_id = split_list[1]
+            if group_id:
+                result = await PluginManage.superuser_task_handle(name, group_id, False)
+                logger.info(
+                    f"超级用户关闭被动技能 {name}",
+                    arparma.header_result,
+                    session=session,
+                    target=group_id,
+                )
+            else:
+                result = await PluginManage.block_global_task(name)
+                logger.info(
+                    f"超级用户关闭全局被动技能 {name}",
+                    arparma.header_result,
+                    session=session,
+                )
             await Text(result).finish(reply=True)
         else:
             _type = BlockType.ALL

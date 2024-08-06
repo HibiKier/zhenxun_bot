@@ -16,24 +16,17 @@ _status_matcher = on_alconna(
         Option("-t|--task", action=store_true, help_text="被动技能"),
         Option("-df|--default", action=store_true, help_text="进群默认开关"),
         Option("--all", action=store_true, help_text="全部插件/被动"),
+        Option("-g|--group", Args["group?", str], help_text="指定群组"),
         Subcommand(
             "open",
             Args["plugin_name?", [str, int]],
-            Option(
-                "-g|--group",
-                Args["group", str],
-            ),
         ),
         Subcommand(
             "close",
             Args["plugin_name?", [str, int]],
             Option(
                 "-t|--type",
-                Args["block_type", ["all", "a", "private", "p", "group", "g"]],
-            ),
-            Option(
-                "-g|--group",
-                Args["group", str],
+                Args["block_type?", ["all", "a", "private", "p", "group", "g"]],
             ),
         ),
     ),
@@ -67,11 +60,19 @@ _status_matcher.shortcut(
 
 
 _status_matcher.shortcut(
-    r"开启群被动(?P<name>.+)",
+    r"开启群被动\s*(?P<name>.+)",
     command="switch",
     arguments=["open", "{name}", "--task"],
     prefix=True,
 )
+
+_status_matcher.shortcut(
+    r"关闭群被动\s*(?P<name>.+)",
+    command="switch",
+    arguments=["close", "{name}", "--task"],
+    prefix=True,
+)
+
 
 _status_matcher.shortcut(
     r"开启(所有|全部)群被动",
@@ -118,14 +119,6 @@ _status_matcher.shortcut(
 
 
 _status_matcher.shortcut(
-    r"关闭群被动(?P<name>.+)",
-    command="switch",
-    arguments=["close", "{name}", "--task"],
-    prefix=True,
-)
-
-
-_status_matcher.shortcut(
     r"关闭所有(插件|功能)",
     command="switch",
     arguments=["close", "s", "--all"],
@@ -140,18 +133,19 @@ _status_matcher.shortcut(
 )
 
 _status_matcher.shortcut(
+    r"关闭(?P<name>.+)",
+    command="switch",
+    arguments=["close", "{name}"],
+    prefix=True,
+)
+
+_status_matcher.shortcut(
     r"关闭(插件|功能)df(?P<name>.+)",
     command="switch",
     arguments=["close", "{name}", "-df"],
     prefix=True,
 )
 
-_status_matcher.shortcut(
-    r"关闭(?P<name>.+)",
-    command="switch",
-    arguments=["close", "{name}"],
-    prefix=True,
-)
 
 _group_status_matcher.shortcut(
     r"醒来",

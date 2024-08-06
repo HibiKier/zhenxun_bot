@@ -189,8 +189,14 @@ class PluginManage:
             if group := await GroupConsole.get_or_none(
                 group_id=group_id, channel_id__isnull=True
             ):
+                module_list = await PluginInfo.filter(
+                    plugin_type=PluginType.NORMAL
+                ).values_list("module", flat=True)
                 if status:
-                    group.block_plugin = ""
+                    for module in module_list:
+                        group.block_plugin = group.block_plugin.replace(
+                            f"{module},", ""
+                        )
                 else:
                     module_list = await PluginInfo.filter(
                         plugin_type=PluginType.NORMAL
@@ -271,7 +277,7 @@ class PluginManage:
         返回:
             str: 返回信息
         """
-        return await cls._change_group_plugin(plugin_name, group_id, True)
+        return await cls._change_group_plugin(plugin_name, group_id, False)
 
     @classmethod
     async def unblock_group_task(cls, task_name: str, group_id: str) -> str:
@@ -324,6 +330,52 @@ class PluginManage:
         return await cls._change_group_task("", group_id, True, True)
 
     @classmethod
+    async def block_global_all_task(cls) -> str:
+        """禁用全局被动技能
+
+        返回:
+            str: 返回信息
+        """
+        await TaskInfo.all().update(status=False)
+        return "已全局禁用所有被动状态"
+
+    @classmethod
+    async def block_global_task(cls, name: str) -> str:
+        """禁用全局被动技能
+
+        参数:
+            name: 被动技能名称
+
+        返回:
+            str: 返回信息
+        """
+        await TaskInfo.filter(name=name).update(status=False)
+        return f"已全局禁用被动状态 {name}"
+
+    @classmethod
+    async def unblock_global_all_task(cls) -> str:
+        """开启全局被动技能
+
+        返回:
+            str: 返回信息
+        """
+        await TaskInfo.all().update(status=True)
+        return "已全局开启所有被动状态"
+
+    @classmethod
+    async def unblock_global_task(cls, name: str) -> str:
+        """开启全局被动技能
+
+        参数:
+            name: 被动技能名称
+
+        返回:
+            str: 返回信息
+        """
+        await TaskInfo.filter(name=name).update(status=True)
+        return f"已全局开启被动状态 {name}"
+
+    @classmethod
     async def unblock_group_plugin(cls, plugin_name: str, group_id: str) -> str:
         """启用群组插件
 
@@ -334,7 +386,7 @@ class PluginManage:
         返回:
             str: 返回信息
         """
-        return await cls._change_group_plugin(plugin_name, group_id, False)
+        return await cls._change_group_plugin(plugin_name, group_id, True)
 
     @classmethod
     async def _change_group_task(
@@ -361,7 +413,8 @@ class PluginManage:
                 if status:
                     group.block_task = ",".join(modules) + ","  # type: ignore
                 else:
-                    group.block_task = ""
+                    for module in modules:
+                        group.block_task = group.block_task.replace(f"{module},", "")
                 await group.save(update_fields=["block_task"])
                 return f"已成功{status_str}全部被动技能!"
         else:
@@ -372,6 +425,8 @@ class PluginManage:
                 if status:
                     group.block_task += f"{task.module},"
                 else:
+                    if f"super:{task.module}," in group.block_task:
+                        return f"{status_str} {task_name} 被动技能失败，当前群组该被动已被管理员禁用"
                     group.block_task = group.block_task.replace(f"{task.module},", "")
                 await group.save(update_fields=["block_task"])
                 return f"已成功{status_str} {task_name} 被动技能!"
@@ -443,10 +498,8 @@ class PluginManage:
                 else:
                     group.block_task += f"super:{task.module},"
                 await group.save(update_fields=["block_task"])
-            else:
-                task.status = status
-                await task.save(update_fields=["status"])
-            return f"已成功将被动技能 {task_name} 全局{status_str}!"
+                return f"已成功将群组 {group_id} 被动技能 {task_name} {status_str}!"
+            return "没有找到这个群组喔..."
         return "没有找到这个功能喔..."
 
     @classmethod
