@@ -24,6 +24,7 @@ __plugin_meta__ = PluginMetadata(
         开启/关闭[功能名称]         : 开关功能
         开启/关闭群被动[被动名称]    : 群被动开关
         开启/关闭所有插件           : 开启/关闭当前群组所有插件状态
+        开启/关闭所有群被动         : 开启/关闭当前群组所有群被动
         群被动状态                 : 查看被动技能开关状态
         醒来                      : 结束休眠
         休息吧                    : 群组休眠, 不会再响应命令
@@ -107,8 +108,14 @@ async def _(
     if gid:
         """群组中使用命令"""
         if task.result:
-            result = await PluginManage.unblock_group_task(name, gid)
-            logger.info(f"开启群组被动 {name}", arparma.header_result, session=session)
+            if all.result:
+                result = await PluginManage.unblock_group_all_task(gid)
+                logger.info(f"开启所有群组被动", arparma.header_result, session=session)
+            else:
+                result = await PluginManage.unblock_group_task(name, gid)
+                logger.info(
+                    f"开启群组被动 {name}", arparma.header_result, session=session
+                )
         else:
             if session.id1 in bot.config.superusers and default_status.result:
                 """单个插件的进群默认修改"""
@@ -195,7 +202,14 @@ async def _(
     gid = session.id3 or session.id2
     if gid:
         if task.result:
-            result = await PluginManage.block_group_task(name, gid)
+            if all.result:
+                result = await PluginManage.block_group_all_task(gid)
+                logger.info(f"开启所有群组被动", arparma.header_result, session=session)
+            else:
+                result = await PluginManage.block_group_task(name, gid)
+                logger.info(
+                    f"关闭群组被动 {name}", arparma.header_result, session=session
+                )
         else:
             if session.id1 in bot.config.superusers and default_status.result:
                 """单个插件的进群默认修改"""

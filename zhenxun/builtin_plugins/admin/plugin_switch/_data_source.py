@@ -287,6 +287,18 @@ class PluginManage:
         return await cls._change_group_task(task_name, group_id, False)
 
     @classmethod
+    async def unblock_group_all_task(cls, group_id: str) -> str:
+        """启用被动技能
+
+        参数:
+            group_id: 群组id
+
+        返回:
+            str: 返回信息
+        """
+        return await cls._change_group_task("", group_id, False, True)
+
+    @classmethod
     async def block_group_task(cls, task_name: str, group_id: str) -> str:
         """禁用被动技能
 
@@ -298,6 +310,18 @@ class PluginManage:
             str: 返回信息
         """
         return await cls._change_group_task(task_name, group_id, True)
+
+    @classmethod
+    async def block_group_all_task(cls, group_id: str) -> str:
+        """禁用被动技能
+
+        参数:
+            group_id: 群组id
+
+        返回:
+            str: 返回信息
+        """
+        return await cls._change_group_task("", group_id, True, True)
 
     @classmethod
     async def unblock_group_plugin(cls, plugin_name: str, group_id: str) -> str:
@@ -314,7 +338,7 @@ class PluginManage:
 
     @classmethod
     async def _change_group_task(
-        cls, task_name: str, group_id: str, status: bool
+        cls, task_name: str, group_id: str, status: bool, is_all: bool = False
     ) -> str:
         """改变群组被动技能状态
 
@@ -322,21 +346,35 @@ class PluginManage:
             task_name: 被动技能名称
             group_id: 群组Id
             status: 状态
+            is_all: 所有群被动
 
         返回:
             str: 返回信息
         """
-        if task := await TaskInfo.get_or_none(name=task_name):
-            status_str = "关闭" if status else "开启"
-            group, _ = await GroupConsole.get_or_create(
-                group_id=group_id, channel_id__isnull=True
-            )
-            if status:
-                group.block_task += f"{task.module},"
-            else:
-                group.block_task = group.block_task.replace(f"{task.module},", "")
-            await group.save(update_fields=["block_task"])
-            return f"已成功{status_str} {task_name} 被动技能!"
+        status_str = "关闭" if status else "开启"
+        if is_all:
+            modules = await TaskInfo.annotate().values_list("module", flat=True)
+            if modules:
+                group, _ = await GroupConsole.get_or_create(
+                    group_id=group_id, channel_id__isnull=True
+                )
+                if status:
+                    group.block_task = ",".join(modules) + ","  # type: ignore
+                else:
+                    group.block_task = ""
+                await group.save(update_fields=["block_task"])
+                return f"已成功{status_str}全部被动技能!"
+        else:
+            if task := await TaskInfo.get_or_none(name=task_name):
+                group, _ = await GroupConsole.get_or_create(
+                    group_id=group_id, channel_id__isnull=True
+                )
+                if status:
+                    group.block_task += f"{task.module},"
+                else:
+                    group.block_task = group.block_task.replace(f"{task.module},", "")
+                await group.save(update_fields=["block_task"])
+                return f"已成功{status_str} {task_name} 被动技能!"
         return "没有找到这个被动技能喔..."
 
     @classmethod

@@ -15,7 +15,7 @@ _status_matcher = on_alconna(
         "switch",
         Option("-t|--task", action=store_true, help_text="被动技能"),
         Option("-df|--default", action=store_true, help_text="进群默认开关"),
-        Option("--all", action=store_true, help_text="全部插件"),
+        Option("--all", action=store_true, help_text="全部插件/被动"),
         Subcommand(
             "open",
             Args["plugin_name?", [str, int]],
@@ -70,6 +70,20 @@ _status_matcher.shortcut(
     r"开启群被动(?P<name>.+)",
     command="switch",
     arguments=["open", "{name}", "--task"],
+    prefix=True,
+)
+
+_status_matcher.shortcut(
+    r"开启(所有|全部)群被动",
+    command="switch",
+    arguments=["open", "--task", "--all"],
+    prefix=True,
+)
+
+_status_matcher.shortcut(
+    r"关闭(所有|全部)群被动",
+    command="switch",
+    arguments=["close", "--task", "--all"],
     prefix=True,
 )
 
