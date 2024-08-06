@@ -2,6 +2,7 @@ import os
 import random
 
 from nonebot import on_message
+from nonebot.matcher import Matcher
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot_plugin_alconna import Image, UniMessage, UniMsg
@@ -32,7 +33,7 @@ _path = IMAGE_PATH / "_base" / "laugh"
 
 
 @_matcher.handle()
-async def _(message: UniMsg, session: EventSession):
+async def _(matcher: Matcher, message: UniMsg, session: EventSession):
     if text := message.extract_plain_text().strip():
         if plugin := await PluginInfo.get_or_none(
             name=text, load_status=True, plugin_type=PluginType.NORMAL
@@ -50,4 +51,5 @@ async def _(message: UniMsg, session: EventSession):
             logger.info(
                 f"检测到功能名称当命令使用，已发送帮助信息", "功能帮助", session=session
             )
-            await UniMessage(message_list).finish(reply_to=True)
+            await UniMessage(message_list).send(reply_to=True)
+            matcher.stop_propagation()

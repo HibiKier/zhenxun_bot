@@ -206,9 +206,9 @@ class AuthChecker:
         if not group_id:
             group_id = channel_id
             channel_id = None
-        if user_id and matcher.plugin and (module := matcher.plugin.name):
+        if user_id and matcher.plugin and (module_path := matcher.plugin.module_name):
             user = await UserConsole.get_user(user_id, session.platform)
-            if plugin := await PluginInfo.get_or_none(module=module):
+            if plugin := await PluginInfo.get_or_none(module_path=module_path):
                 if plugin.plugin_type == PluginType.HIDDEN:
                     return
                 try:

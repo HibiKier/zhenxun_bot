@@ -93,6 +93,8 @@ class BanConsole(Model):
         """
         logger.debug(f"获取用户ban时长", target=f"{group_id}:{user_id}")
         user = await cls._get_data(user_id, group_id)
+        if not user and user_id:
+            user = await cls._get_data(user_id, None)
         if user:
             if user.duration == -1:
                 return -1
