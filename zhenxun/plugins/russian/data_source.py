@@ -236,6 +236,7 @@ class RussianManage:
                 if russian.at_user != user_id:
                     return Text("又不是找你决斗，你拒绝什么啊！气！")
                 del self._data[group_id]
+                self.__remove_job(group_id)
                 return MessageFactory(
                     [Mention(russian.player1[0]), Text(f"{uname}拒绝了你的对决！")]
                 )
