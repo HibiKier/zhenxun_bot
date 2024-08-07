@@ -102,13 +102,13 @@ async def _(
 
 
 @_accept_matcher.handle()
-async def _(session: EventSession, arparma: Arparma, uname: str = UserName()):
+async def _(bot: Bot, session: EventSession, arparma: Arparma, uname: str = UserName()):
     gid = session.id2
     if not session.id1:
         await Text("用户id为空...").finish()
     if not gid:
         await Text("群组id为空...").finish()
-    result = await russian_manage.accept(gid, session.id1, uname)
+    result = await russian_manage.accept(bot, gid, session.id1, uname)
     await result.send()
     logger.info(f"俄罗斯轮盘接受对决", arparma.header_result, session=session)
 
