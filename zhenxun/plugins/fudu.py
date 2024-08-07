@@ -91,6 +91,9 @@ class Fudu:
 _manage = Fudu()
 
 
+base_config = Config.get("fudu")
+
+
 _matcher = on_message(rule=ensure_group, priority=999)
 
 
@@ -124,11 +127,11 @@ async def _(message: UniMsg, event: Event, session: EventSession):
         _manage.clear(group_id)
         _manage.append(group_id, add_msg)
     if _manage.size(group_id) > 2:
-        if random.random() < Config.get_config(
-            "fudu", "FUDU_PROBABILITY"
+        if random.random() < base_config.get(
+            "FUDU_PROBABILITY"
         ) and not _manage.is_repeater(group_id):
             if random.random() < 0.2:
-                if plain_text.endswith("打断施法！"):
+                if plain_text.startswith("打断施法"):
                     await Text("打断" + plain_text).finish()
                 else:
                     await Text("打断施法！").finish()
