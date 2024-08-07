@@ -337,7 +337,6 @@ async def _(
 
 @_group_status_matcher.handle()
 async def _(
-    bot: Bot,
     session: EventSession,
     arparma: Arparma,
     status: str,
@@ -348,7 +347,7 @@ async def _(
             logger.info("进行休眠", arparma.header_result, session=session)
             await Text("那我先睡觉了...").finish()
         else:
-            if PluginManage.is_wake(gid):
+            if await PluginManage.is_wake(gid):
                 await Text("我还醒着呢！").finish()
             await PluginManage.wake(gid)
             logger.info("醒来", arparma.header_result, session=session)

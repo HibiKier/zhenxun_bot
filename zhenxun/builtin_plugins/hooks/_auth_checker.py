@@ -1,7 +1,4 @@
-from typing import Dict
-from unittest import result
-
-from nonebot.adapters import Bot, Event
+from nonebot.adapters import Bot
 from nonebot.exception import IgnoredException
 from nonebot.matcher import Matcher
 from nonebot_plugin_alconna import UniMsg
@@ -10,7 +7,6 @@ from nonebot_plugin_session import EventSession
 from pydantic import BaseModel
 
 from zhenxun.configs.config import Config
-from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.level_user import LevelUser
 from zhenxun.models.plugin_info import PluginInfo
@@ -41,9 +37,9 @@ class LimitManage:
 
     add_module = []
 
-    cd_limit: Dict[str, Limit] = {}
-    block_limit: Dict[str, Limit] = {}
-    count_limit: Dict[str, Limit] = {}
+    cd_limit: dict[str, Limit] = {}
+    block_limit: dict[str, Limit] = {}
+    count_limit: dict[str, Limit] = {}
 
     @classmethod
     def add_limit(cls, limit: PluginLimit):
@@ -209,7 +205,8 @@ class AuthChecker:
         if user_id and matcher.plugin and (module_path := matcher.plugin.module_name):
             user = await UserConsole.get_user(user_id, session.platform)
             if plugin := await PluginInfo.get_or_none(module_path=module_path):
-                if plugin.plugin_type == PluginType.HIDDEN:
+                if plugin.plugin_type == PluginType.HIDDEN and plugin.name != "帮助":
+                    logger.debug("插件为HIDDEN且不是帮助功能，已跳过...")
                     return
                 try:
                     cost_gold = await self.auth_cost(user, plugin, session)
@@ -433,7 +430,7 @@ class AuthChecker:
             if group.level < 0:
                 """群权限小于0"""
                 logger.debug(
-                    f"{plugin.name}({plugin.module}) 群黑名单, 群权限-1...",
+                    f"群黑名单, 群权限-1...",
                     "HOOK",
                     session=session,
                 )
@@ -442,7 +439,7 @@ class AuthChecker:
                 """群休眠"""
                 if text.strip() != "醒来":
                     logger.debug(
-                        f"{plugin.name}({plugin.module}) 功能总开关关闭状态...",
+                        f"功能总开关关闭状态...",
                         "HOOK",
                         session=session,
                     )

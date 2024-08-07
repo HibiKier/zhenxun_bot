@@ -1,16 +1,31 @@
 from nonebot import on_message
 from nonebot.adapters import Bot
+from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Image as alcImage
 from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
+from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import get_download_image_hash
 from zhenxun.utils.platform import PlatformUtils
 
 from ._data_source import mute_manage
+
+__plugin_meta__ = PluginMetadata(
+    name="刷屏监听",
+    description="",
+    usage="",
+    extra=PluginExtraData(
+        author="HibiKier",
+        version="0.1",
+        menu_type="其他",
+        plugin_type=PluginType.HIDDEN,
+    ).dict(),
+)
 
 _matcher = on_message(priority=1, block=False)
 
