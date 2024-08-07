@@ -44,7 +44,8 @@ TEMP_LIST = []
 
 @chat_history.handle()
 async def _(message: UniMsg, session: EventSession):
-    group_id = session.id3 or session.id2
+    # group_id = session.id3 or session.id2
+    group_id = session.id2
     TEMP_LIST.append(
         ChatHistory(
             user_id=session.id1,
