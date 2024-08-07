@@ -76,7 +76,7 @@ class BanConsole(Model):
                 f"检测用户被ban等级，user_level: {user.ban_level}，level: {level}",
                 target=f"{group_id}:{user_id}",
             )
-            return bool(user and user.ban_level >= level)
+            return user.ban_level >= level
         return False
 
     @classmethod

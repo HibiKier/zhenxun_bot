@@ -28,7 +28,7 @@ async def login_get_token(form_data: OAuth2PasswordRequestForm = Depends()):
     password = Config.get_config("web-ui", "password")
     if not username or not password:
         return Result.fail("你滴配置文件里用户名密码配置项为空", 998)
-    if username != form_data.username or password != form_data.password:
+    if username != form_data.username or str(password) != form_data.password:
         return Result.fail("真笨, 账号密码都能记错!", 999)
     user = get_user(form_data.username)
     if not user:

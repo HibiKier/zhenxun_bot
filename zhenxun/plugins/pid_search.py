@@ -7,7 +7,7 @@ from nonebot_plugin_saa import Image, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
-from zhenxun.configs.path_config import IMAGE_PATH, TEMP_PATH
+from zhenxun.configs.path_config import TEMP_PATH
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
@@ -34,7 +34,7 @@ headers = {
 }
 
 _matcher = on_alconna(
-    Alconna("p搜", Args["pid", int]), aliases={"P搜"}, priority=5, block=True
+    Alconna("p搜", Args["pid", str]), aliases={"P搜"}, priority=5, block=True
 )
 
 
@@ -44,11 +44,13 @@ async def _(pid: Match[int]):
         _matcher.set_path_arg("pid", pid.result)
 
 
-@_matcher.got_path("pid", prompt="需要查询的图片PID是？")
-async def _(bot: Bot, session: EventSession, arparma: Arparma, pid: int):
+@_matcher.got_path("pid", prompt="需要查询的图片PID是？或发送'取消'结束搜索")
+async def _(bot: Bot, session: EventSession, arparma: Arparma, pid: str):
     url = Config.get_config("hibiapi", "HIBIAPI") + "/api/pixiv/illust"
     if pid in ["取消", "算了"]:
         await Text("已取消操作...").finish()
+    if not pid.isdigit():
+        await Text("pid必须为数字...").finish()
     for _ in range(3):
         try:
             data = (
@@ -61,6 +63,12 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, pid: int):
         except TimeoutError:
             pass
         except Exception as e:
+            logger.error(
+                f"pixiv pid 搜索发生了一些错误...",
+                arparma.header_result,
+                session=session,
+                e=e,
+            )
             await Text(f"发生了一些错误..{type(e)}：{e}").finish()
         else:
             if data.get("error"):

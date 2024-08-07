@@ -185,11 +185,12 @@ class RussianManage:
         return MessageFactory(message_list)
 
     async def accept(
-        self, group_id: str, user_id: str, uname: str
+        self, bot: Bot, group_id: str, user_id: str, uname: str
     ) -> Text | MessageFactory:
         """接受对决
 
         参数:
+            bot: Bot
             group_id: 群组id
             user_id: 用户id
             uname: 用户名称
@@ -209,6 +210,7 @@ class RussianManage:
                 return Text("你没有足够的钱来接受这场挑战...")
             russian.player2 = (user_id, uname)
             russian.next_user = russian.player1[0]
+            self.__build_job(bot, group_id, True)
             return MessageFactory(
                 [
                     Text("决斗已经开始！请"),

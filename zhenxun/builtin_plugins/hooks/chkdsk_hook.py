@@ -65,7 +65,9 @@ _blmt = BanCheckLimiter(
 # 恶意触发命令检测
 @run_preprocessor
 async def _(matcher: Matcher, bot: Bot, session: EventSession, state: T_State):
+    module = None
     if plugin := matcher.plugin:
+        module = plugin.module_name
         if metadata := plugin.metadata:
             extra = metadata.extra
             if extra.get("plugin_type") == PluginType.HIDDEN:
@@ -76,14 +78,8 @@ async def _(matcher: Matcher, bot: Bot, session: EventSession, state: T_State):
     if not malicious_ban_time:
         raise ValueError("模块: [hook], 配置项: [MALICIOUS_BAN_TIME] 为空或小于0")
     if user_id:
-        command = state["_prefix"]["raw_command"]
-        if state.get("_alc_result"):
-            try:
-                command = state["_alc_result"].source.command
-            except AttributeError:
-                pass
-        if command:
-            if _blmt.check(f"{user_id}__{command}"):
+        if module:
+            if _blmt.check(f"{user_id}__{module}"):
                 await BanConsole.ban(
                     user_id, group_id, 9, malicious_ban_time * 60, bot.self_id
                 )
@@ -104,4 +100,4 @@ async def _(matcher: Matcher, bot: Bot, session: EventSession, state: T_State):
                     session=session,
                 )
                 raise IgnoredException("检测到恶意触发命令")
-            _blmt.add(f"{user_id}__{command}")
+            _blmt.add(f"{user_id}__{module}")

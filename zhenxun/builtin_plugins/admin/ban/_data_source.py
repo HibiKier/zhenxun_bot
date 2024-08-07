@@ -88,7 +88,7 @@ class BanManage:
         session: EventSession,
         is_superuser: bool = False,
     ) -> bool:
-        """ban掉目标用户
+        """unban目标用户
 
         参数:
             user_id: 用户id
@@ -102,7 +102,7 @@ class BanManage:
         user_level = 9999
         if not is_superuser and user_id and session.id1:
             user_level = await LevelUser.get_user_level(session.id1, group_id)
-        if await BanConsole.check_ban_level(user_id, group_id, user_level):
+        if not await BanConsole.check_ban_level(user_id, group_id, user_level):
             await BanConsole.unban(user_id, group_id)
             return True
         return False
