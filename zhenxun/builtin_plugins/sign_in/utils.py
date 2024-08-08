@@ -172,9 +172,19 @@ async def _generate_card(
     uid_img = await BuildImage.build_text_image(
         f"UID: {uid}", size=30, font_color=(255, 255, 255)
     )
+    bk.getsize("Accumulative check-in for")
+    image1 = await bk.build_text_image("Accumulative check-in for", size=25)
+    image2 = await bk.build_text_image("days", size=25)
     sign_day_img = await BuildImage.build_text_image(
         f"{user.sign_count}", size=40, font_color=(211, 64, 33)
     )
+    tip_width = image1.width + image2.width + sign_day_img.width + 60
+    tip_height = max([image1.height, image2.height, sign_day_img.height])
+    tip_image = BuildImage(tip_width, tip_height, (255, 255, 255, 0))
+    await tip_image.paste(image1, (0, 7))
+    await tip_image.paste(sign_day_img, (image1.width + 15, 0))
+    await tip_image.paste(image2, (image1.width + sign_day_img.width + 30, 7))
+
     lik_text1_img = await BuildImage.build_text_image("当前", size=20)
     lik_text2_img = await BuildImage.build_text_image(
         f"好感度：{user.impression:.2f}", size=30
@@ -235,10 +245,11 @@ async def _generate_card(
     await bk.paste(nickname_img, (30, 15))
     await bk.paste(uid_img, (30, 85))
     await bk.paste(A, (0, 150))
-    await bk.text((30, 167), "Accumulative check-in for")
-    _x = bk.getsize("Accumulative check-in for")[0] + sign_day_img.width + 45
-    await bk.paste(sign_day_img, (398, 158))
-    await bk.text((_x, 167), "days")
+    # await bk.text((30, 167), "Accumulative check-in for")
+    # _x = bk.getsize("Accumulative check-in for")[0] + sign_day_img.width + 45
+    # await bk.paste(sign_day_img, (398, 158))
+    # await bk.text((_x, 167), "days")
+    await bk.paste(tip_image, (10, 167))
     await bk.paste(data_img, (220, 370))
     await bk.paste(lik_text1_img, (220, 240))
     await bk.paste(lik_text2_img, (262, 234))
