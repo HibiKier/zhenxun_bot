@@ -1,3 +1,4 @@
+from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma
 from nonebot_plugin_alconna import Image as alcImg
@@ -7,6 +8,8 @@ from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
+from zhenxun.utils.platform import PlatformUtils
+from zhenxun.utils.utils import template2forward
 
 from .saucenao import get_saucenao_image
 
@@ -62,11 +65,13 @@ async def _(mode: Match[str], image: Match[alcImg]):
 
 @_matcher.got_path("image", prompt="图来！")
 async def _(
+    bot: Bot,
     session: EventSession,
     arparma: Arparma,
     mode: str,
     image: alcImg,
 ):
+    gid = session.id3 or session.id2
     if not image.url:
         await Text("图片url为空...").finish()
     await Text("开始处理图片...").send()
@@ -75,6 +80,14 @@ async def _(
         await Text(info_list).finish(at_sender=True)
     if not info_list:
         await Text("未查询到...").finish()
-    for info in info_list[1:]:
-        await info.send()
+    platform = PlatformUtils.get_platform(bot)
+    if "qq" == platform and gid:
+        forward = template2forward(info_list, bot.self_id)  # type: ignore
+        await bot.send_group_forward_msg(
+            group_id=int(gid),
+            messages=forward,  # type: ignore
+        )
+    else:
+        for info in info_list[1:]:
+            await info.send()
     logger.info(f" 识图: {image.url}", arparma.header_result, session=session)

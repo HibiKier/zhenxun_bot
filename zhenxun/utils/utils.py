@@ -3,13 +3,16 @@ import time
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
+from re import L
 from typing import Any
 
 import httpx
 import pypinyin
 import pytz
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
+from nonebot_plugin_saa import Image, MessageFactory, Text
 
-from zhenxun.configs.config import Config
+from zhenxun.configs.config import NICKNAME, Config
 from zhenxun.services.log import logger
 
 
@@ -230,3 +233,61 @@ def is_valid_date(date_text: str, separator: str = "-") -> bool:
         return True
     except ValueError:
         return False
+
+
+def custom_forward_msg(
+    msg_list: list[str | Message],
+    uin: str,
+    name: str = f"这里是{NICKNAME}",
+) -> list[dict]:
+    """生成自定义合并消息
+
+    参数:
+        msg_list: 消息列表
+        uin: 发送者 QQ
+        name: 自定义名称
+
+    返回:
+        list[dict]: 转发消息
+    """
+    mes_list = []
+    for _message in msg_list:
+        data = {
+            "type": "node",
+            "data": {
+                "name": name,
+                "uin": f"{uin}",
+                "content": _message,
+            },
+        }
+        mes_list.append(data)
+    return mes_list
+
+
+def template2forward(
+    msg_list: list[MessageFactory | Text | Image], uni: str
+) -> list[dict]:
+    """模板转转发消息
+
+    参数:
+        msg_list: 消息列表
+        uni: 发送者qq
+
+    返回:
+        list[dict]: 转发消息
+    """
+    forward_data = []
+    for r_list in msg_list:
+        s = ""
+        if isinstance(r_list, MessageFactory):
+            for r in r_list:
+                if isinstance(r, Text):
+                    s += str(r)
+                elif isinstance(r, Image):
+                    s += MessageSegment.image(r.data["image"])
+        elif isinstance(r_list, Image):
+            s = MessageSegment.image(r_list.data["image"])
+        else:
+            s = str(r_list)
+        forward_data.append(s)
+    return custom_forward_msg(forward_data, uni)

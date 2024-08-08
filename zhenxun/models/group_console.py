@@ -1,4 +1,5 @@
 from tortoise import fields
+from typing_extensions import Self
 
 from zhenxun.services.db_context import Model
 
@@ -38,6 +39,21 @@ class GroupConsole(Model):
         table = "group_console"
         table_description = "群组信息表"
         unique_together = ("group_id", "channel_id")
+
+    @classmethod
+    async def get_group(cls, group_id: str, channel_id: str | None = None) -> Self:
+        """获取群组
+
+        参数:
+            group_id: 群组id
+            channel_id: 频道id.
+
+        返回:
+            Self: GroupConsole
+        """
+        if channel_id:
+            return await cls.get(group_id=group_id, channel_id=channel_id)
+        return await cls.get(group_id=group_id, channel_id__isnull=True)
 
     @classmethod
     async def is_super_group(cls, group_id: str, channel_id: str | None = None) -> bool:

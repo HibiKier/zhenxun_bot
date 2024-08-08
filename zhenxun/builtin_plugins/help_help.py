@@ -10,6 +10,8 @@ from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.configs.utils import PluginExtraData
+from zhenxun.models.ban_console import BanConsole
+from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
@@ -34,6 +36,15 @@ _path = IMAGE_PATH / "_base" / "laugh"
 
 @_matcher.handle()
 async def _(matcher: Matcher, message: UniMsg, session: EventSession):
+    gid = session.id3 or session.id2
+    if await BanConsole.is_ban(session.id1, gid):
+        return
+    if gid:
+        if await BanConsole.is_ban(None, gid):
+            return
+        if g := await GroupConsole.get_group(gid):
+            if g.level < 0:
+                return
     if text := message.extract_plain_text().strip():
         if plugin := await PluginInfo.get_or_none(
             name=text, load_status=True, plugin_type=PluginType.NORMAL

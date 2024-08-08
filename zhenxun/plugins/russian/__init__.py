@@ -56,7 +56,7 @@ __plugin_meta__ = PluginMetadata(
 
 
 @_russian_matcher.handle()
-async def _(money: int, num: Match[int], at_user: Match[alcAt]):
+async def _(money: int, num: Match[str], at_user: Match[alcAt]):
     _russian_matcher.set_path_arg("money", money)
     if num.available:
         _russian_matcher.set_path_arg("num", num.result)
@@ -73,7 +73,7 @@ async def _(
     message: UniMsg,
     arparma: Arparma,
     money: int,
-    num: int,
+    num: str,
     at_user: Match[alcAt],
     uname: str = UserName(),
 ):
@@ -86,16 +86,21 @@ async def _(
         await Text("群组id为空...").finish()
     if money <= 0:
         await Text("赌注金额必须大于0!").finish(reply=True)
-    if num < 0 or num > 6:
+    if num in ["取消", "算了"]:
+        await Text("已取消装弹...").finish()
+    if not num.isdigit():
+        await Text("输入的子弹数必须是数字！").finish(reply=True)
+    b_num = int(num)
+    if b_num < 0 or b_num > 6:
         await Text("子弹数量必须在1-6之间!").finish(reply=True)
     _at_user = at_user.result.target if at_user.available else None
     rus = Russian(
-        at_user=_at_user, player1=(session.id1, uname), money=money, bullet_num=num
+        at_user=_at_user, player1=(session.id1, uname), money=money, bullet_num=b_num
     )
     result = await russian_manage.add_russian(bot, gid, rus)
     await result.send()
     logger.info(
-        f"添加俄罗斯轮盘 装弹: {num}, 金额: {money}",
+        f"添加俄罗斯轮盘 装弹: {b_num}, 金额: {money}",
         arparma.header_result,
         session=session,
     )

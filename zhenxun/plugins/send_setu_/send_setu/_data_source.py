@@ -4,7 +4,6 @@ from pathlib import Path
 
 from asyncpg import UniqueViolationError
 from nonebot_plugin_saa import Image, MessageFactory, Text
-from pydantic import BaseModel
 
 from zhenxun.configs.config import NICKNAME, Config
 from zhenxun.configs.path_config import IMAGE_PATH, TEMP_PATH

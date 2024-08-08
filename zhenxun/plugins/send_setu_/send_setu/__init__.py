@@ -2,6 +2,7 @@ import random
 from typing import Tuple
 
 from nonebot.adapters import Bot
+from nonebot.adapters.onebot.v11 import MessageSegment
 from nonebot.matcher import Matcher
 from nonebot.message import run_postprocessor
 from nonebot.plugin import PluginMetadata
@@ -22,9 +23,11 @@ from zhenxun.configs.utils import PluginCdBlock, PluginExtraData, RegisterConfig
 from zhenxun.models.sign_user import SignUser
 from zhenxun.models.user_console import UserConsole
 from zhenxun.services.log import logger
+from zhenxun.utils.platform import PlatformUtils
+from zhenxun.utils.utils import template2forward
 from zhenxun.utils.withdraw_manage import WithdrawManager
 
-from ._data_source import SetuManage, base_config
+from ._data_source import Image, SetuManage, base_config
 
 __plugin_meta__ = PluginMetadata(
     name="色图",
@@ -211,17 +214,32 @@ async def _(
     result_list = await SetuManage.get_setu(tags=_tags, num=_num, is_r18=is_r18)
     if isinstance(result_list, str):
         await Text(result_list).finish(reply=True)
-    for result in result_list:
-        logger.info(f"发送色图 {result}", arparma.header_result, session=session)
-        receipt = await result.send()
-        if receipt:
-            message_id = receipt.extract_message_id().message_id  # type: ignore
-            await WithdrawManager.withdraw_message(
-                bot,
-                message_id,
-                base_config.get("WITHDRAW_SETU_MESSAGE"),
-                session,
-            )
+    max_once_num2forward = base_config.get("MAX_ONCE_NUM2FORWARD")
+    platform = PlatformUtils.get_platform(bot)
+    if (
+        "qq" == platform
+        and gid
+        and max_once_num2forward
+        and len(result_list) >= max_once_num2forward
+    ):
+        logger.debug("使用合并转发转发色图数据", arparma.header_result, session=session)
+        forward = template2forward(result_list, bot.self_id)  # type: ignore
+        await bot.send_group_forward_msg(
+            group_id=int(gid),
+            messages=forward,  # type: ignore
+        )
+    else:
+        for result in result_list:
+            logger.info(f"发送色图 {result}", arparma.header_result, session=session)
+            receipt = await result.send()
+            if receipt:
+                message_id = receipt.extract_message_id().message_id  # type: ignore
+                await WithdrawManager.withdraw_message(
+                    bot,
+                    message_id,
+                    base_config.get("WITHDRAW_SETU_MESSAGE"),
+                    session,
+                )
     logger.info(
         f"调用发送 {num}张 色图 tags: {_tags}", arparma.header_result, session=session
     )
