@@ -61,9 +61,6 @@ _blmt = BanCheckLimiter(
     malicious_ban_count,
 )
 
-# TODO: 恶意出发命令检测过滤
-_ignore = ["parse_bilibili"]
-
 
 # 恶意触发命令检测
 @run_preprocessor
@@ -73,7 +70,7 @@ async def _(matcher: Matcher, bot: Bot, session: EventSession, state: T_State):
         module = plugin.module_name
         if metadata := plugin.metadata:
             extra = metadata.extra
-            if extra.get("plugin_type") == PluginType.HIDDEN or module not in _ignore:
+            if extra.get("plugin_type") == PluginType.HIDDEN:
                 return
     user_id = session.id1
     group_id = session.id3 or session.id2

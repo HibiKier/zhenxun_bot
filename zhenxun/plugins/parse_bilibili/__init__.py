@@ -12,6 +12,7 @@ from zhenxun.configs.path_config import TEMP_PATH
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig, Task
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
+from zhenxun.utils.enum import PluginType
 from zhenxun.utils.http_utils import AsyncHttpx
 
 from .information_container import InformationContainer
@@ -27,7 +28,7 @@ __plugin_meta__ = PluginMetadata(
     extra=PluginExtraData(
         author="leekooyo",
         version="0.1",
-        menu_type="其他",
+        plugin_type=PluginType.HIDDEN,
         configs=[
             RegisterConfig(
                 module="_task",

@@ -172,9 +172,8 @@ async def _generate_card(
     uid_img = await BuildImage.build_text_image(
         f"UID: {uid}", size=30, font_color=(255, 255, 255)
     )
-    bk.getsize("Accumulative check-in for")
-    image1 = await bk.build_text_image("Accumulative check-in for", size=25)
-    image2 = await bk.build_text_image("days", size=25)
+    image1 = await bk.build_text_image("Accumulative check-in for", bk.font)
+    image2 = await bk.build_text_image("days", bk.font)
     sign_day_img = await BuildImage.build_text_image(
         f"{user.sign_count}", size=40, font_color=(211, 64, 33)
     )
