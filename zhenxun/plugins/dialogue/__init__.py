@@ -22,11 +22,15 @@ __plugin_meta__ = PluginMetadata(
     name="联系管理员",
     description="跨越空间与时间跟管理员对话",
     usage="""
-        [滴滴滴]/滴滴滴- ?[文本] ?[图片]
+        滴滴滴- ?[文本] ?[图片]
         示例：滴滴滴- 我喜欢你
-
-        超级管理员额外命令
-             /t: 查看当前存储的消息
+    """.strip(),
+    extra=PluginExtraData(
+        author="HibiKier",
+        version="0.1",
+        menu_type="联系管理员",
+        superuser_help="""
+            /t: 查看当前存储的消息
             /t [user_id] [group_id] [文本]: 在group回复指定用户
             /t [user_id] [文本]: 私聊用户
             /t -1 [group_id] [文本]: 在group内发送消息
@@ -35,9 +39,7 @@ __plugin_meta__ = PluginMetadata(
             示例：/t 73747222 你好不好
             示例：/t -1 32848432 我不太好
             示例：/t 0 我收到你的话了
-    """.strip(),
-    extra=PluginExtraData(
-        author="HibiKier", version="0.1", menu_type="联系管理员"
+        """.strip(),
     ).dict(),
 )
 
@@ -79,12 +81,12 @@ async def _(
         logger.info(
             f"发送消息至{platform}管理员: {message}", "滴滴滴-", session=session
         )
-        message.insert(0, "消息:\n")
+        message.insert(0, alcText("消息:\n"))
         if gid:
-            message.insert(0, f"群组: {group_name}({gid})\n")
-        message.insert(0, f"昵称: {uname}({session.id1})\n")
-        message.insert(0, f"Id: {DialogueManage._index}\n")
-        message.insert(0, "*****一份交流报告*****\n")
+            message.insert(0, alcText(f"群组: {group_name}({gid})\n"))
+        message.insert(0, alcText(f"昵称: {uname}({session.id1})\n"))
+        message.insert(0, alcText(f"Id: {DialogueManage._index}\n"))
+        message.insert(0, alcText("*****一份交流报告*****\n"))
         DialogueManage.add(uname, session.id1, gid, group_name, message, platform)
         await message.send(bot=bot, target=Target(superuser_id, private=True))
         await Text("已成功发送给管理员啦!").send(reply=True)
