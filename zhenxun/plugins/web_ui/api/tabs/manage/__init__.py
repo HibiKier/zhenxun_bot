@@ -50,13 +50,13 @@ router = APIRouter(prefix="/manage")
 
 SUB_PATTERN = r"\x1b(\[.*?[@-~]|\].*?(\x07|\x1b\\))"
 
-GROUP_PATTERN = r'.*?Message (-?\d*) from (\d*)@\[群:(\d*)] "(.*)"'
+GROUP_PATTERN = r".*?Message (-?\d*) from (\d*)@\[群:(\d*)] '(.*)'"
 
-PRIVATE_PATTERN = r'.*?Message (-?\d*) from (\d*) "(.*)"'
+PRIVATE_PATTERN = r".*?Message (-?\d*) from (\d*) '(.*)'"
 
 AT_PATTERN = r"\[CQ:at,qq=(.*)\]"
 
-IMAGE_PATTERN = r"\[CQ:image,.*,url=(.*);.*?\]"
+IMAGE_PATTERN = r"\[image:file=.*,url=(.*);.*?\]"
 
 
 @router.get(
@@ -90,13 +90,22 @@ async def _(bot_id: str) -> Result:
 async def _(group: UpdateGroup) -> Result:
     try:
         group_id = group.group_id
-        if db_group := await GroupConsole.get_or_none(group_id=group_id):
+        if db_group := await GroupConsole.get_group(group_id):
+            task_list = await TaskInfo.all().values_list("module", flat=True)
             db_group.level = group.level
             db_group.status = group.status
             if group.close_plugins:
                 db_group.block_plugin = ",".join(group.close_plugins) + ","
-            # TODO: 关闭task
-            await db_group.save(update_fields=["level", "status", "block_plugin"])
+            if group.task:
+                block_task = []
+                for t in task_list:
+                    if t not in group.task:
+                        block_task.append(t)
+                if block_task:
+                    db_group.block_task = ",".join(block_task) + ","
+            await db_group.save(
+                update_fields=["level", "status", "block_plugin", "block_task"]
+            )
     except Exception as e:
         logger.error("调用API错误", "/get_group", e=e)
         return Result.fail(f"{type(e)}: {e}")
@@ -149,7 +158,7 @@ async def _() -> Result:
 async def _() -> Result:
     try:
         req_result = ReqResult()
-        data_list = await FgRequest.filter(handle_type__not_isnull=True).all()
+        data_list = await FgRequest.filter(handle_type__isnull=True).all()
         for req in data_list:
             if req.request_type == RequestType.FRIEND:
                 req_result.friend.append(
@@ -220,7 +229,7 @@ async def _(parma: HandleRequest) -> Result:
 
 @router.post("/delete_request", dependencies=[authentication()], description="忽略请求")
 async def _(parma: HandleRequest) -> Result:
-    await FgRequest.expire(parma.id)
+    await FgRequest.ignore(parma.id)
     return Result.ok(info="成功处理了请求!")
 
 
@@ -233,25 +242,25 @@ async def _(parma: HandleRequest) -> Result:
             bot_id = parma.bot_id
             if bot_id not in nonebot.get_bots():
                 return Result.warning_("指定Bot未连接...")
-            if parma.request_type == "group":
-                if req := await FgRequest.get_or_none(id=parma.id):
-                    if group := await GroupConsole.get_or_none(group_id=req.group_id):
-                        await group.update_or_create(group_flag=1)
-                    else:
-                        group_info = await bots[bot_id].get_group_info(
-                            group_id=req.group_id
-                        )
-                        await GroupConsole.update_or_create(
-                            group_id=str(group_info["group_id"]),
-                            defaults={
-                                "group_name": group_info["group_name"],
-                                "max_member_count": group_info["max_member_count"],
-                                "member_count": group_info["member_count"],
-                                "group_flag": 1,
-                            },
-                        )
+            if req := await FgRequest.get_or_none(id=parma.id):
+                if group := await GroupConsole.get_group(group_id=req.group_id):
+                    group.group_flag = 1
+                    await group.save(update_fields=["group_flag"])
                 else:
-                    return Result.warning_("未找到此Id请求...")
+                    group_info = await bots[bot_id].get_group_info(
+                        group_id=req.group_id
+                    )
+                    await GroupConsole.update_or_create(
+                        group_id=str(group_info["group_id"]),
+                        defaults={
+                            "group_name": group_info["group_name"],
+                            "max_member_count": group_info["max_member_count"],
+                            "member_count": group_info["member_count"],
+                            "group_flag": 1,
+                        },
+                    )
+            else:
+                return Result.warning_("未找到此Id请求...")
             try:
                 await FgRequest.approve(bots[bot_id], parma.id)
                 return Result.ok(info="成功处理了请求!")
@@ -393,6 +402,15 @@ async def _(bot_id: str, group_id: str) -> Result:
                             status=task[0] not in split_task,
                         )
                     )
+            else:
+                for task in all_task:
+                    task_list.append(
+                        Task(
+                            name=task[0],
+                            zh_name=task_module2name.get(task[0]) or task[0],
+                            status=True,
+                        )
+                    )
             group_detail = GroupDetail(
                 group_id=group_id,
                 ava_url=GROUP_AVA_URL.format(group_id, group_id),
@@ -507,7 +525,6 @@ async def _(websocket: WebSocket):
     async def log_listener(log: str):
         global MSG_LIST, ID2NAME
         sub_log = re.sub(SUB_PATTERN, "", log)
-        img_list = re.findall(IMAGE_PATTERN, sub_log)
         if "message.private.friend" in log:
             if message := await message_handle(sub_log, "private"):
                 await websocket.send_json(message.dict())

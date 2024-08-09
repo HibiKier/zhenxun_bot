@@ -132,8 +132,6 @@ class HandleRequest(BaseModel):
     """bot_id"""
     id: int
     """数据id"""
-    request_type: Literal["private", "group"]
-    """类型"""
 
 
 class LeaveGroup(BaseModel):

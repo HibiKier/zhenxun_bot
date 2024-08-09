@@ -32,7 +32,7 @@ async def _(
         plugin_list: list[PluginInfo] = []
         query = DbPluginInfo
         if plugin_type:
-            query = query.filter(plugin_type__in=plugin_type)
+            query = query.filter(plugin_type__in=plugin_type, load_status=True)
         if menu_type:
             query = query.filter(menu_type=menu_type)
         plugins = await query.all()
@@ -62,16 +62,17 @@ async def _(
 async def _() -> Result:
     plugin_count = PluginCount()
     plugin_count.normal = await DbPluginInfo.filter(
-        plugin_type=PluginType.NORMAL
+        plugin_type=PluginType.NORMAL, load_status=True
     ).count()
     plugin_count.admin = await DbPluginInfo.filter(
-        plugin_type__in=[PluginType.ADMIN, PluginType.SUPER_AND_ADMIN]
+        plugin_type__in=[PluginType.ADMIN, PluginType.SUPER_AND_ADMIN], load_status=True
     ).count()
     plugin_count.superuser = await DbPluginInfo.filter(
-        plugin_type=[PluginType.SUPERUSER, PluginType.SUPER_AND_ADMIN]
+        plugin_type__in=[PluginType.SUPERUSER, PluginType.SUPER_AND_ADMIN],
+        load_status=True,
     ).count()
     plugin_count.other = await DbPluginInfo.filter(
-        plugin_type=PluginType.HIDDEN
+        plugin_type=PluginType.HIDDEN, load_status=True
     ).count()
     return Result.ok(plugin_count)
 
@@ -81,7 +82,9 @@ async def _() -> Result:
 )
 async def _(plugin: UpdatePlugin) -> Result:
     try:
-        db_plugin = await DbPluginInfo.get_or_none(module=plugin.module)
+        db_plugin = await DbPluginInfo.get_or_none(
+            module=plugin.module, load_status=True
+        )
         if not db_plugin:
             return Result.fail("插件不存在...")
         db_plugin.default_status = plugin.default_status
@@ -111,7 +114,7 @@ async def _(plugin: UpdatePlugin) -> Result:
 
 @router.post("/change_switch", dependencies=[authentication()], description="开关插件")
 async def _(param: PluginSwitch) -> Result:
-    db_plugin = await DbPluginInfo.get_or_none(module=param.module)
+    db_plugin = await DbPluginInfo.get_or_none(module=param.module, load_status=True)
     if not db_plugin:
         return Result.fail("插件不存在...")
     if not param.status:
@@ -131,14 +134,14 @@ async def _() -> Result:
     menu_type_list = []
     result = await DbPluginInfo.annotate().values_list("menu_type", flat=True)
     for r in result:
-        if r not in menu_type_list:
+        if r not in menu_type_list and r:
             menu_type_list.append(r)
     return Result.ok(menu_type_list)
 
 
 @router.get("/get_plugin", dependencies=[authentication()], description="获取插件详情")
 async def _(module: str) -> Result:
-    db_plugin = await DbPluginInfo.get_or_none(module=module)
+    db_plugin = await DbPluginInfo.get_or_none(module=module, load_status=True)
     if not db_plugin:
         return Result.fail("插件不存在...")
     config_list = []
