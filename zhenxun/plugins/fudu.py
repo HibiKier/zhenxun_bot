@@ -5,7 +5,6 @@ from nonebot.adapters import Event
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Image as alcImg
 from nonebot_plugin_alconna import UniMsg
-from nonebot_plugin_saa import Image, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import NICKNAME, Config
@@ -14,6 +13,7 @@ from zhenxun.configs.utils import PluginExtraData, RegisterConfig, Task
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import get_download_image_hash
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.rules import ensure_group
 
 __plugin_meta__ = PluginMetadata(
@@ -113,7 +113,7 @@ async def _(message: UniMsg, event: Event, session: EventSession):
     if not plain_text and not image_list:
         return
     if plain_text and plain_text.startswith(f"@可爱的{NICKNAME}"):
-        await Text("复制粘贴的虚空艾特？").send(reply=True)
+        await MessageUtils.build_message("复制粘贴的虚空艾特？").send(reply=True)
     if image_list:
         img_hash = await get_download_image_hash(image_list[0], group_id)
     else:
@@ -132,18 +132,20 @@ async def _(message: UniMsg, event: Event, session: EventSession):
         ) and not _manage.is_repeater(group_id):
             if random.random() < 0.2:
                 if plain_text.startswith("打断施法"):
-                    await Text("打断" + plain_text).finish()
+                    await MessageUtils.build_message("打断" + plain_text).finish()
                 else:
-                    await Text("打断施法！").finish()
+                    await MessageUtils.build_message("打断施法！").finish()
             _manage.set_repeater(group_id)
             rst = None
             if image_list and plain_text:
-                rst = MessageFactory(
-                    [Text(plain_text), Image(TEMP_PATH / f"compare_{group_id}_img.jpg")]
+                rst = MessageUtils.build_message(
+                    [plain_text, TEMP_PATH / f"compare_download_{group_id}_img.jpg"]
                 )
             elif image_list:
-                rst = Image(TEMP_PATH / f"compare_{group_id}_img.jpg")
+                rst = MessageUtils.build_message(
+                    TEMP_PATH / f"compare_download_{group_id}_img.jpg"
+                )
             elif plain_text:
-                rst = Text(plain_text)
+                rst = MessageUtils.build_message(plain_text)
             if rst:
                 await rst.finish()

@@ -1,15 +1,12 @@
 import nonebot
-from arclet.alconna import Args, Option
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
 from nonebot_plugin_alconna.matcher import AlconnaMatcher
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import Config
-from zhenxun.configs.path_config import DATA_PATH, IMAGE_PATH
-from zhenxun.configs.utils import PluginExtraData, RegisterConfig
+from zhenxun.configs.path_config import IMAGE_PATH
+from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
@@ -21,6 +18,7 @@ from zhenxun.utils.image_utils import (
     group_image,
     text2image,
 )
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.rules import admin_check, ensure_group
 
 __plugin_meta__ = PluginMetadata(
@@ -156,6 +154,6 @@ async def _(
         try:
             await build_help()
         except EmptyError:
-            await Text("超级用户帮助为空").finish(reply=True)
-    await Image(SUPERUSER_HELP_IMAGE).send()
+            await MessageUtils.build_message("超级用户帮助为空").finish(reply_to=True)
+    await MessageUtils.build_message(SUPERUSER_HELP_IMAGE).send()
     logger.info("查看超级用户帮助", arparma.header_result, session=session)

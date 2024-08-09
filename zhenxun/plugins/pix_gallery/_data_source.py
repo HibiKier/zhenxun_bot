@@ -192,7 +192,7 @@ async def search_image(
     return pid_count, pic_count
 
 
-async def get_image(img_url: str, user_id: str) -> str | Path | None:
+async def get_image(img_url: str, user_id: str) -> Path | None:
     """下载图片
 
     参数:
@@ -200,7 +200,7 @@ async def get_image(img_url: str, user_id: str) -> str | Path | None:
         user_id: 用户id
 
     返回:
-        str | Path | None: 图片名称
+        Path | None: 图片名称
     """
     if "https://www.pixiv.net/artworks" in img_url:
         pid = img_url.rsplit("/", maxsplit=1)[-1]

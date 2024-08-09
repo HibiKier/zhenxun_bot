@@ -4,12 +4,12 @@ import random
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot_plugin_alconna import Alconna, Arparma, UniMessage, Voice, on_alconna
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.path_config import RECORD_PATH
 from zhenxun.configs.utils import PluginCdBlock, PluginExtraData
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 
 __plugin_meta__ = PluginMetadata(
     name="钉宫骂我",
@@ -41,11 +41,11 @@ path = RECORD_PATH / "dinggong"
 @_matcher.handle()
 async def _(session: EventSession, arparma: Arparma):
     if not path.exists():
-        await Text("钉宫语音文件夹不存在...").finish()
+        await MessageUtils.build_message("钉宫语音文件夹不存在...").finish()
     files = os.listdir(path)
     if not files:
-        await Text("钉宫语音文件夹为空...").finish()
+        await MessageUtils.build_message("钉宫语音文件夹为空...").finish()
     voice = random.choice(files)
     await UniMessage([Voice(path=path / voice)]).send()
-    await Text(voice.split("_")[1]).send()
+    await MessageUtils.build_message(voice.split("_")[1]).send()
     logger.info(f"发送钉宫骂人: {voice}", arparma.header_result, session=session)

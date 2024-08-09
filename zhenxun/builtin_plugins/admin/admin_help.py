@@ -2,7 +2,6 @@ import nonebot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
 from nonebot_plugin_alconna.matcher import AlconnaMatcher
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.path_config import IMAGE_PATH
@@ -18,6 +17,7 @@ from zhenxun.utils.image_utils import (
     group_image,
     text2image,
 )
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.rules import admin_check, ensure_group
 
 __plugin_meta__ = PluginMetadata(
@@ -149,13 +149,12 @@ async def build_help() -> BuildImage:
 @_matcher.handle()
 async def _(
     session: EventSession,
-    matcher: AlconnaMatcher,
     arparma: Arparma,
 ):
     if not ADMIN_HELP_IMAGE.exists():
         try:
             await build_help()
         except EmptyError:
-            await Text("管理员帮助为空").finish(reply=True)
-    await Image(ADMIN_HELP_IMAGE).send()
+            await MessageUtils.build_message("管理员帮助为空").finish(reply=True)
+    await MessageUtils.build_message(ADMIN_HELP_IMAGE).send()
     logger.info("查看管理员帮助", arparma.header_result, session=session)

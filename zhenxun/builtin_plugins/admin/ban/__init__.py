@@ -11,13 +11,13 @@ from nonebot_plugin_alconna import (
     on_alconna,
     store_true,
 )
-from nonebot_plugin_saa import Image, Mention, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.rules import admin_check
 
 from ._data_source import BanManage
@@ -146,9 +146,9 @@ async def _(
     _user_id = user_id.result if user_id.available else None
     _group_id = group_id.result if group_id.available else None
     if image := await BanManage.build_ban_image(filter_type, _user_id, _group_id):
-        await Image(image.pic2bytes()).finish(reply=True)
+        await MessageUtils.build_message(image).finish(reply_to=True)
     else:
-        await Text("数据为空捏...").finish(reply=True)
+        await MessageUtils.build_message("数据为空捏...").finish(reply_to=True)
 
 
 @_ban_matcher.handle()
@@ -166,7 +166,7 @@ async def _(
             user_id = user.result.target
         else:
             if session.id1 not in bot.config.superusers:
-                await Text("权限不足捏...").finish(reply=True)
+                await MessageUtils.build_message("权限不足捏...").finish(reply_to=True)
             user_id = user.result
     _duration = duration.result * 60 if duration.available else -1
     if (gid := session.id3 or session.id2) and not group_id.available:
@@ -181,13 +181,13 @@ async def _(
             session=session,
             target=f"{gid}:{user_id}",
         )
-        await MessageFactory(
+        await MessageUtils.build_message(
             [
-                Text("对 "),
-                Mention(user_id) if isinstance(user.result, At) else Text(user_id),  # type: ignore
-                Text(f" 狠狠惩戒了一番，一脚踢进了小黑屋!"),
+                "对 ",
+                At(flag="user", target=user_id) if isinstance(user.result, At) else user_id,  # type: ignore
+                f" 狠狠惩戒了一番，一脚踢进了小黑屋!",
             ]
-        ).finish(reply=True)
+        ).finish(reply_to=True)
     elif session.id1 in bot.config.superusers:
         _group_id = group_id.result if group_id.available else None
         await BanManage.ban(user_id, _group_id, _duration, session, True)
@@ -198,7 +198,9 @@ async def _(
             target=f"{_group_id}:{user_id}",
         )
         at_msg = user_id if user_id else f"群组:{_group_id}"
-        await Text(f"对 {at_msg} 狠狠惩戒了一番，一脚踢进了小黑屋!").finish(reply=True)
+        await MessageUtils.build_message(
+            f"对 {at_msg} 狠狠惩戒了一番，一脚踢进了小黑屋!"
+        ).finish(reply_to=True)
 
 
 @_unban_matcher.handle()
@@ -215,7 +217,7 @@ async def _(
             user_id = user.result.target
         else:
             if session.id1 not in bot.config.superusers:
-                await Text("权限不足捏...").finish(reply=True)
+                await MessageUtils.build_message("权限不足捏...").finish(reply_to=True)
             user_id = user.result
     if gid := session.id3 or session.id2:
         if group_id.available:
@@ -229,15 +231,17 @@ async def _(
                 session=session,
                 target=f"{gid}:{user_id}",
             )
-            await MessageFactory(
+            await MessageUtils.build_message(
                 [
-                    Text("将 "),
-                    Mention(user_id) if isinstance(user.result, At) else Text(user_id),  # type: ignore
-                    Text(f" 从黑屋中拉了出来并急救了一下!"),
+                    "将 ",
+                    At(flag="user", target=user_id) if isinstance(user.result, At) else user_id,  # type: ignore
+                    f" 从黑屋中拉了出来并急救了一下!",
                 ]
             ).finish(reply=True)
         else:
-            await Text(f"该用户不在黑名单中捏...").finish(reply=True)
+            await MessageUtils.build_message(f"该用户不在黑名单中捏...").finish(
+                reply_to=True
+            )
     elif session.id1 in bot.config.superusers:
         _group_id = group_id.result if group_id.available else None
         if await BanManage.unban(user_id, _group_id, session, True):
@@ -248,6 +252,10 @@ async def _(
                 target=f"{_group_id}:{user_id}",
             )
             at_msg = user_id if user_id else f"群组:{_group_id}"
-            await Text(f"对 {at_msg} 从黑屋中拉了出来并急救了一下!").finish(reply=True)
+            await MessageUtils.build_message(
+                f"对 {at_msg} 从黑屋中拉了出来并急救了一下!"
+            ).finish(reply_to=True)
         else:
-            await Text(f"该用户不在黑名单中捏...").finish(reply=True)
+            await MessageUtils.build_message(f"该用户不在黑名单中捏...").finish(
+                reply_to=True
+            )

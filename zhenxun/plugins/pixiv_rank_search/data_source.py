@@ -121,7 +121,7 @@ async def parser_data(
 
 async def download_pixiv_imgs(
     urls: list[str], user_id: str, forward_msg_index: int | None = None
-) -> list[Image]:
+) -> list[Path]:
     """下载图片
 
     参数:
@@ -156,12 +156,12 @@ async def download_pixiv_imgs(
                     change_img_md5(file)
                     image = None
                     if forward_msg_index is not None:
-                        image = Image(
+                        image = (
                             TEMP_PATH
                             / f"{user_id}_{forward_msg_index}_{index}_pixiv.jpg"
                         )
                     else:
-                        image = Image(TEMP_PATH / f"{user_id}_{index}_pixiv.jpg")
+                        image = TEMP_PATH / f"{user_id}_{index}_pixiv.jpg"
                     if image:
                         result_list.append(image)
                 index += 1

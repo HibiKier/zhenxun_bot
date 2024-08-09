@@ -11,7 +11,6 @@ from nonebot_plugin_alconna import (
     on_alconna,
     store_true,
 )
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.path_config import IMAGE_PATH
@@ -19,6 +18,7 @@ from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import create_help_img, get_plugin_help
 from ._utils import GROUP_HELP_PATH
@@ -75,11 +75,13 @@ async def _(
             _is_superuser = False
         if result := await get_plugin_help(name.result, _is_superuser):
             if isinstance(result, BuildImage):
-                await Image(result.pic2bytes()).send(reply=True)
+                await MessageUtils.build_message(result).send(reply_to=True)
             else:
-                await Text(result).send(reply=True)
+                await MessageUtils.build_message(result).send(reply_to=True)
         else:
-            await Text("没有此功能的帮助信息...").send(reply=True)
+            await MessageUtils.build_message("没有此功能的帮助信息...").send(
+                reply_to=True
+            )
         logger.info(
             f"查看帮助详情: {name.result}",
             "帮助",
@@ -90,10 +92,10 @@ async def _(
             _image_path = GROUP_HELP_PATH / f"{gid}.png"
             if not _image_path.exists():
                 await create_help_img(gid)
-            await Image(_image_path).finish()
+            await MessageUtils.build_message(_image_path).finish()
         else:
             if not SIMPLE_HELP_IMAGE.exists():
                 if SIMPLE_HELP_IMAGE.exists():
                     SIMPLE_HELP_IMAGE.unlink()
                 await create_help_img(None)
-            await Image(SIMPLE_HELP_IMAGE).finish()
+            await MessageUtils.build_message(SIMPLE_HELP_IMAGE).finish()

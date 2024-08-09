@@ -5,7 +5,6 @@ from nonebot.adapters import Bot
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, Option, on_alconna
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import NICKNAME
@@ -13,6 +12,7 @@ from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.message import MessageUtils
 
 from .data_source import set_user_punish, show_black_text_image
 
@@ -163,14 +163,14 @@ async def _(
         try:
             date_ = datetime.strptime(date_str, "%Y-%m-%d")
         except ValueError:
-            await Text("日期格式错误，需要：年-月-日").finish()
+            await MessageUtils.build_message("日期格式错误，需要：年-月-日").finish()
     result = await show_black_text_image(
         user_id,
         group_id,
         date_,
         date_type_,
     )
-    await Image(result.pic2bytes()).send()
+    await MessageUtils.build_message(result).send()
 
 
 @_show_punish_matcher.handle()
@@ -212,7 +212,7 @@ async def _():
         max_width, max_height, font="CJGaoDeGuo.otf", font_size=24, color="#E3DBD1"
     )
     await A.text((10, 10), text)
-    await Image(A.pic2bytes()).send()
+    await MessageUtils.build_message(A).send()
 
 
 @_punish_matcher.handle()
@@ -227,7 +227,7 @@ async def _(
     result = await set_user_punish(
         bot, uid, session.id2 or session.id3, id, punish_level
     )
-    await Text(result).send(reply=True)
+    await MessageUtils.build_message(result).send(reply_to=True)
     logger.info(
         f"设置惩罚 uid:{uid} id_:{id} punish_level:{punish_level} --> {result}",
         arparma.header_result,

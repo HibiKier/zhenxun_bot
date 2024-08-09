@@ -13,6 +13,7 @@ from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import StatisticsManage
 
@@ -155,8 +156,8 @@ async def _(
         plugin_name, arparma.find("global"), st, uid, gid
     ):
         if isinstance(result, str):
-            await Text(result).finish(reply=True)
+            await MessageUtils.build_message(result).finish(reply_to=True)
         else:
-            await Image(result.pic2bytes()).send()
+            await MessageUtils.build_message(result).send()
     else:
         await Text("获取数据失败...").send()

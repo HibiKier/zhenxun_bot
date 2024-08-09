@@ -5,7 +5,7 @@ from types import MappingProxyType
 from typing import Any, Callable, Literal
 
 from nonebot.adapters import Bot, Event
-from nonebot_plugin_alconna import UniMsg
+from nonebot_plugin_alconna import UniMessage, UniMsg
 from nonebot_plugin_saa import MessageFactory
 from nonebot_plugin_session import EventSession
 from pydantic import BaseModel, create_model
@@ -190,7 +190,7 @@ class ShopManage:
         session: EventSession,
         message: UniMsg,
         **kwargs,
-    ) -> str | MessageFactory | None:
+    ) -> str | UniMessage | None:
         """运行道具函数
 
         参数:
@@ -229,7 +229,7 @@ class ShopManage:
         goods_name: str,
         num: int,
         text: str,
-    ) -> str | MessageFactory | None:
+    ) -> str | UniMessage | None:
         """使用道具
 
         参数:

@@ -3,7 +3,7 @@ import random
 import re
 from datetime import datetime
 
-from nonebot_plugin_saa import Image, MessageFactory, Text
+from nonebot_plugin_alconna import UniMessage
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
@@ -11,6 +11,7 @@ from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.models.sign_user import SignUser
 from zhenxun.services.log import logger
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.utils import cn2py
 
 from .build_image import draw_card
@@ -96,7 +97,7 @@ async def get_user_max_count(user_id: str) -> int:
 
 async def open_case(
     user_id: str, group_id: str, case_name: str | None, session: EventSession
-) -> MessageFactory:
+) -> UniMessage:
     """开箱
 
     参数:
@@ -111,7 +112,7 @@ async def open_case(
     user_id = str(user_id)
     group_id = str(group_id)
     if not CaseManager.CURRENT_CASES:
-        return MessageFactory([Text("未收录任何武器箱")])
+        return MessageUtils.build_message("未收录任何武器箱")
     if not case_name:
         case_name = random.choice(CaseManager.CURRENT_CASES)  # type: ignore
     if case_name not in CaseManager.CURRENT_CASES:
@@ -128,16 +129,12 @@ async def open_case(
     max_count = await get_user_max_count(user_id)
     # 一天次数上限
     if user.today_open_total >= max_count:
-        return MessageFactory(
-            [
-                Text(
-                    f"今天已达开箱上限了喔，明天再来吧\n(提升好感度可以增加每日开箱数 #疯狂暗示)"
-                )
-            ]
+        return MessageUtils.build_message(
+            f"今天已达开箱上限了喔，明天再来吧\n(提升好感度可以增加每日开箱数 #疯狂暗示)"
         )
     skin_list = await random_skin(1, case_name)  # type: ignore
     if not skin_list:
-        return MessageFactory(Text("未抽取到任何皮肤"))
+        return MessageUtils.build_message("未抽取到任何皮肤")
     skin, rand = skin_list[0]
     rand = str(rand)[:11]
     case_price = 0
@@ -176,13 +173,11 @@ async def open_case(
     logger.debug(f"添加 1 条开箱日志", "开箱", session=session)
     over_count = max_count - user.today_open_total
     img = await draw_card(skin, rand)
-    return MessageFactory(
+    return MessageUtils.build_message(
         [
-            Text(f"开启{case_name}武器箱.\n剩余开箱次数:{over_count}.\n"),
-            Image(img.pic2bytes()),
-            Text(
-                f"\n箱子单价:{case_price}\n花费:{17 + case_price:.2f}\n:{ridicule_result}"
-            ),
+            f"开启{case_name}武器箱.\n剩余开箱次数:{over_count}.\n",
+            img,
+            f"\n箱子单价:{case_price}\n花费:{17 + case_price:.2f}\n:{ridicule_result}",
         ]
     )
 
@@ -193,7 +188,7 @@ async def open_multiple_case(
     case_name: str | None,
     num: int = 10,
     session: EventSession | None = None,
-) -> MessageFactory:
+) -> UniMessage:
     """多连开箱
 
     参数:
@@ -209,17 +204,12 @@ async def open_multiple_case(
     user_id = str(user_id)
     group_id = str(group_id)
     if not CaseManager.CURRENT_CASES:
-        return MessageFactory([Text("未收录任何武器箱")])
+        return MessageUtils.build_message("未收录任何武器箱")
     if not case_name:
         case_name = random.choice(CaseManager.CURRENT_CASES)  # type: ignore
     if case_name not in CaseManager.CURRENT_CASES:
-        return MessageFactory(
-            [
-                Text(
-                    "武器箱未收录, 当前可用武器箱:\n"
-                    + ", ".join(CaseManager.CURRENT_CASES)
-                )
-            ]
+        return MessageUtils.build_message(
+            "武器箱未收录, 当前可用武器箱:\n" + ", ".join(CaseManager.CURRENT_CASES)
         )
     user, _ = await OpenCasesUser.get_or_create(
         user_id=user_id,
@@ -228,21 +218,13 @@ async def open_multiple_case(
     )
     max_count = await get_user_max_count(user_id)
     if user.today_open_total >= max_count:
-        return MessageFactory(
-            [
-                Text(
-                    f"今天已达开箱上限了喔，明天再来吧\n(提升好感度可以增加每日开箱数 #疯狂暗示)"
-                )
-            ]
+        return MessageUtils.build_message(
+            f"今天已达开箱上限了喔，明天再来吧\n(提升好感度可以增加每日开箱数 #疯狂暗示)"
         )
     if max_count - user.today_open_total < num:
-        return MessageFactory(
-            [
-                Text(
-                    f"今天开箱次数不足{num}次噢，请单抽试试看（也许单抽运气更好？）"
-                    f"\n剩余开箱次数:{max_count - user.today_open_total}"
-                )
-            ]
+        return MessageUtils.build_message(
+            f"今天开箱次数不足{num}次噢，请单抽试试看（也许单抽运气更好？）"
+            f"\n剩余开箱次数:{max_count - user.today_open_total}"
         )
     logger.debug(f"尝试开启武器箱: {case_name}", "开箱", session=session)
     case = cn2py(case_name)  # type: ignore
@@ -250,7 +232,7 @@ async def open_multiple_case(
     img_list = []
     skin_list = await random_skin(num, case_name)  # type: ignore
     if not skin_list:
-        return MessageFactory([Text("未抽取到任何皮肤...")])
+        return MessageUtils.build_message("未抽取到任何皮肤...")
     total_price = 0
     log_list = []
     now = datetime.now()
@@ -314,13 +296,11 @@ async def open_multiple_case(
     result = ""
     for color_name in skin_count:
         result += f"[{color_name}:{skin_count[color_name]}] "
-    return MessageFactory(
+    return MessageUtils.build_message(
         [
-            Text(f"开启{case_name}武器箱\n剩余开箱次数：{over_count}\n"),
-            Image(mark_image.pic2bytes()),
-            Text(
-                f"\n{result[:-1]}\n箱子单价：{case_price}\n总获取金额：{total_price:.2f}\n总花费：{(17 + case_price) * num:.2f}"
-            ),
+            f"开启{case_name}武器箱\n剩余开箱次数：{over_count}\n",
+            mark_image,
+            f"\n{result[:-1]}\n箱子单价：{case_price}\n总获取金额：{total_price:.2f}\n总花费：{(17 + case_price) * num:.2f}",
         ]
     )
 
@@ -382,7 +362,7 @@ async def group_statistics(group_id: str):
     )
 
 
-async def get_my_knifes(user_id: str, group_id: str) -> MessageFactory:
+async def get_my_knifes(user_id: str, group_id: str) -> UniMessage:
     """获取我的金色
 
     参数:
@@ -397,7 +377,7 @@ async def get_my_knifes(user_id: str, group_id: str) -> MessageFactory:
         user_id=user_id, group_id=group_id, color="KNIFE"
     ).all()
     if not data_list:
-        return MessageFactory([Text("您木有开出金色级别的皮肤喔...")])
+        return MessageUtils.build_message("您木有开出金色级别的皮肤喔...")
     length = len(data_list)
     if length < 5:
         h = 600
@@ -427,7 +407,7 @@ async def get_my_knifes(user_id: str, group_id: str) -> MessageFactory:
         await knife_img.text((5, 560), f"\t价格：{skin.price}")
         image_list.append(knife_img)
     A = await A.auto_paste(image_list, 5)
-    return MessageFactory([Image(A.pic2bytes())])
+    return MessageUtils.build_message(A)
 
 
 async def get_old_knife(user_id: str, group_id: str) -> list[OpenCasesLog]:

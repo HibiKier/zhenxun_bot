@@ -14,7 +14,6 @@ from nonebot_plugin_alconna import (
     on_alconna,
     store_true,
 )
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.path_config import IMAGE_PATH
@@ -24,6 +23,7 @@ from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType, RequestHandleType, RequestType
 from zhenxun.utils.exception import NotFoundError
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.utils import get_user_avatar
 
 usage = """
@@ -143,11 +143,13 @@ async def _(
         if handle_type == RequestHandleType.IGNORE:
             await FgRequest.ignore(id)
     except NotFoundError:
-        await Text("未发现此id的请求...").finish(reply=True)
+        await MessageUtils.build_message("未发现此id的请求...").finish(reply_to=True)
     except Exception:
-        await Text("其他错误, 可能flag已失效...").finish(reply=True)
+        await MessageUtils.build_message("其他错误, 可能flag已失效...").finish(
+            reply_to=True
+        )
     logger.info("处理请求", arparma.header_result, session=session)
-    await Text("成功处理请求!").finish(reply=True)
+    await MessageUtils.build_message("成功处理请求!").finish(reply_to=True)
 
 
 @_read_matcher.handle()
@@ -232,9 +234,9 @@ async def _(
                 await result_image.text((15, 13), _type_text, fill=(140, 140, 143))
                 req_image_list.append(result_image)
         if not req_image_list:
-            await Text("没有任何请求喔...").finish(reply=True)
+            await MessageUtils.build_message("没有任何请求喔...").finish(reply_to=True)
         if len(req_image_list) == 1:
-            await Image(req_image_list[0].pic2bytes()).finish()
+            await MessageUtils.build_message(req_image_list[0]).finish()
         width = sum([img.width for img in req_image_list])
         height = max([img.height for img in req_image_list])
         background = BuildImage(width, height)
@@ -242,8 +244,8 @@ async def _(
         await req_image_list[1].line((0, 10, 1, req_image_list[1].height - 10), width=1)
         await background.paste(req_image_list[1], (req_image_list[1].width, 0))
         logger.info("查看请求", arparma.header_result, session=session)
-        await Image(background.pic2bytes()).finish()
-    await Text("没有任何请求喔...").finish(reply=True)
+        await MessageUtils.build_message(background).finish()
+    await MessageUtils.build_message("没有任何请求喔...").finish(reply_to=True)
 
 
 @_clear_matcher.handle()
@@ -270,4 +272,4 @@ async def _(
             handle_type=RequestHandleType.IGNORE
         )
     logger.info(f"清空{_type}请求", arparma.header_result, session=session)
-    await Text(f"已清空{_type}请求!").finish()
+    await MessageUtils.build_message(f"已清空{_type}请求!").finish()

@@ -6,13 +6,13 @@ from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args
 from nonebot_plugin_alconna import At as alcAt
 from nonebot_plugin_alconna import Match, on_alconna
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
 
 __plugin_meta__ = PluginMetadata(
@@ -44,9 +44,9 @@ _matcher.shortcut(
 async def _(bot: Bot, text: str, at: Match[alcAt], session: EventSession):
     gid = session.id3 or session.id2
     if not gid:
-        await Text("群组id为空...").finish()
+        await MessageUtils.build_message("群组id为空...").finish()
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     at_user = None
     if at.available:
         at_user = at.result.target
@@ -75,5 +75,5 @@ async def _(bot: Bot, text: str, at: Match[alcAt], session: EventSession):
         await A.paste(content, (150, 38))
         await A.text((150, 85), text, (125, 125, 125))
         logger.info(f"发送有一个朋友: {text}", "我有一个朋友", session=session)
-        await Image(A.pic2bytes()).finish()
-    await Text("获取用户信息失败...").send()
+        await MessageUtils.build_message(A).finish()
+    await MessageUtils.build_message("获取用户信息失败...").send()

@@ -1,12 +1,12 @@
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, on_alconna
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.configs.utils import BaseBlock, PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.message import MessageUtils
 
 __plugin_meta__ = PluginMetadata(
     name="鲁迅说",
@@ -54,14 +54,14 @@ async def _(content: str, session: EventSession, arparma: Arparma):
     )
     text = ""
     if len(content) > 40:
-        await Text("太长了，鲁迅说不完...").finish()
+        await MessageUtils.build_message("太长了，鲁迅说不完...").finish()
     while A.getsize(content)[0] > A.width - 50:
         n = int(len(content) / 2)
         text += content[:n] + "\n"
         content = content[n:]
     text += content
     if len(text.split("\n")) > 2:
-        await Text("太长了，鲁迅说不完...").finish()
+        await MessageUtils.build_message("太长了，鲁迅说不完...").finish()
     await A.text(
         (int((480 - A.getsize(text.split("\n")[0])[0]) / 2), 300), text, (255, 255, 255)
     )
@@ -70,5 +70,5 @@ async def _(content: str, session: EventSession, arparma: Arparma):
             "--鲁迅", "msyh.ttf", 30, (255, 255, 255)
         )
     await A.paste(_sign, (320, 400))
-    await Image(A.pic2bytes()).send()
+    await MessageUtils.build_message(A).send()
     logger.info(f"鲁迅说: {content}", arparma.header_result, session=session)

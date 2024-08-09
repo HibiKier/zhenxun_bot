@@ -50,11 +50,11 @@ async def get_hot_image() -> tuple[BuildImage | str, list]:
     await bk.paste(wbtop_bk)
     text_bk = BuildImage(700, 32 * 50, color="#797979")
     image_list = []
-    for i, data in enumerate(data):
-        title = f"{i + 1}. {data['hot_word']}"
-        hot = str(data["hot_word_num"])
+    for i, _data in enumerate(data):
+        title = f"{i + 1}. {_data['hot_word']}"
+        hot = str(_data["hot_word_num"])
         img = BuildImage(700, 30, font_size=20)
-        w, h = img.getsize(title)
+        _, h = img.getsize(title)
         await img.text((10, int((30 - h) / 2)), title)
         await img.text((580, int((30 - h) / 2)), hot)
         image_list.append(img)

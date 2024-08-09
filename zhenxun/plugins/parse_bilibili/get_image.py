@@ -1,12 +1,13 @@
 import os
 import re
 
-from nonebot_plugin_saa import Image
+from nonebot_plugin_alconna import UniMessage
 
 from zhenxun.configs.path_config import TEMP_PATH
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncPlaywright
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.user_agent import get_user_agent_str
 
 
@@ -21,7 +22,7 @@ async def resize(path: str):
     await A.save(path)
 
 
-async def get_image(url) -> Image | None:
+async def get_image(url) -> UniMessage | None:
     """获取Bilibili链接的截图，并返回base64格式的图片
 
     参数:
@@ -101,7 +102,7 @@ async def get_image(url) -> Image | None:
                 except Exception as e:
                     logger.warning(f"尝试解析bilibili转发失败", e=e)
                     return None
-            return Image(screenshot_path)
+            return MessageUtils.build_message(screenshot_path)
         except Exception as e:
             logger.error(f"尝试解析bilibili转发失败", e=e)
         return None

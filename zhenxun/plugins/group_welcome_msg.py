@@ -3,12 +3,12 @@ import re
 import ujson as json
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
-from nonebot_plugin_saa import Image, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.path_config import DATA_PATH
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.rules import ensure_group
 
 __plugin_meta__ = PluginMetadata(
@@ -46,17 +46,17 @@ async def _(
         )
     file = path / "text.json"
     if not file.exists():
-        await Text("未设置群欢迎消息...").finish(reply=True)
+        await MessageUtils.build_message("未设置群欢迎消息...").finish(reply_to=True)
     message = json.load(open(file, encoding="utf8"))["message"]
     message_split = re.split(r"\[image:\d+\]", message)
     if len(message_split) == 1:
-        await Text(message_split[0]).finish(reply=True)
+        await MessageUtils.build_message(message_split[0]).finish(reply_to=True)
     idx = 0
     data_list = []
     for msg in message_split[:-1]:
-        data_list.append(Text(msg))
-        data_list.append(Image(path / f"{idx}.png"))
+        data_list.append(msg)
+        data_list.append(path / f"{idx}.png")
         idx += 1
     data_list.append(message_split[-1])
-    await MessageFactory(data_list).send(reply=True)
+    await MessageUtils.build_message(data_list).send(reply_to=True)
     logger.info("查看群欢迎消息", arparma.header_result, session=session)

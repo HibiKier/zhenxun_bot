@@ -4,8 +4,7 @@ import time
 import ujson as json
 from nonebot import on_message
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_alconna import Hyper, UniMsg
-from nonebot_plugin_saa import Image, MessageFactory, Text
+from nonebot_plugin_alconna import Hyper, Image, UniMsg
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.path_config import TEMP_PATH
@@ -14,6 +13,7 @@ from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.utils.message import MessageUtils
 
 from .information_container import InformationContainer
 from .parse_url import parse_bili_url
@@ -138,12 +138,10 @@ async def _(session: EventSession, message: UniMsg):
                 _tmp[vd_url] = time.time()
                 _path = TEMP_PATH / f"{aid}.jpg"
                 await AsyncHttpx.download_file(pic, _path)
-                await MessageFactory(
+                await MessageUtils.build_message(
                     [
-                        Image(_path),
-                        Text(
-                            f"av{aid}\n标题：{title}\nUP：{author}\n上传日期：{date}\n回复：{reply}，收藏：{favorite}，投币：{coin}\n点赞：{like}，弹幕：{danmuku}\n{vd_url}"
-                        ),
+                        _path,
+                        f"av{aid}\n标题：{title}\nUP：{author}\n上传日期：{date}\n回复：{reply}，收藏：{favorite}，投币：{coin}\n点赞：{like}，弹幕：{danmuku}\n{vd_url}",
                     ]
                 ).send()
 
@@ -161,14 +159,12 @@ async def _(session: EventSession, message: UniMsg):
                 parent_area_name = live_info.get("parent_area_name", "")  # 父分区
                 logger.info(f"解析bilibili转发 {live_url}", "b站解析", session=session)
                 _tmp[live_url] = time.time()
-                await MessageFactory(
+                await MessageUtils.build_message(
                     [
-                        Image(user_cover),
-                        Text(
-                            f"开播用户：https://space.bilibili.com/{uid}\n开播时间：{live_time}\n直播分区：{parent_area_name}——>{area_name}\n标题：{title}\n简介：{description}\n直播截图：\n"
-                        ),
-                        Image(keyframe),
-                        Text(f"{live_url}"),
+                        Image(url=user_cover),
+                        f"开播用户：https://space.bilibili.com/{uid}\n开播时间：{live_time}\n直播分区：{parent_area_name}——>{area_name}\n标题：{title}\n简介：{description}\n直播截图：\n",
+                        Image(url=keyframe),
+                        f"{live_url}",
                     ]
                 ).send()
         elif image_info:

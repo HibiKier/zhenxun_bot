@@ -16,7 +16,7 @@ from nonebot.adapters.onebot.v12 import (
     GroupMemberIncreaseEvent,
 )
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_saa import Image, Mention, MessageFactory, Text
+from nonebot_plugin_alconna import At
 
 from zhenxun.configs.config import NICKNAME, Config
 from zhenxun.configs.path_config import DATA_PATH, IMAGE_PATH
@@ -29,6 +29,7 @@ from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType, RequestHandleType
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.utils import FreqLimiter
 
 __plugin_meta__ = PluginMetadata(
@@ -235,26 +236,26 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
             msg_split = re.split(r"\[image:\d+\]", message)
             msg_list = []
             if data["at"]:
-                msg_list.append(Mention(user_id))
+                msg_list.append(At(flag="user", target=user_id))
             for i, text in enumerate(msg_split):
-                msg_list.append(Text(text))
+                msg_list.append(text)
                 img_file = path / f"{i}.png"
                 if img_file.exists():
-                    msg_list.append(Image(img_file))
+                    msg_list.append(img_file)
             if not TaskInfo.is_block("group_welcome", group_id):
                 logger.info(f"发送群欢迎消息...", "入群检测", group_id=group_id)
                 if msg_list:
-                    await MessageFactory(msg_list).send()
+                    await MessageUtils.build_message(msg_list).send()
                 else:
                     image = (
                         IMAGE_PATH
                         / "qxz"
                         / random.choice(os.listdir(IMAGE_PATH / "qxz"))
                     )
-                    await MessageFactory(
+                    await MessageUtils.build_message(
                         [
-                            Text("新人快跑啊！！本群现状↓（快使用自定义！）"),
-                            Image(image),
+                            "新人快跑啊！！本群现状↓（快使用自定义！）",
+                            image,
                         ]
                     ).send()
 

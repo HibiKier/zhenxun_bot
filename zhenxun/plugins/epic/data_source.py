@@ -3,11 +3,13 @@ from datetime import datetime
 from nonebot.adapters import Bot
 from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
-from nonebot_plugin_saa import Image, MessageFactory, Text
+from nonebot_plugin_alconna import Image, UniMessage
 
 from zhenxun.configs.config import NICKNAME
 from zhenxun.services.log import logger
+from zhenxun.utils._build_image import BuildImage
 from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.utils.message import MessageUtils
 
 
 # 获取所有 Epic Game Store 促销游戏
@@ -56,7 +58,7 @@ async def get_epic_game_desp(name) -> dict | None:
 # https://github.com/SD4RK/epicstore_api/blob/master/examples/free_games_example.py
 async def get_epic_free(
     bot: Bot, type_event: str
-) -> tuple[MessageFactory | list | str, int]:
+) -> tuple[UniMessage | list | str, int]:
     games = await get_epic_game()
     if not games:
         return "Epic 可能又抽风啦，请稍后再试（", 404
@@ -86,18 +88,8 @@ async def get_epic_free(
                         "%b.%d %H:%M"
                     )
                     if type_event == "Group":
-                        _message = "\n由 {} 公司发行的游戏 {} ({}) 在 UTC 时间 {} 即将推出免费游玩，预计截至 {}。".format(
-                            game_corp, game_name, game_price, start_date, end_date
-                        )
-                        data = {
-                            "type": "node",
-                            "data": {
-                                "name": f"这里是{NICKNAME}酱",
-                                "uin": f"{bot.self_id}",
-                                "content": _message,
-                            },
-                        }
-                        msg_list.append(data)
+                        _message = f"\n由 {game_corp} 公司发行的游戏 {game_name} ({game_price}) 在 UTC 时间 {start_date} 即将推出免费游玩，预计截至 {end_date}。"
+                        msg_list.append(_message)
                     else:
                         msg = "\n由 {} 公司发行的游戏 {} ({}) 在 UTC 时间 {} 即将推出免费游玩，预计截至 {}。".format(
                             game_corp, game_name, game_price, start_date, end_date
@@ -171,36 +163,20 @@ async def get_epic_free(
                             f"/p/{slugs[0]}" if len(slugs) else ""
                         )
                     if isinstance(bot, (v11Bot, v12Bot)) and type_event == "Group":
-                        _message = "[CQ:image,file={}]\n\nFREE now :: {} ({})\n{}\n此游戏由 {} 开发、{} 发行，将在 UTC 时间 {} 结束免费游玩，戳链接速度加入你的游戏库吧~\n{}\n".format(
-                            game_thumbnail,
-                            game_name,
-                            game_price,
-                            game_desp,
-                            game_dev,
-                            game_pub,
-                            end_date,
-                            game_url,
-                        )
-                        data = {
-                            "type": "node",
-                            "data": {
-                                "name": f"这里是{NICKNAME}酱",
-                                "uin": f"{bot.self_id}",
-                                "content": _message,
-                            },
-                        }
-                        msg_list.append(data)
+                        _message = [
+                            Image(url=game_thumbnail),
+                            f"\nFREE now :: {game_name} ({game_price})\n{game_desp}\n此游戏由 {game_dev} 开发、{game_pub} 发行，将在 UTC 时间 {end_date} 结束免费游玩，戳链接速度加入你的游戏库吧~\n{game_url}\n",
+                        ]
+                        msg_list.append(_message)
                     else:
                         _message = []
                         if game_thumbnail:
-                            _message.append(Image(game_thumbnail))
+                            _message.append(Image(url=game_thumbnail))
                         _message.append(
-                            Text(
-                                f"\n\nFREE now :: {game_name} ({game_price})\n{game_desp}\n此游戏由 {game_dev} 开发、{game_pub} 发行，将在 UTC 时间 {end_date} 结束免费游玩，戳链接速度加入你的游戏库吧~\n{game_url}\n"
-                            )
+                            f"\n\nFREE now :: {game_name} ({game_price})\n{game_desp}\n此游戏由 {game_dev} 开发、{game_pub} 发行，将在 UTC 时间 {end_date} 结束免费游玩，戳链接速度加入你的游戏库吧~\n{game_url}\n"
                         )
-                        return MessageFactory(_message), 200
+                        return MessageUtils.build_message(_message), 200
             except TypeError as e:
                 # logger.info(str(e))
                 pass
-        return msg_list, 200
+        return MessageUtils.template2forward(msg_list, bot.self_id), 200

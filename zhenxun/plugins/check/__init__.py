@@ -8,6 +8,7 @@ from nonebot_plugin_session import EventSession
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 
 from .data_source import Check
 
@@ -36,5 +37,5 @@ _matcher = on_alconna(
 @_matcher.handle()
 async def _(session: EventSession, arparma: Arparma):
     image = await check.show()
-    await Image(image.pic2bytes()).send()
+    await MessageUtils.build_message(image).send()
     logger.info("自检", arparma.header_result, session=session)

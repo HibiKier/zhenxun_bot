@@ -3,13 +3,13 @@ import random
 import re
 
 import ujson as json
-from nonebot_plugin_alconna import UniMsg
-from nonebot_plugin_saa import Image, MessageFactory, Text
+from nonebot_plugin_alconna import UniMessage, UniMsg
 
 from zhenxun.configs.config import NICKNAME, Config
 from zhenxun.configs.path_config import DATA_PATH, IMAGE_PATH
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.utils.message import MessageUtils
 
 from .utils import ai_message_manager
 
@@ -24,7 +24,7 @@ anime_data = json.load(open(DATA_PATH / "anime.json", "r", encoding="utf8"))
 
 async def get_chat_result(
     message: UniMsg, user_id: str, nickname: str
-) -> Text | MessageFactory | None:
+) -> UniMessage | None:
     """获取 AI 返回值，顺序： 特殊回复 -> 图灵 -> 青云客
 
     参数:
@@ -42,7 +42,7 @@ async def get_chat_result(
     special_rst = await ai_message_manager.get_result(user_id, nickname)
     if special_rst:
         ai_message_manager.add_result(user_id, special_rst)
-        return Text(special_rst)
+        return MessageUtils.build_message(special_rst)
     if index == 5:
         index = 0
     if len(text) < 6 and random.random() < 0.6:
@@ -66,7 +66,7 @@ async def get_chat_result(
     ai_message_manager.add_result(user_id, rst)
     for t in Config.get_config("ai", "TEXT_FILTER"):
         rst = rst.replace(t, "*")
-    return Text(rst)
+    return MessageUtils.build_message(rst)
 
 
 # 图灵接口
@@ -182,7 +182,7 @@ async def xie_ai(text: str) -> str:
         return ""
 
 
-def hello() -> MessageFactory:
+def hello() -> UniMessage:
     """一些打招呼的内容"""
     result = random.choice(
         (
@@ -194,31 +194,27 @@ def hello() -> MessageFactory:
         )
     )
     img = random.choice(os.listdir(IMAGE_PATH / "zai"))
-    return MessageFactory([Image(IMAGE_PATH / "zai" / img), Text(result)])
+    return MessageUtils.build_message([IMAGE_PATH / "zai" / img, result])
 
 
-def no_result() -> MessageFactory:
+def no_result() -> UniMessage:
     """
     没有回答时的回复
     """
-    return MessageFactory(
+    return MessageUtils.build_message(
         [
-            Text(
-                random.choice(
-                    [
-                        "你在说啥子？",
-                        f"纯洁的{NICKNAME}没听懂",
-                        "下次再告诉你(下次一定)",
-                        "你觉得我听懂了吗？嗯？",
-                        "我！不！知！道！",
-                    ]
-                )
+            random.choice(
+                [
+                    "你在说啥子？",
+                    f"纯洁的{NICKNAME}没听懂",
+                    "下次再告诉你(下次一定)",
+                    "你觉得我听懂了吗？嗯？",
+                    "我！不！知！道！",
+                ]
             ),
-            Image(
-                IMAGE_PATH
-                / "noresult"
-                / random.choice(os.listdir(IMAGE_PATH / "noresult"))
-            ),
+            IMAGE_PATH
+            / "noresult"
+            / random.choice(os.listdir(IMAGE_PATH / "noresult")),
         ]
     )
 

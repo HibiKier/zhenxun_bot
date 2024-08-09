@@ -7,7 +7,6 @@ from typing import Generic, TypeVar
 import aiohttp
 import anyio
 import ujson as json
-from nonebot_plugin_saa import Image
 from nonebot_plugin_saa import Image as SaaImage
 from nonebot_plugin_saa import MessageFactory, Text
 from PIL import Image

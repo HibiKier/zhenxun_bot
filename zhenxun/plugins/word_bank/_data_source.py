@@ -1,10 +1,12 @@
+from nonebot_plugin_alconna import At
 from nonebot_plugin_alconna import At as alcAt
+from nonebot_plugin_alconna import Image
 from nonebot_plugin_alconna import Image as alcImage
 from nonebot_plugin_alconna import Text as alcText
 from nonebot_plugin_alconna import UniMessage, UniMsg
-from nonebot_plugin_saa import Image, Mention, MessageFactory, Text
 
 from zhenxun.utils.image_utils import ImageTemplate
+from zhenxun.utils.message import MessageUtils
 
 from ._model import WordBank
 
@@ -210,7 +212,7 @@ class WordBankManage:
         index: int | None = None,
         group_id: str | None = None,
         word_scope: int | None = 1,
-    ) -> Text | MessageFactory | Image:
+    ) -> UniMessage:
         """获取群词条
 
         参数:
@@ -228,25 +230,25 @@ class WordBankManage:
                 word_scope,
             )
             if not _problem_list:
-                return Text(problem)
+                return MessageUtils.build_message(problem)
             for msg in _problem_list:
                 _text = str(msg)
-                if isinstance(msg, Mention):
-                    _text = f"[at:{msg.data}]"
+                if isinstance(msg, At):
+                    _text = f"[at:{msg.target}]"
                 elif isinstance(msg, Image):
-                    _text = msg.data
+                    _text = msg.url or msg.path
                 elif isinstance(msg, list):
                     _text = []
                     for m in msg:
                         __text = str(m)
-                        if isinstance(m, Mention):
-                            __text = f"[at:{m.data['user_id']}]"
+                        if isinstance(m, At):
+                            __text = f"[at:{m.target}]"
                         elif isinstance(m, Image):
                             # TODO: 显示词条回答图片
                             # __text = (m.data["image"], 30, 30)
                             __text = "[图片]"
                         _text.append(__text)
-                msg_list.append("".join(_text))
+                msg_list.append("".join(str(_text)))
             column_name = ["序号", "回答内容"]
             data_list = []
             for index, msg in enumerate(msg_list):
@@ -254,7 +256,7 @@ class WordBankManage:
             template_image = await ImageTemplate.table_page(
                 f"词条 {problem} 的回答", None, column_name, data_list
             )
-            return Image(template_image.pic2bytes())
+            return MessageUtils.build_message(template_image)
         else:
             result = []
             if group_id:
@@ -265,7 +267,7 @@ class WordBankManage:
                 raise Exception("群组id和词条范围不能都为空")
             global_problem_list = await WordBank.get_problem_by_scope(0)
             if not _problem_list and not global_problem_list:
-                return Text("未收录任何词条...")
+                return MessageUtils.build_message("未收录任何词条...")
             column_name = ["序号", "关键词", "匹配类型", "收录用户"]
             data_list = [list(s) for s in _problem_list]
             for i in range(len(data_list)):
@@ -273,7 +275,7 @@ class WordBankManage:
             group_image = await ImageTemplate.table_page(
                 "群组内词条" if group_id else "私聊词条", None, column_name, data_list
             )
-            result.append(Image(group_image.pic2bytes()))
+            result.append(group_image)
             if global_problem_list:
                 data_list = [list(s) for s in global_problem_list]
                 for i in range(len(data_list)):
@@ -281,5 +283,5 @@ class WordBankManage:
                 global_image = await ImageTemplate.table_page(
                     "全局词条", None, column_name, data_list
                 )
-                result.append(Image(global_image.pic2bytes()))
-            return MessageFactory(result)
+                result.append(global_image)
+            return MessageUtils.build_message(result)

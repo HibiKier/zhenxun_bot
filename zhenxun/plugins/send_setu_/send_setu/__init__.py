@@ -2,7 +2,6 @@ import random
 from typing import Tuple
 
 from nonebot.adapters import Bot
-from nonebot.adapters.onebot.v11 import MessageSegment
 from nonebot.matcher import Matcher
 from nonebot.message import run_postprocessor
 from nonebot.plugin import PluginMetadata
@@ -23,11 +22,11 @@ from zhenxun.configs.utils import PluginCdBlock, PluginExtraData, RegisterConfig
 from zhenxun.models.sign_user import SignUser
 from zhenxun.models.user_console import UserConsole
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
-from zhenxun.utils.utils import template2forward
 from zhenxun.utils.withdraw_manage import WithdrawManager
 
-from ._data_source import Image, SetuManage, base_config
+from ._data_source import SetuManage, base_config
 
 __plugin_meta__ = PluginMetadata(
     name="色图",
@@ -196,7 +195,7 @@ async def _(
     if is_r18 and gid:
         """群聊中禁止查看r18"""
         if not base_config.get("ALLOW_GROUP_R18"):
-            await Text(
+            await MessageUtils.build_message(
                 random.choice(
                     [
                         "这种不好意思的东西怎么可能给这么多人看啦",
@@ -209,11 +208,11 @@ async def _(
         """指定id"""
         result = await SetuManage.get_setu(local_id=local_id.result)
         if isinstance(result, str):
-            await Text(result).finish(reply=True)
+            await MessageUtils.build_message(result).finish(reply=True)
         await result[0].finish()
     result_list = await SetuManage.get_setu(tags=_tags, num=_num, is_r18=is_r18)
     if isinstance(result_list, str):
-        await Text(result_list).finish(reply=True)
+        await MessageUtils.build_message(result_list).finish(reply=True)
     max_once_num2forward = base_config.get("MAX_ONCE_NUM2FORWARD")
     platform = PlatformUtils.get_platform(bot)
     if (
@@ -223,7 +222,7 @@ async def _(
         and len(result_list) >= max_once_num2forward
     ):
         logger.debug("使用合并转发转发色图数据", arparma.header_result, session=session)
-        forward = template2forward(result_list, bot.self_id)  # type: ignore
+        forward = MessageUtils.template2forward(result_list, bot.self_id)  # type: ignore
         await bot.send_group_forward_msg(
             group_id=int(gid),
             messages=forward,  # type: ignore
@@ -233,7 +232,7 @@ async def _(
             logger.info(f"发送色图 {result}", arparma.header_result, session=session)
             receipt = await result.send()
             if receipt:
-                message_id = receipt.extract_message_id().message_id  # type: ignore
+                message_id = receipt.msg_ids[0]["message_id"]
                 await WithdrawManager.withdraw_message(
                     bot,
                     message_id,

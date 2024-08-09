@@ -6,12 +6,12 @@ from typing import List
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Arparma, Match
 from nonebot_plugin_apscheduler import scheduler
-from nonebot_plugin_saa import Image, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginCdBlock, PluginExtraData, RegisterConfig, Task
 from zhenxun.services.log import logger
 from zhenxun.utils.image_utils import text2image
+from zhenxun.utils.message import MessageUtils
 
 from .command import (
     _group_open_matcher,
@@ -126,11 +126,11 @@ async def _(
     if day.available:
         _day = day.result
     if _day > 180:
-        await Text("天数必须大于0且小于180").finish()
+        await MessageUtils.build_message("天数必须大于0且小于180").finish()
     result = await init_skin_trends(name, skin, abrasion, _day)
     if not result:
-        await Text("未查询到数据...").finish(reply=True)
-    await Image(result.pic2bytes()).send()
+        await MessageUtils.build_message("未查询到数据...").finish(reply_to=True)
+    await MessageUtils.build_message(result).send()
     logger.info(
         f"查看 [{name}:{skin}({abrasion})] 价格趋势",
         arparma.header_result,
@@ -148,26 +148,26 @@ async def _(session: EventSession, arparma: Arparma):
 async def _(session: EventSession, arparma: Arparma, name: Match[str]):
     gid = session.id3 or session.id2
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if not gid:
-        await Text("群组id为空...").finish()
+        await MessageUtils.build_message("群组id为空...").finish()
     case_name = None
     if name.available:
         case_name = name.result.replace("武器箱", "").strip()
     result = await open_case(session.id1, gid, case_name, session)
-    await result.finish(reply=True)
+    await result.finish(reply_to=True)
 
 
 @_my_open_matcher.handle()
 async def _(session: EventSession, arparma: Arparma):
     gid = session.id3 or session.id2
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if not gid:
-        await Text("群组id为空...").finish()
-    await Text(
+        await MessageUtils.build_message("群组id为空...").finish()
+    await MessageUtils.build_message(
         await total_open_statistics(session.id1, gid),
-    ).send(reply=True)
+    ).send(reply_to=True)
     logger.info("查询我的开箱", arparma.header_result, session=session)
 
 
@@ -175,9 +175,9 @@ async def _(session: EventSession, arparma: Arparma):
 async def _(session: EventSession, arparma: Arparma):
     gid = session.id3 or session.id2
     if not gid:
-        await Text("群组id为空...").finish()
+        await MessageUtils.build_message("群组id为空...").finish()
     result = await group_statistics(gid)
-    await Text(result).send(reply=True)
+    await MessageUtils.build_message(result).send(reply_to=True)
     logger.info("查询群开箱统计", arparma.header_result, session=session)
 
 
@@ -185,11 +185,11 @@ async def _(session: EventSession, arparma: Arparma):
 async def _(session: EventSession, arparma: Arparma):
     gid = session.id3 or session.id2
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if not gid:
-        await Text("群组id为空...").finish()
+        await MessageUtils.build_message("群组id为空...").finish()
     result = await get_my_knifes(session.id1, gid)
-    await result.send(reply=True)
+    await result.send(reply_to=True)
     logger.info("查询我的金色", arparma.header_result, session=session)
 
 
@@ -197,18 +197,18 @@ async def _(session: EventSession, arparma: Arparma):
 async def _(session: EventSession, arparma: Arparma, num: int, name: Match[str]):
     gid = session.id3 or session.id2
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if not gid:
-        await Text("群组id为空...").finish()
+        await MessageUtils.build_message("群组id为空...").finish()
     if num > 30:
-        await Text("开箱次数不要超过30啊笨蛋！").finish()
+        await MessageUtils.build_message("开箱次数不要超过30啊笨蛋！").finish()
     if num < 0:
-        await Text("再负开箱就扣你明天开箱数了！").finish()
+        await MessageUtils.build_message("再负开箱就扣你明天开箱数了！").finish()
     case_name = None
     if name.available:
         case_name = name.result.replace("武器箱", "").strip()
     result = await open_multiple_case(session.id1, gid, case_name, num, session)
-    await result.send(reply=True)
+    await result.send(reply_to=True)
     logger.info(f"{num}连开箱", arparma.header_result, session=session)
 
 
@@ -229,8 +229,8 @@ async def _(session: EventSession, arparma: Arparma, name: Match[str]):
             skin_list.append(f"{skin_name}")
         text = "武器箱:\n" + "\n".join(case_list) + "\n皮肤:\n" + ", ".join(skin_list)
         img = await text2image(text, padding=20, color="#f9f6f2")
-        await MessageFactory(
-            [Text("未指定武器箱, 当前已包含武器箱/皮肤\n"), Image(img.pic2bytes())]
+        await MessageUtils.build_message(
+            ["未指定武器箱, 当前已包含武器箱/皮肤\n", img]
         ).finish()
     if case_name in ["ALL", "ALL1"]:
         if case_name == "ALL":
@@ -239,34 +239,40 @@ async def _(session: EventSession, arparma: Arparma, name: Match[str]):
         else:
             case_list = list(KNIFE2ID.keys())
             type_ = "罕见皮肤"
-        await Text(f"即将更新所有{type_}, 请稍等").send()
+        await MessageUtils.build_message(f"即将更新所有{type_}, 请稍等").send()
         for i, case_name in enumerate(case_list):
             try:
                 info = await update_skin_data(case_name, arparma.find("s"))
                 if "请先登录" in info:
-                    await Text(f"未登录, 已停止更新, 请配置BUFF token...").send()
+                    await MessageUtils.build_message(
+                        f"未登录, 已停止更新, 请配置BUFF token..."
+                    ).send()
                     return
                 rand = random.randint(300, 500)
                 result = f"更新全部{type_}完成"
                 if i < len(case_list) - 1:
                     next_case = case_list[i + 1]
                     result = f"将在 {rand} 秒后更新下一{type_}: {next_case}"
-                await Text(f"{info}, {result}").send()
+                await MessageUtils.build_message(f"{info}, {result}").send()
                 logger.info(f"info, {result}", "更新武器箱", session=session)
                 await asyncio.sleep(rand)
             except Exception as e:
                 logger.error(f"更新{type_}: {case_name}", session=session, e=e)
-                await Text(f"更新{type_}: {case_name} 发生错误: {type(e)}: {e}").send()
-        await Text(f"更新全部{type_}完成").send()
+                await MessageUtils.build_message(
+                    f"更新{type_}: {case_name} 发生错误: {type(e)}: {e}"
+                ).send()
+        await MessageUtils.build_message(f"更新全部{type_}完成").send()
     else:
-        await Text(f"开始{arparma.header_result}: {case_name}, 请稍等").send()
+        await MessageUtils.build_message(
+            f"开始{arparma.header_result}: {case_name}, 请稍等"
+        ).send()
         try:
-            await Text(await update_skin_data(case_name, arparma.find("s"))).send(
-                at_sender=True
-            )
+            await MessageUtils.build_message(
+                await update_skin_data(case_name, arparma.find("s"))
+            ).send(at_sender=True)
         except Exception as e:
             logger.error(f"{arparma.header_result}: {case_name}", session=session, e=e)
-            await Text(
+            await MessageUtils.build_message(
                 f"成功{arparma.header_result}: {case_name} 发生错误: {type(e)}: {e}"
             ).send()
 
@@ -278,9 +284,9 @@ async def _(session: EventSession, arparma: Arparma, name: Match[str]):
         case_name = name.result.strip()
     result = await build_case_image(case_name)
     if isinstance(result, str):
-        await Text(result).send()
+        await MessageUtils.build_message(result).send()
     else:
-        await Image(result.pic2bytes()).send()
+        await MessageUtils.build_message(result).send()
         logger.info("查看武器箱", arparma.header_result, session=session)
 
 
@@ -289,9 +295,9 @@ async def _(session: EventSession, arparma: Arparma, name: Match[str]):
     case_name = None
     if name.available:
         case_name = name.result.strip()
-    await Text("开始更新图片...").send(reply=True)
+    await MessageUtils.build_message("开始更新图片...").send(reply_to=True)
     await download_image(case_name)
-    await Text("更新图片完成...").send(at_sender=True)
+    await MessageUtils.build_message("更新图片完成...").send(at_sender=True)
     logger.info("更新武器箱图片", arparma.header_result, session=session)
 
 

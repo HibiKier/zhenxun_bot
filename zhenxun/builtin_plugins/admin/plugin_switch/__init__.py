@@ -1,13 +1,13 @@
 from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import AlconnaQuery, Arparma, Match, Query
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import BlockType, PluginType
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import PluginManage, build_plugin, build_task
 from .command import _group_status_matcher, _status_matcher
@@ -98,9 +98,9 @@ async def _(
             arparma.header_result,
             session=session,
         )
-        await Image(image.pic2bytes()).finish(reply=True)
+        await MessageUtils.build_message(image).finish(reply_to=True)
     else:
-        await Text("权限不足捏...").finish(reply=True)
+        await MessageUtils.build_message("权限不足捏...").finish(reply_to=True)
 
 
 @_status_matcher.assign("open")
@@ -115,7 +115,7 @@ async def _(
     all: Query[bool] = AlconnaQuery("all.value", False),
 ):
     if not all.result and not plugin_name.available:
-        await Text("请输入功能名称").finish(reply=True)
+        await MessageUtils.build_message("请输入功能名称").finish(reply_to=True)
     name = plugin_name.result
     gid = session.id3 or session.id2
     if gid:
@@ -154,7 +154,7 @@ async def _(
                     logger.info(
                         f"开启功能 {name}", arparma.header_result, session=session
                     )
-        await Text(result).finish(reply=True)
+        await MessageUtils.build_message(result).finish(reply_to=True)
     elif session.id1 in bot.config.superusers:
         """私聊"""
         group_id = group.result if group.available else None
@@ -174,7 +174,7 @@ async def _(
                     arparma.header_result,
                     session=session,
                 )
-            await Text(result).finish(reply=True)
+            await MessageUtils.build_message(result).finish(reply_to=True)
         if default_status.result:
             result = await PluginManage.set_default_status(name, True)
             logger.info(
@@ -183,7 +183,7 @@ async def _(
                 session=session,
                 target=group_id,
             )
-            await Text(result).finish(reply=True)
+            await MessageUtils.build_message(result).finish(reply_to=True)
         if task.result:
             split_list = name.split()
             if len(split_list) > 1:
@@ -204,7 +204,7 @@ async def _(
                     arparma.header_result,
                     session=session,
                 )
-            await Text(result).finish(reply=True)
+            await MessageUtils.build_message(result).finish(reply_to=True)
         else:
             result = await PluginManage.superuser_block(name, None, group_id)
             logger.info(
@@ -213,7 +213,7 @@ async def _(
                 session=session,
                 target=group_id,
             )
-            await Text(result).finish(reply=True)
+            await MessageUtils.build_message(result).finish(reply_to=True)
 
 
 @_status_matcher.assign("close")
@@ -229,7 +229,7 @@ async def _(
     all: Query[bool] = AlconnaQuery("all.value", False),
 ):
     if not all.result and not plugin_name.available:
-        await Text("请输入功能名称").finish(reply=True)
+        await MessageUtils.build_message("请输入功能名称").finish(reply_to=True)
     name = plugin_name.result
     gid = session.id3 or session.id2
     if gid:
@@ -268,7 +268,7 @@ async def _(
                     logger.info(
                         f"关闭功能 {name}", arparma.header_result, session=session
                     )
-        await Text(result).finish(reply=True)
+        await MessageUtils.build_message(result).finish(reply_to=True)
     elif session.id1 in bot.config.superusers:
         group_id = group.result if group.available else None
         if all.result:
@@ -287,7 +287,7 @@ async def _(
                     arparma.header_result,
                     session=session,
                 )
-            await Text(result).finish(reply=True)
+            await MessageUtils.build_message(result).finish(reply_to=True)
         if default_status.result:
             result = await PluginManage.set_default_status(name, False)
             logger.info(
@@ -296,7 +296,7 @@ async def _(
                 session=session,
                 target=group_id,
             )
-            await Text(result).finish(reply=True)
+            await MessageUtils.build_message(result).finish(reply_to=True)
         if task.result:
             split_list = name.split()
             if len(split_list) > 1:
@@ -317,7 +317,7 @@ async def _(
                     arparma.header_result,
                     session=session,
                 )
-            await Text(result).finish(reply=True)
+            await MessageUtils.build_message(result).finish(reply_to=True)
         else:
             _type = BlockType.ALL
             if block_type.available:
@@ -332,7 +332,7 @@ async def _(
                 session=session,
                 target=group_id,
             )
-            await Text(result).finish(reply=True)
+            await MessageUtils.build_message(result).finish(reply_to=True)
 
 
 @_group_status_matcher.handle()
@@ -345,14 +345,14 @@ async def _(
         if status == "sleep":
             await PluginManage.sleep(gid)
             logger.info("进行休眠", arparma.header_result, session=session)
-            await Text("那我先睡觉了...").finish()
+            await MessageUtils.build_message("那我先睡觉了...").finish()
         else:
             if await PluginManage.is_wake(gid):
-                await Text("我还醒着呢！").finish()
+                await MessageUtils.build_message("我还醒着呢！").finish()
             await PluginManage.wake(gid)
             logger.info("醒来", arparma.header_result, session=session)
-            await Text("呜..醒来了...").finish()
-    return Text("群组id为空...").send()
+            await MessageUtils.build_message("呜..醒来了...").finish()
+    return MessageUtils.build_message("群组id为空...").send()
 
 
 @_status_matcher.assign("task")
@@ -367,6 +367,6 @@ async def _(
             arparma.header_result,
             session=session,
         )
-        await Image(image.pic2bytes()).finish(reply=True)
+        await MessageUtils.build_message(image).finish(reply_to=True)
     else:
-        await Text("获取群被动任务失败...").finish(reply=True)
+        await MessageUtils.build_message("获取群被动任务失败...").finish(reply_to=True)

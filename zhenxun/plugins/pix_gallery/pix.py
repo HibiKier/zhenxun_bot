@@ -11,12 +11,12 @@ from nonebot_plugin_alconna import (
     on_alconna,
     store_true,
 )
-from nonebot_plugin_saa import Image, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.utils import BaseBlock, PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
 from zhenxun.utils.withdraw_manage import WithdrawManager
 
@@ -96,7 +96,7 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, tags: Match[str])
     global PIX_RATIO, OMEGA_RATIO
     gid = session.id3 or session.id2
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if PIX_RATIO is None:
         pix_omega_pixiv_ratio = Config.get_config("pix", "PIX_OMEGA_PIXIV_RATIO")
         PIX_RATIO = pix_omega_pixiv_ratio[0] / (
@@ -117,7 +117,9 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, tags: Match[str])
         if (nsfw_tag == 1 and not Config.get_config("pix", "ALLOW_GROUP_SETU")) or (
             nsfw_tag == 2 and not Config.get_config("pix", "ALLOW_GROUP_R18")
         ):
-            await Text("你不能看这些噢，这些都是是留给管理员看的...").finish()
+            await MessageUtils.build_message(
+                "你不能看这些噢，这些都是是留给管理员看的..."
+            ).finish()
     if (n := len(spt)) == 1:
         if str(spt[0]).isdigit() and int(spt[0]) < 100:
             num = int(spt[0])
@@ -132,7 +134,9 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, tags: Match[str])
                     session.id1 in bot.config.superusers and num > 30
                 ):
                     num = random.randint(1, 10)
-                    await Text(f"太贪心了，就给你发 {num}张 好了").send()
+                    await MessageUtils.build_message(
+                        f"太贪心了，就给你发 {num}张 好了"
+                    ).send()
             spt = spt[:-1]
             keyword = " ".join(spt)
     pix_num = int(num * PIX_RATIO) + 15 if PIX_RATIO != 0 else 0
@@ -149,7 +153,7 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, tags: Match[str])
     elif keyword.lower().startswith("pid"):
         pid = keyword.replace("pid", "").replace(":", "").replace("：", "")
         if not str(pid).isdigit():
-            await Text("PID必须是数字...").finish(reply=True)
+            await MessageUtils.build_message("PID必须是数字...").finish(reply_to=True)
         all_image = await Pixiv.query_images(
             pid=int(pid), r18=1 if nsfw_tag == 2 else 0
         )
@@ -169,15 +173,15 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, tags: Match[str])
                 all_image.append(x)
                 tmp_.append(x.pid)
     if not all_image:
-        await Text(f"未在图库中找到与 {keyword} 相关Tag/UID/PID的图片...").finish(
-            reply=True
-        )
+        await MessageUtils.build_message(
+            f"未在图库中找到与 {keyword} 相关Tag/UID/PID的图片..."
+        ).finish(reply_to=True)
     msg_list = []
     for _ in range(num):
         img_url = None
         author = None
         if not all_image:
-            await Text("坏了...发完了，没图了...").finish()
+            await MessageUtils.build_message("坏了...发完了，没图了...").finish()
         img = random.choice(all_image)
         all_image.remove(img)  # type: ignore
         if isinstance(img, OmegaPixivIllusts):
@@ -194,24 +198,22 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, tags: Match[str])
             if _img:
                 if Config.get_config("pix", "SHOW_INFO"):
                     msg_list.append(
-                        MessageFactory(
+                        MessageUtils.build_message(
                             [
-                                Text(
-                                    f"title：{title}\n"
-                                    f"author：{author}\n"
-                                    f"PID：{pid}\nUID：{uid}\n"
-                                ),
-                                Image(_img),
+                                f"title：{title}\n"
+                                f"author：{author}\n"
+                                f"PID：{pid}\nUID：{uid}\n",
+                                _img,
                             ]
                         )
                     )
                 else:
-                    msg_list.append(Image(_img))
+                    msg_list.append(_img)
                 logger.info(
                     f" 查看PIX图库PID: {pid}", arparma.header_result, session=session
                 )
             else:
-                msg_list.append(Text("这张图似乎下载失败了"))
+                msg_list.append(MessageUtils.build_message("这张图似乎下载失败了"))
                 logger.info(
                     f" 查看PIX图库PID: {pid}，下载图片出错",
                     arparma.header_result,
@@ -225,7 +227,7 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, tags: Match[str])
         for msg in msg_list:
             receipt = await msg.send()
             if receipt:
-                message_id = receipt.extract_message_id().message_id
+                message_id = receipt.msg_ids[0]["message_id"]
                 await WithdrawManager.withdraw_message(
                     bot,
                     str(message_id),
@@ -236,7 +238,7 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, tags: Match[str])
         for msg in msg_list:
             receipt = await msg.send()
             if receipt:
-                message_id = receipt.extract_message_id().message_id
+                message_id = receipt.msg_ids[0]["message_id"]
                 await WithdrawManager.withdraw_message(
                     bot,
                     message_id,

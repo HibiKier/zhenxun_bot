@@ -1,6 +1,5 @@
 import random
-
-from nonebot_plugin_saa import Image, Text
+from pathlib import Path
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.path_config import TEMP_PATH
@@ -12,7 +11,7 @@ API_URL_ASCII2D = "https://ascii2d.net/search/url/"
 API_URL_IQDB = "https://iqdb.org/"
 
 
-async def get_saucenao_image(url: str) -> str | list[Image | Text]:
+async def get_saucenao_image(url: str) -> str | list[str | Path]:
     """获取图片源
 
     参数:
@@ -44,7 +43,7 @@ async def get_saucenao_image(url: str) -> str | list[Image | Text]:
     msg_list = []
     index = random.randint(0, 10000)
     if await AsyncHttpx.download_file(url, TEMP_PATH / f"saucenao_search_{index}.jpg"):
-        msg_list.append(Image(TEMP_PATH / f"saucenao_search_{index}.jpg"))
+        msg_list.append(TEMP_PATH / f"saucenao_search_{index}.jpg")
     for info in data:
         try:
             similarity = info["header"]["similarity"]
@@ -57,7 +56,7 @@ async def get_saucenao_image(url: str) -> str | list[Image | Text]:
                     tmp += f'source：{info["data"]["ext_urls"][0]}\n'
             except KeyError:
                 tmp += f'source：{info["header"]["thumbnail"]}\n'
-            msg_list.append(Text(tmp[:-1]))
+            msg_list.append(tmp[:-1])
         except Exception as e:
             logger.warning(f"识图获取图片信息发生错误", e=e)
     return msg_list

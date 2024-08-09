@@ -27,11 +27,10 @@ async def _(
 ):
     plugin = await PluginInfo.get_or_none(module=matcher.plugin_name)
     plugin_type = plugin.plugin_type if plugin else None
-    if (
-        plugin_type == PluginType.NORMAL
-        and matcher.priority not in [1, 999]
-        and matcher.plugin_name not in ["update_info", "statistics_handle"]
-    ):
+    if plugin_type == PluginType.NORMAL and matcher.plugin_name not in [
+        "update_info",
+        "statistics_handle",
+    ]:
         await Statistics.create(
             user_id=session.id1,
             group_id=session.id3 or session.id2,

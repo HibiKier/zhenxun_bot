@@ -3,7 +3,6 @@ from asyncio.exceptions import TimeoutError
 from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, on_alconna
-from nonebot_plugin_saa import Image, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
@@ -11,6 +10,7 @@ from zhenxun.configs.path_config import TEMP_PATH
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.utils import change_pixiv_image_links
 from zhenxun.utils.withdraw_manage import WithdrawManager
 
@@ -69,13 +69,17 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, pid: str):
                 session=session,
                 e=e,
             )
-            await Text(f"发生了一些错误..{type(e)}：{e}").finish()
+            await MessageUtils.build_message(f"发生了一些错误..{type(e)}：{e}").finish()
         else:
             if data.get("error"):
-                await Text(data["error"]["user_message"]).finish(reply=True)
+                await MessageUtils.build_message(data["error"]["user_message"]).finish(
+                    reply_to=True
+                )
             data = data["illust"]
             if not data["width"] and not data["height"]:
-                await Text(f"没有搜索到 PID：{pid} 的图片").finish(reply=True)
+                await MessageUtils.build_message(
+                    f"没有搜索到 PID：{pid} 的图片"
+                ).finish(reply_to=True)
             pid = data["id"]
             title = data["title"]
             author = data["user"]["name"]
@@ -93,20 +97,20 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, pid: str):
                     TEMP_PATH / f"pid_search_{session.id1}_{i}.png",
                     headers=headers,
                 ):
-                    await Text("图片下载失败了...").finish(reply=True)
+                    await MessageUtils.build_message("图片下载失败了...").finish(
+                        reply_to=True
+                    )
                 tmp = ""
                 if session.id3 or session.id2:
                     tmp = "\n【注】将在30后撤回......"
-                receipt = await MessageFactory(
+                receipt = await MessageUtils.build_message(
                     [
-                        Text(
-                            f"title：{title}\n"
-                            f"pid：{pid}\n"
-                            f"author：{author}\n"
-                            f"author_id：{author_id}\n"
-                        ),
-                        Image(TEMP_PATH / f"pid_search_{session.id1}_{i}.png"),
-                        Text(f"{tmp}"),
+                        f"title：{title}\n"
+                        f"pid：{pid}\n"
+                        f"author：{author}\n"
+                        f"author_id：{author_id}\n",
+                        TEMP_PATH / f"pid_search_{session.id1}_{i}.png",
+                        f"{tmp}",
                     ]
                 ).send()
                 logger.info(
@@ -114,8 +118,8 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, pid: str):
                 )
                 if session.id3 or session.id2:
                     await WithdrawManager.withdraw_message(
-                        bot, receipt.extract_message_id().message_id, 30  # type: ignore
+                        bot, receipt.msg_ids[0]["message_id"], 30  # type: ignore
                     )
             break
     else:
-        await Text("图片下载失败了...").send(reply=True)
+        await Text("图片下载失败了...").send(reply_to=True)

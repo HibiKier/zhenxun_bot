@@ -3,13 +3,14 @@ import random
 from pathlib import Path
 
 from asyncpg import UniqueViolationError
-from nonebot_plugin_saa import Image, MessageFactory, Text
+from nonebot_plugin_alconna import UniMessage
 
 from zhenxun.configs.config import NICKNAME, Config
 from zhenxun.configs.path_config import IMAGE_PATH, TEMP_PATH
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.image_utils import compressed_image
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.utils import change_img_md5, change_pixiv_image_links
 
 from .._model import Setu
@@ -36,7 +37,7 @@ class SetuManage:
         num: int = 10,
         tags: list[str] | None = None,
         is_r18: bool = False,
-    ) -> list[MessageFactory] | str:
+    ) -> list[UniMessage] | str:
         """获取色图
 
         参数:
@@ -82,7 +83,7 @@ class SetuManage:
                 result_list.append(cls.init_image_message(file_path, setu))
             if flag:
                 result_list.append(
-                    MessageFactory([Text("坏了，已经没图了，被榨干了！")])
+                    MessageUtils.build_message("坏了，已经没图了，被榨干了！")
                 )
             return result_list
         data_list = await cls.search_lolicon(tags, num, is_r18)
@@ -101,17 +102,19 @@ class SetuManage:
         for setu in data_list:
             file = await cls.get_image(setu)
             if isinstance(file, str):
-                result_list.append(MessageFactory([Text(file)]))
+                result_list.append(MessageUtils.build_message(file))
                 continue
             result_list.append(cls.init_image_message(file, setu))
         if not result_list:
             return "没找到符合条件的色图..."
         if flag:
-            result_list.append(MessageFactory([Text("坏了，已经没图了，被榨干了！")]))
+            result_list.append(
+                MessageUtils.build_message("坏了，已经没图了，被榨干了！")
+            )
         return result_list
 
     @classmethod
-    def init_image_message(cls, file: Path, setu: Setu) -> MessageFactory:
+    def init_image_message(cls, file: Path, setu: Setu) -> UniMessage:
         """初始化图片发送消息
 
         参数:
@@ -119,20 +122,18 @@ class SetuManage:
             setu: Setu
 
         返回:
-            MessageFactory: 发送消息内容
+            UniMessage: 发送消息内容
         """
         data_list = []
         if base_config.get("SHOW_INFO"):
             data_list.append(
-                Text(
-                    f"id：{setu.local_id or ''}\n"
-                    f"title：{setu.title}\n"
-                    f"author：{setu.author}\n"
-                    f"PID：{setu.pid}\n"
-                )
+                f"id：{setu.local_id or ''}\n"
+                f"title：{setu.title}\n"
+                f"author：{setu.author}\n"
+                f"PID：{setu.pid}\n"
             )
-        data_list.append(Image(file))
-        return MessageFactory(data_list)
+        data_list.append(file)
+        return MessageUtils.build_message(data_list)
 
     @classmethod
     async def get_setu_list(
@@ -167,7 +168,7 @@ class SetuManage:
         return image_list
 
     @classmethod
-    def get_luo(cls, impression: float) -> MessageFactory | None:
+    def get_luo(cls, impression: float) -> UniMessage | None:
         """罗翔
 
         参数:
@@ -179,15 +180,13 @@ class SetuManage:
         if initial_setu_probability := base_config.get("INITIAL_SETU_PROBABILITY"):
             probability = float(impression) + initial_setu_probability * 100
             if probability < random.randint(1, 101):
-                return MessageFactory(
+                return MessageUtils.build_message(
                     [
-                        Text("我为什么要给你发这个？"),
-                        Image(
-                            IMAGE_PATH
-                            / "luoxiang"
-                            / random.choice(os.listdir(IMAGE_PATH / "luoxiang"))
-                        ),
-                        Text(f"\n(快向{NICKNAME}签到提升好感度吧！)"),
+                        "我为什么要给你发这个？",
+                        IMAGE_PATH
+                        / "luoxiang"
+                        / random.choice(os.listdir(IMAGE_PATH / "luoxiang")),
+                        f"\n(快向{NICKNAME}签到提升好感度吧！)",
                     ]
                 )
         return None

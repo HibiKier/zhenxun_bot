@@ -5,12 +5,12 @@ from nonebot import on_notice
 from nonebot.adapters.onebot.v11 import PokeNotifyEvent
 from nonebot.adapters.onebot.v11.message import MessageSegment
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_saa import Image, MessageFactory, Text
 
 from zhenxun.configs.path_config import IMAGE_PATH, RECORD_PATH
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.utils import CountLimiter
 
 __plugin_meta__ = PluginMetadata(
@@ -66,10 +66,10 @@ async def _(event: PokeNotifyEvent):
             index = random.randint(
                 0, len(os.listdir(IMAGE_PATH / "image_management" / path)) - 1
             )
-            await MessageFactory(
+            await MessageUtils.build_message(
                 [
-                    Text(f"id: {index}"),
-                    Image(IMAGE_PATH / "image_management" / path / f"{index}.jpg"),
+                    f"id: {index}",
+                    IMAGE_PATH / "image_management" / path / f"{index}.jpg",
                 ]
             ).send()
             logger.info(f"USER {event.user_id} 戳了戳我")
@@ -79,7 +79,8 @@ async def _(event: PokeNotifyEvent):
             await poke_.send(result)
             await poke_.send(voice.split("_")[1])
             logger.info(
-                f'USER {event.user_id} 戳了戳我 回复: {result} \n {voice.split("_")[1]}'
+                f'USER {event.user_id} 戳了戳我 回复: {result} \n {voice.split("_")[1]}',
+                "戳一戳",
             )
         else:
             await poke_.send(MessageSegment("poke", {"qq": event.user_id}))

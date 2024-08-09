@@ -3,7 +3,6 @@ from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot_plugin_alconna import UniMsg
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 from tortoise import Tortoise
 
@@ -12,6 +11,7 @@ from zhenxun.services.db_context import TestSQL
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import ImageTemplate
+from zhenxun.utils.message import MessageUtils
 
 __plugin_meta__ = PluginMetadata(
     name="数据库操作",
@@ -56,7 +56,7 @@ async def _(session: EventSession, message: UniMsg):
     if sql_text.startswith("exec"):
         sql_text = sql_text[4:].strip()
     if not sql_text:
-        await Text("需要执行的的SQL语句!").finish()
+        await MessageUtils.build_message("需要执行的的SQL语句!").finish()
     logger.info(f"执行SQL语句: {sql_text}", "exec", session=session)
     try:
         if not sql_text.lower().startswith("select"):
@@ -77,11 +77,11 @@ async def _(session: EventSession, message: UniMsg):
             table = await ImageTemplate.table_page(
                 "EXEC", f"总共有 {len(data_list)} 条数据捏", list(_column), data_list
             )
-            await Image(table.pic2bytes()).send()
+            await MessageUtils.build_message(table).send()
     except Exception as e:
         logger.error("执行 SQL 语句失败...", session=session, e=e)
-        await Text(f"执行 SQL 语句失败... {type(e)}").finish()
-    await Text("执行 SQL 语句成功!").finish()
+        await MessageUtils.build_message(f"执行 SQL 语句失败... {type(e)}").finish()
+    await MessageUtils.build_message("执行 SQL 语句成功!").finish()
 
 
 @_table_matcher.handle()
@@ -97,7 +97,7 @@ async def _(session: EventSession):
         table = await ImageTemplate.table_page(
             "数据库表", f"总共有 {len(data_list)} 张表捏", column_name, data_list
         )
-        await Image(table.pic2bytes()).send()
+        await MessageUtils.build_message(table).send()
     except Exception as e:
         logger.error("获取表数据失败...", session=session, e=e)
-        await Text(f"获取表数据失败... {type(e)}").send()
+        await MessageUtils.build_message(f"获取表数据失败... {type(e)}").send()

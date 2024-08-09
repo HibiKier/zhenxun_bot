@@ -12,7 +12,6 @@ from nonebot_plugin_alconna import (
     on_alconna,
     store_true,
 )
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
@@ -21,6 +20,7 @@ from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import ImageTemplate
+from zhenxun.utils.message import MessageUtils
 
 __plugin_meta__ = PluginMetadata(
     name="消息统计",
@@ -120,8 +120,8 @@ async def _(
         logger.info(
             f"查看消息排行 数量={count.result}", arparma.header_result, session=session
         )
-        await Image(A.pic2bytes()).finish(reply=True)
-    await Text("群组消息记录为空...").finish()
+        await MessageUtils.build_message(A).finish(reply_to=True)
+    await MessageUtils.build_message("群组消息记录为空...").finish()
 
 
 # # @test.handle()

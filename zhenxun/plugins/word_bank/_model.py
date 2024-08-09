@@ -8,7 +8,7 @@ from typing import Any
 from nonebot_plugin_alconna import At as alcAt
 from nonebot_plugin_alconna import Image as alcImage
 from nonebot_plugin_alconna import Text as alcText
-from nonebot_plugin_saa import Image, Mention, MessageFactory, Text
+from nonebot_plugin_alconna import UniMessage
 from tortoise import Tortoise, fields
 from tortoise.expressions import Q
 from typing_extensions import Self
@@ -17,6 +17,7 @@ from zhenxun.configs.path_config import DATA_PATH
 from zhenxun.services.db_context import Model
 from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.image_utils import get_img_hash
+from zhenxun.utils.message import MessageUtils
 
 from ._config import int2type
 
@@ -208,7 +209,7 @@ class WordBank(Model):
         user_id: int,
         group_id: int,
         query: Self | None = None,
-    ) -> MessageFactory | Text:
+    ) -> UniMessage:
         """将占位符转换为实际内容
 
         参数:
@@ -232,16 +233,16 @@ class WordBank(Model):
             answer_split = re.split(rf"\[.*:placeholder_.*?]", answer)
             placeholder_split = query.placeholder.split(",")
             for index, ans in enumerate(answer_split):
-                result_list.append(Text(ans))
+                result_list.append(ans)
                 if index < len(type_list):
                     t = type_list[index]
                     p = placeholder_split[index]
                     if t == "image":
-                        result_list.append(Image(path / p))
+                        result_list.append(path / p)
                     elif t == "at":
-                        result_list.append(Mention(p))
-            return MessageFactory(result_list)
-        return Text(answer)
+                        result_list.append(alcAt(flag="user", target=p))
+            return MessageUtils.build_message(result_list)
+        return MessageUtils.build_message(answer)
 
     @classmethod
     async def check_problem(
@@ -296,7 +297,7 @@ class WordBank(Model):
         problem: str,
         word_scope: int | None = None,
         word_type: int | None = None,
-    ) -> Text | MessageFactory | None:
+    ) -> UniMessage | None:
         """根据问题内容获取随机回答
 
         参数:
@@ -324,7 +325,7 @@ class WordBank(Model):
                     random_answer,
                 )
                 if random_answer.placeholder
-                else Text(random_answer.answer)
+                else MessageUtils.build_message(random_answer.answer)
             )
 
     @classmethod
@@ -334,7 +335,7 @@ class WordBank(Model):
         index: int | None = None,
         group_id: str | None = None,
         word_scope: int | None = 0,
-    ) -> tuple[str, list[Text | MessageFactory]]:
+    ) -> tuple[str, list[UniMessage]]:
         """获取指定问题所有回答
 
         参数:
@@ -344,7 +345,7 @@ class WordBank(Model):
             word_scope: 词条范围
 
         返回:
-            tuple[str, list[Text | MessageFactory]]: 问题和所有回答
+            tuple[str, list[UniMessage]]: 问题和所有回答
         """
         if index is not None:
             # TODO: group_by和order_by不能同时使用

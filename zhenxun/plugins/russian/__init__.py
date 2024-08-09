@@ -3,12 +3,12 @@ from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Arparma
 from nonebot_plugin_alconna import At as alcAt
 from nonebot_plugin_alconna import Match, UniMsg
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.depends import UserName
+from zhenxun.utils.message import MessageUtils
 
 from .command import (
     _accept_matcher,
@@ -79,20 +79,22 @@ async def _(
 ):
     gid = session.id2
     if message.extract_plain_text() == "取消":
-        await Text("已取消装弹...").finish()
+        await MessageUtils.build_message("已取消装弹...").finish()
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if not gid:
-        await Text("群组id为空...").finish()
+        await MessageUtils.build_message("群组id为空...").finish()
     if money <= 0:
-        await Text("赌注金额必须大于0!").finish(reply=True)
+        await MessageUtils.build_message("赌注金额必须大于0!").finish(reply_to=True)
     if num in ["取消", "算了"]:
-        await Text("已取消装弹...").finish()
+        await MessageUtils.build_message("已取消装弹...").finish()
     if not num.isdigit():
-        await Text("输入的子弹数必须是数字！").finish(reply=True)
+        await MessageUtils.build_message("输入的子弹数必须是数字！").finish(
+            reply_to=True
+        )
     b_num = int(num)
     if b_num < 0 or b_num > 6:
-        await Text("子弹数量必须在1-6之间!").finish(reply=True)
+        await MessageUtils.build_message("子弹数量必须在1-6之间!").finish(reply_to=True)
     _at_user = at_user.result.target if at_user.available else None
     rus = Russian(
         at_user=_at_user, player1=(session.id1, uname), money=money, bullet_num=b_num
@@ -110,9 +112,9 @@ async def _(
 async def _(bot: Bot, session: EventSession, arparma: Arparma, uname: str = UserName()):
     gid = session.id2
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if not gid:
-        await Text("群组id为空...").finish()
+        await MessageUtils.build_message("群组id为空...").finish()
     result = await russian_manage.accept(bot, gid, session.id1, uname)
     await result.send()
     logger.info(f"俄罗斯轮盘接受对决", arparma.header_result, session=session)
@@ -122,9 +124,9 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, uname: str = User
 async def _(session: EventSession, arparma: Arparma, uname: str = UserName()):
     gid = session.id2
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if not gid:
-        await Text("群组id为空...").finish()
+        await MessageUtils.build_message("群组id为空...").finish()
     result = russian_manage.refuse(gid, session.id1, uname)
     await result.send()
     logger.info(f"俄罗斯轮盘拒绝对决", arparma.header_result, session=session)
@@ -134,9 +136,9 @@ async def _(session: EventSession, arparma: Arparma, uname: str = UserName()):
 async def _(session: EventSession, arparma: Arparma):
     gid = session.id2
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if not gid:
-        await Text("群组id为空...").finish()
+        await MessageUtils.build_message("群组id为空...").finish()
     result = await russian_manage.settlement(gid, session.id1, session.platform)
     await result.send()
     logger.info(f"俄罗斯轮盘结算", arparma.header_result, session=session)
@@ -146,9 +148,9 @@ async def _(session: EventSession, arparma: Arparma):
 async def _(bot: Bot, session: EventSession, arparma: Arparma, uname: str = UserName()):
     gid = session.id2
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if not gid:
-        await Text("群组id为空...").finish()
+        await MessageUtils.build_message("群组id为空...").finish()
     result, settle = await russian_manage.shoot(
         bot, gid, session.id1, uname, session.platform
     )
@@ -162,11 +164,11 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, uname: str = User
 async def _(session: EventSession, arparma: Arparma):
     gid = session.id2
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if not gid:
-        await Text("群组id为空...").finish()
+        await MessageUtils.build_message("群组id为空...").finish()
     user, _ = await RussianUser.get_or_create(user_id=session.id1, group_id=gid)
-    await Text(
+    await MessageUtils.build_message(
         f"俄罗斯轮盘\n"
         f"总胜利场次：{user.win_count}\n"
         f"当前连胜：{user.winning_streak}\n"
@@ -176,7 +178,7 @@ async def _(session: EventSession, arparma: Arparma):
         f"最高连败：{user.max_losing_streak}\n"
         f"赚取金币：{user.make_money}\n"
         f"输掉金币：{user.lose_money}",
-    ).send(reply=True)
+    ).send(reply_to=True)
     logger.info(f"俄罗斯轮盘查看战绩", arparma.header_result, session=session)
 
 
@@ -184,16 +186,16 @@ async def _(session: EventSession, arparma: Arparma):
 async def _(session: EventSession, arparma: Arparma, rank_type: str, num: int):
     gid = session.id2
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if not gid:
-        await Text("群组id为空...").finish()
+        await MessageUtils.build_message("群组id为空...").finish()
     if 51 < num or num < 10:
         num = 10
     result = await russian_manage.rank(session.id1, gid, rank_type, num)
     if isinstance(result, str):
-        await Text(result).finish(reply=True)
+        await MessageUtils.build_message(result).finish(reply_to=True)
     result.show()
-    await Image(result.pic2bytes()).send(reply=True)
+    await MessageUtils.build_message(result).send(reply_to=True)
     logger.info(
         f"查看轮盘排行: {rank_type} 数量: {num}", arparma.header_result, session=session
     )

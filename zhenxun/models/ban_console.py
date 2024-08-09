@@ -68,7 +68,7 @@ class BanConsole(Model):
             level: 权限等级
 
         返回:
-            bool: 权限判断
+            bool: 权限判断，能否unban
         """
         user = await cls._get_data(user_id, group_id)
         if user:
@@ -76,7 +76,7 @@ class BanConsole(Model):
                 f"检测用户被ban等级，user_level: {user.ban_level}，level: {level}",
                 target=f"{group_id}:{user_id}",
             )
-            return user.ban_level >= level
+            return user.ban_level <= level
         return False
 
     @classmethod

@@ -2,10 +2,8 @@ import time
 from typing import Tuple
 
 from nonebot.adapters import Bot
-from nonebot.params import RegexGroup
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma, on_alconna
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
@@ -13,6 +11,7 @@ from zhenxun.configs.path_config import TEMP_PATH
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.withdraw_manage import WithdrawManager
 
 __plugin_meta__ = PluginMetadata(
@@ -72,8 +71,8 @@ async def _(
         path = TEMP_PATH / f"cos_cc{int(time.time())}.jpeg"
         try:
             await AsyncHttpx.download_file(url, path)
-            receipt = await Image(path).send()
-            message_id = receipt.extract_message_id().dict().get("message_id")
+            receipt = await MessageUtils.build_message(path).send()
+            message_id = receipt.msg_ids[0]["message_id"]
             if message_id and WithdrawManager.check(session, withdraw_time):
                 WithdrawManager.append(
                     bot,
@@ -82,7 +81,7 @@ async def _(
                 )
             logger.info(f"发送cos", arparma.header_result, session=session)
         except Exception as e:
-            await Text("你cos给我看！").send()
+            await MessageUtils.build_message("你cos给我看！").send()
             logger.error(
                 f"cos错误",
                 arparma.header_result,

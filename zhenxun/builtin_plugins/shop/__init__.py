@@ -5,16 +5,17 @@ from nonebot_plugin_alconna import (
     Args,
     Arparma,
     Subcommand,
+    UniMessage,
     UniMsg,
     on_alconna,
 )
-from nonebot_plugin_saa import Image, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 
 from zhenxun.configs.utils import BaseBlock, PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import BlockType, PluginType
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import ShopManage
 
@@ -84,7 +85,7 @@ _matcher.shortcut(
 async def _(session: EventSession, arparma: Arparma):
     image = await ShopManage.build_shop_image()
     logger.info("查看商店", arparma.header_result, session=session)
-    await Image(image.pic2bytes()).send()
+    await MessageUtils.build_message(image).send()
 
 
 @_matcher.assign("my-cost")
@@ -92,9 +93,9 @@ async def _(session: EventSession, arparma: Arparma):
     if session.id1:
         logger.info("查看金币", arparma.header_result, session=session)
         gold = await ShopManage.my_cost(session.id1, session.platform)
-        await Text(f"你的当前余额: {gold}").send(reply=True)
+        await MessageUtils.build_message(f"你的当前余额: {gold}").send(reply_to=True)
     else:
-        await Text(f"用户id为空...").send(reply=True)
+        await MessageUtils.build_message(f"用户id为空...").send(reply_to=True)
 
 
 @_matcher.assign("my-props")
@@ -108,10 +109,12 @@ async def _(
             user_info.user_displayname or user_info.user_name,
             session.platform,
         ):
-            await Image(image.pic2bytes()).finish(reply=True)
-        return await Text(f"你的道具为空捏...").send(reply=True)
+            await MessageUtils.build_message(image.pic2bytes()).finish(reply_to=True)
+        return await MessageUtils.build_message(f"你的道具为空捏...").send(
+            reply_to=True
+        )
     else:
-        await Text(f"用户id为空...").send(reply=True)
+        await MessageUtils.build_message(f"用户id为空...").send(reply_to=True)
 
 
 @_matcher.assign("buy")
@@ -123,9 +126,9 @@ async def _(session: EventSession, arparma: Arparma, name: str, num: int):
             session=session,
         )
         result = await ShopManage.buy_prop(session.id1, name, num, session.platform)
-        await Text(result).send(reply=True)
+        await MessageUtils.build_message(result).send(reply_to=True)
     else:
-        await Text(f"用户id为空...").send(reply=True)
+        await MessageUtils.build_message(f"用户id为空...").send(reply_to=True)
 
 
 @_matcher.assign("use")
@@ -141,6 +144,6 @@ async def _(
     result = await ShopManage.use(bot, event, session, message, name, num, "")
     logger.info(f"使用道具 {name}, 数量: {num}", arparma.header_result, session=session)
     if isinstance(result, str):
-        await Text(result).send(reply=True)
-    elif isinstance(result, MessageFactory):
-        await result.finish(reply=True)
+        await MessageUtils.build_message(result).send(reply_to=True)
+    elif isinstance(result, UniMessage):
+        await result.finish(reply_to=True)

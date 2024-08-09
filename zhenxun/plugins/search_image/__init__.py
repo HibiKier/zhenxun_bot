@@ -1,15 +1,16 @@
+from pathlib import Path
+
 from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma
 from nonebot_plugin_alconna import Image as alcImg
 from nonebot_plugin_alconna import Match, on_alconna
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
-from zhenxun.utils.utils import template2forward
 
 from .saucenao import get_saucenao_image
 
@@ -48,7 +49,7 @@ _matcher = on_alconna(
 )
 
 
-async def get_image_info(mod: str, url: str) -> str | list[Image | Text] | None:
+async def get_image_info(mod: str, url: str) -> str | list[str | Path] | None:
     if mod == "saucenao":
         return await get_saucenao_image(url)
 
@@ -73,21 +74,21 @@ async def _(
 ):
     gid = session.id3 or session.id2
     if not image.url:
-        await Text("图片url为空...").finish()
-    await Text("开始处理图片...").send()
+        await MessageUtils.build_message("图片url为空...").finish()
+    await MessageUtils.build_message("开始处理图片...").send()
     info_list = await get_image_info(mode, image.url)
     if isinstance(info_list, str):
-        await Text(info_list).finish(at_sender=True)
+        await MessageUtils.build_message(info_list).finish(at_sender=True)
     if not info_list:
-        await Text("未查询到...").finish()
+        await MessageUtils.build_message("未查询到...").finish()
     platform = PlatformUtils.get_platform(bot)
     if "qq" == platform and gid:
-        forward = template2forward(info_list, bot.self_id)  # type: ignore
+        forward = MessageUtils.template2forward(info_list[1:], bot.self_id)  # type: ignore
         await bot.send_group_forward_msg(
             group_id=int(gid),
             messages=forward,  # type: ignore
         )
     else:
         for info in info_list[1:]:
-            await info.send()
+            await MessageUtils.build_message(info).send()
     logger.info(f" 识图: {image.url}", arparma.header_result, session=session)

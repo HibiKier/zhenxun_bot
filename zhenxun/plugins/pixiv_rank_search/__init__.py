@@ -13,12 +13,12 @@ from nonebot_plugin_alconna import (
     on_alconna,
     store_true,
 )
-from nonebot_plugin_saa import MessageFactory, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.utils import BaseBlock, PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.utils import is_valid_date
 
 from .data_source import download_pixiv_imgs, get_pixiv_urls, search_pixiv_urls
@@ -148,34 +148,40 @@ async def _(
 ):
     gid = session.id3 or session.id2
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     code = 0
     info_list = []
     _datetime = None
     if datetime.available:
         _datetime = datetime.result
         if not is_valid_date(_datetime):
-            await Text("日期不合法，示例: 2018-4-25").finish(reply=True)
+            await MessageUtils.build_message("日期不合法，示例: 2018-4-25").finish(
+                reply_to=True
+            )
     if rank_type in [6, 7, 8, 9]:
         if gid:
-            await Text("羞羞脸！私聊里自己看！").finish(at_sender=True)
+            await MessageUtils.build_message("羞羞脸！私聊里自己看！").finish(
+                at_sender=True
+            )
     info_list, code = await get_pixiv_urls(
         rank_dict[str(rank_type)], num, date=_datetime
     )
     if code != 200 and info_list:
         if isinstance(info_list[0], str):
-            await Text(info_list[0]).finish()
+            await MessageUtils.build_message(info_list[0]).finish()
     if not info_list:
-        await Text("没有找到啊，等等再试试吧~V").send(at_sender=True)
+        await MessageUtils.build_message("没有找到啊，等等再试试吧~V").send(
+            at_sender=True
+        )
     for title, author, urls in info_list:
         try:
             images = await download_pixiv_imgs(urls, session.id1)  # type: ignore
-            await MessageFactory(
-                [Text(f"title: {title}\n"), Text(f"author: {author}\n")] + images
+            await MessageUtils.build_message(
+                [f"title: {title}\nauthor: {author}\n"] + images  # type: ignore
             ).send()
 
         except (NetworkError, TimeoutError):
-            await Text("这张图网络直接炸掉了！").send()
+            await MessageUtils.build_message("这张图网络直接炸掉了！").send()
     logger.info(
         f" 查看了P站排行榜 rank_type{rank_type}", arparma.header_result, session=session
     )
@@ -187,29 +193,33 @@ async def _(
 ):
     gid = session.id3 or session.id2
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if gid:
         if arparma.find("r") and not Config.get_config(
             "pixiv_rank_search", "ALLOW_GROUP_R18"
         ):
-            await Text("(脸红#) 你不会害羞的 八嘎！").finish(at_sender=True)
+            await MessageUtils.build_message("(脸红#) 你不会害羞的 八嘎！").finish(
+                at_sender=True
+            )
     r18 = 0 if arparma.find("r") else 1
     info_list = None
     keyword = keyword.replace("#", " ")
     info_list, code = await search_pixiv_urls(keyword, num, page, r18)
     if code != 200 and isinstance(info_list[0], str):
-        await Text(info_list[0]).finish()
+        await MessageUtils.build_message(info_list[0]).finish()
     if not info_list:
-        await Text("没有找到啊，等等再试试吧~V").finish(at_sender=True)
+        await MessageUtils.build_message("没有找到啊，等等再试试吧~V").finish(
+            at_sender=True
+        )
     for title, author, urls in info_list:
         try:
             images = await download_pixiv_imgs(urls, session.id1)  # type: ignore
-            await MessageFactory(
-                [Text(f"title: {title}\n"), Text(f"author: {author}\n")] + images
+            await MessageUtils.build_message(
+                [f"title: {title}\nauthor: {author}\n"] + images  # type: ignore
             ).send()
 
         except (NetworkError, TimeoutError):
-            await Text("这张图网络直接炸掉了！").send()
+            await MessageUtils.build_message("这张图网络直接炸掉了！").send()
     logger.info(
         f" 查看了搜索 {keyword} R18：{r18}", arparma.header_result, session=session
     )

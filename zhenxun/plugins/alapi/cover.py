@@ -1,10 +1,10 @@
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_alconna import Alconna, Args, Arparma, on_alconna
-from nonebot_plugin_saa import Image, MessageFactory, Text
+from nonebot_plugin_alconna import Alconna, Args, Arparma, Image, on_alconna
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import get_data
 
@@ -34,11 +34,13 @@ async def _(session: EventSession, arparma: Arparma, url: str):
     params = {"c": url}
     data, code = await get_data(cover_url, params)
     if code != 200 and isinstance(data, str):
-        await Text(data).finish(reply=True)
+        await MessageUtils.build_message(data).finish(reply_to=True)
     data = data["data"]  # type: ignore
     title = data["title"]  # type: ignore
     img = data["cover"]  # type: ignore
-    await MessageFactory([Text(f"title：{title}\n"), Image(img)]).send(reply=True)
+    await MessageUtils.build_message([f"title：{title}\n", Image(url=img)]).send(
+        reply_to=True
+    )
     logger.info(
         f" 获取b站封面: {title} url：{img}", arparma.header_result, session=session
     )

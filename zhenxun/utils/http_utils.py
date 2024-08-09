@@ -9,18 +9,16 @@ import httpx
 import rich
 from httpx import ConnectTimeout, Response
 from nonebot import require
+from nonebot_plugin_alconna import UniMessage
 from playwright.async_api import Page
 from retrying import retry
 
 from zhenxun.configs.config import SYSTEM_PROXY
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.user_agent import get_user_agent
 
 from .browser import get_browser
-
-require("nonebot_plugin_saa")
-
-from nonebot_plugin_saa import Image
 
 
 class AsyncHttpx:
@@ -332,7 +330,7 @@ class AsyncPlaywright:
         type_: Literal["jpeg", "png"] | None = None,
         user_agent: str | None = None,
         **kwargs,
-    ) -> Image | None:
+    ) -> UniMessage | None:
         """截图，该方法仅用于简单快捷截图，复杂截图请操作 page
 
         参数:
@@ -367,7 +365,7 @@ class AsyncPlaywright:
                 card = await card.wait_for_selector(e, timeout=wait_time)
             if card:
                 await card.screenshot(path=path, timeout=timeout, type=type_)
-                return Image(path)
+                return MessageUtils.build_message(path)
         return None
 
 

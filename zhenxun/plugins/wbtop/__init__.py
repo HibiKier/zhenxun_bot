@@ -1,12 +1,12 @@
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, on_alconna
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncPlaywright
+from zhenxun.utils.message import MessageUtils
 
 from .data_source import get_hot_image
 
@@ -33,7 +33,7 @@ _matcher = on_alconna(Alconna("微博热搜", Args["idx?", int]), priority=5, bl
 async def _(session: EventSession, arparma: Arparma, idx: Match[int]):
     result, data_list = await get_hot_image()
     if isinstance(result, str):
-        await Text(result).finish(reply=True)
+        await MessageUtils.build_message(result).finish(reply=True)
     if idx.available:
         _idx = idx.result
         url = data_list[_idx - 1]["url"]
@@ -45,12 +45,12 @@ async def _(session: EventSession, arparma: Arparma, idx: Match[int]):
             wait_time=12,
         )
         if img:
-            await Image(file).send()
+            await MessageUtils.build_message(file).send()
             logger.info(
                 f"查询微博热搜 Id: {_idx}", arparma.header_result, session=session
             )
         else:
-            await Text("获取图片失败...").send()
+            await MessageUtils.build_message("获取图片失败...").send()
     else:
-        await Image(result.pic2bytes()).send()
+        await MessageUtils.build_message(result).send()
         logger.info(f"查询微博热搜", arparma.header_result, session=session)

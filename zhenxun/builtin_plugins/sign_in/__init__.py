@@ -8,12 +8,12 @@ from nonebot_plugin_alconna import (
     store_true,
 )
 from nonebot_plugin_apscheduler import scheduler
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginCdBlock, PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.depends import UserName
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import SignManage
 from .goods_register import driver
@@ -121,8 +121,8 @@ async def _(session: EventSession, arparma: Arparma, nickname: str = UserName())
     if session.id1:
         if path := await SignManage.sign(session, nickname):
             logger.info("签到成功", arparma.header_result, session=session)
-            await Image(path).finish()
-    return Text("用户id为空...").send()
+            await MessageUtils.build_message(path).finish()
+    return MessageUtils.build_message("用户id为空...").send()
 
 
 @_sign_matcher.assign("my")
@@ -130,22 +130,24 @@ async def _(session: EventSession, arparma: Arparma, nickname: str = UserName())
     if session.id1:
         if image := await SignManage.sign(session, nickname, True):
             logger.info("查看我的签到", arparma.header_result, session=session)
-            await Image(image).finish()
-    return Text("用户id为空...").send()
+            await MessageUtils.build_message(image).finish()
+    return MessageUtils.build_message("用户id为空...").send()
 
 
 @_sign_matcher.assign("list")
 async def _(session: EventSession, arparma: Arparma, num: int):
     gid = session.id3 or session.id2
     if not arparma.find("global") and not gid:
-        await Text("私聊中无法查看 '好感度排行'，请发送 '好感度总排行'").finish()
+        await MessageUtils.build_message(
+            "私聊中无法查看 '好感度排行'，请发送 '好感度总排行'"
+        ).finish()
     if session.id1:
         if arparma.find("global"):
             gid = None
         if image := await SignManage.rank(session.id1, num, gid):
             logger.info("查看签到排行", arparma.header_result, session=session)
-            await Image(image.pic2bytes()).finish()
-    return Text("用户id为空...").send()
+            await MessageUtils.build_message(image).finish()
+    return MessageUtils.build_message("用户id为空...").send()
 
 
 @scheduler.scheduled_job(

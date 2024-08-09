@@ -6,7 +6,6 @@ from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.statistics import Statistics
-from zhenxun.models.user_console import UserConsole
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import BuildImage, BuildMat, MatType
 

@@ -1,11 +1,11 @@
 from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, on_alconna
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import gen_keyword_pic, get_keyword_num
 from ._model.pixiv_keyword_user import PixivKeywordUser
@@ -40,8 +40,10 @@ async def _(arparma: Arparma, session: EventSession):
         "keyword", flat=True
     )
     if not data:
-        await Text("您目前没有提供任何Pixiv搜图关键字...").finish(reply=True)
-    await Text(f"您目前提供的如下关键字：\n\t" + "，".join(data)).send()  # type: ignore
+        await MessageUtils.build_message("您目前没有提供任何Pixiv搜图关键字...").finish(
+            reply_to=True
+        )
+    await MessageUtils.build_message(f"您目前提供的如下关键字：\n\t" + "，".join(data)).send()  # type: ignore
     logger.info("查看我的pix关键词", arparma.header_result, session=session)
 
 
@@ -52,12 +54,14 @@ async def _(bot: Bot, arparma: Arparma, session: EventSession):
         image = await gen_keyword_pic(
             _pass_keyword, not_pass_keyword, session.id1 in bot.config.superusers
         )
-        await Image(image.pic2bytes()).send()  # type: ignore
+        await MessageUtils.build_message(image).send()  # type: ignore
     else:
         if session.id1 in bot.config.superusers:
-            await Text(f"目前没有已收录或待收录的搜索关键词...").send()
+            await MessageUtils.build_message(
+                f"目前没有已收录或待收录的搜索关键词..."
+            ).send()
         else:
-            await Text(f"目前没有已收录的搜索关键词...").send()
+            await MessageUtils.build_message(f"目前没有已收录的搜索关键词...").send()
 
 
 @_pix_matcher.handle()
@@ -66,7 +70,7 @@ async def _(bot: Bot, arparma: Arparma, session: EventSession, keyword: Match[st
     if keyword.available:
         _keyword = keyword.result
     count, r18_count, count_, setu_count, r18_count_ = await get_keyword_num(_keyword)
-    await Text(
+    await MessageUtils.build_message(
         f"PIX图库：{_keyword}\n"
         f"总数：{count + r18_count}\n"
         f"美图：{count}\n"

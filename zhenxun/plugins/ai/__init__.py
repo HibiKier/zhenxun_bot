@@ -4,7 +4,6 @@ from nonebot import on_message
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot_plugin_alconna import UniMsg
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import NICKNAME, Config
@@ -13,6 +12,7 @@ from zhenxun.models.friend_user import FriendUser
 from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.services.log import logger
 from zhenxun.utils.depends import UserName
+from zhenxun.utils.message import MessageUtils
 
 from .data_source import get_chat_result, hello, no_result
 
@@ -82,6 +82,6 @@ async def _(message: UniMsg, session: EventSession, uname: str = UserName()):
         result = str(result)
         for t in Config.get_config("ai", "TEXT_FILTER"):
             result = result.replace(t, "*")
-        await Text(result).finish()
+        await MessageUtils.build_message(result).finish()
     else:
         await no_result().finish()
