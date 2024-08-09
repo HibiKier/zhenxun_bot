@@ -1,12 +1,15 @@
 from io import BytesIO
 from pathlib import Path
 
+import nonebot
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
 from nonebot_plugin_alconna import At, Image, Text, UniMessage
 
 from zhenxun.configs.config import NICKNAME
 from zhenxun.services.log import logger
 from zhenxun.utils._build_image import BuildImage
+
+driver = nonebot.get_driver()
 
 MESSAGE_TYPE = (
     str | int | float | Path | bytes | BytesIO | BuildImage | At | Image | Text
@@ -25,6 +28,7 @@ class MessageUtils:
         返回:
             list[Text | Text]: 构造完成的消息列表
         """
+        is_bytes = driver.config.image_to_bytes == "True"
         message_list = []
         for msg in msg_list:
             if isinstance(msg, (Image, Text, At)):
@@ -33,7 +37,11 @@ class MessageUtils:
                 message_list.append(Text(str(msg)))
             elif isinstance(msg, Path):
                 if msg.exists():
-                    message_list.append(Image(path=msg))
+                    if is_bytes:
+                        image = BuildImage.open(msg)
+                        message_list.append(Image(raw=image.pic2bytes()))
+                    else:
+                        message_list.append(Image(path=msg))
                 else:
                     logger.warning(f"图片路径不存在: {msg}")
             elif isinstance(msg, bytes):
