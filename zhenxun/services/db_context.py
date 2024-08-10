@@ -111,7 +111,7 @@ async def init():
         await Tortoise.generate_schemas()
         logger.info(f"Database loaded successfully!")
     except Exception as e:
-        raise Exception(f"数据库连接错误...")
+        raise Exception(f"数据库连接错误... e:{e}")
 
 
 async def disconnect():

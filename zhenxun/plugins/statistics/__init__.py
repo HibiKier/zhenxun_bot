@@ -63,6 +63,7 @@ for file in [statistics_group_file, statistics_user_file]:
                         data[x][key]["商店"] = num
             for x in ["week_statistics", "month_statistics"]:
                 for key in data[x].keys():
+                    num = 0
                     if key == "total":
                         if data[x][key].get("ai") is not None:
                             if data[x][key].get("Ai") is not None:
