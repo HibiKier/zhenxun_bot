@@ -13,6 +13,7 @@ from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.image_utils import BuildImage, BuildMat, MatType
+from zhenxun.utils.utils import cn2py
 
 from .build_image import generate_skin
 from .config import (
