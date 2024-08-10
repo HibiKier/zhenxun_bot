@@ -1,3 +1,4 @@
+import ujson as json
 from nonebot.utils import is_coroutine_callable
 from tortoise import Tortoise, fields
 from tortoise.connection import connections
@@ -12,12 +13,15 @@ from zhenxun.configs.config import (
     sql_name,
     user,
 )
+from zhenxun.configs.path_config import DATA_PATH
 
 from .log import logger
 
 MODELS: list[str] = []
 
 SCRIPT_METHOD = []
+
+DATABASE_SETTING_FILE = DATA_PATH / "database.json"
 
 
 class Model(Model_):
@@ -46,11 +50,35 @@ class TestSQL(Model):
 
 
 async def init():
-    if not bind and not any([user, password, address, port, database]):
+    if DATABASE_SETTING_FILE.exists():
+        with open(DATABASE_SETTING_FILE, "r", encoding="utf-8") as f:
+            setting_data = json.load(f)
+    else:
+        i_bind = bind
+        if not i_bind and any([user, password, address, port, database]):
+            i_bind = f"{sql_name}://{user}:{password}@{address}:{port}/{database}"
+        setting_data = {
+            "bind": i_bind,
+            "sql_name": sql_name,
+            "user": user,
+            "password": password,
+            "address": address,
+            "port": port,
+            "database": database,
+        }
+        with open(DATABASE_SETTING_FILE, "w", encoding="utf-8") as f:
+            json.dump(setting_data, f, ensure_ascii=False, indent=4)
+    i_bind = setting_data.get("bind")
+    _sql_name = setting_data.get("sql_name")
+    _user = setting_data.get("user")
+    _password = setting_data.get("password")
+    _address = setting_data.get("address")
+    _port = setting_data.get("port")
+    _database = setting_data.get("database")
+    if not i_bind and not any([_user, _password, _address, _port, _database]):
         raise ValueError("\n数据库配置未填写...")
-    i_bind = bind
     if not i_bind:
-        i_bind = f"{sql_name}://{user}:{password}@{address}:{port}/{database}"
+        i_bind = f"{_sql_name}://{_user}:{_password}@{_address}:{_port}/{_database}"
     try:
         await Tortoise.init(
             db_url=i_bind, modules={"models": MODELS}, timezone="Asia/Shanghai"

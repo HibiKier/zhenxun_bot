@@ -28,7 +28,11 @@ class MessageUtils:
         返回:
             list[Text | Text]: 构造完成的消息列表
         """
-        is_bytes = driver.config.image_to_bytes == "True"
+        is_bytes = False
+        try:
+            is_bytes = driver.config.image_to_bytes in ["True", "true"]
+        except AttributeError:
+            pass
         message_list = []
         for msg in msg_list:
             if isinstance(msg, (Image, Text, At)):

@@ -5,6 +5,7 @@ from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_saa import Mention, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 from pydantic import BaseModel
+from tortoise.exceptions import IntegrityError
 
 from zhenxun.configs.config import Config
 from zhenxun.models.group_console import GroupConsole
@@ -203,7 +204,13 @@ class AuthChecker:
             group_id = channel_id
             channel_id = None
         if user_id and matcher.plugin and (module_path := matcher.plugin.module_name):
-            user = await UserConsole.get_user(user_id, session.platform)
+            try:
+                user = await UserConsole.get_user(user_id, session.platform)
+            except IntegrityError as e:
+                logger.debug(
+                    "重复创建用户，已跳过全选该次权限...", "HOOK", session=session, e=e
+                )
+                return
             if plugin := await PluginInfo.get_or_none(module_path=module_path):
                 if plugin.plugin_type == PluginType.HIDDEN and plugin.name != "帮助":
                     logger.debug("插件为HIDDEN且不是帮助功能，已跳过...")

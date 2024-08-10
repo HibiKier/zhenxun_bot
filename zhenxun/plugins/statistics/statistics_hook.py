@@ -25,15 +25,16 @@ __plugin_meta__ = PluginMetadata(
 async def _(
     matcher: Matcher, exception: Exception | None, bot: Bot, session: EventSession
 ):
-    plugin = await PluginInfo.get_or_none(module=matcher.plugin_name)
-    plugin_type = plugin.plugin_type if plugin else None
-    if plugin_type == PluginType.NORMAL and matcher.plugin_name not in [
-        "update_info",
-        "statistics_handle",
-    ]:
-        await Statistics.create(
-            user_id=session.id1,
-            group_id=session.id3 or session.id2,
-            plugin_name=matcher.plugin_name,
-            create_time=datetime.now(),
-        )
+    if session.id1:
+        plugin = await PluginInfo.get_or_none(module=matcher.plugin_name)
+        plugin_type = plugin.plugin_type if plugin else None
+        if plugin_type == PluginType.NORMAL and matcher.plugin_name not in [
+            "update_info",
+            "statistics_handle",
+        ]:
+            await Statistics.create(
+                user_id=session.id1,
+                group_id=session.id3 or session.id2,
+                plugin_name=matcher.plugin_name,
+                create_time=datetime.now(),
+            )
