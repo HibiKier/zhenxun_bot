@@ -219,7 +219,13 @@ class BuildImage:
         _font = font
         if font and type(font) == str:
             _font = cls.load_font(font, font_size)
-        return _font.getsize(str(text))  # type: ignore
+        temp_image = Image.new("RGB", (1, 1), (255, 255, 255))
+        draw = ImageDraw.Draw(temp_image)
+        text_box = draw.textbbox((0, 0), str(text), font=_font)  # type: ignore
+        text_width = text_box[2] - text_box[0]
+        text_height = text_box[3] - text_box[1]
+        return text_width, text_height + 10
+        # return _font.getsize(str(text))  # type: ignore
 
     def getsize(self, msg: str) -> Tuple[int, int]:
         """
@@ -231,7 +237,13 @@ class BuildImage:
         返回:
             Tuple[int, int]: 长宽
         """
-        return self.font.getsize(msg)  # type: ignore
+        temp_image = Image.new("RGB", (1, 1), (255, 255, 255))
+        draw = ImageDraw.Draw(temp_image)
+        text_box = draw.textbbox((0, 0), str(msg), font=self.font)
+        text_width = text_box[2] - text_box[0]
+        text_height = text_box[3] - text_box[1]
+        return text_width, text_height + 10
+        # return self.font.getsize(msg)  # type: ignore
 
     def __center_xy(
         self,
@@ -379,7 +391,7 @@ class BuildImage:
         else:
             font = self.font
         if center_type:
-            ttf_w, ttf_h = font.getsize(max_length_text)  # type: ignore
+            ttf_w, ttf_h = self.getsize(max_length_text)  # type: ignore
             ttf_h = ttf_h * len(sentence)
             pos = self.__center_xy(pos, ttf_w, ttf_h, center_type)
         self.draw.text(pos, text, fill=fill, font=font)
