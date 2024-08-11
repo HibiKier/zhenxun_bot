@@ -30,7 +30,7 @@
 
 <div align=center>
 
-# 绪山真寻Bot
+## 绪山真寻Bot
 
 </div>
 
@@ -39,7 +39,7 @@
 
 “真寻是<strong>[椛椛](https://github.com/FloatTech/ZeroBot-Plugin)</strong>的好朋友！”
 
-:tada:喜欢真寻，于是真寻就来！:tada:
+:tada:喜欢真寻，于是真寻就来了！:tada:
 
 本项目符合 [OneBot](https://github.com/howmanybots/onebot) 标准，可基于以下项目与机器人框架/平台进行交互
 | 项目地址 | 平台 | 核心作者 | 备注 |
@@ -69,7 +69,8 @@
 
 ### 1. 体验一下？
 
-这是一个免费的，版本为dev的zhenxun，你可以通过napcat或拉格朗日等直接连接用于体验与测试（球球了测试君！）
+这是一个免费的，版本为dev的zhenxun，你可以通过napcat或拉格朗日等直接连接用于体验与测试  
+（球球了测试君！）
 ```
 Url： 43.143.112.57:11451/onebot/v11/ws
 AccessToken: PUBLIC_ZHENXUN_TEST
