@@ -1,77 +1,76 @@
-<div align=center><img width="320" height="320" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/tt.png"/></div>
-
 <div align=center>
 
-![maven](https://img.shields.io/badge/python-3.9%2B-blue)
-![maven](https://img.shields.io/badge/nonebot-2.1.3-yellow)
+<img width="250" height="312" src="https://github.com/HibiKier/zhenxun_bot/blob/main/docs_image/tt.jpg"/>
 
 </div>
 
 <div align=center>
 
-# 绪山真寻Bot
+![python](https://img.shields.io/badge/python-v3.9%2B-blue)
+![nonebot](https://img.shields.io/badge/nonebot-v2.1.3-yellow)
+![onebot](https://img.shields.io/badge/onebot-v11-black)
 
 </div>
 
-****
+<div align=center>
+
+
+[![license](https://img.shields.io/badge/license-AGPL3.0-FE7D37)](https://github.com/HibiKier/zhenxun_bot/blob/main/LICENSE)
+[![tencent-qq](https://img.shields.io/badge/%E7%BE%A4-是真寻酱哒-red?style=flat-square&logo=tencent-qq)](https://jq.qq.com/?_wv=1027&k=u8PgBkMZ)
+[![tencent-qq](https://img.shields.io/badge/%E7%BE%A4-真寻的技术群-c73e7e?style=flat-square&logo=tencent-qq)](https://jq.qq.com/?_wv=1027&k=u8PgBkMZ)
+
+
+</div>
+
+<div align=center>
+
+[文档](https://hibikier.github.io/zhenxun_bot/)
+
+</div>
+
+<div align=center>
+
+## 绪山真寻Bot
+
+</div>
+
 
 <div align=center>
 
 “真寻是<strong>[椛椛](https://github.com/FloatTech/ZeroBot-Plugin)</strong>的好朋友！”
 
+:tada:喜欢真寻，于是真寻就来了！:tada:
+
+本项目符合 [OneBot](https://github.com/howmanybots/onebot) 标准，可基于以下项目与机器人框架/平台进行交互
+| 项目地址 | 平台 | 核心作者 | 备注 |
+| :---: | :---: | :---: | :---: |
+| [LLOneBot](https://github.com/LLOneBot/LLOneBot) | NTQQ | linyuchen | 可用 |
+| [Napcat](https://github.com/NapNeko/NapCatQQ) | NTQQ | NapNeko | 可用 |
+| [Lagrange.Core](https://github.com/LagrangeDev/Lagrange.Core) | ？ | LagrangeDev/Linwenxuan04 | 可用
+
 </div>
-
-****
-
-## 关于
-
-用爱发电，某些功能学习借鉴了大佬们的代码，因为绪山真寻实在太可爱了因此开发了
-绪山真寻bot，实现了一些对群友的娱乐功能和实用功能（大概）。
-
-如果该项目的图片等等侵犯猫豆腐老师权益请联系我删除！
-
-讨论插件开发，nonebot2开发，或者有 <strong>安装使用问题</strong> 或 <strong>开发建议</strong>，可以发送issues或加入[ <strong>[真寻酱的技术群](https://jq.qq.com/?_wv=1027&k=u8PgBkMZ) </strong>] （在这里请不要吹水！）
-
-希望有个地方讨论绪山真寻Bot，渴望吹水聊天，可以加入[ <strong>[是真寻酱哒(萌新版)](https://jq.qq.com/?_wv=1027&k=u8PgBkMZ) </strong>]
-
-
-## 声明
-
-此项目仅用于学习交流，请勿用于非法用途
-
 
 <div align=center>
 
-# Nonebot2
-
-<img style="height: 200px;width: 200px;" src="https://camo.githubusercontent.com/32db41bc55fa37e0d0085e4fd70e4e74fd34307f6bb4ebdad235bd1b0c8f4126/68747470733a2f2f6e6f6e65626f742e6465762f6c6f676f2e706e67">
-
-非常 [ **[NICE](https://github.com/nonebot/nonebot2)** ] 的OneBot框架
+![Star Trend](https://api.star-history.com/svg?repos=HibiKier/zhenxun_bot&type=Timeline)
 
 </div>
 
-## 未完成的文档
+## 真寻觉得你需要帮助
 
-# [传送门](https://hibikier.github.io/zhenxun_bot/)
+<div align=center>
 
-## 真寻的帮助
+<img width="400" height="400" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/help.png"/>
+<img width="250" height="500" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/html_help.png"/>
 
-请对真寻说: '真寻帮助' or '管理员帮助' or '超级用户帮助' or '真寻帮助 指令'
-
-## 普通帮助图片
-
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/help.png)
-
-## HTML版帮助图片
-
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/html_help.png)
-
+</div>
 
 ## 这是一份扩展
 
-### 0. 体验一下？
+### 1. 体验一下？
 
-提供dev版本的zhenxun
+这是一个免费的，版本为dev的zhenxun，你可以通过napcat或拉格朗日等直接连接用于体验与测试  
+（球球了测试君！）
 ```
 Url： 43.143.112.57:11451/onebot/v11/ws
 AccessToken: PUBLIC_ZHENXUN_TEST
@@ -79,12 +78,23 @@ AccessToken: PUBLIC_ZHENXUN_TEST
 注：你无法获得超级用户权限
 ```
 
-### 1. Web UI
+### 2. 额外扩展
 
-项目地址： [Web UI](https://github.com/HibiKier/zhenxun_bot_webui)
+<div align=center>
+  
+“不要害怕，你的背后还有千千万万的 <strong>伙伴</strong> 啊！”  
+
+| 项目名称 | 主要用途 | 仓库作者 | 备注 |
+| :---: | :---: | :---: | :---: |
+| [WebUi](https://github.com/HibiKier/zhenxun_bot_webui) | 管理 | [hibikier](https://github.com/HibiKier) | 基于真寻WebApi的webui实现 
+| [一键安装](https://github.com/zhenxun-org/zhenxun_bot-deploy) | 安装 | [AkashiCoin](https://github.com/AkashiCoin) | 新版本未测试
+| [Docker单机版](https://github.com/Sakuracio/zhenxun_bot_docker) | 安装 | [zhenxun-org](https://github.com/zhenxun-org) | 新版本未测试
+| [Docker全量版](https://shields.io/badge/GITHUB-SinKy--Yan-4476AF?logo=github&style=for-the-badge) | 安装 | [zhenxun-org](https://github.com/zhenxun-org) | 包含 真寻Bot PostgreSQL数据库 go-cqhttp webui等（新版本未测试）
+
+PS： **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能无法正常启动全量版容器**
 
 <details>
-<summary>后台示例图 </summary>
+<summary> <strong> WebUI </strong>后台示例图 </summary>
 
 ![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui1.png)
 ![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui2.png)
@@ -96,16 +106,11 @@ AccessToken: PUBLIC_ZHENXUN_TEST
 
 </details>
 
+<br/>
 
-### 一键安装脚本（新版未测试）
+</div>
 
-[zhenxun_bot-deploy](https://github.com/AkashiCoin/zhenxun_bot-deploy)
-
-### 提供符合真寻标准的插件仓库（旧版）
-
-[AkashiCoin/nonebot_plugins_zhenxun_bot](https://github.com/AkashiCoin/nonebot_plugins_zhenxun_bot)
-
-## 来点优点？
+## ~~来点优点？~~ 可爱难道还不够吗
 
 * 实现了许多功能，且提供了大量功能管理命令
 * 通过Config配置项将所有插件配置统计保存至config.yaml，利于统一用户修改
@@ -113,7 +118,61 @@ AccessToken: PUBLIC_ZHENXUN_TEST
 * 提供了cd，阻塞，每日次数等限制，仅仅通过简单的属性就可以生成一个限制，例如：`PluginCdBlock` 等
 * **..... 更多详细请通过`传送门`查看文档！**
 
-## 功能列表
+## 简单部署
+
+```
+# 获取代码
+git clone https://github.com/HibiKier/zhenxun.git
+
+# 进入目录
+cd zhenxun_bot
+
+# 安装依赖
+pip install poetry      # 安装 poetry
+poetry install          # 安装依赖
+
+# 开始运行
+poetry shell            # 进入虚拟环境
+python bot.py
+
+# 首次后会在data目录下生成database.json和config.yaml文件
+# database.json用户配置数据库信息
+# config.yaml用户配置插件
+```
+
+## 简单配置
+
+```
+1.在.env.dev文件中
+
+  SUPERUSERS = [""]   # 填写你的QQ
+
+  PLATFORM_SUPERUSERS = '
+  {
+    "qq": [""],   # 在此处填写你的qq
+    "dodo": [],
+    "kaiheila": [],
+    "discord": []
+  }
+'
+
+2.在data/database.json文件中修改数据库配置
+{
+    "bind": "",
+    "sql_name": "postgres",
+    "user": "",       # 用户们
+    "password": "",   # 密码
+    "address": "",    # 数据库地址ip
+    "port": "",       # 数据库端口
+    "database": ""    # 数据库名称
+}
+
+3.在configs/config.yaml文件中 # 该文件需要启动一次后生成
+  * 修改插件配置项
+
+```
+
+## 功能列表 （旧版列表）
 
 <details>
 <summary>已实现的功能</summary>
@@ -262,79 +321,6 @@ AccessToken: PUBLIC_ZHENXUN_TEST
 * [x] 自动配置重载
 
 </details>
-
-## 详细配置请前往文档，以下为最简部署和配置，如果你有基础并学习过nonebot2的话
-
-## 简单部署
-
-```
-
-# 使用napcat或拉格朗日
-
-# 获取代码
-git clone https://github.com/HibiKier/zhenxun.git
-
-# 进入目录
-cd zhenxun_bot
-
-# 安装依赖
-pip install poetry      # 安装 poetry
-poetry install          # 安装依赖
-
-# 进行基础配置
-####请查看 配置 部分####
-
-# 开始运行
-poetry shell            # 进入虚拟环境
-python bot.py
-
-# 运行后会在data目录下生成database.json文件，请根据自身数据库配置修改
-# 其他插件配置在data/config.yaml文件中（需要运行一次）
-```
-
-## 简单配置
-
-```
-1.在.env.dev文件中
-
-  SUPERUSERS = [""]   # 填写你的QQ
-
-  PLATFORM_SUPERUSERS = '
-  {
-    "qq": [""],   # 在此处填写你的qq
-    "dodo": [],
-    "kaiheila": [],
-    "discord": []
-  }
-'
-
-2.在data/database.json文件中修改数据库配置
-{
-    "bind": "",
-    "sql_name": "postgres",
-    "user": "",       # 用户们
-    "password": "",   # 密码
-    "address": "",    # 数据库地址ip
-    "port": "",       # 数据库端口
-    "database": ""    # 数据库名称
-}
-
-3.在configs/config.yaml文件中 # 该文件需要启动一次后生成
-  * 修改插件配置项
-
-```
-
-## 使用Docker （新版未测试过）
-
-**Docker 单机版（仅真寻Bot）**  
-**点击下方的 GitHub 徽标查看教程**  
-[![Github](https://shields.io/badge/GITHUB-Sakuracio-4476AF?logo=github&style=for-the-badge)](https://github.com/Sakuracio/zhenxun_bot_docker)  
-[![DOCKER](https://shields.io/badge/docker-hibikier/zhenxun_bot-4476AF?logo=docker&style=for-the-badge)](https://hub.docker.com/r/hibikier/zhenxun_bot)  
-**Docker 全量版（包含 真寻Bot PostgreSQL数据库 go-cqhttp webui等）**  
-[![Github](https://shields.io/badge/GITHUB-SinKy--Yan-4476AF?logo=github&style=for-the-badge)](https://github.com/SinKy-Yan/zhenxunbot-docker)  
-[![DOCKER](https://shields.io/badge/docker-jyishit/zhenxun_bot-4476AF?logo=docker&style=for-the-badge)](https://hub.docker.com/r/jyishit/zhenxun_bot)  
-**点击上方的 GitHub 徽标查看教程**  
-PS: **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能无法正常启动全量版容器**
 
 ## [爱发电](https://afdian.net/@HibiKier)
 
