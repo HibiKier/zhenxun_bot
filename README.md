@@ -71,10 +71,12 @@
 
 ### 0. 体验一下？
 
-提供dev版本的测试zhenxun
+提供dev版本的zhenxun
 ```
 Url： 43.143.112.57:11451/onebot/v11/ws
 AccessToken: PUBLIC_ZHENXUN_TEST
+
+注：你无法获得超级用户权限
 ```
 
 ### 1. Web UI
