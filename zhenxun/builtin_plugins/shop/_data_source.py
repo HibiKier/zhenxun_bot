@@ -297,9 +297,8 @@ class ShopManage:
             raise ValueError("该商品使用函数已被注册！")
         kwargs["send_success_msg"] = send_success_msg
         kwargs["max_num_limit"] = max_num_limit
-        # TODO: create_model(f"{uuid}_model", __base__=ShopParam, **kwargs)
         cls.uuid2goods[uuid] = Goods(
-            model=None,# create_model(f"{uuid}_model", __base__=ShopParam, **kwargs),
+            model=create_model(f"{uuid}_model", __base__=ShopParam, **kwargs),
             params=kwargs,
             before_handle=before_handle,
             after_handle=after_handle,
