@@ -83,7 +83,7 @@ async def _(
     if to not in values and to not in keys:
         await MessageUtils.build_message("目标语种不支持...").finish()
     result = await translate_message(text, source, to)
-    await MessageUtils.build_message(result).send(reply=True)
+    await MessageUtils.build_message(result).send(reply_to=True)
     logger.info(
         f"source: {source}, to: {to}, 翻译: {text}",
         arparma.header_result,

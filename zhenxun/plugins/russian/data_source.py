@@ -4,8 +4,8 @@ from datetime import datetime, timedelta
 
 from apscheduler.jobstores.base import JobLookupError
 from nonebot.adapters import Bot
+from nonebot_plugin_alconna import At, UniMessage
 from nonebot_plugin_apscheduler import scheduler
-from nonebot_plugin_saa import Image, Mention, MessageFactory, Text
 from pydantic import BaseModel
 
 from zhenxun.configs.config import NICKNAME, Config
@@ -14,6 +14,7 @@ from zhenxun.models.user_console import UserConsole
 from zhenxun.utils.enum import GoldHandle
 from zhenxun.utils.exception import InsufficientGold
 from zhenxun.utils.image_utils import BuildImage, BuildMat, MatType, text2image
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
 
 from .model import RussianUser
@@ -123,9 +124,7 @@ class RussianManage:
         if result:
             await PlatformUtils.send_message(bot, None, group_id, result)
 
-    async def add_russian(
-        self, bot: Bot, group_id: str, rus: Russian
-    ) -> Text | MessageFactory:
+    async def add_russian(self, bot: Bot, group_id: str, rus: Russian) -> UniMessage:
         """添加决斗
 
         参数:
@@ -134,59 +133,56 @@ class RussianManage:
             rus: Russian
 
         返回:
-            Text | MessageFactory: 返回消息
+            UniMessage: 返回消息
         """
         russian = self._data.get(group_id)
         if russian:
             if russian.time + 30 < time.time():
                 if not russian.player2:
-                    return Text(
+                    return MessageUtils.build_message(
                         f"现在是 {russian.player1[1]} 发起的对决, 请接受对决或等待决斗超时..."
                     )
                 else:
-                    return Text(
+                    return MessageUtils.build_message(
                         f"{russian.player1[1]} 和 {russian.player2[1]}的对决还未结束！"
                     )
-            return Text(
+            return MessageUtils.build_message(
                 f"现在是 {russian.player1[1]} 发起的对决\n请等待比赛结束后再开始下一轮..."
             )
         max_money = base_config.get("MAX_RUSSIAN_BET_GOLD")
         if rus.money > max_money:
-            return Text(f"太多了！单次金额不能超过{max_money}！")
+            return MessageUtils.build_message(f"太多了！单次金额不能超过{max_money}！")
         user = await UserConsole.get_user(rus.player1[0])
         if user.gold < rus.money:
-            return Text("你没有足够的钱支撑起这场挑战")
+            return MessageUtils.build_message("你没有足够的钱支撑起这场挑战")
         rus.bullet_arr = self.__random_bullet(rus.bullet_num)
         self._data[group_id] = rus
-        message_list = []
+        message_list: list[str | At] = []
         if rus.at_user:
             user = await GroupInfoUser.get_or_none(
                 user_id=rus.at_user, group_id=group_id
             )
             message_list = [
-                Text(f"{rus.player1[1]} 向"),
-                Mention(rus.at_user),
-                Text(
-                    f"发起了决斗！请 {user.user_name if user else rus.at_user} 在30秒内回复‘接受对决’ or ‘拒绝对决’，超时此次决斗作废！"
-                ),
+                f"{rus.player1[1]} 向",
+                At(flag="user", target=rus.at_user),
+                f"发起了决斗！请 {user.user_name if user else rus.at_user} 在30秒内回复‘接受对决’ or ‘拒绝对决’，超时此次决斗作废！",
             ]
         else:
             message_list = [
-                Text(
-                    "若30秒内无人接受挑战则此次对决作废【首次游玩请at我发送 ’帮助俄罗斯轮盘‘ 来查看命令】"
-                )
+                "若30秒内无人接受挑战则此次对决作废【首次游玩请at我发送 ’帮助俄罗斯轮盘‘ 来查看命令】"
             ]
-        result = Text(
+        result = (
             "咔 " * rus.bullet_num
             + f"装填完毕\n挑战金额：{rus.money}\n第一枪的概率为：{float(rus.bullet_num) / 7.0 * 100:.2f}%\n"
         )
+
         message_list.insert(0, result)
         self.__build_job(bot, group_id, True)
-        return MessageFactory(message_list)
+        return MessageUtils.build_message(message_list)  # type: ignore
 
     async def accept(
         self, bot: Bot, group_id: str, user_id: str, uname: str
-    ) -> Text | MessageFactory:
+    ) -> UniMessage:
         """接受对决
 
         参数:
@@ -200,27 +196,31 @@ class RussianManage:
         """
         if russian := self._data.get(group_id):
             if russian.at_user and russian.at_user != user_id:
-                return Text("又不是找你决斗，你接受什么啊！气！")
+                return MessageUtils.build_message("又不是找你决斗，你接受什么啊！气！")
             if russian.player2:
-                return Text("当前决斗已被其他玩家接受！请等待下局对决！")
+                return MessageUtils.build_message(
+                    "当前决斗已被其他玩家接受！请等待下局对决！"
+                )
             if russian.player1[0] == user_id:
-                return Text("你发起的对决，你接受什么啊！气！")
+                return MessageUtils.build_message("你发起的对决，你接受什么啊！气！")
             user = await UserConsole.get_user(user_id)
             if user.gold < russian.money:
-                return Text("你没有足够的钱来接受这场挑战...")
+                return MessageUtils.build_message("你没有足够的钱来接受这场挑战...")
             russian.player2 = (user_id, uname)
             russian.next_user = russian.player1[0]
             self.__build_job(bot, group_id, True)
-            return MessageFactory(
+            return MessageUtils.build_message(
                 [
-                    Text("决斗已经开始！请"),
-                    Mention(russian.player1[0]),
-                    Text("先开枪！"),
+                    "决斗已经开始！请",
+                    At(flag="user", target=russian.player1[0]),
+                    "先开枪！",
                 ]
             )
-        return Text("目前没有进行的决斗，请发送 装弹 开启决斗吧！")
+        return MessageUtils.build_message(
+            "目前没有进行的决斗，请发送 装弹 开启决斗吧！"
+        )
 
-    def refuse(self, group_id: str, user_id: str, uname: str) -> Text | MessageFactory:
+    def refuse(self, group_id: str, user_id: str, uname: str) -> UniMessage:
         """拒绝决斗
 
         参数:
@@ -234,18 +234,25 @@ class RussianManage:
         if russian := self._data.get(group_id):
             if russian.at_user:
                 if russian.at_user != user_id:
-                    return Text("又不是找你决斗，你拒绝什么啊！气！")
+                    return MessageUtils.build_message(
+                        "又不是找你决斗，你拒绝什么啊！气！"
+                    )
                 del self._data[group_id]
                 self.__remove_job(group_id)
-                return MessageFactory(
-                    [Mention(russian.player1[0]), Text(f"{uname}拒绝了你的对决！")]
+                return MessageUtils.build_message(
+                    [
+                        At(flag="user", target=russian.player1[0]),
+                        f"{uname}拒绝了你的对决！",
+                    ]
                 )
-            return Text("当前决斗并没有指定对手，无法拒绝哦！")
-        return Text("目前没有进行的决斗，请发送 装弹 开启决斗吧！")
+            return MessageUtils.build_message("当前决斗并没有指定对手，无法拒绝哦！")
+        return MessageUtils.build_message(
+            "目前没有进行的决斗，请发送 装弹 开启决斗吧！"
+        )
 
     async def shoot(
         self, bot: Bot, group_id: str, user_id: str, uname: str, platform: str
-    ) -> tuple[Text | MessageFactory, Text | MessageFactory | None]:
+    ) -> tuple[UniMessage, UniMessage | None]:
         """开枪
 
         参数:
@@ -260,11 +267,14 @@ class RussianManage:
         """
         if russian := self._data.get(group_id):
             if not russian.player2:
-                return Text("当前还没有玩家接受对决，无法开枪..."), None
+                return (
+                    MessageUtils.build_message("当前还没有玩家接受对决，无法开枪..."),
+                    None,
+                )
             if user_id not in [russian.player1[0], russian.player2[0]]:
                 """非玩家1和玩家2发送开枪"""
                 return (
-                    Text(
+                    MessageUtils.build_message(
                         random.choice(
                             [
                                 f"不要打扰 {russian.player1[1]} 和 {russian.player2[1]} 的决斗啊！",
@@ -278,12 +288,14 @@ class RussianManage:
             if user_id != russian.next_user:
                 """相同玩家连续开枪"""
                 return (
-                    Text(f"你的左轮不是连发的！该 {russian.player2[1]} 开枪了!"),
+                    MessageUtils.build_message(
+                        f"你的左轮不是连发的！该 {russian.player2[1]} 开枪了!"
+                    ),
                     None,
                 )
             if russian.bullet_arr[russian.bullet_index] == 1:
                 """去世"""
-                result = Text(
+                result = MessageUtils.build_message(
                     random.choice(
                         [
                             '"嘭！"，你直接去世了',
@@ -320,14 +332,19 @@ class RussianManage:
                 russian.bullet_index += 1
                 self.__build_job(bot, group_id, True)
                 return (
-                    MessageFactory([Text(result), Mention(next_user), Text(" 了!")]),
+                    MessageUtils.build_message(
+                        [result, At(flag="user", target=next_user), " 了!"]
+                    ),
                     None,
                 )
-        return Text("目前没有进行的决斗，请发送 装弹 开启决斗吧！"), None
+        return (
+            MessageUtils.build_message("目前没有进行的决斗，请发送 装弹 开启决斗吧！"),
+            None,
+        )
 
     async def settlement(
         self, group_id: str, user_id: str | None, platform: str | None = None
-    ) -> Text | MessageFactory:
+    ) -> UniMessage:
         """结算
 
         参数:
@@ -342,12 +359,14 @@ class RussianManage:
             if not russian.player2:
                 if self.__check_is_timeout(group_id):
                     del self._data[group_id]
-                    return Text("规定时间内还未有人接受决斗，当前决斗过期...")
-                return Text("决斗还未开始,，无法结算哦...")
+                    return MessageUtils.build_message(
+                        "规定时间内还未有人接受决斗，当前决斗过期..."
+                    )
+                return MessageUtils.build_message("决斗还未开始,，无法结算哦...")
             if user_id and user_id not in [russian.player1[0], russian.player2[0]]:
-                return Text(f"吃瓜群众不要捣乱！黄牌警告！")
+                return MessageUtils.build_message(f"吃瓜群众不要捣乱！黄牌警告！")
             if not self.__check_is_timeout(group_id):
-                return Text(
+                return MessageUtils.build_message(
                     f"{russian.player1[1]} 和 {russian.player2[1]} 比赛并未超时，请继续比赛..."
                 )
             win_user = None
@@ -393,7 +412,11 @@ class RussianManage:
                     if u := await UserConsole.get_user(lose_user[0]):
                         u.gold = 0
                         await u.save(update_fields=["gold"])
-                result = [Text("这场决斗是 "), Mention(win_user[0]), Text(" 胜利了!")]
+                result = [
+                    "这场决斗是 ",
+                    At(flag="user", target=win_user[0]),
+                    " 胜利了!",
+                ]
                 image = await text2image(
                     f"结算：\n"
                     f"\t胜者：{win_user[1]}\n"
@@ -412,11 +435,11 @@ class RussianManage:
                     color="#f9f6f2",
                 )
                 self.__remove_job(group_id)
-                result.append(Image(image.pic2bytes()))
+                result.append(image)
                 del self._data[group_id]
-                return MessageFactory(result)
-            return Text("赢家和输家获取错误...")
-        return Text("比赛并没有开始...无法结算...")
+                return MessageUtils.build_message(result)
+            return MessageUtils.build_message("赢家和输家获取错误...")
+        return MessageUtils.build_message("比赛并没有开始...无法结算...")
 
     async def __get_x_index(self, users: list[RussianUser], group_id: str):
         uid_list = [u.user_id for u in users]

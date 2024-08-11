@@ -5,17 +5,18 @@ from nonebot_plugin_alconna import (
     Alconna,
     Args,
     Arparma,
+    At,
     Match,
     Option,
     on_alconna,
     store_true,
 )
-from nonebot_plugin_saa import Mention, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
 
 from ._data_source import remove_image
@@ -89,7 +90,9 @@ async def _(
         else:
             keyword = f"pid:{keyword}"
         if not keyword[4:].isdigit():
-            await Text(f"{keyword} 非全数字...").finish(reply=True)
+            await MessageUtils.build_message(f"{keyword} 非全数字...").finish(
+                reply_to=True
+            )
     data = await PixivKeywordUser.get_or_none(keyword=keyword)
     user_id = 0
     group_id = 0
@@ -98,9 +101,9 @@ async def _(
         await data.save(update_fields=["is_pass"])
         user_id, group_id = data.user_id, data.group_id
     if not user_id:
-        await Text(f"未找到关键词/UID：{keyword}，请检查关键词/UID是否存在...").finish(
-            reply=True
-        )
+        await MessageUtils.build_message(
+            f"未找到关键词/UID：{keyword}，请检查关键词/UID是否存在..."
+        ).finish(reply_to=True)
     if flag:
         if group_id == -1:
             if not tmp["private"].get(user_id):
@@ -114,7 +117,9 @@ async def _(
                 tmp["group"][group_id][user_id] = {"keyword": [keyword]}
             else:
                 tmp["group"][group_id][user_id]["keyword"].append(keyword)
-    await Text(f"已成功{'通过' if flag else '拒绝'}搜图关键词：{keyword}...").send()
+    await MessageUtils.build_message(
+        f"已成功{'通过' if flag else '拒绝'}搜图关键词：{keyword}..."
+    ).send()
     for user in tmp["private"]:
         text = "，".join(tmp["private"][user]["keyword"])
         await PlatformUtils.send_message(
@@ -134,21 +139,13 @@ async def _(
                 bot,
                 None,
                 group_id=group,
-                message=MessageFactory(
+                message=MessageUtils.build_message(
                     [
-                        Mention(user_id=user),
-                        Text(
-                            "你的关键词/UID/PID {x} 已被管理员通过，将在下一次进行更新..."
-                        ),
+                        At(flag="user", target=user),
+                        "你的关键词/UID/PID {x} 已被管理员通过，将在下一次进行更新...",
                     ]
                 ),
             )
-            # await bot.send_group_msg(
-            #     group_id=group,
-            #     message=Message(
-            #         f"{at(user)}你的关键词/UID/PID {x} 已被管理员通过，将在下一次进行更新..."
-            #     ),
-            # )
     logger.info(
         f" 通过了pixiv搜图关键词/UID: {keyword}", arparma.header_result, session=session
     )
@@ -160,12 +157,16 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, type: str, keywor
         keyword = f"{type}:{keyword}"
     if data := await PixivKeywordUser.get_or_none(keyword=keyword):
         await data.delete()
-        await Text(f"删除搜图关键词/UID：{keyword} 成功...").send()
+        await MessageUtils.build_message(
+            f"删除搜图关键词/UID：{keyword} 成功..."
+        ).send()
         logger.info(
             f" 删除了pixiv搜图关键词: {keyword}", arparma.header_result, session=session
         )
     else:
-        await Text(f"未查询到搜索关键词/UID/PID：{keyword}，删除失败！").send()
+        await MessageUtils.build_message(
+            f"未查询到搜索关键词/UID/PID：{keyword}，删除失败！"
+        ).send()
 
 
 @_del_pic_matcher.handle()
@@ -202,16 +203,16 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, keyword: str):
                     arparma.header_result,
                     session=session,
                 )
-            # else:
-            #     await del_pic.send(
-            #         f"PIX:删除pid：{pid}{f'_p{img_p}' if img_p else ''} 失败.."
-            #     )
         else:
-            await Text(
+            await MessageUtils.build_message(
                 f"PIX:图片pix：{keyword}{f'_p{img_p}' if img_p else ''} 不存在...无法删除.."
             ).send()
     else:
-        await Text(f"PID必须为数字！pid：{keyword}").send(reply=True)
-    await Text(f"PIX:成功删除图片：{msg[:-1]}").send()
+        await MessageUtils.build_message(f"PID必须为数字！pid：{keyword}").send(
+            reply_to=True
+        )
+    await MessageUtils.build_message(f"PIX:成功删除图片：{msg[:-1]}").send()
     if flag:
-        await Text(f"成功图片PID加入黑名单：{black_pid[:-1]}").send()
+        await MessageUtils.build_message(
+            f"成功图片PID加入黑名单：{black_pid[:-1]}"
+        ).send()

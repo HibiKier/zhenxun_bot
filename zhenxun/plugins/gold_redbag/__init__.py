@@ -10,7 +10,6 @@ from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot_plugin_alconna import Alconna, Args, Arparma, At, Match, Option, on_alconna
 from nonebot_plugin_apscheduler import scheduler
-from nonebot_plugin_saa import Image, MessageFactory, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import NICKNAME
@@ -219,7 +218,7 @@ async def _(
             if send_msg
             else MessageUtils.build_message("没有红包给你开！")
         )
-        await send_msg.send(reply=True)
+        await send_msg.send(reply_to=True)
         if settlement_list:
             for red_bag in settlement_list:
                 result_image = await red_bag.build_amount_rank(
@@ -263,7 +262,7 @@ async def _(
                         f"已成功退还了 " f"{data[0]} 金币\n",
                         image_result,
                     ]
-                ).finish(reply=True)
+                ).finish(reply_to=True)
     await MessageUtils.build_message("目前没有红包可以退回...").finish(reply_to=True)
 
 
@@ -297,16 +296,14 @@ async def _(
                     FestiveRedBagManage.remove(festive_red_bag.uuid)
                 rank_image = await festive_red_bag.build_amount_rank(10, platform)
                 try:
-                    await MessageFactory(
+                    await MessageUtils.build_message(
                         [
-                            Text(
-                                f"{NICKNAME}的节日红包过时了，一共开启了 "
-                                f"{len(festive_red_bag.open_user)}"
-                                f" 个红包，共 {sum(festive_red_bag.open_user.values())} 金币\n"
-                            ),
-                            Image(rank_image.pic2bytes()),
+                            f"{NICKNAME}的节日红包过时了，一共开启了 "
+                            f"{len(festive_red_bag.open_user)}"
+                            f" 个红包，共 {sum(festive_red_bag.open_user.values())} 金币\n",
+                            rank_image,
                         ]
-                    ).send_to(target=target, bot=bot)
+                    ).send(target=target, bot=bot)
                 except ActionFailed:
                     pass
             try:
@@ -336,14 +333,12 @@ async def _(
                 image_result = await RedBagManager.random_red_bag_background(
                     bot.self_id, greetings, session.platform
                 )
-                await MessageFactory(
+                await MessageUtils.build_message(
                     [
-                        Text(
-                            f"{NICKNAME}发起了节日金币红包\n金额: {amount}\n数量: {num}\n"
-                        ),
-                        Image(image_result.pic2bytes()),
+                        f"{NICKNAME}发起了节日金币红包\n金额: {amount}\n数量: {num}\n",
+                        image_result,
                     ]
-                ).send_to(target=target, bot=bot)
+                ).send(target=target, bot=bot)
                 _suc_cnt += 1
                 logger.debug("节日红包图片信息发送成功...", "节日红包", group_id=g)
             except ActionFailed:

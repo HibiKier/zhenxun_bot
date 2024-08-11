@@ -17,7 +17,6 @@ from zhenxun.utils.image_utils import BuildImage, ImageTemplate
 from zhenxun.utils.utils import get_user_avatar
 
 from ._random_event import random_event
-from .goods_register import driver
 from .utils import get_card
 
 ICON_PATH = IMAGE_PATH / "_icon"

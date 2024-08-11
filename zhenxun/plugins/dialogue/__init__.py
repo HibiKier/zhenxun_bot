@@ -7,13 +7,13 @@ from nonebot_plugin_alconna import At as alcAt
 from nonebot_plugin_alconna import Target
 from nonebot_plugin_alconna import Text as alcText
 from nonebot_plugin_alconna import UniMsg
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
 
 from ._data_source import DialogueManage
@@ -69,9 +69,9 @@ async def _(
             if platform == "discord":
                 superuser_id = config.platform_superusers["discord"][0]
         except IndexError:
-            await Text("管理员失联啦...").finish()
+            await MessageUtils.build_message("管理员失联啦...").finish()
         if not superuser_id:
-            await Text("管理员失联啦...").finish()
+            await MessageUtils.build_message("管理员失联啦...").finish()
         uname = user_info.user_displayname or user_info.user_name
         group_name = ""
         gid = session.id3 or session.id2
@@ -89,9 +89,9 @@ async def _(
         message.insert(0, alcText("*****一份交流报告*****\n"))
         DialogueManage.add(uname, session.id1, gid, group_name, message, platform)
         await message.send(bot=bot, target=Target(superuser_id, private=True))
-        await Text("已成功发送给管理员啦!").send(reply=True)
+        await MessageUtils.build_message("已成功发送给管理员啦!").send(reply_to=True)
     else:
-        await Text("用户id为空...").send()
+        await MessageUtils.build_message("用户id为空...").send()
 
 
 @_reply_matcher.handle()
@@ -99,7 +99,6 @@ async def _(
     bot: Bot,
     message: UniMsg,
     session: EventSession,
-    user_info: UserInfo = EventUserInfo(),
 ):
     message[0] = alcText(str(message[0]).replace("/t", "", 1).strip())
     if session.id1:
@@ -108,7 +107,7 @@ async def _(
             platform = PlatformUtils.get_platform(bot)
             data = DialogueManage._data
             if not data:
-                await Text("暂无待回复消息...").finish()
+                await MessageUtils.build_message("暂无待回复消息...").finish()
             if platform:
                 data = [data[d] for d in data if data[d].platform == platform]
                 for d in data:
@@ -127,7 +126,7 @@ async def _(
                             user_id = model.user_id
                             group_id = model.group_id
                         else:
-                            return Text("未获取此id数据").finish()
+                            return MessageUtils.build_message("未获取此id数据").finish()
                         message[0] = alcText(" ".join(str(message[0]).split(" ")[1:]))
                     else:
                         user_id = 0
@@ -137,7 +136,9 @@ async def _(
                                 " ".join(str(message[0]).split(" ")[2:])
                             )
                         else:
-                            await Text("群组id错误...").finish(at_sender=True)
+                            await MessageUtils.build_message("群组id错误...").finish(
+                                at_sender=True
+                            )
                     DialogueManage.remove(_id)
                 else:
                     user_id = msg[0]
@@ -148,17 +149,17 @@ async def _(
                         group_id = 0
                         message[0] = alcText(" ".join(str(message[0]).split(" ")[1:]))
             else:
-                await Text("参数错误...").finish(at_sender=True)
+                await MessageUtils.build_message("参数错误...").finish(at_sender=True)
             if group_id:
                 if user_id:
                     message.insert(0, alcAt("user", user_id))
                     message.insert(1, "\n管理员回复\n=======\n")
                 await message.send(Target(group_id), bot)
-                await Text("消息发送成功!").finish(at_sender=True)
+                await MessageUtils.build_message("消息发送成功!").finish(at_sender=True)
             elif user_id:
                 await message.send(Target(user_id, private=True), bot)
-                await Text("消息发送成功!").finish(at_sender=True)
+                await MessageUtils.build_message("消息发送成功!").finish(at_sender=True)
             else:
-                await Text("群组id与用户id为空...").send()
+                await MessageUtils.build_message("群组id与用户id为空...").send()
     else:
-        await Text("用户id为空...").send()
+        await MessageUtils.build_message("用户id为空...").send()

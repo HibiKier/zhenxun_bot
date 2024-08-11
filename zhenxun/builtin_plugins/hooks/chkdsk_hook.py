@@ -1,20 +1,19 @@
 import time
 from collections import defaultdict
 
-from click import command
-from nonebot.adapters.onebot.v11 import ActionFailed, Bot, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot
 from nonebot.exception import IgnoredException
 from nonebot.matcher import Matcher
 from nonebot.message import run_preprocessor
 from nonebot.typing import T_State
-from nonebot_plugin_alconna import Arparma
-from nonebot_plugin_saa import Mention, MessageFactory, Text
+from nonebot_plugin_alconna import At
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 
 malicious_check_time = Config.get_config("hook", "MALICIOUS_CHECK_TIME")
 malicious_ban_count = Config.get_config("hook", "MALICIOUS_BAN_COUNT")
@@ -88,10 +87,10 @@ async def _(matcher: Matcher, bot: Bot, session: EventSession, state: T_State):
                     "HOOK",
                     session=session,
                 )
-                await MessageFactory(
+                await MessageUtils.build_message(
                     [
-                        Mention(user_id),
-                        Text(f"检测到恶意触发命令，您将被封禁 30 分钟"),
+                        At(flag="user", target=user_id),
+                        f"检测到恶意触发命令，您将被封禁 30 分钟",
                     ]
                 ).send()
                 logger.debug(

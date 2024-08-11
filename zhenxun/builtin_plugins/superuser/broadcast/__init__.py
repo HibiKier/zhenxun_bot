@@ -7,13 +7,12 @@ from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Text as alcText
 from nonebot_plugin_alconna import UniMsg
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import Config
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig, Task
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import BroadcastManage
 
@@ -56,10 +55,10 @@ async def _(
         if isinstance(msg, alcText) and msg.text.strip().startswith(command[0]):
             msg.text = msg.text.replace(command[0], "", 1).strip()
             break
-    await Text("正在发送..请等一下哦!").send()
+    await MessageUtils.build_message("正在发送..请等一下哦!").send()
     count, error_count = await BroadcastManage.send(bot, message, session)
     result = f"成功广播 {count} 个群组"
     if error_count:
         result += f"\n广播失败 {error_count} 个群组"
-    await Text(f"发送广播完成!\n{result}").send(reply=True)
+    await MessageUtils.build_message(f"发送广播完成!\n{result}").send(reply_to=True)
     logger.info(f"发送广播信息: {message}", "广播", session=session)

@@ -181,3 +181,4 @@ plugins/activity/
 !/resources/image/genshin/alc/back.png
 !/data/genshin_alc/
 .vscode/launch.json
+/resources/template/my_info

@@ -1,8 +1,6 @@
 from asyncio.exceptions import TimeoutError
 from pathlib import Path
 
-from nonebot_plugin_saa import Image, MessageFactory
-
 from zhenxun.configs.config import Config
 from zhenxun.configs.path_config import TEMP_PATH
 from zhenxun.services.log import logger

@@ -33,7 +33,7 @@ _matcher = on_alconna(Alconna("微博热搜", Args["idx?", int]), priority=5, bl
 async def _(session: EventSession, arparma: Arparma, idx: Match[int]):
     result, data_list = await get_hot_image()
     if isinstance(result, str):
-        await MessageUtils.build_message(result).finish(reply=True)
+        await MessageUtils.build_message(result).finish(reply_to=True)
     if idx.available:
         _idx = idx.result
         url = data_list[_idx - 1]["url"]

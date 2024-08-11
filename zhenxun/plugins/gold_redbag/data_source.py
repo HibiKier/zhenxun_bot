@@ -6,16 +6,16 @@ from typing import Dict
 
 from nonebot.adapters import Bot
 from nonebot.exception import ActionFailed
-from nonebot_plugin_saa import Image, MessageFactory, Text
+from nonebot_plugin_alconna import UniMessage
 
 from zhenxun.configs.config import NICKNAME, Config
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.models.user_console import UserConsole
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
-from zhenxun.utils.utils import get_user_avatar
 
-from .config import FESTIVE_KEY, FestiveRedBagManage, GroupRedBag, RedBag
+from .config import FestiveRedBagManage, GroupRedBag, RedBag
 
 
 class RedBagManager:
@@ -56,16 +56,14 @@ class RedBagManager:
                 FestiveRedBagManage.remove(red_bag.uuid)
             await asyncio.sleep(random.randint(1, 5))
             try:
-                await MessageFactory(
+                await MessageUtils.build_message(
                     [
-                        Text(
-                            f"{NICKNAME}的节日红包过时了，一共开启了 "
-                            f"{len(red_bag.open_user)}"
-                            f" 个红包，共 {sum(red_bag.open_user.values())} 金币\n"
-                        ),
-                        Image(rank_image.pic2bytes()),
+                        f"{NICKNAME}的节日红包过时了，一共开启了 "
+                        f"{len(red_bag.open_user)}"
+                        f" 个红包，共 {sum(red_bag.open_user.values())} 金币\n",
+                        rank_image,
                     ]
-                ).send_to(target=target, bot=bot)
+                ).send(target=target, bot=bot)
             except ActionFailed:
                 pass
 
@@ -76,7 +74,7 @@ class RedBagManager:
         user_id: str | None = None,
         is_festive: bool = False,
         platform: str = "",
-    ) -> MessageFactory | None:
+    ) -> UniMessage | None:
         """结算红包
 
         参数:
@@ -92,14 +90,12 @@ class RedBagManager:
         if is_festive:
             if festive_red_bag := group_red_bag.festive_red_bag_expire():
                 rank_image = await festive_red_bag.build_amount_rank(rank_num, platform)
-                return MessageFactory(
+                return MessageUtils.build_message(
                     [
-                        Text(
-                            f"{NICKNAME}的节日红包过时了，一共开启了 "
-                            f"{len(festive_red_bag.open_user)}"
-                            f" 个红包，共 {sum(festive_red_bag.open_user.values())} 金币\n"
-                        ),
-                        Image(rank_image.pic2bytes()),
+                        f"{NICKNAME}的节日红包过时了，一共开启了 "
+                        f"{len(festive_red_bag.open_user)}"
+                        f" 个红包，共 {sum(festive_red_bag.open_user.values())} 金币\n",
+                        rank_image,
                     ]
                 )
         else:
@@ -108,10 +104,10 @@ class RedBagManager:
             return_gold, red_bag = await group_red_bag.settlement(user_id, platform)
             if red_bag:
                 rank_image = await red_bag.build_amount_rank(rank_num, platform)
-                return MessageFactory(
+                return MessageUtils.build_message(
                     [
-                        Text(f"已成功退还了 " f"{return_gold} 金币\n"),
-                        Image(rank_image.pic2bytes()),
+                        f"已成功退还了 " f"{return_gold} 金币\n",
+                        rank_image.pic2bytes(),
                     ]
                 )
 

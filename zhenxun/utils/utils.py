@@ -3,16 +3,13 @@ import time
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from re import L
 from typing import Any
 
 import httpx
 import pypinyin
 import pytz
-from nonebot.adapters.onebot.v11 import Message, MessageSegment
-from nonebot_plugin_saa import Image, MessageFactory, Text
 
-from zhenxun.configs.config import NICKNAME, Config
+from zhenxun.configs.config import Config
 from zhenxun.services.log import logger
 
 

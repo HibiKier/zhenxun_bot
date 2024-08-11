@@ -5,13 +5,13 @@ from urllib.parse import unquote
 import dateparser
 import ujson as json
 from lxml import etree
-from nonebot_plugin_saa import Image as SaaImage
-from nonebot_plugin_saa import MessageFactory, Text
+from nonebot_plugin_alconna import UniMessage
 from PIL import Image, ImageDraw
 from pydantic import ValidationError
 
 from zhenxun.services.log import logger
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.message import MessageUtils
 
 from ..config import draw_config
 from ..count_manager import GenshinCountManager
@@ -218,7 +218,7 @@ class GenshinHandle(BaseHandle[GenshinData]):
 
     async def draw(
         self, count: int, user_id: int, pool_name: str = "", **kwargs
-    ) -> Text | MessageFactory:
+    ) -> UniMessage:
         card_index = 0
         if "1" in pool_name:
             card_index = 1
@@ -228,7 +228,7 @@ class GenshinHandle(BaseHandle[GenshinData]):
         up_event = None
         if pool_name == "char":
             if card_index == 1 and len(self.UP_CHAR_LIST) == 1:
-                return Text("当前没有第二个角色UP池")
+                return MessageUtils.build_message("当前没有第二个角色UP池")
             up_event = self.UP_CHAR_LIST[card_index]
         elif pool_name == "arms":
             up_event = self.UP_ARMS
@@ -249,7 +249,7 @@ class GenshinHandle(BaseHandle[GenshinData]):
             (0, img.height + 10),
             "【五星：0.6%，四星：5.1%，第72抽开始五星概率每抽加0.585%】",
         )
-        return MessageFactory([Text(pool_info), SaaImage(bk.pic2bytes()), Text(result)])
+        return MessageUtils.build_message([pool_info, bk, result])
 
     def _init_data(self):
         self.ALL_CHAR = [
@@ -439,27 +439,23 @@ class GenshinHandle(BaseHandle[GenshinData]):
         self.count_manager.reset(user_id)
         return True
 
-    async def _reload_pool(self) -> MessageFactory | None:
+    async def _reload_pool(self) -> UniMessage | None:
         await self.update_up_char()
         self.load_up_char()
         if self.UP_CHAR_LIST and self.UP_ARMS:
             if len(self.UP_CHAR_LIST) > 1:
-                return MessageFactory(
+                return MessageUtils.build_message(
                     [
-                        Text(
-                            f"重载成功！\n当前UP池子：{self.UP_CHAR_LIST[0].title} & {self.UP_CHAR_LIST[1].title} & {self.UP_ARMS.title}"
-                        ),
-                        Image(self.UP_CHAR_LIST[0].pool_img),
-                        Image(self.UP_CHAR_LIST[1].pool_img),
-                        Image(self.UP_ARMS.pool_img),
+                        f"重载成功！\n当前UP池子：{self.UP_CHAR_LIST[0].title} & {self.UP_CHAR_LIST[1].title} & {self.UP_ARMS.title}",
+                        self.UP_CHAR_LIST[0].pool_img,
+                        self.UP_CHAR_LIST[1].pool_img,
+                        self.UP_ARMS.pool_img,
                     ]
                 )
-            return MessageFactory(
+            return UniMessage(
                 [
-                    Text(
-                        f"重载成功！\n当前UP池子：{char_title} & {self.UP_ARMS.title}"
-                    ),
-                    Image(self.UP_CHAR_LIST[0].pool_img),
-                    Image(self.UP_ARMS.pool_img),
+                    f"重载成功！\n当前UP池子：{char_title} & {self.UP_ARMS.title}",
+                    self.UP_CHAR_LIST[0].pool_img,
+                    self.UP_ARMS.pool_img,
                 ]
             )

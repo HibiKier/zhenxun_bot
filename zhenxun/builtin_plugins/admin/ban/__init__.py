@@ -237,7 +237,7 @@ async def _(
                     At(flag="user", target=user_id) if isinstance(user.result, At) else user_id,  # type: ignore
                     f" 从黑屋中拉了出来并急救了一下!",
                 ]
-            ).finish(reply=True)
+            ).finish(reply_to=True)
         else:
             await MessageUtils.build_message(f"该用户不在黑名单中捏...").finish(
                 reply_to=True

@@ -3,13 +3,13 @@ from nonebot.exception import IgnoredException
 from nonebot.matcher import Matcher
 from nonebot.message import run_preprocessor
 from nonebot.typing import T_State
-from nonebot_plugin_saa import Mention, MessageFactory, Text
+from nonebot_plugin_alconna import At
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
 from zhenxun.models.ban_console import BanConsole
-from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.utils import FreqLimiter
 
 Config.add_plugin_config(
@@ -61,10 +61,10 @@ async def _(
                         time_str = f"{minute} 分钟"
             if ban_result and _flmt.check(user_id):
                 _flmt.start_cd(user_id)
-                await MessageFactory(
+                await MessageUtils.build_message(
                     [
-                        Mention(user_id),
-                        Text(f"{ban_result}\n在..在 {time_str} 后才会理你喔"),
+                        At(flag="user", target=user_id),
+                        f"{ban_result}\n在..在 {time_str} 后才会理你喔",
                     ]
                 ).send()
             raise IgnoredException("用户处于黑名单中...")

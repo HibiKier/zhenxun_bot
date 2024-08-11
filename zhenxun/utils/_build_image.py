@@ -108,19 +108,21 @@ class BuildImage:
         返回:
             Self: Self
         """
+        if not text.strip():
+            return cls(1, 1)
         _font = None
         if isinstance(font, FreeTypeFont):
             _font = font
         elif isinstance(font, (str, Path)):
             _font = cls.load_font(font, size)
-        width, height = cls.get_text_size(text or "A", _font)
+        width, height = cls.get_text_size(text, _font)
         if isinstance(padding, int):
             width += padding * 2
             height += padding * 2
         elif isinstance(padding, tuple):
             width += padding[1] + padding[3]
             height += padding[0] + padding[2]
-        markImg = cls(width, height, color)
+        markImg = cls(width, height, color, font=_font)
         await markImg.text(
             (0, 0), text, fill=font_color, font=_font, center_type="center"
         )
@@ -380,7 +382,6 @@ class BuildImage:
         text = str(text)
         if center_type and center_type not in ["center", "height", "width"]:
             raise ValueError("center_type must be 'center', 'width' or 'height'")
-        width, height = 0, 0
         max_length_text = ""
         sentence = text.split("\n")
         for x in sentence:
@@ -392,7 +393,7 @@ class BuildImage:
             font = self.font
         if center_type:
             ttf_w, ttf_h = self.getsize(max_length_text)  # type: ignore
-            ttf_h = ttf_h * len(sentence)
+            # ttf_h = ttf_h * len(sentence)
             pos = self.__center_xy(pos, ttf_w, ttf_h, center_type)
         self.draw.text(pos, text, fill=fill, font=font)
         return self

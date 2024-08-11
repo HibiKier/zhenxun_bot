@@ -6,12 +6,13 @@ from urllib.parse import unquote
 import dateparser
 import ujson as json
 from lxml import etree
-from nonebot_plugin_saa import Image, MessageFactory, Text
+from nonebot_plugin_alconna import UniMessage
 from PIL import ImageDraw
 from pydantic import ValidationError
 
 from zhenxun.services.log import logger
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.message import MessageUtils
 
 from ..config import draw_config
 from ..util import cn2py, load_font, remove_prohibited_str
@@ -132,7 +133,7 @@ class GuardianHandle(BaseHandle[GuardianData]):
             info = f"当前up池：{up_event.title}\n{info}"
         return info.strip()
 
-    async def draw(self, count: int, pool_name: str, **kwargs) -> MessageFactory:
+    async def draw(self, count: int, pool_name: str, **kwargs) -> UniMessage:
         index2card = self.get_cards(count, pool_name)
         cards = [card[0] for card in index2card]
         up_event = self.UP_CHAR if pool_name == "char" else self.UP_ARMS
@@ -140,7 +141,7 @@ class GuardianHandle(BaseHandle[GuardianData]):
         result = self.format_result(index2card, up_list=up_list)
         pool_info = self.format_pool_info(pool_name)
         img = await self.generate_img(cards)
-        return MessageFactory([Text(pool_info), Image(img.pic2bytes()), Text(result)])
+        return MessageUtils.build_message([pool_info, img, result])
 
     async def generate_card_img(self, card: GuardianData) -> BuildImage:
         sep_w = 1
@@ -390,10 +391,10 @@ class GuardianHandle(BaseHandle[GuardianData]):
         except Exception as e:
             logger.warning(f"{self.game_name_cn}UP更新出错 {type(e)}：{e}")
 
-    async def _reload_pool(self) -> MessageFactory | None:
+    async def _reload_pool(self) -> UniMessage | None:
         await self.update_up_char()
         self.load_up_char()
         if self.UP_CHAR and self.UP_ARMS:
-            return MessageFactory(
-                [Text(f"重载成功！\n当前UP池子：{self.UP_CHAR.title}")]
+            return MessageUtils.build_message(
+                f"重载成功！\n当前UP池子：{self.UP_CHAR.title}"
             )

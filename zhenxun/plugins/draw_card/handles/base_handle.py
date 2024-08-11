@@ -7,14 +7,14 @@ from typing import Generic, TypeVar
 import aiohttp
 import anyio
 import ujson as json
-from nonebot_plugin_saa import Image as SaaImage
-from nonebot_plugin_saa import MessageFactory, Text
+from nonebot_plugin_alconna import UniMessage
 from PIL import Image
 from pydantic import BaseModel, Extra
 
 from zhenxun.configs.path_config import DATA_PATH
 from zhenxun.services.log import logger
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.message import MessageUtils
 
 from ..config import DRAW_PATH, draw_config
 from ..util import circled_number, cn2py
@@ -64,12 +64,12 @@ class BaseHandle(Generic[TC]):
         self.up_path.mkdir(parents=True, exist_ok=True)
         self.data_files: list[str] = [f"{self.game_name}.json"]
 
-    async def draw(self, count: int, **kwargs) -> MessageFactory:
+    async def draw(self, count: int, **kwargs) -> UniMessage:
         index2card = self.get_cards(count, **kwargs)
         cards = [card[0] for card in index2card]
         result = self.format_result(index2card)
         gen_img = await self.generate_img(cards)
-        return MessageFactory([SaaImage(gen_img.pic2bytes()), Text(result)])
+        return MessageUtils.build_message([gen_img, result])
 
     # 抽取卡池
     def get_card(self, **kwargs) -> TC:
@@ -280,10 +280,10 @@ class BaseHandle(Generic[TC]):
             )
             return False
 
-    async def _reload_pool(self) -> MessageFactory | None:
+    async def _reload_pool(self) -> UniMessage | None:
         return None
 
-    async def reload_pool(self) -> MessageFactory | None:
+    async def reload_pool(self) -> UniMessage | None:
         try:
             async with self.client() as session:
                 self.session = session

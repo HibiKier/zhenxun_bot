@@ -3,11 +3,11 @@ from typing import Any
 from nonebot.internal.params import Depends
 from nonebot.matcher import Matcher
 from nonebot.params import Command
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 
 from zhenxun.configs.config import Config
+from zhenxun.utils.message import MessageUtils
 
 
 def CheckUg(check_user: bool = True, check_group: bool = True):
@@ -22,11 +22,11 @@ def CheckUg(check_user: bool = True, check_group: bool = True):
         if check_user:
             user_id = session.id1
             if not user_id:
-                await Text("用户id为空").finish()
+                await MessageUtils.build_message("用户id为空").finish()
         if check_group:
             group_id = session.id3 or session.id2
             if not group_id:
-                await Text("群组id为空").finish()
+                await MessageUtils.build_message("群组id为空").finish()
 
     return Depends(dependency)
 

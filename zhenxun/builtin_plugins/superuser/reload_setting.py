@@ -3,13 +3,13 @@ from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
 from nonebot_plugin_apscheduler import scheduler
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 
 __plugin_meta__ = PluginMetadata(
     name="重载配置",
@@ -55,7 +55,7 @@ _matcher = on_alconna(
 async def _(session: EventSession, arparma: Arparma):
     Config.reload()
     logger.debug("自动重载配置文件", arparma.header_result, session=session)
-    await Text("重载完成!").send(reply=True)
+    await MessageUtils.build_message("重载完成!").send(reply_to=True)
 
 
 @scheduler.scheduled_job(

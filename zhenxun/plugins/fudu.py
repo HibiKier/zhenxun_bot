@@ -113,7 +113,7 @@ async def _(message: UniMsg, event: Event, session: EventSession):
     if not plain_text and not image_list:
         return
     if plain_text and plain_text.startswith(f"@可爱的{NICKNAME}"):
-        await MessageUtils.build_message("复制粘贴的虚空艾特？").send(reply=True)
+        await MessageUtils.build_message("复制粘贴的虚空艾特？").send(reply_to=True)
     if image_list:
         img_hash = await get_download_image_hash(image_list[0], group_id)
     else:

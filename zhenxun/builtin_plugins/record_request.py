@@ -9,7 +9,6 @@ from nonebot.adapters.onebot.v11 import FriendRequestEvent, GroupRequestEvent
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_apscheduler import scheduler
-from nonebot_plugin_saa import TargetQQPrivate, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import NICKNAME, Config
@@ -19,6 +18,8 @@ from zhenxun.models.friend_user import FriendUser
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType, RequestHandleType, RequestType
+from zhenxun.utils.message import MessageUtils
+from zhenxun.utils.platform import PlatformUtils
 
 base_config = Config.get("invite_manager")
 
@@ -76,14 +77,15 @@ async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSessi
         # sex = user["sex"]
         # age = str(user["age"])
         comment = event.comment
-        superuser = int(superuser)
-        await Text(
-            f"*****一份好友申请*****\n"
-            f"昵称：{nickname}({event.user_id})\n"
-            f"自动同意：{'√' if base_config.get('AUTO_ADD_FRIEND') else '×'}\n"
-            f"日期：{str(datetime.now()).split('.')[0]}\n"
-            f"备注：{event.comment}"
-        ).send_to(target=TargetQQPrivate(user_id=superuser), bot=bot)
+        if superuser:
+            superuser = int(superuser)
+            await MessageUtils.build_message(
+                f"*****一份好友申请*****\n"
+                f"昵称：{nickname}({event.user_id})\n"
+                f"自动同意：{'√' if base_config.get('AUTO_ADD_FRIEND') else '×'}\n"
+                f"日期：{str(datetime.now()).split('.')[0]}\n"
+                f"备注：{event.comment}"
+            ).send(target=PlatformUtils.get_target(bot, superuser))
         if base_config.get("AUTO_ADD_FRIEND"):
             logger.debug(
                 f"已开启好友请求自动同意，成功通过该请求",

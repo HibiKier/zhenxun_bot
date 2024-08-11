@@ -172,8 +172,8 @@ async def _generate_card(
     uid_img = await BuildImage.build_text_image(
         f"UID: {uid}", size=30, font_color=(255, 255, 255)
     )
-    image1 = await bk.build_text_image("Accumulative check-in for", bk.font)
-    image2 = await bk.build_text_image("days", bk.font)
+    image1 = await bk.build_text_image("Accumulative check-in for", bk.font, size=30)
+    image2 = await bk.build_text_image("days", bk.font, size=30)
     sign_day_img = await BuildImage.build_text_image(
         f"{user.sign_count}", size=40, font_color=(211, 64, 33)
     )
@@ -181,8 +181,8 @@ async def _generate_card(
     tip_height = max([image1.height, image2.height, sign_day_img.height])
     tip_image = BuildImage(tip_width, tip_height, (255, 255, 255, 0))
     await tip_image.paste(image1, (0, 7))
-    await tip_image.paste(sign_day_img, (image1.width + 15, 0))
-    await tip_image.paste(image2, (image1.width + sign_day_img.width + 30, 7))
+    await tip_image.paste(sign_day_img, (image1.width + 7, 0))
+    await tip_image.paste(image2, (image1.width + sign_day_img.width + 15, 7))
 
     lik_text1_img = await BuildImage.build_text_image("当前", size=20)
     lik_text2_img = await BuildImage.build_text_image(

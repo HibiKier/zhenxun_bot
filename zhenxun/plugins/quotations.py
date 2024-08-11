@@ -1,11 +1,11 @@
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.utils.message import MessageUtils
 
 __plugin_meta__ = PluginMetadata(
     name="一言二次元语录",
@@ -28,5 +28,5 @@ _matcher = on_alconna(Alconna("语录"), aliases={"二次元"}, priority=5, bloc
 async def _(session: EventSession, arparma: Arparma):
     data = (await AsyncHttpx.get(URL, timeout=5)).json()
     result = f'{data["hitokoto"]}\t——{data["from"]}'
-    await Text(result).send()
+    await MessageUtils.build_message(result).send()
     logger.info(f" 发送语录:" + result, arparma.header_result, session=session)

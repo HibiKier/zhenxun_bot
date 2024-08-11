@@ -3,13 +3,13 @@ from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, UniMessage, on_alconna
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import ImageManagementManage
 
@@ -53,7 +53,7 @@ async def _(
 ):
     image_dir_list = base_config.get("IMAGE_DIR_LIST")
     if not image_dir_list:
-        await Text("未发现任何图库").finish()
+        await MessageUtils.build_message("未发现任何图库").finish()
     _text = ""
     for i, dir in enumerate(image_dir_list):
         _text += f"{i}. {dir}\n"
@@ -74,7 +74,7 @@ async def _(
 )
 async def _(source: str):
     if source in ["取消", "算了"]:
-        await Text("已取消操作...").finish()
+        await MessageUtils.build_message("已取消操作...").finish()
     image_dir_list = base_config.get("IMAGE_DIR_LIST")
     if source.isdigit():
         index = int(source)
@@ -93,8 +93,9 @@ async def _(source: str):
 )
 async def _(destination: str):
     if destination in ["取消", "算了"]:
-        await Text("已取消操作...").finish()
+        await MessageUtils.build_message("已取消操作...").finish()
     image_dir_list = base_config.get("IMAGE_DIR_LIST")
+    name = None
     if destination.isdigit():
         index = int(destination)
         if index <= len(image_dir_list) - 1:
@@ -111,17 +112,17 @@ async def _(
     index: str,
 ):
     if index in ["取消", "算了"]:
-        await Text("已取消操作...").finish()
+        await MessageUtils.build_message("已取消操作...").finish()
     if not index.isdigit():
         await _matcher.reject_path("index", "图片id需要输入数字...")
     source = _matcher.get_path_arg("source", None)
     destination = _matcher.get_path_arg("destination", None)
     if not source:
-        await Text("图库名称为空...").finish()
+        await MessageUtils.build_message("转出图库名称为空...").finish()
     if not destination:
-        await Text("图库名称为空...").finish()
+        await MessageUtils.build_message("转入图库名称为空...").finish()
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if file_name := await ImageManagementManage.move_image(
         source, destination, int(index), session.id1, session.platform
     ):
@@ -130,5 +131,7 @@ async def _(
             arparma.header_result,
             session=session,
         )
-        await Text(f"移动图片成功!\n图库: {source} -> {destination}").finish()
-    await Text("图片删除失败...").finish()
+        await MessageUtils.build_message(
+            f"移动图片成功!\n图库: {source} -> {destination}"
+        ).finish()
+    await MessageUtils.build_message("图片删除失败...").finish()

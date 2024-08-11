@@ -9,13 +9,13 @@ from nonebot_plugin_alconna import (
     Subcommand,
     on_alconna,
 )
-from nonebot_plugin_saa import Mention, MessageFactory, Text
 from nonebot_plugin_session import EventSession, SessionLevel
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.level_user import LevelUser
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 
 __plugin_meta__ = PluginMetadata(
     name="用户权限管理",
@@ -43,7 +43,9 @@ _matcher = on_alconna(
     Alconna(
         "权限设置",
         Subcommand(
-            "add", Args["level", int]["uid", [str, At]]["gid?", str], help_text="添加权限"
+            "add",
+            Args["level", int]["uid", [str, At]]["gid?", str],
+            help_text="添加权限",
         ),
         Subcommand("delete", Args["uid", [str, At]]["gid?", str], help_text="删除权限"),
     ),
@@ -72,13 +74,17 @@ async def _(
             f"修改权限: {old_level} -> {level}", arparma.header_result, session=session
         )
         if session.level in [SessionLevel.LEVEL2, SessionLevel.LEVEL3]:
-            await MessageFactory(
-                [Text("成功为 "), Mention(uid), Text(f" 设置权限：{old_level} -> {level}")]
-            ).finish(reply=True)
-        await Text(
+            await MessageUtils.build_message(
+                [
+                    "成功为 ",
+                    At(flag="user", target=uid),
+                    f" 设置权限：{old_level} -> {level}",
+                ]
+            ).finish(reply_to=True)
+        await MessageUtils.build_message(
             f"成功为 \n群组：{group_id}\n用户：{uid} \n设置权限!\n权限：{old_level} -> {level}"
         ).finish()
-    await Text(f"设置权限时群组不能为空...").finish()
+    await MessageUtils.build_message(f"设置权限时群组不能为空...").finish()
 
 
 @_matcher.assign("delete")
@@ -95,11 +101,21 @@ async def _(
         if user := await LevelUser.get_or_none(user_id=uid, group_id=group_id):
             await user.delete()
             if session.level in [SessionLevel.LEVEL2, SessionLevel.LEVEL3]:
-                await MessageFactory(
-                    [Text("成功删除 "), Mention(uid), Text(f" 的权限等级!")]
-                ).finish(reply=True)
-            await Text(
+                logger.info(
+                    f"删除权限: {user.user_level} -> 0",
+                    arparma.header_result,
+                    session=session,
+                )
+                await MessageUtils.build_message(
+                    ["成功删除 ", At(flag="user", target=uid), f" 的权限等级!"]
+                ).finish(reply_to=True)
+            logger.info(
+                f"删除群组用户权限: {user.user_level} -> 0",
+                arparma.header_result,
+                session=session,
+            )
+            await MessageUtils.build_message(
                 f"成功删除 \n群组：{group_id}\n用户：{uid} \n的权限等级!\n权限：{user.user_level} -> 0"
             ).finish()
-        await Text(f"对方目前暂无权限喔...").finish()
-    await Text(f"设置权限时群组不能为空...").finish()
+        await MessageUtils.build_message(f"对方目前暂无权限喔...").finish()
+    await MessageUtils.build_message(f"设置权限时群组不能为空...").finish()

@@ -10,24 +10,14 @@ from nonebot.adapters.kaiheila import Bot as KaiheilaBot
 from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
 from nonebot.utils import is_coroutine_callable
-from nonebot_plugin_saa import (
-    Image,
-    MessageFactory,
-    TargetDoDoChannel,
-    TargetDoDoPrivate,
-    TargetKaiheilaChannel,
-    TargetKaiheilaPrivate,
-    TargetQQGroup,
-    TargetQQPrivate,
-    Text,
-)
-from nonebot_plugin_saa.abstract_factories import Receipt
+from nonebot_plugin_alconna.uniseg import Receipt, Target, UniMessage
 from pydantic import BaseModel
 
 from zhenxun.models.friend_user import FriendUser
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
 from zhenxun.utils.exception import NotFindSuperuser
+from zhenxun.utils.message import MessageUtils
 
 
 class UserData(BaseModel):
@@ -71,7 +61,7 @@ class PlatformUtils:
     async def send_superuser(
         cls,
         bot: Bot,
-        message: str | MessageFactory | Text | Image,
+        message: UniMessage,
         superuser_id: str | None = None,
     ) -> Receipt | None:
         """发送消息给超级用户
@@ -324,7 +314,7 @@ class PlatformUtils:
         bot: Bot,
         user_id: str | None,
         group_id: str | None,
-        message: str | Text | MessageFactory | Image,
+        message: str | UniMessage,
     ) -> Receipt | None:
         """发送消息
 
@@ -338,8 +328,12 @@ class PlatformUtils:
             Receipt | None: 是否发送成功
         """
         if target := cls.get_target(bot, user_id, group_id):
-            send_message = Text(message) if isinstance(message, str) else message
-            return await send_message.send_to(target, bot)
+            send_message = (
+                MessageUtils.build_message(message)
+                if isinstance(message, str)
+                else message
+            )
+            return await send_message.send(target=target, bot=bot)
         return None
 
     @classmethod
@@ -383,12 +377,12 @@ class PlatformUtils:
         """
         if isinstance(bot, (v11Bot, v12Bot)):
             return "qq"
-        if isinstance(bot, DodoBot):
-            return "dodo"
-        if isinstance(bot, KaiheilaBot):
-            return "kaiheila"
-        if isinstance(bot, DiscordBot):
-            return "discord"
+        # if isinstance(bot, DodoBot):
+        #     return "dodo"
+        # if isinstance(bot, KaiheilaBot):
+        #     return "kaiheila"
+        # if isinstance(bot, DiscordBot):
+        #     return "discord"
         return None
 
     @classmethod
@@ -524,6 +518,7 @@ class PlatformUtils:
         bot: Bot,
         user_id: str | None = None,
         group_id: str | None = None,
+        channel_id: str | None = None,
     ):
         """获取发生Target
 
@@ -531,6 +526,7 @@ class PlatformUtils:
             bot: Bot
             user_id: 用户id
             group_id: 频道id或群组id
+            channel_id: 频道id
 
         返回:
             target: 对应平台Target
@@ -538,25 +534,19 @@ class PlatformUtils:
         target = None
         if isinstance(bot, (v11Bot, v12Bot)):
             if group_id:
-                target = TargetQQGroup(group_id=int(group_id))
+                target = Target(group_id)
             elif user_id:
-                target = TargetQQPrivate(user_id=int(user_id))
-        elif isinstance(bot, DodoBot):
-            if group_id:
-                target = TargetDoDoChannel(channel_id=group_id)
+                target = Target(user_id, private=True)
+        elif isinstance(bot, (DodoBot, KaiheilaBot)):
+            if group_id and channel_id:
+                target = Target(channel_id, parent_id=group_id, channel=True)
             elif user_id:
-                # target = TargetDoDoPrivate(user_id=user_id)
-                pass
-        elif isinstance(bot, KaiheilaBot):
-            if group_id:
-                target = TargetKaiheilaChannel(channel_id=group_id)
-            elif user_id:
-                target = TargetKaiheilaPrivate(user_id=user_id)
+                target = Target(user_id, private=True)
         return target
 
 
 async def broadcast_group(
-    message: str | MessageFactory,
+    message: str | UniMessage,
     bot: Bot | list[Bot] | None = None,
     bot_id: str | Set[str] | None = None,
     ignore_group: Set[int] | None = None,
@@ -624,17 +614,14 @@ async def broadcast_group(
                         if not is_run:
                             continue
                         target = PlatformUtils.get_target(
-                            _bot,
-                            None,
-                            group.channel_id or group.group_id,
-                            # , group.channel_id
+                            _bot, None, group.group_id, group.channel_id
                         )
                         if target:
                             _used_group.append(key)
                             message_list = message
-                            if isinstance(message, str):
-                                message_list = MessageFactory([Text(message)])
-                            await MessageFactory(message_list).send_to(target, _bot)
+                            await MessageUtils.build_message(message_list).send(
+                                target, _bot
+                            )
                             logger.debug("发送成功", log_cmd, target=key)
                         else:
                             logger.warning("target为空", log_cmd, target=key)

@@ -6,7 +6,6 @@ from typing import Any, Callable, Literal
 
 from nonebot.adapters import Bot, Event
 from nonebot_plugin_alconna import UniMessage, UniMsg
-from nonebot_plugin_saa import MessageFactory
 from nonebot_plugin_session import EventSession
 from pydantic import BaseModel, create_model
 
@@ -298,8 +297,9 @@ class ShopManage:
             raise ValueError("该商品使用函数已被注册！")
         kwargs["send_success_msg"] = send_success_msg
         kwargs["max_num_limit"] = max_num_limit
+        # TODO: create_model(f"{uuid}_model", __base__=ShopParam, **kwargs)
         cls.uuid2goods[uuid] = Goods(
-            model=create_model(f"{uuid}_model", __base__=ShopParam, **kwargs),
+            model=None,# create_model(f"{uuid}_model", __base__=ShopParam, **kwargs),
             params=kwargs,
             before_handle=before_handle,
             after_handle=after_handle,

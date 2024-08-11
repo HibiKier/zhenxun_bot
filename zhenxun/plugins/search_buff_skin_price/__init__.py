@@ -2,12 +2,12 @@ from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, on_alconna
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import NICKNAME
 from zhenxun.configs.utils import BaseBlock, PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 
 from .data_source import get_price, update_buff_cookie
 
@@ -73,29 +73,32 @@ async def arg_handle(
     skin: str,
 ):
     if name in ["算了", "取消"] or skin in ["算了", "取消"]:
-        await Text("已取消操作...").finish()
+        await MessageUtils.build_message("已取消操作...").finish()
     result = ""
     if name in ["ak", "ak47"]:
         name = "ak-47"
     name = name + " | " + skin
+    status_code = -1
     try:
         result, status_code = await get_price(name)
     except FileNotFoundError:
-        await Text(f'请先对{NICKNAME}说"设置cookie"来设置cookie！').send(at_sender=True)
+        await MessageUtils.build_message(
+            f'请先对{NICKNAME}说"设置cookie"来设置cookie！'
+        ).send(at_sender=True)
     if status_code in [996, 997, 998]:
-        await Text(result).finish()
+        await MessageUtils.build_message(result).finish()
     if result:
         logger.info(f"查询皮肤: {name}", arparma.header_result, session=session)
-        await Text(result).finish()
+        await MessageUtils.build_message(result).finish()
     else:
         logger.info(
             f" 查询皮肤：{name} 没有查询到", arparma.header_result, session=session
         )
-        await Text("没有查询到哦，请检查格式吧").send()
+        await MessageUtils.build_message("没有查询到哦，请检查格式吧").send()
 
 
 @_cookie_matcher.handle()
 async def _(session: EventSession, arparma: Arparma, cookie: str):
     result = update_buff_cookie(cookie)
-    await Text(result).send(at_sender=True)
+    await MessageUtils.build_message(result).send(at_sender=True)
     logger.info("更新BUFF COOKIE", arparma.header_result, session=session)

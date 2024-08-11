@@ -14,7 +14,6 @@ from nonebot_plugin_alconna import (
     on_alconna,
     store_true,
 )
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import NICKNAME
@@ -175,11 +174,11 @@ async def _(
 ):
     _tags = tags.result.split("#") if tags.available else None
     if _tags and NICKNAME in _tags:
-        await Text(
+        await MessageUtils.build_message(
             "咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀"
         ).finish()
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     gid = session.id3 or session.id2
     user_console = await UserConsole.get_user(session.id1, session.platform)
     user, _ = await SignUser.get_or_create(
@@ -208,11 +207,11 @@ async def _(
         """指定id"""
         result = await SetuManage.get_setu(local_id=local_id.result)
         if isinstance(result, str):
-            await MessageUtils.build_message(result).finish(reply=True)
+            await MessageUtils.build_message(result).finish(reply_to=True)
         await result[0].finish()
     result_list = await SetuManage.get_setu(tags=_tags, num=_num, is_r18=is_r18)
     if isinstance(result_list, str):
-        await MessageUtils.build_message(result_list).finish(reply=True)
+        await MessageUtils.build_message(result_list).finish(reply_to=True)
     max_once_num2forward = base_config.get("MAX_ONCE_NUM2FORWARD")
     platform = PlatformUtils.get_platform(bot)
     if (

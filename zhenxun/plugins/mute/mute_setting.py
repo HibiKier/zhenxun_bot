@@ -1,12 +1,12 @@
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, Option, on_alconna
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import NICKNAME
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.rules import ensure_group
 
 from ._data_source import base_config, mute_manage
@@ -96,19 +96,19 @@ async def _(
     _duration = duration.result if duration.available else None
     group_data = mute_manage.get_group_data(group_id)
     if _time is None and _count is None and _duration is None:
-        await Text(
+        await MessageUtils.build_message(
             f"最大次数：{group_data.count} 次\n"
             f"规定时间：{group_data.time} 秒\n"
             f"禁言时长：{group_data.duration:.2f} 分钟\n"
             f"【在规定时间内发送相同消息超过最大次数则禁言\n当禁言时长为0时关闭此功能】"
-        ).finish(reply=True)
+        ).finish(reply_to=True)
     if _time is not None:
         group_data.time = _time
     if _count is not None:
         group_data.count = _count
     if _duration is not None:
         group_data.duration = _duration
-    await Text("设置成功!").send(reply=True)
+    await MessageUtils.build_message("设置成功!").send(reply_to=True)
     logger.info(
         f"设置禁言配置 time: {_time}, count: {_count}, duration: {_duration}",
         arparma.header_result,

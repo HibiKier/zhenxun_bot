@@ -58,8 +58,8 @@ async def _():
 # # 睡觉了
 @scheduler.scheduled_job(
     "cron",
-    hour=1,
-    minute=16,
+    hour=23,
+    minute=59,
 )
 async def _():
     message = MessageUtils.build_message(

@@ -16,12 +16,12 @@ from nonebot_plugin_alconna import (
     on_alconna,
     store_true,
 )
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import start_update_image_url
 from ._model.omega_pixiv_illusts import OmegaPixivIllusts
@@ -106,10 +106,12 @@ async def _(arparma: Arparma, session: EventSession, type: str, num: Match[int])
         else:
             update_lst = [f"uid:{_num}"]
             info = f"开始更新Pixiv搜图UID：\nuid:{_num}"
-    await Text(info).send()
+    await MessageUtils.build_message(info).send()
     start_time = time.time()
-    pid_count, pic_count = await start_update_image_url(update_lst[:_num], black_pid, type == 'pid')
-    await Text(
+    pid_count, pic_count = await start_update_image_url(
+        update_lst[:_num], black_pid, type == "pid"
+    )
+    await MessageUtils.build_message(
         f"Pixiv搜图关键词搜图更新完成...\n"
         f"累计更新PID {pid_count} 个\n"
         f"累计更新图片 {pic_count} 张"
@@ -131,7 +133,7 @@ async def _(bot: Bot, arparma: Arparma, session: EventSession):
             x_pid.append(img.pid)
         if img.uid not in x_uid:
             x_uid.append(img.uid)
-    await Text(
+    await MessageUtils.build_message(
         "从未更新过的UID："
         + "，".join([f"uid:{x}" for x in _uid if x not in x_uid])
         + "\n"
@@ -139,12 +141,14 @@ async def _(bot: Bot, arparma: Arparma, session: EventSession):
         + "，".join([f"pid:{x}" for x in _pid if x not in x_pid])
     ).send()
     if arparma.find("update"):
-        await Text("开始自动自动更新PID....").send()
+        await MessageUtils.build_message("开始自动自动更新PID....").send()
         update_lst = [f"pid:{x}" for x in _uid if x not in x_uid]
         black_pid = await PixivKeywordUser.get_black_pid()
         start_time = time.time()
-        pid_count, pic_count = await start_update_image_url(update_lst, black_pid, False)
-        await Text(
+        pid_count, pic_count = await start_update_image_url(
+            update_lst, black_pid, False
+        )
+        await MessageUtils.build_message(
             f"Pixiv搜图关键词搜图更新完成...\n"
             f"累计更新PID {pid_count} 个\n"
             f"累计更新图片 {pic_count} 张"

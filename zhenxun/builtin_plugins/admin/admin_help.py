@@ -155,6 +155,6 @@ async def _(
         try:
             await build_help()
         except EmptyError:
-            await MessageUtils.build_message("管理员帮助为空").finish(reply=True)
+            await MessageUtils.build_message("管理员帮助为空").finish(reply_to=True)
     await MessageUtils.build_message(ADMIN_HELP_IMAGE).send()
     logger.info("查看管理员帮助", arparma.header_result, session=session)

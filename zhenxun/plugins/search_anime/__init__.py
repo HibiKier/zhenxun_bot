@@ -1,11 +1,11 @@
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, on_alconna
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.utils import BaseBlock, PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 
 from .data_source import from_anime_get_info
 
@@ -47,15 +47,15 @@ async def _(name: Match[str]):
 @_matcher.got_path("name", prompt="是不是少了番名？")
 async def _(session: EventSession, arparma: Arparma, name: str):
     gid = session.id3 or session.id2
-    await Text(f"开始搜番 {name}...").send()
+    await MessageUtils.build_message(f"开始搜番 {name}...").send()
     anime_report = await from_anime_get_info(
         name,
         Config.get_config("search_anime", "SEARCH_ANIME_MAX_INFO"),
     )
     if anime_report:
         if isinstance(anime_report, str):
-            await Text(anime_report).finish()
-        await Text("\n\n".join(anime_report)).send()
+            await MessageUtils.build_message(anime_report).finish()
+        await MessageUtils.build_message("\n\n".join(anime_report)).send()
         logger.info(
             f"搜索番剧 {name} 成功: {anime_report}",
             arparma.header_result,
@@ -63,4 +63,6 @@ async def _(session: EventSession, arparma: Arparma, name: str):
         )
     else:
         logger.info(f"未找到番剧 {name}...")
-        await Text(f"未找到番剧 {name}（也有可能是超时，再尝试一下？）").send()
+        await MessageUtils.build_message(
+            f"未找到番剧 {name}（也有可能是超时，再尝试一下？）"
+        ).send()

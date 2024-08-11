@@ -8,11 +8,11 @@ from nonebot_plugin_alconna import (
     on_alconna,
     store_true,
 )
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import uid_pid_exists
 from ._model.pixiv import Pixiv
@@ -65,12 +65,12 @@ async def _(bot: Bot, session: EventSession, keyword: str, arparma: Arparma):
         text = f"已成功添加pixiv搜图关键词：{keyword}"
         if session.id1 not in bot.config.superusers:
             text += "，请等待管理员通过该关键词！"
-        await Text(text).send(reply=True)
+        await MessageUtils.build_message(text).send(reply_to=True)
         logger.info(
             f"添加了pixiv搜图关键词: {keyword}", arparma.header_result, session=session
         )
     else:
-        await Text(f"该关键词 {keyword} 已存在...").send()
+        await MessageUtils.build_message(f"该关键词 {keyword} 已存在...").send()
 
 
 @_uid_matcher.handle()
@@ -85,9 +85,13 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, add_type: str, id
     else:
         word = f"pid:{id}"
         if await Pixiv.get_or_none(pid=int(id), img_p="p0"):
-            await Text(f"该PID：{id}已存在...").finish(reply=True)
+            await MessageUtils.build_message(f"该PID：{id}已存在...").finish(
+                reply_to=True
+            )
     if not await uid_pid_exists(word) and exists_flag:
-        await Text("画师或作品不存在或搜索正在CD，请稍等...").finish(reply=True)
+        await MessageUtils.build_message(
+            "画师或作品不存在或搜索正在CD，请稍等..."
+        ).finish(reply_to=True)
     if not await PixivKeywordUser.exists(keyword=word):
         await PixivKeywordUser.create(
             user_id=session.id1,
@@ -98,9 +102,9 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, add_type: str, id
         text = f"已成功添加pixiv搜图UID/PID：{id}"
         if session.id1 not in bot.config.superusers:
             text += "，请等待管理员通过该关键词！"
-        await Text(text).send(reply=True)
+        await MessageUtils.build_message(text).send(reply_to=True)
     else:
-        await Text(f"该UID/PID：{id} 已存在...").send()
+        await MessageUtils.build_message(f"该UID/PID：{id} 已存在...").send()
 
 
 @_black_matcher.handle()
@@ -111,7 +115,7 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, pid: str):
         pid = pid.replace("_", "")
         pid = pid[: pid.find("p")]
     if not pid.isdigit:
-        await Text("PID必须全部是数字！").finish(reply=True)
+        await MessageUtils.build_message("PID必须全部是数字！").finish(reply_to=True)
     if not await PixivKeywordUser.exists(
         keyword=f"black:{pid}{f'_p{img_p}' if img_p else ''}"
     ):
@@ -121,9 +125,11 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, pid: str):
             keyword=f"black:{pid}{f'_p{img_p}' if img_p else ''}",
             is_pass=session.id1 in bot.config.superusers,
         )
-        await Text(f"已添加PID：{pid} 至黑名单中...").send()
+        await MessageUtils.build_message(f"已添加PID：{pid} 至黑名单中...").send()
         logger.info(
             f" 添加了pixiv搜图黑名单 PID:{pid}", arparma.header_result, session=session
         )
     else:
-        await Text(f"PID：{pid} 已添加黑名单中，添加失败...").send()
+        await MessageUtils.build_message(
+            f"PID：{pid} 已添加黑名单中，添加失败..."
+        ).send()

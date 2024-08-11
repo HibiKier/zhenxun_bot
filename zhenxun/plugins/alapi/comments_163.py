@@ -1,11 +1,11 @@
 from nonebot import on_regex
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import get_data
 
@@ -43,11 +43,13 @@ _matcher.shortcut(
 async def _(session: EventSession, arparma: Arparma):
     data, code = await get_data(comments_163_url)
     if code != 200 and isinstance(data, str):
-        await Text(data).finish(reply=True)
+        await MessageUtils.build_message(data).finish(reply_to=True)
     data = data["data"]  # type: ignore
     comment = data["comment_content"]  # type: ignore
     song_name = data["title"]  # type: ignore
-    await Text(f"{comment}\n\t——《{song_name}》").send(reply=True)
+    await MessageUtils.build_message(f"{comment}\n\t——《{song_name}》").send(
+        reply_to=True
+    )
     logger.info(
         f" 发送网易云热评: {comment} \n\t\t————{song_name}",
         arparma.header_result,

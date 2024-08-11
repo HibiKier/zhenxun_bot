@@ -1,12 +1,12 @@
 import ujson as json
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma, on_alconna
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.utils.message import MessageUtils
 
 __plugin_meta__ = PluginMetadata(
     name="能不能好好说话",
@@ -16,6 +16,8 @@ __plugin_meta__ = PluginMetadata(
     指令：
         nbnhhsh [文本]
         能不能好好说话 [文本]
+        示例:
+        nbnhhsh xsx
     """.strip(),
     extra=PluginExtraData(author="HibiKier", version="0.1", aliases={"nbnhhsh"}).dict(),
 )
@@ -55,6 +57,6 @@ async def _(session: EventSession, arparma: Arparma, text: str):
             arparma.header_result,
             session=session,
         )
-        await Text(f"{tmp}={result}").send(reply=True)
+        await MessageUtils.build_message(f"{tmp}={result}").send(reply_to=True)
     except (IndexError, KeyError):
-        await Text("没有找到对应的翻译....").send()
+        await MessageUtils.build_message("没有找到对应的翻译....").send()

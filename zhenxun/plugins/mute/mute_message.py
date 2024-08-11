@@ -3,7 +3,6 @@ from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Image as alcImage
 from nonebot_plugin_alconna import UniMsg
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import NICKNAME
@@ -11,6 +10,7 @@ from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import get_download_image_hash
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
 
 from ._data_source import mute_manage
@@ -44,9 +44,9 @@ async def _(bot: Bot, session: EventSession, message: UniMsg):
     if duration := mute_manage.add_message(session.id1, group_id, _message):
         try:
             await PlatformUtils.ban_user(bot, session.id1, group_id, duration)
-            await Text(f"检测到恶意刷屏，{NICKNAME}要把你关进小黑屋！").send(
-                at_sender=True
-            )
+            await MessageUtils.build_message(
+                f"检测到恶意刷屏，{NICKNAME}要把你关进小黑屋！"
+            ).send(at_sender=True)
             mute_manage.reset(session.id1, group_id)
             logger.info(f"检测刷屏 被禁言 {duration} 分钟", "禁言检查", session=session)
         except Exception as e:

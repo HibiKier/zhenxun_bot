@@ -1,17 +1,17 @@
 import nonebot_plugin_alconna as alc
 from nonebot.adapters import Bot
-from nonebot.adapters.discord import Bot as DiscordBot
-from nonebot.adapters.dodo import Bot as DodoBot
-from nonebot.adapters.kaiheila import Bot as KaiheilaBot
-from nonebot.adapters.onebot.v11 import Bot as v11Bot
-from nonebot.adapters.onebot.v12 import Bot as v12Bot
-from nonebot_plugin_alconna import UniMsg
-from nonebot_plugin_saa import Image, MessageFactory, Text
+
+# from nonebot.adapters.discord import Bot as DiscordBot
+# from nonebot.adapters.dodo import Bot as DodoBot
+# from nonebot.adapters.kaiheila import Bot as KaiheilaBot
+# from nonebot.adapters.onebot.v11 import Bot as v11Bot
+# from nonebot.adapters.onebot.v12 import Bot as v12Bot
+from nonebot_plugin_alconna import Image, UniMsg
 from nonebot_plugin_session import EventSession
 
-from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
 
 
@@ -34,9 +34,9 @@ class BroadcastManage:
         message_list = []
         for msg in message:
             if isinstance(msg, alc.Image) and msg.url:
-                message_list.append(Image(msg.url))
+                message_list.append(Image(url=msg.url))
             elif isinstance(msg, alc.Text):
-                message_list.append(Text(msg.text))
+                message_list.append(msg.text)
         group_list, _ = await PlatformUtils.get_group_list(bot)
         if group_list:
             error_count = 0
@@ -50,7 +50,9 @@ class BroadcastManage:
                             bot, None, group.channel_id or group.group_id
                         )
                         if target:
-                            await MessageFactory(message_list).send_to(target, bot)
+                            await MessageUtils.build_message(message_list).send(
+                                target, bot
+                            )
                             logger.debug(
                                 "发送成功",
                                 "广播",

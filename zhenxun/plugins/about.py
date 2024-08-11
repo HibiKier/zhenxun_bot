@@ -1,14 +1,13 @@
 from pathlib import Path
 
-from nonebot import on_regex
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 
 __plugin_meta__ = PluginMetadata(
     name="识番",
@@ -38,5 +37,5 @@ async def _(session: EventSession, arparma: Arparma):
 项目地址：https://github.com/HibiKier/zhenxun_bot
 文档地址：https://hibikier.github.io/zhenxun_bot/
     """.strip()
-    await Text(info).send()
+    await MessageUtils.build_message(info).send()
     logger.info("查看关于", arparma.header_result, session=session)

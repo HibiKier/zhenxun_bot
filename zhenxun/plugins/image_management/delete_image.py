@@ -1,15 +1,14 @@
-from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, UniMessage, on_alconna
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import ImageManagementManage
 
@@ -43,16 +42,13 @@ _matcher = on_alconna(
 
 @_matcher.handle()
 async def _(
-    bot: Bot,
-    session: EventSession,
-    arparma: Arparma,
     name: Match[str],
     index: Match[str],
     state: T_State,
 ):
     image_dir_list = base_config.get("IMAGE_DIR_LIST")
     if not image_dir_list:
-        await Text("未发现任何图库").finish()
+        await MessageUtils.build_message("未发现任何图库").finish()
     _text = ""
     for i, dir in enumerate(image_dir_list):
         _text += f"{i}. {dir}\n"
@@ -71,7 +67,7 @@ async def _(
 )
 async def _(name: str):
     if name in ["取消", "算了"]:
-        await Text("已取消操作...").finish()
+        await MessageUtils.build_message("已取消操作...").finish()
     image_dir_list = base_config.get("IMAGE_DIR_LIST")
     if name.isdigit():
         index = int(name)
@@ -89,14 +85,14 @@ async def _(
     index: str,
 ):
     if index in ["取消", "算了"]:
-        await Text("已取消操作...").finish()
+        await MessageUtils.build_message("已取消操作...").finish()
     if not index.isdigit():
         await _matcher.reject_path("index", "图片id需要输入数字...")
     name = _matcher.get_path_arg("name", None)
     if not name:
-        await Text("图库名称为空...").finish()
+        await MessageUtils.build_message("图库名称为空...").finish()
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if file_name := await ImageManagementManage.delete_image(
         name, int(index), session.id1, session.platform
     ):
@@ -105,5 +101,7 @@ async def _(
             arparma.header_result,
             session=session,
         )
-        await Text(f"删除图片成功!\n图库: {name}\n名称: {index}.jpg").finish()
-    await Text("图片删除失败...").finish()
+        await MessageUtils.build_message(
+            f"删除图片成功!\n图库: {name}\n名称: {index}.jpg"
+        ).finish()
+    await MessageUtils.build_message("图片删除失败...").finish()

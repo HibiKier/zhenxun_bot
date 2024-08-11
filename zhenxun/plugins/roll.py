@@ -4,14 +4,13 @@ import random
 from nonebot import on_command
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import UniMsg
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
-from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 
 from zhenxun.configs.config import NICKNAME
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.depends import UserName
+from zhenxun.utils.message import MessageUtils
 
 __plugin_meta__ = PluginMetadata(
     name="roll",
@@ -39,8 +38,10 @@ async def _(
 ):
     text = message.extract_plain_text().strip().replace("roll", "", 1).split()
     if not text:
-        await Text(f"roll: {random.randint(0, 100)}").finish(reply=True)
-    await Text(
+        await MessageUtils.build_message(f"roll: {random.randint(0, 100)}").finish(
+            reply_to=True
+        )
+    await MessageUtils.build_message(
         random.choice(
             [
                 "转动命运的齿轮，拨开眼前迷雾...",
@@ -52,7 +53,7 @@ async def _(
     ).send()
     await asyncio.sleep(1)
     random_text = random.choice(text)
-    await Text(
+    await MessageUtils.build_message(
         random.choice(
             [
                 f"让{NICKNAME}看看是什么结果！答案是：‘{random_text}’",
@@ -61,5 +62,5 @@ async def _(
                 f"结束了，{user_name}，命运之轮停在了 ‘{random_text}’！",
             ]
         )
-    ).send(reply=True)
+    ).send(reply_to=True)
     logger.info(f"发送roll：{text}", "roll", session=session)

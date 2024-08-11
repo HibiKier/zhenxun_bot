@@ -1,14 +1,10 @@
 from nonebot.adapters import Bot
-from nonebot.params import Arg, ArgStr, CommandArg
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot.typing import T_State
-from nonebot.utils import P
 from nonebot_plugin_alconna import Alconna, Args, Arparma
 from nonebot_plugin_alconna import Image as alcImage
 from nonebot_plugin_alconna import Match, UniMessage, UniMsg, image_fetch, on_alconna
-from nonebot_plugin_apscheduler import scheduler
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
@@ -16,6 +12,7 @@ from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import ImageManagementManage
 
@@ -60,11 +57,11 @@ _show_matcher = on_alconna(Alconna("查看公开图库"), priority=1, block=True
 async def _():
     image_dir_list = base_config.get("IMAGE_DIR_LIST")
     if not image_dir_list:
-        await Text("未发现任何图库").finish()
+        await MessageUtils.build_message("未发现任何图库").finish()
     text = "公开图库列表：\n"
     for i, e in enumerate(image_dir_list):
         text += f"\t{i+1}.{e}\n"
-    await Text(text[:-1]).send()
+    await MessageUtils.build_message(text[:-1]).send()
 
 
 @_upload_matcher.handle()
@@ -78,7 +75,7 @@ async def _(
 ):
     image_dir_list = base_config.get("IMAGE_DIR_LIST")
     if not image_dir_list:
-        await Text("未发现任何图库").finish()
+        await MessageUtils.build_message("未发现任何图库").finish()
     _text = ""
     for i, dir in enumerate(image_dir_list):
         _text += f"{i}. {dir}\n"
@@ -94,7 +91,7 @@ async def _(
 async def _(bot: Bot, state: T_State, name: Match[str]):
     image_dir_list = base_config.get("IMAGE_DIR_LIST")
     if not image_dir_list:
-        await Text("未发现任何图库").finish()
+        await MessageUtils.build_message("未发现任何图库").finish()
     _text = ""
     for i, dir in enumerate(image_dir_list):
         _text += f"{i}. {dir}\n"
@@ -117,7 +114,7 @@ async def _(bot: Bot, state: T_State, name: Match[str]):
 )
 async def _(name: str, state: T_State):
     if name in ["取消", "算了"]:
-        await Text("已取消操作...").finish()
+        await MessageUtils.build_message("已取消操作...").finish()
     image_dir_list = base_config.get("IMAGE_DIR_LIST")
     if name.isdigit():
         index = int(name)
@@ -137,9 +134,9 @@ async def _(
 ):
     name = _upload_matcher.get_path_arg("name", None)
     if not name:
-        await Text("图库名称为空...").finish()
+        await MessageUtils.build_message("图库名称为空...").finish()
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if file_name := await ImageManagementManage.upload_image(
         img, name, session.id1, session.platform
     ):
@@ -148,8 +145,10 @@ async def _(
             arparma.header_result,
             session=session,
         )
-        await Text(f"上传图片成功!\n图库: {name}\n名称: {file_name}").finish()
-    await Text("图片上传失败...").finish()
+        await MessageUtils.build_message(
+            f"上传图片成功!\n图库: {name}\n名称: {file_name}"
+        ).finish()
+    await MessageUtils.build_message("图片上传失败...").finish()
 
 
 @_continuous_upload_matcher.got(
@@ -164,21 +163,21 @@ async def _(
 ):
     name = _continuous_upload_matcher.get_path_arg("name", None)
     if not name:
-        await Text("图库名称为空...").finish()
+        await MessageUtils.build_message("图库名称为空...").finish()
     if not session.id1:
-        await Text("用户id为空...").finish()
+        await MessageUtils.build_message("用户id为空...").finish()
     if not state.get("img_list"):
         state["img_list"] = []
     msg = message.extract_plain_text().strip().replace(arparma.header_result, "", 1)
     if msg in ["取消", "算了"]:
-        await Text("已取消操作...").finish()
+        await MessageUtils.build_message("已取消操作...").finish()
     if msg != "stop":
         for msg in message:
             if isinstance(msg, alcImage):
                 state["img_list"].append(msg.url)
         await _continuous_upload_matcher.reject("图再来！！【发送‘stop’为停止】")
     if state["img_list"]:
-        await Text("正在下载, 请稍后...").send()
+        await MessageUtils.build_message("正在下载, 请稍后...").send()
         file_list = []
         for img in state["img_list"]:
             if file_name := await ImageManagementManage.upload_image(
@@ -190,7 +189,7 @@ async def _(
                     "上传图片",
                     session=session,
                 )
-        await Text(
+        await MessageUtils.build_message(
             f"上传图片成功!共上传了{len(file_list)}张图片\n图库: {name}\n名称: {', '.join(file_list)}"
         ).finish()
-    await Text("图片上传失败...").finish()
+    await MessageUtils.build_message("图片上传失败...").finish()

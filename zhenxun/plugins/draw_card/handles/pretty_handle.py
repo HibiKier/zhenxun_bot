@@ -7,12 +7,13 @@ import dateparser
 import ujson as json
 from bs4 import BeautifulSoup
 from lxml import etree
-from nonebot_plugin_saa import Image, MessageFactory, Text
+from nonebot_plugin_alconna import UniMessage
 from PIL import ImageDraw
 from pydantic import ValidationError
 
 from zhenxun.services.log import logger
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.message import MessageUtils
 
 from ..config import draw_config
 from ..util import cn2py, load_font, remove_prohibited_str
@@ -125,7 +126,7 @@ class PrettyHandle(BaseHandle[PrettyData]):
             info = f"当前up池：{up_event.title}\n{info}"
         return info.strip()
 
-    async def draw(self, count: int, pool_name: str, **kwargs) -> MessageFactory:
+    async def draw(self, count: int, pool_name: str, **kwargs) -> UniMessage:
         pool_name = "char" if not pool_name else pool_name
         index2card = self.get_cards(count, pool_name)
         cards = [card[0] for card in index2card]
@@ -134,7 +135,7 @@ class PrettyHandle(BaseHandle[PrettyData]):
         result = self.format_result(index2card, up_list=up_list)
         pool_info = self.format_pool_info(pool_name)
         img = await self.generate_img(cards)
-        return MessageFactory([Text(pool_info), Image(img.pic2bytes()), Text(result)])
+        return MessageUtils.build_message([pool_info, img, result])
 
     async def generate_card_img(self, card: PrettyData) -> BuildImage:
         if isinstance(card, PrettyChar):
@@ -409,14 +410,14 @@ class PrettyHandle(BaseHandle[PrettyData]):
         except Exception as e:
             logger.warning(f"{self.game_name_cn}UP更新出错", e=e)
 
-    async def _reload_pool(self) -> MessageFactory | None:
+    async def _reload_pool(self) -> UniMessage | None:
         await self.update_up_char()
         self.load_up_char()
         if self.UP_CHAR and self.UP_CARD:
-            return MessageFactory(
+            return MessageUtils.build_message(
                 [
-                    Text(f"重载成功！\n当前UP池子：{self.UP_CHAR.title}"),
-                    Image(self.UP_CHAR.pool_img),
-                    Image(self.UP_CARD.pool_img),
+                    f"重载成功！\n当前UP池子：{self.UP_CHAR.title}",
+                    self.UP_CHAR.pool_img,
+                    self.UP_CARD.pool_img,
                 ]
             )

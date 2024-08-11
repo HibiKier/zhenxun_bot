@@ -8,7 +8,6 @@ from nonebot_plugin_alconna import (
     on_alconna,
     store_true,
 )
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
@@ -160,4 +159,4 @@ async def _(
         else:
             await MessageUtils.build_message(result).send()
     else:
-        await Text("获取数据失败...").send()
+        await MessageUtils.build_message("获取数据失败...").send()

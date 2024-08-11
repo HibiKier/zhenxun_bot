@@ -4,12 +4,13 @@ from urllib.parse import unquote
 import dateparser
 import ujson as json
 from lxml import etree
-from nonebot_plugin_saa import Image, MessageFactory, Text
+from nonebot_plugin_alconna import UniMessage
 from PIL import ImageDraw
 from pydantic import ValidationError
 
 from zhenxun.services.log import logger
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.message import MessageUtils
 
 from ..config import draw_config
 from ..util import cn2py, load_font, remove_prohibited_str
@@ -97,13 +98,13 @@ class AzurHandle(BaseHandle[AzurChar]):
             )
         return acquire_char
 
-    async def draw(self, count: int, **kwargs) -> MessageFactory:
+    async def draw(self, count: int, **kwargs) -> UniMessage:
         index2card = self.get_cards(count, **kwargs)
         cards = [card[0] for card in index2card]
         up_list = [x.name for x in self.UP_EVENT.up_char] if self.UP_EVENT else []
         result = self.format_result(index2card, **{**kwargs, "up_list": up_list})
         gen_img = await self.generate_img(cards)
-        return MessageFactory([Image(gen_img.pic2bytes()), Text(result)])
+        return MessageUtils.build_message([gen_img.pic2bytes(), result])
 
     async def generate_card_img(self, card: AzurChar) -> BuildImage:
         sep_w = 5
@@ -298,10 +299,10 @@ class AzurHandle(BaseHandle[AzurChar]):
         except Exception as e:
             logger.warning(f"{self.game_name_cn}UP更新出错", e=e)
 
-    async def _reload_pool(self) -> MessageFactory | None:
+    async def _reload_pool(self) -> UniMessage | None:
         await self.update_up_char()
         self.load_up_char()
         if self.UP_EVENT:
-            return MessageFactory(
-                [Text(f"重载成功！\n当前活动：{self.UP_EVENT.title}")]
+            return MessageUtils.build_message(
+                f"重载成功！\n当前活动：{self.UP_EVENT.title}"
             )

@@ -4,12 +4,12 @@ from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot_plugin_alconna import Alconna, on_alconna
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.rules import admin_check, ensure_group
 
 __plugin_meta__ = PluginMetadata(
@@ -70,13 +70,13 @@ async def _(
         msg = ["{user_id} {nickname}".format_map(g) for g in fl]
         msg = "\n".join(msg)
         msg = f"| UID | 昵称 | 共{len(fl)}个好友\n" + msg
-        await Text(msg).send()
+        await MessageUtils.build_message(msg).send()
         logger.info("查看好友列表", "好友列表", session=session)
     except (ApiNotAvailable, AttributeError) as e:
-        await Text("Api未实现...").send()
+        await MessageUtils.build_message("Api未实现...").send()
     except Exception as e:
         logger.error("好友列表发生错误", "好友列表", session=session, e=e)
-        await Text("其他未知错误...").send()
+        await MessageUtils.build_message("其他未知错误...").send()
 
 
 @_group_matcher.handle()
@@ -90,10 +90,10 @@ async def _(
         msg = ["{group_id} {group_name}".format_map(g) for g in gl]
         msg = "\n".join(msg)
         msg = f"| GID | 名称 | 共{len(gl)}个群组\n" + msg
-        await Text(msg).send()
+        await MessageUtils.build_message(msg).send()
         logger.info("查看群组列表", "群组列表", session=session)
     except (ApiNotAvailable, AttributeError) as e:
-        await Text("Api未实现...").send()
+        await MessageUtils.build_message("Api未实现...").send()
     except Exception as e:
         logger.error("查看群组列表发生错误", "群组列表", session=session, e=e)
-        await Text("其他未知错误...").send()
+        await MessageUtils.build_message("其他未知错误...").send()

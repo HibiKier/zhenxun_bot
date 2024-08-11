@@ -3,11 +3,11 @@ from asyncio.exceptions import TimeoutError
 from httpx import ConnectTimeout
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, on_alconna
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.rules import ensure_private
 
 from .data_source import get_bt_info
@@ -58,7 +58,7 @@ async def _(
         async for title, type_, create_time, file_size, link in get_bt_info(
             keyword, page.result if page.available else 1
         ):
-            await Text(
+            await MessageUtils.build_message(
                 f"标题：{title}\n"
                 f"类型：{type_}\n"
                 f"创建时间：{create_time}\n"
@@ -67,12 +67,12 @@ async def _(
             ).send()
             send_flag = True
     except (TimeoutError, ConnectTimeout):
-        await Text(f"搜索 {keyword} 超时...").finish()
+        await MessageUtils.build_message(f"搜索 {keyword} 超时...").finish()
     except Exception as e:
         logger.error(f"bt 错误", arparma.header_result, session=session, e=e)
-        await Text(f"bt 其他未知错误..").finish()
+        await MessageUtils.build_message(f"bt 其他未知错误..").finish()
     if not send_flag:
-        await Text(f"{keyword} 未搜索到...").send()
+        await MessageUtils.build_message(f"{keyword} 未搜索到...").send()
     logger.info(
         f"BT搜索 {keyword} 第 {page} 页", arparma.header_result, session=session
     )

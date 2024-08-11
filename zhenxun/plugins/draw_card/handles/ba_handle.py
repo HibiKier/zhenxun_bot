@@ -61,8 +61,10 @@ class BaHandle(BaseHandle[BaChar]):
         bar_h = 20
         bar_w = 90
         bg = BuildImage(img_w + sep_w * 2, img_h + font_h + sep_h * 2, color="#EFF2F5")
-        img_path = str(self.img_path / f"{cn2py(card.name)}.png")
-        img = BuildImage(img_w, img_h, background=img_path)
+        img_path = self.img_path / f"{cn2py(card.name)}.png"
+        img = BuildImage(
+            img_w, img_h, background=img_path if img_path.exists() else None
+        )
         bar = BuildImage(bar_w, bar_h, color="#6495ED")
         await bg.paste(img, (sep_w, sep_h))
         await bg.paste(bar, (sep_w, img_h - bar_h + sep_h))

@@ -2,7 +2,6 @@ from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
-from nonebot_plugin_saa import Image
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData

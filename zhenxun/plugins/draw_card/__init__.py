@@ -13,11 +13,11 @@ from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot.typing import T_Handler
 from nonebot_plugin_apscheduler import scheduler
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.utils import PluginExtraData
+from zhenxun.utils.message import MessageUtils
 
 from .handles.azur_handle import AzurHandle
 from .handles.ba_handle import BaHandle
@@ -165,13 +165,17 @@ def create_matchers():
                 try:
                     num = int(cn2an(num, mode="smart"))
                 except ValueError:
-                    await Text("必！须！是！数！字！").finish(reply=True)
+                    await MessageUtils.build_message("必！须！是！数！字！").finish(
+                        reply_to=True
+                    )
             if unit == "井":
                 num *= game.max_count
             if num < 1:
-                await Text("虚空抽卡？？？").finish(reply=True)
+                await MessageUtils.build_message("虚空抽卡？？？").finish(reply_to=True)
             elif num > game.max_count:
-                await Text("一井都满不足不了你嘛！快爬开！").finish(reply=True)
+                await MessageUtils.build_message(
+                    "一井都满不足不了你嘛！快爬开！"
+                ).finish(reply_to=True)
             pool_name = (
                 pool_name.replace("池", "")
                 .replace("武器", "arms")
@@ -192,7 +196,7 @@ def create_matchers():
                 )
             except:
                 logger.warning(traceback.format_exc())
-                await Text("出错了...").finish(reply=True)
+                await MessageUtils.build_message("出错了...").finish(reply_to=True)
             await res.send()
 
         return handler
@@ -215,9 +219,9 @@ def create_matchers():
     def reset_handler(game: Game) -> T_Handler:
         async def handler(matcher: Matcher, session: EventSession):
             if not session.id1:
-                await Text("获取用户id失败...").finish()
+                await MessageUtils.build_message("获取用户id失败...").finish()
             if game.handle.reset_count(session.id1):
-                await Text("重置成功！").send()
+                await MessageUtils.build_message("重置成功！").send()
 
         return handler
 

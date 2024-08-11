@@ -2,11 +2,11 @@ from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma
 from nonebot_plugin_alconna import Image as alcImg
 from nonebot_plugin_alconna import Match, on_alconna
-from nonebot_plugin_saa import Image, Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 
 from .data_source import get_anime
 
@@ -41,11 +41,11 @@ async def _(
     image: alcImg,
 ):
     if not image.url:
-        await Text("图片url为空...").finish()
-    await Text("开始识别...").send()
+        await MessageUtils.build_message("图片url为空...").finish()
+    await MessageUtils.build_message("开始识别...").send()
     anime_data_report = await get_anime(image.url)
     if anime_data_report:
-        await Text(anime_data_report).send(reply=True)
+        await MessageUtils.build_message(anime_data_report).send(reply_to=True)
         logger.info(
             f" 识番 {image.url} --> {anime_data_report}",
             arparma.header_result,
@@ -55,4 +55,6 @@ async def _(
         logger.info(
             f"识番 {image.url} 未找到...", arparma.header_result, session=session
         )
-        await Text(f"没有寻找到该番剧，果咩..").send(reply=True)
+        await MessageUtils.build_message(f"没有寻找到该番剧，果咩..").send(
+            reply_to=True
+        )

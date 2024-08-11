@@ -1,8 +1,7 @@
 from nonebot.adapters import Bot
 from nonebot.exception import IgnoredException
 from nonebot.matcher import Matcher
-from nonebot_plugin_alconna import UniMsg
-from nonebot_plugin_saa import Mention, MessageFactory, Text
+from nonebot_plugin_alconna import At, UniMsg
 from nonebot_plugin_session import EventSession
 from pydantic import BaseModel
 from tortoise.exceptions import IntegrityError
@@ -22,6 +21,7 @@ from zhenxun.utils.enum import (
     PluginType,
 )
 from zhenxun.utils.exception import InsufficientGold
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.utils import CountLimiter, FreqLimiter, UserBlockLimiter
 
 
@@ -146,7 +146,7 @@ class LimitManage:
                 key_type = channel_id or group_id
             if is_limit and not limiter.check(key_type):
                 if limit.result:
-                    await Text(limit.result).send()
+                    await MessageUtils.build_message(limit.result).send()
                 logger.debug(
                     f"{limit.module}({limit.limit_type}) 正在限制中...",
                     "HOOK",
@@ -296,7 +296,9 @@ class AuthChecker:
                     """超级用户群组插件状态"""
                     if self._flmt_s.check(group_id or user_id):
                         self._flmt_s.start_cd(group_id or user_id)
-                        await Text("超级管理员禁用了该群此功能...").send(reply=True)
+                        await MessageUtils.build_message(
+                            "超级管理员禁用了该群此功能..."
+                        ).send(reply_to=True)
                     logger.debug(
                         f"{plugin.name}({plugin.module}) 超级管理员禁用了该群此功能...",
                         "HOOK",
@@ -309,7 +311,9 @@ class AuthChecker:
                     """群组插件状态"""
                     if self._flmt_s.check(group_id or user_id):
                         self._flmt_s.start_cd(group_id or user_id)
-                        await Text("该群未开启此功能...").send(reply=True)
+                        await MessageUtils.build_message("该群未开启此功能...").send(
+                            reply_to=True
+                        )
                     logger.debug(
                         f"{plugin.name}({plugin.module}) 未开启此功能...",
                         "HOOK",
@@ -321,7 +325,9 @@ class AuthChecker:
                     try:
                         if self._flmt_c.check(group_id):
                             self._flmt_c.start_cd(group_id)
-                            await Text("该功能在群组中已被禁用...").send(reply=True)
+                            await MessageUtils.build_message(
+                                "该功能在群组中已被禁用..."
+                            ).send(reply_to=True)
                     except Exception as e:
                         logger.error(
                             "auth_plugin 发送消息失败", "HOOK", session=session, e=e
@@ -338,7 +344,9 @@ class AuthChecker:
                     try:
                         if self._flmt_c.check(user_id):
                             self._flmt_c.start_cd(user_id)
-                            await Text("该功能在私聊中已被禁用...").send()
+                            await MessageUtils.build_message(
+                                "该功能在私聊中已被禁用..."
+                            ).send()
                     except Exception as e:
                         logger.error(
                             "auth_admin 发送消息失败", "HOOK", session=session, e=e
@@ -356,7 +364,7 @@ class AuthChecker:
                         raise IsSuperuserException()
                 if self._flmt_s.check(group_id or user_id):
                     self._flmt_s.start_cd(group_id or user_id)
-                    await Text("全局未开启此功能...").send()
+                    await MessageUtils.build_message("全局未开启此功能...").send()
                 logger.debug(
                     f"{plugin.name}({plugin.module}) 全局未开启此功能...",
                     "HOOK",
@@ -381,14 +389,12 @@ class AuthChecker:
                     try:
                         if self._flmt.check(user_id):
                             self._flmt.start_cd(user_id)
-                            await MessageFactory(
+                            await MessageUtils.build_message(
                                 [
-                                    Mention(user_id),
-                                    Text(
-                                        f"你的权限不足喔，该功能需要的权限等级: {plugin.admin_level}"
-                                    ),
+                                    At(flag="user", target=user_id),
+                                    f"你的权限不足喔，该功能需要的权限等级: {plugin.admin_level}",
                                 ]
-                            ).send(reply=True)
+                            ).send(reply_to=True)
                     except Exception as e:
                         logger.error(
                             "auth_admin 发送消息失败", "HOOK", session=session, e=e
@@ -402,7 +408,7 @@ class AuthChecker:
             else:
                 if not await LevelUser.check_level(user_id, None, plugin.admin_level):
                     try:
-                        await Text(
+                        await MessageUtils.build_message(
                             f"你的权限不足喔，该功能需要的权限等级: {plugin.admin_level}"
                         ).send()
                     except Exception as e:
@@ -428,9 +434,7 @@ class AuthChecker:
         """
         if group_id := session.id3 or session.id2:
             text = message.extract_plain_text()
-            group = await GroupConsole.get_or_none(
-                group_id=group_id, channel_id__isnull=True
-            )
+            group = await GroupConsole.get_group(group_id)
             if not group:
                 """群不存在"""
                 raise IgnoredException("群不存在")
@@ -468,7 +472,9 @@ class AuthChecker:
         if user.gold < plugin.cost_gold:
             """插件消耗金币不足"""
             try:
-                await Text(f"金币不足..该功能需要{plugin.cost_gold}金币..").send()
+                await MessageUtils.build_message(
+                    f"金币不足..该功能需要{plugin.cost_gold}金币.."
+                ).send()
             except Exception as e:
                 logger.error("auth_cost 发送消息失败", "HOOK", session=session, e=e)
             logger.debug(

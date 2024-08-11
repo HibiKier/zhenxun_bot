@@ -1,10 +1,10 @@
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
-from nonebot_plugin_saa import Text
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import get_data
 
@@ -36,13 +36,13 @@ async def _(session: EventSession, arparma: Arparma):
     try:
         data, code = await get_data(url)
         if code != 200 and isinstance(data, str):
-            await Text(data).finish(reply=True)
-        await Text(data["data"]["content"]).send(reply=True)  # type: ignore
+            await MessageUtils.build_message(data).finish(reply_to=True)
+        await MessageUtils.build_message(data["data"]["content"]).send(reply_to=True)  # type: ignore
         logger.info(
             f" 发送鸡汤:" + data["data"]["content"],  # type:ignore
             arparma.header_result,
             session=session,
         )
     except Exception as e:
-        await Text("鸡汤煮坏掉了...").send()
+        await MessageUtils.build_message("鸡汤煮坏掉了...").send()
         logger.error(f"鸡汤煮坏掉了", e=e)

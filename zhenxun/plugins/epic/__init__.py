@@ -2,13 +2,12 @@ from nonebot.adapters import Bot
 from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
-from nonebot_plugin_apscheduler import scheduler
-from nonebot_plugin_saa import MessageFactory, Text
+from nonebot_plugin_alconna import Alconna, Arparma, UniMessage, on_alconna
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
+from zhenxun.utils.message import MessageUtils
 
 from .data_source import get_epic_free
 
@@ -33,9 +32,9 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma):
     type_ = "Group" if gid else "Private"
     msg_list, code = await get_epic_free(bot, type_)
     if code == 404 and isinstance(msg_list, str):
-        await Text(msg_list).finish()
+        await MessageUtils.build_message(msg_list).finish()
     elif isinstance(bot, (v11Bot, v12Bot)) and isinstance(msg_list, list):
         await bot.send_group_forward_msg(group_id=gid, messages=msg_list)
-    elif isinstance(msg_list, MessageFactory):
+    elif isinstance(msg_list, UniMessage):
         await msg_list.send()
     logger.info(f"获取epic免费游戏", arparma.header_result, session=session)
