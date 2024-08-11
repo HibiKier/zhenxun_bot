@@ -4,9 +4,7 @@ from nonebot.adapters import Bot
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import At as alcAt
-from nonebot_plugin_alconna import Target
-from nonebot_plugin_alconna import Text as alcText
-from nonebot_plugin_alconna import UniMsg
+from nonebot_plugin_alconna import Target, Text, UniMsg
 from nonebot_plugin_session import EventSession
 from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 
@@ -58,7 +56,7 @@ async def _(
     user_info: UserInfo = EventUserInfo(),
 ):
     if session.id1:
-        message[0] = alcText(str(message[0]).replace("滴滴滴-", "", 1))
+        message[0] = Text(str(message[0]).replace("滴滴滴-", "", 1))
         platform = PlatformUtils.get_platform(bot)
         try:
             superuser_id = config.platform_superusers["qq"][0]
@@ -81,12 +79,12 @@ async def _(
         logger.info(
             f"发送消息至{platform}管理员: {message}", "滴滴滴-", session=session
         )
-        message.insert(0, alcText("消息:\n"))
+        message.insert(0, Text("消息:\n"))
         if gid:
-            message.insert(0, alcText(f"群组: {group_name}({gid})\n"))
-        message.insert(0, alcText(f"昵称: {uname}({session.id1})\n"))
-        message.insert(0, alcText(f"Id: {DialogueManage._index}\n"))
-        message.insert(0, alcText("*****一份交流报告*****\n"))
+            message.insert(0, Text(f"群组: {group_name}({gid})\n"))
+        message.insert(0, Text(f"昵称: {uname}({session.id1})\n"))
+        message.insert(0, Text(f"Id: {DialogueManage._index}\n"))
+        message.insert(0, Text("*****一份交流报告*****\n"))
         DialogueManage.add(uname, session.id1, gid, group_name, message, platform)
         await message.send(bot=bot, target=Target(superuser_id, private=True))
         await MessageUtils.build_message("已成功发送给管理员啦!").send(reply_to=True)
@@ -100,7 +98,7 @@ async def _(
     message: UniMsg,
     session: EventSession,
 ):
-    message[0] = alcText(str(message[0]).replace("/t", "", 1).strip())
+    message[0] = Text(str(message[0]).replace("/t", "", 1).strip())
     if session.id1:
         msg = message.extract_plain_text()
         if not msg:
@@ -127,14 +125,12 @@ async def _(
                             group_id = model.group_id
                         else:
                             return MessageUtils.build_message("未获取此id数据").finish()
-                        message[0] = alcText(" ".join(str(message[0]).split(" ")[1:]))
+                        message[0] = Text(" ".join(str(message[0]).split(" ")[1:]))
                     else:
                         user_id = 0
                         if msg[1].isdigit():
                             group_id = msg[1]
-                            message[0] = alcText(
-                                " ".join(str(message[0]).split(" ")[2:])
-                            )
+                            message[0] = Text(" ".join(str(message[0]).split(" ")[2:]))
                         else:
                             await MessageUtils.build_message("群组id错误...").finish(
                                 at_sender=True
@@ -144,16 +140,16 @@ async def _(
                     user_id = msg[0]
                     if msg[1].isdigit() and len(msg[1]) > 5:
                         group_id = msg[1]
-                        message[0] = alcText(" ".join(str(message[0]).split(" ")[2:]))
+                        message[0] = Text(" ".join(str(message[0]).split(" ")[2:]))
                     else:
                         group_id = 0
-                        message[0] = alcText(" ".join(str(message[0]).split(" ")[1:]))
+                        message[0] = Text(" ".join(str(message[0]).split(" ")[1:]))
             else:
                 await MessageUtils.build_message("参数错误...").finish(at_sender=True)
             if group_id:
                 if user_id:
                     message.insert(0, alcAt("user", user_id))
-                    message.insert(1, "\n管理员回复\n=======\n")
+                    message.insert(1, Text("\n管理员回复\n=======\n"))
                 await message.send(Target(group_id), bot)
                 await MessageUtils.build_message("消息发送成功!").finish(at_sender=True)
             elif user_id:
