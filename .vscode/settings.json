@@ -1,0 +1,29 @@
+{
+  "C_Cpp.errorSquiggles": "enabled",
+  "terminal.integrated.env.linux": {
+    "PYTHONPATH": "${workspaceFolder}${pathSeparator}${env:PYTHONPATH}"
+  },
+  "cSpell.words": [
+    "aiofiles",
+    "Alconna",
+    "arclet",
+    "Arparma",
+    "displayname",
+    "flmt",
+    "getbbox",
+    "hibiapi",
+    "httpx",
+    "kaiheila",
+    "lolicon",
+    "nonebot",
+    "onebot",
+    "pixiv",
+    "Setu",
+    "tobytes",
+    "ujson",
+    "unban",
+    "userinfo",
+    "zhenxun"
+  ],
+  "python.analysis.autoImportCompletions": true
+}
