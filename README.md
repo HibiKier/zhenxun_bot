@@ -1,4 +1,4 @@
-<div align=center><img width="320" height="320" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/tt.png"/></div>
+<div align=center><img width="320" height="320" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/tt.jpg"/></div>
 
 <div align=center>
 
