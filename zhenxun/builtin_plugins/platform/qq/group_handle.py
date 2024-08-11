@@ -231,7 +231,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
             """群欢迎消息"""
             _flmt.start_cd(group_id)
             path = DATA_PATH / "welcome_message" / "qq" / f"{group_id}"
-            data = json.load((path / "text.json").open())
+            data = json.load((path / "text.json").open(encoding="utf-8"))
             message = data["message"]
             msg_split = re.split(r"\[image:\d+\]", message)
             msg_list = []
