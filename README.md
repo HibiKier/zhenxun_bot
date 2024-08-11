@@ -24,7 +24,7 @@
 
 <div align=center>
 
-![文档](https://hibikier.github.io/zhenxun_bot/)
+[文档](https://hibikier.github.io/zhenxun_bot/)
 
 </div>
 
@@ -59,7 +59,7 @@
 ## 真寻觉得你需要帮助
 
 <div align=center>
-  
+
 <img width="400" height="400" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/help.png"/>
 <img width="250" height="500" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/html_help.png"/>
 
