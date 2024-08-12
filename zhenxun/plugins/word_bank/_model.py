@@ -123,13 +123,12 @@ class WordBank(Model):
         # 对图片做额外处理
         image_path = None
         if word_type == 3:
-            _file = (
-                path / "problem" / f"{group_id}" / f"{user_id}_{int(time.time())}.jpg"
-            )
+            _uuid = uuid.uuid1()
+            _file = path / "problem" / f"{group_id}" / f"{user_id}_{_uuid}.jpg"
             _file.parent.mkdir(exist_ok=True, parents=True)
             await AsyncHttpx.download_file(problem, _file)
             problem = get_img_hash(_file)
-            image_path = f"problem/{group_id}/{user_id}_{int(time.time())}.jpg"
+            image_path = f"problem/{group_id}/{user_id}_{_uuid}.jpg"
         new_answer, placeholder_list = await cls._answer2format(
             answer, user_id, group_id
         )

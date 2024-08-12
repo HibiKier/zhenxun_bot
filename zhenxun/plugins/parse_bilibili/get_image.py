@@ -1,5 +1,6 @@
 import os
 import re
+from pathlib import Path
 
 from nonebot_plugin_alconna import UniMessage
 
@@ -11,14 +12,14 @@ from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.user_agent import get_user_agent_str
 
 
-async def resize(path: str):
+async def resize(path: Path):
     """调整图像大小的异步函数
 
     参数:
         path (str): 图像文件路径
     """
-    A = BuildImage(background=path)
-    await A.resize(0.5)
+    A = BuildImage.open(path)
+    await A.resize(0.8)
     await A.save(path)
 
 
@@ -56,21 +57,18 @@ async def get_image(url) -> UniMessage | None:
 
     # 根据编号构建保存路径
     if cv_number:
-        screenshot_path = f"{TEMP_PATH}/bilibili_cv_{cv_number}.png"
+        screenshot_path = TEMP_PATH / "bilibili_cv_{cv_number}.png"
     elif opus_number:
-        screenshot_path = f"{TEMP_PATH}/bilibili_opus_{opus_number}.png"
+        screenshot_path = TEMP_PATH / "bilibili_opus_{opus_number}.png"
     elif t_opus_number:
-        screenshot_path = f"{TEMP_PATH}/bilibili_opus_{t_opus_number}.png"
+        screenshot_path = TEMP_PATH / "bilibili_opus_{t_opus_number}.png"
         # t.bilibili.com和https://www.bilibili.com/opus在内容上是一样的，为便于维护，调整url至https://www.bilibili.com/opus/
         url = f"https://www.bilibili.com/opus/{t_opus_number}"
-
     if screenshot_path:
         try:
             # 如果文件不存在，进行截图
-            if not os.path.exists(screenshot_path):
+            if not screenshot_path.exists():
                 # 创建页面
-                # random.choice(),从列表中随机抽取一个对象
-                user_agent = get_user_agent_str()
                 try:
                     async with AsyncPlaywright.new_page() as page:
                         await page.set_viewport_size({"width": 5120, "height": 2560})

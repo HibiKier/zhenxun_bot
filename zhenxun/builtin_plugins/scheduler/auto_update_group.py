@@ -17,7 +17,7 @@ async def _():
         try:
             await PlatformUtils.update_group(bot)
         except Exception as e:
-            logger.error(f"Bot: {bot.self_id} 自动更新群组信息", e=e)
+            logger.error(f"Bot: {bot.self_id} 自动更新群组信息", "自动更新群组", e=e)
     logger.info("自动更新群组成员信息成功...")
 
 
@@ -33,5 +33,7 @@ async def _():
         try:
             await PlatformUtils.update_friend(bot)
         except Exception as e:
-            logger.error(f"自动更新好友信息错误", "自动更新好友", e=e)
+            logger.error(
+                f"Bot: {bot.self_id} 自动更新好友信息错误", "自动更新好友", e=e
+            )
     logger.info("自动更新好友信息成功...")
