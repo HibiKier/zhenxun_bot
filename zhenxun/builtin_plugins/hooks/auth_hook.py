@@ -11,8 +11,16 @@ from ._auth_checker import LimitManage, checker
 
 # # 权限检测
 @run_preprocessor
-async def _(matcher: Matcher, bot: Bot, session: EventSession, message: UniMsg):
-    await checker.auth(matcher, bot, session, message)
+async def _(
+    matcher: Matcher, event: Event, bot: Bot, session: EventSession, message: UniMsg
+):
+    await checker.auth(
+        matcher,
+        event,
+        bot,
+        session,
+        message,
+    )
 
 
 # 解除命令block阻塞

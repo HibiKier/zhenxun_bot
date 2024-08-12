@@ -1,4 +1,5 @@
-from nonebot.adapters import Bot
+from nonebot.adapters import Bot, Event
+from nonebot.adapters.onebot.v11 import PokeNotifyEvent
 from nonebot.exception import IgnoredException
 from nonebot.matcher import Matcher
 from nonebot_plugin_alconna import At, UniMsg
@@ -183,6 +184,7 @@ class AuthChecker:
     async def auth(
         self,
         matcher: Matcher,
+        event: Event,
         bot: Bot,
         session: EventSession,
         message: UniMsg,
@@ -203,6 +205,9 @@ class AuthChecker:
         if not group_id:
             group_id = channel_id
             channel_id = None
+        if matcher.type == "notice" and not isinstance(event, PokeNotifyEvent):
+            """过滤除poke外的notice"""
+            return
         if user_id and matcher.plugin and (module_path := matcher.plugin.module_name):
             try:
                 user = await UserConsole.get_user(user_id, session.platform)
@@ -225,7 +230,7 @@ class AuthChecker:
                             raise IsSuperuserException()
                     await self.auth_group(plugin, session, message)
                     await self.auth_admin(plugin, session)
-                    await self.auth_plugin(plugin, session)
+                    await self.auth_plugin(plugin, session, event)
                     await self.auth_limit(plugin, session)
                 except IsSuperuserException:
                     logger.debug(
@@ -278,7 +283,9 @@ class AuthChecker:
                 plugin.module, user_id, group_id, channel_id, session
             )
 
-    async def auth_plugin(self, plugin: PluginInfo, session: EventSession):
+    async def auth_plugin(
+        self, plugin: PluginInfo, session: EventSession, event: Event
+    ):
         """插件状态
 
         参数:
@@ -288,6 +295,7 @@ class AuthChecker:
         user_id = session.id1
         group_id = session.id3
         channel_id = session.id2
+        is_poke = isinstance(event, PokeNotifyEvent)
         if not group_id:
             group_id = channel_id
             channel_id = None
@@ -297,7 +305,7 @@ class AuthChecker:
                     group_id, plugin.module, channel_id
                 ):
                     """超级用户群组插件状态"""
-                    if self._flmt_s.check(group_id or user_id):
+                    if self._flmt_s.check(group_id or user_id) and not is_poke:
                         self._flmt_s.start_cd(group_id or user_id)
                         await MessageUtils.build_message(
                             "超级管理员禁用了该群此功能..."
@@ -312,7 +320,7 @@ class AuthChecker:
                     group_id, plugin.module, channel_id
                 ):
                     """群组插件状态"""
-                    if self._flmt_s.check(group_id or user_id):
+                    if self._flmt_s.check(group_id or user_id) and not is_poke:
                         self._flmt_s.start_cd(group_id or user_id)
                         await MessageUtils.build_message("该群未开启此功能...").send(
                             reply_to=True
@@ -326,7 +334,7 @@ class AuthChecker:
                 if not plugin.status and plugin.block_type == BlockType.GROUP:
                     """全局群组禁用"""
                     try:
-                        if self._flmt_c.check(group_id):
+                        if self._flmt_c.check(group_id) and not is_poke:
                             self._flmt_c.start_cd(group_id)
                             await MessageUtils.build_message(
                                 "该功能在群组中已被禁用..."
@@ -345,7 +353,7 @@ class AuthChecker:
                 if not plugin.status and plugin.block_type == BlockType.PRIVATE:
                     """全局私聊禁用"""
                     try:
-                        if self._flmt_c.check(user_id):
+                        if self._flmt_c.check(user_id) and not is_poke:
                             self._flmt_c.start_cd(user_id)
                             await MessageUtils.build_message(
                                 "该功能在私聊中已被禁用..."
@@ -365,14 +373,14 @@ class AuthChecker:
                 if group_id:
                     if await GroupConsole.is_super_group(group_id, channel_id):
                         raise IsSuperuserException()
-                if self._flmt_s.check(group_id or user_id):
-                    self._flmt_s.start_cd(group_id or user_id)
-                    await MessageUtils.build_message("全局未开启此功能...").send()
                 logger.debug(
                     f"{plugin.name}({plugin.module}) 全局未开启此功能...",
                     "HOOK",
                     session=session,
                 )
+                if self._flmt_s.check(group_id or user_id) and not is_poke:
+                    self._flmt_s.start_cd(group_id or user_id)
+                    await MessageUtils.build_message("全局未开启此功能...").send()
                 raise IgnoredException("全局未开启此功能...")
 
     async def auth_admin(self, plugin: PluginInfo, session: EventSession):
