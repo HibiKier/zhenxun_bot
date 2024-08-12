@@ -50,11 +50,4 @@ class InformationContainer:
                 setattr(self, f"_{info_type}", new_value)
 
     def get_information(self):
-        return (
-            self.vd_info,
-            self.live_info,
-            self.vd_url,
-            self.live_url,
-            self.image_info,
-            self.image_url,
-        )
+        return self

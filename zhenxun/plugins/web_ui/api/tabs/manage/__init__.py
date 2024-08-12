@@ -27,6 +27,7 @@ from ....config import AVA_URL, GROUP_AVA_URL
 from ....utils import authentication
 from ...logs.log_manager import LOG_STORAGE
 from .model import (
+    ClearRequest,
     DeleteFriend,
     Friend,
     FriendRequestResult,
@@ -143,8 +144,12 @@ async def _(bot_id: str) -> Result:
     "/get_request_count", dependencies=[authentication()], description="获取请求数量"
 )
 async def _() -> Result:
-    f_count = await FgRequest.filter(request_type=RequestType.FRIEND).count()
-    g_count = await FgRequest.filter(request_type=RequestType.GROUP).count()
+    f_count = await FgRequest.filter(
+        request_type=RequestType.FRIEND, handle_type__isnull=True
+    ).count()
+    g_count = await FgRequest.filter(
+        request_type=RequestType.GROUP, handle_type__isnull=True
+    ).count()
     data = {
         "friend_count": f_count,
         "group_count": g_count,
@@ -196,13 +201,13 @@ async def _() -> Result:
     return Result.ok(req_result, f"{NICKNAME}带来了最新的数据!")
 
 
-@router.delete(
+@router.post(
     "/clear_request", dependencies=[authentication()], description="清空请求列表"
 )
-async def _(request_type: Literal["private", "group"]) -> Result:
-    await FgRequest.filter(handle_type__not_isnull=True).update(
-        handle_type=RequestHandleType.IGNORE
-    )
+async def _(cr: ClearRequest) -> Result:
+    await FgRequest.filter(
+        handle_type__isnull=True, request_type=cr.request_type
+    ).update(handle_type=RequestHandleType.IGNORE)
     return Result.ok(info="成功清除了数据!")
 
 

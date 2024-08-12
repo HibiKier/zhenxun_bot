@@ -2,6 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from zhenxun.utils.enum import RequestType
+
 
 class Group(BaseModel):
     """
@@ -121,6 +123,14 @@ class GroupRequestResult(FriendRequestResult):
     """邀请群聊"""
     group_name: str | None
     """群聊名称"""
+
+
+class ClearRequest(BaseModel):
+    """
+    清空请求
+    """
+
+    request_type: RequestType
 
 
 class HandleRequest(BaseModel):

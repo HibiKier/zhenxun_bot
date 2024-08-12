@@ -1,8 +1,10 @@
+import nonebot
 from nonebot import on_notice
 from nonebot.adapters import Bot
 from nonebot.adapters.onebot.v11 import GroupIncreaseNoticeEvent
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
+from nonebot_plugin_apscheduler import scheduler
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import NICKNAME
@@ -10,6 +12,7 @@ from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.message import MessageUtils
+from zhenxun.utils.platform import PlatformUtils
 from zhenxun.utils.rules import admin_check, ensure_group
 
 from ._data_source import MemberUpdateManage
@@ -39,6 +42,9 @@ _matcher = on_alconna(
 )
 
 
+_notice = on_notice(priority=1, block=False)
+
+
 @_matcher.handle()
 async def _(bot: Bot, session: EventSession, arparma: Arparma):
     if gid := session.id3 or session.id2:
@@ -48,9 +54,6 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma):
             reply_to=True
         )
     await MessageUtils.build_message("群组id为空...").send()
-
-
-_notice = on_notice(priority=1, block=False)
 
 
 @_notice.handle()
@@ -64,3 +67,28 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
             session=event.user_id,
             group_id=event.group_id,
         )
+
+
+@scheduler.scheduled_job(
+    "interval",
+    minutes=5,
+)
+async def _():
+    for bot in nonebot.get_bots().values():
+        if PlatformUtils.get_platform(bot) == "qq":
+            try:
+                group_list, _ = await PlatformUtils.get_group_list(bot)
+                if group_list:
+                    for group in group_list:
+                        try:
+                            await MemberUpdateManage.update(bot, group.group_id)
+                            logger.debug("自动更新群组成员信息成功...")
+                        except Exception as e:
+                            logger.error(
+                                f"Bot: {bot.self_id} 自动更新群组成员信息成功",
+                                target=group.group_id,
+                                e=e,
+                            )
+            except Exception as e:
+                logger.error(f"Bot: {bot.self_id} 自动更新群组信息", e=e)
+        logger.debug(f"自动 Bot: {bot.self_id} 更新群组成员信息成功...")

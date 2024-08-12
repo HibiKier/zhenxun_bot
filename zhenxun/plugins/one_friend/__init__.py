@@ -3,9 +3,7 @@ from io import BytesIO
 
 from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_alconna import Alconna, Args
-from nonebot_plugin_alconna import At as alcAt
-from nonebot_plugin_alconna import Match, on_alconna
+from nonebot_plugin_alconna import Alconna, Args, At, Match, on_alconna
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData
@@ -29,7 +27,7 @@ __plugin_meta__ = PluginMetadata(
 )
 
 _matcher = on_alconna(
-    Alconna("one-friend", Args["text", str]["at?", alcAt]), priority=5, block=True
+    Alconna("one-friend", Args["text", str]["at?", At]), priority=5, block=True
 )
 
 _matcher.shortcut(
@@ -41,7 +39,7 @@ _matcher.shortcut(
 
 
 @_matcher.handle()
-async def _(bot: Bot, text: str, at: Match[alcAt], session: EventSession):
+async def _(bot: Bot, text: str, at: Match[At], session: EventSession):
     gid = session.id3 or session.id2
     if not gid:
         await MessageUtils.build_message("群组id为空...").finish()

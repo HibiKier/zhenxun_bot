@@ -115,27 +115,28 @@ async def _(session: EventSession, message: UniMsg):
 
     if get_url:
         # 将链接统一发送给处理函数
-        vd_info, live_info, vd_url, live_url, image_info, image_url = (
-            await parse_bili_url(get_url, information_container)
-        )
-        if vd_info:
+        data = await parse_bili_url(get_url, information_container)
+        if data.vd_info:
             # 判断一定时间内是否解析重复内容，或者是第一次解析
             if (
-                vd_url in _tmp.keys() and time.time() - _tmp[vd_url] > repet_second
-            ) or vd_url not in _tmp.keys():
-                pic = vd_info.get("pic", "")  # 封面
-                aid = vd_info.get("aid", "")  # av号
-                title = vd_info.get("title", "")  # 标题
-                author = vd_info.get("owner", {}).get("name", "")  # UP主
-                reply = vd_info.get("stat", {}).get("reply", "")  # 回复
-                favorite = vd_info.get("stat", {}).get("favorite", "")  # 收藏
-                coin = vd_info.get("stat", {}).get("coin", "")  # 投币
-                like = vd_info.get("stat", {}).get("like", "")  # 点赞
-                danmuku = vd_info.get("stat", {}).get("danmaku", "")  # 弹幕
-                ctime = vd_info["ctime"]
+                data.vd_url in _tmp.keys()
+                and time.time() - _tmp[data.vd_url] > repet_second
+            ) or data.vd_url not in _tmp.keys():
+                pic = data.vd_info.get("pic", "")  # 封面
+                aid = data.vd_info.get("aid", "")  # av号
+                title = data.vd_info.get("title", "")  # 标题
+                author = data.vd_info.get("owner", {}).get("name", "")  # UP主
+                reply = data.vd_info.get("stat", {}).get("reply", "")  # 回复
+                favorite = data.vd_info.get("stat", {}).get("favorite", "")  # 收藏
+                coin = data.vd_info.get("stat", {}).get("coin", "")  # 投币
+                like = data.vd_info.get("stat", {}).get("like", "")  # 点赞
+                danmuku = data.vd_info.get("stat", {}).get("danmaku", "")  # 弹幕
+                ctime = data.vd_info["ctime"]
                 date = time.strftime("%Y-%m-%d", time.localtime(ctime))
-                logger.info(f"解析bilibili转发 {vd_url}", "b站解析", session=session)
-                _tmp[vd_url] = time.time()
+                logger.info(
+                    f"解析bilibili转发 {data.vd_url}", "b站解析", session=session
+                )
+                _tmp[data.vd_url] = time.time()
                 _path = TEMP_PATH / f"{aid}.jpg"
                 await AsyncHttpx.download_file(pic, _path)
                 await MessageUtils.build_message(
@@ -145,33 +146,40 @@ async def _(session: EventSession, message: UniMsg):
                     ]
                 ).send()
 
-        elif live_info:
+        elif data.live_info:
             if (
-                live_url in _tmp.keys() and time.time() - _tmp[live_url] > repet_second
-            ) or live_url not in _tmp.keys():
-                uid = live_info.get("uid", "")  # 主播uid
-                title = live_info.get("title", "")  # 直播间标题
-                description = live_info.get("description", "")  # 简介，可能会出现标签
-                user_cover = live_info.get("user_cover", "")  # 封面
-                keyframe = live_info.get("keyframe", "")  # 关键帧画面
-                live_time = live_info.get("live_time", "")  # 开播时间
-                area_name = live_info.get("area_name", "")  # 分区
-                parent_area_name = live_info.get("parent_area_name", "")  # 父分区
-                logger.info(f"解析bilibili转发 {live_url}", "b站解析", session=session)
-                _tmp[live_url] = time.time()
+                data.live_url in _tmp.keys()
+                and time.time() - _tmp[data.live_url] > repet_second
+            ) or data.live_url not in _tmp.keys():
+                uid = data.live_info.get("uid", "")  # 主播uid
+                title = data.live_info.get("title", "")  # 直播间标题
+                description = data.live_info.get(
+                    "description", ""
+                )  # 简介，可能会出现标签
+                user_cover = data.live_info.get("user_cover", "")  # 封面
+                keyframe = data.live_info.get("keyframe", "")  # 关键帧画面
+                live_time = data.live_info.get("live_time", "")  # 开播时间
+                area_name = data.live_info.get("area_name", "")  # 分区
+                parent_area_name = data.live_info.get("parent_area_name", "")  # 父分区
+                logger.info(
+                    f"解析bilibili转发 {data.live_url}", "b站解析", session=session
+                )
+                _tmp[data.live_url] = time.time()
                 await MessageUtils.build_message(
                     [
                         Image(url=user_cover),
                         f"开播用户：https://space.bilibili.com/{uid}\n开播时间：{live_time}\n直播分区：{parent_area_name}——>{area_name}\n标题：{title}\n简介：{description}\n直播截图：\n",
                         Image(url=keyframe),
-                        f"{live_url}",
+                        f"{data.live_url}",
                     ]
                 ).send()
-        elif image_info:
+        elif data.image_info:
             if (
-                image_url in _tmp.keys()
-                and time.time() - _tmp[image_url] > repet_second
-            ) or image_url not in _tmp.keys():
-                logger.info(f"解析bilibili转发 {image_url}", "b站解析", session=session)
-                _tmp[image_url] = time.time()
-                await image_info.send()
+                data.image_url in _tmp.keys()
+                and time.time() - _tmp[data.image_url] > repet_second
+            ) or data.image_url not in _tmp.keys():
+                logger.info(
+                    f"解析bilibili转发 {data.image_url}", "b站解析", session=session
+                )
+                _tmp[data.image_url] = time.time()
+                await data.image_info.send()

@@ -236,6 +236,9 @@ class AuthChecker:
                     LimitManage.unblock(
                         matcher.plugin.name, user_id, group_id, channel_id
                     )
+                except AssertionError as e:
+                    is_ignore = True
+                    logger.debug("消息无法发送", session=session, e=e)
         if cost_gold and user_id:
             """花费金币"""
             try:
