@@ -2,11 +2,7 @@ import asyncio
 
 import nonebot
 from fastapi import APIRouter, FastAPI
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent
 from nonebot.log import default_filter, default_format
-from nonebot.matcher import Matcher
-from nonebot.message import run_preprocessor
-from nonebot.typing import T_State
 
 from zhenxun.configs.config import Config as gConfig
 from zhenxun.services.log import logger, logger_
@@ -17,7 +13,7 @@ from .api.tabs.database import router as database_router
 from .api.tabs.main import router as main_router
 from .api.tabs.main import ws_router as status_routes
 from .api.tabs.manage import router as manage_router
-from .api.tabs.manage import ws_router as chat_routes
+from .api.tabs.manage.chat import ws_router as chat_routes
 from .api.tabs.plugin_manage import router as plugin_router
 from .api.tabs.system import router as system_router
 from .auth import router as auth_router

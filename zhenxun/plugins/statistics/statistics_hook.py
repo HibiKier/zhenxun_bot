@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from nonebot.adapters import Bot
+from nonebot.adapters import Bot, Event
+from nonebot.adapters.onebot.v11 import PokeNotifyEvent
 from nonebot.matcher import Matcher
 from nonebot.message import run_postprocessor
 from nonebot.plugin import PluginMetadata
@@ -23,10 +24,17 @@ __plugin_meta__ = PluginMetadata(
 
 @run_postprocessor
 async def _(
-    matcher: Matcher, exception: Exception | None, bot: Bot, session: EventSession
+    matcher: Matcher,
+    exception: Exception | None,
+    bot: Bot,
+    session: EventSession,
+    event: Event,
 ):
+    if matcher.type == "notice" and not isinstance(event, PokeNotifyEvent):
+        """过滤除poke外的notice"""
+        return
     if session.id1:
-        plugin = await PluginInfo.get_or_none(module=matcher.plugin_name)
+        plugin = await PluginInfo.get_or_none(module=matcher.module_name)
         plugin_type = plugin.plugin_type if plugin else None
         if plugin_type == PluginType.NORMAL and matcher.plugin_name not in [
             "update_info",
