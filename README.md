@@ -122,7 +122,7 @@ PS： **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可�
 
 ```
 # 获取代码
-git clone https://github.com/HibiKier/zhenxun.git
+git clone https://github.com/HibiKier/zhenxun_bot.git
 
 # 进入目录
 cd zhenxun_bot
@@ -134,6 +134,9 @@ poetry install          # 安装依赖
 # 开始运行
 poetry shell            # 进入虚拟环境
 python bot.py
+
+# 在Linux系统，你可能还需要运行此命令安装playwright依赖
+playwright install-deps
 
 # 首次后会在data目录下生成database.json和config.yaml文件
 # database.json用户配置数据库信息
@@ -387,9 +390,9 @@ python bot.py
 
 <!-- ### 2024/1/25
 
-* 重构webui -->
+* 重构webui
 
-<!-- ### 2023/12/28
+### 2023/12/28
 
 * 修复B站动态获取失败的时候，会发送空消息
 
