@@ -71,6 +71,8 @@ async def _(matcher: Matcher, bot: Bot, session: EventSession, state: T_State):
             extra = metadata.extra
             if extra.get("plugin_type") == PluginType.HIDDEN:
                 return
+        else:
+            return
     user_id = session.id1
     group_id = session.id3 or session.id2
     malicious_ban_time = Config.get_config("hook", "MALICIOUS_BAN_TIME")
