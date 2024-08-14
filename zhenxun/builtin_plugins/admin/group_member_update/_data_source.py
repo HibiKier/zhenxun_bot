@@ -105,6 +105,13 @@ class MemberUpdateManage:
                 ),
                 "%Y-%m-%d %H:%M:%S",
             )
+            cnt = await GroupInfoUser.filter(
+                user_id=str(user_id), group_id=group_id
+            ).count()
+            if cnt > 1:
+                await GroupInfoUser.filter(
+                    user_id=str(user_id), group_id=group_id
+                ).delete()
             await GroupInfoUser.update_or_create(
                 user_id=str(user_id),
                 group_id=group_id,

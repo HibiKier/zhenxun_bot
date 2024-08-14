@@ -85,7 +85,7 @@ async def _():
                             logger.debug("自动更新群组成员信息成功...")
                         except Exception as e:
                             logger.error(
-                                f"Bot: {bot.self_id} 自动更新群组成员信息成功",
+                                f"Bot: {bot.self_id} 自动更新群组成员信息失败",
                                 target=group.group_id,
                                 e=e,
                             )

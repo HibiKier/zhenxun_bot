@@ -3,9 +3,12 @@ import asyncio
 import nonebot
 from fastapi import APIRouter, FastAPI
 from nonebot.log import default_filter, default_format
+from nonebot.plugin import PluginMetadata
 
 from zhenxun.configs.config import Config as gConfig
+from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger, logger_
+from zhenxun.utils.enum import PluginType
 
 from .api.logs import router as ws_log_routes
 from .api.logs.log_manager import LOG_STORAGE
@@ -17,6 +20,16 @@ from .api.tabs.manage.chat import ws_router as chat_routes
 from .api.tabs.plugin_manage import router as plugin_router
 from .api.tabs.system import router as system_router
 from .auth import router as auth_router
+
+__plugin_meta__ = PluginMetadata(
+    name="WebUi",
+    description="WebUi API",
+    usage="""
+    """.strip(),
+    extra=PluginExtraData(
+        author="HibiKier", version="0.1", plugin_type=PluginType.HIDDEN
+    ).dict(),
+)
 
 driver = nonebot.get_driver()
 
