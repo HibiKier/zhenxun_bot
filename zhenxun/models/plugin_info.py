@@ -33,7 +33,7 @@ class PluginInfo(Model):
     """进群默认开关状态"""
     limit_superuser = fields.BooleanField(default=False, description="是否限制超级用户")
     """是否限制超级用户"""
-    menu_type = fields.CharField(max_length=255, default="功能", description="菜单类型")
+    menu_type = fields.CharField(max_length=255, default="", description="菜单类型")
     """菜单类型"""
     plugin_type = fields.CharEnumField(PluginType, null=True, description="插件类型")
     """插件类型"""
