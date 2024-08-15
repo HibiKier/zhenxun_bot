@@ -92,7 +92,7 @@ async def _(
     global ws_conn, ID2NAME, ID_LIST
     uid = session.id1
     gid = session.id3 or session.id2
-    if ws_conn and uid:
+    if ws_conn and ws_conn.client_state == WebSocketState.CONNECTED and uid:
         msg_id = event.message_id
         if msg_id in ID_LIST:
             return

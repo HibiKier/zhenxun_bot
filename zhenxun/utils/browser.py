@@ -4,8 +4,8 @@ import sys
 from nonebot import get_driver
 from playwright.__main__ import main
 from playwright.async_api import Browser, Playwright, async_playwright
-from zhenxun.configs.config import SYSTEM_PROXY
 
+from zhenxun.configs.config import SYSTEM_PROXY
 from zhenxun.services.log import logger
 
 driver = get_driver()
@@ -14,36 +14,37 @@ _playwright: Playwright | None = None
 _browser: Browser | None = None
 
 
-@driver.on_startup
-async def start_browser():
-    global _playwright
-    global _browser
-    install()
-    await check_playwright_env()
-    _playwright = await async_playwright().start()
-    _browser = await _playwright.chromium.launch()
+# @driver.on_startup
+# async def start_browser():
+#     global _playwright
+#     global _browser
+#     install()
+#     await check_playwright_env()
+#     _playwright = await async_playwright().start()
+#     _browser = await _playwright.chromium.launch()
 
 
-@driver.on_shutdown
-async def shutdown_browser():
-    if _browser:
-        await _browser.close()
-    if _playwright:
-        await _playwright.stop()  # type: ignore
+# @driver.on_shutdown
+# async def shutdown_browser():
+#     if _browser:
+#         await _browser.close()
+#     if _playwright:
+#         await _playwright.stop()  # type: ignore
 
 
-def get_browser() -> Browser:
-    if not _browser:
-        raise RuntimeError("playwright is not initalized")
-    return _browser
+# def get_browser() -> Browser:
+#     if not _browser:
+#         raise RuntimeError("playwright is not initalized")
+#     return _browser
 
 
 def install():
     """自动安装、更新 Chromium"""
 
     def set_env_variables():
-        os.environ[
-            "PLAYWRIGHT_DOWNLOAD_HOST"] = "https://npmmirror.com/mirrors/playwright/"
+        os.environ["PLAYWRIGHT_DOWNLOAD_HOST"] = (
+            "https://npmmirror.com/mirrors/playwright/"
+        )
         if SYSTEM_PROXY:
             os.environ["HTTPS_PROXY"] = SYSTEM_PROXY
 
