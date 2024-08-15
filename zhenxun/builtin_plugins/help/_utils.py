@@ -47,7 +47,9 @@ class HelpImageBuild:
         """
         if not self._data:
             self._data = await PluginInfo.filter(
-                plugin_type=PluginType.NORMAL, load_status=True
+                menu_type__not_isnull=True,
+                load_status=True,
+                plugin_type__in=[PluginType.NORMAL, PluginType.HIDDEN],
             )
         if not self._sort_data:
             for plugin in self._data:
