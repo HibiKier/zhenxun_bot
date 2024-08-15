@@ -10,6 +10,7 @@ from zhenxun.configs.path_config import IMAGE_PATH, RECORD_PATH
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.services.log import logger
+from zhenxun.utils.enum import PluginType
 from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.utils import CountLimiter
 
@@ -19,7 +20,12 @@ __plugin_meta__ = PluginMetadata(
     usage="""
     戳一戳随机掉落语音或美图萝莉图
     """.strip(),
-    extra=PluginExtraData(author="HibiKier", version="0.1", menu_type="其他").dict(),
+    extra=PluginExtraData(
+        author="HibiKier",
+        version="0.1",
+        menu_type="其他",
+        plugin_type=PluginType.HIDDEN,
+    ).dict(),
 )
 
 REPLY_MESSAGE = [
