@@ -88,49 +88,67 @@ class MemberUpdateManage:
         exist_member_list = []
         default_auth = Config.get_config("admin_bot_manage", "ADMIN_DEFAULT_AUTH")
         group_member_list = await bot.get_group_member_list(group_id=int(group_id))
+        db_user = await GroupInfoUser.filter(group_id=group_id).all()
+        db_user_uid = [u.user_id for u in db_user]
+        create_list = []
+        update_list = []
+        delete_list = []
         for user_info in group_member_list:
-            user_id = user_info["user_id"]
+            user_id = str(user_info["user_id"])
             nickname = user_info["card"] or user_info["nickname"]
             role = user_info["role"]
             if default_auth:
                 if role in ["owner", "admin"] and not await LevelUser.is_group_flag(
-                    str(user_id), group_id
+                    user_id, group_id
                 ):
                     await LevelUser.set_level(user_id, group_id, default_auth)
-            if str(user_id) in bot.config.superusers:
-                await LevelUser.set_level(str(user_id), group_id, 9)
+            if user_id in bot.config.superusers:
+                await LevelUser.set_level(user_id, group_id, 9)
             join_time = datetime.strptime(
                 time.strftime(
                     "%Y-%m-%d %H:%M:%S", time.localtime(user_info["join_time"])
                 ),
                 "%Y-%m-%d %H:%M:%S",
-            )
-            cnt = await GroupInfoUser.filter(
-                user_id=str(user_id), group_id=group_id
-            ).count()
-            if cnt > 1:
-                await GroupInfoUser.filter(
-                    user_id=str(user_id), group_id=group_id
-                ).delete()
-            await GroupInfoUser.update_or_create(
-                user_id=str(user_id),
-                group_id=group_id,
-                defaults={
-                    "user_name": nickname,
-                    "user_join_time": join_time.replace(
-                        tzinfo=timezone(timedelta(hours=8))
-                    ),
-                    "platform": "qq",
-                },
-            )
-            exist_member_list.append(str(user_id))
+            ).replace(tzinfo=timezone(timedelta(hours=8)))
+            if cnt := db_user_uid.count(user_id):
+                users = [u for u in db_user if u.user_id == user_id]
+                user = users[0]
+                if cnt > 1:
+                    for u in users[1:]:
+                        delete_list.append(u.id)
+                user.user_name = nickname
+                update_list.append(user)
+            else:
+                create_list.append(
+                    GroupInfoUser(
+                        user_id=user_id,
+                        group_id=group_id,
+                        user_name=nickname,
+                        user_join_time=join_time,
+                        platform="qq",
+                    )
+                )
+            exist_member_list.append(user_id)
             logger.debug(
                 "更新成功", "更新群组成员信息", session=user_id, group_id=group_id
             )
-        if delete_member_list := list(
-            set(exist_member_list).difference(
-                set(await GroupInfoUser.get_group_member_id_list(group_id))
+        if create_list:
+            await GroupInfoUser.bulk_create(create_list, 30)
+            logger.debug(
+                f"创建用户数据 {len(create_list)} 条",
+                "更新群组成员信息",
+                target=group_id,
             )
+        if update_list:
+            await GroupInfoUser.bulk_update(update_list, ["user_name"], 30)
+            logger.debug(
+                f"更新户数据 {len(update_list)} 条", "更新群组成员信息", target=group_id
+            )
+        if delete_list:
+            await GroupInfoUser.filter(id__in=delete_list).delete()
+            logger.debug(f"删除重复数据 Ids: {delete_list}", "更新群组成员信息")
+        if delete_member_list := list(
+            set(exist_member_list).difference(set(db_user_uid))
         ):
             await GroupInfoUser.filter(
                 user_id__in=delete_member_list, group_id=group_id

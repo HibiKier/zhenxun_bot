@@ -16,8 +16,8 @@
 
 
 [![license](https://img.shields.io/badge/license-AGPL3.0-FE7D37)](https://github.com/HibiKier/zhenxun_bot/blob/main/LICENSE)
-[![tencent-qq](https://img.shields.io/badge/%E7%BE%A4-是真寻酱哒-red?style=flat-square&logo=tencent-qq)](https://jq.qq.com/?_wv=1027&k=u8PgBkMZ)
-[![tencent-qq](https://img.shields.io/badge/%E7%BE%A4-真寻的技术群-c73e7e?style=flat-square&logo=tencent-qq)](https://jq.qq.com/?_wv=1027&k=u8PgBkMZ)
+[![tencent-qq](https://img.shields.io/badge/%E7%BE%A4-是真寻酱哒-red?style=logo=tencent-qq)](https://jq.qq.com/?_wv=1027&k=u8PgBkMZ)
+[![tencent-qq](https://img.shields.io/badge/%E7%BE%A4-真寻的技术群-c73e7e?style=logo=tencent-qq)](https://qm.qq.com/q/YYYt5rkMYc)
 
 
 </div>

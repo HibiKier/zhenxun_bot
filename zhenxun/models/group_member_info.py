@@ -1,10 +1,9 @@
 from typing import Set
 
 from tortoise import fields
-from zhenxun.configs.config import Config
 
+from zhenxun.configs.config import Config
 from zhenxun.services.db_context import Model
-from zhenxun.services.log import logger
 
 
 class GroupInfoUser(Model):
@@ -31,7 +30,7 @@ class GroupInfoUser(Model):
         unique_together = ("user_id", "group_id")
 
     @classmethod
-    async def get_group_member_id_list(cls, group_id: str) -> Set[int]:
+    async def get_all_uid(cls, group_id: str) -> Set[int]:
         """获取该群所有用户id
 
         参数:
@@ -98,7 +97,6 @@ class GroupInfoUser(Model):
                     return nickname
                 return user.nickname
         return ""
-
 
     @classmethod
     async def _run_script(cls):

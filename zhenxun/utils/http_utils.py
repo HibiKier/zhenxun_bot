@@ -8,8 +8,8 @@ import aiofiles
 import httpx
 import rich
 from httpx import ConnectTimeout, Response
-from nonebot import require
 from nonebot_plugin_alconna import UniMessage
+from nonebot_plugin_htmlrender import get_browser
 from playwright.async_api import Page
 from retrying import retry
 
@@ -18,7 +18,7 @@ from zhenxun.services.log import logger
 from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.user_agent import get_user_agent
 
-from .browser import get_browser
+# from .browser import get_browser
 
 
 class AsyncHttpx:
