@@ -163,7 +163,7 @@ class SignManage:
             gift = f"额外金币 +{gift}"
         else:
             await UserConsole.add_gold(user.user_id, gold, "sign_in", session.platform)
-            await UserConsole.add_props(user.user_id, gift, 1, session.platform)
+            await UserConsole.add_props_by_name(user.user_id, gift, 1, session.platform)
             gift += " + 1"
         logger.info(
             f"签到成功. score: {user.impression:.2f} "

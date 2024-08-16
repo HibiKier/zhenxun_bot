@@ -2,9 +2,10 @@ from typing import Dict
 
 from tortoise import fields
 
+from zhenxun.models.goods_info import GoodsInfo
 from zhenxun.services.db_context import Model
 from zhenxun.utils.enum import GoldHandle
-from zhenxun.utils.exception import InsufficientGold
+from zhenxun.utils.exception import GoodsNotFound, InsufficientGold
 
 from .user_gold_log import UserGoldLog
 
@@ -138,3 +139,19 @@ class UserConsole(Model):
             user.props[goods_uuid] = 0
         user.props[goods_uuid] += num
         await user.save(update_fields=["props"])
+
+    @classmethod
+    async def add_props_by_name(
+        cls, user_id: str, name: str, num: int = 1, platform: str | None = None
+    ):
+        """添加道具
+
+        参数:
+            user_id: 用户id
+            name: 道具名称
+            num: 道具数量.
+            platform: 平台.
+        """
+        if goods := await GoodsInfo.get_or_none(goods_name=name):
+            return await cls.add_props(user_id, goods.uuid, num, platform)
+        raise GoodsNotFound("未找到商品...")
