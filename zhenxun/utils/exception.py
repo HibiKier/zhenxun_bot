@@ -44,3 +44,11 @@ class NotFindSuperuser(Exception):
     """
 
     pass
+
+
+class GoodsNotFound(Exception):
+    """
+    或找到道具
+    """
+
+    pass

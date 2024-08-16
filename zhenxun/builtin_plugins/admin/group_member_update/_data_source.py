@@ -90,6 +90,7 @@ class MemberUpdateManage:
         group_member_list = await bot.get_group_member_list(group_id=int(group_id))
         db_user = await GroupInfoUser.filter(group_id=group_id).all()
         db_user_uid = [u.user_id for u in db_user]
+        uid2name = {u.user_id: u.user_name for u in db_user}
         create_list = []
         update_list = []
         delete_list = []
@@ -116,8 +117,9 @@ class MemberUpdateManage:
                 if cnt > 1:
                     for u in users[1:]:
                         delete_list.append(u.id)
-                user.user_name = nickname
-                update_list.append(user)
+                if nickname != uid2name.get(user_id):
+                    user.user_name = nickname
+                    update_list.append(user)
             else:
                 create_list.append(
                     GroupInfoUser(
@@ -129,9 +131,6 @@ class MemberUpdateManage:
                     )
                 )
             exist_member_list.append(user_id)
-            logger.debug(
-                "更新成功", "更新群组成员信息", session=user_id, group_id=group_id
-            )
         if create_list:
             await GroupInfoUser.bulk_create(create_list, 30)
             logger.debug(
