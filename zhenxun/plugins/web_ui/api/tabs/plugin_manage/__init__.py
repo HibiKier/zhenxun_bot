@@ -72,7 +72,7 @@ async def _() -> Result:
         load_status=True,
     ).count()
     plugin_count.other = await DbPluginInfo.filter(
-        plugin_type=PluginType.HIDDEN, load_status=True
+        plugin_type__in=[PluginType.HIDDEN, PluginType.DEPENDANT], load_status=True
     ).count()
     return Result.ok(plugin_count)
 

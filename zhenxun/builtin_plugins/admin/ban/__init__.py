@@ -220,7 +220,9 @@ async def _(
                 await MessageUtils.build_message("权限不足捏...").finish(reply_to=True)
             user_id = user.result
     if gid := session.id3 or session.id2:
+        u_d = user_id
         if group_id.available:
+            u_d = gid
             gid = group_id.result
         if await BanManage.unban(
             user_id, gid, session, session.id1 in bot.config.superusers
@@ -234,7 +236,7 @@ async def _(
             await MessageUtils.build_message(
                 [
                     "将 ",
-                    At(flag="user", target=user_id) if isinstance(user.result, At) else user_id,  # type: ignore
+                    At(flag="user", target=user_id) if isinstance(user.result, At) else u_d,  # type: ignore
                     f" 从黑屋中拉了出来并急救了一下!",
                 ]
             ).finish(reply_to=True)

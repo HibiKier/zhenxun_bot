@@ -10,7 +10,7 @@ from zhenxun.services.log import logger
 from zhenxun.utils.message import MessageUtils
 
 __plugin_meta__ = PluginMetadata(
-    name="识番",
+    name="关于",
     description="想要更加了解真寻吗",
     usage="""
     指令：

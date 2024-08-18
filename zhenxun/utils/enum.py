@@ -31,10 +31,17 @@ class PluginType(StrEnum):
     """
 
     SUPERUSER = "SUPERUSER"
+    """超级用户"""
     ADMIN = "ADMIN"
+    """管理员"""
     SUPER_AND_ADMIN = "ADMIN_SUPER"
+    """管理员以及超级用户"""
     NORMAL = "NORMAL"
+    """普通插件"""
+    DEPENDANT = "DEPENDANT"
+    """依赖插件，一般为没有主动触发命令的插件，受权限控制"""
     HIDDEN = "HIDDEN"
+    """隐藏插件，一般为没有主动触发命令的插件，不受权限控制，如消息统计"""
 
 
 class BlockType(StrEnum):

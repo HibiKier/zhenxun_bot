@@ -69,7 +69,7 @@ async def _(matcher: Matcher, bot: Bot, session: EventSession, state: T_State):
         module = plugin.module_name
         if metadata := plugin.metadata:
             extra = metadata.extra
-            if extra.get("plugin_type") == PluginType.HIDDEN:
+            if extra.get("plugin_type") in [PluginType.HIDDEN, PluginType.DEPENDANT]:
                 return
         else:
             return

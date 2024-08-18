@@ -40,4 +40,13 @@ Config.add_plugin_config(
     type=int,
 )
 
+Config.add_plugin_config(
+    "hook",
+    "IS_SEND_TIP_MESSAGE",
+    True,
+    help="是否发送阻断时提示消息",
+    default_value=True,
+    type=bool,
+)
+
 nonebot.load_plugins(str(Path(__file__).parent.resolve()))

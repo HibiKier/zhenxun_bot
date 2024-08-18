@@ -322,4 +322,8 @@ async def _(
             None, index.result if index.available else None, group_id, word_scope
         )
     await result.send()
-    logger.info(f"查看词条回答: {problem}", arparma.header_result, session=session)
+    logger.info(
+        f"查看词条回答: {problem.result if problem.available else index.result}",
+        arparma.header_result,
+        session=session,
+    )

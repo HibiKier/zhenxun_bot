@@ -15,7 +15,7 @@ __plugin_meta__ = PluginMetadata(
     description="",
     usage="""""",
     extra=PluginExtraData(
-        author="HibiKier", version="0.1", plugin_type=PluginType.HIDDEN
+        author="HibiKier", version="0.1", plugin_type=PluginType.DEPENDANT
     ).dict(),
 )
 
@@ -28,4 +28,4 @@ async def _(session: EventSession, state: T_State):
         gid = session.id3 or session.id2
         if result := await WordBank.get_answer(gid, problem):
             await result.send()
-            logger.info(f" 触发词条 {problem}", "词条检测", session=session)
+            logger.info(f"触发词条 {problem}", "词条检测", session=session)
