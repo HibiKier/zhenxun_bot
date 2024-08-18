@@ -49,8 +49,9 @@ async def _handle_setting(
         if metadata.type == "library":
             extra_data.plugin_type = PluginType.HIDDEN
         if (
-            extra_data.plugin_type == PluginType.HIDDEN
-            and extra_data.plugin_type != "功能"
+            extra_data.plugin_type
+            == PluginType.HIDDEN
+            # and extra_data.plugin_type != "功能"
         ):
             extra_data.menu_type = ""
         plugin_list.append(
@@ -119,15 +120,26 @@ async def _():
             create_list.append(plugin)
         else:
             plugin.id = module2id[plugin.module_path]
+            await plugin.save(
+                update_fields=[
+                    "name",
+                    "author",
+                    "version",
+                    "admin_level",
+                    "plugin_type",
+                ]
+            )
             update_list.append(plugin)
     if create_list:
         await PluginInfo.bulk_create(create_list, 10)
     if update_list:
-        await PluginInfo.bulk_update(
-            update_list,
-            ["name", "author", "version", "admin_level"],
-            10,
-        )
+        # TODO: 批量更新无法更新plugin_type: tortoise.exceptions.OperationalError: column "superuser" does not exist
+        pass
+        # await PluginInfo.bulk_update(
+        #     update_list,
+        #     ["name", "author", "version", "admin_level", "plugin_type"],
+        #     10,
+        # )
     if limit_list:
         limit_create = []
         plugins = []

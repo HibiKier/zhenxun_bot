@@ -226,7 +226,7 @@ class WordBankManage:
             problem, _problem_list = await WordBank.get_problem_all_answer(
                 problem,  # type: ignore
                 index,
-                group_id if group_id is None else None,
+                group_id if group_id is not None else None,
                 word_scope,
             )
             if not _problem_list:
@@ -248,7 +248,8 @@ class WordBankManage:
                             # __text = (m.data["image"], 30, 30)
                             __text = "[图片]"
                         _text.append(__text)
-                msg_list.append("".join(str(_text)))
+                    _text = "".join(_text)
+                msg_list.append(_text)
             column_name = ["序号", "回答内容"]
             data_list = []
             for index, msg in enumerate(msg_list):

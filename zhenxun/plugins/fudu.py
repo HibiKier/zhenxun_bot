@@ -27,7 +27,7 @@ __plugin_meta__ = PluginMetadata(
         author="HibiKier",
         version="0.1",
         menu_type="其他",
-        plugin_type=PluginType.HIDDEN,
+        plugin_type=PluginType.DEPENDANT,
         tasks=[Task(module="fudu", name="复读")],
         configs=[
             RegisterConfig(

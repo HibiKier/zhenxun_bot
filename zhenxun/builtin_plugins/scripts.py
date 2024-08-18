@@ -1,18 +1,13 @@
 from asyncio.exceptions import TimeoutError
 
 import nonebot
+import ujson as json
 from nonebot.drivers import Driver
 from nonebot_plugin_apscheduler import scheduler
 
 from zhenxun.configs.path_config import TEXT_PATH
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
-
-try:
-    import ujson as json
-except ModuleNotFoundError:
-    import json
-
 
 driver: Driver = nonebot.get_driver()
 

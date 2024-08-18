@@ -25,6 +25,8 @@ from zhenxun.utils.exception import InsufficientGold
 from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.utils import CountLimiter, FreqLimiter, UserBlockLimiter
 
+base_config = Config.get("hook")
+
 
 class Limit(BaseModel):
 
@@ -181,6 +183,23 @@ class AuthChecker:
         self._flmt_s = FreqLimiter(check_notice_info_cd)
         self._flmt_c = FreqLimiter(check_notice_info_cd)
 
+    def is_send_limit_message(self, plugin: PluginInfo, sid: str) -> bool:
+        """是否发送提示消息
+
+        参数:
+            plugin: PluginInfo
+
+        返回:
+            bool: 是否发送提示消息
+        """
+        if not base_config.get("IS_SEND_TIP_MESSAGE"):
+            return False
+        if plugin.plugin_type == PluginType.DEPENDANT:
+            return False
+        if not self._flmt_s.check(sid):
+            return False
+        return True
+
     async def auth(
         self,
         matcher: Matcher,
@@ -217,8 +236,8 @@ class AuthChecker:
                 )
                 return
             if plugin := await PluginInfo.get_or_none(module_path=module_path):
-                if plugin.plugin_type == PluginType.HIDDEN and plugin.name != "帮助":
-                    logger.debug("插件为HIDDEN且不是帮助功能，已跳过...")
+                if plugin.plugin_type == PluginType.HIDDEN:
+                    logger.debug("插件为HIDDEN，已跳过...")
                     return
                 try:
                     cost_gold = await self.auth_cost(user, plugin, session)
@@ -301,11 +320,12 @@ class AuthChecker:
             channel_id = None
         if user_id:
             if group_id:
+                sid = group_id or user_id
                 if await GroupConsole.is_super_block_plugin(
                     group_id, plugin.module, channel_id
                 ):
                     """超级用户群组插件状态"""
-                    if self._flmt_s.check(group_id or user_id) and not is_poke:
+                    if self.is_send_limit_message(plugin, sid) and not is_poke:
                         self._flmt_s.start_cd(group_id or user_id)
                         await MessageUtils.build_message(
                             "超级管理员禁用了该群此功能..."
@@ -320,7 +340,7 @@ class AuthChecker:
                     group_id, plugin.module, channel_id
                 ):
                     """群组插件状态"""
-                    if self._flmt_s.check(group_id or user_id) and not is_poke:
+                    if self.is_send_limit_message(plugin, sid) and not is_poke:
                         self._flmt_s.start_cd(group_id or user_id)
                         await MessageUtils.build_message("该群未开启此功能...").send(
                             reply_to=True
@@ -334,7 +354,7 @@ class AuthChecker:
                 if not plugin.status and plugin.block_type == BlockType.GROUP:
                     """全局群组禁用"""
                     try:
-                        if self._flmt_c.check(group_id) and not is_poke:
+                        if self.is_send_limit_message(plugin, sid) and not is_poke:
                             self._flmt_c.start_cd(group_id)
                             await MessageUtils.build_message(
                                 "该功能在群组中已被禁用..."
@@ -350,10 +370,11 @@ class AuthChecker:
                     )
                     raise IgnoredException("该插件在群组中已被禁用...")
             else:
+                sid = user_id
                 if not plugin.status and plugin.block_type == BlockType.PRIVATE:
                     """全局私聊禁用"""
                     try:
-                        if self._flmt_c.check(user_id) and not is_poke:
+                        if self.is_send_limit_message(plugin, sid) and not is_poke:
                             self._flmt_c.start_cd(user_id)
                             await MessageUtils.build_message(
                                 "该功能在私聊中已被禁用..."
@@ -378,7 +399,7 @@ class AuthChecker:
                     "HOOK",
                     session=session,
                 )
-                if self._flmt_s.check(group_id or user_id) and not is_poke:
+                if self.is_send_limit_message(plugin, sid) and not is_poke:
                     self._flmt_s.start_cd(group_id or user_id)
                     await MessageUtils.build_message("全局未开启此功能...").send()
                 raise IgnoredException("全局未开启此功能...")

@@ -21,7 +21,8 @@ __plugin_meta__ = PluginMetadata(
     extra=PluginExtraData(
         author="HibiKier",
         version="0.1",
-        plugin_type=PluginType.HIDDEN,
+        menu_type="其他",
+        plugin_type=PluginType.DEPENDANT,
     ).dict(),
 )
 

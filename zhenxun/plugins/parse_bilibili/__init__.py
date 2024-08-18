@@ -28,7 +28,8 @@ __plugin_meta__ = PluginMetadata(
     extra=PluginExtraData(
         author="leekooyo",
         version="0.1",
-        plugin_type=PluginType.HIDDEN,
+        plugin_type=PluginType.DEPENDANT,
+        menu_type="其他",
         configs=[
             RegisterConfig(
                 module="_task",

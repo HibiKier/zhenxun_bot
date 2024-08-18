@@ -7,6 +7,7 @@ from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import NICKNAME
 from zhenxun.configs.utils import PluginExtraData
+from zhenxun.models.ban_console import BanConsole
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import get_download_image_hash
@@ -23,7 +24,7 @@ __plugin_meta__ = PluginMetadata(
         author="HibiKier",
         version="0.1",
         menu_type="其他",
-        plugin_type=PluginType.HIDDEN,
+        plugin_type=PluginType.DEPENDANT,
     ).dict(),
 )
 
@@ -34,6 +35,8 @@ _matcher = on_message(priority=1, block=False)
 async def _(bot: Bot, session: EventSession, message: UniMsg):
     group_id = session.id2
     if not session.id1 or not group_id:
+        return
+    if await BanConsole.is_ban(session.id1, group_id):
         return
     plain_text = message.extract_plain_text()
     image_list = [m.url for m in message if isinstance(m, alcImage) and m.url]
