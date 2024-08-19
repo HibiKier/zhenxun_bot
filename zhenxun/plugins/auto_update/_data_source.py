@@ -25,6 +25,76 @@ from .config import (
 )
 
 
+@run_sync
+def _file_handle(latest_version: str | None):
+    """文件移动操作
+
+    参数:
+        latest_version: 版本号
+    """
+    BACKUP_PATH.mkdir(exist_ok=True, parents=True)
+    tf = None
+    logger.debug("开始解压文件压缩包...", "检查更新")
+    tf = tarfile.open(DOWNLOAD_FILE)
+    tf.extractall(TMP_PATH)
+    logger.debug("解压文件压缩包完成...", "检查更新")
+    download_file_path = (
+        TMP_PATH / [x for x in os.listdir(TMP_PATH) if (TMP_PATH / x).is_dir()][0]
+    )
+    _pyproject = download_file_path / "pyproject.toml"
+    _lock_file = download_file_path / "poetry.lock"
+    extract_path = download_file_path / "zhenxun"
+    target_path = BASE_PATH
+    if PYPROJECT_FILE.exists():
+        logger.debug(f"备份文件: {PYPROJECT_FILE}", "检查更新")
+        shutil.move(PYPROJECT_FILE, BACKUP_PATH / "pyproject.toml")
+    if PYPROJECT_LOCK_FILE.exists():
+        logger.debug(f"备份文件: {PYPROJECT_FILE}", "检查更新")
+        shutil.move(PYPROJECT_LOCK_FILE, BACKUP_PATH / "poetry.lock")
+    if _pyproject.exists():
+        logger.debug("移动文件: pyproject.toml", "检查更新")
+        shutil.move(_pyproject, Path() / "pyproject.toml")
+    if _lock_file.exists():
+        logger.debug("移动文件: pyproject.toml", "检查更新")
+        shutil.move(_lock_file, Path() / "poetry.lock")
+    for folder in REPLACE_FOLDERS:
+        """移动指定文件夹"""
+        _dir = BASE_PATH / folder
+        _backup_dir = BACKUP_PATH / folder
+        if _backup_dir.exists():
+            logger.debug(f"删除备份文件夹 {_backup_dir}", "检查更新")
+            shutil.rmtree(_backup_dir)
+        if _dir.exists():
+            logger.debug(f"移动旧文件夹 {_dir}", "检查更新")
+            shutil.move(_dir, _backup_dir)
+        else:
+            logger.warning(f"文件夹 {_dir} 不存在，跳过删除", "检查更新")
+    for folder in REPLACE_FOLDERS:
+        src_folder_path = extract_path / folder
+        dest_folder_path = target_path / folder
+        if src_folder_path.exists():
+            logger.debug(
+                f"移动文件夹: {src_folder_path} -> {dest_folder_path}", "检查更新"
+            )
+            shutil.move(src_folder_path, dest_folder_path)
+        else:
+            logger.debug(f"源文件夹不存在: {src_folder_path}", "检查更新")
+    if DOWNLOAD_FILE.exists():
+        logger.debug(f"删除下载文件: {DOWNLOAD_FILE}", "检查更新")
+        DOWNLOAD_FILE.unlink()
+    if extract_path.exists():
+        logger.debug(f"删除解压文件夹: {extract_path}", "检查更新")
+        shutil.rmtree(extract_path)
+    if tf:
+        tf.close()
+    if TMP_PATH.exists():
+        shutil.rmtree(TMP_PATH)
+    if latest_version:
+        with open(VERSION_FILE, "w", encoding="utf8") as f:
+            f.write(f"__version__: {latest_version}")
+    os.system(f"poetry run pip install -r {(Path() / 'pyproject.toml').absolute()}")
+
+
 class UpdateManage:
 
     @classmethod
@@ -38,7 +108,7 @@ class UpdateManage:
         data = await cls.__get_latest_data()
         if not data:
             return "检查更新获取版本失败..."
-        return f"检测到当前版本更新\n当前版本：{cur_version}\n最新版本：{data.get('name')}\n创建日期：{data.get('created_at')}\n更新内容：{data.get('body')}"
+        return f"检测到当前版本更新\n当前版本：{cur_version}\n最新版本：{data.get('name')}\n创建日期：{data.get('created_at')}\n更新内容：\n{data.get('body')}"
 
     @classmethod
     async def update(cls, bot: Bot, user_id: str, version_type: str) -> str | None:
@@ -68,94 +138,27 @@ class UpdateManage:
             url = (await AsyncHttpx.get(url)).headers.get("Location")  # type: ignore
         if not url:
             return "获取版本下载链接失败..."
+        if TMP_PATH.exists():
+            logger.debug(f"删除临时文件夹 {TMP_PATH}", "检查更新")
+            shutil.rmtree(TMP_PATH)
         logger.debug(
-            f"更新版本：{cur_version} -> {new_version} | 下载链接：{url}", "检查更新"
+            f"开始更新版本：{cur_version} -> {new_version} | 下载链接：{url}",
+            "检查更新",
         )
-        await PlatformUtils.send_superuser(
-            bot,
-            f"检测真寻已更新，版本更新：{cur_version} -> {new_version}\n开始更新...",
-            user_id,
-        )
+        # await PlatformUtils.send_superuser(
+        #     bot,
+        #     f"检测真寻已更新，版本更新：{cur_version} -> {new_version}\n开始更新...",
+        #     user_id,
+        # )
         if await AsyncHttpx.download_file(url, DOWNLOAD_FILE):
             logger.debug("下载真寻最新版文件完成...", "检查更新")
             if version_type != "release":
                 new_version = None
-            await cls.__file_handle(new_version)
+            await _file_handle(new_version)
             return f"版本更新完成\n版本: {cur_version} -> {new_version}\n请重新启动真寻以完成更新!"
         else:
             logger.debug("下载真寻最新版文件失败...", "检查更新")
         return None
-
-    @run_sync
-    @classmethod
-    def __file_handle(cls, latest_version: str | None):
-        """文件移动操作
-
-        参数:
-            latest_version: 版本号
-        """
-        TMP_PATH.mkdir(exist_ok=True, parents=True)
-        BACKUP_PATH.mkdir(exist_ok=True, parents=True)
-        if BACKUP_PATH.exists():
-            shutil.rmtree(BACKUP_PATH)
-        tf = None
-        logger.debug("开始解压文件压缩包...", "检查更新")
-        tf = tarfile.open(DOWNLOAD_FILE)
-        tf.extractall(TMP_PATH)
-        logger.debug("解压文件压缩包完成...", "检查更新")
-        download_file_path = TMP_PATH / os.listdir(TMP_PATH)[0]
-        _pyproject = download_file_path / "pyproject.toml"
-        _lock_file = download_file_path / "poetry.lock"
-        extract_path = TMP_PATH / os.listdir(TMP_PATH)[0] / "zhenxun"
-        target_path = BASE_PATH
-        if PYPROJECT_FILE.exists():
-            logger.debug(f"备份文件: {PYPROJECT_FILE}", "检查更新")
-            shutil.move(PYPROJECT_FILE, BACKUP_PATH / "pyproject.toml")
-        if PYPROJECT_LOCK_FILE.exists():
-            logger.debug(f"备份文件: {PYPROJECT_FILE}", "检查更新")
-            shutil.move(PYPROJECT_LOCK_FILE, BACKUP_PATH / "poetry.lock")
-        if _pyproject.exists():
-            logger.debug("移动文件: pyproject.toml", "检查更新")
-            shutil.move(_pyproject, Path() / "pyproject.toml")
-        if _lock_file.exists():
-            logger.debug("移动文件: pyproject.toml", "检查更新")
-            shutil.move(_lock_file, Path() / "poetry.lock")
-        for folder in REPLACE_FOLDERS:
-            """移动指定文件夹"""
-            _dir = BASE_PATH / folder
-            _backup_dir = BACKUP_PATH / folder
-            if _backup_dir.exists():
-                logger.debug(f"删除备份文件夹 {_backup_dir}", "检查更新")
-                shutil.rmtree(_backup_dir)
-            if _dir.exists():
-                logger.debug(f"删除文件夹 {_dir}", "检查更新")
-                shutil.rmtree(_dir)
-            else:
-                logger.warning(f"文件夹 {_dir} 不存在，跳过删除", "检查更新")
-        for folder in REPLACE_FOLDERS:
-            src_folder_path = extract_path / folder
-            dest_folder_path = target_path / folder
-            if src_folder_path.exists():
-                logger.debug(
-                    f"移动文件夹: {src_folder_path} -> {dest_folder_path}", "检查更新"
-                )
-                shutil.move(src_folder_path, dest_folder_path)
-            else:
-                logger.debug(f"源文件夹不存在: {src_folder_path}", "检查更新")
-        if DOWNLOAD_FILE.exists():
-            logger.debug(f"删除下载文件: {DOWNLOAD_FILE}", "检查更新")
-            DOWNLOAD_FILE.unlink()
-        if extract_path.exists():
-            logger.debug(f"删除解压文件夹: {extract_path}", "检查更新")
-            shutil.rmtree(extract_path)
-        if tf:
-            tf.close()
-        if TMP_PATH.exists():
-            shutil.rmtree(TMP_PATH)
-        if latest_version:
-            with open(VERSION_FILE, "w", encoding="utf8") as f:
-                f.write(f"__version__: {latest_version}")
-        os.system(f"poetry run pip install -r {(Path() / 'pyproject.toml').absolute()}")
 
     @classmethod
     def __get_version(cls) -> str:
@@ -166,8 +169,9 @@ class UpdateManage:
         """
         _version = "v0.0.0"
         if VERSION_FILE.exists():
-            text = VERSION_FILE.open("w", encoding="utf8").readline()
-            _version = text.split(":")[-1].strip()
+            text = VERSION_FILE.open(encoding="utf8").readline()
+            if text:
+                _version = text.split(":")[-1].strip()
         return _version
 
     @classmethod

@@ -1,3 +1,4 @@
+import nonebot
 from nonebot.adapters import Bot
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
@@ -65,3 +66,22 @@ async def _(bot: Bot, session: EventSession, ver_type: Match[str]):
     if result:
         await MessageUtils.build_message(result).finish()
     await MessageUtils.build_message("更新版本失败...").finish()
+
+
+driver = nonebot.get_driver()
+
+
+# @driver.on_startup
+# async def _():
+#     result = await UpdateManage.check_version()
+#     print("-----------------------")
+#     print("-----------------------")
+#     print(result)
+#     print("-----------------------")
+#     print("-----------------------")
+#     result = await UpdateManage.update(None, "", "release")
+#     print("-----------------------")
+#     print("-----------------------")
+#     print(result)
+#     print("-----------------------")
+#     print("-----------------------")
