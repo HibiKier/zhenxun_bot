@@ -61,7 +61,7 @@ class PlatformUtils:
     async def send_superuser(
         cls,
         bot: Bot,
-        message: UniMessage,
+        message: UniMessage | str,
         superuser_id: str | None = None,
     ) -> Receipt | None:
         """发送消息给超级用户
@@ -83,6 +83,8 @@ class PlatformUtils:
             if not platform_superusers:
                 raise NotFindSuperuser()
             superuser_id = random.choice(platform_superusers)
+        if isinstance(message, str):
+            message = MessageUtils.build_message(message)
         return await cls.send_message(bot, superuser_id, None, message)
 
     @classmethod
