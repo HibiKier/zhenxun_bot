@@ -68,7 +68,7 @@ async def _(bot: Bot, session: EventSession, ver_type: Match[str]):
     await MessageUtils.build_message("更新版本失败...").finish()
 
 
-driver = nonebot.get_driver()
+# driver = nonebot.get_driver()
 
 
 # @driver.on_startup
@@ -79,7 +79,7 @@ driver = nonebot.get_driver()
 #     print(result)
 #     print("-----------------------")
 #     print("-----------------------")
-#     result = await UpdateManage.update(None, "", "release")
+#     result = await UpdateManage.update(None, "", "dev")
 #     print("-----------------------")
 #     print("-----------------------")
 #     print(result)

@@ -1,6 +1,7 @@
 import os
 import shutil
 import tarfile
+import zipfile
 from pathlib import Path
 
 from nonebot.adapters import Bot
@@ -14,7 +15,8 @@ from .config import (
     BACKUP_PATH,
     BASE_PATH,
     DEV_URL,
-    DOWNLOAD_FILE,
+    DOWNLOAD_GZ_FILE,
+    DOWNLOAD_ZIP_FILE,
     MAIN_URL,
     PYPROJECT_FILE,
     PYPROJECT_LOCK_FILE,
@@ -33,9 +35,13 @@ def _file_handle(latest_version: str | None):
         latest_version: 版本号
     """
     BACKUP_PATH.mkdir(exist_ok=True, parents=True)
-    tf = None
     logger.debug("开始解压文件压缩包...", "检查更新")
-    tf = tarfile.open(DOWNLOAD_FILE)
+    download_file = DOWNLOAD_GZ_FILE
+    if DOWNLOAD_GZ_FILE.exists():
+        tf = tarfile.open(DOWNLOAD_GZ_FILE)
+    else:
+        download_file = DOWNLOAD_ZIP_FILE
+        tf = zipfile.ZipFile(DOWNLOAD_ZIP_FILE)
     tf.extractall(TMP_PATH)
     logger.debug("解压文件压缩包完成...", "检查更新")
     download_file_path = (
@@ -46,10 +52,10 @@ def _file_handle(latest_version: str | None):
     extract_path = download_file_path / "zhenxun"
     target_path = BASE_PATH
     if PYPROJECT_FILE.exists():
-        logger.debug(f"备份文件: {PYPROJECT_FILE}", "检查更新")
+        logger.debug(f"移除备份文件: {PYPROJECT_FILE}", "检查更新")
         shutil.move(PYPROJECT_FILE, BACKUP_PATH / "pyproject.toml")
     if PYPROJECT_LOCK_FILE.exists():
-        logger.debug(f"备份文件: {PYPROJECT_FILE}", "检查更新")
+        logger.debug(f"移除备份文件: {PYPROJECT_FILE}", "检查更新")
         shutil.move(PYPROJECT_LOCK_FILE, BACKUP_PATH / "poetry.lock")
     if _pyproject.exists():
         logger.debug("移动文件: pyproject.toml", "检查更新")
@@ -79,9 +85,9 @@ def _file_handle(latest_version: str | None):
             shutil.move(src_folder_path, dest_folder_path)
         else:
             logger.debug(f"源文件夹不存在: {src_folder_path}", "检查更新")
-    if DOWNLOAD_FILE.exists():
-        logger.debug(f"删除下载文件: {DOWNLOAD_FILE}", "检查更新")
-        DOWNLOAD_FILE.unlink()
+    if download_file.exists():
+        logger.debug(f"删除下载文件: {download_file}", "检查更新")
+        download_file.unlink()
     if extract_path.exists():
         logger.debug(f"删除解压文件夹: {extract_path}", "检查更新")
         shutil.rmtree(extract_path)
@@ -92,7 +98,7 @@ def _file_handle(latest_version: str | None):
     if latest_version:
         with open(VERSION_FILE, "w", encoding="utf8") as f:
             f.write(f"__version__: {latest_version}")
-    os.system(f"poetry run pip install -r {(Path() / 'pyproject.toml').absolute()}")
+    os.system(f"poetry install --directory={Path().absolute()}")
 
 
 class UpdateManage:
@@ -145,12 +151,15 @@ class UpdateManage:
             f"开始更新版本：{cur_version} -> {new_version} | 下载链接：{url}",
             "检查更新",
         )
-        # await PlatformUtils.send_superuser(
-        #     bot,
-        #     f"检测真寻已更新，版本更新：{cur_version} -> {new_version}\n开始更新...",
-        #     user_id,
-        # )
-        if await AsyncHttpx.download_file(url, DOWNLOAD_FILE):
+        await PlatformUtils.send_superuser(
+            bot,
+            f"检测真寻已更新，版本更新：{cur_version} -> {new_version}\n开始更新...",
+            user_id,
+        )
+        download_file = (
+            DOWNLOAD_GZ_FILE if version_type == "release" else DOWNLOAD_ZIP_FILE
+        )
+        if await AsyncHttpx.download_file(url, download_file):
             logger.debug("下载真寻最新版文件完成...", "检查更新")
             if version_type != "release":
                 new_version = None
