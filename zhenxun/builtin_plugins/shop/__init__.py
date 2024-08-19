@@ -15,6 +15,7 @@ from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 from zhenxun.configs.utils import BaseBlock, PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import BlockType, PluginType
+from zhenxun.utils.exception import GoodsNotFound
 from zhenxun.utils.message import MessageUtils
 
 from ._data_source import ShopManage
@@ -141,9 +142,16 @@ async def _(
     name: str,
     num: int,
 ):
-    result = await ShopManage.use(bot, event, session, message, name, num, "")
-    logger.info(f"使用道具 {name}, 数量: {num}", arparma.header_result, session=session)
-    if isinstance(result, str):
-        await MessageUtils.build_message(result).send(reply_to=True)
-    elif isinstance(result, UniMessage):
-        await result.finish(reply_to=True)
+    try:
+        result = await ShopManage.use(bot, event, session, message, name, num, "")
+        logger.info(
+            f"使用道具 {name}, 数量: {num}", arparma.header_result, session=session
+        )
+        if isinstance(result, str):
+            await MessageUtils.build_message(result).send(reply_to=True)
+        elif isinstance(result, UniMessage):
+            await result.finish(reply_to=True)
+    except GoodsNotFound:
+        await MessageUtils.build_message(f"没有找到道具 {name} 或道具数量不足...").send(
+            reply_to=True
+        )
