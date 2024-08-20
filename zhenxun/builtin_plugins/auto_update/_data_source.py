@@ -98,7 +98,7 @@ def _file_handle(latest_version: str | None):
     if latest_version:
         with open(VERSION_FILE, "w", encoding="utf8") as f:
             f.write(f"__version__: {latest_version}")
-    os.system(f"poetry install --directory={Path().absolute()}")
+    os.system(f"poetry run pip install -r requirements.txt")
 
 
 class UpdateManage:

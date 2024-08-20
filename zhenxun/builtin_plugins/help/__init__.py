@@ -67,6 +67,7 @@ async def _(
     session: EventSession,
     is_superuser: Query[bool] = AlconnaQuery("superuser.value", False),
 ):
+    logger.debug("进入help")
     _is_superuser = False
     if is_superuser.available:
         _is_superuser = is_superuser.result
