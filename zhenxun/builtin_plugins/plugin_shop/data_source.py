@@ -1,5 +1,7 @@
 import shutil
 from pathlib import Path
+import subprocess
+import os
 
 import nonebot
 import ujson as json
@@ -81,6 +83,20 @@ async def download_file(url: str):
             with open(file, "w", encoding="utf8") as f:
                 logger.debug(f"写入文件: {file}", "插件管理")
                 f.write(r.text)
+
+
+def install_requirement(plugin_path: Path):
+    requirement_path = plugin_path / "requirement.txt"
+    
+    if not requirement_path.exists():
+        logger.debug(f"No requirement.txt found for plugin: {plugin_path.name}", "插件管理")
+        return
+    
+    try:
+        result = subprocess.run(["pip", "install", "-r", str(requirement_path)], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        logger.debug(f"Successfully installed dependencies for plugin: {plugin_path.name}. Output:\n{result.stdout}", "插件管理")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to install dependencies for plugin: {plugin_path.name}. Error:\n{e.stderr}")
 
 
 class ShopManage:
@@ -171,6 +187,11 @@ class ShopManage:
             return "插件下载地址构建失败..."
         logger.debug(f"尝试下载插件 URL: {url_path}", "插件管理")
         await download_file(DOWNLOAD_URL.format(url_path))
+        
+        # 安装依赖
+        plugin_path = BASE_PATH / "/".join(module_path_split)
+        install_requirement(plugin_path)
+        
         return f"插件 {plugin_key} 安装成功!"
 
     @classmethod
