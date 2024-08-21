@@ -1,7 +1,4 @@
-from typing import Any
-
 from tortoise import fields
-from tortoise.backends.base.client import BaseDBAsyncClient
 from typing_extensions import Self
 
 from zhenxun.services.db_context import Model
@@ -42,35 +39,6 @@ class GroupConsole(Model):
         table = "group_console"
         table_description = "群组信息表"
         unique_together = ("group_id", "channel_id")
-
-    # @classmethod
-    # async def create(  # type: ignore
-    #     cls,
-    #     using_db: BaseDBAsyncClient | None = None,
-    #     **kwargs: Any,
-    # ) -> Self:
-    #     group, _ = await super().create(using_db, **kwargs)
-    #     return group
-
-    # @classmethod
-    # async def get_or_create(  # type: ignore
-    #     cls,
-    #     defaults: dict | None = None,
-    #     using_db: BaseDBAsyncClient | None = None,
-    #     **kwargs: Any,
-    # ) -> tuple[Self, bool]:
-    #     group, is_create = await super().get_or_create(defaults, using_db, **kwargs)
-    #     return group, is_create
-
-    # @classmethod
-    # async def update_or_create(  # type: ignore
-    #     cls,
-    #     defaults: dict | None = None,
-    #     using_db: BaseDBAsyncClient | None = None,
-    #     **kwargs: Any,
-    # ) -> tuple[Self, bool]:
-    #     group, is_create = await super().update_or_create(defaults, using_db, **kwargs)
-    #     return group, is_create
 
     @classmethod
     async def get_group(

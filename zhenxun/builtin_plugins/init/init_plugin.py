@@ -93,6 +93,7 @@ async def _handle_setting(
                         name=task.name,
                         status=task.status,
                         run_time=task.run_time,
+                        default_status=task.default_status,
                     )
                 )
 
@@ -171,6 +172,12 @@ async def _():
                 update_list.append(task)
         if create_list:
             await TaskInfo.bulk_create(create_list, 10)
+            if block := [t.module for t in create_list if not t.default_status]:
+                block_task = ",".join(block) + ","
+                if group_list := await GroupConsole.all():
+                    for group in group_list:
+                        group.block_task += block_task
+                    await GroupConsole.bulk_update(group_list, ["block_task"], 10)
         if update_list:
             await TaskInfo.bulk_update(
                 update_list,
