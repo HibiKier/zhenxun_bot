@@ -5,7 +5,7 @@ BASE_PATH.mkdir(parents=True, exist_ok=True)
 
 
 CONFIG_URL = (
-    "https://raw.githubusercontent.com/HibiKier/zhenxun_bot_plugins/main/plugins.json"
+    "https://cdn.jsdelivr.net/gh/HibiKier/zhenxun_bot_plugins/plugins.json"
 )
 """插件信息文件"""
 
