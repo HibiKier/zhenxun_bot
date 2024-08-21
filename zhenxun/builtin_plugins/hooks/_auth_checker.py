@@ -482,11 +482,11 @@ class AuthChecker:
                 """群休眠"""
                 if text.strip() != "醒来":
                     logger.debug(
-                        f"功能总开关关闭状态...",
+                        f"群休眠状态...",
                         "HOOK",
                         session=session,
                     )
-                    raise IgnoredException("功能总开关关闭状态")
+                    raise IgnoredException("群休眠状态")
 
     async def auth_cost(
         self, user: UserConsole, plugin: PluginInfo, session: EventSession
