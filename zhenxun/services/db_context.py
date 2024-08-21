@@ -1,6 +1,6 @@
 import ujson as json
 from nonebot.utils import is_coroutine_callable
-from tortoise import Tortoise, fields
+from tortoise import Tortoise
 from tortoise.connection import connections
 from tortoise.models import Model as Model_
 
@@ -17,10 +17,8 @@ from zhenxun.configs.path_config import DATA_PATH
 
 from .log import logger
 
-MODELS: list[str] = []
-
 SCRIPT_METHOD = []
-
+MODELS: list[str] = []
 DATABASE_SETTING_FILE = DATA_PATH / "database.json"
 
 
@@ -37,16 +35,6 @@ class Model(Model_):
 
         if func := getattr(cls, "_run_script", None):
             SCRIPT_METHOD.append((cls.__module__, func))
-
-
-class TestSQL(Model):
-    id = fields.IntField(pk=True, generated=True, auto_increment=True)
-    """自增id"""
-
-    class Meta:
-        abstract = True
-        table = "test_sql"
-        table_description = "执行SQL命令，不记录任何数据"
 
 
 async def init():

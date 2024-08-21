@@ -1,4 +1,7 @@
+from typing import Any
+
 from tortoise import fields
+from tortoise.backends.base.client import BaseDBAsyncClient
 from typing_extensions import Self
 
 from zhenxun.services.db_context import Model
@@ -40,8 +43,39 @@ class GroupConsole(Model):
         table_description = "群组信息表"
         unique_together = ("group_id", "channel_id")
 
+    # @classmethod
+    # async def create(  # type: ignore
+    #     cls,
+    #     using_db: BaseDBAsyncClient | None = None,
+    #     **kwargs: Any,
+    # ) -> Self:
+    #     group, _ = await super().create(using_db, **kwargs)
+    #     return group
+
+    # @classmethod
+    # async def get_or_create(  # type: ignore
+    #     cls,
+    #     defaults: dict | None = None,
+    #     using_db: BaseDBAsyncClient | None = None,
+    #     **kwargs: Any,
+    # ) -> tuple[Self, bool]:
+    #     group, is_create = await super().get_or_create(defaults, using_db, **kwargs)
+    #     return group, is_create
+
+    # @classmethod
+    # async def update_or_create(  # type: ignore
+    #     cls,
+    #     defaults: dict | None = None,
+    #     using_db: BaseDBAsyncClient | None = None,
+    #     **kwargs: Any,
+    # ) -> tuple[Self, bool]:
+    #     group, is_create = await super().update_or_create(defaults, using_db, **kwargs)
+    #     return group, is_create
+
     @classmethod
-    async def get_group(cls, group_id: str, channel_id: str | None = None) -> Self:
+    async def get_group(
+        cls, group_id: str, channel_id: str | None = None
+    ) -> Self | None:
         """获取群组
 
         参数:
@@ -52,21 +86,20 @@ class GroupConsole(Model):
             Self: GroupConsole
         """
         if channel_id:
-            return await cls.get(group_id=group_id, channel_id=channel_id)
-        return await cls.get(group_id=group_id, channel_id__isnull=True)
+            return await cls.get_or_none(group_id=group_id, channel_id=channel_id)
+        return await cls.get_or_none(group_id=group_id, channel_id__isnull=True)
 
     @classmethod
-    async def is_super_group(cls, group_id: str, channel_id: str | None = None) -> bool:
+    async def is_super_group(cls, group_id: str) -> bool:
         """是否超级用户指定群
 
         参数:
             group_id: 群组id
-            channel_id: 频道id.
 
         返回:
             bool: 是否超级用户指定群
         """
-        if group := await cls.get_or_none(group_id=group_id):
+        if group := await cls.get_group(group_id):
             return group.is_super
         return False
 

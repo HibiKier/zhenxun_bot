@@ -15,6 +15,8 @@ class TaskInfo(Model):
     """被动技能名称"""
     status = fields.BooleanField(default=True, description="全局开关状态")
     """全局开关状态"""
+    # default_status = fields.BooleanField(default=True, description="进群默认状态")
+    # """进群默认状态"""
     run_time = fields.CharField(255, null=True, description="运行时间")
     """运行时间"""
     run_count = fields.IntField(default=0, description="运行次数")
@@ -53,3 +55,9 @@ class TaskInfo(Model):
                 """群组是否被ban"""
                 return True
         return False
+
+    @classmethod
+    def _run_script(cls):
+        return [
+            # "ALTER TABLE task_info ADD default_status boolean NOT NULL DEFAULT true;",
+        ]

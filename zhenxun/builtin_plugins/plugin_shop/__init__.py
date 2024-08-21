@@ -17,7 +17,6 @@ __plugin_meta__ = PluginMetadata(
     插件商店        : 查看当前的插件商店
     添加插件 id     : 添加插件
     移除插件 id     : 移除插件
-    
     """.strip(),
     extra=PluginExtraData(
         author="HibiKier",

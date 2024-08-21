@@ -19,10 +19,7 @@ __plugin_meta__ = PluginMetadata(
         author="HibiKier",
         version="0.1",
         plugin_type=PluginType.HIDDEN,
-        tasks=[
-            Task(module="group_welcome", name="进群欢迎"),
-            Task(module="refund_group_remind", name="退群提醒"),
-        ],
+        tasks=[Task(module="morning_goodnight", name="早晚安")],
     ).dict(),
 )
 

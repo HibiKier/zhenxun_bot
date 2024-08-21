@@ -7,7 +7,7 @@ from nonebot_plugin_session import EventSession
 from tortoise import Tortoise
 
 from zhenxun.configs.utils import PluginExtraData
-from zhenxun.services.db_context import TestSQL
+from zhenxun.models.ban_console import BanConsole
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import ImageTemplate
@@ -60,7 +60,7 @@ async def _(session: EventSession, message: UniMsg):
     logger.info(f"执行SQL语句: {sql_text}", "exec", session=session)
     try:
         if not sql_text.lower().startswith("select"):
-            await TestSQL.raw(sql_text)
+            await BanConsole.raw(sql_text)
         else:
             db = Tortoise.get_connection("default")
             res = await db.execute_query_dict(sql_text)
@@ -74,10 +74,12 @@ async def _(session: EventSession, message: UniMsg):
                 for c in _column:
                     data.append(r.get(c))
                 data_list.append(data)
+            if not data_list:
+                return await MessageUtils.build_message("查询结果为空!").send()
             table = await ImageTemplate.table_page(
                 "EXEC", f"总共有 {len(data_list)} 条数据捏", list(_column), data_list
             )
-            await MessageUtils.build_message(table).send()
+            return await MessageUtils.build_message(table).send()
     except Exception as e:
         logger.error("执行 SQL 语句失败...", session=session, e=e)
         await MessageUtils.build_message(f"执行 SQL 语句失败... {type(e)}").finish()

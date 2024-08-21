@@ -174,7 +174,7 @@ async def _():
         if update_list:
             await TaskInfo.bulk_update(
                 update_list,
-                ["run_time", "status", "name"],
+                ["run_time", "name"],
                 10,
             )
     await data_migration()
