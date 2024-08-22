@@ -5,7 +5,7 @@ from tortoise import Tortoise
 from tortoise.exceptions import OperationalError
 
 from zhenxun.models.plugin_info import PluginInfo
-from zhenxun.services.db_context import TestSQL
+from zhenxun.models.task_info import TaskInfo
 
 from ....base_model import BaseResultModel, QueryModel, Result
 from ....utils import authentication
