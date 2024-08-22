@@ -137,7 +137,7 @@ class Task(BaseBlock):
     """被动技能名称"""
     status: bool = True
     """全局开关状态"""
-    default_status: bool = True
+    create_status: bool = False
     """初次加载默认开关状态"""
     run_time: str | None = None
     """运行时间"""

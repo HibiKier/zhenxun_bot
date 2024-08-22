@@ -11,6 +11,7 @@ VERSION_FILE = Path() / "__version__"
 
 PYPROJECT_FILE = Path() / "pyproject.toml"
 PYPROJECT_LOCK_FILE = Path() / "poetry.lock"
+REQ_TXT_FILE = Path() / "requirements.txt"
 
 BASE_PATH = Path() / "zhenxun"
 

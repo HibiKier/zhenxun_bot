@@ -2,6 +2,7 @@ import os
 import shutil
 import tarfile
 import zipfile
+import subprocess
 from pathlib import Path
 
 from nonebot.adapters import Bot
@@ -20,12 +21,24 @@ from .config import (
     MAIN_URL,
     PYPROJECT_FILE,
     PYPROJECT_LOCK_FILE,
+    REQ_TXT_FILE,
     RELEASE_URL,
     REPLACE_FOLDERS,
     TMP_PATH,
     VERSION_FILE,
 )
 
+def install_requirement():
+    requirement_path = (Path() / "requirements.txt").absolute()
+    
+    if not requirement_path.exists():
+        logger.debug(f"没有找到zhenxun的requirement.txt,目标路径为{requirement_path}", "插件管理")
+        return
+    try:
+        result = subprocess.run(["pip", "install", "-r", str(requirement_path)], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        logger.debug(f"成功安装真寻依赖，日志:\n{result.stdout}", "插件管理")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"安装真寻依赖失败，错误:\n{e.stderr}")
 
 @run_sync
 def _file_handle(latest_version: str | None):
@@ -49,20 +62,27 @@ def _file_handle(latest_version: str | None):
     )
     _pyproject = download_file_path / "pyproject.toml"
     _lock_file = download_file_path / "poetry.lock"
+    _req_file = download_file_path / "requirements.txt"
     extract_path = download_file_path / "zhenxun"
     target_path = BASE_PATH
     if PYPROJECT_FILE.exists():
         logger.debug(f"移除备份文件: {PYPROJECT_FILE}", "检查更新")
         shutil.move(PYPROJECT_FILE, BACKUP_PATH / "pyproject.toml")
     if PYPROJECT_LOCK_FILE.exists():
-        logger.debug(f"移除备份文件: {PYPROJECT_FILE}", "检查更新")
+        logger.debug(f"移除备份文件: {PYPROJECT_LOCK_FILE}", "检查更新")
         shutil.move(PYPROJECT_LOCK_FILE, BACKUP_PATH / "poetry.lock")
+    if REQ_TXT_FILE.exists():
+        logger.debug(f"移除备份文件: {REQ_TXT_FILE}", "检查更新")
+        shutil.move(REQ_TXT_FILE, BACKUP_PATH / "requirements.txt")
     if _pyproject.exists():
         logger.debug("移动文件: pyproject.toml", "检查更新")
         shutil.move(_pyproject, Path() / "pyproject.toml")
     if _lock_file.exists():
-        logger.debug("移动文件: pyproject.toml", "检查更新")
+        logger.debug("移动文件: poetry.lock", "检查更新")
         shutil.move(_lock_file, Path() / "poetry.lock")
+    if _req_file.exists():
+        logger.debug("移动文件: requirements.txt", "检查更新")
+        shutil.move(_req_file, Path() / "requirements.txt")
     for folder in REPLACE_FOLDERS:
         """移动指定文件夹"""
         _dir = BASE_PATH / folder
@@ -98,8 +118,7 @@ def _file_handle(latest_version: str | None):
     if latest_version:
         with open(VERSION_FILE, "w", encoding="utf8") as f:
             f.write(f"__version__: {latest_version}")
-    os.system(f"poetry run pip install -r requirements.txt")
-
+    install_requirement()
 
 class UpdateManage:
 
@@ -130,12 +149,17 @@ class UpdateManage:
         """
         logger.info(f"开始下载真寻最新版文件....", "检查更新")
         cur_version = cls.__get_version()
-        new_version = "main"
-        url = MAIN_URL
         if version_type == "dev":
             url = DEV_URL
-            new_version = "dev"
-        if version_type == "release":
+            new_version = await cls.__get_version_from_branch("dev")
+            if new_version:
+                new_version = new_version.split(":")[-1].strip()
+        elif version_type == "main":
+            url = MAIN_URL
+            new_version = await cls.__get_version_from_branch("main")
+            if new_version:
+                new_version = new_version.split(":")[-1].strip()
+        elif version_type == "release":
             data = await cls.__get_latest_data()
             if not data:
                 return "获取更新版本失败..."
@@ -161,8 +185,6 @@ class UpdateManage:
         )
         if await AsyncHttpx.download_file(url, download_file):
             logger.debug("下载真寻最新版文件完成...", "检查更新")
-            if version_type != "release":
-                new_version = None
             await _file_handle(new_version)
             return f"版本更新完成\n版本: {cur_version} -> {new_version}\n请重新启动真寻以完成更新!"
         else:
@@ -200,3 +222,22 @@ class UpdateManage:
             except Exception as e:
                 logger.error(f"检查更新真寻获取版本失败", e=e)
         return {}
+
+    @classmethod
+    async def __get_version_from_branch(cls, branch: str) -> str:
+        """从指定分支获取版本号
+
+        参数:
+            branch: 分支名称
+
+        返回:
+            str: 版本号
+        """
+        version_url = f"https://raw.githubusercontent.com/HibiKier/zhenxun_bot/{branch}/__version__"
+        try:
+            res = await AsyncHttpx.get(version_url)
+            if res.status_code == 200:
+                return res.text.strip()
+        except Exception as e:
+            logger.error(f"获取 {branch} 分支版本失败", e=e)
+        return "未知版本"
