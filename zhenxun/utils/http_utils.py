@@ -305,7 +305,7 @@ class AsyncPlaywright:
         参数:
             user_agent: 请求头
         """
-        browser = get_browser()
+        browser = await get_browser()
         ctx = await browser.new_context(**kwargs)
         page = await ctx.new_page()
         try:
