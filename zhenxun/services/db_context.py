@@ -27,7 +27,7 @@ class Model(Model_):
     自动添加模块
 
     Args:
-        Model_ (_type_): _description_
+        Model_ (_type_): Model
     """
 
     def __init_subclass__(cls, **kwargs):
