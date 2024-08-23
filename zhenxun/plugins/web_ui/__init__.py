@@ -20,6 +20,7 @@ from .api.tabs.manage.chat import ws_router as chat_routes
 from .api.tabs.plugin_manage import router as plugin_router
 from .api.tabs.system import router as system_router
 from .auth import router as auth_router
+from .public import init_public
 
 __plugin_meta__ = PluginMetadata(
     name="WebUi",
@@ -59,7 +60,7 @@ WsApiRouter.include_router(chat_routes)
 
 
 @driver.on_startup
-def _():
+async def _():
     try:
 
         async def log_sink(message: str):
@@ -80,6 +81,7 @@ def _():
         app: FastAPI = nonebot.get_app()
         app.include_router(BaseApiRouter)
         app.include_router(WsApiRouter)
+        await init_public(app)
         logger.info("<g>API启动成功</g>", "Web UI")
     except Exception as e:
         logger.error("<g>API启动失败</g>", "Web UI", e=e)
