@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
+import secrets
 
 import psutil
 import ujson as json
@@ -14,7 +15,6 @@ from zhenxun.configs.path_config import DATA_PATH
 
 from .base_model import SystemFolderSize, SystemStatus, User
 
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -28,6 +28,8 @@ if token_file.exists():
         token_data = json.load(open(token_file, "r", encoding="utf8"))
     except json.JSONDecodeError:
         pass
+if not token_data.get("secret"):
+    token_data["secret"] = secrets.token_hex(64)
 
 
 def get_user(uname: str) -> User | None:
@@ -55,7 +57,7 @@ def create_token(user: User, expires_delta: timedelta | None = None):
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
     return jwt.encode(
         claims={"sub": user.username, "exp": expire},
-        key=SECRET_KEY,
+        key=token_data["secret"],
         algorithm=ALGORITHM,
     )
 
@@ -71,7 +73,7 @@ def authentication():
     # if token not in token_data["token"]:
     def inner(token: str = Depends(oauth2_scheme)):
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(token, token_data["secret"], algorithms=[ALGORITHM])
             username, expire = payload.get("sub"), payload.get("exp")
             user = get_user(username)  # type: ignore
             if user is None:
