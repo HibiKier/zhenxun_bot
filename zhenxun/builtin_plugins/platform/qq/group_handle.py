@@ -18,7 +18,7 @@ from nonebot.adapters.onebot.v12 import (
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import At
 
-from zhenxun.configs.config import NICKNAME, Config
+from zhenxun.configs.config import BotConfig, Config
 from zhenxun.configs.path_config import DATA_PATH, IMAGE_PATH
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig, Task
 from zhenxun.models.fg_request import FgRequest
@@ -44,7 +44,7 @@ __plugin_meta__ = PluginMetadata(
             RegisterConfig(
                 module="invite_manager",
                 key="message",
-                value=f"请不要未经同意就拉{NICKNAME}入群！告辞！",
+                value=f"请不要未经同意就拉{BotConfig.nickname}入群！告辞！",
                 help="强制拉群后进群回复的内容",
             ),
             RegisterConfig(

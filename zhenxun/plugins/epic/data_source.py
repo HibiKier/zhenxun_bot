@@ -5,9 +5,7 @@ from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
 from nonebot_plugin_alconna import Image, UniMessage
 
-from zhenxun.configs.config import NICKNAME
 from zhenxun.services.log import logger
-from zhenxun.utils._build_image import BuildImage
 from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.message import MessageUtils
 

@@ -16,7 +16,7 @@ from nonebot_plugin_alconna import (
 )
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.config import BotConfig
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
@@ -191,11 +191,16 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, group_id: int):
         group_list = [g["group_id"] for g in await bot.get_group_list()]
         if group_id not in group_list:
             logger.debug("群组不存在", "退群", session=session, target=group_id)
-            await MessageUtils.build_message(f"{NICKNAME}未在该群组中...").finish()
+            await MessageUtils.build_message(
+                f"{BotConfig.nickname}未在该群组中..."
+            ).finish()
         try:
             await bot.set_group_leave(group_id=group_id)
             logger.info(
-                f"{NICKNAME}退出群组成功", "退群", session=session, target=group_id
+                f"{BotConfig.nickname}退出群组成功",
+                "退群",
+                session=session,
+                target=group_id,
             )
             await MessageUtils.build_message(f"退出群组 {group_id} 成功!").send()
             await GroupConsole.filter(group_id=group_id).delete()

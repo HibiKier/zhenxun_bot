@@ -5,7 +5,7 @@ from nonebot_plugin_alconna import Image as alcImage
 from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.config import BotConfig
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.services.log import logger
@@ -48,7 +48,7 @@ async def _(bot: Bot, session: EventSession, message: UniMsg):
         try:
             await PlatformUtils.ban_user(bot, session.id1, group_id, duration)
             await MessageUtils.build_message(
-                f"检测到恶意刷屏，{NICKNAME}要把你关进小黑屋！"
+                f"检测到恶意刷屏，{BotConfig.nickname}要把你关进小黑屋！"
             ).send(at_sender=True)
             mute_manage.reset(session.id1, group_id)
             logger.info(f"检测刷屏 被禁言 {duration} 分钟", "禁言检查", session=session)

@@ -78,6 +78,10 @@ body {
     margin-top: 43px;
     margin-left: 30px;
     font-size: 47px;
+    height: 57px;
+    align-items: center;
+    justify-content: center;
+    display: flex
 }
 
 .uid {

@@ -22,4 +22,11 @@ BACKUP_PATH = Path() / "backup"
 DOWNLOAD_GZ_FILE = TMP_PATH / "download_latest_file.tar.gz"
 DOWNLOAD_ZIP_FILE = TMP_PATH / "download_latest_file.zip"
 
-REPLACE_FOLDERS = ["builtin_plugins", "plugins", "services", "utils", "models"]
+REPLACE_FOLDERS = [
+    "builtin_plugins",
+    "plugins",
+    "services",
+    "utils",
+    "models",
+    "configs",
+]

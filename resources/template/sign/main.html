@@ -18,7 +18,7 @@
                     <img class="avatar-img" src="{{data.ava}}" alt="">
                 </div>
                 <div style="position: relative;">
-                    <p class="nickname">{{data.name}}</p>
+                    <p class="nickname" style="font-size: {{ data.font_size }}px;">{{data.name}}</p>
                     <p class="uid">UID:{{data.uid}}</p>
                 </div>
             </div>
@@ -30,7 +30,7 @@
                 <img class="rl-img" class="avatar-img" src="res/img/rl.png" alt="">
                 <img class="zx-img" class="avatar-img" src="res/img/1.png" alt="">
                 <p class="text-day">累计签到{{data.sign_count}}天</p>
-                <p class="text-zx">真寻说: {{data.message}}</p>
+                <p class="text-zx">{{data.message}}</p>
             </div>
         </div>
         <div class="sign-data">
@@ -58,7 +58,7 @@
             </div>
             <div class="bot-text">
                 <p style="position: absolute; top: 9px">好感度等级: {{data.level}}</p>
-                <p style="position: absolute; top: 58px">小真寻对你的态度: {{data.attitude}}</p>
+                <p style="position: absolute; top: 58px">{{data.attitude}}</p>
                 <p style="position: absolute; top: 111px"">距离升级还差{{data.interpolation}}好感度</p>
             </div>
             <div class="progress-border">

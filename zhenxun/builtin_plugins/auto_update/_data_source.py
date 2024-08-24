@@ -1,8 +1,8 @@
 import os
 import shutil
+import subprocess
 import tarfile
 import zipfile
-import subprocess
 from pathlib import Path
 
 from nonebot.adapters import Bot
@@ -21,24 +21,34 @@ from .config import (
     MAIN_URL,
     PYPROJECT_FILE,
     PYPROJECT_LOCK_FILE,
-    REQ_TXT_FILE,
     RELEASE_URL,
     REPLACE_FOLDERS,
+    REQ_TXT_FILE,
     TMP_PATH,
     VERSION_FILE,
 )
 
+
 def install_requirement():
     requirement_path = (Path() / "requirements.txt").absolute()
-    
+
     if not requirement_path.exists():
-        logger.debug(f"没有找到zhenxun的requirement.txt,目标路径为{requirement_path}", "插件管理")
+        logger.debug(
+            f"没有找到zhenxun的requirement.txt,目标路径为{requirement_path}", "插件管理"
+        )
         return
     try:
-        result = subprocess.run(["pip", "install", "-r", str(requirement_path)], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = subprocess.run(
+            ["pip", "install", "-r", str(requirement_path)],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
         logger.debug(f"成功安装真寻依赖，日志:\n{result.stdout}", "插件管理")
     except subprocess.CalledProcessError as e:
-        logger.error(f"安装真寻依赖失败，错误:\n{e.stderr}")
+        logger.error(f"安装真寻依赖失败，错误:\n{e.stderr}", "插件管理", e=e)
+
 
 @run_sync
 def _file_handle(latest_version: str | None):
@@ -119,6 +129,7 @@ def _file_handle(latest_version: str | None):
         with open(VERSION_FILE, "w", encoding="utf8") as f:
             f.write(f"__version__: {latest_version}")
     install_requirement()
+
 
 class UpdateManage:
 

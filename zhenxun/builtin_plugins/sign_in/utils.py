@@ -9,7 +9,7 @@ import pytz
 from nonebot.drivers import Driver
 from nonebot_plugin_htmlrender import template_to_pic
 
-from zhenxun.configs.config import NICKNAME, Config
+from zhenxun.configs.config import BotConfig, Config
 from zhenxun.configs.path_config import IMAGE_PATH, TEMPLATE_PATH
 from zhenxun.models.sign_log import SignLog
 from zhenxun.models.sign_user import SignUser
@@ -150,7 +150,9 @@ async def _generate_card(
         level = "8"
         interpolation = 0
     await info_img.text((0, 0), f"· 好感度等级：{level} [{lik2relation[level]}]")
-    await info_img.text((0, 20), f"· {NICKNAME}对你的态度：{level2attitude[level]}")
+    await info_img.text(
+        (0, 20), f"· {BotConfig.nickname}对你的态度：{level2attitude[level]}"
+    )
     await info_img.text((0, 40), f"· 距离升级还差 {interpolation:.2f} 好感度")
 
     bar_bk = BuildImage(220, 20, background=SIGN_RESOURCE_PATH / "bar_white.png")
@@ -214,7 +216,9 @@ async def _generate_card(
         f"好感度：{user.impression:.2f}", size=30
     )
     watermark = await BuildImage.build_text_image(
-        f"{NICKNAME}@{datetime.now().year}", size=15, font_color=(155, 155, 155)
+        f"{BotConfig.nickname}@{datetime.now().year}",
+        size=15,
+        font_color=(155, 155, 155),
     )
     today_data = BuildImage(300, 300, color=(255, 255, 255, 0), font_size=20)
     if is_card_view:
@@ -390,13 +394,13 @@ async def _generate_html_card(
     else:
         uid = "XXXX XXXX XXXX"
     level, next_impression, previous_impression = get_level_and_next_impression(
-        impression
+        float(user.impression)
     )
     interpolation = next_impression - impression
     if level == "9":
         level = "8"
         interpolation = 0
-    message = f"{NICKNAME}希望你天天开心！"
+    message = f"{BotConfig.nickname}希望你开心！"
     hour = datetime.now().hour
     if hour > 6 and hour < 10:
         message = random.choice(MORNING_MESSAGE)
@@ -416,19 +420,22 @@ async def _generate_html_card(
         "name": nickname,
         "uid": uid,
         "sign_count": f"{user.sign_count}",
-        "message": message,
+        "message": f"{BotConfig.nickname}说: {message}",
         "cur_impression": f"{user.impression:.2f}",
         "impression": f"好感度+{_impression}",
         "gold": f"金币+{gold}",
         "gift": gift,
         "level": f"{level} [{lik2relation[level]}]",
-        "attitude": level2attitude[level],
+        "attitude": f"{BotConfig.nickname}对你的态度: {level2attitude[level]}",
         "interpolation": f"{interpolation:.2f}",
         "heart2": [1 for _ in range(int(level))],
         "heart1": [1 for _ in range(9 - int(level))],
-        "process": process,
+        "process": process * 100,
         "date": str(now.replace(microsecond=0)),
+        "font_size": 45,
     }
+    if len(nickname) > 6:
+        data["font_size"] = 27
     _type = "sign"
     if is_card_view:
         _type = "view"

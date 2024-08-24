@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from nonebot.adapters.onebot.v11 import ActionFailed
 from tortoise.functions import Count
 
-from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.config import BotConfig
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.chat_history import ChatHistory
 from zhenxun.models.fg_request import FgRequest
@@ -133,7 +133,7 @@ async def _() -> Result:
         "friend_count": f_count,
         "group_count": g_count,
     }
-    return Result.ok(data, f"{NICKNAME}带来了最新的数据!")
+    return Result.ok(data, f"{BotConfig.nickname}带来了最新的数据!")
 
 
 @router.get(
@@ -177,7 +177,7 @@ async def _() -> Result:
     except Exception as e:
         logger.error("调用API错误", "/get_request", e=e)
         return Result.fail(f"{type(e)}: {e}")
-    return Result.ok(req_result, f"{NICKNAME}带来了最新的数据!")
+    return Result.ok(req_result, f"{BotConfig.nickname}带来了最新的数据!")
 
 
 @router.post(
@@ -234,9 +234,7 @@ async def _(parma: HandleRequest) -> Result:
                     else:
                         await GroupConsole.update_or_create(
                             group_id=req.group_id,
-                            defaults={
-                                "group_flag": 1,
-                            },
+                            defaults={"group_flag": 1},
                         )
             else:
                 return Result.warning_("未找到此Id请求...")
