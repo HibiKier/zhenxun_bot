@@ -6,6 +6,8 @@ from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.statistics import Statistics
+from zhenxun.utils.echart_utils import ChartUtils
+from zhenxun.utils.echart_utils.models import Barh
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import BuildImage, BuildMat, MatType
 
@@ -114,7 +116,6 @@ class StatisticsManage:
 
     @classmethod
     async def __build_image(cls, data_list: list[tuple[str, int]], title: str):
-        mat = BuildMat(MatType.BARH)
         module2count = {x[0]: x[1] for x in data_list}
         plugin_info = await PluginInfo.filter(
             module__in=module2count.keys(),
@@ -125,7 +126,5 @@ class StatisticsManage:
         for plugin in plugin_info:
             x_index.append(plugin.name)
             data.append(module2count.get(plugin.module, 0))
-        mat.x_index = x_index
-        mat.data = data
-        mat.title = title
-        return await mat.build()
+        barh = Barh(data=data, category_data=x_index)
+        return await ChartUtils.barh(barh)
