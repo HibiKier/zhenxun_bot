@@ -5,7 +5,6 @@ from nonebot.drivers import Driver
 from tortoise import Tortoise
 from tortoise.exceptions import OperationalError
 
-from zhenxun.configs.config import BotConfig
 from zhenxun.models.goods_info import GoodsInfo
 from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.models.sign_user import SignUser
@@ -45,20 +44,6 @@ from public.bag_users t1
     group by user_id
   ) t on t.user_id = t1.user_id and t.max_gold = t1.gold
 """
-
-
-@driver.on_startup
-async def _():
-    try:
-        if driver.config.config_nickname:
-            BotConfig.nickname = driver.config.config_nickname
-    except:
-        pass
-    try:
-        if driver.config.system_proxy:
-            BotConfig.system_proxy = driver.config.config_nickname
-    except:
-        pass
 
 
 @driver.on_startup

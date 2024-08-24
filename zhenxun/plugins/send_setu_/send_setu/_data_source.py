@@ -186,7 +186,7 @@ class SetuManage:
                         IMAGE_PATH
                         / "luoxiang"
                         / random.choice(os.listdir(IMAGE_PATH / "luoxiang")),
-                        f"\n(快向{BotConfig.nickname}签到提升好感度吧！)",
+                        f"\n(快向{BotConfig.self_nickname}签到提升好感度吧！)",
                     ]
                 )
         return None

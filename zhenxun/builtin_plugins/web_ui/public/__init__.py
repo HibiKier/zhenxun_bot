@@ -1,6 +1,6 @@
+from fastapi import APIRouter, FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi import APIRouter, FastAPI
 
 from zhenxun.services.log import logger
 
@@ -32,4 +32,4 @@ async def init_public(app: FastAPI):
                 name=f"public_{pathname}",
             )
     except Exception as e:
-        logger.error(f"初始化 web ui assets 失败 e: {e}", "Web UI assets")
+        logger.error(f"初始化 web ui assets 失败", "Web UI assets", e=e)

@@ -151,7 +151,7 @@ async def _generate_card(
         interpolation = 0
     await info_img.text((0, 0), f"· 好感度等级：{level} [{lik2relation[level]}]")
     await info_img.text(
-        (0, 20), f"· {BotConfig.nickname}对你的态度：{level2attitude[level]}"
+        (0, 20), f"· {BotConfig.self_nickname}对你的态度：{level2attitude[level]}"
     )
     await info_img.text((0, 40), f"· 距离升级还差 {interpolation:.2f} 好感度")
 
@@ -216,7 +216,7 @@ async def _generate_card(
         f"好感度：{user.impression:.2f}", size=30
     )
     watermark = await BuildImage.build_text_image(
-        f"{BotConfig.nickname}@{datetime.now().year}",
+        f"{BotConfig.self_nickname}@{datetime.now().year}",
         size=15,
         font_color=(155, 155, 155),
     )
@@ -400,7 +400,7 @@ async def _generate_html_card(
     if level == "9":
         level = "8"
         interpolation = 0
-    message = f"{BotConfig.nickname}希望你开心！"
+    message = f"{BotConfig.self_nickname}希望你开心！"
     hour = datetime.now().hour
     if hour > 6 and hour < 10:
         message = random.choice(MORNING_MESSAGE)
@@ -420,13 +420,13 @@ async def _generate_html_card(
         "name": nickname,
         "uid": uid,
         "sign_count": f"{user.sign_count}",
-        "message": f"{BotConfig.nickname}说: {message}",
+        "message": f"{BotConfig.self_nickname}说: {message}",
         "cur_impression": f"{user.impression:.2f}",
         "impression": f"好感度+{_impression}",
         "gold": f"金币+{gold}",
         "gift": gift,
         "level": f"{level} [{lik2relation[level]}]",
-        "attitude": f"{BotConfig.nickname}对你的态度: {level2attitude[level]}",
+        "attitude": f"{BotConfig.self_nickname}对你的态度: {level2attitude[level]}",
         "interpolation": f"{interpolation:.2f}",
         "heart2": [1 for _ in range(int(level))],
         "heart1": [1 for _ in range(9 - int(level))],

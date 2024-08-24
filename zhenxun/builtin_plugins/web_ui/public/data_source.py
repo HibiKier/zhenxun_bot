@@ -1,19 +1,14 @@
 import os
 import shutil
 import zipfile
-
 from pathlib import Path
+
 from nonebot.utils import run_sync
+
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
 
-from .config import (
-    WEBUI_ASSETS_DOWNLOAD_URL,
-    WEBUI_DATA_PATH,
-    TMP_PATH,
-    COMMAND_NAME,
-    PUBLIC_PATH,
-)
+from .config import COMMAND_NAME, PUBLIC_PATH, TMP_PATH, WEBUI_ASSETS_DOWNLOAD_URL
 
 
 async def update_webui_assets():
@@ -22,13 +17,8 @@ async def update_webui_assets():
         WEBUI_ASSETS_DOWNLOAD_URL, webui_assets_path, follow_redirects=True
     ):
         logger.info("下载 webui_assets 成功...", COMMAND_NAME)
-    else:
-        logger.error("下载 webui_assets 失败...", COMMAND_NAME)
-
-    await _file_handle(webui_assets_path)
-
-    logger.info("更新 webui_assets 成功...", COMMAND_NAME)
-    return True
+        return await _file_handle(webui_assets_path)
+    raise Exception("下载 webui_assets 失败", COMMAND_NAME)
 
 
 @run_sync
@@ -39,8 +29,7 @@ def _file_handle(webui_assets_path: Path):
         tf.extractall(TMP_PATH)
         logger.debug("解压 webui_assets 成功...", COMMAND_NAME)
     else:
-        logger.error("解压 webui_assets 失败...", COMMAND_NAME)
-        return
+        raise Exception("解压 webui_assets 失败，文件不存在...", COMMAND_NAME)
     download_file_path = (
         TMP_PATH / [x for x in os.listdir(TMP_PATH) if (TMP_PATH / x).is_dir()][0]
     )

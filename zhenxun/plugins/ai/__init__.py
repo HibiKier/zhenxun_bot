@@ -20,7 +20,7 @@ __plugin_meta__ = PluginMetadata(
     name="AI",
     description="屑Ai",
     usage=f"""
-    与{BotConfig.nickname}普普通通的对话吧！
+    与{BotConfig.self_nickname}普普通通的对话吧！
     """.strip(),
     extra=PluginExtraData(
         author="HibiKier",

@@ -61,7 +61,7 @@ async def _():
 async def _():
     message = MessageUtils.build_message(
         [
-            f"{BotConfig.nickname}要睡觉了，你们也要早点睡呀",
+            f"{BotConfig.self_nickname}要睡觉了，你们也要早点睡呀",
             IMAGE_PATH / "zhenxun" / "sleep.jpg",
         ]
     )

@@ -8,6 +8,7 @@ from nonebot_plugin_alconna import Target, Text, UniMsg
 from nonebot_plugin_session import EventSession
 from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 
+from zhenxun.configs.config import BotConfig
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
@@ -58,14 +59,10 @@ async def _(
     if session.id1:
         message[0] = Text(str(message[0]).replace("滴滴滴-", "", 1))
         platform = PlatformUtils.get_platform(bot)
+        superuser_id = None
         try:
-            superuser_id = config.platform_superusers["qq"][0]
-            if platform == "dodo":
-                superuser_id = config.platform_superusers["dodo"][0]
-            if platform == "kaiheila":
-                superuser_id = config.platform_superusers["kaiheila"][0]
-            if platform == "discord":
-                superuser_id = config.platform_superusers["discord"][0]
+            if platform:
+                superuser_id = BotConfig.get_superuser(platform)
         except IndexError:
             await MessageUtils.build_message("管理员失联啦...").finish()
         if not superuser_id:

@@ -173,7 +173,7 @@ async def _(
     local_id: Match[int],
 ):
     _tags = tags.result.split("#") if tags.available else None
-    if _tags and BotConfig.nickname in _tags:
+    if _tags and BotConfig.self_nickname in _tags:
         await MessageUtils.build_message(
             "咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀"
         ).finish()

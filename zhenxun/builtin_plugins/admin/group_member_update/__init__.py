@@ -62,7 +62,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
     if str(event.user_id) == bot.self_id:
         await MemberUpdateManage.update(bot, str(event.group_id))
         logger.info(
-            f"{BotConfig.nickname}加入群聊更新群组信息",
+            f"{BotConfig.self_nickname}加入群聊更新群组信息",
             "更新群组成员列表",
             session=event.user_id,
             group_id=event.group_id,

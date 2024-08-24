@@ -56,7 +56,7 @@ async def _(
     await MessageUtils.build_message(
         random.choice(
             [
-                f"让{BotConfig.nickname}看看是什么结果！答案是：‘{random_text}’",
+                f"让{BotConfig.self_nickname}看看是什么结果！答案是：‘{random_text}’",
                 f"根据命运的指引，接下来{user_name} ‘{random_text}’ 会比较好",
                 f"祈愿被回应了！是 ‘{random_text}’！",
                 f"结束了，{user_name}，命运之轮停在了 ‘{random_text}’！",

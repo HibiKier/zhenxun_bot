@@ -154,9 +154,9 @@ async def xie_ai(text: str) -> str:
         if data["result"] == 0:
             content = data["content"]
             if "菲菲" in content:
-                content = content.replace("菲菲", BotConfig.nickname)
+                content = content.replace("菲菲", BotConfig.self_nickname)
             if "艳儿" in content:
-                content = content.replace("艳儿", BotConfig.nickname)
+                content = content.replace("艳儿", BotConfig.self_nickname)
             if "公众号" in content:
                 content = ""
             if "{br}" in content:
@@ -188,7 +188,7 @@ def hello() -> UniMessage:
         (
             "哦豁？！",
             "你好！Ov<",
-            f"库库库，呼唤{BotConfig.nickname}做什么呢",
+            f"库库库，呼唤{BotConfig.self_nickname}做什么呢",
             "我在呢！",
             "呼呼，叫俺干嘛",
         )
@@ -206,7 +206,7 @@ def no_result() -> UniMessage:
             random.choice(
                 [
                     "你在说啥子？",
-                    f"纯洁的{BotConfig.nickname}没听懂",
+                    f"纯洁的{BotConfig.self_nickname}没听懂",
                     "下次再告诉你(下次一定)",
                     "你觉得我听懂了吗？嗯？",
                     "我！不！知！道！",

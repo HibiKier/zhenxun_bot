@@ -81,7 +81,7 @@ class MessageUtils:
         cls,
         msg_list: list[str | Message],
         uin: str,
-        name: str = f"这里是{BotConfig.nickname}",
+        name: str = f"这里是{BotConfig.self_nickname}",
     ) -> list[dict]:
         """生成自定义合并消息
 

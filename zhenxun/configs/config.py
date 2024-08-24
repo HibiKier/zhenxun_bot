@@ -1,57 +1,38 @@
-import platform
+import random
 from pathlib import Path
+
+import nonebot
+from pydantic import BaseModel
 
 from .utils import ConfigsManager
 
-if platform.system() == "Linux":
-    import os
 
-    hostip = (
-        os.popen("cat /etc/resolv.conf | grep nameserver | awk '{ print $2 }'")
-        .read()
-        .replace("\n", "")
-    )
+class BotSetting(BaseModel):
 
+    self_nickname: str = ""
+    """回复时NICKNAME"""
+    system_proxy: str | None = None
+    """系统代理"""
+    db_url: str = ""
+    """数据库链接"""
+    platform_superusers: dict[str, list[str]] = {}
+    """平台超级用户"""
 
-class BotConfigSetting:
+    def get_superuser(self, platform: str) -> str:
+        """获取超级用户
 
-    def __init__(self) -> None:
-        self.__nickname: str = ""
-        self.__system_proxy: str | None = None
+        参数:
+            platform: 对应平台
 
-    @property
-    def nickname(self) -> str:
-        return self.__nickname
+        返回:
+            str | None: 超级用户id
+        """
+        if self.platform_superusers:
+            if platform_superuser := self.platform_superusers.get(platform):
+                return random.choice(platform_superuser)
+        return ""
 
-    @nickname.setter
-    def nickname(self, v: str):
-        self.__nickname = v
-
-    @property
-    def system_proxy(self) -> str | None:
-        return self.__system_proxy
-
-    @system_proxy.setter
-    def system_proxy(self, v: str):
-        self.__system_proxy = v
-
-
-# 回复消息名称
-NICKNAME: str = ""
-
-# 代理，例如 "http://127.0.0.1:7890"
-# 如果是WLS 可以 f"http://{hostip}:7890" 使用寄主机的代理
-SYSTEM_PROXY: str | None = None  # 全局代理
-
-# 示例："bind": "postgres://user:password@127.0.0.1:5432/database"
-bind: str = ""  # 数据库连接链接
-sql_name: str = "postgres"
-user: str = ""  # 数据用户名
-password: str = ""  # 数据库密码
-address: str = ""  # 数据库地址
-port: str = ""  # 数据库端口
-database: str = ""  # 数据库名称
 
 Config = ConfigsManager(Path() / "data" / "configs" / "plugins2config.yaml")
 
-BotConfig = BotConfigSetting()
+BotConfig = nonebot.get_plugin_config(BotSetting)

@@ -192,12 +192,12 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, group_id: int):
         if group_id not in group_list:
             logger.debug("群组不存在", "退群", session=session, target=group_id)
             await MessageUtils.build_message(
-                f"{BotConfig.nickname}未在该群组中..."
+                f"{BotConfig.self_nickname}未在该群组中..."
             ).finish()
         try:
             await bot.set_group_leave(group_id=group_id)
             logger.info(
-                f"{BotConfig.nickname}退出群组成功",
+                f"{BotConfig.self_nickname}退出群组成功",
                 "退群",
                 session=session,
                 target=group_id,

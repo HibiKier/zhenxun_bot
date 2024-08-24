@@ -79,7 +79,7 @@ __plugin_meta__ = PluginMetadata(
             ),
             RegisterConfig(
                 key="WARNING_RESULT",
-                value=f"请注意对{BotConfig.nickname}的发言内容",
+                value=f"请注意对{BotConfig.self_nickname}的发言内容",
                 help="口头警告内容",
                 default_value=None,
             ),
@@ -202,7 +202,7 @@ async def _():
     
     关于敏感词：
         
-        记住不要骂{BotConfig.nickname}就对了！
+        记住不要骂{BotConfig.self_nickname}就对了！
     """.strip()
     max_width = 0
     for m in text.split("\n"):

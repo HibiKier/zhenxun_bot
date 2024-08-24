@@ -69,7 +69,7 @@ _t = on_message(priority=999, block=False, rule=lambda: False)
 
 @friend_req.handle()
 async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSession):
-    superuser = nonebot.get_driver().config.platform_superusers["qq"][0]
+    superuser = BotConfig.get_superuser("qq")
     if event.user_id and Timer.check(event.user_id):
         logger.debug(f"收录好友请求...", "好友请求", target=event.user_id)
         user = await bot.get_stranger_info(user_id=event.user_id)
@@ -117,7 +117,7 @@ async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSessi
 
 @group_req.handle()
 async def _(bot: v12Bot | v11Bot, event: GroupRequestEvent, session: EventSession):
-    superuser = nonebot.get_driver().config.platform_superusers["qq"][0]
+    superuser = BotConfig.get_superuser("qq")
     # 邀请
     if event.sub_type == "invite":
         if str(event.user_id) in bot.config.superusers:
@@ -171,7 +171,7 @@ async def _(bot: v12Bot | v11Bot, event: GroupRequestEvent, session: EventSessio
                 )
                 await bot.send_private_msg(
                     user_id=event.user_id,
-                    message=f"想要邀请我偷偷入群嘛~已经提醒{BotConfig.nickname}的管理员大人了\n"
+                    message=f"想要邀请我偷偷入群嘛~已经提醒{BotConfig.self_nickname}的管理员大人了\n"
                     "请确保已经群主或群管理沟通过！\n"
                     "等待管理员处理吧！",
                 )

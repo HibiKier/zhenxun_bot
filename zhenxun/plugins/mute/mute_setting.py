@@ -15,7 +15,7 @@ __plugin_meta__ = PluginMetadata(
     name="刷屏禁言",
     description="刷屏禁言相关操作",
     usage="""
-    刷屏禁言相关操作，需要 {BotConfig.nickname} 有群管理员权限
+    刷屏禁言相关操作，需要 {BotConfig.self_nickname} 有群管理员权限
     指令：
         设置刷屏: 查看当前设置
         -c [count]: 检测最大次数

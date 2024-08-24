@@ -58,7 +58,7 @@ class RedBagManager:
             try:
                 await MessageUtils.build_message(
                     [
-                        f"{BotConfig.nickname}的节日红包过时了，一共开启了 "
+                        f"{BotConfig.self_nickname}的节日红包过时了，一共开启了 "
                         f"{len(red_bag.open_user)}"
                         f" 个红包，共 {sum(red_bag.open_user.values())} 金币\n",
                         rank_image,
@@ -92,7 +92,7 @@ class RedBagManager:
                 rank_image = await festive_red_bag.build_amount_rank(rank_num, platform)
                 return MessageUtils.build_message(
                     [
-                        f"{BotConfig.nickname}的节日红包过时了，一共开启了 "
+                        f"{BotConfig.self_nickname}的节日红包过时了，一共开启了 "
                         f"{len(festive_red_bag.open_user)}"
                         f" 个红包，共 {sum(festive_red_bag.open_user.values())} 金币\n",
                         rank_image,

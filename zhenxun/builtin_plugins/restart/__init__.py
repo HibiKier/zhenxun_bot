@@ -48,12 +48,12 @@ RESTART_FILE = Path() / "restart.sh"
 
 @_matcher.got(
     "flag",
-    prompt=f"确定是否重启{BotConfig.nickname}？确定请回复[是|好|确定]（重启失败咱们将失去联系，请谨慎！）",
+    prompt=f"确定是否重启{BotConfig.self_nickname}？确定请回复[是|好|确定]（重启失败咱们将失去联系，请谨慎！）",
 )
 async def _(bot: Bot, session: EventSession, flag: str = ArgStr("flag")):
     if flag.lower() in ["true", "是", "好", "确定", "确定是"]:
         await MessageUtils.build_message(
-            f"开始重启{BotConfig.nickname}..请稍等..."
+            f"开始重启{BotConfig.self_nickname}..请稍等..."
         ).send()
         with open(RESTART_MARK, "w", encoding="utf8") as f:
             f.write(f"{bot.self_id} {session.id1}")
@@ -93,6 +93,6 @@ async def _(bot: Bot):
         if bot := nonebot.get_bot(bot_id):
             if target := PlatformUtils.get_target(bot, session_id):
                 await MessageUtils.build_message(
-                    f"{BotConfig.nickname}已成功重启！"
+                    f"{BotConfig.self_nickname}已成功重启！"
                 ).send(target, bot=bot)
         RESTART_MARK.unlink()
