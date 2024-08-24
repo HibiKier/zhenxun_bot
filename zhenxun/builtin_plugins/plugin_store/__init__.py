@@ -2,7 +2,6 @@ from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Subcommand, on_alconna
 from nonebot_plugin_session import EventSession
-from nonebot.exception import FinishedException 
 
 from zhenxun.configs.utils import PluginExtraData 
 from zhenxun.services.log import logger
@@ -75,8 +74,6 @@ async def _(session: EventSession):
         result = await ShopManage.get_plugins_info()
         logger.info("查看插件列表", "插件商店", session=session)
         await MessageUtils.build_message(result).send()
-    except FinishedException:
-        pass
     except Exception as e:
         logger.error(f"查看插件列表失败 e: {e}", "插件商店", session=session, e=e)
 
