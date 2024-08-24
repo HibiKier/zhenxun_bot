@@ -5,9 +5,9 @@ import subprocess
 import nonebot
 import ujson as json
 
-from zhenxun.services.log import logger  # type: ignore
-from zhenxun.utils.http_utils import AsyncHttpx  # type: ignore
-from zhenxun.utils.image_utils import BuildImage, ImageTemplate, RowStyle  # type: ignore
+from zhenxun.services.log import logger
+from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.utils.image_utils import BuildImage, ImageTemplate, RowStyle
 
 from .config import BASE_PATH, CONFIG_URL, DOWNLOAD_URL
 
