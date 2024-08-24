@@ -1,14 +1,13 @@
 import shutil
 from pathlib import Path
 import subprocess
-import os
 
 import nonebot
 import ujson as json
 
-from zhenxun.services.log import logger
-from zhenxun.utils.http_utils import AsyncHttpx
-from zhenxun.utils.image_utils import BuildImage, ImageTemplate, RowStyle
+from zhenxun.services.log import logger  # type: ignore
+from zhenxun.utils.http_utils import AsyncHttpx  # type: ignore
+from zhenxun.utils.image_utils import BuildImage, ImageTemplate, RowStyle  # type: ignore
 
 from .config import BASE_PATH, CONFIG_URL, DOWNLOAD_URL
 
@@ -87,16 +86,20 @@ async def download_file(url: str):
 
 def install_requirement(plugin_path: Path):
     requirement_path = plugin_path / "requirement.txt"
-    
+
     if not requirement_path.exists():
-        logger.debug(f"No requirement.txt found for plugin: {plugin_path.name}", "插件管理")
+        logger.debug(
+            f"No requirement.txt found for plugin: {plugin_path.name}", "插件管理")
         return
-    
+
     try:
-        result = subprocess.run(["pip", "install", "-r", str(requirement_path)], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        logger.debug(f"Successfully installed dependencies for plugin: {plugin_path.name}. Output:\n{result.stdout}", "插件管理")
+        result = subprocess.run(["pip", "install", "-r", str(requirement_path)],
+                                check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        logger.debug(
+            f"Successfully installed dependencies for plugin: {plugin_path.name}. Output:\n{result.stdout}", "插件管理")
     except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to install dependencies for plugin: {plugin_path.name}. Error:\n{e.stderr}")
+        logger.error(
+            f"Failed to install dependencies for plugin: {plugin_path.name}. Error:\n{e.stderr}")
 
 
 class ShopManage:
@@ -137,18 +140,19 @@ class ShopManage:
         for k in data.copy():
             if data[k]["plugin_type"]:
                 data[k]["plugin_type"] = cls.type2name[data[k]["plugin_type"]]
-        suc_plugin = [p.name for p in nonebot.get_loaded_plugins()]
+        suc_plugin = [p.name for p in nonebot.get_loaded_plugins()  # type: ignore
+                      ]
         data_list = [
             [
-                "已安装" if v[1]["module"] in suc_plugin else "",
-                i,
-                v[0],
-                v[1]["description"],
-                v[1]["author"],
-                v[1]["version"],
-                v[1]["plugin_type"],
+                "已安装" if plugin_info[1]["module"] in suc_plugin else "",
+                id,
+                plugin_info[0],
+                plugin_info[1]["description"],
+                plugin_info[1]["author"],
+                plugin_info[1]["version"],
+                plugin_info[1]["plugin_type"],
             ]
-            for i, v in enumerate(data.items())
+            for id, plugin_info in enumerate(data.items())
         ]
         return await ImageTemplate.table_page(
             "插件列表",
@@ -187,11 +191,11 @@ class ShopManage:
             return "插件下载地址构建失败..."
         logger.debug(f"尝试下载插件 URL: {url_path}", "插件管理")
         await download_file(DOWNLOAD_URL.format(url_path))
-        
+
         # 安装依赖
         plugin_path = BASE_PATH / "/".join(module_path_split)
         install_requirement(plugin_path)
-        
+
         return f"插件 {plugin_key} 安装成功!"
 
     @classmethod
@@ -214,3 +218,43 @@ class ShopManage:
         else:
             path.unlink()
         return f"插件 {plugin_key} 移除成功!"
+    
+    @classmethod
+    async def search_plugin(cls, plugin_name_or_author: str) -> BuildImage | str:
+        data: dict = await cls.__get_data()
+        column_name = ["-", "ID", "名称", "简介", "作者", "版本", "类型"]
+        for k in data.copy():
+            if data[k]["plugin_type"]:
+                data[k]["plugin_type"] = cls.type2name[data[k]["plugin_type"]]
+
+        suc_plugin = [p.name for p in nonebot.get_loaded_plugins()]  # type: ignore
+        filtered_data = [
+            (id, plugin_info)
+            for id, plugin_info in enumerate(data.items())
+            if plugin_name_or_author.lower() in plugin_info[0].lower() or 
+            plugin_name_or_author.lower() in plugin_info[1]["author"].lower()
+        ]
+
+        data_list = [
+            [
+                "已安装" if plugin_info[1]["module"] in suc_plugin else "",
+                id,
+                plugin_info[0],
+                plugin_info[1]["description"],
+                plugin_info[1]["author"],
+                plugin_info[1]["version"],
+                plugin_info[1]["plugin_type"],
+            ]
+            for id, plugin_info in filtered_data
+        ]
+        
+        if len(data_list) == 0:
+            return "未找到插件..."
+
+        return await ImageTemplate.table_page(
+            "插件列表",
+            f"通过安装/卸载插件 ID 来管理插件",
+            column_name,
+            data_list,
+            text_style=row_style,
+        )
