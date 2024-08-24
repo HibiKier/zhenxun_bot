@@ -1,7 +1,7 @@
-import nonebot
 from nonebot.adapters import Bot
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
+from nonebot.rule import to_me
 from nonebot_plugin_alconna import Alconna, Args, Match, on_alconna
 from nonebot_plugin_session import EventSession
 
@@ -47,6 +47,7 @@ _matcher = on_alconna(
     priority=1,
     block=True,
     permission=SUPERUSER,
+    rule=to_me(),
 )
 
 
@@ -66,22 +67,3 @@ async def _(bot: Bot, session: EventSession, ver_type: Match[str]):
     if result:
         await MessageUtils.build_message(result).finish()
     await MessageUtils.build_message("更新版本失败...").finish()
-
-
-# driver = nonebot.get_driver()
-
-
-# @driver.on_startup
-# async def _():
-#     result = await UpdateManage.check_version()
-#     print("-----------------------")
-#     print("-----------------------")
-#     print(result)
-#     print("-----------------------")
-#     print("-----------------------")
-#     result = await UpdateManage.update(None, "", "dev")
-#     print("-----------------------")
-#     print("-----------------------")
-#     print(result)
-#     print("-----------------------")
-#     print("-----------------------")

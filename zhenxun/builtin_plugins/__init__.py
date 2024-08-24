@@ -62,8 +62,8 @@ async def _():
             group_user = []
             try:
                 group_user = await GroupInfoUser.filter(uid__isnull=False).all()
-            except Exception:
-                logger.warning("获取GroupInfoUser数据uid失败...")
+            except Exception as e:
+                logger.warning("获取GroupInfoUser数据uid失败...", e=e)
             user2uid = {u.user_id: u.uid for u in group_user}
             db = Tortoise.get_connection("default")
             old_sign_list = await db.execute_query_dict(SIGN_SQL)

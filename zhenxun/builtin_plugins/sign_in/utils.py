@@ -7,9 +7,10 @@ from pathlib import Path
 import nonebot
 import pytz
 from nonebot.drivers import Driver
+from nonebot_plugin_htmlrender import template_to_pic
 
 from zhenxun.configs.config import NICKNAME, Config
-from zhenxun.configs.path_config import IMAGE_PATH
+from zhenxun.configs.path_config import IMAGE_PATH, TEMPLATE_PATH
 from zhenxun.models.sign_log import SignLog
 from zhenxun.models.sign_user import SignUser
 from zhenxun.utils.image_utils import BuildImage
@@ -25,7 +26,26 @@ from .config import (
     lik2relation,
 )
 
+AVA_URL = "http://q1.qlogo.cn/g?b=qq&nk={}&s=160"
+
 driver: Driver = nonebot.get_driver()
+
+base_config = Config.get("sign_in")
+
+
+MORNING_MESSAGE = [
+    "早上好，希望今天是美好的一天！",
+    "醒了吗，今天也要元气满满哦！",
+    "早上好呀，今天也要开心哦！",
+    "早安，愿你拥有美好的一天！",
+]
+
+LG_MESSAGE = [
+    "今天要早点休息哦~",
+    "可不要熬夜到太晚呀",
+    "请尽早休息吧！",
+    "不要熬夜啦！",
+]
 
 
 @driver.on_startup
@@ -73,9 +93,14 @@ async def get_card(
             if card_file.exists():
                 return card_file
             is_card_view = True
-        return await _generate_card(
-            user, nickname, add_impression, gold, gift, is_double, is_card_view
-        )
+        if base_config.get("IMAGE_STYLE") == "zhenxun":
+            return await _generate_html_card(
+                user, nickname, add_impression, gold, gift, is_double, is_card_view
+            )
+        else:
+            return await _generate_card(
+                user, nickname, add_impression, gold, gift, is_double, is_card_view
+            )
 
 
 async def _generate_card(
@@ -237,8 +262,8 @@ async def _generate_card(
         _type = "sign"
     current_date = datetime.now()
     current_datetime_str = current_date.strftime("%Y-%m-%d %a %H:%M:%S")
-    data = current_date.date()
-    data_img = await BuildImage.build_text_image(
+    date = current_date.date()
+    date_img = await BuildImage.build_text_image(
         f"时间：{current_datetime_str}", size=20
     )
     await bk.paste(nickname_img, (30, 15))
@@ -249,7 +274,7 @@ async def _generate_card(
     # await bk.paste(sign_day_img, (398, 158))
     # await bk.text((_x, 167), "days")
     await bk.paste(tip_image, (10, 167))
-    await bk.paste(data_img, (220, 370))
+    await bk.paste(date_img, (220, 370))
     await bk.paste(lik_text1_img, (220, 240))
     await bk.paste(lik_text2_img, (262, 234))
     await bk.paste(bar_bk, (225, 275))
@@ -257,8 +282,8 @@ async def _generate_card(
     await bk.paste(today_sign_text_img, (550, 180))
     await bk.paste(today_data, (580, 220))
     await bk.paste(watermark, (15, 400))
-    await bk.save(SIGN_TODAY_CARD_PATH / f"{user.user_id}_{_type}_{data}.png")
-    return IMAGE_PATH / "sign" / "today_card" / f"{user.user_id}_{_type}_{data}.png"
+    await bk.save(SIGN_TODAY_CARD_PATH / f"{user.user_id}_{_type}_{date}.png")
+    return IMAGE_PATH / "sign" / "today_card" / f"{user.user_id}_{_type}_{date}.png"
 
 
 async def generate_progress_bar_pic():
@@ -333,3 +358,98 @@ def clear_sign_data_pic():
     for file in os.listdir(SIGN_TODAY_CARD_PATH):
         if str(date) not in file:
             os.remove(SIGN_TODAY_CARD_PATH / file)
+
+
+async def _generate_html_card(
+    user: SignUser,
+    nickname: str,
+    impression: float,
+    gold: int | None,
+    gift: str,
+    is_double: bool = False,
+    is_card_view: bool = False,
+) -> Path:
+    """生成签到卡片
+
+    参数:
+        user: SignUser
+        nickname: 用户昵称
+        impression: 新增的好感度
+        gold: 金币
+        gift: 礼物
+        is_double: 是否触发双倍.
+        is_card_view: 是否展示好感度卡片.
+
+    返回:
+        Path: 卡片路径
+    """
+    user_console = await user.user_console
+    if user_console and user_console.uid:
+        uid = f"{user_console.uid}".rjust(12, "0")
+        uid = uid[:4] + " " + uid[4:8] + " " + uid[8:]
+    else:
+        uid = "XXXX XXXX XXXX"
+    level, next_impression, previous_impression = get_level_and_next_impression(
+        impression
+    )
+    interpolation = next_impression - impression
+    if level == "9":
+        level = "8"
+        interpolation = 0
+    message = f"{NICKNAME}希望你天天开心！"
+    hour = datetime.now().hour
+    if hour > 6 and hour < 10:
+        message = random.choice(MORNING_MESSAGE)
+    elif hour >= 0 and hour < 6:
+        message = random.choice(LG_MESSAGE)
+    _impression = impression
+    if is_double:
+        _impression = f"{impression}(×2)"
+    process = 1 - (next_impression - user.impression) / (
+        next_impression - previous_impression
+    )
+    if next_impression == 0:
+        process = 0
+    now = datetime.now()
+    data = {
+        "ava": AVA_URL.format(user.user_id),
+        "name": nickname,
+        "uid": uid,
+        "sign_count": f"{user.sign_count}",
+        "message": message,
+        "cur_impression": f"{user.impression:.2f}",
+        "impression": f"好感度+{_impression}",
+        "gold": f"金币+{gold}",
+        "gift": gift,
+        "level": f"{level} [{lik2relation[level]}]",
+        "attitude": level2attitude[level],
+        "interpolation": f"{interpolation:.2f}",
+        "heart2": [1 for _ in range(int(level))],
+        "heart1": [1 for _ in range(9 - int(level))],
+        "process": process,
+        "date": str(now.replace(microsecond=0)),
+    }
+    if is_card_view:
+        value_list = (
+            await SignUser.annotate()
+            .order_by("-impression")
+            .values_list("user_id", flat=True)
+        )
+        index = value_list.index(user.user_id) + 1  # type: ignore
+        data["impression"] = f"好感度排名第 {index} 位"
+        data["gold"] = f"总金币：{gold}"
+        data["gift"] = ""
+    pic = await template_to_pic(
+        template_path=str((TEMPLATE_PATH / "sign").absolute()),
+        template_name="main.html",
+        templates={"data": data},
+        pages={
+            "viewport": {"width": 465, "height": 926},
+            "base_url": f"file://{TEMPLATE_PATH}",
+        },
+        wait=2,
+    )
+    image = BuildImage.open(pic)
+    date = now.date()
+    await image.save(SIGN_TODAY_CARD_PATH / f"{user.user_id}_sign_{date}.png")
+    return IMAGE_PATH / "sign" / "today_card" / f"{user.user_id}_sign_{date}.png"
