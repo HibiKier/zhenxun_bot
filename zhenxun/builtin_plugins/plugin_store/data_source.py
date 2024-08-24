@@ -5,6 +5,7 @@ import subprocess
 import nonebot
 import ujson as json
 
+from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.image_utils import BuildImage, ImageTemplate, RowStyle
@@ -88,18 +89,15 @@ def install_requirement(plugin_path: Path):
     requirement_path = plugin_path / "requirement.txt"
 
     if not requirement_path.exists():
-        logger.debug(
-            f"No requirement.txt found for plugin: {plugin_path.name}", "插件管理")
+        logger.debug(f"No requirement.txt found for plugin: {plugin_path.name}", "插件管理")
         return
 
     try:
         result = subprocess.run(["pip", "install", "-r", str(requirement_path)],
                                 check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        logger.debug(
-            f"Successfully installed dependencies for plugin: {plugin_path.name}. Output:\n{result.stdout}", "插件管理")
+        logger.debug(f"Successfully installed dependencies for plugin: {plugin_path.name}. Output:\n{result.stdout}", "插件管理")
     except subprocess.CalledProcessError as e:
-        logger.error(
-            f"Failed to install dependencies for plugin: {plugin_path.name}. Error:\n{e.stderr}")
+        logger.error(f"Failed to install dependencies for plugin: {plugin_path.name}. Error:\n{e.stderr}")
 
 
 class ShopManage:
@@ -140,11 +138,8 @@ class ShopManage:
         for k in data.copy():
             if data[k]["plugin_type"]:
                 data[k]["plugin_type"] = cls.type2name[data[k]["plugin_type"]]
-        suc_plugin = {
-            p.name: p.metadata.extra["version"]
-            for p in nonebot.get_loaded_plugins()
-            if hasattr(p, "metadata") and hasattr(p.metadata, "type") and (p.metadata.type == 'application' or p.metadata.type is None) and "version" in p.metadata.extra.keys()
-        }
+        plugin_list = await PluginInfo.filter(load_status=True).values_list("module", "version")
+        suc_plugin = {p[0]: p[1] for p in plugin_list if p[1]}
 
         data_list = [
             [
@@ -235,11 +230,8 @@ class ShopManage:
         for k in data.copy():
             if data[k]["plugin_type"]:
                 data[k]["plugin_type"] = cls.type2name[data[k]["plugin_type"]]
-        suc_plugin = {
-            p.name: p.metadata.extra["version"]
-            for p in nonebot.get_loaded_plugins()
-            if hasattr(p, "metadata") and hasattr(p.metadata, "type") and (p.metadata.type == 'application' or p.metadata.type is None) and "version" in p.metadata.extra.keys()
-        }
+        plugin_list = await PluginInfo.filter(load_status=True).values_list("module", "version")
+        suc_plugin = {p[0]: p[1] for p in plugin_list if p[1]}
         filtered_data = [
             (id, plugin_info)
             for id, plugin_info in enumerate(data.items())
@@ -264,7 +256,7 @@ class ShopManage:
             ]
             for id, plugin_info in filtered_data
         ]
-        if len(data_list) == 0:
+        if not data_list:
             return "未找到相关插件..."
         return await ImageTemplate.table_page(
             "插件列表",
