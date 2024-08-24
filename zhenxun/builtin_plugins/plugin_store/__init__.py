@@ -74,7 +74,7 @@ async def _(session: EventSession):
     try:
         result = await ShopManage.get_plugins_info()
         logger.info("查看插件列表", "插件商店", session=session)
-        await MessageUtils.build_message(result).finish()
+        await MessageUtils.build_message(result).send()
     except FinishedException:
         pass
     except Exception as e:
@@ -88,44 +88,38 @@ async def _(session: EventSession, plugin_id: int):
             f"正在添加插件 Id: {plugin_id}"
         ).send()
         result = await ShopManage.add_plugin(plugin_id)
-    except FinishedException:
-        pass
     except Exception as e:
         logger.error(f"添加插件 Id: {plugin_id}失败", "插件商店", session=session, e=e)
         await MessageUtils.build_message(
             f"添加插件 Id: {plugin_id} 失败 e: {e}"
-        ).finish()
+        ).send()
     logger.info(f"添加插件 Id: {plugin_id}", "插件商店", session=session)
-    await MessageUtils.build_message(result).finish()
+    await MessageUtils.build_message(result).send()
 
 
 @_matcher.assign("remove")
 async def _(session: EventSession, plugin_id: int):
     try:
         result = await ShopManage.remove_plugin(plugin_id)
-    except FinishedException:
-        pass
     except Exception as e:
         logger.error(f"移除插件 Id: {plugin_id}失败", "插件商店", session=session, e=e)
         await MessageUtils.build_message(
             f"移除插件 Id: {plugin_id} 失败 e: {e}"
-        ).finish()
+        ).send()
     logger.info(f"移除插件 Id: {plugin_id}", "插件商店", session=session)
-    await MessageUtils.build_message(result).finish()
+    await MessageUtils.build_message(result).send()
 
 @_matcher.assign("search")
 async def _(session: EventSession, plugin_name_or_author: str):
     try:
         result = await ShopManage.search_plugin(plugin_name_or_author)
-    except FinishedException:
-        pass
     except Exception as e:
         logger.error(f"搜索插件 name: {plugin_name_or_author}失败", "插件商店", session=session, e=e)
         await MessageUtils.build_message(
             f"搜索插件 name: {plugin_name_or_author} 失败 e: {e}"
-        ).finish()
+        ).send()
     logger.info(f"搜索插件 name: {plugin_name_or_author}", "插件商店", session=session)
-    await MessageUtils.build_message(result).finish()
+    await MessageUtils.build_message(result).send()
 
 @_matcher.assign("update")
 async def _(session: EventSession, plugin_id: int):
@@ -134,12 +128,10 @@ async def _(session: EventSession, plugin_id: int):
             f"正在更新插件 Id: {plugin_id}"
         ).send()
         result = await ShopManage.update_plugin(plugin_id)
-    except FinishedException:
-        pass
     except Exception as e:
         logger.error(f"更新插件 Id: {plugin_id}失败", "插件商店", session=session, e=e)
         await MessageUtils.build_message(
             f"更新插件 Id: {plugin_id} 失败 e: {e}"
-        ).finish()
+        ).send()
     logger.info(f"更新插件 Id: {plugin_id}", "插件商店", session=session)
-    await MessageUtils.build_message(result).finish()
+    await MessageUtils.build_message(result).send()
