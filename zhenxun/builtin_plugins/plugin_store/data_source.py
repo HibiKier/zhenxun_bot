@@ -140,8 +140,12 @@ class ShopManage:
         for k in data.copy():
             if data[k]["plugin_type"]:
                 data[k]["plugin_type"] = cls.type2name[data[k]["plugin_type"]]
-        suc_plugin = [p.name for p in nonebot.get_loaded_plugins()  # type: ignore
-                      ]
+        suc_plugin = {
+            p.name: p.metadata.extra["version"]
+            for p in nonebot.get_loaded_plugins()
+            if hasattr(p, "metadata") and hasattr(p.metadata, "type") and (p.metadata.type == 'application' or p.metadata.type is None) and "version" in p.metadata.extra.keys()
+        }
+
         data_list = [
             [
                 "已安装" if plugin_info[1]["module"] in suc_plugin else "",
@@ -149,7 +153,12 @@ class ShopManage:
                 plugin_info[0],
                 plugin_info[1]["description"],
                 plugin_info[1]["author"],
-                plugin_info[1]["version"],
+                (
+                    f"{suc_plugin[plugin_info[1]['module']]} (有更新->{plugin_info[1]['version']})"
+                    if plugin_info[1]["module"] in suc_plugin
+                    and plugin_info[1]["version"] != suc_plugin[plugin_info[1]["module"]]
+                    else plugin_info[1]["version"]
+                ),
                 plugin_info[1]["plugin_type"],
             ]
             for id, plugin_info in enumerate(data.items())
@@ -226,8 +235,11 @@ class ShopManage:
         for k in data.copy():
             if data[k]["plugin_type"]:
                 data[k]["plugin_type"] = cls.type2name[data[k]["plugin_type"]]
-
-        suc_plugin = [p.name for p in nonebot.get_loaded_plugins()]  # type: ignore
+        suc_plugin = {
+            p.name: p.metadata.extra["version"]
+            for p in nonebot.get_loaded_plugins()
+            if hasattr(p, "metadata") and hasattr(p.metadata, "type") and (p.metadata.type == 'application' or p.metadata.type is None) and "version" in p.metadata.extra.keys()
+        }
         filtered_data = [
             (id, plugin_info)
             for id, plugin_info in enumerate(data.items())
@@ -242,15 +254,18 @@ class ShopManage:
                 plugin_info[0],
                 plugin_info[1]["description"],
                 plugin_info[1]["author"],
-                plugin_info[1]["version"],
+                (
+                    f"{suc_plugin[plugin_info[1]['module']]} (有更新->{plugin_info[1]['version']})"
+                    if plugin_info[1]["module"] in suc_plugin
+                    and plugin_info[1]["version"] != suc_plugin[plugin_info[1]["module"]]
+                    else plugin_info[1]["version"]
+                ),
                 plugin_info[1]["plugin_type"],
             ]
             for id, plugin_info in filtered_data
         ]
-        
         if len(data_list) == 0:
-            return "未找到插件..."
-
+            return "未找到相关插件..."
         return await ImageTemplate.table_page(
             "插件列表",
             f"通过安装/卸载插件 ID 来管理插件",
@@ -258,3 +273,39 @@ class ShopManage:
             data_list,
             text_style=row_style,
         )
+    
+    @classmethod
+    async def update_plugin(cls, plugin_id: int) -> str:
+        data: dict = await cls.__get_data()
+        if plugin_id < 0 or plugin_id >= len(data):
+            return "插件ID不存在..."
+        plugin_key = list(data.keys())[plugin_id]
+        plugin_info = data[plugin_key]
+        module_path_split = plugin_info["module_path"].split(".")
+        url_path = None
+        path = BASE_PATH
+        if len(module_path_split) == 2:
+            """单个文件或文件夹"""
+            if plugin_info["is_dir"]:
+                url_path = "/".join(module_path_split)
+            else:
+                url_path = "/".join(module_path_split) + ".py"
+        else:
+            """嵌套文件或文件夹"""
+            for p in module_path_split[:-1]:
+                path = path / p
+            path.mkdir(parents=True, exist_ok=True)
+            if plugin_info["is_dir"]:
+                url_path = f"{'/'.join(module_path_split)}"
+            else:
+                url_path = f"{'/'.join(module_path_split)}.py"
+        if not url_path:
+            return "插件下载地址构建失败..."
+        logger.debug(f"尝试下载插件 URL: {url_path}", "插件管理")
+        await download_file(DOWNLOAD_URL.format(url_path))
+
+        # 安装依赖
+        plugin_path = BASE_PATH / "/".join(module_path_split)
+        install_requirement(plugin_path)
+
+        return f"插件 {plugin_key} 更新成功!"
