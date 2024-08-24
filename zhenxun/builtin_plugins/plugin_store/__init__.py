@@ -76,6 +76,7 @@ async def _(session: EventSession):
         await MessageUtils.build_message(result).send()
     except Exception as e:
         logger.error(f"查看插件列表失败 e: {e}", "插件商店", session=session, e=e)
+        await MessageUtils.build_message("获取插件列表失败...").send()
 
 
 @_matcher.assign("add")
@@ -89,7 +90,7 @@ async def _(session: EventSession, plugin_id: int):
         logger.error(f"添加插件 Id: {plugin_id}失败", "插件商店", session=session, e=e)
         await MessageUtils.build_message(
             f"添加插件 Id: {plugin_id} 失败 e: {e}"
-        ).send()
+        ).finish()
     logger.info(f"添加插件 Id: {plugin_id}", "插件商店", session=session)
     await MessageUtils.build_message(result).send()
 
@@ -102,7 +103,7 @@ async def _(session: EventSession, plugin_id: int):
         logger.error(f"移除插件 Id: {plugin_id}失败", "插件商店", session=session, e=e)
         await MessageUtils.build_message(
             f"移除插件 Id: {plugin_id} 失败 e: {e}"
-        ).send()
+        ).finish()
     logger.info(f"移除插件 Id: {plugin_id}", "插件商店", session=session)
     await MessageUtils.build_message(result).send()
 
@@ -114,7 +115,7 @@ async def _(session: EventSession, plugin_name_or_author: str):
         logger.error(f"搜索插件 name: {plugin_name_or_author}失败", "插件商店", session=session, e=e)
         await MessageUtils.build_message(
             f"搜索插件 name: {plugin_name_or_author} 失败 e: {e}"
-        ).send()
+        ).finish()
     logger.info(f"搜索插件 name: {plugin_name_or_author}", "插件商店", session=session)
     await MessageUtils.build_message(result).send()
 
@@ -129,6 +130,6 @@ async def _(session: EventSession, plugin_id: int):
         logger.error(f"更新插件 Id: {plugin_id}失败", "插件商店", session=session, e=e)
         await MessageUtils.build_message(
             f"更新插件 Id: {plugin_id} 失败 e: {e}"
-        ).send()
+        ).finish()
     logger.info(f"更新插件 Id: {plugin_id}", "插件商店", session=session)
     await MessageUtils.build_message(result).send()
