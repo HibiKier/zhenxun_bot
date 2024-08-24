@@ -7,7 +7,7 @@ from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, Option, on_alconna
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.config import BotConfig
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
@@ -79,7 +79,7 @@ __plugin_meta__ = PluginMetadata(
             ),
             RegisterConfig(
                 key="WARNING_RESULT",
-                value=f"请注意对{NICKNAME}的发言内容",
+                value=f"请注意对{BotConfig.self_nickname}的发言内容",
                 help="口头警告内容",
                 default_value=None,
             ),
@@ -202,7 +202,7 @@ async def _():
     
     关于敏感词：
         
-        记住不要骂{NICKNAME}就对了！
+        记住不要骂{BotConfig.self_nickname}就对了！
     """.strip()
     max_width = 0
     for m in text.split("\n"):

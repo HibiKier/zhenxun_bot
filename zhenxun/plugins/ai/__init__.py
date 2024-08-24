@@ -6,7 +6,7 @@ from nonebot.rule import to_me
 from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import NICKNAME, Config
+from zhenxun.configs.config import BotConfig, Config
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.models.friend_user import FriendUser
 from zhenxun.models.group_member_info import GroupInfoUser
@@ -20,7 +20,7 @@ __plugin_meta__ = PluginMetadata(
     name="AI",
     description="屑Ai",
     usage=f"""
-    与{NICKNAME}普普通通的对话吧！
+    与{BotConfig.self_nickname}普普通通的对话吧！
     """.strip(),
     extra=PluginExtraData(
         author="HibiKier",

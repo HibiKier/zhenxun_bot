@@ -1,6 +1,7 @@
+import os
 import shutil
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 import nonebot
 import ujson as json
@@ -89,15 +90,27 @@ def install_requirement(plugin_path: Path):
     requirement_path = plugin_path / "requirement.txt"
 
     if not requirement_path.exists():
-        logger.debug(f"No requirement.txt found for plugin: {plugin_path.name}", "插件管理")
+        logger.debug(
+            f"No requirement.txt found for plugin: {plugin_path.name}", "插件管理"
+        )
         return
 
     try:
-        result = subprocess.run(["pip", "install", "-r", str(requirement_path)],
-                                check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        logger.debug(f"Successfully installed dependencies for plugin: {plugin_path.name}. Output:\n{result.stdout}", "插件管理")
+        result = subprocess.run(
+            ["pip", "install", "-r", str(requirement_path)],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        logger.debug(
+            f"Successfully installed dependencies for plugin: {plugin_path.name}. Output:\n{result.stdout}",
+            "插件管理",
+        )
     except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to install dependencies for plugin: {plugin_path.name}. Error:\n{e.stderr}")
+        logger.error(
+            f"Failed to install dependencies for plugin: {plugin_path.name}. Error:\n{e.stderr}"
+        )
 
 
 class ShopManage:

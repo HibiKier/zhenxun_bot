@@ -13,7 +13,7 @@ from nonebot_plugin_htmlrender import get_browser
 from playwright.async_api import Page
 from retrying import retry
 
-from zhenxun.configs.config import SYSTEM_PROXY
+from zhenxun.configs.config import BotConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.user_agent import get_user_agent
@@ -23,7 +23,7 @@ from zhenxun.utils.user_agent import get_user_agent
 
 class AsyncHttpx:
 
-    proxy = {"http://": SYSTEM_PROXY, "https://": SYSTEM_PROXY}
+    proxy = {"http://": BotConfig.system_proxy, "https://": BotConfig.system_proxy}
 
     @classmethod
     @retry(stop_max_attempt_number=3)

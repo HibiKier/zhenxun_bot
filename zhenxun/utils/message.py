@@ -5,7 +5,7 @@ import nonebot
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
 from nonebot_plugin_alconna import At, Image, Text, UniMessage
 
-from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.config import BotConfig
 from zhenxun.services.log import logger
 from zhenxun.utils._build_image import BuildImage
 
@@ -81,7 +81,7 @@ class MessageUtils:
         cls,
         msg_list: list[str | Message],
         uin: str,
-        name: str = f"这里是{NICKNAME}",
+        name: str = f"这里是{BotConfig.self_nickname}",
     ) -> list[dict]:
         """生成自定义合并消息
 

@@ -12,7 +12,7 @@ from nonebot_plugin_alconna import Alconna, Args, Arparma, At, Match, Option, on
 from nonebot_plugin_apscheduler import scheduler
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.config import BotConfig
 from zhenxun.configs.utils import PluginCdBlock, PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.depends import GetConfig, UserName
@@ -298,7 +298,7 @@ async def _(
                 try:
                     await MessageUtils.build_message(
                         [
-                            f"{NICKNAME}的节日红包过时了，一共开启了 "
+                            f"{BotConfig.self_nickname}的节日红包过时了，一共开启了 "
                             f"{len(festive_red_bag.open_user)}"
                             f" 个红包，共 {sum(festive_red_bag.open_user.values())} 金币\n",
                             rank_image,
@@ -314,10 +314,10 @@ async def _(
             except JobLookupError:
                 pass
             await group_red_bag.add_red_bag(
-                f"{NICKNAME}的红包",
+                f"{BotConfig.self_nickname}的红包",
                 amount,
                 num,
-                NICKNAME,
+                BotConfig.self_nickname,
                 FESTIVE_KEY,
                 _uuid,
                 platform=session.platform,
@@ -335,7 +335,7 @@ async def _(
                 )
                 await MessageUtils.build_message(
                     [
-                        f"{NICKNAME}发起了节日金币红包\n金额: {amount}\n数量: {num}\n",
+                        f"{BotConfig.self_nickname}发起了节日金币红包\n金额: {amount}\n数量: {num}\n",
                         image_result,
                     ]
                 ).send(target=target, bot=bot)

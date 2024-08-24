@@ -8,7 +8,7 @@ from nonebot_plugin_alconna import At, UniMessage
 from nonebot_plugin_apscheduler import scheduler
 from pydantic import BaseModel
 
-from zhenxun.configs.config import NICKNAME, Config
+from zhenxun.configs.config import BotConfig, Config
 from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.models.user_console import UserConsole
 from zhenxun.utils.enum import GoldHandle
@@ -278,7 +278,7 @@ class RussianManage:
                         random.choice(
                             [
                                 f"不要打扰 {russian.player1[1]} 和 {russian.player2[1]} 的决斗啊！",
-                                f"给我好好做好一个观众！不然{NICKNAME}就要生气了",
+                                f"给我好好做好一个观众！不然{BotConfig.self_nickname}就要生气了",
                                 f"不要捣乱啊baka{uname}！",
                             ]
                         )
@@ -429,7 +429,7 @@ class RussianManage:
                     f"\t累计败场：{loser.fail_count}\n"
                     f"\t累计输掉金币：{loser.lose_money}\n"
                     f"-------------------\n"
-                    f"哼哼，{NICKNAME}从中收取了 {float(rand)}%({fee}金币) 作为手续费！\n"
+                    f"哼哼，{BotConfig.self_nickname}从中收取了 {float(rand)}%({fee}金币) 作为手续费！\n"
                     f"子弹排列：{russian.bullet_arr}",
                     padding=10,
                     color="#f9f6f2",

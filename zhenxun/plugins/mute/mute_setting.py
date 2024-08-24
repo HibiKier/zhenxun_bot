@@ -2,7 +2,7 @@ from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, Option, on_alconna
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.config import BotConfig
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
@@ -15,7 +15,7 @@ __plugin_meta__ = PluginMetadata(
     name="刷屏禁言",
     description="刷屏禁言相关操作",
     usage="""
-    刷屏禁言相关操作，需要 {NICKNAME} 有群管理员权限
+    刷屏禁言相关操作，需要 {BotConfig.self_nickname} 有群管理员权限
     指令：
         设置刷屏: 查看当前设置
         -c [count]: 检测最大次数

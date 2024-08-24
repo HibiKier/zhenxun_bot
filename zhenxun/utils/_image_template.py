@@ -182,15 +182,20 @@ class ImageTemplate:
                     _temp["width"] = w
             build_data_list.append(_temp)
         column_image_list = []
+        column_name_image_list: list[BuildImage] = []
+        for i, data in enumerate(build_data_list):
+            column_name_image = await BuildImage.build_text_image(
+                column_name[i], font, 12, "#C8CCCF"
+            )
+            column_name_image_list.append(column_name_image)
+        max_h = max([c.height for c in column_name_image_list])
         for i, data in enumerate(build_data_list):
             width = data["width"] + padding * 2
             height = (base_h + row_space) * (len(data["data"]) + 1) + padding * 2
             background = BuildImage(width, height, (255, 255, 255))
-            column_name_image = await BuildImage.build_text_image(
-                column_name[i], font, 12, "#C8CCCF"
-            )
+            column_name_image = column_name_image_list[i]
             await background.paste(column_name_image, (0, 20), center_type="width")
-            cur_h = column_name_image.height + row_space + 20
+            cur_h = max_h + row_space + 20
             for item in data["data"]:
                 style = RowStyle(font=font)
                 if text_style:
@@ -198,13 +203,15 @@ class ImageTemplate:
                 if isinstance(item, tuple):
                     """图片"""
                     data, width, height = item
+                    image_ = None
                     if isinstance(data, Path):
                         image_ = BuildImage(width, height, background=data)
                     elif isinstance(data, bytes):
                         image_ = BuildImage(width, height, background=BytesIO(data))
                     elif isinstance(data, BuildImage):
                         image_ = data
-                    await background.paste(image_, (padding, cur_h))
+                    if image_:
+                        await background.paste(image_, (padding, cur_h))
                 else:
                     await background.text(
                         (padding, cur_h),

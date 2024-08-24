@@ -4,7 +4,7 @@ from nonebot.rule import to_me
 from nonebot_plugin_alconna import Alconna, Args, Arparma, Match, on_alconna
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.config import BotConfig
 from zhenxun.configs.utils import BaseBlock, PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.message import MessageUtils
@@ -83,7 +83,7 @@ async def arg_handle(
         result, status_code = await get_price(name)
     except FileNotFoundError:
         await MessageUtils.build_message(
-            f'请先对{NICKNAME}说"设置cookie"来设置cookie！'
+            f'请先对{BotConfig.self_nickname}说"设置cookie"来设置cookie！'
         ).send(at_sender=True)
     if status_code in [996, 997, 998]:
         await MessageUtils.build_message(result).finish()

@@ -1,7 +1,7 @@
 import random
 import time
 
-from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.config import BotConfig
 from zhenxun.models.ban_console import BanConsole
 
 
@@ -15,14 +15,14 @@ class AiMessageManager:
             "你是只会说这一句话吗？",
             "[*]，你发我也发！",
             "[uname]，[*]",
-            f"救命！有笨蛋一直给{NICKNAME}发一样的话！",
+            f"救命！有笨蛋一直给{BotConfig.self_nickname}发一样的话！",
             "这句话你已经给我发了{}次了，再发就生气！",
         ]
         self._repeat_message = [
-            f"请不要学{NICKNAME}说话",
-            f"为什么要一直学{NICKNAME}说话？",
+            f"请不要学{BotConfig.self_nickname}说话",
+            f"为什么要一直学{BotConfig.self_nickname}说话？",
             "你再学！你再学我就生气了！",
-            f"呜呜，你是想欺负{NICKNAME}嘛..",
+            f"呜呜，你是想欺负{BotConfig.self_nickname}嘛..",
             "[uname]不要再学我说话了！",
             "再学我说话，我就把你拉进黑名单（生气",
             "你再学！[uname]是个笨蛋！",

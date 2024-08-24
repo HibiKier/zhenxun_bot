@@ -7,7 +7,7 @@ from nonebot_plugin_alconna import Image as alcImg
 from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import NICKNAME, Config
+from zhenxun.configs.config import BotConfig, Config
 from zhenxun.configs.path_config import TEMP_PATH
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig, Task
 from zhenxun.models.task_info import TaskInfo
@@ -112,7 +112,7 @@ async def _(message: UniMsg, event: Event, session: EventSession):
                 image_list.append(m.url)
     if not plain_text and not image_list:
         return
-    if plain_text and plain_text.startswith(f"@可爱的{NICKNAME}"):
+    if plain_text and plain_text.startswith(f"@可爱的{BotConfig.self_nickname}"):
         await MessageUtils.build_message("复制粘贴的虚空艾特？").send(reply_to=True)
     if image_list:
         img_hash = await get_download_image_hash(image_list[0], group_id)

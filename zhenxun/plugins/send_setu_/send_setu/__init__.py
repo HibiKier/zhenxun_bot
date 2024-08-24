@@ -16,7 +16,7 @@ from nonebot_plugin_alconna import (
 )
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.config import BotConfig
 from zhenxun.configs.utils import PluginCdBlock, PluginExtraData, RegisterConfig
 from zhenxun.models.sign_user import SignUser
 from zhenxun.models.user_console import UserConsole
@@ -173,7 +173,7 @@ async def _(
     local_id: Match[int],
 ):
     _tags = tags.result.split("#") if tags.available else None
-    if _tags and NICKNAME in _tags:
+    if _tags and BotConfig.self_nickname in _tags:
         await MessageUtils.build_message(
             "咳咳咳，虽然我很可爱，但是我木有自己的色图~~~有的话记得发我一份呀"
         ).finish()

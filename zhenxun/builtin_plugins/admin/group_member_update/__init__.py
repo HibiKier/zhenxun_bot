@@ -7,7 +7,7 @@ from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
 from nonebot_plugin_apscheduler import scheduler
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.config import BotConfig
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
@@ -62,7 +62,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
     if str(event.user_id) == bot.self_id:
         await MemberUpdateManage.update(bot, str(event.group_id))
         logger.info(
-            f"{NICKNAME}加入群聊更新群组信息",
+            f"{BotConfig.self_nickname}加入群聊更新群组信息",
             "更新群组成员列表",
             session=event.user_id,
             group_id=event.group_id,

@@ -2,7 +2,7 @@ import nonebot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_apscheduler import scheduler
 
-from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.config import BotConfig
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.configs.utils import PluginExtraData, Task
 from zhenxun.models.task_info import TaskInfo
@@ -60,7 +60,10 @@ async def _():
 )
 async def _():
     message = MessageUtils.build_message(
-        [f"{NICKNAME}要睡觉了，你们也要早点睡呀", IMAGE_PATH / "zhenxun" / "sleep.jpg"]
+        [
+            f"{BotConfig.self_nickname}要睡觉了，你们也要早点睡呀",
+            IMAGE_PATH / "zhenxun" / "sleep.jpg",
+        ]
     )
     await broadcast_group(
         message,

@@ -11,7 +11,7 @@ from nonebot.plugin import PluginMetadata
 from nonebot_plugin_apscheduler import scheduler
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import NICKNAME, Config
+from zhenxun.configs.config import BotConfig, Config
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.models.fg_request import FgRequest
 from zhenxun.models.friend_user import FriendUser
@@ -69,7 +69,7 @@ _t = on_message(priority=999, block=False, rule=lambda: False)
 
 @friend_req.handle()
 async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSession):
-    superuser = nonebot.get_driver().config.platform_superusers["qq"][0]
+    superuser = BotConfig.get_superuser("qq")
     if event.user_id and Timer.check(event.user_id):
         logger.debug(f"收录好友请求...", "好友请求", target=event.user_id)
         user = await bot.get_stranger_info(user_id=event.user_id)
@@ -78,7 +78,6 @@ async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSessi
         # age = str(user["age"])
         comment = event.comment
         if superuser:
-            superuser = int(superuser)
             await MessageUtils.build_message(
                 f"*****一份好友申请*****\n"
                 f"昵称：{nickname}({event.user_id})\n"
@@ -118,7 +117,7 @@ async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSessi
 
 @group_req.handle()
 async def _(bot: v12Bot | v11Bot, event: GroupRequestEvent, session: EventSession):
-    superuser = nonebot.get_driver().config.platform_superusers["qq"][0]
+    superuser = BotConfig.get_superuser("qq")
     # 邀请
     if event.sub_type == "invite":
         if str(event.user_id) in bot.config.superusers:
@@ -165,15 +164,14 @@ async def _(bot: v12Bot | v11Bot, event: GroupRequestEvent, session: EventSessio
                     target=event.group_id,
                 )
                 nickname = await FriendUser.get_user_name(str(event.user_id))
-                await Text(
-                    f"*****一份入群申请*****\n"
-                    f"申请人：{nickname}({event.user_id})\n"
-                    f"群聊：{event.group_id}\n"
-                    f"邀请日期：{datetime.now().replace(microsecond=0)}"
-                ).send_to(target=TargetQQPrivate(user_id=superuser), bot=bot)
+                await PlatformUtils.send_superuser(
+                    bot,
+                    f"*****一份入群申请*****\n申请人：{nickname}({event.user_id})\n群聊：{event.group_id}\n邀请日期：{datetime.now().replace(microsecond=0)}",
+                    superuser,
+                )
                 await bot.send_private_msg(
                     user_id=event.user_id,
-                    message=f"想要邀请我偷偷入群嘛~已经提醒{NICKNAME}的管理员大人了\n"
+                    message=f"想要邀请我偷偷入群嘛~已经提醒{BotConfig.self_nickname}的管理员大人了\n"
                     "请确保已经群主或群管理沟通过！\n"
                     "等待管理员处理吧！",
                 )
