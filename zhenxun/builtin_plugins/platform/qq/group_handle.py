@@ -231,17 +231,19 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
             """群欢迎消息"""
             _flmt.start_cd(group_id)
             path = DATA_PATH / "welcome_message" / "qq" / f"{group_id}"
-            data = json.load((path / "text.json").open(encoding="utf-8"))
-            message = data["message"]
-            msg_split = re.split(r"\[image:\d+\]", message)
+            file = path / "text.json"
             msg_list = []
-            if data["at"]:
-                msg_list.append(At(flag="user", target=user_id))
-            for i, text in enumerate(msg_split):
-                msg_list.append(text)
-                img_file = path / f"{i}.png"
-                if img_file.exists():
-                    msg_list.append(img_file)
+            if file.exists():
+                data = json.load((path / "text.json").open(encoding="utf-8"))
+                message = data["message"]
+                msg_split = re.split(r"\[image:\d+\]", message)
+                if data["at"]:
+                    msg_list.append(At(flag="user", target=user_id))
+                for i, text in enumerate(msg_split):
+                    msg_list.append(text)
+                    img_file = path / f"{i}.png"
+                    if img_file.exists():
+                        msg_list.append(img_file)
             if not TaskInfo.is_block("group_welcome", group_id):
                 logger.info(f"发送群欢迎消息...", "入群检测", group_id=group_id)
                 if msg_list:

@@ -102,7 +102,10 @@ class MemberUpdateManage:
                 if role in ["owner", "admin"] and not await LevelUser.is_group_flag(
                     user_id, group_id
                 ):
-                    await LevelUser.set_level(user_id, group_id, default_auth)
+                    if role == "owner":
+                        await LevelUser.set_level(user_id, group_id, default_auth + 1)
+                    else:
+                        await LevelUser.set_level(user_id, group_id, default_auth)
             if user_id in bot.config.superusers:
                 await LevelUser.set_level(user_id, group_id, 9)
             join_time = datetime.strptime(

@@ -1,6 +1,7 @@
 import time
 from collections import defaultdict
 
+from nonebot.adapters import Event
 from nonebot.adapters.onebot.v11 import Bot
 from nonebot.exception import IgnoredException
 from nonebot.matcher import Matcher
@@ -63,16 +64,24 @@ _blmt = BanCheckLimiter(
 
 # 恶意触发命令检测
 @run_preprocessor
-async def _(matcher: Matcher, bot: Bot, session: EventSession, state: T_State):
+async def _(
+    matcher: Matcher, bot: Bot, session: EventSession, state: T_State, event: Event
+):
     module = None
     if plugin := matcher.plugin:
         module = plugin.module_name
         if metadata := plugin.metadata:
             extra = metadata.extra
-            if extra.get("plugin_type") in [PluginType.HIDDEN, PluginType.DEPENDANT]:
+            if extra.get("plugin_type") in [
+                PluginType.HIDDEN,
+                PluginType.DEPENDANT,
+                PluginType.ADMIN,
+            ]:
                 return
         else:
             return
+    if matcher.type == "notice":
+        return
     user_id = session.id1
     group_id = session.id3 or session.id2
     malicious_ban_time = Config.get_config("hook", "MALICIOUS_BAN_TIME")

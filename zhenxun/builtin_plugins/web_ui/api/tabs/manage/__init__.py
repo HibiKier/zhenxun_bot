@@ -227,22 +227,17 @@ async def _(parma: HandleRequest) -> Result:
             if bot_id not in nonebot.get_bots():
                 return Result.warning_("指定Bot未连接...")
             if req := await FgRequest.get_or_none(id=parma.id):
-                if group := await GroupConsole.get_group(group_id=req.group_id):
-                    group.group_flag = 1
-                    await group.save(update_fields=["group_flag"])
-                else:
-                    group_info = await bots[bot_id].get_group_info(
-                        group_id=req.group_id
-                    )
-                    await GroupConsole.update_or_create(
-                        group_id=str(group_info["group_id"]),
-                        defaults={
-                            "group_name": group_info["group_name"],
-                            "max_member_count": group_info["max_member_count"],
-                            "member_count": group_info["member_count"],
-                            "group_flag": 1,
-                        },
-                    )
+                if req.request_type == RequestType.GROUP:
+                    if group := await GroupConsole.get_group(group_id=req.group_id):
+                        group.group_flag = 1
+                        await group.save(update_fields=["group_flag"])
+                    else:
+                        await GroupConsole.update_or_create(
+                            group_id=req.group_id,
+                            defaults={
+                                "group_flag": 1,
+                            },
+                        )
             else:
                 return Result.warning_("未找到此Id请求...")
             try:

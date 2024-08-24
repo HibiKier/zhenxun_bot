@@ -429,7 +429,9 @@ async def _generate_html_card(
         "process": process,
         "date": str(now.replace(microsecond=0)),
     }
+    _type = "sign"
     if is_card_view:
+        _type = "view"
         value_list = (
             await SignUser.annotate()
             .order_by("-impression")
@@ -451,5 +453,5 @@ async def _generate_html_card(
     )
     image = BuildImage.open(pic)
     date = now.date()
-    await image.save(SIGN_TODAY_CARD_PATH / f"{user.user_id}_sign_{date}.png")
-    return IMAGE_PATH / "sign" / "today_card" / f"{user.user_id}_sign_{date}.png"
+    await image.save(SIGN_TODAY_CARD_PATH / f"{user.user_id}_{_type}_{date}.png")
+    return IMAGE_PATH / "sign" / "today_card" / f"{user.user_id}_{_type}_{date}.png"

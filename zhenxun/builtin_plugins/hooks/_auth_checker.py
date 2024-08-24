@@ -198,6 +198,8 @@ class AuthChecker:
             return False
         if not self._flmt_s.check(sid):
             return False
+        if plugin.module == "ai":
+            return False
         return True
 
     async def auth(
@@ -392,7 +394,7 @@ class AuthChecker:
             if not plugin.status and plugin.block_type == BlockType.ALL:
                 """全局状态"""
                 if group_id:
-                    if await GroupConsole.is_super_group(group_id, channel_id):
+                    if await GroupConsole.is_super_group(group_id):
                         raise IsSuperuserException()
                 logger.debug(
                     f"{plugin.name}({plugin.module}) 全局未开启此功能...",

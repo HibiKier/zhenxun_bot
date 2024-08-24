@@ -117,7 +117,8 @@ class StatisticsManage:
         mat = BuildMat(MatType.BARH)
         module2count = {x[0]: x[1] for x in data_list}
         plugin_info = await PluginInfo.filter(
-            module__in=module2count.keys(), plugin_type=PluginType.NORMAL
+            module__in=module2count.keys(),
+            plugin_type=PluginType.NORMAL,
         ).all()
         x_index = []
         data = []
