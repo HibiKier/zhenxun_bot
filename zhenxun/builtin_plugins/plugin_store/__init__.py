@@ -1,13 +1,13 @@
-from nonebot.permission import SUPERUSER # type: ignore
-from nonebot.plugin import PluginMetadata # type: ignore
-from nonebot_plugin_alconna import Alconna, Args, Subcommand, on_alconna # type: ignore
-from nonebot_plugin_session import EventSession # type: ignore
-from nonebot.exception import FinishedException  # type: ignore
+from nonebot.permission import SUPERUSER
+from nonebot.plugin import PluginMetadata
+from nonebot_plugin_alconna import Alconna, Args, Subcommand, on_alconna
+from nonebot_plugin_session import EventSession
+from nonebot.exception import FinishedException 
 
-from zhenxun.configs.utils import PluginExtraData  # type: ignore
-from zhenxun.services.log import logger # type: ignore
-from zhenxun.utils.enum import PluginType # type: ignore
-from zhenxun.utils.message import MessageUtils # type: ignore
+from zhenxun.configs.utils import PluginExtraData 
+from zhenxun.services.log import logger
+from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 
 from .data_source import ShopManage
 
