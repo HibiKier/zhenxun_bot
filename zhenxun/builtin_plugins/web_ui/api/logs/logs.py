@@ -8,16 +8,6 @@ from .log_manager import LOG_STORAGE
 router = APIRouter()
 
 
-@router.get("/logs", response_model=list[str])
-async def system_logs_history(reverse: bool = False):
-    """历史日志
-
-    参数:
-        reverse: 反转顺序.
-    """
-    return LOG_STORAGE.list(reverse=reverse)  # type: ignore
-
-
 @router.websocket("/logs")
 async def system_logs_realtime(websocket: WebSocket):
     await websocket.accept()

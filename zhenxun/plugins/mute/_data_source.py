@@ -47,9 +47,9 @@ class MuteManage:
         """
         if group_id not in self._group_data:
             self._group_data[group_id] = GroupData(
-                count=base_config.get("MUTE_DEFAULT_COUNT", 10),
-                time=base_config.get("MUTE_DEFAULT_TIME", 7),
-                duration=base_config.get("MUTE_DEFAULT_DURATION", 10),
+                count=base_config.get("MUTE_DEFAULT_COUNT", 10) or 10,
+                time=base_config.get("MUTE_DEFAULT_TIME", 7) or 7,
+                duration=base_config.get("MUTE_DEFAULT_DURATION", 10) or 10,
             )
         return self._group_data[group_id]
 
