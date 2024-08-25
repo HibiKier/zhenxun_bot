@@ -25,13 +25,13 @@
 @font-face {
     font-family: rxxxtFont;
     /* 导入的字体文件 */
-    src: url("./res/font/日系小熊可爱体 Regular.ttf");
+    src: url("./res/font/rxxxkat.ttf");
 }
 
 @font-face {
     font-family: kcytFont;
     /* 导入的字体文件 */
-    src: url("./res/font/江城圆体 700W.ttf");
+    src: url("./res/font/jcyt.ttf");
 }
 
 @font-face {
