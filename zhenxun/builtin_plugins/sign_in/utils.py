@@ -426,7 +426,7 @@ async def _generate_html_card(
         "gold": f"金币+{gold}",
         "gift": gift,
         "level": f"{level} [{lik2relation[level]}]",
-        "attitude": f"{BotConfig.self_nickname}对你的态度: {level2attitude[level]}",
+        "attitude": f"对你的态度: {level2attitude[level]}",
         "interpolation": f"{interpolation:.2f}",
         "heart2": [1 for _ in range(int(level))],
         "heart1": [1 for _ in range(9 - int(level))],
