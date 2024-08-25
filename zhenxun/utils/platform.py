@@ -349,22 +349,37 @@ class PlatformUtils:
             int: 更新个数
         """
         create_list = []
+        update_list = []
         group_list, platform = await cls.get_group_list(bot)
         if group_list:
-            exists_group_list = await GroupConsole.all().values_list(
-                "group_id", "channel_id"
-            )
+            db_group = await GroupConsole.all()
+            db_group_id = [(group.group_id, group.channel_id) for group in db_group]
             for group in group_list:
                 group.platform = platform
-                if (group.group_id, group.channel_id) not in exists_group_list:
+                if (group.group_id, group.channel_id) not in db_group_id:
                     create_list.append(group)
                     logger.debug(
                         "群聊信息更新成功",
                         "更新群信息",
                         target=f"{group.group_id}:{group.channel_id}",
                     )
+                else:
+                    _group = [
+                        g
+                        for g in db_group
+                        if g.group_id == group.group_id
+                        and g.channel_id == group.channel_id
+                    ][0]
+                    _group.group_name = group.group_name
+                    _group.max_member_count = group.max_member_count
+                    _group.member_count = group.member_count
+                    update_list.append(_group)
         if create_list:
             await GroupConsole.bulk_create(create_list, 10)
+        if group_list:
+            await GroupConsole.bulk_update(
+                update_list, ["group_name", "max_member_count", "member_count"], 10
+            )
         return len(create_list)
 
     @classmethod
