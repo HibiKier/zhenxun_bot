@@ -1,20 +1,6 @@
-import nonebot
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from strenum import StrEnum
 
-app = nonebot.get_app()
-
 origins = ["*"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 
 AVA_URL = "http://q1.qlogo.cn/g?b=qq&nk={}&s=160"
 
