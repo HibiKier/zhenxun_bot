@@ -32,9 +32,9 @@ class WordBank(Model):
     """用户id"""
     group_id = fields.CharField(255, null=True)
     """群聊id"""
-    word_scope = fields.IntField(default=0)
+    word_scope = fields.IntField(default=ScopeType.GLOBAL.value)
     """生效范围 0: 全局 1: 群聊 2: 私聊"""
-    word_type = fields.IntField(default=0)
+    word_type = fields.IntField(default=WordType.EXACT.value)
     """词条类型 0: 完全匹配 1: 模糊 2: 正则 3: 图片"""
     status = fields.BooleanField()
     """词条状态"""
@@ -68,8 +68,8 @@ class WordBank(Model):
         group_id: str | None,
         problem: str,
         answer: str | None,
-        word_scope: int | None = None,
-        word_type: int | None = None,
+        word_scope: ScopeType | None = None,
+        word_type: WordType | None = None,
     ) -> bool:
         """检测问题是否存在
 
@@ -99,8 +99,8 @@ class WordBank(Model):
         cls,
         user_id: str,
         group_id: str | None,
-        word_scope: int,
-        word_type: int,
+        word_scope: ScopeType,
+        word_type: WordType,
         problem: str,
         answer: list[str | alcText | alcAt | alcImage],
         to_me_nickname: str | None = None,
@@ -122,7 +122,7 @@ class WordBank(Model):
         """
         # 对图片做额外处理
         image_path = None
-        if word_type == 3:
+        if word_type == WordType.IMAGE:
             _uuid = uuid.uuid1()
             _file = path / "problem" / f"{group_id}" / f"{user_id}_{_uuid}.jpg"
             _file.parent.mkdir(exist_ok=True, parents=True)
@@ -248,8 +248,8 @@ class WordBank(Model):
         cls,
         group_id: str | None,
         problem: str,
-        word_scope: int | None = None,
-        word_type: int | None = None,
+        word_scope: ScopeType | None = None,
+        word_type: WordType | None = None,
     ) -> Any:
         """检测是否包含该问题并获取所有回答
 
@@ -264,14 +264,14 @@ class WordBank(Model):
             if word_scope:
                 query = query.filter(word_scope=word_scope)
             else:
-                query = query.filter(Q(group_id=group_id) | Q(word_scope=0))
+                query = query.filter(Q(group_id=group_id) | Q(word_scope=WordType.EXACT))
         else:
-            query = query.filter(Q(word_scope=2) | Q(word_scope=0))
+            query = query.filter(Q(word_scope=ScopeType.PRIVATE) | Q(word_scope=ScopeType.GLOBAL))
             if word_type:
                 query = query.filter(word_scope=word_type)
         # 完全匹配
         if data_list := await query.filter(
-            Q(Q(word_type=0) | Q(word_type=3)), Q(problem=problem)
+            Q(Q(word_type=WordType.EXACT) | Q(word_type=WordType.IMAGE)), Q(problem=problem)
         ).all():
             return data_list
         db = Tortoise.get_connection("default")
@@ -282,7 +282,7 @@ class WordBank(Model):
             return [cls(**data) for data in data_list]
         # 正则
         sql = (
-            query.filter(word_type=2, word_scope__not=999).sql() + " and $1 ~ problem;"
+            query.filter(word_type=WordType.REGEX, word_scope__not=999).sql() + " and $1 ~ problem;"
         )
         data_list = await db.execute_query_dict(sql, [problem])
         if data_list:
@@ -294,8 +294,8 @@ class WordBank(Model):
         cls,
         group_id: str | None,
         problem: str,
-        word_scope: int | None = None,
-        word_type: int | None = None,
+        word_scope: ScopeType | None = None,
+        word_type: WordType | None = None,
     ) -> UniMessage | None:
         """根据问题内容获取随机回答
 
@@ -333,7 +333,7 @@ class WordBank(Model):
         problem: str,
         index: int | None = None,
         group_id: str | None = None,
-        word_scope: int | None = 0,
+        word_scope: ScopeType | None = ScopeType.GLOBAL,
     ) -> tuple[str, list[UniMessage]]:
         """获取指定问题所有回答
 
@@ -385,7 +385,7 @@ class WordBank(Model):
         problem: str,
         group_id: str | None,
         index: int | None = None,
-        word_scope: int = 1,
+        word_scope: ScopeType = ScopeType.GROUP,
     ):
         """删除指定问题全部或指定回答
 
@@ -425,7 +425,7 @@ class WordBank(Model):
         replace_str: str,
         group_id: str | None,
         index: int | None = None,
-        word_scope: int = 1,
+        word_scope: ScopeType = ScopeType.GROUP,
     ) -> str:
         """修改词条问题
 
@@ -532,8 +532,8 @@ class WordBank(Model):
             answer: 回答
             placeholder: 占位符
         """
-        word_scope = 0
-        word_type = 0
+        word_scope = ScopeType.GLOBAL
+        word_type = WordType.EXACT
         # 对图片做额外处理
         if not await cls.exists(
             user_id, group_id, problem, answer, word_scope, word_type

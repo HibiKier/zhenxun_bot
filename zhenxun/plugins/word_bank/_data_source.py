@@ -5,6 +5,7 @@ from nonebot_plugin_alconna import Image as alcImage
 from nonebot_plugin_alconna import Text as alcText
 from nonebot_plugin_alconna import UniMessage, UniMsg
 
+from zhenxun.plugins.word_bank._config import ScopeType
 from zhenxun.utils.image_utils import ImageTemplate
 from zhenxun.utils.message import MessageUtils
 
@@ -97,7 +98,7 @@ class WordBankManage:
         problem: str = "",
         index: int | None = None,
         group_id: str | None = None,
-        word_scope: int = 1,
+        word_scope: ScopeType = ScopeType.GROUP,
     ) -> tuple[str, str]:
         """修改群词条
 
@@ -120,7 +121,7 @@ class WordBankManage:
         index: int | None = None,
         aid: int | None = None,
         group_id: str | None = None,
-        word_scope: int = 1,
+        word_scope: ScopeType = ScopeType.GROUP,
     ) -> tuple[str, str]:
         """删除群词条
 
@@ -146,7 +147,7 @@ class WordBankManage:
         handle_type: str,
         index: int | None = None,
         aid: int | None = None,
-        word_scope: int = 0,
+        word_scope: ScopeType = ScopeType.GLOBAL,
         replace_problem: str = "",
     ) -> tuple[str, str]:
         """词条操作
@@ -186,7 +187,7 @@ class WordBankManage:
 
     @classmethod
     async def __get_problem_str(
-        cls, idx: int, group_id: str | None = None, word_scope: int = 1
+        cls, idx: int, group_id: str | None = None, word_scope: ScopeType = ScopeType.GROUP
     ) -> tuple[str, int]:
         """通过id获取问题字符串
 
@@ -195,7 +196,7 @@ class WordBankManage:
             group_id: 群号
             word_scope: 获取类型
         """
-        if word_scope in [0, 2]:
+        if word_scope in [ScopeType.GLOBAL, ScopeType.PRIVATE]:
             all_problem = await WordBank.get_problem_by_scope(word_scope)
         elif group_id:
             all_problem = await WordBank.get_group_all_problem(group_id)
@@ -211,7 +212,7 @@ class WordBankManage:
         problem: str | None,
         index: int | None = None,
         group_id: str | None = None,
-        word_scope: int | None = 1,
+        word_scope: ScopeType | None = ScopeType.GROUP,
     ) -> UniMessage:
         """获取群词条
 
@@ -266,7 +267,7 @@ class WordBankManage:
                 _problem_list = await WordBank.get_problem_by_scope(word_scope)
             else:
                 raise Exception("群组id和词条范围不能都为空")
-            global_problem_list = await WordBank.get_problem_by_scope(0)
+            global_problem_list = await WordBank.get_problem_by_scope(ScopeType.GLOBAL)
             if not _problem_list and not global_problem_list:
                 return MessageUtils.build_message("未收录任何词条...")
             column_name = ["序号", "关键词", "匹配类型", "收录用户"]

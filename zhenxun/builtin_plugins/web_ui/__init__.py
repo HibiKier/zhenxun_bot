@@ -1,4 +1,5 @@
 import asyncio
+import secrets
 
 import nonebot
 from fastapi import APIRouter, FastAPI
@@ -6,7 +7,7 @@ from nonebot.log import default_filter, default_format
 from nonebot.plugin import PluginMetadata
 
 from zhenxun.configs.config import Config as gConfig
-from zhenxun.configs.utils import PluginExtraData
+from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger, logger_
 from zhenxun.utils.enum import PluginType
 
@@ -28,15 +29,40 @@ __plugin_meta__ = PluginMetadata(
     usage="""
     """.strip(),
     extra=PluginExtraData(
-        author="HibiKier", version="0.1", plugin_type=PluginType.HIDDEN
+        author="HibiKier",
+        version="0.1",
+        plugin_type=PluginType.HIDDEN,
+        Configs=[
+            RegisterConfig(
+                module="web-ui",
+                key="username",
+                value="admin",
+                help="前端管理用户名",
+                type=str,
+                default_value="admin",
+            ),
+            RegisterConfig(
+                module="web-ui",
+                key="password",
+                value=None,
+                help="前端管理密码",
+                type=str,
+                default_value=None,
+            ),
+            RegisterConfig(
+                module="web-ui",
+                key="secret",
+                value=secrets.token_urlsafe(32),
+                help="JWT密钥",
+                type=str,
+                default_value=None,
+            ),
+            ],
     ).dict(),
 )
 
 driver = nonebot.get_driver()
 
-gConfig.add_plugin_config("web-ui", "username", "admin", help="前端管理用户名")
-
-gConfig.add_plugin_config("web-ui", "password", None, help="前端管理密码")
 
 gConfig.set_name("web-ui", "web-ui")
 
