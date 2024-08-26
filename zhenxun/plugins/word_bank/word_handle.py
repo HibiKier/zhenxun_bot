@@ -19,7 +19,7 @@ from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.message import MessageUtils
 
-from ._config import scope2int, type2int
+from ._config import WordType, ScopeType, scope2int, type2int
 from ._data_source import WordBankManage, get_answer, get_img_and_at_list, get_problem
 from ._model import WordBank
 from .command import _add_matcher, _del_matcher, _show_matcher, _update_matcher
@@ -172,8 +172,8 @@ async def _(
                 if group_id and (not word_scope or word_scope == "私聊")
                 else "0"
             ),
-            scope2int[word_scope] if word_scope else 1,
-            type2int[word_type] if word_type else 0,
+            scope2int[word_scope] if word_scope else ScopeType.GROUP,
+            type2int[word_type] if word_type else WordType.EXACT,
             problem,
             answer,
             nickname[0] if nickname else None,
@@ -220,9 +220,9 @@ async def _(
         await MessageUtils.build_message(
             "此命令之后需要跟随指定词条或id，通过“显示词条“查看"
         ).finish(reply_to=True)
-    word_scope = 1 if session.id3 or session.id2 else 2
+    word_scope = ScopeType.GROUP if session.id3 or session.id2 else ScopeType.PRIVATE
     if all.result:
-        word_scope = 0
+        word_scope = ScopeType.GLOBAL
     if gid := session.id3 or session.id2:
         result, _ = await WordBankManage.delete_word(
             problem.result,
@@ -259,9 +259,9 @@ async def _(
         await MessageUtils.build_message(
             "此命令之后需要跟随指定词条或id，通过“显示词条“查看"
         ).finish(reply_to=True)
-    word_scope = 1 if session.id3 or session.id2 else 2
+    word_scope = ScopeType.GROUP if session.id3 or session.id2 else ScopeType.PRIVATE
     if all.result:
-        word_scope = 0
+        word_scope = ScopeType.GLOBAL
     if gid := session.id3 or session.id2:
         result, old_problem = await WordBankManage.update_word(
             replace,
@@ -297,16 +297,16 @@ async def _(
     arparma: Arparma,
     all: Query[bool] = AlconnaQuery("all.value", False),
 ):
-    word_scope = 1 if session.id3 or session.id2 else 2
+    word_scope = ScopeType.GROUP if session.id3 or session.id2 else ScopeType.PRIVATE
+    group_id = session.id3 or session.id2
     if all.result:
         word_scope = 0
-    group_id = session.id3 or session.id2
     if gid.available:
         group_id = gid.result
     if problem.available:
         if index.available:
             if index.result < 0 or index.result > len(
-                await WordBank.get_problem_by_scope(2)
+                await WordBank.get_problem_by_scope(word_scope)
             ):
                 await MessageUtils.build_message("id必须在范围内...").finish(
                     reply_to=True

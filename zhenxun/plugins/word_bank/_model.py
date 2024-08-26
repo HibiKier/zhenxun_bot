@@ -19,7 +19,7 @@ from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.image_utils import get_img_hash
 from zhenxun.utils.message import MessageUtils
 
-from ._config import int2type
+from ._config import WordType, ScopeType, int2type
 
 path = DATA_PATH / "word_bank"
 
@@ -309,7 +309,7 @@ class WordBank(Model):
         data_list = await cls.check_problem(group_id, problem, word_scope, word_type)
         if data_list:
             random_answer = random.choice(data_list)
-            if random_answer.word_type == 2:
+            if random_answer.word_type == WordType.REGEX:
                 r = re.search(random_answer.problem, problem)
                 has_placeholder = re.search(rf"\$(\d)", random_answer.answer)
                 if r and r.groups() and has_placeholder:
@@ -348,7 +348,7 @@ class WordBank(Model):
         """
         if index is not None:
             # TODO: group_by和order_by不能同时使用
-            if group_id:
+            if group_id and word_scope != ScopeType.GLOBAL:
                 _problem = (
                     await cls.filter(group_id=group_id).order_by("create_time")
                     # .group_by("problem")
@@ -356,7 +356,7 @@ class WordBank(Model):
                 )
             else:
                 _problem = (
-                    await cls.filter(word_scope=(word_scope or 0)).order_by(
+                    await cls.filter(word_scope=(word_scope or ScopeType.GLOBAL)).order_by(
                         "create_time"
                     )
                     # .group_by("problem")
