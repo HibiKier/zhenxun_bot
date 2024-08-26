@@ -28,8 +28,6 @@ if token_file.exists():
         token_data = json.load(open(token_file, "r", encoding="utf8"))
     except json.JSONDecodeError:
         pass
-if not token_data.get("secret"):
-    token_data["secret"] = secrets.token_hex(64)
 
 
 def get_user(uname: str) -> User | None:
@@ -57,7 +55,7 @@ def create_token(user: User, expires_delta: timedelta | None = None):
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
     return jwt.encode(
         claims={"sub": user.username, "exp": expire},
-        key=token_data["secret"],
+        key=Config.get_config("web-ui", "secret"),
         algorithm=ALGORITHM,
     )
 
@@ -73,7 +71,7 @@ def authentication():
     # if token not in token_data["token"]:
     def inner(token: str = Depends(oauth2_scheme)):
         try:
-            payload = jwt.decode(token, token_data["secret"], algorithms=[ALGORITHM])
+            payload = jwt.decode(token, Config.get_config("web-ui", "secret"), algorithms=[ALGORITHM])
             username, expire = payload.get("sub"), payload.get("exp")
             user = get_user(username)  # type: ignore
             if user is None:

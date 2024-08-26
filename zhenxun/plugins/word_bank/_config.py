@@ -1,5 +1,4 @@
 from enum import Enum
-from pickle import GLOBAL
 from zhenxun.configs.path_config import DATA_PATH
 
 data_dir = DATA_PATH / "word_bank"
