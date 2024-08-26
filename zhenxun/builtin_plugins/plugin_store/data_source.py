@@ -10,7 +10,13 @@ from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.image_utils import BuildImage, ImageTemplate, RowStyle
 
-from .config import BASE_PATH, CONFIG_URL, CONFIG_INDEX_URL, CONFIG_INDEX_CDN_URL, DOWNLOAD_URL
+from .config import (
+    BASE_PATH,
+    CONFIG_INDEX_CDN_URL,
+    CONFIG_INDEX_URL,
+    CONFIG_URL,
+    DOWNLOAD_URL,
+)
 
 
 def row_style(column: str, text: str) -> RowStyle:
@@ -31,7 +37,10 @@ def row_style(column: str, text: str) -> RowStyle:
 
 
 async def recurrence_get_url(
-        url: str, data_list: list[tuple[str, str]], ignore_list: list[str] = [], api_url: str = None
+    url: str,
+    data_list: list[tuple[str, str]],
+    ignore_list: list[str] = [],
+    api_url: str = None,
 ):
     """递归获取目录下所有文件
 
@@ -93,10 +102,14 @@ def install_requirement(plugin_path: Path):
     requirement_files = ["requirement.txt", "requirements.txt"]
     requirement_paths = [plugin_path / file for file in requirement_files]
 
-    existing_requirements = next((path for path in requirement_paths if path.exists()), None)
+    existing_requirements = next(
+        (path for path in requirement_paths if path.exists()), None
+    )
 
     if not existing_requirements:
-        logger.debug(f"No requirement.txt found for plugin: {plugin_path.name}", "插件管理")
+        logger.debug(
+            f"No requirement.txt found for plugin: {plugin_path.name}", "插件管理"
+        )
         return
 
     try:
@@ -259,7 +272,12 @@ class ShopManage:
                 return f"访问错误, code: {res.status_code}"
             json_data = res.json()
             requirement_file = next(
-                (v for v in json_data if v["name"] in ["requirements.txt", "requirement.txt"]), None
+                (
+                    v
+                    for v in json_data
+                    if v["name"] in ["requirements.txt", "requirement.txt"]
+                ),
+                None,
             )
             if requirement_file:
                 r = await AsyncHttpx.get(requirement_file.get("download_url"))
@@ -292,7 +310,7 @@ class ShopManage:
         path = BASE_PATH
         github_url = plugin_info.get("github_url")
         if github_url:
-            path = BASE_PATH / 'plugins'
+            path = BASE_PATH / "plugins"
         for p in plugin_info["module_path"].split("."):
             path = path / p
         if not plugin_info["is_dir"]:
@@ -329,7 +347,7 @@ class ShopManage:
             (id, plugin_info)
             for id, plugin_info in enumerate(data.items())
             if plugin_name_or_author.lower() in plugin_info[0].lower()
-               or plugin_name_or_author.lower() in plugin_info[1]["author"].lower()
+            or plugin_name_or_author.lower() in plugin_info[1]["author"].lower()
         ]
 
         data_list = [
@@ -348,7 +366,7 @@ class ShopManage:
             return "未找到相关插件..."
         return await ImageTemplate.table_page(
             "插件列表",
-            f"通过安装/卸载插件 ID 来管理插件",
+            f"通过添加/移除插件 ID 来管理插件",
             column_name,
             data_list,
             text_style=row_style,
@@ -394,7 +412,12 @@ class ShopManage:
                 return f"访问错误, code: {res.status_code}"
             json_data = res.json()
             requirement_file = next(
-                (v for v in json_data if v["name"] in ["requirements.txt", "requirement.txt"]), None
+                (
+                    v
+                    for v in json_data
+                    if v["name"] in ["requirements.txt", "requirement.txt"]
+                ),
+                None,
             )
             if requirement_file:
                 r = await AsyncHttpx.get(requirement_file.get("download_url"))
