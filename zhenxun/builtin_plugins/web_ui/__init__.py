@@ -2,7 +2,6 @@ import asyncio
 
 import nonebot
 from fastapi import APIRouter, FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from nonebot.log import default_filter, default_format
 from nonebot.plugin import PluginMetadata
 
@@ -22,7 +21,6 @@ from .api.tabs.plugin_manage import router as plugin_router
 from .api.tabs.system import router as system_router
 from .auth import router as auth_router
 from .public import init_public
-from .config import origins
 
 __plugin_meta__ = PluginMetadata(
     name="WebUi",
@@ -81,13 +79,6 @@ async def _():
         )
 
         app: FastAPI = nonebot.get_app()
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=origins,
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
         app.include_router(BaseApiRouter)
         app.include_router(WsApiRouter)
         await init_public(app)
