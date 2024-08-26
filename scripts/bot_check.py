@@ -1,15 +1,14 @@
 import re
+
 import nonebot
 
 # from nonebot.adapters.discord import Adapter as DiscordAdapter
 from nonebot.adapters.dodo import Adapter as DoDoAdapter
 from nonebot.adapters.kaiheila import Adapter as KaiheilaAdapter
 from nonebot.adapters.onebot.v11 import Adapter as OneBotV11Adapter
-from regex import F
 
 nonebot.init()
 
-from zhenxun.models.plugin_info import PluginInfo
 
 driver = nonebot.get_driver()
 driver.register_adapter(OneBotV11Adapter)
@@ -23,11 +22,14 @@ nonebot.load_plugins("zhenxun/plugins")
 
 all_plugins = [name.replace(":", ".") for name in nonebot.get_available_plugin_names()]
 print("所有插件：", all_plugins)
-loaded_plugins = tuple(re.sub(r"^zhenxun\.(plugins|builtin_plugins)\.", "", plugin.module_name) for plugin in nonebot.get_loaded_plugins())
+loaded_plugins = tuple(
+    re.sub(r"^zhenxun\.(plugins|builtin_plugins)\.", "", plugin.module_name)
+    for plugin in nonebot.get_loaded_plugins()
+)
 print("已加载插件：", loaded_plugins)
 
 for plugin in all_plugins.copy():
-    if plugin.startswith(("platform")):
+    if plugin.startswith(("platform",)):
         print(f"平台插件：{plugin}")
     elif plugin.endswith(loaded_plugins):
         print(f"已加载插件：{plugin}")
