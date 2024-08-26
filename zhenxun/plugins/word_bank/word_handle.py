@@ -19,7 +19,7 @@ from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.message import MessageUtils
 
-from ._config import WordType, ScopeType, scope2int, type2int
+from ._config import ScopeType, WordType, scope2int, type2int
 from ._data_source import WordBankManage, get_answer, get_img_and_at_list, get_problem
 from ._model import WordBank
 from .command import _add_matcher, _del_matcher, _show_matcher, _update_matcher
@@ -43,7 +43,7 @@ __plugin_meta__ = PluginMetadata(
             添加词条 ?[模糊|正则|图片]问...答...：添加问答词条，可重复添加相同问题的不同回答
                 示例:
                     添加词条问你好答你也好
-                    添加图片词条问答看看涩图
+                    添加词条图片问答看看涩图
             删除词条 ?[问题] ?[序号] ?[回答序号]：删除指定词条指定或全部回答
                 示例:
                     删除词条 谁是萝莉           : 删除文字是 谁是萝莉 的词条

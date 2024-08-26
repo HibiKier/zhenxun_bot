@@ -19,7 +19,7 @@ from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.image_utils import get_img_hash
 from zhenxun.utils.message import MessageUtils
 
-from ._config import WordType, ScopeType, int2type
+from ._config import ScopeType, WordType, int2type
 
 path = DATA_PATH / "word_bank"
 
@@ -89,9 +89,9 @@ class WordBank(Model):
         if answer:
             query = query.filter(answer=answer)
         if word_type is not None:
-            query = query.filter(word_type=word_type)
+            query = query.filter(word_type=word_type.value)
         if word_scope is not None:
-            query = query.filter(word_scope=word_scope)
+            query = query.filter(word_scope=word_scope.value)
         return await query.exists()
 
     @classmethod
@@ -138,8 +138,8 @@ class WordBank(Model):
             await cls.create(
                 user_id=user_id,
                 group_id=group_id,
-                word_scope=word_scope,
-                word_type=word_type,
+                word_scope=word_scope.value,
+                word_type=word_type.value,
                 status=True,
                 problem=str(problem).strip(),
                 answer=new_answer,
@@ -262,16 +262,22 @@ class WordBank(Model):
         query = cls
         if group_id:
             if word_scope:
-                query = query.filter(word_scope=word_scope)
+                query = query.filter(word_scope=word_scope.value)
             else:
-                query = query.filter(Q(group_id=group_id) | Q(word_scope=WordType.EXACT))
+                query = query.filter(
+                    Q(group_id=group_id) | Q(word_scope=WordType.EXACT.value)
+                )
         else:
-            query = query.filter(Q(word_scope=ScopeType.PRIVATE) | Q(word_scope=ScopeType.GLOBAL))
+            query = query.filter(
+                Q(word_scope=ScopeType.PRIVATE.value)
+                | Q(word_scope=ScopeType.GLOBAL.value)
+            )
             if word_type:
-                query = query.filter(word_scope=word_type)
+                query = query.filter(word_scope=word_type.value)
         # 完全匹配
         if data_list := await query.filter(
-            Q(Q(word_type=WordType.EXACT) | Q(word_type=WordType.IMAGE)), Q(problem=problem)
+            Q(Q(word_type=WordType.EXACT.value) | Q(word_type=WordType.IMAGE.value)),
+            Q(problem=problem),
         ).all():
             return data_list
         db = Tortoise.get_connection("default")
@@ -282,7 +288,8 @@ class WordBank(Model):
             return [cls(**data) for data in data_list]
         # 正则
         sql = (
-            query.filter(word_type=WordType.REGEX, word_scope__not=999).sql() + " and $1 ~ problem;"
+            query.filter(word_type=WordType.REGEX.value, word_scope__not=999).sql()
+            + " and $1 ~ problem;"
         )
         data_list = await db.execute_query_dict(sql, [problem])
         if data_list:
@@ -356,9 +363,9 @@ class WordBank(Model):
                 )
             else:
                 _problem = (
-                    await cls.filter(word_scope=(word_scope or ScopeType.GLOBAL)).order_by(
-                        "create_time"
-                    )
+                    await cls.filter(
+                        word_scope=(word_scope or ScopeType.GLOBAL).value
+                    ).order_by("create_time")
                     # .group_by("problem")
                     .values_list("problem", flat=True)
                 )
@@ -371,7 +378,9 @@ class WordBank(Model):
             if index > len(sort_problem) - 1:
                 return "下标错误，必须小于问题数量...", []
             problem = sort_problem[index]  # type: ignore
-        f = cls.filter(problem=problem, word_scope=(word_scope or 0))
+        f = cls.filter(
+            problem=problem, word_scope=(word_scope or ScopeType.GLOBAL).value
+        )
         if group_id:
             f = f.filter(group_id=group_id)
         answer_list = await f.all()
@@ -399,21 +408,21 @@ class WordBank(Model):
             if index is not None:
                 if group_id:
                     query = await cls.filter(
-                        group_id=group_id, problem=problem, word_scope=word_scope
+                        group_id=group_id, problem=problem, word_scope=word_scope.value
                     ).all()
                 else:
                     query = await cls.filter(
-                        word_scope=word_scope, problem=problem
+                        word_scope=word_scope.value, problem=problem
                     ).all()
                 await query[index].delete()
             else:
                 if group_id:
                     await WordBank.filter(
-                        group_id=group_id, problem=problem, word_scope=word_scope
+                        group_id=group_id, problem=problem, word_scope=word_scope.value
                     ).delete()
                 else:
                     await WordBank.filter(
-                        word_scope=word_scope, problem=problem
+                        word_scope=word_scope.value, problem=problem
                     ).delete()
             return True
         return False
@@ -443,7 +452,9 @@ class WordBank(Model):
             if group_id:
                 query = await cls.filter(group_id=group_id, problem=problem).all()
             else:
-                query = await cls.filter(word_scope=word_scope, problem=problem).all()
+                query = await cls.filter(
+                    word_scope=word_scope.value, problem=problem
+                ).all()
             tmp = query[index].problem
             query[index].problem = replace_str
             await query[index].save(update_fields=["problem"])
@@ -454,7 +465,7 @@ class WordBank(Model):
                     problem=replace_str
                 )
             else:
-                await cls.filter(word_scope=word_scope, problem=problem).update(
+                await cls.filter(word_scope=word_scope.value, problem=problem).update(
                     problem=replace_str
                 )
             return problem
@@ -471,14 +482,14 @@ class WordBank(Model):
         )
 
     @classmethod
-    async def get_problem_by_scope(cls, word_scope: int):
+    async def get_problem_by_scope(cls, word_scope: ScopeType):
         """通过词条范围获取词条
 
         参数:
             word_scope: 词条范围
         """
         return cls._handle_problem(
-            await cls.filter(word_scope=word_scope).order_by("create_time").all()  # type: ignore
+            await cls.filter(word_scope=word_scope.value).order_by("create_time").all()  # type: ignore
         )
 
     @classmethod
@@ -493,6 +504,13 @@ class WordBank(Model):
         )
 
     @classmethod
+    def __type2int(cls, value: int) -> str:
+        for key, member in WordType.__members__.items():
+            if member.value == value:
+                return key
+        return ""
+
+    @classmethod
     def _handle_problem(cls, problem_list: list["WordBank"]):
         """格式化处理问题
 
@@ -503,10 +521,11 @@ class WordBank(Model):
         result_list = []
         for q in problem_list:
             if q.problem not in _tmp:
+                word_type = cls.__type2int(q.word_type)
                 # TODO: 获取收录人名称
                 problem = (
                     (path / q.image_path, 30, 30) if q.image_path else q.problem,
-                    int2type[q.word_type],
+                    int2type[word_type],
                     # q.author,
                     "-",
                 )
@@ -541,8 +560,8 @@ class WordBank(Model):
             await cls.create(
                 user_id=user_id,
                 group_id=group_id,
-                word_scope=word_scope,
-                word_type=word_type,
+                word_scope=word_scope.value,
+                word_type=word_type.value,
                 status=True,
                 problem=problem,
                 answer=answer,
