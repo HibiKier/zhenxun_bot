@@ -28,14 +28,14 @@ __plugin_meta__ = PluginMetadata(
     usage="""
     又到了决斗时刻
     指令：
-        装弹 [金额] [子弹数] ?[at]: 开启游戏，装填子弹，可选自定义金额，或邀请决斗对象
+        装弹 [子弹数] ?[金额] ?[at]: 开启游戏，装填子弹，可选自定义金额，或邀请决斗对象
         接受对决: 接受当前存在的对决
         拒绝对决: 拒绝邀请的对决
         开枪: 开出未知的一枪
         结算: 强行结束当前比赛 (仅当一方未开枪超过30秒时可使用)
         我的战绩: 对，你的战绩
         轮盘胜场排行/轮盘败场排行/轮盘欧洲人排行/轮盘慈善家排行/轮盘最高连胜排行/轮盘最高连败排行: 各种排行榜
-        示例：装弹 100 3 @sdd
+        示例：装弹 3 100 @sdd
         * 注：同一时间群内只能有一场对决 *
     """.strip(),
     extra=PluginExtraData(
@@ -56,10 +56,11 @@ __plugin_meta__ = PluginMetadata(
 
 
 @_russian_matcher.handle()
-async def _(money: int, num: Match[str], at_user: Match[alcAt]):
-    _russian_matcher.set_path_arg("money", money)
+async def _(num: Match[str], money: Match[int], at_user: Match[alcAt]):
     if num.available:
         _russian_matcher.set_path_arg("num", num.result)
+    if money.available:
+        _russian_matcher.set_path_arg("money", money.result)
     if at_user.available:
         _russian_matcher.set_path_arg("at_user", at_user.result.target)
 
@@ -72,8 +73,8 @@ async def _(
     session: EventSession,
     message: UniMsg,
     arparma: Arparma,
-    money: int,
     num: str,
+    money:  Match[int],
     at_user: Match[alcAt],
     uname: str = UserName(),
 ):
@@ -84,8 +85,7 @@ async def _(
         await MessageUtils.build_message("用户id为空...").finish()
     if not gid:
         await MessageUtils.build_message("群组id为空...").finish()
-    if money <= 0:
-        await MessageUtils.build_message("赌注金额必须大于0!").finish(reply_to=True)
+    money = money.result if money.available else 200
     if num in ["取消", "算了"]:
         await MessageUtils.build_message("已取消装弹...").finish()
     if not num.isdigit():
