@@ -2,9 +2,9 @@ name: 检查bot是否运行正常
 
 on:
   push:
-    branches: [ "dev", "main"]
+    branches: ["dev", "main"]
   pull_request:
-    branches: [ "dev", "main"]
+    branches: ["dev", "main"]
 
 jobs:
   bot-check:
@@ -24,14 +24,21 @@ jobs:
 
       # Poetry cache depends on OS, Python version and Poetry version.
       - name: Cache Poetry cache
+        id: cache-poetry
         uses: actions/cache@v3
         with:
           path: ~/.cache/pypoetry
           key: poetry-cache-${{ runner.os }}-${{ steps.setup_python.outputs.python-version }}
-        
+
+      - name: Cache Data cache
+        uses: actions/cache@v3
+        with:
+          path: ~/data
+          key: data-cache-${{ runner.os }}-${{ steps.setup_python.outputs.python-version }}
+
       - name: Install dependencies
+        if: steps.cache-poetry.outputs.cache-hit != 'true'
         run: |
-          mv scripts/bot_check.py bot_check.py
           rm -rf poetry.lock
           poetry source remove ali
           poetry install --no-root
@@ -40,4 +47,5 @@ jobs:
       - name: Check bot run
         id: bot_check_run
         run: |
+          mv scripts/bot_check.py bot_check.py
           poetry run python3 bot_check.py
