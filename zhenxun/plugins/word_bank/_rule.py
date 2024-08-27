@@ -1,19 +1,19 @@
 from io import BytesIO
 
 import imagehash
-from nonebot.adapters import Bot, Event
-from nonebot.typing import T_State
-from nonebot_plugin_alconna import At as alcAt
-from nonebot_plugin_alconna import Text as alcText
-from nonebot_plugin_alconna import UniMsg
-from nonebot_plugin_session import EventSession
 from PIL import Image
+from nonebot.typing import T_State
+from nonebot.adapters import Bot, Event
+from nonebot_plugin_alconna import UniMsg
+from nonebot_plugin_alconna import At as alcAt
+from nonebot_plugin_session import EventSession
+from nonebot_plugin_alconna import Text as alcText
 
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
 
-from ._data_source import get_img_and_at_list
 from ._model import WordBank
+from ._data_source import get_img_and_at_list
 
 
 async def check(
@@ -31,7 +31,7 @@ async def check(
             r = await AsyncHttpx.get(img_list[0])
             problem = str(imagehash.average_hash(Image.open(BytesIO(r.content))))
         except Exception as e:
-            logger.warning(f"获取图片失败", "词条检测", session=session, e=e)
+            logger.warning("获取图片失败", "词条检测", session=session, e=e)
     if at_list:
         temp = ""
         # TODO: 支持更多消息类型

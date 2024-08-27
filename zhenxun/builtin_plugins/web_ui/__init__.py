@@ -2,26 +2,26 @@ import asyncio
 import secrets
 
 import nonebot
-from fastapi import APIRouter, FastAPI
-from nonebot.log import default_filter, default_format
+from fastapi import FastAPI, APIRouter
 from nonebot.plugin import PluginMetadata
+from nonebot.log import default_filter, default_format
 
-from zhenxun.configs.config import Config as gConfig
-from zhenxun.configs.utils import PluginExtraData, RegisterConfig
-from zhenxun.services.log import logger, logger_
 from zhenxun.utils.enum import PluginType
+from zhenxun.services.log import logger, logger_
+from zhenxun.configs.config import Config as gConfig
+from zhenxun.configs.utils import RegisterConfig, PluginExtraData
 
+from .public import init_public
+from .auth import router as auth_router
 from .api.logs import router as ws_log_routes
 from .api.logs.log_manager import LOG_STORAGE
-from .api.tabs.database import router as database_router
 from .api.tabs.main import router as main_router
-from .api.tabs.main import ws_router as status_routes
 from .api.tabs.manage import router as manage_router
+from .api.tabs.system import router as system_router
+from .api.tabs.main import ws_router as status_routes
+from .api.tabs.database import router as database_router
 from .api.tabs.manage.chat import ws_router as chat_routes
 from .api.tabs.plugin_manage import router as plugin_router
-from .api.tabs.system import router as system_router
-from .auth import router as auth_router
-from .public import init_public
 
 __plugin_meta__ = PluginMetadata(
     name="WebUi",
@@ -32,7 +32,7 @@ __plugin_meta__ = PluginMetadata(
         author="HibiKier",
         version="0.1",
         plugin_type=PluginType.HIDDEN,
-        Configs=[
+        configs=[
             RegisterConfig(
                 module="web-ui",
                 key="username",
@@ -57,7 +57,7 @@ __plugin_meta__ = PluginMetadata(
                 type=str,
                 default_value=None,
             ),
-            ],
+        ],
     ).dict(),
 )
 
@@ -98,7 +98,7 @@ async def _():
                     logger.warning("Web Ui log_sink", e=e)
             if not loop:
                 loop = asyncio.new_event_loop()
-            loop.create_task(LOG_STORAGE.add(message.rstrip("\n")))
+            loop.create_task(LOG_STORAGE.add(message.rstrip("\n")))  # noqa: RUF006
 
         logger_.add(
             log_sink, colorize=True, filter=default_filter, format=default_format

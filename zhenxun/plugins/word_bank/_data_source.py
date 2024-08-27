@@ -1,13 +1,13 @@
 from nonebot_plugin_alconna import At
-from nonebot_plugin_alconna import At as alcAt
 from nonebot_plugin_alconna import Image
-from nonebot_plugin_alconna import Image as alcImage
+from nonebot_plugin_alconna import At as alcAt
 from nonebot_plugin_alconna import Text as alcText
-from nonebot_plugin_alconna import UniMessage, UniMsg
+from nonebot_plugin_alconna import Image as alcImage
+from nonebot_plugin_alconna import UniMsg, UniMessage
 
-from zhenxun.plugins.word_bank._config import ScopeType
-from zhenxun.utils.image_utils import ImageTemplate
 from zhenxun.utils.message import MessageUtils
+from zhenxun.utils.image_utils import ImageTemplate
+from zhenxun.plugins.word_bank._config import ScopeType
 
 from ._model import WordBank
 
@@ -42,9 +42,9 @@ def get_problem(message: UniMsg) -> str:
     problem = ""
     a, b = True, True
     for msg in message:
-        if isinstance(msg, alcText) or isinstance(msg, str):
+        if isinstance(msg, alcText | str):
             msg = str(msg)
-            if "问" in str(msg) and a:
+            if "问" in msg and a:
                 a = False
                 split_text = msg.split("问")
                 if len(split_text) > 1:
@@ -53,7 +53,7 @@ def get_problem(message: UniMsg) -> str:
                 if "答" in problem:
                     b = False
                     problem = problem.split("答")[0]
-                elif "答" in msg and b:
+                elif "答" in msg:
                     b = False
                     # problem += "答".join(msg.split("答")[:-1])
                     problem += msg.split("答")[0]
@@ -78,7 +78,7 @@ def get_answer(message: UniMsg) -> UniMessage | None:
     index = 0
     for msg in message:
         index += 1
-        if isinstance(msg, alcText) or isinstance(msg, str):
+        if isinstance(msg, alcText | str):
             msg = str(msg)
             if "答" in msg:
                 answer += "答".join(msg.split("答")[1:])
@@ -90,7 +90,6 @@ def get_answer(message: UniMsg) -> UniMessage | None:
 
 
 class WordBankManage:
-
     @classmethod
     async def update_word(
         cls,
@@ -175,10 +174,14 @@ class WordBankManage:
                 )
                 if not _problem_list:
                     return problem, ""
-            if await WordBank.delete_group_problem(problem, group_id, aid, word_scope):  # type: ignore
-                return "删除词条成功!", ""
-            return "词条不存在", ""
-        if handle_type == "update":
+            return (
+                ("删除词条成功!", "")
+                if await WordBank.delete_group_problem(
+                    problem, group_id, aid, word_scope
+                )
+                else ("词条不存在", "")
+            )
+        elif handle_type == "update":
             old_problem = await WordBank.update_group_problem(
                 problem, replace_problem, group_id, word_scope=word_scope
             )
@@ -187,7 +190,10 @@ class WordBankManage:
 
     @classmethod
     async def __get_problem_str(
-        cls, idx: int, group_id: str | None = None, word_scope: ScopeType = ScopeType.GROUP
+        cls,
+        idx: int,
+        group_id: str | None = None,
+        word_scope: ScopeType = ScopeType.GROUP,
     ) -> tuple[str, int]:
         """通过id获取问题字符串
 
@@ -222,7 +228,7 @@ class WordBankManage:
             word_scope: 词条范围
             index: 指定回答下标
         """
-        if problem or index != None:
+        if problem or index is not None:
             msg_list = []
             problem, _problem_list = await WordBank.get_problem_all_answer(
                 problem,  # type: ignore

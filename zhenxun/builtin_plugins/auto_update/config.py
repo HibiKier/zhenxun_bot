@@ -6,14 +6,18 @@ DEV_URL = "https://ghproxy.cc/https://github.com/HibiKier/zhenxun_bot/archive/re
 MAIN_URL = "https://ghproxy.cc/https://github.com/HibiKier/zhenxun_bot/archive/refs/heads/main.zip"
 RELEASE_URL = "https://api.github.com/repos/HibiKier/zhenxun_bot/releases/latest"
 
+VERSION_FILE_STRING = "__version__"
+VERSION_FILE = Path() / VERSION_FILE_STRING
 
-VERSION_FILE = Path() / "__version__"
+PYPROJECT_FILE_STRING = "pyproject.toml"
+PYPROJECT_FILE = Path() / PYPROJECT_FILE_STRING
+PYPROJECT_LOCK_FILE_STRING = "poetry.lock"
+PYPROJECT_LOCK_FILE = Path() / PYPROJECT_LOCK_FILE_STRING
+REQ_TXT_FILE_STRING = "requirements.txt"
+REQ_TXT_FILE = Path() / REQ_TXT_FILE_STRING
 
-PYPROJECT_FILE = Path() / "pyproject.toml"
-PYPROJECT_LOCK_FILE = Path() / "poetry.lock"
-REQ_TXT_FILE = Path() / "requirements.txt"
-
-BASE_PATH = Path() / "zhenxun"
+BASE_PATH_STRING = "zhenxun"
+BASE_PATH = Path() / BASE_PATH_STRING
 
 TMP_PATH = TEMP_PATH / "auto_update"
 

@@ -1,31 +1,29 @@
-import random
 import re
-import time
 import uuid
-from datetime import datetime
+import random
 from typing import Any
-
-from nonebot_plugin_alconna import At as alcAt
-from nonebot_plugin_alconna import Image as alcImage
-from nonebot_plugin_alconna import Text as alcText
-from nonebot_plugin_alconna import UniMessage
-from tortoise import Tortoise, fields
-from tortoise.expressions import Q
+from datetime import datetime
 from typing_extensions import Self
 
-from zhenxun.configs.path_config import DATA_PATH
-from zhenxun.services.db_context import Model
-from zhenxun.utils.http_utils import AsyncHttpx
-from zhenxun.utils.image_utils import get_img_hash
-from zhenxun.utils.message import MessageUtils
+from tortoise.expressions import Q
+from tortoise import Tortoise, fields
+from nonebot_plugin_alconna import UniMessage
+from nonebot_plugin_alconna import At as alcAt
+from nonebot_plugin_alconna import Text as alcText
+from nonebot_plugin_alconna import Image as alcImage
 
-from ._config import ScopeType, WordType, int2type
+from zhenxun.services.db_context import Model
+from zhenxun.utils.message import MessageUtils
+from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.configs.path_config import DATA_PATH
+from zhenxun.utils.image_utils import get_img_hash
+
+from ._config import WordType, ScopeType, int2type
 
 path = DATA_PATH / "word_bank"
 
 
 class WordBank(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_id = fields.CharField(255)
@@ -57,12 +55,12 @@ class WordBank(Model):
     author = fields.CharField(255, null=True, default="")
     """收录人"""
 
-    class Meta:
+    class Meta:  # type: ignore
         table = "word_bank2"
         table_description = "词条数据库"
 
     @classmethod
-    async def exists(
+    async def exists(  # type: ignore
         cls,
         user_id: str | None,
         group_id: str | None,
@@ -217,7 +215,6 @@ class WordBank(Model):
             user_id: 用户id
             group_id: 群组id
         """
-        result_list = []
         if not query:
             query = await cls.get_or_none(
                 problem=problem,
@@ -228,18 +225,19 @@ class WordBank(Model):
         if not answer:
             answer = str(query.answer)  # type: ignore
         if query and query.placeholder:
-            type_list = re.findall(rf"\[(.*?):placeholder_.*?]", answer)
-            answer_split = re.split(rf"\[.*:placeholder_.*?]", answer)
+            type_list = re.findall(r"\[(.*?):placeholder_.*?]", answer)
+            answer_split = re.split(r"\[.*:placeholder_.*?]", answer)
             placeholder_split = query.placeholder.split(",")
+            result_list = []
             for index, ans in enumerate(answer_split):
                 result_list.append(ans)
                 if index < len(type_list):
                     t = type_list[index]
                     p = placeholder_split[index]
-                    if t == "image":
-                        result_list.append(path / p)
-                    elif t == "at":
+                    if t == "at":
                         result_list.append(alcAt(flag="user", target=p))
+                    elif t == "image":
+                        result_list.append(path / p)
             return MessageUtils.build_message(result_list)
         return MessageUtils.build_message(answer)
 
@@ -282,7 +280,10 @@ class WordBank(Model):
             return data_list
         db = Tortoise.get_connection("default")
         # 模糊匹配
-        sql = query.filter(word_type=1).sql() + " and POSITION(problem in $1) > 0"
+        sql = (
+            query.filter(word_type=WordType.FUZZY.value).sql()
+            + " and POSITION(problem in $1) > 0"
+        )
         data_list = await db.execute_query_dict(sql, [problem])
         if data_list:
             return [cls(**data) for data in data_list]
@@ -292,9 +293,7 @@ class WordBank(Model):
             + " and $1 ~ problem;"
         )
         data_list = await db.execute_query_dict(sql, [problem])
-        if data_list:
-            return [cls(**data) for data in data_list]
-        return None
+        return [cls(**data) for data in data_list] if data_list else None
 
     @classmethod
     async def get_answer(
@@ -318,7 +317,7 @@ class WordBank(Model):
             random_answer = random.choice(data_list)
             if random_answer.word_type == WordType.REGEX:
                 r = re.search(random_answer.problem, problem)
-                has_placeholder = re.search(rf"\$(\d)", random_answer.answer)
+                has_placeholder = re.search(r"\$(\d)", random_answer.answer)
                 if r and r.groups() and has_placeholder:
                     pats = re.sub(r"\$(\d)", r"\\\1", random_answer.answer)
                     random_answer.answer = re.sub(random_answer.problem, pats, problem)
@@ -575,9 +574,16 @@ class WordBank(Model):
     async def _run_script(cls):
         return [
             "ALTER TABLE word_bank2 ADD to_me varchar(255);",  # 添加 to_me 字段
-            "ALTER TABLE word_bank2 ALTER COLUMN create_time TYPE timestamp with time zone USING create_time::timestamp with time zone;",
-            "ALTER TABLE word_bank2 ALTER COLUMN update_time TYPE timestamp with time zone USING update_time::timestamp with time zone;",
-            "ALTER TABLE word_bank2 RENAME COLUMN user_qq TO user_id;",  # 将user_qq改为user_id
+            (
+                "ALTER TABLE word_bank2 ALTER COLUMN create_time TYPE timestamp"
+                " with time zone USING create_time::timestamp with time zone;"
+            ),
+            (
+                "ALTER TABLE word_bank2 ALTER COLUMN update_time TYPE timestamp"
+                " with time zone USING update_time::timestamp with time zone;"
+            ),
+            "ALTER TABLE word_bank2 RENAME COLUMN user_qq TO user_id;",
+            # 将user_qq改为user_id
             "ALTER TABLE word_bank2 ALTER COLUMN user_id TYPE character varying(255);",
             "ALTER TABLE word_bank2 ALTER COLUMN group_id TYPE character varying(255);",
             "ALTER TABLE word_bank2 ADD platform varchar(255) DEFAULT 'qq';",
