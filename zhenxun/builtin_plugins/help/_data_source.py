@@ -1,7 +1,7 @@
 import nonebot
 
-from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.utils.image_utils import BuildImage, ImageTemplate
 
 from ._utils import HelpImageBuild
@@ -11,14 +11,14 @@ random_bk_path = IMAGE_PATH / "background" / "help" / "simple_help"
 background = IMAGE_PATH / "background" / "0.png"
 
 
-async def create_help_img(group_id: str | None):
-    """
-    说明:
-        生成帮助图片
+async def create_help_img(bot_id: str, group_id: str | None):
+    """生成帮助图片
+
     参数:
-        :param group_id: 群号
+        bot_id: bot id
+        group_id: 群号
     """
-    await HelpImageBuild().build_image(group_id)
+    await HelpImageBuild().build_image(bot_id, group_id)
 
 
 async def get_plugin_help(name: str, is_superuser: bool) -> str | BuildImage:

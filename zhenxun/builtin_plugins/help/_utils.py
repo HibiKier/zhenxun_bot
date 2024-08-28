@@ -1,13 +1,16 @@
 import os
 import random
-from typing import Dict
+
+import aiofiles
+from nonebot_plugin_htmlrender import template_to_pic
 
 from zhenxun.configs.config import Config
-from zhenxun.configs.path_config import DATA_PATH, IMAGE_PATH, TEMPLATE_PATH
-from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.utils.enum import BlockType, PluginType
-from zhenxun.utils.image_utils import BuildImage, build_sort_image, group_image
+from zhenxun.models.group_console import GroupConsole
+from zhenxun.builtin_plugins.sign_in.utils import AVA_URL
+from zhenxun.configs.path_config import DATA_PATH, IMAGE_PATH, TEMPLATE_PATH
+from zhenxun.utils.image_utils import BuildImage, group_image, build_sort_image
 
 from ._config import Item
 
@@ -25,7 +28,7 @@ LOGO_PATH = TEMPLATE_PATH / "menu" / "res" / "logo"
 class HelpImageBuild:
     def __init__(self):
         self._data: list[PluginInfo] = []
-        self._sort_data: Dict[str, list[PluginInfo]] = {}
+        self._sort_data: dict[str, list[PluginInfo]] = {}
         self._image_list = []
         self.icon2str = {
             "normal": "fa fa-cog",
@@ -60,23 +63,104 @@ class HelpImageBuild:
                     self._sort_data[menu_type] = []
                 self._sort_data[menu_type].append(plugin)
 
-    async def build_image(self, group_id: str | None):
+    async def build_image(self, bot_id: str, group_id: str | None):
         if group_id:
             help_image = GROUP_HELP_PATH / f"{group_id}.png"
         else:
-            help_image = IMAGE_PATH / f"SIMPLE_HELP.png"
+            help_image = IMAGE_PATH / "SIMPLE_HELP.png"
         build_type = Config.get_config("help", "TYPE")
         if build_type == "HTML":
             byt = await self.build_html_image(group_id)
-            with open(help_image, "wb") as f:
-                f.write(byt)
+            async with aiofiles.open(help_image, "wb") as f:
+                await f.write(byt)
+        elif build_type == "zhenxun":
+            byt = await self.build_ss_image(bot_id, group_id)
+            async with aiofiles.open(help_image, "wb") as f:
+                await f.write(byt)
         else:
             img = await self.build_pil_image(group_id)
             await img.save(help_image)
 
-    async def build_html_image(self, group_id: str | None) -> bytes:
-        from nonebot_plugin_htmlrender import template_to_pic
+    async def build_ss_image(self, bot_id: str, group_id: str | None) -> bytes:
+        """构造ss帮助图片
 
+        参数:
+             group_id: 群号
+        """
+        await self.sort_type()
+        classify = {}
+        for menu in self._sort_data:
+            self._sort_data[menu].sort(key=lambda k: len(k.name))
+        for menu in self._sort_data:
+            for plugin in self._sort_data[menu]:
+                if not plugin.status:
+                    if group_id and plugin.block_type in [
+                        BlockType.ALL,
+                        BlockType.GROUP,
+                    ]:
+                        plugin.name = f"{plugin.name}(不可用)"
+                    if not group_id and plugin.block_type in [
+                        BlockType.ALL,
+                        BlockType.PRIVATE,
+                    ]:
+                        plugin.name = f"{plugin.name}(不可用)"
+                if not classify.get(menu):
+                    classify[menu] = []
+                classify[menu].append(
+                    Item(plugin_name=f"{plugin.id}-{plugin.name}", sta=0)
+                )
+        max_len = 0
+        flag_index = -1
+        max_data = None
+        plugin_list = []
+        for index, plu in enumerate(classify.keys()):
+            data = {
+                "name": "主要功能" if plu in ["normal", "功能"] else plu,
+                "items": classify[plu],
+            }
+            if len(classify[plu]) > max_len:
+                max_len = len(classify[plu])
+                flag_index = index
+                max_data = data
+            plugin_list.append(data)
+        del plugin_list[flag_index]
+        plugin_list.insert(0, max_data)
+        _data = []
+        _left = 30
+        for plugin in plugin_list:
+            _plugins = []
+            width = 50
+            if len(plugin["items"]) // 2 > 6:
+                width = 100
+                _pu1 = []
+                _pu2 = []
+                for i in range(len(plugin["items"])):
+                    if i % 2:
+                        _pu1.append(plugin["items"][i])
+                    else:
+                        _pu2.append(plugin["items"][i])
+                _plugins = [(30, 50, _pu1), (0, 50, _pu2)]
+            else:
+                _plugins = [(_left, 100, plugin["items"])]
+                _left = 15 if _left == 30 else 30
+            _data.append({"name": plugin["name"], "items": _plugins, "width": width})
+        return await template_to_pic(
+            template_path=str((TEMPLATE_PATH / "ss_menu").absolute()),
+            template_name="main.html",
+            templates={"data": {"plugin_list": _data, "ava": AVA_URL.format(bot_id)}},
+            pages={
+                "viewport": {"width": 637, "height": 975},
+                "base_url": f"file://{TEMPLATE_PATH}",
+            },
+            wait=2,
+        )
+
+    async def build_html_image(self, group_id: str | None) -> bytes:
+        """构造HTML帮助图片
+
+        参数:
+             group_id: 群号
+        """
         await self.sort_type()
         classify = {}
         for menu in self._sort_data:
@@ -127,7 +211,7 @@ class HelpImageBuild:
             plugin_list.append(data)
         del plugin_list[flag_index]
         plugin_list.insert(0, max_data)
-        pic = await template_to_pic(
+        return await template_to_pic(
             template_path=str((TEMPLATE_PATH / "menu").absolute()),
             template_name="zhenxun_menu.html",
             templates={"plugin_list": plugin_list},
@@ -137,10 +221,9 @@ class HelpImageBuild:
             },
             wait=2,
         )
-        return pic
 
     async def build_pil_image(self, group_id: str | None) -> BuildImage:
-        """构造帮助图片
+        """构造PIL帮助图片
 
         参数:
              group_id: 群号
@@ -161,7 +244,7 @@ class HelpImageBuild:
                 sum_height = 50 * len(plugin_list) + 10
             else:
                 sum_height = (font_size + 6) * len(plugin_list) + 10
-            max_width = max([x[0] for x in wh_list]) + 30
+            max_width = max(x[0] for x in wh_list) + 30
             bk = BuildImage(
                 max_width + 40,
                 sum_height + 50,
@@ -175,7 +258,7 @@ class HelpImageBuild:
                 max_width + 40,
                 sum_height,
                 font_size=font_size,
-                color="white" if not idx % 2 else "black",
+                color="black" if idx % 2 else "white",
             )
             curr_h = 10
             group = await GroupConsole.get_or_none(group_id=group_id)
@@ -199,7 +282,7 @@ class HelpImageBuild:
                     name_image = await self.build_name_image(  # type: ignore
                         max_width,
                         plugin.name,
-                        "black" if not idx % 2 else "white",
+                        "white" if idx % 2 else "black",
                         text_color,
                         pos,
                     )
@@ -213,7 +296,6 @@ class HelpImageBuild:
             await bk.text((0, 14), menu_type, center_type="width")
             await bk.paste(B, (0, 50))
             await bk.transparent(2)
-            # await bk.acircle_corner(point_list=['lt', 'rt'])
             self._image_list.append(bk)
         image_group, h = group_image(self._image_list)
 
