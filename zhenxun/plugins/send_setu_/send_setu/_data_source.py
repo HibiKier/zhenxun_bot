@@ -99,6 +99,7 @@ class SetuManage:
         if num > len(data_list):
             num = len(data_list)
             flag = True
+        data_list = random.sample(data_list, num)
         for setu in data_list:
             file = await cls.get_image(setu)
             if isinstance(file, str):
