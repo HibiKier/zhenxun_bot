@@ -33,7 +33,7 @@ class FgRequest(Model):
     )
     """处理类型"""
 
-    class Meta:
+    class Meta:  # type: ignore
         table = "fg_request"
         table_description = "好友群组请求"
 

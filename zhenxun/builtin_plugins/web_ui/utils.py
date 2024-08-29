@@ -1,19 +1,19 @@
 import os
-from datetime import datetime, timedelta
+import contextlib
 from pathlib import Path
-import secrets
+from datetime import datetime, timezone, timedelta
 
 import psutil
 import ujson as json
-from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from nonebot.utils import run_sync
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.path_config import DATA_PATH
 
-from .base_model import SystemFolderSize, SystemStatus, User
+from .base_model import User, SystemStatus, SystemFolderSize
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -24,10 +24,8 @@ token_file = DATA_PATH / "web_ui" / "token.json"
 token_file.parent.mkdir(parents=True, exist_ok=True)
 token_data = {"token": []}
 if token_file.exists():
-    try:
-        token_data = json.load(open(token_file, "r", encoding="utf8"))
-    except json.JSONDecodeError:
-        pass
+    with contextlib.suppress(json.JSONDecodeError):
+        token_data = json.load(open(token_file, encoding="utf8"))
 
 
 def get_user(uname: str) -> User | None:
@@ -52,7 +50,7 @@ def create_token(user: User, expires_delta: timedelta | None = None):
         user: 用户信息
         expires_delta: 过期时间.
     """
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=15))
     return jwt.encode(
         claims={"sub": user.username, "exp": expire},
         key=Config.get_config("web-ui", "secret"),
@@ -71,8 +69,10 @@ def authentication():
     # if token not in token_data["token"]:
     def inner(token: str = Depends(oauth2_scheme)):
         try:
-            payload = jwt.decode(token, Config.get_config("web-ui", "secret"), algorithms=[ALGORITHM])
-            username, expire = payload.get("sub"), payload.get("exp")
+            payload = jwt.decode(
+                token, Config.get_config("web-ui", "secret"), algorithms=[ALGORITHM]
+            )
+            username, _ = payload.get("sub"), payload.get("exp")
             user = get_user(username)  # type: ignore
             if user is None:
                 raise JWTError
@@ -90,10 +90,10 @@ def _get_dir_size(dir_path: Path) -> float:
     参数:
         dir_path: 文件夹路径
     """
-    size = 0
-    for root, dirs, files in os.walk(dir_path):
-        size += sum([os.path.getsize(os.path.join(root, name)) for name in files])
-    return size
+    return sum(
+        sum(os.path.getsize(os.path.join(root, name)) for name in files)
+        for root, dirs, files in os.walk(dir_path)
+    )
 
 
 @run_sync

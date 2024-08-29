@@ -3,19 +3,20 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import aiofiles
 import ujson as json
 
-from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
-from zhenxun.utils.image_utils import BuildImage, ImageTemplate, RowStyle
+from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.utils.image_utils import RowStyle, BuildImage, ImageTemplate
 
 from .config import (
     BASE_PATH,
-    CONFIG_INDEX_CDN_URL,
-    CONFIG_INDEX_URL,
     CONFIG_URL,
     DOWNLOAD_URL,
+    CONFIG_INDEX_URL,
+    CONFIG_INDEX_CDN_URL,
 )
 
 
@@ -30,17 +31,16 @@ def row_style(column: str, text: str) -> RowStyle:
         RowStyle: RowStyle
     """
     style = RowStyle()
-    if column in ["-"]:
-        if text == "已安装":
-            style.font_color = "#67C23A"
+    if column == "-" and text == "已安装":
+        style.font_color = "#67C23A"
     return style
 
 
 async def recurrence_get_url(
     url: str,
     data_list: list[tuple[str, str]],
-    ignore_list: list[str] = [],
-    api_url: str = None,
+    ignore_list: list[str] | None = None,
+    api_url: str | None = None,
 ):
     """递归获取目录下所有文件
 
@@ -51,14 +51,15 @@ async def recurrence_get_url(
     异常:
         ValueError: 访问错误
     """
+    if ignore_list is None:
+        ignore_list = []
     logger.debug(f"访问插件下载信息 URL: {url}", "插件管理")
     res = await AsyncHttpx.get(url)
     if res.status_code != 200:
         raise ValueError(f"访问错误, code: {res.status_code}")
     json_data = res.json()
     if isinstance(json_data, list):
-        for v in json_data:
-            data_list.append((v.get("download_url"), v["path"]))
+        data_list.extend((v.get("download_url"), v["path"]) for v in json_data)
     else:
         data_list.append((json_data.get("download_url"), json_data["path"]))
     for download_url, path in data_list:
@@ -69,7 +70,7 @@ async def recurrence_get_url(
                 await recurrence_get_url(_url, data_list, ignore_list, api_url)
 
 
-async def download_file(url: str, _is: bool = False, api_url: str = None):
+async def download_file(url: str, _is: bool = False, api_url: str | None = None):
     """下载文件
 
     参数:
@@ -88,14 +89,13 @@ async def download_file(url: str, _is: bool = False, api_url: str = None):
             base_path = "zhenxun/plugins/" if _is else "zhenxun/"
             file = Path(f"{base_path}{path}")
             file.parent.mkdir(parents=True, exist_ok=True)
-            print(download_url)
             r = await AsyncHttpx.get(download_url)
             if r.status_code != 200:
                 raise ValueError(f"文件下载错误, code: {r.status_code}")
             content = r.text.replace("\r\n", "\n")  # 统一换行符为 UNIX 风格
-            with open(file, "w", encoding="utf8") as f:
+            async with aiofiles.open(file, "w", encoding="utf8") as f:
                 logger.debug(f"写入文件: {file}", "插件管理")
-                f.write(content)
+                await f.write(content)
 
 
 def install_requirement(plugin_path: Path):
@@ -116,22 +116,23 @@ def install_requirement(plugin_path: Path):
         result = subprocess.run(
             ["pip", "install", "-r", str(existing_requirements)],
             check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             text=True,
         )
         logger.debug(
-            f"Successfully installed dependencies for plugin: {plugin_path.name}. Output:\n{result.stdout}",
+            "Successfully installed dependencies for"
+            f" plugin: {plugin_path.name}. Output:\n{result.stdout}",
             "插件管理",
         )
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
         logger.error(
-            f"Failed to install dependencies for plugin: {plugin_path.name}. Error:\n{e.stderr}"
+            f"Failed to install dependencies for plugin: {plugin_path.name}. "
+            " Error:\n{e.stderr}"
         )
 
 
 class ShopManage:
-    type2name = {
+    type2name = {  # noqa: RUF012
         "NORMAL": "普通插件",
         "ADMIN": "管理员插件",
         "SUPERUSER": "超级用户插件",
@@ -169,9 +170,8 @@ class ShopManage:
     @classmethod
     def version_check(cls, plugin_info: dict, suc_plugin: dict[str, str]):
         module = plugin_info["module"]
-        if module in suc_plugin:
-            if plugin_info["version"] != suc_plugin[module]:
-                return f"{suc_plugin[module]} (有更新->{plugin_info['version']})"
+        if module in suc_plugin and plugin_info["version"] != suc_plugin[module]:
+            return f"{suc_plugin[module]} (有更新->{plugin_info['version']})"
         return plugin_info["version"]
 
     @classmethod
@@ -226,7 +226,7 @@ class ShopManage:
         ]
         return await ImageTemplate.table_page(
             "插件列表",
-            f"通过安装/卸载插件 ID 来管理插件",
+            "通过安装/卸载插件 ID 来管理插件",
             column_name,
             data_list,
             text_style=row_style,
@@ -254,7 +254,9 @@ class ShopManage:
         logger.debug(f"尝试下载插件 URL: {url_path}", "插件管理")
         github_url = plugin_info.get("github_url")
         if github_url:
-            github_path = re.search(r"github\.com/([^/]+/[^/]+)", github_url).group(1)
+            if not (r := re.search(r"github\.com/([^/]+/[^/]+)", github_url)):
+                return "github地址格式错误"
+            github_path = r[1]
             api_url = f"https://api.github.com/repos/{github_path}/contents/"
             download_url = f"{api_url}{url_path}?ref=main"
         else:
@@ -265,28 +267,27 @@ class ShopManage:
 
         # 安装依赖
         plugin_path = BASE_PATH / "/".join(module_path_split)
-        if url_path and github_url:
+        if url_path and github_url and api_url:
             plugin_path = BASE_PATH / "plugins" / "/".join(module_path_split)
             res = await AsyncHttpx.get(api_url)
             if res.status_code != 200:
                 return f"访问错误, code: {res.status_code}"
             json_data = res.json()
-            requirement_file = next(
+            if requirement_file := next(
                 (
                     v
                     for v in json_data
                     if v["name"] in ["requirements.txt", "requirement.txt"]
                 ),
                 None,
-            )
-            if requirement_file:
+            ):
                 r = await AsyncHttpx.get(requirement_file.get("download_url"))
                 if r.status_code != 200:
                     raise ValueError(f"文件下载错误, code: {r.status_code}")
                 requirement_path = plugin_path / requirement_file["name"]
-                with open(requirement_path, "w", encoding="utf8") as f:
+                async with aiofiles.open(requirement_path, "w", encoding="utf8") as f:
                     logger.debug(f"写入文件: {requirement_path}", "插件管理")
-                    f.write(r.text)
+                    await f.write(r.text)
 
         install_requirement(plugin_path)
 
@@ -308,8 +309,7 @@ class ShopManage:
         plugin_key = list(data.keys())[plugin_id]
         plugin_info = data[plugin_key]
         path = BASE_PATH
-        github_url = plugin_info.get("github_url")
-        if github_url:
+        if plugin_info.get("github_url"):
             path = BASE_PATH / "plugins"
         for p in plugin_info["module_path"].split("."):
             path = path / p
@@ -335,7 +335,6 @@ class ShopManage:
             BuildImage | str: 返回消息
         """
         data: dict = await cls.__get_data()
-        column_name = ["-", "ID", "名称", "简介", "作者", "版本", "类型"]
         for k in data.copy():
             if data[k]["plugin_type"]:
                 data[k]["plugin_type"] = cls.type2name[data[k]["plugin_type"]]
@@ -364,9 +363,10 @@ class ShopManage:
         ]
         if not data_list:
             return "未找到相关插件..."
+        column_name = ["-", "ID", "名称", "简介", "作者", "版本", "类型"]
         return await ImageTemplate.table_page(
             "插件列表",
-            f"通过添加/移除插件 ID 来管理插件",
+            "通过添加/移除插件 ID 来管理插件",
             column_name,
             data_list,
             text_style=row_style,
@@ -394,7 +394,9 @@ class ShopManage:
         logger.debug(f"尝试下载插件 URL: {url_path}", "插件管理")
         github_url = plugin_info.get("github_url")
         if github_url:
-            github_path = re.search(r"github\.com/([^/]+/[^/]+)", github_url).group(1)
+            if not (r := re.search(r"github\.com/([^/]+/[^/]+)", github_url)):
+                return "github地址格式错误..."
+            github_path = r[1]
             api_url = f"https://api.github.com/repos/{github_path}/contents/"
             download_url = f"{api_url}{url_path}?ref=main"
         else:
@@ -405,28 +407,27 @@ class ShopManage:
 
         # 安装依赖
         plugin_path = BASE_PATH / "/".join(module_path_split)
-        if url_path and github_url:
+        if url_path and github_url and api_url:
             plugin_path = BASE_PATH / "plugins" / "/".join(module_path_split)
             res = await AsyncHttpx.get(api_url)
             if res.status_code != 200:
                 return f"访问错误, code: {res.status_code}"
             json_data = res.json()
-            requirement_file = next(
+            if requirement_file := next(
                 (
                     v
                     for v in json_data
                     if v["name"] in ["requirements.txt", "requirement.txt"]
                 ),
                 None,
-            )
-            if requirement_file:
+            ):
                 r = await AsyncHttpx.get(requirement_file.get("download_url"))
                 if r.status_code != 200:
                     raise ValueError(f"文件下载错误, code: {r.status_code}")
                 requirement_path = plugin_path / requirement_file["name"]
-                with open(requirement_path, "w", encoding="utf8") as f:
+                async with aiofiles.open(requirement_path, "w", encoding="utf8") as f:
                     logger.debug(f"写入文件: {requirement_path}", "插件管理")
-                    f.write(r.text)
+                    await f.write(r.text)
 
         install_requirement(plugin_path)
 

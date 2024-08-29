@@ -1,21 +1,21 @@
 import asyncio
 
 from nonebot.adapters import Bot
+from ruamel.yaml.comments import CommentedSeq
+from nonebot_plugin_session import EventSession
 
 # from nonebot.adapters.discord import Bot as DiscordBot
 # from nonebot.adapters.dodo import Bot as DodoBot
 # from nonebot.adapters.kaiheila import Bot as KaiheilaBot
 from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
-from nonebot_plugin_session import EventSession
-from ruamel.yaml.comments import CommentedSeq
 
 from zhenxun.services.log import logger
 
 
 class WithdrawManager:
 
-    _data = {}
+    _data = {}  # noqa: RUF012
     _index = 0
 
     @classmethod
@@ -34,7 +34,7 @@ class WithdrawManager:
                 return True
             if withdraw_time[1] == 1 and (session.id2 or session.id3):
                 return True
-            if withdraw_time[1] == 0 and not (session.id2 or session.id3):
+            if withdraw_time[1] == 0 and not session.id2 and not session.id3:
                 return True
         return False
 
@@ -82,7 +82,7 @@ class WithdrawManager:
         if time:
             gid = None
             _time = 1
-            if isinstance(time, (tuple, CommentedSeq)):
+            if isinstance(time, tuple | CommentedSeq):
                 if time[0] == 0:
                     return
                 if session:

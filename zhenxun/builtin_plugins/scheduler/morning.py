@@ -2,14 +2,15 @@ import nonebot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_apscheduler import scheduler
 
-from zhenxun.configs.config import BotConfig
-from zhenxun.configs.path_config import IMAGE_PATH
-from zhenxun.configs.utils import PluginExtraData, Task
-from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.configs.config import BotConfig
+from zhenxun.models.task_info import TaskInfo
 from zhenxun.utils.message import MessageUtils
+from zhenxun.configs.path_config import IMAGE_PATH
+from zhenxun.utils.common_utils import CommonUtils
 from zhenxun.utils.platform import broadcast_group
+from zhenxun.configs.utils import Task, PluginExtraData
 
 __plugin_meta__ = PluginMetadata(
     name="早晚安被动技能",
@@ -37,7 +38,7 @@ async def _():
 
 
 async def check(group_id: str) -> bool:
-    return not await TaskInfo.is_block("morning_goodnight", group_id)
+    return not await CommonUtils.is_block("morning_goodnight", group_id)
 
 
 # 早上好

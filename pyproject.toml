@@ -119,7 +119,7 @@ fixture-parentheses = false
 mark-parentheses = false
 
 [tool.pyright]
-pythonVersion = "3.9"
+pythonVersion = "3.10"
 pythonPlatform = "All"
 defineConstant = { PYDANTIC_V2 = true }
 executionEnvironments = [

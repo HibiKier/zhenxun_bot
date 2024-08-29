@@ -1,15 +1,16 @@
 import copy
+from typing import Any
 from pathlib import Path
-from typing import Any, Callable, Dict, Set, Type
+from collections.abc import Callable
 
 import cattrs
-from pydantic import BaseModel
 from ruamel.yaml import YAML
+from pydantic import BaseModel
 from ruamel.yaml.scanner import ScannerError
 
-from zhenxun.configs.path_config import DATA_PATH
 from zhenxun.services.log import logger
-from zhenxun.utils.enum import BlockType, LimitWatchType, PluginLimitType, PluginType
+from zhenxun.configs.path_config import DATA_PATH
+from zhenxun.utils.enum import BlockType, PluginType, LimitWatchType, PluginLimitType
 
 _yaml = YAML(pure=True)
 _yaml.indent = 2
@@ -63,7 +64,7 @@ class ConfigGroup(BaseModel):
     """模块名"""
     name: str | None = None
     """插件名"""
-    configs: Dict[str, ConfigModel] = {}
+    configs: dict[str, ConfigModel] = {}
     """配置项列表"""
 
     def get(self, c: str, default: Any = None) -> Any:
@@ -139,6 +140,8 @@ class Task(BaseBlock):
     """全局开关状态"""
     create_status: bool = False
     """初次加载默认开关状态"""
+    default_status: bool = True
+    """进群时默认状态"""
     run_time: str | None = None
     """运行时间"""
 
@@ -168,7 +171,7 @@ class PluginExtraData(BaseModel):
     """技能被动"""
     superuser_help: str | None = None
     """超级用户帮助"""
-    aliases: Set[str] = set()
+    aliases: set[str] = set()
     """额外名称"""
     sql_list: list[str] | None = None
     """常用sql"""
@@ -184,7 +187,7 @@ class ConfigsManager:
     """
 
     def __init__(self, file: Path):
-        self._data: Dict[str, ConfigGroup] = {}
+        self._data: dict[str, ConfigGroup] = {}
         self._simple_data: dict = {}
         self._simple_file = DATA_PATH / "config.yaml"
         _yaml = YAML()
@@ -194,14 +197,14 @@ class ConfigsManager:
             self.load_data()
         if self._simple_file.exists():
             try:
-                with open(self._simple_file, "r", encoding="utf8") as f:
+                with self._simple_file.open(encoding="utf8") as f:
                     self._simple_data = _yaml.load(f)
             except ScannerError as e:
                 raise ScannerError(
                     f"{e}\n**********************************************\n"
                     f"****** 可能为config.yaml配置文件填写不规范 ******\n"
                     f"**********************************************"
-                )
+                ) from e
 
     def set_name(self, module: str, name: str):
         """设置插件配置中文名出
@@ -226,7 +229,7 @@ class ConfigsManager:
         *,
         help: str | None = None,
         default_value: Any = None,
-        type: Type | None = None,
+        type: type | None = None,
         arg_parser: Callable | None = None,
         _override: bool = False,
     ):
@@ -314,45 +317,46 @@ class ConfigsManager:
             Any: 配置值
         """
         logger.debug(
-            f"尝试获取配置 MODULE: [<u><y>{module}</y></u>] | KEY: [<u><y>{key}</y></u>]"
+            f"尝试获取配置MODULE: [<u><y>{module}</y></u>] | KEY: [<u><y>{key}</y></u>]"
         )
         key = key.upper()
         value = None
         if module in self._data.keys():
-            config = self._data[module].configs.get(key)
-            if not config:
-                config = self._data[module].configs.get(key)
+            config = self._data[module].configs.get(key) or self._data[
+                module
+            ].configs.get(key)
             if not config:
                 raise NoSuchConfig(
                     f"未查询到配置项 MODULE: [ {module} ] | KEY: [ {key} ]"
                 )
-            if config.arg_parser:
-                value = config.arg_parser(value or config.default_value)
-            else:
-                try:
-                    if config.value is not None:
-                        value = (
-                            cattrs.structure(config.value, config.type)
-                            if config.type
-                            else config.value
-                        )
-                    else:
-                        if config.default_value is not None:
-                            value = (
-                                cattrs.structure(config.default_value, config.type)
-                                if config.type
-                                else config.default_value
-                            )
-                except Exception as e:
-                    logger.warning(
-                        f"配置项类型转换 MODULE: [<u><y>{module}</y></u>] | KEY: [<u><y>{key}</y></u>]",
-                        e=e,
+            try:
+                if config.arg_parser:
+                    value = config.arg_parser(value or config.default_value)
+                elif config.value is not None:
+                    # try:
+                    value = (
+                        cattrs.structure(config.value, config.type)
+                        if config.type
+                        else config.value
                     )
-                    value = config.value or config.default_value
+                elif config.default_value is not None:
+                    value = (
+                        cattrs.structure(config.default_value, config.type)
+                        if config.type
+                        else config.default_value
+                    )
+            except Exception as e:
+                logger.warning(
+                    f"配置项类型转换 MODULE: [<u><y>{module}</y></u>]"
+                    " | KEY: [<u><y>{key}</y></u>]",
+                    e=e,
+                )
+                value = config.value or config.default_value
         if value is None:
             value = default
         logger.debug(
-            f"获取配置 MODULE: [<u><y>{module}</y></u>] | KEY: [<u><y>{key}</y></u>] -> [<u><c>{value}</c></u>]"
+            f"获取配置 MODULE: [<u><y>{module}</y></u>] | "
+            " KEY: [<u><y>{key}</y></u>] -> [<u><c>{value}</c></u>]"
         )
         return value
 
@@ -403,7 +407,7 @@ class ConfigsManager:
         """重新加载配置文件"""
         _yaml = YAML()
         if self._simple_file.exists():
-            with open(self._simple_file, "r", encoding="utf8") as f:
+            with open(self._simple_file, encoding="utf8") as f:
                 self._simple_data = _yaml.load(f)
         for key in self._simple_data.keys():
             for k in self._simple_data[key].keys():
@@ -416,31 +420,31 @@ class ConfigsManager:
         异常:
             ValueError: 配置文件为空！
         """
-        if self.file.exists():
-            with open(self.file, "r", encoding="utf8") as f:
-                temp_data = _yaml.load(f)
-            if not temp_data:
-                self.file.unlink()
-                raise ValueError(
-                    "配置文件为空！\n"
-                    "***********************************************************\n"
-                    "****** 配置文件 plugins2config.yaml 为空，已删除，请重启 ******\n"
-                    "***********************************************************"
-                )
-            count = 0
-            for module in temp_data:
-                config_group = ConfigGroup(module=module)
-                for config in temp_data[module]:
-                    config_group.configs[config] = ConfigModel(
-                        **temp_data[module][config]
-                    )
-                    count += 1
-                self._data[module] = config_group
-            logger.info(
-                f"加载配置完成，共加载 <u><y>{len(temp_data)}</y></u> 个配置组及对应 <u><y>{count}</y></u> 个配置项"
+        if not self.file.exists():
+            return
+        with open(self.file, encoding="utf8") as f:
+            temp_data = _yaml.load(f)
+        if not temp_data:
+            self.file.unlink()
+            raise ValueError(
+                "配置文件为空！\n"
+                "***********************************************************\n"
+                "****** 配置文件 plugins2config.yaml 为空，已删除，请重启 ******\n"
+                "***********************************************************"
             )
+        count = 0
+        for module in temp_data:
+            config_group = ConfigGroup(module=module)
+            for config in temp_data[module]:
+                config_group.configs[config] = ConfigModel(**temp_data[module][config])
+                count += 1
+            self._data[module] = config_group
+        logger.info(
+            f"加载配置完成，共加载 <u><y>{len(temp_data)}</y></u> 个配置组及对应"
+            " <u><y>{count}</y></u> 个配置项"
+        )
 
-    def get_data(self) -> Dict[str, ConfigGroup]:
+    def get_data(self) -> dict[str, ConfigGroup]:
         return copy.deepcopy(self._data)
 
     def is_empty(self) -> bool:
