@@ -42,7 +42,7 @@ class BroadcastManage:
             error_count = 0
             for group in group_list:
                 try:
-                    if not await CommonUtils.is_block(
+                    if not await CommonUtils.task_is_block(
                         group.group_id,
                         "broadcast",  # group.channel_id
                     ):
