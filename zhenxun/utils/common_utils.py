@@ -6,7 +6,7 @@ from zhenxun.models.group_console import GroupConsole
 class CommonUtils:
 
     @classmethod
-    async def is_block(cls, module: str, group_id: str | None) -> bool:
+    async def task_is_block(cls, module: str, group_id: str | None) -> bool:
         """判断被动技能是否可以发送
 
         参数:

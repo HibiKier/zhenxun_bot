@@ -38,7 +38,7 @@ async def _():
 
 
 async def check(group_id: str) -> bool:
-    return not await CommonUtils.is_block("morning_goodnight", group_id)
+    return not await CommonUtils.task_is_block("morning_goodnight", group_id)
 
 
 # 早上好
