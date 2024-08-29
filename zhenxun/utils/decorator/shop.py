@@ -1,8 +1,8 @@
-from typing import Any, Callable, Dict
+from collections.abc import Callable
 
-from nonebot.adapters.onebot.v11 import Message, MessageSegment
-from nonebot.plugin import require
 from pydantic import BaseModel
+from nonebot.plugin import require
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
 
 from zhenxun.models.goods_info import GoodsInfo
 
@@ -19,7 +19,7 @@ class Goods(BaseModel):
     icon: str | None = None
     is_passive: bool
     func: Callable
-    kwargs: Dict[str, str] = {}
+    kwargs: dict[str, str] = {}
     send_success_msg: bool
     max_num_limit: int
 
@@ -27,8 +27,8 @@ class Goods(BaseModel):
 class ShopRegister(dict):
 
     def __init__(self, *args, **kwargs):
-        super(ShopRegister, self).__init__(*args, **kwargs)
-        self._data: Dict[str, Goods] = {}
+        super().__init__(*args, **kwargs)
+        self._data: dict[str, Goods] = {}
         self._flag = True
 
     def before_handle(self, name: str | tuple[str, ...], load_status: bool = True):
@@ -42,7 +42,7 @@ class ShopRegister(dict):
         def register_before_handle(name_list: tuple[str, ...], func: Callable):
             if load_status:
                 for name_ in name_list:
-                    if goods := self._data.get(name_):
+                    if self._data.get(name_):
                         self._data[name_].before_handle.append(func)
 
         _name = (name,) if isinstance(name, str) else name
@@ -59,7 +59,7 @@ class ShopRegister(dict):
         def register_after_handle(name_list: tuple[str, ...], func: Callable):
             if load_status:
                 for name_ in name_list:
-                    if goods := self._data.get(name_):
+                    if self._data.get(name_):
                         self._data[name_].after_handle.append(func)
 
         _name = (name,) if isinstance(name, str) else name
@@ -99,7 +99,7 @@ class ShopRegister(dict):
         def add_register_item(func: Callable):
             if name in self._data.keys():
                 raise ValueError("该商品已注册，请替换其他名称！")
-            for n, p, d, dd, l, s, dl, pa, i, ssm, mnl in zip(
+            for n, p, d, dd, lmt, s, dl, pa, i, ssm, mnl in zip(
                 name,
                 price,
                 des,
@@ -123,7 +123,7 @@ class ShopRegister(dict):
                         price=p,
                         des=d,
                         discount=dd,
-                        limit_time=l,
+                        limit_time=lmt,
                         daily_limit=dl,
                         is_passive=pa,
                         func=func,
@@ -133,7 +133,7 @@ class ShopRegister(dict):
                     goods.price = p
                     goods.des = d
                     goods.discount = dd
-                    goods.limit_time = l
+                    goods.limit_time = lmt
                     goods.daily_limit = dl
                     goods.icon = i
                     goods.is_passive = pa
@@ -216,7 +216,8 @@ class ShopRegister(dict):
                     _current_len = len(x)
                 if _current_len != len(x):
                     raise ValueError(
-                        f"注册商品 {name} 中 name，price，des，discount，limit_time，load_status，daily_limit 数量不符！"
+                        f"注册商品 {name} 中 name，price，des，discount，limit_time，"
+                        "load_status，daily_limit 数量不符！"
                     )
         _current_len = _current_len if _current_len > -1 else 1
         _name = self.__get(name, _current_len)
@@ -249,7 +250,7 @@ class ShopRegister(dict):
         return (
             value
             if isinstance(value, tuple)
-            else tuple([value for _ in range(_current_len)])
+            else tuple(value for _ in range(_current_len))
         )
 
     def __setitem__(self, key, value):

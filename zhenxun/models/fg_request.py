@@ -1,9 +1,10 @@
-from nonebot.adapters import Bot
 from tortoise import fields
+from nonebot.adapters import Bot
 
 from zhenxun.services.db_context import Model
-from zhenxun.utils.enum import RequestHandleType, RequestType
 from zhenxun.utils.exception import NotFoundError
+from zhenxun.models.group_console import GroupConsole
+from zhenxun.utils.enum import RequestType, RequestHandleType
 
 
 class FgRequest(Model):
@@ -32,7 +33,7 @@ class FgRequest(Model):
     )
     """处理类型"""
 
-    class Meta:
+    class Meta:  # type: ignore
         table = "fg_request"
         table_description = "好友群组请求"
 
@@ -79,7 +80,6 @@ class FgRequest(Model):
         """忽略请求
 
         参数:
-            bot: Bot
             id: 请求id
 
         异常:
@@ -118,6 +118,9 @@ class FgRequest(Model):
                     flag=req.flag, approve=handle_type == RequestHandleType.APPROVE
                 )
             else:
+                await GroupConsole.update_or_create(
+                    group_id=req.group_id, defaults={"group_flag": 1}
+                )
                 await bot.set_group_add_request(
                     flag=req.flag,
                     sub_type="invite",

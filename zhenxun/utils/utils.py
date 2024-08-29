@@ -1,16 +1,16 @@
 import os
 import time
-from collections import defaultdict
-from datetime import datetime
-from pathlib import Path
 from typing import Any
+from pathlib import Path
+from datetime import datetime
+from collections import defaultdict
 
+import pytz
 import httpx
 import pypinyin
-import pytz
 
-from zhenxun.configs.config import Config
 from zhenxun.services.log import logger
+from zhenxun.configs.config import Config
 
 
 class ResourceDirManager:
@@ -18,7 +18,7 @@ class ResourceDirManager:
     临时文件管理器
     """
 
-    temp_path = []
+    temp_path = []  # noqa: RUF012
 
     @classmethod
     def __tree_append(cls, path: Path):
@@ -69,7 +69,7 @@ class CountLimiter:
         if day != self.today:
             self.today = day
             self.count.clear()
-        return bool(self.count[key] < self.max)
+        return self.count[key] < self.max
 
     def get_num(self, key):
         return self.count[key]
@@ -130,10 +130,7 @@ def cn2py(word: str) -> str:
     参数:
         word: 文本
     """
-    temp = ""
-    for i in pypinyin.pinyin(word, style=pypinyin.NORMAL):
-        temp += "".join(i)
-    return temp
+    return "".join("".join(i) for i in pypinyin.pinyin(word, style=pypinyin.NORMAL))
 
 
 async def get_user_avatar(uid: int | str) -> bytes | None:
@@ -147,7 +144,7 @@ async def get_user_avatar(uid: int | str) -> bytes | None:
         for _ in range(3):
             try:
                 return (await client.get(url)).content
-            except Exception as e:
+            except Exception:
                 logger.error("获取用户头像错误", "Util", target=uid)
     return None
 
@@ -163,7 +160,7 @@ async def get_group_avatar(gid: int | str) -> bytes | None:
         for _ in range(3):
             try:
                 return (await client.get(url)).content
-            except Exception as e:
+            except Exception:
                 logger.error("获取群头像错误", "Util", target=gid)
     return None
 

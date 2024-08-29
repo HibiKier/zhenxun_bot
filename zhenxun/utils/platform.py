@@ -1,23 +1,25 @@
 import random
-from typing import Awaitable, Callable, Literal, Set
+from typing import Literal
+from collections.abc import Callable, Awaitable
 
 import httpx
 import nonebot
+from pydantic import BaseModel
 from nonebot.adapters import Bot
-from nonebot.adapters.discord import Bot as DiscordBot
+from nonebot.utils import is_coroutine_callable
 from nonebot.adapters.dodo import Bot as DodoBot
-from nonebot.adapters.kaiheila import Bot as KaiheilaBot
 from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
-from nonebot.utils import is_coroutine_callable
-from nonebot_plugin_alconna.uniseg import Receipt, Target, UniMessage
-from pydantic import BaseModel
+from nonebot.adapters.discord import Bot as DiscordBot
+from nonebot.adapters.kaiheila import Bot as KaiheilaBot
+from nonebot_plugin_alconna.uniseg import Target, Receipt, UniMessage
 
-from zhenxun.models.friend_user import FriendUser
-from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
-from zhenxun.utils.exception import NotFindSuperuser
+from zhenxun.configs.config import BotConfig
 from zhenxun.utils.message import MessageUtils
+from zhenxun.models.friend_user import FriendUser
+from zhenxun.utils.exception import NotFindSuperuser
+from zhenxun.models.group_console import GroupConsole
 
 
 class UserData(BaseModel):
@@ -61,7 +63,7 @@ class PlatformUtils:
     async def send_superuser(
         cls,
         bot: Bot,
-        message: UniMessage,
+        message: UniMessage | str,
         superuser_id: str | None = None,
     ) -> Receipt | None:
         """发送消息给超级用户
@@ -78,11 +80,13 @@ class PlatformUtils:
             Receipt | None: Receipt
         """
         if not superuser_id:
-            platform = cls.get_platform(bot)
-            platform_superusers = bot.config.PLATFORM_SUPERUSERS.get(platform) or []
-            if not platform_superusers:
-                raise NotFindSuperuser()
-            superuser_id = random.choice(platform_superusers)
+            if platform := cls.get_platform(bot):
+                if platform_superusers := BotConfig.get_superuser(platform):
+                    superuser_id = random.choice(platform_superusers)
+                else:
+                    raise NotFindSuperuser()
+        if isinstance(message, str):
+            message = MessageUtils.build_message(message)
         return await cls.send_message(bot, superuser_id, None, message)
 
     @classmethod
@@ -126,25 +130,23 @@ class PlatformUtils:
             ):
                 max_id = result_data.max_id
                 result_list = result_data.list
-                data_list = []
                 while max_id == 100:
                     result_data = await bot.get_member_list(
                         island_source_id=group_id, page_size=100, max_id=0
                     )
                     result_list += result_data.list
                     max_id = result_data.max_id
-                for user in result_list:
-                    data_list.append(
-                        UserData(
-                            name=user.nick_name,
-                            card=user.personal_nick_name,
-                            avatar_url=user.avatar_url,
-                            user_id=user.dodo_source_id,
-                            group_id=user.island_source_id,
-                            join_time=int(user.join_time.timestamp()),
-                        )
+                return [
+                    UserData(
+                        name=user.nick_name,
+                        card=user.personal_nick_name,
+                        avatar_url=user.avatar_url,
+                        user_id=user.dodo_source_id,
+                        group_id=user.island_source_id,
+                        join_time=int(user.join_time.timestamp()),
                     )
-                return data_list
+                    for user in result_list
+                ]
         if isinstance(bot, KaiheilaBot):
             if result_data := await bot.guild_userList(guild_id=group_id):
                 if result_data.users:
@@ -163,9 +165,6 @@ class PlatformUtils:
                             )
                         )
                     return data_list
-        if isinstance(bot, DiscordBot):
-            # TODO: discord获取用户
-            pass
         return []
 
     @classmethod
@@ -195,15 +194,14 @@ class PlatformUtils:
                         role=user["role"],
                         join_time=user["join_time"],
                     )
-            else:
-                if friend_list := await bot.get_friend_list():
-                    for f in friend_list:
-                        if f["user_id"] == int(user_id):
-                            return UserData(
-                                name=f["nickname"],
-                                card=f["remark"],
-                                user_id=f["user_id"],
-                            )
+            elif friend_list := await bot.get_friend_list():
+                for f in friend_list:
+                    if f["user_id"] == int(user_id):
+                        return UserData(
+                            name=f["nickname"],
+                            card=f["remark"],
+                            user_id=f["user_id"],
+                        )
         if isinstance(bot, v12Bot):
             if group_id:
                 if user := await bot.get_group_member_info(
@@ -215,50 +213,36 @@ class PlatformUtils:
                         user_id=user["user_id"],
                         group_id=group_id,
                     )
-            else:
-                if friend_list := await bot.get_friend_list():
-                    for f in friend_list:
-                        if f["user_id"] == int(user_id):
-                            return UserData(
-                                name=f["user_name"],
-                                card=f["user_remark"],
-                                user_id=f["user_id"],
-                            )
-        if isinstance(bot, DodoBot):
-            if group_id:
-                if user := await bot.get_member_info(
-                    island_source_id=group_id, dodo_source_id=user_id
-                ):
-                    return UserData(
-                        name=user.nick_name,
-                        card=user.personal_nick_name,
-                        avatar_url=user.avatar_url,
-                        user_id=user.dodo_source_id,
-                        group_id=user.island_source_id,
-                        join_time=int(user.join_time.timestamp()),
-                    )
-            else:
-                # TODO: DoDo个人数据
-                pass
-        if isinstance(bot, KaiheilaBot):
-            if group_id:
-                if user := await bot.user_view(guild_id=group_id, user_id=user_id):
-                    second = None
-                    if user.joined_at:
-                        second = int(user.joined_at / 1000)
-                    return UserData(
-                        name=user.nickname or "",
-                        avatar_url=user.avatar,
-                        user_id=user_id,
-                        group_id=group_id,
-                        join_time=second,
-                    )
-            else:
-                # TODO: kaiheila用户详情
-                pass
-        if isinstance(bot, DiscordBot):
-            # TODO: discord获取用户
-            pass
+            elif friend_list := await bot.get_friend_list():
+                for f in friend_list:
+                    if f["user_id"] == int(user_id):
+                        return UserData(
+                            name=f["user_name"],
+                            card=f["user_remark"],
+                            user_id=f["user_id"],
+                        )
+        if isinstance(bot, DodoBot) and group_id:
+            if user := await bot.get_member_info(
+                island_source_id=group_id, dodo_source_id=user_id
+            ):
+                return UserData(
+                    name=user.nick_name,
+                    card=user.personal_nick_name,
+                    avatar_url=user.avatar_url,
+                    user_id=user.dodo_source_id,
+                    group_id=user.island_source_id,
+                    join_time=int(user.join_time.timestamp()),
+                )
+        if isinstance(bot, KaiheilaBot) and group_id:
+            if user := await bot.user_view(guild_id=group_id, user_id=user_id):
+                second = int(user.joined_at / 1000) if user.joined_at else None
+                return UserData(
+                    name=user.nickname or "",
+                    avatar_url=user.avatar,
+                    user_id=user_id,
+                    group_id=group_id,
+                    join_time=second,
+                )
         return None
 
     @classmethod
@@ -275,15 +259,13 @@ class PlatformUtils:
                 for _ in range(3):
                     try:
                         return (await client.get(url)).content
-                    except Exception as e:
+                    except Exception:
                         logger.error(
                             "获取用户头像错误",
                             "Util",
                             target=user_id,
                             platform=platform,
                         )
-        else:
-            pass
         return None
 
     @classmethod
@@ -300,12 +282,10 @@ class PlatformUtils:
                 for _ in range(3):
                     try:
                         return (await client.get(url)).content
-                    except Exception as e:
+                    except Exception:
                         logger.error(
                             "获取群头像错误", "Util", target=gid, platform=platform
                         )
-        else:
-            pass
         return None
 
     @classmethod
@@ -347,22 +327,37 @@ class PlatformUtils:
             int: 更新个数
         """
         create_list = []
+        update_list = []
         group_list, platform = await cls.get_group_list(bot)
         if group_list:
-            exists_group_list = await GroupConsole.all().values_list(
-                "group_id", "channel_id"
-            )
+            db_group = await GroupConsole.all()
+            db_group_id = [(group.group_id, group.channel_id) for group in db_group]
             for group in group_list:
                 group.platform = platform
-                if (group.group_id, group.channel_id) not in exists_group_list:
+                if (group.group_id, group.channel_id) not in db_group_id:
                     create_list.append(group)
                     logger.debug(
                         "群聊信息更新成功",
                         "更新群信息",
                         target=f"{group.group_id}:{group.channel_id}",
                     )
+                else:
+                    _group = next(
+                        g
+                        for g in db_group
+                        if g.group_id == group.group_id
+                        and g.channel_id == group.channel_id
+                    )
+                    _group.group_name = group.group_name
+                    _group.max_member_count = group.max_member_count
+                    _group.member_count = group.member_count
+                    update_list.append(_group)
         if create_list:
             await GroupConsole.bulk_create(create_list, 10)
+        if group_list:
+            await GroupConsole.bulk_update(
+                update_list, ["group_name", "max_member_count", "member_count"], 10
+            )
         return len(create_list)
 
     @classmethod
@@ -375,15 +370,13 @@ class PlatformUtils:
         返回:
             str | None: 平台
         """
-        if isinstance(bot, (v11Bot, v12Bot)):
+        if isinstance(bot, v11Bot | v12Bot):
             return "qq"
-        # if isinstance(bot, DodoBot):
-        #     return "dodo"
-        # if isinstance(bot, KaiheilaBot):
-        #     return "kaiheila"
-        # if isinstance(bot, DiscordBot):
-        #     return "discord"
-        return None
+        if isinstance(bot, DodoBot):
+            return "dodo"
+        if isinstance(bot, KaiheilaBot):
+            return "kaiheila"
+        return "discord" if isinstance(bot, DiscordBot) else None
 
     @classmethod
     async def get_group_list(cls, bot: Bot) -> tuple[list[GroupConsole], str]:
@@ -449,9 +442,6 @@ class PlatformUtils:
                             if c.type != 0
                         ]
             return group_list, "kaiheila"
-        if isinstance(bot, DiscordBot):
-            # TODO: discord群组列表
-            pass
         return [], ""
 
     @classmethod
@@ -501,15 +491,15 @@ class PlatformUtils:
                 )
                 for f in friend_list
             ], "qq"
-        if isinstance(bot, DodoBot):
-            # TODO: dodo好友列表
-            pass
-        if isinstance(bot, KaiheilaBot):
-            # TODO: kaiheila好友列表
-            pass
-        if isinstance(bot, DiscordBot):
-            # TODO: discord好友列表
-            pass
+        # if isinstance(bot, DodoBot):
+        #     # TODO: dodo好友列表
+        #     pass
+        # if isinstance(bot, KaiheilaBot):
+        #     # TODO: kaiheila好友列表
+        #     pass
+        # if isinstance(bot, DiscordBot):
+        #     # TODO: discord好友列表
+        #     pass
         return [], ""
 
     @classmethod
@@ -532,12 +522,12 @@ class PlatformUtils:
             target: 对应平台Target
         """
         target = None
-        if isinstance(bot, (v11Bot, v12Bot)):
+        if isinstance(bot, v11Bot | v12Bot):
             if group_id:
                 target = Target(group_id)
             elif user_id:
                 target = Target(user_id, private=True)
-        elif isinstance(bot, (DodoBot, KaiheilaBot)):
+        elif isinstance(bot, DodoBot | KaiheilaBot):
             if group_id and channel_id:
                 target = Target(channel_id, parent_id=group_id, channel=True)
             elif user_id:
@@ -548,8 +538,8 @@ class PlatformUtils:
 async def broadcast_group(
     message: str | UniMessage,
     bot: Bot | list[Bot] | None = None,
-    bot_id: str | Set[str] | None = None,
-    ignore_group: Set[int] | None = None,
+    bot_id: str | set[str] | None = None,
+    ignore_group: set[int] | None = None,
     check_func: Callable[[str], Awaitable] | None = None,
     log_cmd: str | None = None,
     platform: Literal["qq", "dodo", "kaiheila"] | None = None,

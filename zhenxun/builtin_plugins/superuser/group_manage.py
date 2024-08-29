@@ -16,7 +16,7 @@ from nonebot_plugin_alconna import (
 )
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.config import BotConfig
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
@@ -60,18 +60,17 @@ __plugin_meta__ = PluginMetadata(
 _matcher = on_alconna(
     Alconna(
         "group-manage",
+        Option("--delete", action=store_true, help_text="删除"),
         Subcommand(
             "modify-level", Args["level", int]["group_id?", int], help_text="修改群权限"
         ),
         Subcommand(
             "super-handle",
-            Option("--del", action=store_true, help_text="删除"),
             Args["group_id", int],
             help_text="添加/删除群白名单",
         ),
         Subcommand(
             "auth-handle",
-            Option("--del", action=store_true, help_text="删除"),
             Args["group_id", int],
             help_text="添加/删除群认证",
         ),
@@ -99,7 +98,7 @@ _matcher.shortcut(
 _matcher.shortcut(
     "删除群白名单",
     command="group-manage",
-    arguments=["super-handle", "{%0}", "--del"],
+    arguments=["super-handle", "{%0}", "--delete"],
     prefix=True,
 )
 
@@ -113,7 +112,7 @@ _matcher.shortcut(
 _matcher.shortcut(
     "删除群认证",
     command="group-manage",
-    arguments=["auth-handle", "{%0}", "--del"],
+    arguments=["auth-handle", "{%0}", "--delete"],
     prefix=True,
 )
 
@@ -167,8 +166,8 @@ async def _(session: EventSession, arparma: Arparma, state: T_State):
     group = await GroupConsole.get_or_none(group_id=gid)
     if not group:
         await MessageUtils.build_message("群组信息不存在, 请更新群组信息...").finish()
-    s = "删除" if arparma.find("del") else "添加"
-    group.is_super = not arparma.find("del")
+    s = "删除" if arparma.find("delete") else "添加"
+    group.is_super = not arparma.find("delete")
     await group.save(update_fields=["is_super"])
     await MessageUtils.build_message(f"{s}群白名单成功!").send(reply_to=True)
     logger.info(f"{s}群白名单", arparma.header_result, session=session, target=gid)
@@ -178,9 +177,9 @@ async def _(session: EventSession, arparma: Arparma, state: T_State):
 async def _(session: EventSession, arparma: Arparma, state: T_State):
     gid = state["group_id"]
     await GroupConsole.update_or_create(
-        group_id=gid, defaults={"group_flag": 0 if arparma.find("del") else 1}
+        group_id=gid, defaults={"group_flag": 0 if arparma.find("delete") else 1}
     )
-    s = "删除" if arparma.find("del") else "添加"
+    s = "删除" if arparma.find("delete") else "添加"
     await MessageUtils.build_message(f"{s}群认证成功!").send(reply_to=True)
     logger.info(f"{s}群白名单", arparma.header_result, session=session, target=gid)
 
@@ -191,11 +190,16 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, group_id: int):
         group_list = [g["group_id"] for g in await bot.get_group_list()]
         if group_id not in group_list:
             logger.debug("群组不存在", "退群", session=session, target=group_id)
-            await MessageUtils.build_message(f"{NICKNAME}未在该群组中...").finish()
+            await MessageUtils.build_message(
+                f"{BotConfig.self_nickname}未在该群组中..."
+            ).finish()
         try:
             await bot.set_group_leave(group_id=group_id)
             logger.info(
-                f"{NICKNAME}退出群组成功", "退群", session=session, target=group_id
+                f"{BotConfig.self_nickname}退出群组成功",
+                "退群",
+                session=session,
+                target=group_id,
             )
             await MessageUtils.build_message(f"退出群组 {group_id} 成功!").send()
             await GroupConsole.filter(group_id=group_id).delete()

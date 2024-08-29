@@ -10,7 +10,7 @@ from nonebot_plugin_alconna import Alconna, Option, on_alconna, store_true
 from nonebot_plugin_session import EventSession
 from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 
-from zhenxun.configs.config import NICKNAME, Config
+from zhenxun.configs.config import BotConfig, Config
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.friend_user import FriendUser
@@ -24,11 +24,11 @@ __plugin_meta__ = PluginMetadata(
     name="昵称系统",
     description="区区昵称，才不想叫呢！",
     usage=f"""
-    个人昵称，将替换{NICKNAME}称呼你的名称，群聊 与 私聊 昵称相互独立，全局昵称设置将更改您目前所有群聊中及私聊的昵称
+    个人昵称，将替换{BotConfig.self_nickname}称呼你的名称，群聊 与 私聊 昵称相互独立，全局昵称设置将更改您目前所有群聊中及私聊的昵称
     指令：
         以后叫我 [昵称]: 设置当前群聊/私聊的昵称
         全局昵称设置 [昵称]: 设置当前所有群聊和私聊的昵称
-        {NICKNAME}我是谁
+        {BotConfig.self_nickname}我是谁
     """.strip(),
     extra=PluginExtraData(
         author="HibiKier",
@@ -86,25 +86,25 @@ _matcher.shortcut(
 
 CALL_NAME = [
     "好啦好啦，我知道啦，{}，以后就这么叫你吧",
-    f"嗯嗯，{NICKNAME}" + "记住你的昵称了哦，{}",
+    f"嗯嗯，{BotConfig.self_nickname}" + "记住你的昵称了哦，{}",
     "好突然，突然要叫你昵称什么的...{}..",
-    f"{NICKNAME}" + "会好好记住{}的，放心吧",
+    f"{BotConfig.self_nickname}" + "会好好记住{}的，放心吧",
     "好..好.，那窝以后就叫你{}了.",
 ]
 
 REMIND = [
     "我肯定记得你啊，你是{}啊",
     "我不会忘记你的，你也不要忘记我！{}",
-    f"哼哼，{NICKNAME}" + "记忆力可是很好的，{}",
+    f"哼哼，{BotConfig.self_nickname}" + "记忆力可是很好的，{}",
     "嗯？你是失忆了嘛...{}..",
-    f"不要小看{NICKNAME}" + "的记忆力啊！笨蛋{}！QAQ",
+    f"不要小看{BotConfig.self_nickname}" + "的记忆力啊！笨蛋{}！QAQ",
     "哎？{}..怎么了吗..突然这样问..",
 ]
 
 CANCEL = [
-    f"呜..{NICKNAME}" + "睡一觉就会忘记的..和梦一样..{}",
+    f"呜..{BotConfig.self_nickname}" + "睡一觉就会忘记的..和梦一样..{}",
     "窝知道了..{}..",
-    f"是{NICKNAME}" + "哪里做的不好嘛..好吧..晚安{}",
+    f"是{BotConfig.self_nickname}" + "哪里做的不好嘛..好吧..晚安{}",
     "呃，{}，下次我绝对绝对绝对不会再忘记你！",
     "可..可恶！{}！太可恶了！呜",
 ]
@@ -152,9 +152,9 @@ def CheckNickname():
                     logger.debug(
                         "昵称设置禁止字符: [{word}]", "昵称设置", session=session
                     )
-                    await MessageUtils.build_message(f"字符 [{x}] 为禁止字符!").finish(
-                        at_sender=True
-                    )
+                    await MessageUtils.build_message(
+                        f"字符 [{word}] 为禁止字符!"
+                    ).finish(at_sender=True)
 
     return Depends(dependency)
 

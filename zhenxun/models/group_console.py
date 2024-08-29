@@ -1,6 +1,10 @@
-from tortoise import fields
+from typing import Any
 from typing_extensions import Self
 
+from tortoise import fields
+from tortoise.backends.base.client import BaseDBAsyncClient
+
+from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.db_context import Model
 
 
@@ -35,13 +39,68 @@ class GroupConsole(Model):
     platform = fields.CharField(255, default="qq", description="所属平台")
     """所属平台"""
 
-    class Meta:
+    class Meta:  # type: ignore
         table = "group_console"
         table_description = "群组信息表"
         unique_together = ("group_id", "channel_id")
 
     @classmethod
-    async def get_group(cls, group_id: str, channel_id: str | None = None) -> Self:
+    async def create(
+        cls, using_db: BaseDBAsyncClient | None = None, **kwargs: Any
+    ) -> Self:
+        """覆盖create方法"""
+        group = await super().create(using_db=using_db, **kwargs)
+        if modules := await TaskInfo.filter(default_status=False).values_list(
+            "module", flat=True
+        ):
+            group.block_task = ",".join(modules) + ","  # type: ignore
+            await group.save(using_db=using_db, update_fields=["block_task"])
+        return group
+
+    @classmethod
+    async def get_or_create(
+        cls,
+        defaults: dict | None = None,
+        using_db: BaseDBAsyncClient | None = None,
+        **kwargs: Any,
+    ) -> tuple[Self, bool]:
+        """覆盖get_or_create方法"""
+        group, is_create = await super().get_or_create(
+            defaults=defaults, using_db=using_db, **kwargs
+        )
+        if is_create and (
+            modules := await TaskInfo.filter(default_status=False).values_list(
+                "module", flat=True
+            )
+        ):
+            group.block_task = ",".join(modules) + ","  # type: ignore
+            await group.save(using_db=using_db, update_fields=["block_task"])
+        return group, is_create
+
+    @classmethod
+    async def update_or_create(
+        cls,
+        defaults: dict | None = None,
+        using_db: BaseDBAsyncClient | None = None,
+        **kwargs: Any,
+    ) -> tuple[Self, bool]:
+        """覆盖update_or_create方法"""
+        group, is_create = await super().update_or_create(
+            defaults=defaults, using_db=using_db, **kwargs
+        )
+        if is_create and (
+            modules := await TaskInfo.filter(default_status=False).values_list(
+                "module", flat=True
+            )
+        ):
+            group.block_task = ",".join(modules) + ","  # type: ignore
+            await group.save(using_db=using_db, update_fields=["block_task"])
+        return group, is_create
+
+    @classmethod
+    async def get_group(
+        cls, group_id: str, channel_id: str | None = None
+    ) -> Self | None:
         """获取群组
 
         参数:
@@ -52,23 +111,20 @@ class GroupConsole(Model):
             Self: GroupConsole
         """
         if channel_id:
-            return await cls.get(group_id=group_id, channel_id=channel_id)
-        return await cls.get(group_id=group_id, channel_id__isnull=True)
+            return await cls.get_or_none(group_id=group_id, channel_id=channel_id)
+        return await cls.get_or_none(group_id=group_id, channel_id__isnull=True)
 
     @classmethod
-    async def is_super_group(cls, group_id: str, channel_id: str | None = None) -> bool:
+    async def is_super_group(cls, group_id: str) -> bool:
         """是否超级用户指定群
 
         参数:
             group_id: 群组id
-            channel_id: 频道id.
 
         返回:
             bool: 是否超级用户指定群
         """
-        if group := await cls.get_or_none(group_id=group_id):
-            return group.is_super
-        return False
+        return group.is_super if (group := await cls.get_group(group_id)) else False
 
     @classmethod
     async def is_super_block_plugin(

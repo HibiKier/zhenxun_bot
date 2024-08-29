@@ -1,0 +1,56 @@
+name: 检查bot是否运行正常
+
+on:
+  push:
+    branches: ["dev", "main"]
+  pull_request:
+    branches: ["dev", "main"]
+
+jobs:
+  bot-check:
+    runs-on: ubuntu-latest
+    name: bot check
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        id: setup_python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      # Poetry cache depends on OS, Python version and Poetry version.
+      - name: Cache Poetry cache
+        id: cache-poetry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-cache-${{ runner.os }}-${{ steps.setup_python.outputs.python-version }}
+
+      - name: Cache Data cache
+        uses: actions/cache@v3
+        with:
+          path: data
+          key: data-cache-${{ runner.os }}-${{ steps.setup_python.outputs.python-version }}
+
+      - name: Install dependencies
+        if: steps.cache-poetry.outputs.cache-hit != 'true'
+        run: |
+          rm -rf poetry.lock
+          poetry source remove ali
+          poetry install --no-root
+          poetry run pip install pydantic==1.10
+
+      - name: Check bot run
+        id: bot_check_run
+        run: |
+          mv scripts/bot_check.py bot_check.py
+          sed -i "s|^.*\?DB_URL.*|DB_URL=\"${{ env.DB_URL }}\"|g" .env.dev
+          sed -i "s/^.*\?LOG_LEVEL.*/LOG_LEVEL=${{ env.LOG_LEVEL }}/g" .env.dev
+          poetry run python3 bot_check.py
+        env:
+          DB_URL: "sqlite://:memory:"
+          LOG_LEVEL: DEBUG

@@ -45,7 +45,7 @@ class BuildImage:
         mode: ModeType = "RGBA",
         font: str | Path | FreeTypeFont = "HYWenHei-85W.ttf",
         font_size: int = 20,
-        background: str | BytesIO | Path | None = None,
+        background: str | BytesIO | Path | bytes | None = None,
     ) -> None:
         self.uid = uuid.uuid1()
         self.width = width
@@ -57,7 +57,10 @@ class BuildImage:
             else font
         )
         if background:
-            self.markImg = Image.open(background)
+            if isinstance(background, bytes):
+                self.markImg = Image.open(BytesIO(background))
+            else:
+                self.markImg = Image.open(background)
             if width and height:
                 self.markImg = self.markImg.resize((width, height), Image.LANCZOS)
             else:
@@ -74,7 +77,7 @@ class BuildImage:
         return self.markImg.size
 
     @classmethod
-    def open(cls, path: str | Path) -> Self:
+    def open(cls, path: str | Path | bytes) -> Self:
         """打开图片
 
         参数:

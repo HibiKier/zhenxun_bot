@@ -1,12 +1,13 @@
 import os
-import random
 import re
+import random
 from datetime import datetime
 
-import nonebot
 import ujson as json
-from nonebot import on_notice, on_request
 from nonebot.adapters import Bot
+from nonebot_plugin_alconna import At
+from nonebot import on_notice, on_request
+from nonebot.plugin import PluginMetadata
 from nonebot.adapters.onebot.v11 import (
     GroupDecreaseNoticeEvent,
     GroupIncreaseNoticeEvent,
@@ -15,22 +16,20 @@ from nonebot.adapters.onebot.v12 import (
     GroupMemberDecreaseEvent,
     GroupMemberIncreaseEvent,
 )
-from nonebot.plugin import PluginMetadata
-from nonebot_plugin_alconna import At
 
-from zhenxun.configs.config import NICKNAME, Config
-from zhenxun.configs.path_config import DATA_PATH, IMAGE_PATH
-from zhenxun.configs.utils import PluginExtraData, RegisterConfig, Task
+from zhenxun.services.log import logger
+from zhenxun.utils.utils import FreqLimiter
+from zhenxun.utils.message import MessageUtils
 from zhenxun.models.fg_request import FgRequest
-from zhenxun.models.group_console import GroupConsole
-from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.models.level_user import LevelUser
 from zhenxun.models.plugin_info import PluginInfo
-from zhenxun.models.task_info import TaskInfo
-from zhenxun.services.log import logger
+from zhenxun.utils.common_utils import CommonUtils
+from zhenxun.configs.config import Config, BotConfig
+from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.utils.enum import PluginType, RequestHandleType
-from zhenxun.utils.message import MessageUtils
-from zhenxun.utils.utils import FreqLimiter
+from zhenxun.configs.path_config import DATA_PATH, IMAGE_PATH
+from zhenxun.configs.utils import Task, RegisterConfig, PluginExtraData
 
 __plugin_meta__ = PluginMetadata(
     name="QQ群事件处理",
@@ -44,7 +43,7 @@ __plugin_meta__ = PluginMetadata(
             RegisterConfig(
                 module="invite_manager",
                 key="message",
-                value=f"请不要未经同意就拉{NICKNAME}入群！告辞！",
+                value=f"请不要未经同意就拉{BotConfig.self_nickname}入群！告辞！",
                 help="强制拉群后进群回复的内容",
             ),
             RegisterConfig(
@@ -88,8 +87,6 @@ __plugin_meta__ = PluginMetadata(
 )
 
 
-superuser = nonebot.get_driver().config.platform_superusers["qq"][0]
-
 base_config = Config.get("invite_manager")
 
 
@@ -108,6 +105,7 @@ add_group = on_request(priority=1, block=False)
 
 @group_increase_handle.handle()
 async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent):
+    superuser = BotConfig.get_superuser("qq")
     user_id = str(event.user_id)
     group_id = str(event.group_id)
     if user_id == bot.self_id:
@@ -130,7 +128,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
                         message=f"触发强制入群保护，已成功退出群聊 {group_id}...",
                     )
                     logger.info(
-                        f"强制拉群或未有群信息，退出群聊成功",
+                        "强制拉群或未有群信息，退出群聊成功",
                         "入群检测",
                         group_id=event.group_id,
                     )
@@ -141,7 +139,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
                         await req.save(update_fields=["handle_type"])
                 except Exception as e:
                     logger.error(
-                        f"强制拉群或未有群信息，退出群聊失败",
+                        "强制拉群或未有群信息，退出群聊失败",
                         "入群检测",
                         group_id=event.group_id,
                         e=e,
@@ -210,7 +208,7 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
                             user_info["user_id"], user_info["group_id"], 9
                         )
                         logger.debug(
-                            f"添加超级用户权限: 9",
+                            "添加超级用户权限: 9",
                             "入群检测",
                             session=user_info["user_id"],
                             group_id=user_info["group_id"],
@@ -231,19 +229,21 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
             """群欢迎消息"""
             _flmt.start_cd(group_id)
             path = DATA_PATH / "welcome_message" / "qq" / f"{group_id}"
-            data = json.load((path / "text.json").open(encoding="utf-8"))
-            message = data["message"]
-            msg_split = re.split(r"\[image:\d+\]", message)
+            file = path / "text.json"
             msg_list = []
-            if data["at"]:
-                msg_list.append(At(flag="user", target=user_id))
-            for i, text in enumerate(msg_split):
-                msg_list.append(text)
-                img_file = path / f"{i}.png"
-                if img_file.exists():
-                    msg_list.append(img_file)
-            if not TaskInfo.is_block("group_welcome", group_id):
-                logger.info(f"发送群欢迎消息...", "入群检测", group_id=group_id)
+            if file.exists():
+                data = json.load((path / "text.json").open(encoding="utf-8"))
+                message = data["message"]
+                msg_split = re.split(r"\[image:\d+\]", message)
+                if data["at"]:
+                    msg_list.append(At(flag="user", target=user_id))
+                for i, text in enumerate(msg_split):
+                    msg_list.append(text)
+                    img_file = path / f"{i}.png"
+                    if img_file.exists():
+                        msg_list.append(img_file)
+            if not await CommonUtils.is_block("group_welcome", group_id):
+                logger.info("发送群欢迎消息...", "入群检测", group_id=group_id)
                 if msg_list:
                     await MessageUtils.build_message(msg_list).send()
                 else:
@@ -274,17 +274,18 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent | GroupMemberDecreaseEvent
             operator_name = "None"
         group = await GroupConsole.filter(group_id=str(group_id)).first()
         group_name = group.group_name if group else ""
-        coffee = int(superuser)
-        await bot.send_private_msg(
-            user_id=coffee,
-            message=f"****呜..一份踢出报告****\n"
-            f"我被 {operator_name}({operator_id})\n"
-            f"踢出了 {group_name}({group_id})\n"
-            f"日期：{str(datetime.now()).split('.')[0]}",
-        )
-        if group:
-            await group.delete()
-        return
+        if superuser := BotConfig.get_superuser("qq"):
+            coffee = int(superuser)
+            await bot.send_private_msg(
+                user_id=coffee,
+                message=f"****呜..一份踢出报告****\n"
+                f"我被 {operator_name}({operator_id})\n"
+                f"踢出了 {group_name}({group_id})\n"
+                f"日期：{str(datetime.now()).split('.')[0]}",
+            )
+            if group:
+                await group.delete()
+            return
     if str(event.user_id) == bot.self_id:
         """踢出Bot"""
         await GroupConsole.filter(group_id=str(event.group_id)).delete()
@@ -311,7 +312,7 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent | GroupMemberDecreaseEvent
         operator = await bot.get_group_member_info(
             user_id=event.operator_id, group_id=event.group_id
         )
-        operator_name = operator["card"] if operator["card"] else operator["nickname"]
+        operator_name = operator["card"] or operator["nickname"]
         result = f"{user_name} 被 {operator_name} 送走了."
-    if not TaskInfo.is_block("refund_group_remind", str(event.group_id)):
+    if not await CommonUtils.is_block("refund_group_remind", str(event.group_id)):
         await group_decrease_handle.send(f"{result}")

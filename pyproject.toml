@@ -4,6 +4,7 @@ version = "0.1.1"
 description = "基于 Nonebot2 和 go-cqhttp 开发，以 postgresql 作为数据库，非常可爱的绪山真寻bot"
 authors = ["HibiKier <775757368@qq.com>"]
 license = "AGPL"
+package-mode = false
 
 [[tool.poetry.source]]
 name = "ali"
@@ -15,7 +16,7 @@ python = "^3.10"
 playwright = "^1.41.1"
 nonebot-adapter-onebot = "^2.3.1"
 nonebot-plugin-apscheduler = "^0.3.0"
-tortoise-orm = {extras = ["asyncpg"], version = "^0.20.0"}
+tortoise-orm = { extras = ["asyncpg"], version = "^0.20.0" }
 cattrs = "^23.2.3"
 ruamel-yaml = "^0.18.5"
 strenum = "^0.4.15"
@@ -43,11 +44,94 @@ cn2an = "^0.5.22"
 aiohttp = "^3.9.5"
 dateparser = "^1.2.0"
 bilireq = "0.2.3post0"
-python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+python-jose = { extras = ["cryptography"], version = "^3.3.0" }
 python-multipart = "^0.0.9"
 nonebot-plugin-alconna = "^0.51.1"
 
 [tool.poetry.dev-dependencies]
+nonebug = "^0.3.2"
+pytest-cov = "^5.0.0"
+pytest-mock = "^3.6.1"
+pytest-asyncio = "^0.23.5"
+pytest-xdist = "^3.3.1"
+respx = "^0.21.1"
+
+[tool.nonebot]
+plugins = [
+    "nonebot_plugin_apscheduler",
+    "nonebot_plugin_session",
+    "nonebot_plugin_htmlrender",
+    "nonebot_plugin_userinfo",
+    "nonebot_plugin_alconna",
+]
+plugin_dirs = ["zhenxun/services", "zhenxun/builtin_plugins", "zhenxun/plugins"]
+adapters = [
+    { name = "OneBot V11", module_name = "nonebot.adapters.onebot.v11" },
+    { name = "DoDo", module_name = "nonebot.adapters.dodo" },
+    { name = "开黑啦", module_name = "nonebot.adapters.kaiheila" },
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py39", "py310", "py311", "py312"]
+include = '\.pyi?$'
+extend-exclude = '''
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+length_sort = true
+skip_gitignore = true
+force_sort_within_sections = true
+src_paths = ["zhenxun", "tests"]
+extra_standard_library = ["typing_extensions"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "F",     # Pyflakes
+    "W",     # pycodestyle warnings
+    "E",     # pycodestyle errors
+    "UP",    # pyupgrade
+    "ASYNC", # flake8-async
+    "C4",    # flake8-comprehensions
+    "T10",   # flake8-debugger
+    "T20",   # flake8-print
+    "PYI",   # flake8-pyi
+    "PT",    # flake8-pytest-style
+    "Q",     # flake8-quotes
+    "RUF",   # Ruff-specific rules
+]
+ignore = [
+    "E402",   # module-import-not-at-top-of-file
+    "UP037",  # quoted-annotation
+    "RUF001", # ambiguous-unicode-character-string
+    "RUF002", # ambiguous-unicode-character-docstring
+    "RUF003", # ambiguous-unicode-character-comment
+]
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+
+[tool.pyright]
+pythonVersion = "3.10"
+pythonPlatform = "All"
+defineConstant = { PYDANTIC_V2 = true }
+executionEnvironments = [
+    { root = "./tests", extraPaths = [
+        "./",
+    ] },
+    { root = "./" },
+]
+
+typeCheckingMode = "standard"
+reportShadowedImports = false
+disableBytesTypePromotions = true
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
