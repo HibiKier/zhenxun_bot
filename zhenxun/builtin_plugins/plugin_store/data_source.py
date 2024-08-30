@@ -211,7 +211,7 @@ class ShopManage:
         plugin_list = await PluginInfo.filter(load_status=True).values_list(
             "module", "version"
         )
-        suc_plugin = {p[0]: p[1] for p in plugin_list if p[1]}
+        suc_plugin = {p[0]: (p[1] or "0.1") for p in plugin_list}
         data_list = [
             [
                 "已安装" if plugin_info[1]["module"] in suc_plugin else "",
@@ -226,7 +226,7 @@ class ShopManage:
         ]
         return await ImageTemplate.table_page(
             "插件列表",
-            "通过安装/卸载插件 ID 来管理插件",
+            "通过添加/移除插件 ID 来管理插件",
             column_name,
             data_list,
             text_style=row_style,

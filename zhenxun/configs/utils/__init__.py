@@ -356,7 +356,7 @@ class ConfigsManager:
             value = default
         logger.debug(
             f"获取配置 MODULE: [<u><y>{module}</y></u>] | "
-            " KEY: [<u><y>{key}</y></u>] -> [<u><c>{value}</c></u>]"
+            f" KEY: [<u><y>{key}</y></u>] -> [<u><c>{value}</c></u>]"
         )
         return value
 

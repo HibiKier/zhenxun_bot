@@ -2,18 +2,34 @@ from io import BytesIO
 from pathlib import Path
 
 import nonebot
+from pydantic import BaseModel
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
-from nonebot_plugin_alconna import At, Image, Text, UniMessage
+from nonebot_plugin_alconna import At, Text, Image, Video, Voice, UniMessage
 
-from zhenxun.configs.config import BotConfig
 from zhenxun.services.log import logger
+from zhenxun.configs.config import BotConfig
 from zhenxun.utils._build_image import BuildImage
 
 driver = nonebot.get_driver()
 
 MESSAGE_TYPE = (
-    str | int | float | Path | bytes | BytesIO | BuildImage | At | Image | Text
+    str
+    | int
+    | float
+    | Path
+    | bytes
+    | BytesIO
+    | BuildImage
+    | At
+    | Image
+    | Text
+    | Voice
+    | Video
 )
+
+
+class Config(BaseModel):
+    is_bytes: bool = False
 
 
 class MessageUtils:
@@ -28,20 +44,16 @@ class MessageUtils:
         返回:
             list[Text | Text]: 构造完成的消息列表
         """
-        is_bytes = False
-        try:
-            is_bytes = driver.config.image_to_bytes in ["True", "true"]
-        except AttributeError:
-            pass
+        config = nonebot.get_plugin_config(Config)
         message_list = []
         for msg in msg_list:
-            if isinstance(msg, (Image, Text, At)):
+            if isinstance(msg, Image | Text | At | Video | Voice):
                 message_list.append(msg)
-            elif isinstance(msg, (str, int, float)):
+            elif isinstance(msg, str | int | float):
                 message_list.append(Text(str(msg)))
             elif isinstance(msg, Path):
                 if msg.exists():
-                    if is_bytes:
+                    if config.is_bytes:
                         image = BuildImage.open(msg)
                         message_list.append(Image(raw=image.pic2bytes()))
                     else:
@@ -120,7 +132,7 @@ class MessageUtils:
         forward_data = []
         for r_list in msg_list:
             s = ""
-            if isinstance(r_list, (UniMessage, list)):
+            if isinstance(r_list, UniMessage | list):
                 for r in r_list:
                     if isinstance(r, Text):
                         s += str(r)
