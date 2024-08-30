@@ -1,22 +1,21 @@
 from nonebot.plugin import PluginMetadata
+from nonebot_plugin_session import EventSession
+from nonebot_plugin_apscheduler import scheduler
 from nonebot_plugin_alconna import (
-    Alconna,
     Args,
-    Arparma,
     Option,
+    Alconna,
+    Arparma,
     on_alconna,
     store_true,
 )
-from nonebot_plugin_apscheduler import scheduler
-from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.utils import PluginCdBlock, PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.depends import UserName
 from zhenxun.utils.message import MessageUtils
+from zhenxun.configs.utils import PluginCdBlock, RegisterConfig, PluginExtraData
 
 from ._data_source import SignManage
-from .goods_register import driver
 from .utils import clear_sign_data_pic
 
 __plugin_meta__ = PluginMetadata(
@@ -91,7 +90,6 @@ _sign_matcher = on_alconna(
         Option(
             "-l|--list",
             Args["num", int, 10],
-            action=store_true,
             help_text="好感度排行",
         ),
         Option("-g|--global", action=store_true, help_text="全局排行"),
@@ -165,4 +163,4 @@ async def _():
         clear_sign_data_pic()
         logger.info("清理日常签到图片数据数据完成...", "签到")
     except Exception as e:
-        logger.error(f"清理日常签到图片数据数据失败...", e=e)
+        logger.error("清理日常签到图片数据数据失败...", e=e)
