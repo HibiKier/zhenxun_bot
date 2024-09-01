@@ -17,6 +17,7 @@ from zhenxun.configs.utils import PluginCdBlock, RegisterConfig, PluginExtraData
 
 from ._data_source import SignManage
 from .utils import clear_sign_data_pic
+from .goods_register import driver  # noqa: F401
 
 __plugin_meta__ = PluginMetadata(
     name="签到",

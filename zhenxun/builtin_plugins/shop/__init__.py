@@ -1,22 +1,22 @@
 from nonebot.adapters import Bot, Event
 from nonebot.plugin import PluginMetadata
+from nonebot_plugin_session import EventSession
+from nonebot_plugin_userinfo import UserInfo, EventUserInfo
 from nonebot_plugin_alconna import (
-    Alconna,
     Args,
+    UniMsg,
+    Alconna,
     Arparma,
     Subcommand,
     UniMessage,
-    UniMsg,
     on_alconna,
 )
-from nonebot_plugin_session import EventSession
-from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 
-from zhenxun.configs.utils import BaseBlock, PluginExtraData
 from zhenxun.services.log import logger
-from zhenxun.utils.enum import BlockType, PluginType
-from zhenxun.utils.exception import GoodsNotFound
 from zhenxun.utils.message import MessageUtils
+from zhenxun.utils.exception import GoodsNotFound
+from zhenxun.utils.enum import BlockType, PluginType
+from zhenxun.configs.utils import BaseBlock, PluginExtraData
 
 from ._data_source import ShopManage
 
@@ -96,7 +96,7 @@ async def _(session: EventSession, arparma: Arparma):
         gold = await ShopManage.my_cost(session.id1, session.platform)
         await MessageUtils.build_message(f"你的当前余额: {gold}").send(reply_to=True)
     else:
-        await MessageUtils.build_message(f"用户id为空...").send(reply_to=True)
+        await MessageUtils.build_message("用户id为空...").send(reply_to=True)
 
 
 @_matcher.assign("my-props")
@@ -111,11 +111,9 @@ async def _(
             session.platform,
         ):
             await MessageUtils.build_message(image.pic2bytes()).finish(reply_to=True)
-        return await MessageUtils.build_message(f"你的道具为空捏...").send(
-            reply_to=True
-        )
+        return await MessageUtils.build_message("你的道具为空捏...").send(reply_to=True)
     else:
-        await MessageUtils.build_message(f"用户id为空...").send(reply_to=True)
+        await MessageUtils.build_message("用户id为空...").send(reply_to=True)
 
 
 @_matcher.assign("buy")
@@ -129,7 +127,7 @@ async def _(session: EventSession, arparma: Arparma, name: str, num: int):
         result = await ShopManage.buy_prop(session.id1, name, num, session.platform)
         await MessageUtils.build_message(result).send(reply_to=True)
     else:
-        await MessageUtils.build_message(f"用户id为空...").send(reply_to=True)
+        await MessageUtils.build_message("用户id为空...").send(reply_to=True)
 
 
 @_matcher.assign("use")
