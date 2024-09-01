@@ -1,0 +1,18 @@
+[
+  {
+    "name": "github_sub",
+    "path": "github_sub",
+    "sha": "0f7d76bcf472e2ab0610fa542b067633d6e3ae7e",
+    "size": 0,
+    "url": "https://api.github.com/repos/xuanerwa/zhenxun_github_sub/contents/github_sub?ref=main",
+    "html_url": "https://github.com/xuanerwa/zhenxun_github_sub/tree/main/github_sub",
+    "git_url": "https://api.github.com/repos/xuanerwa/zhenxun_github_sub/git/trees/0f7d76bcf472e2ab0610fa542b067633d6e3ae7e",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/xuanerwa/zhenxun_github_sub/contents/github_sub?ref=main",
+      "git": "https://api.github.com/repos/xuanerwa/zhenxun_github_sub/git/trees/0f7d76bcf472e2ab0610fa542b067633d6e3ae7e",
+      "html": "https://github.com/xuanerwa/zhenxun_github_sub/tree/main/github_sub"
+    }
+  }
+]
