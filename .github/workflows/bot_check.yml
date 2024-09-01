@@ -28,7 +28,14 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pypoetry
-          key: poetry-cache-${{ runner.os }}-${{ steps.setup_python.outputs.python-version }}
+          key: poetry-cache-${{ runner.os }}-${{ steps.setup_python.outputs.python-version }}-${{ hashFiles('pyproject.toml') }}
+
+      - name: Cache playwright cache
+        id: cache-playwright
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-cache-${{ runner.os }}-${{ steps.setup_python.outputs.python-version }}
 
       - name: Cache Data cache
         uses: actions/cache@v3
@@ -43,6 +50,9 @@ jobs:
           poetry source remove ali
           poetry install --no-root
           poetry run pip install pydantic==1.10
+
+      - name: Run tests
+        run: poetry run pytest --cov=zhenxun --cov-report xml
 
       - name: Check bot run
         id: bot_check_run
