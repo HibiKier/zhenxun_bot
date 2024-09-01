@@ -6,6 +6,13 @@ WORKDIR /app/zhenxun
 
 COPY . /app/zhenxun
 
+RUN apt update && \
+    apt upgrade -y && \
+    apt install -y --no-install-recommends \
+    gcc \
+    g++ &&\
+    apt clean
+
 RUN pip install poetry -i https://mirrors.aliyun.com/pypi/simple/
 
 RUN poetry install
