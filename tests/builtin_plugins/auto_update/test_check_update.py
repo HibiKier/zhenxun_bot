@@ -10,7 +10,6 @@ from nonebot.adapters.onebot.v11.message import Message
 
 from tests.config import BotId, UserId, GroupId, MessageId
 from tests.utils import (
-    get_content_bytes,
     get_response_json,
     _v11_group_message_event,
     _v11_private_message_send,
@@ -19,33 +18,81 @@ from tests.utils import (
 
 def init_mocked_api(mocked_api: MockRouter) -> None:
     mocked_api.get(
-        "https://api.github.com/repos/HibiKier/zhenxun_bot/releases/latest",
+        url="https://api.github.com/repos/HibiKier/zhenxun_bot/releases/latest",
         name="release_latest",
-    ).respond(200, json=get_response_json("release_latest.json"))
+    ).respond(json=get_response_json(path="release_latest.json"))
     mocked_api.get(
-        "https://raw.githubusercontent.com/HibiKier/zhenxun_bot/dev/__version__",
+        url="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/dev/__version__",
         name="dev_branch_version",
-    ).respond(200, text="__version__: v0.2.2")
+    ).respond(text="__version__: v0.2.2")
     mocked_api.get(
-        "https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/__version__",
+        url="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/__version__",
         name="main_branch_version",
-    ).respond(200, text="__version__: v0.2.2")
+    ).respond(text="__version__: v0.2.2")
     mocked_api.get(
-        "https://api.github.com/repos/HibiKier/zhenxun_bot/tarball/v0.2.2",
+        url="https://api.github.com/repos/HibiKier/zhenxun_bot/tarball/v0.2.2",
         name="release_download_url",
     ).respond(
-        302,
+        status_code=302,
         headers={
             "Location": "https://codeload.github.com/HibiKier/zhenxun_bot/legacy.tar.gz/refs/tags/v0.2.2"
         },
     )
+    import io
+    import tarfile
+
+    tar_buffer = io.BytesIO()
+
+    from zhenxun.builtin_plugins.auto_update.config import (
+        REQ_TXT_FILE,
+        PYPROJECT_FILE,
+        PYPROJECT_LOCK_FILE,
+    )
+
+    # 指定要添加到压缩文件中的文件路径列表
+    file_paths: list[Path] = [
+        PYPROJECT_FILE,
+        PYPROJECT_LOCK_FILE,
+        REQ_TXT_FILE,
+    ]
+
+    # 打开一个tarfile对象，写入到上面创建的BytesIO对象中
+    with tarfile.open(mode="w:gz", fileobj=tar_buffer) as tar:
+        _extracted_from_init_mocked_api_43(tarfile, tar, file_paths, io)
     mocked_api.get(
-        "https://codeload.github.com/HibiKier/zhenxun_bot/legacy.tar.gz/refs/tags/v0.2.2",
+        url="https://codeload.github.com/HibiKier/zhenxun_bot/legacy.tar.gz/refs/tags/v0.2.2",
         name="release_download_url_redirect",
     ).respond(
-        200,
-        content=get_content_bytes("download_latest_file.tar.gz"),
+        content=tar_buffer.getvalue(),
     )
+
+
+# TODO Rename this here and in `init_mocked_api`
+def _extracted_from_init_mocked_api_43(tarfile, tar, file_paths, io):
+    folder_name = "my_folder"
+    tarinfo = tarfile.TarInfo(folder_name)
+    tarinfo.type = tarfile.DIRTYPE
+    tarinfo.mode = 0o755
+    tar.addfile(tarinfo)
+
+    # 读取并添加指定的文件
+    for file_path in file_paths:
+        # 读取文件内容
+        with open(file_path, "rb") as file:
+            file_content = file.read()
+
+        # 使用BytesIO创建文件内容
+        file_buffer = io.BytesIO(file_content)
+
+        # 创建TarInfo对象
+        tarinfo = tarfile.TarInfo(
+            f"{folder_name}/{file_path.name}"
+        )  # 使用文件名作为tar中的名字
+        tarinfo.mode = 0o644  # 设置文件夹权限
+        tarinfo.size = len(file_content)
+
+        # 添加文件
+        tar.addfile(tarinfo, fileobj=file_buffer)
 
 
 async def test_check_update_release(
@@ -60,7 +107,7 @@ async def test_check_update_release(
     """
     from zhenxun.builtin_plugins.auto_update import _matcher
 
-    init_mocked_api(mocked_api)
+    init_mocked_api(mocked_api=mocked_api)
 
     mocker.patch(
         "zhenxun.builtin_plugins.auto_update._data_source.REPLACE_FOLDERS",
