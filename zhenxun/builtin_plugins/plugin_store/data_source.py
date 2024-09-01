@@ -1,22 +1,30 @@
-import re
 import shutil
 import subprocess
 from pathlib import Path
 
-import aiofiles
 import ujson as json
 
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.utils.image_utils import RowStyle, BuildImage, ImageTemplate
+from zhenxun.builtin_plugins.auto_update.config import REQ_TXT_FILE_STRING
+from zhenxun.builtin_plugins.plugin_store.models import (
+    FileInfo,
+    FileType,
+    RepoInfo,
+    JsdPackageInfo,
+    StorePluginInfo,
+)
 
 from .config import (
     BASE_PATH,
     CONFIG_URL,
-    DOWNLOAD_URL,
     CONFIG_INDEX_URL,
+    DEFAULT_GITHUB_URL,
     CONFIG_INDEX_CDN_URL,
+    JSD_PACKAGE_API_FORMAT,
+    GITHUB_REPO_URL_PATTERN,
 )
 
 
@@ -36,66 +44,65 @@ def row_style(column: str, text: str) -> RowStyle:
     return style
 
 
-async def recurrence_get_url(
-    url: str,
-    data_list: list[tuple[str, str]],
-    ignore_list: list[str] | None = None,
-    api_url: str | None = None,
-):
-    """递归获取目录下所有文件
+def full_files_path(
+    jsd_package_info: JsdPackageInfo, module_path: str, is_dir: bool = True
+) -> list[FileInfo]:
+    """
+    获取文件路径
 
     参数:
-        url: 信息url
-        data_list: 数据列表
+        jsd_package_info: JsdPackageInfo
+        module_path: 模块路径
+        is_dir: 是否为目录
 
-    异常:
-        ValueError: 访问错误
+    返回:
+        list[FileInfo]: 文件路径
     """
-    if ignore_list is None:
-        ignore_list = []
-    logger.debug(f"访问插件下载信息 URL: {url}", "插件管理")
-    res = await AsyncHttpx.get(url)
-    if res.status_code != 200:
-        raise ValueError(f"访问错误, code: {res.status_code}")
-    json_data = res.json()
-    if isinstance(json_data, list):
-        data_list.extend((v.get("download_url"), v["path"]) for v in json_data)
-    else:
-        data_list.append((json_data.get("download_url"), json_data["path"]))
-    for download_url, path in data_list:
-        if not download_url:
-            _url = api_url + path if api_url else DOWNLOAD_URL.format(path)
-            if _url not in ignore_list:
-                ignore_list.append(_url)
-                await recurrence_get_url(_url, data_list, ignore_list, api_url)
+    paths: list[str] = module_path.split(".")
+    cur_files: list[FileInfo] = jsd_package_info.files
+    for path in paths:
+        for cur_file in cur_files:
+            if (
+                cur_file.type == FileType.DIR
+                and cur_file.name == path
+                and cur_file.files
+                and (is_dir or path != paths[-1])
+            ):
+                cur_files = cur_file.files
+                break
+            if not is_dir and path == paths[-1] and cur_file.name.split(".")[0] == path:
+                return cur_files
+        else:
+            raise ValueError(f"模块路径 {module_path} 不存在")
+    return cur_files
 
 
-async def download_file(url: str, _is: bool = False, api_url: str | None = None):
-    """下载文件
+def recurrence_files(
+    files: list[FileInfo], dir_path: str, is_dir: bool = True
+) -> list[str]:
+    """
+    递归获取文件路径
 
     参数:
-        url: 插件详情url
-        _is: 是否为第三方插件
-        url_start : 第三方插件url
+        files: 文件列表
+        dir_path: 目录路径
+        is_dir: 是否为目录
 
-    异常:
-        ValueError: 下载失败
+    返回:
+        list[str]: 文件路径
     """
-    data_list = []
-    await recurrence_get_url(url, data_list, api_url=api_url)
-    for download_url, path in data_list:
-        if download_url and "." in path:
-            logger.debug(f"下载文件: {path}", "插件管理")
-            base_path = BASE_PATH / "plugins" if _is else BASE_PATH
-            file = base_path / path
-            file.parent.mkdir(parents=True, exist_ok=True)
-            r = await AsyncHttpx.get(download_url)
-            if r.status_code != 200:
-                raise ValueError(f"文件下载错误, code: {r.status_code}")
-            content = r.text.replace("\r\n", "\n")  # 统一换行符为 UNIX 风格
-            async with aiofiles.open(file, "w", encoding="utf8") as f:
-                logger.debug(f"写入文件: {file}", "插件管理")
-                await f.write(content)
+    paths = []
+    for file in files:
+        if is_dir and file.type == FileType.DIR and file.files:
+            paths.extend(
+                recurrence_files(file.files, f"{dir_path}/{file.name}", is_dir)
+            )
+        elif file.type == FileType.FILE:
+            if dir_path.endswith(file.name):
+                paths.append(dir_path)
+            elif is_dir:
+                paths.append(f"{dir_path}/{file.name}")
+    return paths
 
 
 def install_requirement(plugin_path: Path):
@@ -132,17 +139,8 @@ def install_requirement(plugin_path: Path):
 
 
 class ShopManage:
-    type2name = {  # noqa: RUF012
-        "NORMAL": "普通插件",
-        "ADMIN": "管理员插件",
-        "SUPERUSER": "超级用户插件",
-        "ADMIN_SUPERUSER": "管理员/超级用户插件",
-        "DEPENDANT": "依赖插件",
-        "HIDDEN": "其他插件",
-    }
-
     @classmethod
-    async def __get_data(cls) -> dict:
+    async def __get_data(cls) -> dict[str, StorePluginInfo]:
         """获取插件信息数据
 
         异常:
@@ -165,36 +163,42 @@ class ShopManage:
         # 解析并合并返回的 JSON 数据
         data1 = json.loads(res.text)
         data2 = json.loads(res2.text)
-        return {**data1, **data2}
+        return {
+            name: StorePluginInfo(**detail)
+            for name, detail in {**data1, **data2}.items()
+        }
 
     @classmethod
-    def version_check(cls, plugin_info: dict, suc_plugin: dict[str, str]):
-        module = plugin_info["module"]
-        if module in suc_plugin and plugin_info["version"] != suc_plugin[module]:
-            return f"{suc_plugin[module]} (有更新->{plugin_info['version']})"
-        return plugin_info["version"]
+    def version_check(cls, plugin_info: StorePluginInfo, suc_plugin: dict[str, str]):
+        """版本检查
+
+        参数:
+            plugin_info: StorePluginInfo
+            suc_plugin: dict[str, str]
+
+        返回:
+            str: 版本号
+        """
+        module = plugin_info.module
+        if cls.check_version_is_new(plugin_info, suc_plugin):
+            return f"{suc_plugin[module]} (有更新->{plugin_info.version})"
+        return plugin_info.version
 
     @classmethod
-    def get_url_path(cls, module_path: str, is_dir: bool) -> str:
-        url_path = None
-        path = BASE_PATH
-        module_path_split = module_path.split(".")
-        if len(module_path_split) == 2:
-            """单个文件或文件夹"""
-            if is_dir:
-                url_path = "/".join(module_path_split)
-            else:
-                url_path = "/".join(module_path_split) + ".py"
-        else:
-            """嵌套文件或文件夹"""
-            for p in module_path_split[:-1]:
-                path = path / p
-            path.mkdir(parents=True, exist_ok=True)
-            if is_dir:
-                url_path = f"{'/'.join(module_path_split)}"
-            else:
-                url_path = f"{'/'.join(module_path_split)}.py"
-        return url_path
+    def check_version_is_new(
+        cls, plugin_info: StorePluginInfo, suc_plugin: dict[str, str]
+    ):
+        """检查版本是否有更新
+
+        参数:
+            plugin_info: StorePluginInfo
+            suc_plugin: dict[str, str]
+
+        返回:
+            bool: 是否有更新
+        """
+        module = plugin_info.module
+        return module in suc_plugin and plugin_info.version != suc_plugin[module]
 
     @classmethod
     async def get_plugins_info(cls) -> BuildImage | str:
@@ -203,24 +207,21 @@ class ShopManage:
         返回:
             BuildImage | str: 返回消息
         """
-        data: dict = await cls.__get_data()
+        data: dict[str, StorePluginInfo] = await cls.__get_data()
         column_name = ["-", "ID", "名称", "简介", "作者", "版本", "类型"]
-        for k in data.copy():
-            if data[k]["plugin_type"]:
-                data[k]["plugin_type"] = cls.type2name[data[k]["plugin_type"]]
         plugin_list = await PluginInfo.filter(load_status=True).values_list(
             "module", "version"
         )
         suc_plugin = {p[0]: (p[1] or "0.1") for p in plugin_list}
         data_list = [
             [
-                "已安装" if plugin_info[1]["module"] in suc_plugin else "",
+                "已安装" if plugin_info[1].module in suc_plugin else "",
                 id,
                 plugin_info[0],
-                plugin_info[1]["description"],
-                plugin_info[1]["author"],
+                plugin_info[1].description,
+                plugin_info[1].author,
                 cls.version_check(plugin_info[1], suc_plugin),
-                plugin_info[1]["plugin_type"],
+                plugin_info[1].plugin_type_name,
             ]
             for id, plugin_info in enumerate(data.items())
         ]
@@ -242,56 +243,100 @@ class ShopManage:
         返回:
             str: 返回消息
         """
-        data: dict = await cls.__get_data()
+        data: dict[str, StorePluginInfo] = await cls.__get_data()
         if plugin_id < 0 or plugin_id >= len(data):
             return "插件ID不存在..."
         plugin_key = list(data.keys())[plugin_id]
         plugin_info = data[plugin_key]
-        module_path_split = plugin_info["module_path"].split(".")
-        url_path = cls.get_url_path(plugin_info["module_path"], plugin_info["is_dir"])
-        if not url_path and plugin_info["module_path"]:
-            return "插件下载地址构建失败..."
-        logger.debug(f"尝试下载插件 URL: {url_path}", "插件管理")
-        github_url = plugin_info.get("github_url")
-        if github_url:
-            if not (r := re.search(r"github\.com/([^/]+/[^/]+)", github_url)):
-                return "github地址格式错误"
-            github_path = r[1]
-            api_url = f"https://api.github.com/repos/{github_path}/contents/"
-            download_url = f"{api_url}{url_path}?ref=main"
-        else:
-            download_url = DOWNLOAD_URL.format(url_path)
-            api_url = None
-
-        await download_file(download_url, bool(github_url), api_url)
-
-        # 安装依赖
-        plugin_path = BASE_PATH / "/".join(module_path_split)
-        if url_path and github_url and api_url:
-            plugin_path = BASE_PATH / "plugins" / "/".join(module_path_split)
-            res = await AsyncHttpx.get(api_url)
-            if res.status_code != 200:
-                return f"访问错误, code: {res.status_code}"
-            json_data = res.json()
-            if requirement_file := next(
-                (
-                    v
-                    for v in json_data
-                    if v["name"] in ["requirements.txt", "requirement.txt"]
-                ),
-                None,
-            ):
-                r = await AsyncHttpx.get(requirement_file.get("download_url"))
-                if r.status_code != 200:
-                    raise ValueError(f"文件下载错误, code: {r.status_code}")
-                requirement_path = plugin_path / requirement_file["name"]
-                async with aiofiles.open(requirement_path, "w", encoding="utf8") as f:
-                    logger.debug(f"写入文件: {requirement_path}", "插件管理")
-                    await f.write(r.text)
-
-        install_requirement(plugin_path)
-
+        is_external = True
+        if plugin_info.github_url is None:
+            plugin_info.github_url = DEFAULT_GITHUB_URL
+            is_external = False
+        logger.info(f"正在安装插件 {plugin_key}...")
+        await cls.install_plugin_with_repo(
+            plugin_info.github_url,
+            plugin_info.module_path,
+            plugin_info.is_dir,
+            is_external,
+        )
         return f"插件 {plugin_key} 安装成功! 重启后生效"
+
+    @classmethod
+    async def get_repo_package_info(cls, repo_info: RepoInfo) -> JsdPackageInfo:
+        """获取插件包信息
+
+        参数:
+            repo_info: 仓库信息
+
+        返回:
+            JsdPackageInfo: 插件包信息
+        """
+        jsd_package_url: str = JSD_PACKAGE_API_FORMAT.format(
+            owner=repo_info.owner, repo=repo_info.repo, branch=repo_info.branch
+        )
+        res = await AsyncHttpx.get(url=jsd_package_url)
+        if res.status_code != 200:
+            raise ValueError(f"下载错误, code: {res.status_code}")
+        return JsdPackageInfo(**res.json())
+
+    @classmethod
+    def expand_github_url(cls, github_url: str) -> RepoInfo:
+        if matched := GITHUB_REPO_URL_PATTERN.match(github_url):
+            return RepoInfo(**matched.groupdict())  # type: ignore
+        raise ValueError("github地址格式错误")
+
+    @classmethod
+    async def install_plugin_with_repo(
+        cls, github_url: str, module_path: str, is_dir: bool, is_external: bool = False
+    ):
+        repo_info = cls.expand_github_url(github_url)
+        logger.debug(f"成功获取仓库信息: {repo_info}", "插件管理")
+        jsd_package_info: JsdPackageInfo = await cls.get_repo_package_info(
+            repo_info=repo_info
+        )
+        files = full_files_path(jsd_package_info, module_path, is_dir)
+        files = recurrence_files(
+            files,
+            module_path.replace(".", "/") + ("" if is_dir else ".py"),
+            is_dir,
+        )
+        logger.debug(f"获取插件文件列表: {files}", "插件管理")
+        download_urls = [repo_info.get_download_url_with_path(file) for file in files]
+        base_path = BASE_PATH / "plugins" if is_external else BASE_PATH
+        download_paths: list[Path | str] = [base_path / file for file in files]
+        logger.debug(f"插件下载路径: {download_paths}", "插件管理")
+        result = await AsyncHttpx.gather_download_file(download_urls, download_paths)
+        for _id, success in enumerate(result):
+            if not success:
+                break
+        else:
+            # 安装依赖
+            plugin_path = base_path / "/".join(module_path.split("."))
+            req_files = recurrence_files(
+                jsd_package_info.files, REQ_TXT_FILE_STRING, False
+            )
+            req_files.extend(
+                recurrence_files(jsd_package_info.files, "requirement.txt", False)
+            )
+            logger.debug(f"获取插件依赖文件列表: {req_files}", "插件管理")
+            req_download_urls = [
+                repo_info.get_download_url_with_path(file) for file in req_files
+            ]
+            req_paths: list[Path | str] = [plugin_path / file for file in req_files]
+            logger.debug(f"插件依赖文件下载路径: {req_paths}", "插件管理")
+            if req_files:
+                result = await AsyncHttpx.gather_download_file(
+                    req_download_urls, req_paths
+                )
+                for _id, success in enumerate(result):
+                    if not success:
+                        break
+                else:
+                    logger.debug(f"插件依赖文件列表: {req_paths}", "插件管理")
+                    install_requirement(plugin_path)
+                raise Exception("插件依赖文件下载失败")
+            return True
+        raise Exception("插件下载失败")
 
     @classmethod
     async def remove_plugin(cls, plugin_id: int) -> str:
@@ -303,22 +348,22 @@ class ShopManage:
         返回:
             str: 返回消息
         """
-        data: dict = await cls.__get_data()
+        data = await cls.__get_data()
         if plugin_id < 0 or plugin_id >= len(data):
             return "插件ID不存在..."
         plugin_key = list(data.keys())[plugin_id]
         plugin_info = data[plugin_key]
         path = BASE_PATH
-        if plugin_info.get("github_url"):
+        if plugin_info.github_url:
             path = BASE_PATH / "plugins"
-        for p in plugin_info["module_path"].split("."):
+        for p in plugin_info.module_path.split("."):
             path = path / p
-        if not plugin_info["is_dir"]:
+        if not plugin_info.is_dir:
             path = Path(f"{path}.py")
         if not path.exists():
             return f"插件 {plugin_key} 不存在..."
         logger.debug(f"尝试移除插件 {plugin_key} 文件: {path}", "插件管理")
-        if plugin_info["is_dir"]:
+        if plugin_info.is_dir:
             shutil.rmtree(path)
         else:
             path.unlink()
@@ -334,10 +379,7 @@ class ShopManage:
         返回:
             BuildImage | str: 返回消息
         """
-        data: dict = await cls.__get_data()
-        for k in data.copy():
-            if data[k]["plugin_type"]:
-                data[k]["plugin_type"] = cls.type2name[data[k]["plugin_type"]]
+        data = await cls.__get_data()
         plugin_list = await PluginInfo.filter(load_status=True).values_list(
             "module", "version"
         )
@@ -346,18 +388,18 @@ class ShopManage:
             (id, plugin_info)
             for id, plugin_info in enumerate(data.items())
             if plugin_name_or_author.lower() in plugin_info[0].lower()
-            or plugin_name_or_author.lower() in plugin_info[1]["author"].lower()
+            or plugin_name_or_author.lower() in plugin_info[1].author.lower()
         ]
 
         data_list = [
             [
-                "已安装" if plugin_info[1]["module"] in suc_plugin else "",
+                "已安装" if plugin_info[1].module in suc_plugin else "",
                 id,
                 plugin_info[0],
-                plugin_info[1]["description"],
-                plugin_info[1]["author"],
+                plugin_info[1].description,
+                plugin_info[1].author,
                 cls.version_check(plugin_info[1], suc_plugin),
-                plugin_info[1]["plugin_type"],
+                plugin_info[1].plugin_type_name,
             ]
             for id, plugin_info in filtered_data
         ]
@@ -382,53 +424,27 @@ class ShopManage:
         返回:
             str: 返回消息
         """
-        data: dict = await cls.__get_data()
+        data = await cls.__get_data()
         if plugin_id < 0 or plugin_id >= len(data):
             return "插件ID不存在..."
         plugin_key = list(data.keys())[plugin_id]
+        logger.info(f"尝试更新插件 {plugin_key}", "插件管理")
         plugin_info = data[plugin_key]
-        module_path_split = plugin_info["module_path"].split(".")
-        url_path = cls.get_url_path(plugin_info["module_path"], plugin_info["is_dir"])
-        if not url_path and plugin_info["module_path"]:
-            return "插件下载地址构建失败..."
-        logger.debug(f"尝试下载插件 URL: {url_path}", "插件管理")
-        github_url = plugin_info.get("github_url")
-        if github_url:
-            if not (r := re.search(r"github\.com/([^/]+/[^/]+)", github_url)):
-                return "github地址格式错误..."
-            github_path = r[1]
-            api_url = f"https://api.github.com/repos/{github_path}/contents/"
-            download_url = f"{api_url}{url_path}?ref=main"
-        else:
-            download_url = DOWNLOAD_URL.format(url_path)
-            api_url = None
-
-        await download_file(download_url, bool(github_url), api_url)
-
-        # 安装依赖
-        plugin_path = BASE_PATH / "/".join(module_path_split)
-        if url_path and github_url and api_url:
-            plugin_path = BASE_PATH / "plugins" / "/".join(module_path_split)
-            res = await AsyncHttpx.get(api_url)
-            if res.status_code != 200:
-                return f"访问错误, code: {res.status_code}"
-            json_data = res.json()
-            if requirement_file := next(
-                (
-                    v
-                    for v in json_data
-                    if v["name"] in ["requirements.txt", "requirement.txt"]
-                ),
-                None,
-            ):
-                r = await AsyncHttpx.get(requirement_file.get("download_url"))
-                if r.status_code != 200:
-                    raise ValueError(f"文件下载错误, code: {r.status_code}")
-                requirement_path = plugin_path / requirement_file["name"]
-                async with aiofiles.open(requirement_path, "w", encoding="utf8") as f:
-                    logger.debug(f"写入文件: {requirement_path}", "插件管理")
-                    await f.write(r.text)
-
-        install_requirement(plugin_path)
-
+        plugin_list = await PluginInfo.filter(load_status=True).values_list(
+            "module", "version"
+        )
+        suc_plugin = {p[0]: p[1] for p in plugin_list if p[1]}
+        logger.debug(f"当前插件列表: {suc_plugin}", "插件管理")
+        if cls.check_version_is_new(plugin_info, suc_plugin):
+            return f"插件 {plugin_key} 已是最新版本"
+        is_external = True
+        if plugin_info.github_url is None:
+            plugin_info.github_url = DEFAULT_GITHUB_URL
+            is_external = False
+        await cls.install_plugin_with_repo(
+            plugin_info.github_url,
+            plugin_info.module_path,
+            plugin_info.is_dir,
+            is_external,
+        )
         return f"插件 {plugin_key} 更新成功! 重启后生效"

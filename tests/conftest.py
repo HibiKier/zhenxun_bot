@@ -73,10 +73,13 @@ async def app(app: App, tmp_path: Path, mocker: MockerFixture):
     mock_config_path.TEMP_PATH = tmp_path / "resources" / "temp"
     # mock_config_path.TEMP_PATH.mkdir(parents=True, exist_ok=True)
 
-    mocker.patch("zhenxun.configs.path_config", return_value=mock_config_path)
+    mocker.patch("zhenxun.configs.path_config", new=mock_config_path)
 
     await init()
+    # await driver._lifespan.startup()
+
     yield app
+    # await driver._lifespan.shutdown()
     await disconnect()
 
 
