@@ -86,8 +86,8 @@ async def download_file(url: str, _is: bool = False, api_url: str | None = None)
     for download_url, path in data_list:
         if download_url and "." in path:
             logger.debug(f"下载文件: {path}", "插件管理")
-            base_path = "zhenxun/plugins/" if _is else "zhenxun/"
-            file = Path(f"{base_path}{path}")
+            base_path = BASE_PATH / "plugins" if _is else BASE_PATH
+            file = base_path / path
             file.parent.mkdir(parents=True, exist_ok=True)
             r = await AsyncHttpx.get(download_url)
             if r.status_code != 200:

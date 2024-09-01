@@ -43,17 +43,6 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
     ).respond(content=b"")
 
 
-def init_mocker(mocker: MockerFixture, tmp_path: Path) -> None:
-    mocker.patch(
-        "zhenxun.builtin_plugins.plugin_store.data_source.BASE_PATH",
-        return_value=tmp_path / "zhenxun",
-    )
-    mocker.patch(
-        "zhenxun.builtin_plugins.plugin_store.data_source.install_requirement",
-        return_value=None,
-    )
-
-
 async def test_add_plugin_basic(
     app: App,
     mocker: MockerFixture,
@@ -67,7 +56,10 @@ async def test_add_plugin_basic(
     from zhenxun.builtin_plugins.plugin_store import _matcher
 
     init_mocked_api(mocked_api)
-    init_mocker(mocker, tmp_path)
+    mocker.patch(
+        "zhenxun.builtin_plugins.plugin_store.data_source.BASE_PATH",
+        return_value=tmp_path / "zhenxun",
+    )
 
     plugin_id = 1
 
@@ -114,8 +106,11 @@ async def test_add_plugin_extra(
     """
     from zhenxun.builtin_plugins.plugin_store import _matcher
 
-    init_mocker(mocker, tmp_path)
     init_mocked_api(mocked_api)
+    mocker.patch(
+        "zhenxun.builtin_plugins.plugin_store.data_source.BASE_PATH",
+        return_value=tmp_path / "zhenxun",
+    )
 
     plugin_id = 3
 

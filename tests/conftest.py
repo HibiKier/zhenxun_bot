@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
 from collections.abc import Callable
 
 import pytest
@@ -13,8 +12,6 @@ from nonebug.mixin.process import MatcherContext
 
 from tests.config import BotId, UserId
 
-if TYPE_CHECKING:
-    pass
 nonebot.load_plugin("nonebot_plugin_session")
 
 

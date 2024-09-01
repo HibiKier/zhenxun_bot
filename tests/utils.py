@@ -6,13 +6,19 @@ from nonebot.adapters.onebot.v11 import Message, MessageSegment, GroupMessageEve
 
 
 def get_response_json(path: str) -> dict:
-    return json.loads(
-        (Path(__file__).parent / "response" / path).read_text(encoding="utf8")
-    )
+    try:
+        return json.loads(
+            (Path(__file__).parent / "response" / path).read_text(encoding="utf8")
+        )
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        raise ValueError(f"Error reading or parsing JSON file: {e}") from e
 
 
 def get_content_bytes(path: str) -> bytes:
-    return (Path(__file__).parent / "content" / path).read_bytes()
+    try:
+        return (Path(__file__).parent / "content" / path).read_bytes()
+    except FileNotFoundError as e:
+        raise ValueError(f"Error reading file: {e}") from e
 
 
 def _v11_group_message_event(
