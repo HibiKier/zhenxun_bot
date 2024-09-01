@@ -117,14 +117,14 @@ def _file_handle(latest_version: str | None):
             shutil.move(src_folder_path, dest_folder_path)
         else:
             logger.debug(f"源文件夹不存在: {src_folder_path}", "检查更新")
+    if tf:
+        tf.close()
     if download_file.exists():
         logger.debug(f"删除下载文件: {download_file}", "检查更新")
         download_file.unlink()
     if extract_path.exists():
         logger.debug(f"删除解压文件夹: {extract_path}", "检查更新")
         shutil.rmtree(extract_path)
-    if tf:
-        tf.close()
     if TMP_PATH.exists():
         shutil.rmtree(TMP_PATH)
     if latest_version:
