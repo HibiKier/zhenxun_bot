@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 from nonebot.adapters import Bot
 
@@ -6,10 +6,10 @@ from nonebot.adapters import Bot
 from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
 
-from zhenxun.services.log import logger
 from zhenxun.configs.config import Config
-from zhenxun.models.level_user import LevelUser
 from zhenxun.models.group_member_info import GroupInfoUser
+from zhenxun.models.level_user import LevelUser
+from zhenxun.services.log import logger
 
 # from nonebot.adapters.discord import Bot as DiscordBot
 # from nonebot.adapters.dodo import Bot as DodoBot
@@ -145,14 +145,18 @@ class MemberUpdateManage:
         if delete_list:
             await GroupInfoUser.filter(id__in=delete_list).delete()
             logger.debug(f"删除重复数据 Ids: {delete_list}", "更新群组成员信息")
-        if delete_member_list := list(
-            set(exist_member_list).difference(set(db_user_uid))
-        ):
+
+        if delete_member_list := [
+            uid for uid in db_user_uid if uid not in exist_member_list
+        ]:
             await GroupInfoUser.filter(
                 user_id__in=delete_member_list, group_id=group_id
             ).delete()
             logger.info(
-                "删除已退群用户", "更新群组成员信息", group_id=group_id, platform="qq"
+                f"删除已退群用户 {len(delete_member_list)} 条",
+                "更新群组成员信息",
+                group_id=group_id,
+                platform="qq",
             )
 
     @classmethod
