@@ -18,3 +18,5 @@ class GroupId:
 class MessageId:
     MESSAGE_ID = 30001
     MESSAGE_ID_2 = 30002
+    MESSAGE_ID_3 = 30003
+    MESSAGE_ID_4 = 30004

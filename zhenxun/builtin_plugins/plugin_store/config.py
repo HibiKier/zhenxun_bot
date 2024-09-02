@@ -15,6 +15,7 @@ CONFIG_INDEX_CDN_URL = "https://cdn.jsdelivr.net/gh/zhenxun-org/zhenxun_bot_plug
 """插件索引库信息文件cdn"""
 
 DEFAULT_GITHUB_URL = "https://github.com/zhenxun-org/zhenxun_bot_plugins/tree/main"
+"""默认github仓库地址"""
 
 GITHUB_REPO_URL_PATTERN = re.compile(
     r"^https://github.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)(/tree/(?P<branch>[^/]+))?$"
