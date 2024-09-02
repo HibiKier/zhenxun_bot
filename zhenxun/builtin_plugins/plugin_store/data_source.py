@@ -180,7 +180,9 @@ class ShopManage:
             str: 版本号
         """
         module = plugin_info.module
-        if not cls.check_version_is_new(plugin_info, suc_plugin):
+        if suc_plugin.get(module) and not cls.check_version_is_new(
+            plugin_info, suc_plugin
+        ):
             return f"{suc_plugin[module]} (有更新->{plugin_info.version})"
         return plugin_info.version
 
@@ -254,7 +256,10 @@ class ShopManage:
         if plugin_id < 0 or plugin_id >= len(data):
             return "插件ID不存在..."
         plugin_key = list(data.keys())[plugin_id]
+        plugin_list = await cls.get_loaded_plugins("module")
         plugin_info = data[plugin_key]
+        if plugin_info.module in [p[0] for p in plugin_list]:
+            return f"插件 {plugin_key} 已安装，无需重复安装"
         is_external = True
         if plugin_info.github_url is None:
             plugin_info.github_url = DEFAULT_GITHUB_URL
@@ -388,7 +393,7 @@ class ShopManage:
         """
         data = await cls.__get_data()
         plugin_list = await cls.get_loaded_plugins("module", "version")
-        suc_plugin = {p[0]: p[1] for p in plugin_list if p[1]}
+        suc_plugin = {p[0]: (p[1] or "Unknown") for p in plugin_list}
         filtered_data = [
             (id, plugin_info)
             for id, plugin_info in enumerate(data.items())
@@ -436,7 +441,9 @@ class ShopManage:
         logger.info(f"尝试更新插件 {plugin_key}", "插件管理")
         plugin_info = data[plugin_key]
         plugin_list = await cls.get_loaded_plugins("module", "version")
-        suc_plugin = {p[0]: p[1] for p in plugin_list if p[1]}
+        suc_plugin = {p[0]: (p[1] or "Unknown") for p in plugin_list}
+        if plugin_info.module not in [p[0] for p in plugin_list]:
+            return f"插件 {plugin_key} 未安装，无法更新"
         logger.debug(f"当前插件列表: {suc_plugin}", "插件管理")
         if cls.check_version_is_new(plugin_info, suc_plugin):
             return f"插件 {plugin_key} 已是最新版本"
