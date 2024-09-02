@@ -210,3 +210,49 @@ async def test_plugin_not_exist_add(
             result=None,
             bot=bot,
         )
+
+
+async def test_add_plugin_exist(
+    app: App,
+    mocker: MockerFixture,
+    mocked_api: MockRouter,
+    create_bot: Callable,
+    tmp_path: Path,
+) -> None:
+    """
+    测试插件已经存在，添加插件
+    """
+    from zhenxun.builtin_plugins.plugin_store import _matcher
+
+    init_mocked_api(mocked_api=mocked_api)
+    mocker.patch(
+        "zhenxun.builtin_plugins.plugin_store.data_source.ShopManage.get_loaded_plugins",
+        return_value=[("search_image", "0.1")],
+    )
+    plugin_id = 1
+
+    async with app.test_matcher(_matcher) as ctx:
+        bot = create_bot(ctx)
+        bot: Bot = cast(Bot, bot)
+        raw_message = f"添加插件 {plugin_id}"
+        event: GroupMessageEvent = _v11_group_message_event(
+            message=raw_message,
+            self_id=BotId.QQ_BOT,
+            user_id=UserId.SUPERUSER,
+            group_id=GroupId.GROUP_ID_LEVEL_5,
+            message_id=MessageId.MESSAGE_ID,
+            to_me=True,
+        )
+        ctx.receive_event(bot=bot, event=event)
+        ctx.should_call_send(
+            event=event,
+            message=Message(message=f"正在添加插件 Id: {plugin_id}"),
+            result=None,
+            bot=bot,
+        )
+        ctx.should_call_send(
+            event=event,
+            message=Message(message="插件 识图 已安装，无需重复安装"),
+            result=None,
+            bot=bot,
+        )
