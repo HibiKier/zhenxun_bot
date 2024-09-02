@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone, timedelta
 
 from nonebot.adapters import Bot
 
@@ -6,10 +6,10 @@ from nonebot.adapters import Bot
 from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
 
-from zhenxun.configs.config import Config
-from zhenxun.models.group_member_info import GroupInfoUser
-from zhenxun.models.level_user import LevelUser
 from zhenxun.services.log import logger
+from zhenxun.configs.config import Config
+from zhenxun.models.level_user import LevelUser
+from zhenxun.models.group_member_info import GroupInfoUser
 
 # from nonebot.adapters.discord import Bot as DiscordBot
 # from nonebot.adapters.dodo import Bot as DodoBot
@@ -19,6 +19,10 @@ class MemberUpdateManage:
 
     @classmethod
     async def update(cls, bot: Bot, group_id: str):
+        if not group_id:
+            return logger.warning(
+                f"bot: {bot.self_id}，group_id为空，无法更新群成员信息..."
+            )
         if isinstance(bot, v11Bot):
             await cls.v11(bot, group_id)
         elif isinstance(bot, v12Bot):
