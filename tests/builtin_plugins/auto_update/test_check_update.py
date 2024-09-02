@@ -63,10 +63,10 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
 
     # 打开一个tarfile对象，写入到上面创建的BytesIO对象中
     with tarfile.open(mode="w:gz", fileobj=tar_buffer) as tar:
-        _extracted_from_init_mocked_api_43(tar, file_paths, folders=REPLACE_FOLDERS)
+        add_files_and_folders_to_tar(tar, file_paths, folders=REPLACE_FOLDERS)
 
     with zipfile.ZipFile(zip_bytes, mode="w", compression=zipfile.ZIP_DEFLATED) as zipf:
-        _extracted_from_init_mocked_api_zip(zipf, file_paths, folders=REPLACE_FOLDERS)
+        add_files_and_folders_to_zip(zipf, file_paths, folders=REPLACE_FOLDERS)
 
     mocked_api.get(
         url="https://codeload.github.com/HibiKier/zhenxun_bot/legacy.tar.gz/refs/tags/v0.2.2",
@@ -89,9 +89,22 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
 
 
 # TODO Rename this here and in `init_mocked_api`
-def _extracted_from_init_mocked_api_zip(
+def add_files_and_folders_to_zip(
     zipf: zipfile.ZipFile, file_paths: list[str], folders: list[str] = []
 ):
+    """Add files and folders to a zip archive.
+
+    This function creates a directory structure within the specified zip
+    archive and adds the provided files to it. It also creates additional
+    subdirectories as specified in the folders list.
+
+    Args:
+        zipf: The zip archive to which files and folders will be added.
+        file_paths: A list of file names to be added to the zip archive.
+        folders: An optional list of subdirectory names to be created
+                 within the base folder.
+    """
+
     # 假设有一个文件夹名为 folder_name
     folder_name = "my_folder/"
 
@@ -109,12 +122,25 @@ def _extracted_from_init_mocked_api_zip(
 
 
 # TODO Rename this here and in `init_mocked_api`
-def _extracted_from_init_mocked_api_43(
+def add_files_and_folders_to_tar(
     tar: tarfile.TarFile, file_paths: list[str], folders: list[str] = []
 ):
+    """Add files and folders to a tar archive.
+
+    This function creates a directory structure within the specified tar
+    archive and adds the provided files to it. It also creates additional
+    subdirectories as specified in the folders list.
+
+    Args:
+        tar: The tar archive to which files and folders will be added.
+        file_paths: A list of file names to be added to the tar archive.
+        folders: An optional list of subdirectory names to be created
+                 within the base folder.
+    """
+
     folder_name = "my_folder"
     tarinfo = tarfile.TarInfo(folder_name)
-    _extracted_from__extracted_from_init_mocked_api_43_30(tarinfo, tar)
+    add_directory_to_tar(tarinfo, tar)
     # 读取并添加指定的文件
     for file_path in file_paths:
         # 创建TarInfo对象
@@ -130,38 +156,36 @@ def _extracted_from_init_mocked_api_43(
 
     base_folder = f"{folder_name}/zhenxun"
     tarinfo = tarfile.TarInfo(base_folder)
-    _extracted_from__extracted_from_init_mocked_api_43_30(tarinfo, tar)
+    add_directory_to_tar(tarinfo, tar)
     for folder in folders:
         tarinfo = tarfile.TarInfo(f"{base_folder}{folder}")
-        _extracted_from__extracted_from_init_mocked_api_43_30(tarinfo, tar)
+        add_directory_to_tar(tarinfo, tar)
 
 
 # TODO Rename this here and in `_extracted_from_init_mocked_api_43`
-def _extracted_from__extracted_from_init_mocked_api_43_30(tarinfo, tar):
+def add_directory_to_tar(tarinfo, tar):
+    """Add a directory entry to a tar archive.
+
+    This function modifies the provided tarinfo object to set its type
+    as a directory and assigns the appropriate permissions before adding
+    it to the specified tar archive.
+
+    Args:
+        tarinfo: The tarinfo object representing the directory.
+        tar: The tar archive to which the directory will be added.
+    """
+
     tarinfo.type = tarfile.DIRTYPE
     tarinfo.mode = 0o755
     tar.addfile(tarinfo)
 
 
-async def test_check_update_release(
-    app: App,
-    mocker: MockerFixture,
-    mocked_api: MockRouter,
-    create_bot: Callable,
-    tmp_path: Path,
-) -> None:
-    """
-    测试检查更新（release）
-    """
-    from zhenxun.builtin_plugins.auto_update import _matcher
+def init_mocker_path(mocker: MockerFixture, tmp_path: Path):
     from zhenxun.builtin_plugins.auto_update.config import (
-        REPLACE_FOLDERS,
         REQ_TXT_FILE_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
     )
-
-    init_mocked_api(mocked_api=mocked_api)
 
     mocker.patch(
         "zhenxun.builtin_plugins.auto_update._data_source.install_requirement",
@@ -199,6 +223,48 @@ async def test_check_update_release(
         "zhenxun.builtin_plugins.auto_update._data_source.REQ_TXT_FILE",
         new=tmp_path / REQ_TXT_FILE_STRING,
     )
+    return (
+        mock_tmp_path,
+        mock_base_path,
+        mock_backup_path,
+        mock_download_gz_file,
+        mock_download_zip_file,
+        mock_pyproject_file,
+        mock_pyproject_lock_file,
+        mock_req_txt_file,
+    )
+
+
+async def test_check_update_release(
+    app: App,
+    mocker: MockerFixture,
+    mocked_api: MockRouter,
+    create_bot: Callable,
+    tmp_path: Path,
+) -> None:
+    """
+    测试检查更新（release）
+    """
+    from zhenxun.builtin_plugins.auto_update import _matcher
+    from zhenxun.builtin_plugins.auto_update.config import (
+        REPLACE_FOLDERS,
+        REQ_TXT_FILE_STRING,
+        PYPROJECT_FILE_STRING,
+        PYPROJECT_LOCK_FILE_STRING,
+    )
+
+    init_mocked_api(mocked_api=mocked_api)
+
+    (
+        mock_tmp_path,
+        mock_base_path,
+        mock_backup_path,
+        mock_download_gz_file,
+        mock_download_zip_file,
+        mock_pyproject_file,
+        mock_pyproject_lock_file,
+        mock_req_txt_file,
+    ) = init_mocker_path(mocker, tmp_path)
 
     # 确保目录下有一个子目录，以便 os.listdir() 能返回一个目录名
     mock_tmp_path.mkdir(parents=True, exist_ok=True)
@@ -280,42 +346,16 @@ async def test_check_update_dev(
 
     init_mocked_api(mocked_api=mocked_api)
 
-    mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.install_requirement",
-        return_value=None,
-    )
-    mock_tmp_path = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.TMP_PATH",
-        new=tmp_path / "auto_update",
-    )
-    mock_base_path = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.BASE_PATH",
-        new=tmp_path / "zhenxun",
-    )
-    mock_backup_path = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.BACKUP_PATH",
-        new=tmp_path / "backup",
-    )
-    mock_download_gz_file = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.DOWNLOAD_GZ_FILE",
-        new=mock_tmp_path / "download_latest_file.tar.gz",
-    )
-    mock_download_zip_file = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.DOWNLOAD_ZIP_FILE",
-        new=mock_tmp_path / "download_latest_file.zip",
-    )
-    mock_pyproject_file = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.PYPROJECT_FILE",
-        new=tmp_path / PYPROJECT_FILE_STRING,
-    )
-    mock_pyproject_lock_file = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.PYPROJECT_LOCK_FILE",
-        new=tmp_path / PYPROJECT_LOCK_FILE_STRING,
-    )
-    mock_req_txt_file = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.REQ_TXT_FILE",
-        new=tmp_path / REQ_TXT_FILE_STRING,
-    )
+    (
+        mock_tmp_path,
+        mock_base_path,
+        mock_backup_path,
+        mock_download_gz_file,
+        mock_download_zip_file,
+        mock_pyproject_file,
+        mock_pyproject_lock_file,
+        mock_req_txt_file,
+    ) = init_mocker_path(mocker, tmp_path)
 
     # 确保目录下有一个子目录，以便 os.listdir() 能返回一个目录名
     mock_tmp_path.mkdir(parents=True, exist_ok=True)
@@ -393,42 +433,16 @@ async def test_check_update_main(
 
     init_mocked_api(mocked_api=mocked_api)
 
-    mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.install_requirement",
-        return_value=None,
-    )
-    mock_tmp_path = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.TMP_PATH",
-        new=tmp_path / "auto_update",
-    )
-    mock_base_path = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.BASE_PATH",
-        new=tmp_path / "zhenxun",
-    )
-    mock_backup_path = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.BACKUP_PATH",
-        new=tmp_path / "backup",
-    )
-    mock_download_gz_file = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.DOWNLOAD_GZ_FILE",
-        new=mock_tmp_path / "download_latest_file.tar.gz",
-    )
-    mock_download_zip_file = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.DOWNLOAD_ZIP_FILE",
-        new=mock_tmp_path / "download_latest_file.zip",
-    )
-    mock_pyproject_file = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.PYPROJECT_FILE",
-        new=tmp_path / PYPROJECT_FILE_STRING,
-    )
-    mock_pyproject_lock_file = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.PYPROJECT_LOCK_FILE",
-        new=tmp_path / PYPROJECT_LOCK_FILE_STRING,
-    )
-    mock_req_txt_file = mocker.patch(
-        "zhenxun.builtin_plugins.auto_update._data_source.REQ_TXT_FILE",
-        new=tmp_path / REQ_TXT_FILE_STRING,
-    )
+    (
+        mock_tmp_path,
+        mock_base_path,
+        mock_backup_path,
+        mock_download_gz_file,
+        mock_download_zip_file,
+        mock_pyproject_file,
+        mock_pyproject_lock_file,
+        mock_req_txt_file,
+    ) = init_mocker_path(mocker, tmp_path)
 
     # 确保目录下有一个子目录，以便 os.listdir() 能返回一个目录名
     mock_tmp_path.mkdir(parents=True, exist_ok=True)

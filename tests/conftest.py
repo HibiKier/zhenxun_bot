@@ -87,7 +87,7 @@ async def app(app: App, tmp_path: Path, mocker: MockerFixture):
 def create_bot() -> Callable:
     from nonebot.adapters.onebot.v11 import Bot, Adapter
 
-    def _create_bot(context: MatcherContext):
+    def _create_bot(context: MatcherContext) -> Bot:
         return context.create_bot(
             base=Bot,
             adapter=nonebot.get_adapter(Adapter),
