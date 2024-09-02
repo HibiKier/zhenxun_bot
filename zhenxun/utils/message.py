@@ -2,12 +2,12 @@ from io import BytesIO
 from pathlib import Path
 
 import nonebot
-from pydantic import BaseModel
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
-from nonebot_plugin_alconna import At, Text, Image, Video, Voice, UniMessage
+from nonebot_plugin_alconna import At, Image, Text, UniMessage, Video, Voice
+from pydantic import BaseModel
 
-from zhenxun.services.log import logger
 from zhenxun.configs.config import BotConfig
+from zhenxun.services.log import logger
 from zhenxun.utils._build_image import BuildImage
 
 driver = nonebot.get_driver()
@@ -29,7 +29,7 @@ MESSAGE_TYPE = (
 
 
 class Config(BaseModel):
-    is_bytes: bool = False
+    image_to_bytes: bool = False
 
 
 class MessageUtils:
@@ -53,7 +53,8 @@ class MessageUtils:
                 message_list.append(Text(str(msg)))
             elif isinstance(msg, Path):
                 if msg.exists():
-                    if config.is_bytes:
+                    if config.image_to_bytes:
+                        logger.debug("图片转为bytes发送", "MessageUtils")
                         image = BuildImage.open(msg)
                         message_list.append(Image(raw=image.pic2bytes()))
                     else:
