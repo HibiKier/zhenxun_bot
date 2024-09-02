@@ -13,11 +13,16 @@ from nonebot.adapters.onebot.v11.event import GroupMessageEvent
 
 from tests.utils import _v11_group_message_event
 from tests.config import BotId, UserId, GroupId, MessageId
+from tests.utils import get_content_bytes as _get_content_bytes
 from tests.utils import get_response_json as _get_response_json
 
 
 def get_response_json(file: str) -> dict:
     return _get_response_json(Path() / "plugin_store", file=file)
+
+
+def get_content_bytes(file: str) -> bytes:
+    return _get_content_bytes(Path() / "plugin_store", file)
 
 
 def init_mocked_api(mocked_api: MockRouter) -> None:
@@ -40,15 +45,15 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
     mocked_api.get(
         "https://raw.githubusercontent.com/zhenxun-org/zhenxun_bot_plugins/main/plugins/search_image/__init__.py",
         name="search_image_plugin_file_init",
-    ).respond(content=b"")
+    ).respond(content=get_content_bytes("search_image.py"))
     mocked_api.get(
         "https://raw.githubusercontent.com/zhenxun-org/zhenxun_bot_plugins/main/plugins/alapi/jitang.py",
         name="jitang_plugin_file",
-    ).respond(content=b"")
+    ).respond(content=get_content_bytes("jitang.py"))
     mocked_api.get(
         "https://raw.githubusercontent.com/xuanerwa/zhenxun_github_sub/main/github_sub/__init__.py",
         name="github_sub_plugin_file_init",
-    ).respond(content=b"")
+    ).respond(content=get_content_bytes("github_sub.py"))
 
 
 async def test_add_plugin_basic(
@@ -207,7 +212,7 @@ async def test_add_plugin_extra(
     assert (mock_base_path / "plugins" / "github_sub" / "__init__.py").is_file()
 
 
-async def test_update_plugin_basic(
+async def test_update_plugin_basic_need_update(
     app: App,
     mocker: MockerFixture,
     mocked_api: MockRouter,
@@ -215,7 +220,7 @@ async def test_update_plugin_basic(
     tmp_path: Path,
 ) -> None:
     """
-    测试更新基础插件
+    测试更新基础插件，插件需要更新
     """
     from zhenxun.builtin_plugins.plugin_store import _matcher
 
@@ -223,6 +228,10 @@ async def test_update_plugin_basic(
     mock_base_path = mocker.patch(
         "zhenxun.builtin_plugins.plugin_store.data_source.BASE_PATH",
         new=tmp_path / "zhenxun",
+    )
+    mock_base_path = mocker.patch(
+        "zhenxun.builtin_plugins.plugin_store.data_source.ShopManage.get_loaded_plugins",
+        return_value=[("search_image", "0.0")],
     )
 
     plugin_id = 1
@@ -259,6 +268,59 @@ async def test_update_plugin_basic(
     assert (mock_base_path / "plugins" / "search_image" / "__init__.py").is_file()
 
 
+async def test_update_plugin_basic_is_new(
+    app: App,
+    mocker: MockerFixture,
+    mocked_api: MockRouter,
+    create_bot: Callable,
+    tmp_path: Path,
+) -> None:
+    """
+    测试更新基础插件，插件是最新版
+    """
+    from zhenxun.builtin_plugins.plugin_store import _matcher
+
+    init_mocked_api(mocked_api=mocked_api)
+    mocker.patch(
+        "zhenxun.builtin_plugins.plugin_store.data_source.BASE_PATH",
+        new=tmp_path / "zhenxun",
+    )
+    mocker.patch(
+        "zhenxun.builtin_plugins.plugin_store.data_source.ShopManage.get_loaded_plugins",
+        return_value=[("search_image", "0.1")],
+    )
+
+    plugin_id = 1
+
+    async with app.test_matcher(_matcher) as ctx:
+        bot = create_bot(ctx)
+        bot: Bot = cast(Bot, bot)
+        raw_message = f"更新插件 {plugin_id}"
+        event: GroupMessageEvent = _v11_group_message_event(
+            message=raw_message,
+            self_id=BotId.QQ_BOT,
+            user_id=UserId.SUPERUSER,
+            group_id=GroupId.GROUP_ID_LEVEL_5,
+            message_id=MessageId.MESSAGE_ID,
+            to_me=True,
+        )
+        ctx.receive_event(bot=bot, event=event)
+        ctx.should_call_send(
+            event=event,
+            message=Message(message=f"正在更新插件 Id: {plugin_id}"),
+            result=None,
+            bot=bot,
+        )
+        ctx.should_call_send(
+            event=event,
+            message=Message(message="插件 识图 已是最新版本"),
+            result=None,
+            bot=bot,
+        )
+    assert mocked_api["basic_plugins"].called
+    assert mocked_api["extra_plugins"].called
+
+
 async def test_remove_plugin(
     app: App,
     mocker: MockerFixture,
@@ -280,8 +342,8 @@ async def test_remove_plugin(
     plugin_path = mock_base_path / "plugins" / "search_image"
     plugin_path.mkdir(parents=True, exist_ok=True)
 
-    with open(plugin_path / "__init__.py", "w") as f:
-        f.write("")
+    with open(plugin_path / "__init__.py", "wb") as f:
+        f.write(get_content_bytes("search_image.py"))
 
     plugin_id = 1
 
@@ -307,3 +369,84 @@ async def test_remove_plugin(
     assert mocked_api["basic_plugins"].called
     assert mocked_api["extra_plugins"].called
     assert not (mock_base_path / "plugins" / "search_image" / "__init__.py").is_file()
+
+
+async def test_plugin_not_exist(
+    app: App,
+    mocker: MockerFixture,
+    mocked_api: MockRouter,
+    create_bot: Callable,
+    tmp_path: Path,
+) -> None:
+    """
+    测试插件不存在
+    """
+    from zhenxun.builtin_plugins.plugin_store import _matcher
+
+    init_mocked_api(mocked_api=mocked_api)
+    plugin_id = 10
+
+    async with app.test_matcher(_matcher) as ctx:
+        bot = create_bot(ctx)
+        bot: Bot = cast(Bot, bot)
+        raw_message = f"添加插件 {plugin_id}"
+        event: GroupMessageEvent = _v11_group_message_event(
+            message=raw_message,
+            self_id=BotId.QQ_BOT,
+            user_id=UserId.SUPERUSER,
+            group_id=GroupId.GROUP_ID_LEVEL_5,
+            message_id=MessageId.MESSAGE_ID,
+            to_me=True,
+        )
+        ctx.receive_event(bot=bot, event=event)
+        ctx.should_call_send(
+            event=event,
+            message=Message(message=f"正在添加插件 Id: {plugin_id}"),
+            result=None,
+            bot=bot,
+        )
+        ctx.should_call_send(
+            event=event,
+            message=Message(message="插件ID不存在..."),
+            result=None,
+            bot=bot,
+        )
+
+        raw_message = f"更新插件 {plugin_id}"
+        event: GroupMessageEvent = _v11_group_message_event(
+            message=raw_message,
+            self_id=BotId.QQ_BOT,
+            user_id=UserId.SUPERUSER,
+            group_id=GroupId.GROUP_ID_LEVEL_5,
+            message_id=MessageId.MESSAGE_ID,
+            to_me=True,
+        )
+        ctx.receive_event(bot=bot, event=event)
+        ctx.should_call_send(
+            event=event,
+            message=Message(message=f"正在更新插件 Id: {plugin_id}"),
+            result=None,
+            bot=bot,
+        )
+        ctx.should_call_send(
+            event=event,
+            message=Message(message="插件ID不存在..."),
+            result=None,
+            bot=bot,
+        )
+        raw_message = f"搜索插件 {plugin_id}"
+        event: GroupMessageEvent = _v11_group_message_event(
+            message=raw_message,
+            self_id=BotId.QQ_BOT,
+            user_id=UserId.SUPERUSER,
+            group_id=GroupId.GROUP_ID_LEVEL_5,
+            message_id=MessageId.MESSAGE_ID,
+            to_me=True,
+        )
+        ctx.receive_event(bot=bot, event=event)
+        ctx.should_call_send(
+            event=event,
+            message=Message(message="未找到相关插件..."),
+            result=None,
+            bot=bot,
+        )

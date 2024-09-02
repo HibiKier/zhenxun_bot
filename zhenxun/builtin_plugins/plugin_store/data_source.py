@@ -180,7 +180,7 @@ class ShopManage:
             str: 版本号
         """
         module = plugin_info.module
-        if cls.check_version_is_new(plugin_info, suc_plugin):
+        if not cls.check_version_is_new(plugin_info, suc_plugin):
             return f"{suc_plugin[module]} (有更新->{plugin_info.version})"
         return plugin_info.version
 
@@ -198,7 +198,16 @@ class ShopManage:
             bool: 是否有更新
         """
         module = plugin_info.module
-        return module in suc_plugin and plugin_info.version != suc_plugin[module]
+        return suc_plugin.get(module) and plugin_info.version == suc_plugin[module]
+
+    @classmethod
+    async def get_loaded_plugins(cls, *args) -> list[tuple[str, str]]:
+        """获取已加载的插件
+
+        返回:
+            list[str]: 已加载的插件
+        """
+        return await PluginInfo.filter(load_status=True).values_list(*args)
 
     @classmethod
     async def get_plugins_info(cls) -> BuildImage | str:
@@ -209,9 +218,7 @@ class ShopManage:
         """
         data: dict[str, StorePluginInfo] = await cls.__get_data()
         column_name = ["-", "ID", "名称", "简介", "作者", "版本", "类型"]
-        plugin_list = await PluginInfo.filter(load_status=True).values_list(
-            "module", "version"
-        )
+        plugin_list = await cls.get_loaded_plugins("module", "version")
         suc_plugin = {p[0]: (p[1] or "0.1") for p in plugin_list}
         data_list = [
             [
@@ -380,9 +387,7 @@ class ShopManage:
             BuildImage | str: 返回消息
         """
         data = await cls.__get_data()
-        plugin_list = await PluginInfo.filter(load_status=True).values_list(
-            "module", "version"
-        )
+        plugin_list = await cls.get_loaded_plugins("module", "version")
         suc_plugin = {p[0]: p[1] for p in plugin_list if p[1]}
         filtered_data = [
             (id, plugin_info)
@@ -430,9 +435,7 @@ class ShopManage:
         plugin_key = list(data.keys())[plugin_id]
         logger.info(f"尝试更新插件 {plugin_key}", "插件管理")
         plugin_info = data[plugin_key]
-        plugin_list = await PluginInfo.filter(load_status=True).values_list(
-            "module", "version"
-        )
+        plugin_list = await cls.get_loaded_plugins("module", "version")
         suc_plugin = {p[0]: p[1] for p in plugin_list if p[1]}
         logger.debug(f"当前插件列表: {suc_plugin}", "插件管理")
         if cls.check_version_is_new(plugin_info, suc_plugin):
