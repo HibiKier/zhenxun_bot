@@ -546,3 +546,50 @@ class PluginManage:
                 if block_type == BlockType.PRIVATE:
                     return f"已成功将 {plugin.name} 全局私聊关闭!"
         return "没有找到这个功能喔..."
+
+    @classmethod
+    async def superuser_unblock(
+        cls, plugin_name: str, block_type: BlockType | None, group_id: str | None
+    ) -> str:
+        """超级用户开启插件
+
+        参数:
+            plugin_name: 插件名称
+            block_type: 禁用类型
+            group_id: 群组id
+
+        返回:
+            str: 返回信息
+        """
+        if plugin_name.isdigit():
+            plugin = await PluginInfo.get_or_none(id=int(plugin_name))
+        else:
+            plugin = await PluginInfo.get_or_none(name=plugin_name)
+        if plugin:
+            if group_id:
+                if group := await GroupConsole.get_or_none(
+                    group_id=group_id, channel_id__isnull=True
+                ):
+                    if f"super:{plugin.module}," in group.block_plugin:
+                        group.block_plugin = group.block_plugin.replace(
+                            f"super:{plugin.module},", ""
+                        )
+                        await group.save(update_fields=["block_plugin"])
+                        return (
+                            f"已成功开启群组 {group.group_name} 的 {plugin_name} 功能!"
+                        )
+                    return "此群组该功能已被超级用户开启，不要重复开启..."
+                return "群组信息未更新，请先更新群组信息..."
+            plugin.block_type = block_type
+            plugin.status = not bool(block_type)
+            await plugin.save(update_fields=["status", "block_type"])
+            if not block_type:
+                return f"已成功将 {plugin.name} 全局启用!"
+            else:
+                if block_type == BlockType.ALL:
+                    return f"已成功将 {plugin.name} 全局开启!"
+                if block_type == BlockType.GROUP:
+                    return f"已成功将 {plugin.name} 全局群组开启!"
+                if block_type == BlockType.PRIVATE:
+                    return f"已成功将 {plugin.name} 全局私聊开启!"
+        return "没有找到这个功能喔..."

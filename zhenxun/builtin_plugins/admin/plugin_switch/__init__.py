@@ -94,7 +94,7 @@ async def _(
     if session.id1 in bot.config.superusers:
         image = await build_plugin()
         logger.info(
-            f"查看功能列表",
+            "查看功能列表",
             arparma.header_result,
             session=session,
         )
@@ -123,7 +123,7 @@ async def _(
         if task.result:
             if all.result:
                 result = await PluginManage.unblock_group_all_task(gid)
-                logger.info(f"开启所有群组被动", arparma.header_result, session=session)
+                logger.info("开启所有群组被动", arparma.header_result, session=session)
             else:
                 result = await PluginManage.unblock_group_task(name, gid)
                 logger.info(
@@ -145,7 +145,7 @@ async def _(
                         True, default_status.result, gid
                     )
                     logger.info(
-                        f"开启群组中全部功能",
+                        "开启群组中全部功能",
                         arparma.header_result,
                         session=session,
                     )
@@ -206,7 +206,7 @@ async def _(
                 )
             await MessageUtils.build_message(result).finish(reply_to=True)
         else:
-            result = await PluginManage.superuser_block(name, None, group_id)
+            result = await PluginManage.superuser_unblock(name, None, group_id)
             logger.info(
                 f"超级用户开启功能 {name}",
                 arparma.header_result,
