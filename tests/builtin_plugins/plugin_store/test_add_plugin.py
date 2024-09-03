@@ -2,6 +2,7 @@ from typing import cast
 from pathlib import Path
 from collections.abc import Callable
 
+import pytest
 from nonebug import App
 from respx import MockRouter
 from pytest_mock import MockerFixture
@@ -14,7 +15,9 @@ from tests.config import BotId, UserId, GroupId, MessageId
 from tests.builtin_plugins.plugin_store.utils import init_mocked_api
 
 
+@pytest.mark.parametrize("package_api", ["jsd", "gh"])
 async def test_add_plugin_basic(
+    package_api: str,
     app: App,
     mocker: MockerFixture,
     mocked_api: MockRouter,
@@ -31,6 +34,11 @@ async def test_add_plugin_basic(
         "zhenxun.builtin_plugins.plugin_store.data_source.BASE_PATH",
         new=tmp_path / "zhenxun",
     )
+
+    if package_api != "jsd":
+        mocked_api["zhenxun_bot_plugins_metadata"].respond(404)
+    if package_api != "gh":
+        mocked_api["zhenxun_bot_plugins_tree"].respond(404)
 
     plugin_id = 1
 
@@ -61,12 +69,13 @@ async def test_add_plugin_basic(
         )
     assert mocked_api["basic_plugins"].called
     assert mocked_api["extra_plugins"].called
-    assert mocked_api["zhenxun_bot_plugins_metadata"].called
     assert mocked_api["search_image_plugin_file_init"].called
     assert (mock_base_path / "plugins" / "search_image" / "__init__.py").is_file()
 
 
+@pytest.mark.parametrize("package_api", ["jsd", "gh"])
 async def test_add_plugin_basic_is_not_dir(
+    package_api: str,
     app: App,
     mocker: MockerFixture,
     mocked_api: MockRouter,
@@ -83,6 +92,11 @@ async def test_add_plugin_basic_is_not_dir(
         "zhenxun.builtin_plugins.plugin_store.data_source.BASE_PATH",
         new=tmp_path / "zhenxun",
     )
+
+    if package_api != "jsd":
+        mocked_api["zhenxun_bot_plugins_metadata"].respond(404)
+    if package_api != "gh":
+        mocked_api["zhenxun_bot_plugins_tree"].respond(404)
 
     plugin_id = 0
 
@@ -113,12 +127,13 @@ async def test_add_plugin_basic_is_not_dir(
         )
     assert mocked_api["basic_plugins"].called
     assert mocked_api["extra_plugins"].called
-    assert mocked_api["zhenxun_bot_plugins_metadata"].called
     assert mocked_api["jitang_plugin_file"].called
     assert (mock_base_path / "plugins" / "alapi" / "jitang.py").is_file()
 
 
+@pytest.mark.parametrize("package_api", ["jsd", "gh"])
 async def test_add_plugin_extra(
+    package_api: str,
     app: App,
     mocker: MockerFixture,
     mocked_api: MockRouter,
@@ -135,6 +150,11 @@ async def test_add_plugin_extra(
         "zhenxun.builtin_plugins.plugin_store.data_source.BASE_PATH",
         new=tmp_path / "zhenxun",
     )
+
+    if package_api != "jsd":
+        mocked_api["zhenxun_github_sub_metadata"].respond(404)
+    if package_api != "gh":
+        mocked_api["zhenxun_github_sub_tree"].respond(404)
 
     plugin_id = 3
 
@@ -165,7 +185,6 @@ async def test_add_plugin_extra(
         )
     assert mocked_api["basic_plugins"].called
     assert mocked_api["extra_plugins"].called
-    assert mocked_api["github_sub_plugin_metadata"].called
     assert mocked_api["github_sub_plugin_file_init"].called
     assert (mock_base_path / "plugins" / "github_sub" / "__init__.py").is_file()
 

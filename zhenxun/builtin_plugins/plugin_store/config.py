@@ -20,3 +20,8 @@ JSD_PACKAGE_API_FORMAT = (
     "https://data.jsdelivr.com/v1/packages/gh/{owner}/{repo}@{branch}"
 )
 """jsdelivr包地址格式"""
+
+GIT_API_TREES_FORMAT = (
+    "https://api.github.com/repos/{owner}/{repo}/git/trees/{branch}?recursive=1"
+)
+"""git api trees地址格式"""
