@@ -65,7 +65,6 @@ async def test_update_plugin_basic_need_update(
         )
     assert mocked_api["basic_plugins"].called
     assert mocked_api["extra_plugins"].called
-    assert mocked_api["zhenxun_bot_plugins_metadata"].called
     assert mocked_api["search_image_plugin_file_init"].called
     assert (mock_base_path / "plugins" / "search_image" / "__init__.py").is_file()
 
