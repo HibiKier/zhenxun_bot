@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 
 import ujson as json
+from aiocache import cached
 
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
@@ -19,12 +20,9 @@ from zhenxun.builtin_plugins.plugin_store.models import (
 
 from .config import (
     BASE_PATH,
-    CONFIG_URL,
-    CONFIG_INDEX_URL,
+    EXTRA_GITHUB_URL,
     DEFAULT_GITHUB_URL,
-    CONFIG_INDEX_CDN_URL,
     JSD_PACKAGE_API_FORMAT,
-    GITHUB_REPO_URL_PATTERN,
 )
 
 
@@ -140,6 +138,7 @@ def install_requirement(plugin_path: Path):
 
 class ShopManage:
     @classmethod
+    @cached(60)
     async def __get_data(cls) -> dict[str, StorePluginInfo]:
         """获取插件信息数据
 
@@ -149,12 +148,14 @@ class ShopManage:
         返回:
             dict: 插件信息数据
         """
-        res = await AsyncHttpx.get(CONFIG_URL)
-        res2 = await AsyncHttpx.get(CONFIG_INDEX_URL)
-
-        if res2.status_code != 200:
-            logger.info("访问第三方插件信息文件失败，改为进行cdn访问")
-            res2 = await AsyncHttpx.get(CONFIG_INDEX_CDN_URL)
+        default_github_url = await RepoInfo.parse_github_url(
+            DEFAULT_GITHUB_URL
+        ).get_download_url_with_path("plugins.json")
+        extra_github_url = await RepoInfo.parse_github_url(
+            EXTRA_GITHUB_URL
+        ).get_download_url_with_path("plugins.json")
+        res = await AsyncHttpx.get(default_github_url)
+        res2 = await AsyncHttpx.get(extra_github_url)
 
         # 检查请求结果
         if res.status_code != 200 or res2.status_code != 200:
@@ -274,7 +275,7 @@ class ShopManage:
         return f"插件 {plugin_key} 安装成功! 重启后生效"
 
     @classmethod
-    async def get_repo_package_info(cls, repo_info: RepoInfo) -> JsdPackageInfo:
+    async def get_repo_package_info_of_jsd(cls, repo_info: RepoInfo) -> JsdPackageInfo:
         """获取插件包信息
 
         参数:
@@ -292,18 +293,12 @@ class ShopManage:
         return JsdPackageInfo(**res.json())
 
     @classmethod
-    def expand_github_url(cls, github_url: str) -> RepoInfo:
-        if matched := GITHUB_REPO_URL_PATTERN.match(github_url):
-            return RepoInfo(**matched.groupdict())  # type: ignore
-        raise ValueError("github地址格式错误")
-
-    @classmethod
     async def install_plugin_with_repo(
         cls, github_url: str, module_path: str, is_dir: bool, is_external: bool = False
     ):
-        repo_info = cls.expand_github_url(github_url)
+        repo_info = RepoInfo.parse_github_url(github_url)
         logger.debug(f"成功获取仓库信息: {repo_info}", "插件管理")
-        jsd_package_info: JsdPackageInfo = await cls.get_repo_package_info(
+        jsd_package_info: JsdPackageInfo = await cls.get_repo_package_info_of_jsd(
             repo_info=repo_info
         )
         files = full_files_path(jsd_package_info, module_path, is_dir)
@@ -313,7 +308,9 @@ class ShopManage:
             is_dir,
         )
         logger.debug(f"获取插件文件列表: {files}", "插件管理")
-        download_urls = [repo_info.get_download_url_with_path(file) for file in files]
+        download_urls = [
+            await repo_info.get_download_url_with_path(file) for file in files
+        ]
         base_path = BASE_PATH / "plugins" if is_external else BASE_PATH
         download_paths: list[Path | str] = [base_path / file for file in files]
         logger.debug(f"插件下载路径: {download_paths}", "插件管理")
@@ -332,7 +329,7 @@ class ShopManage:
             )
             logger.debug(f"获取插件依赖文件列表: {req_files}", "插件管理")
             req_download_urls = [
-                repo_info.get_download_url_with_path(file) for file in req_files
+                await repo_info.get_download_url_with_path(file) for file in req_files
             ]
             req_paths: list[Path | str] = [plugin_path / file for file in req_files]
             logger.debug(f"插件依赖文件下载路径: {req_paths}", "插件管理")
