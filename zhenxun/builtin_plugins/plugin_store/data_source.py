@@ -12,18 +12,13 @@ from zhenxun.utils.image_utils import RowStyle, BuildImage, ImageTemplate
 from zhenxun.builtin_plugins.auto_update.config import REQ_TXT_FILE_STRING
 from zhenxun.builtin_plugins.plugin_store.models import (
     FileInfo,
-    FileType,
     RepoInfo,
-    JsdPackageInfo,
+    TreesInfo,
+    PackageApi,
     StorePluginInfo,
 )
 
-from .config import (
-    BASE_PATH,
-    EXTRA_GITHUB_URL,
-    DEFAULT_GITHUB_URL,
-    JSD_PACKAGE_API_FORMAT,
-)
+from .config import BASE_PATH, EXTRA_GITHUB_URL, DEFAULT_GITHUB_URL
 
 
 def row_style(column: str, text: str) -> RowStyle:
@@ -40,67 +35,6 @@ def row_style(column: str, text: str) -> RowStyle:
     if column == "-" and text == "已安装":
         style.font_color = "#67C23A"
     return style
-
-
-def full_files_path(
-    jsd_package_info: JsdPackageInfo, module_path: str, is_dir: bool = True
-) -> list[FileInfo]:
-    """
-    获取文件路径
-
-    参数:
-        jsd_package_info: JsdPackageInfo
-        module_path: 模块路径
-        is_dir: 是否为目录
-
-    返回:
-        list[FileInfo]: 文件路径
-    """
-    paths: list[str] = module_path.split(".")
-    cur_files: list[FileInfo] = jsd_package_info.files
-    for path in paths:
-        for cur_file in cur_files:
-            if (
-                cur_file.type == FileType.DIR
-                and cur_file.name == path
-                and cur_file.files
-                and (is_dir or path != paths[-1])
-            ):
-                cur_files = cur_file.files
-                break
-            if not is_dir and path == paths[-1] and cur_file.name.split(".")[0] == path:
-                return cur_files
-        else:
-            raise ValueError(f"模块路径 {module_path} 不存在")
-    return cur_files
-
-
-def recurrence_files(
-    files: list[FileInfo], dir_path: str, is_dir: bool = True
-) -> list[str]:
-    """
-    递归获取文件路径
-
-    参数:
-        files: 文件列表
-        dir_path: 目录路径
-        is_dir: 是否为目录
-
-    返回:
-        list[str]: 文件路径
-    """
-    paths = []
-    for file in files:
-        if is_dir and file.type == FileType.DIR and file.files:
-            paths.extend(
-                recurrence_files(file.files, f"{dir_path}/{file.name}", is_dir)
-            )
-        elif file.type == FileType.FILE:
-            if dir_path.endswith(file.name):
-                paths.append(dir_path)
-            elif is_dir:
-                paths.append(f"{dir_path}/{file.name}")
-    return paths
 
 
 def install_requirement(plugin_path: Path):
@@ -275,39 +209,29 @@ class ShopManage:
         return f"插件 {plugin_key} 安装成功! 重启后生效"
 
     @classmethod
-    async def get_repo_package_info_of_jsd(cls, repo_info: RepoInfo) -> JsdPackageInfo:
-        """获取插件包信息
-
-        参数:
-            repo_info: 仓库信息
-
-        返回:
-            JsdPackageInfo: 插件包信息
-        """
-        jsd_package_url: str = JSD_PACKAGE_API_FORMAT.format(
-            owner=repo_info.owner, repo=repo_info.repo, branch=repo_info.branch
-        )
-        res = await AsyncHttpx.get(url=jsd_package_url)
-        if res.status_code != 200:
-            raise ValueError(f"下载错误, code: {res.status_code}")
-        return JsdPackageInfo(**res.json())
-
-    @classmethod
     async def install_plugin_with_repo(
         cls, github_url: str, module_path: str, is_dir: bool, is_external: bool = False
     ):
+        package_api: PackageApi
+        files: list[str]
+        package_info: FileInfo | TreesInfo
         repo_info = RepoInfo.parse_github_url(github_url)
         logger.debug(f"成功获取仓库信息: {repo_info}", "插件管理")
-        jsd_package_info: JsdPackageInfo = await cls.get_repo_package_info_of_jsd(
-            repo_info=repo_info
+        for package_api in PackageApi:
+            try:
+                package_info = await package_api.value.parse_repo_info(repo_info)
+                break
+            except Exception as e:
+                logger.warning(
+                    f"获取插件文件失败: {e} | API类型: {package_api.value}", "插件管理"
+                )
+                continue
+        else:
+            raise ValueError("所有API获取插件文件失败，请检查网络连接")
+        files = package_info.get_files(
+            module_path=module_path.replace(".", "/") + ("" if is_dir else ".py"),
+            is_dir=is_dir,
         )
-        files = full_files_path(jsd_package_info, module_path, is_dir)
-        files = recurrence_files(
-            files,
-            module_path.replace(".", "/") + ("" if is_dir else ".py"),
-            is_dir,
-        )
-        logger.debug(f"获取插件文件列表: {files}", "插件管理")
         download_urls = [
             await repo_info.get_download_url_with_path(file) for file in files
         ]
@@ -321,12 +245,8 @@ class ShopManage:
         else:
             # 安装依赖
             plugin_path = base_path / "/".join(module_path.split("."))
-            req_files = recurrence_files(
-                jsd_package_info.files, REQ_TXT_FILE_STRING, False
-            )
-            req_files.extend(
-                recurrence_files(jsd_package_info.files, "requirement.txt", False)
-            )
+            req_files = package_info.get_files(REQ_TXT_FILE_STRING, False)
+            req_files.extend(package_info.get_files("requirement.txt", False))
             logger.debug(f"获取插件依赖文件列表: {req_files}", "插件管理")
             req_download_urls = [
                 await repo_info.get_download_url_with_path(file) for file in req_files
@@ -357,11 +277,11 @@ class ShopManage:
         返回:
             str: 返回消息
         """
-        data = await cls.__get_data()
+        data: dict[str, StorePluginInfo] = await cls.__get_data()
         if plugin_id < 0 or plugin_id >= len(data):
             return "插件ID不存在..."
         plugin_key = list(data.keys())[plugin_id]
-        plugin_info = data[plugin_key]
+        plugin_info = data[plugin_key]  # type: ignore
         path = BASE_PATH
         if plugin_info.github_url:
             path = BASE_PATH / "plugins"
@@ -388,7 +308,7 @@ class ShopManage:
         返回:
             BuildImage | str: 返回消息
         """
-        data = await cls.__get_data()
+        data: dict[str, StorePluginInfo] = await cls.__get_data()
         plugin_list = await cls.get_loaded_plugins("module", "version")
         suc_plugin = {p[0]: (p[1] or "Unknown") for p in plugin_list}
         filtered_data = [
@@ -431,7 +351,7 @@ class ShopManage:
         返回:
             str: 返回消息
         """
-        data = await cls.__get_data()
+        data: dict[str, StorePluginInfo] = await cls.__get_data()
         if plugin_id < 0 or plugin_id >= len(data):
             return "插件ID不存在..."
         plugin_key = list(data.keys())[plugin_id]
