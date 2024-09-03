@@ -11,9 +11,8 @@ from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.utils.image_utils import RowStyle, BuildImage, ImageTemplate
 from zhenxun.builtin_plugins.auto_update.config import REQ_TXT_FILE_STRING
 from zhenxun.builtin_plugins.plugin_store.models import (
-    FileInfo,
+    BaseAPI,
     RepoInfo,
-    TreesInfo,
     PackageApi,
     StorePluginInfo,
 )
@@ -214,7 +213,7 @@ class ShopManage:
     ):
         package_api: PackageApi
         files: list[str]
-        package_info: FileInfo | TreesInfo
+        package_info: BaseAPI
         repo_info = RepoInfo.parse_github_url(github_url)
         logger.debug(f"成功获取仓库信息: {repo_info}", "插件管理")
         for package_api in PackageApi:

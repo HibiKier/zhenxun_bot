@@ -63,6 +63,10 @@ class RepoInfo(BaseModel):
     @classmethod
     @cached()
     async def get_fastest_format(cls) -> str:
+        return await cls._get_fastest_format()
+
+    @classmethod
+    async def _get_fastest_format(cls) -> str:
         """获取最快下载地址格式"""
         raw_format = "https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}"
         patterns: dict[str, str] = {
@@ -90,24 +94,24 @@ class FileType(StrEnum):
     PACKAGE = "gh"
 
 
-class BaseInfo(BaseModel, ABC):
-    """基础信息类"""
+class BaseAPI(BaseModel, ABC):
+    """基础接口"""
 
     @classmethod
     @abstractmethod
     @cached(ttl=CACHED_API_TTL)
-    async def parse_repo_info(cls, repo_info: RepoInfo) -> "BaseInfo": ...
+    async def parse_repo_info(cls, repo_info: RepoInfo) -> "BaseAPI": ...
 
     @abstractmethod
     def get_files(cls, module_path: str, is_dir) -> list[str]: ...
 
 
-class FileInfo(BaseInfo):
-    """文件信息"""
+class JsdelivrAPI(BaseAPI):
+    """jsdelivr接口"""
 
     type: FileType
     name: str
-    files: list["FileInfo"] = []
+    files: list["JsdelivrAPI"] = []
 
     def recurrence_files(self, dir_path: str, is_dir: bool = True) -> list[str]:
         """
@@ -136,7 +140,7 @@ class FileInfo(BaseInfo):
                     paths.append(dir_path)
         return paths
 
-    def full_files_path(self, module_path: str, is_dir: bool = True) -> "FileInfo":
+    def full_files_path(self, module_path: str, is_dir: bool = True) -> "JsdelivrAPI":
         """
         获取文件路径
 
@@ -150,7 +154,7 @@ class FileInfo(BaseInfo):
         paths: list[str] = module_path.split("/")
         if not is_dir:
             paths = paths[:-1]
-        cur_file: FileInfo = self
+        cur_file: JsdelivrAPI = self
 
         for path in paths:
             for file in cur_file.files:
@@ -163,7 +167,7 @@ class FileInfo(BaseInfo):
 
     @classmethod
     @cached(ttl=CACHED_API_TTL)
-    async def parse_repo_info(cls, repo_info: RepoInfo) -> "FileInfo":
+    async def parse_repo_info(cls, repo_info: RepoInfo) -> "JsdelivrAPI":
         """解析仓库信息"""
 
         """获取插件包信息
@@ -180,7 +184,7 @@ class FileInfo(BaseInfo):
         res = await AsyncHttpx.get(url=jsd_package_url)
         if res.status_code != 200:
             raise ValueError(f"下载错误, code: {res.status_code}")
-        return FileInfo(**res.json())
+        return JsdelivrAPI(**res.json())
 
     def get_files(self, module_path: str, is_dir: bool = True) -> list[str]:
         """获取文件路径"""
@@ -211,8 +215,8 @@ class Tree(BaseModel):
     url: str
 
 
-class TreesInfo(BaseInfo):
-    """树信息"""
+class GitHubAPI(BaseAPI):
+    """github接口"""
 
     sha: str
     url: str
@@ -228,7 +232,7 @@ class TreesInfo(BaseInfo):
 
     @classmethod
     @cached(ttl=CACHED_API_TTL)
-    async def parse_repo_info(cls, repo_info: RepoInfo) -> "TreesInfo":
+    async def parse_repo_info(cls, repo_info: RepoInfo) -> "GitHubAPI":
         """获取仓库树
 
         参数:
@@ -243,7 +247,7 @@ class TreesInfo(BaseInfo):
         res = await AsyncHttpx.get(url=git_tree_url)
         if res.status_code != 200:
             raise ValueError(f"下载错误, code: {res.status_code}")
-        return TreesInfo(**res.json())
+        return GitHubAPI(**res.json())
 
     def get_files(self, module_path: str, is_dir: bool = True) -> list[str]:
         """获取文件路径"""
@@ -253,5 +257,5 @@ class TreesInfo(BaseInfo):
 class PackageApi(Enum):
     """插件包接口"""
 
-    GITHUB = TreesInfo
-    JSDELIVR = FileInfo
+    GITHUB = GitHubAPI
+    JSDELIVR = JsdelivrAPI
