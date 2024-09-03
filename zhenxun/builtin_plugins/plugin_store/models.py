@@ -9,6 +9,7 @@ from zhenxun.utils.enum import PluginType
 from zhenxun.utils.http_utils import AsyncHttpx
 
 from .config import (
+    CACHED_API_TTL,
     GIT_API_TREES_FORMAT,
     JSD_PACKAGE_API_FORMAT,
     GITHUB_REPO_URL_PATTERN,
@@ -94,6 +95,7 @@ class BaseInfo(BaseModel, ABC):
 
     @classmethod
     @abstractmethod
+    @cached(ttl=CACHED_API_TTL)
     async def parse_repo_info(cls, repo_info: RepoInfo) -> "BaseInfo": ...
 
     @abstractmethod
@@ -160,6 +162,7 @@ class FileInfo(BaseInfo):
         return cur_file
 
     @classmethod
+    @cached(ttl=CACHED_API_TTL)
     async def parse_repo_info(cls, repo_info: RepoInfo) -> "FileInfo":
         """解析仓库信息"""
 
@@ -224,6 +227,7 @@ class TreesInfo(BaseInfo):
         ]
 
     @classmethod
+    @cached(ttl=CACHED_API_TTL)
     async def parse_repo_info(cls, repo_info: RepoInfo) -> "TreesInfo":
         """获取仓库树
 

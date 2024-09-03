@@ -25,3 +25,6 @@ GIT_API_TREES_FORMAT = (
     "https://api.github.com/repos/{owner}/{repo}/git/trees/{branch}?recursive=1"
 )
 """git api trees地址格式"""
+
+CACHED_API_TTL = 300
+"""缓存api ttl"""
