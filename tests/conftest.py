@@ -1,3 +1,4 @@
+import os
 import json
 from pathlib import Path
 from collections.abc import Callable
@@ -77,8 +78,11 @@ async def app(app: App, tmp_path: Path, mocker: MockerFixture):
 
     await init()
     # await driver._lifespan.startup()
+    os.environ["AIOCACHE_DISABLE"] = "1"
 
     yield app
+
+    del os.environ["AIOCACHE_DISABLE"]
     # await driver._lifespan.shutdown()
     await disconnect()
 

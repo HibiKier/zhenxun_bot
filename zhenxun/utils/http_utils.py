@@ -1,20 +1,22 @@
+import time
 import asyncio
-from asyncio.exceptions import TimeoutError
-from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, AsyncGenerator, Dict, Literal
+from typing import Any, Literal, ClassVar
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+from asyncio.exceptions import TimeoutError
 
-import aiofiles
-import httpx
 import rich
-from httpx import ConnectTimeout, Response
+import httpx
+import aiofiles
+from retrying import retry
+from playwright.async_api import Page
+from httpx import Response, ConnectTimeout
 from nonebot_plugin_alconna import UniMessage
 from nonebot_plugin_htmlrender import get_browser
-from playwright.async_api import Page
-from retrying import retry
 
-from zhenxun.configs.config import BotConfig
 from zhenxun.services.log import logger
+from zhenxun.configs.config import BotConfig
 from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.user_agent import get_user_agent
 
@@ -22,8 +24,10 @@ from zhenxun.utils.user_agent import get_user_agent
 
 
 class AsyncHttpx:
-
-    proxy = {"http://": BotConfig.system_proxy, "https://": BotConfig.system_proxy}
+    proxy: ClassVar[dict[str, str | None]] = {
+        "http://": BotConfig.system_proxy,
+        "https://": BotConfig.system_proxy,
+    }
 
     @classmethod
     @retry(stop_max_attempt_number=3)
@@ -31,12 +35,12 @@ class AsyncHttpx:
         cls,
         url: str,
         *,
-        params: Dict[str, Any] | None = None,
-        headers: Dict[str, str] | None = None,
-        cookies: Dict[str, str] | None = None,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        cookies: dict[str, str] | None = None,
         verify: bool = True,
         use_proxy: bool = True,
-        proxy: Dict[str, str] | None = None,
+        proxy: dict[str, str] | None = None,
         timeout: int = 30,
         **kwargs,
     ) -> Response:
@@ -66,20 +70,59 @@ class AsyncHttpx:
             )
 
     @classmethod
+    async def head(
+        cls,
+        url: str,
+        *,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        cookies: dict[str, str] | None = None,
+        verify: bool = True,
+        use_proxy: bool = True,
+        proxy: dict[str, str] | None = None,
+        timeout: int = 30,
+        **kwargs,
+    ) -> Response:
+        """Get
+
+        参数:
+            url: url
+            params: params
+            headers: 请求头
+            cookies: cookies
+            verify: verify
+            use_proxy: 使用默认代理
+            proxy: 指定代理
+            timeout: 超时时间
+        """
+        if not headers:
+            headers = get_user_agent()
+        _proxy = proxy if proxy else cls.proxy if use_proxy else None
+        async with httpx.AsyncClient(proxies=_proxy, verify=verify) as client:  # type: ignore
+            return await client.head(
+                url,
+                params=params,
+                headers=headers,
+                cookies=cookies,
+                timeout=timeout,
+                **kwargs,
+            )
+
+    @classmethod
     async def post(
         cls,
         url: str,
         *,
-        data: Dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
         content: Any = None,
         files: Any = None,
         verify: bool = True,
         use_proxy: bool = True,
-        proxy: Dict[str, str] | None = None,
-        json: Dict[str, Any] | None = None,
-        params: Dict[str, str] | None = None,
-        headers: Dict[str, str] | None = None,
-        cookies: Dict[str, str] | None = None,
+        proxy: dict[str, str] | None = None,
+        json: dict[str, Any] | None = None,
+        params: dict[str, str] | None = None,
+        headers: dict[str, str] | None = None,
+        cookies: dict[str, str] | None = None,
         timeout: int = 30,
         **kwargs,
     ) -> Response:
@@ -122,12 +165,12 @@ class AsyncHttpx:
         url: str,
         path: str | Path,
         *,
-        params: Dict[str, str] | None = None,
+        params: dict[str, str] | None = None,
         verify: bool = True,
         use_proxy: bool = True,
-        proxy: Dict[str, str] | None = None,
-        headers: Dict[str, str] | None = None,
-        cookies: Dict[str, str] | None = None,
+        proxy: dict[str, str] | None = None,
+        headers: dict[str, str] | None = None,
+        cookies: dict[str, str] | None = None,
         timeout: int = 30,
         stream: bool = False,
         **kwargs,
@@ -177,7 +220,8 @@ class AsyncHttpx:
                     _proxy = proxy if proxy else cls.proxy if use_proxy else None
                     try:
                         async with httpx.AsyncClient(
-                            proxies=_proxy, verify=verify  # type: ignore
+                            proxies=_proxy,  # type: ignore
+                            verify=verify,
                         ) as client:
                             async with client.stream(
                                 "GET",
@@ -229,11 +273,11 @@ class AsyncHttpx:
         path_list: list[str | Path],
         *,
         limit_async_number: int | None = None,
-        params: Dict[str, str] | None = None,
+        params: dict[str, str] | None = None,
         use_proxy: bool = True,
-        proxy: Dict[str, str] | None = None,
-        headers: Dict[str, str] | None = None,
-        cookies: Dict[str, str] | None = None,
+        proxy: dict[str, str] | None = None,
+        headers: dict[str, str] | None = None,
+        cookies: dict[str, str] | None = None,
         timeout: int = 30,
         **kwargs,
     ) -> list[bool]:
@@ -295,6 +339,40 @@ class AsyncHttpx:
             tasks.clear()
         return result_
 
+    @classmethod
+    async def get_fastest_mirror(cls, url_list: list[str]) -> list[str]:
+        assert url_list
+
+        async def head_mirror(client: type[AsyncHttpx], url: str) -> dict[str, Any]:
+            begin_time = time.time()
+
+            response = await client.head(url=url, timeout=6)
+            response.raise_for_status()
+
+            elapsed_time = (time.time() - begin_time) * 1000
+            content_length = int(response.headers["content-length"])
+
+            return {
+                "url": url,
+                "elapsed_time": elapsed_time,
+                "content_length": content_length,
+            }
+
+        logger.debug(f"开始获取最快镜像，可能需要一段时间... | URL列表：{url_list}")
+        results = await asyncio.gather(
+            *(head_mirror(cls, url) for url in url_list),
+            return_exceptions=True,
+        )
+        _results: list[dict[str, Any]] = []
+        for result in results:
+            if isinstance(result, BaseException):
+                logger.warning(f"获取镜像失败，错误：{result}")
+            else:
+                logger.debug(f"获取镜像成功，结果：{result}")
+                _results.append(result)
+        _results = sorted(iter(_results), key=lambda r: r["elapsed_time"])
+        return [result["url"] for result in _results]
+
 
 class AsyncPlaywright:
     @classmethod
@@ -322,7 +400,7 @@ class AsyncPlaywright:
         element: str | list[str],
         *,
         wait_time: int | None = None,
-        viewport_size: Dict[str, int] | None = None,
+        viewport_size: dict[str, int] | None = None,
         wait_until: (
             Literal["domcontentloaded", "load", "networkidle"] | None
         ) = "networkidle",
@@ -344,7 +422,7 @@ class AsyncPlaywright:
             type_: 保存类型
         """
         if viewport_size is None:
-            viewport_size = dict(width=2560, height=1080)
+            viewport_size = {"width": 2560, "height": 1080}
         if isinstance(path, str):
             path = Path(path)
         wait_time = wait_time * 1000 if wait_time else None

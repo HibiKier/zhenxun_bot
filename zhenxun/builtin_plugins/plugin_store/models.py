@@ -1,7 +1,11 @@
+from aiocache import cached
 from strenum import StrEnum
 from pydantic import BaseModel, validator
 
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.http_utils import AsyncHttpx
+
+from .config import GITHUB_REPO_URL_PATTERN
 
 type2name: dict[str, str] = {
     "NORMAL": "普通插件",
@@ -39,11 +43,39 @@ class RepoInfo(BaseModel):
     branch: str | None
 
     @validator("branch", pre=True, always=True)
-    def set_default_branch(cls, v):
+    def _set_default_branch(cls, v):
         return "main" if v is None else v
 
-    def get_download_url_with_path(self, path: str):
-        return f"https://raw.githubusercontent.com/{self.owner}/{self.repo}/{self.branch}/{path}"
+    async def get_download_url_with_path(self, path: str):
+        url_format = await self.get_fastest_format()
+        return url_format.format(**self.dict(), path=path)
+
+    @classmethod
+    def parse_github_url(cls, github_url: str) -> "RepoInfo":
+        if matched := GITHUB_REPO_URL_PATTERN.match(github_url):
+            return RepoInfo(**matched.groupdict())
+        raise ValueError("github地址格式错误")
+
+    @classmethod
+    @cached()
+    async def get_fastest_format(cls) -> str:
+        """获取最快下载地址格式"""
+        raw_format = "https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}"
+        patterns: dict[str, str] = {
+            (
+                "https://raw.githubusercontent.com"
+                "/zhenxun-org/zhenxun_bot_plugins/main"
+                "/plugins.json"
+            ): raw_format,
+            "https://ghproxy.cc/": f"https://ghproxy.cc/{raw_format}",
+            "https://mirror.ghproxy.com/": f"https://mirror.ghproxy.com/{raw_format}",
+            "https://gh-proxy.com/": f"https://gh-proxy.com/{raw_format}",
+            "https://cdn.jsdelivr.net/": "https://cdn.jsdelivr.net/gh/{owner}/{repo}@{branch}/{path}",
+        }
+        sorted_urls = await AsyncHttpx.get_fastest_mirror(list(patterns.keys()))
+        if not sorted_urls:
+            raise Exception("无法获取任意GitHub资源加速地址，请检查网络")
+        return patterns[sorted_urls[0]]
 
 
 class FileType(StrEnum):

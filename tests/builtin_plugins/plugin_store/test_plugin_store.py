@@ -103,7 +103,7 @@ async def test_plugin_store_fail(
 
     init_mocked_api(mocked_api=mocked_api)
     mocked_api.get(
-        "https://cdn.jsdelivr.net/gh/zhenxun-org/zhenxun_bot_plugins/plugins.json",
+        "https://raw.githubusercontent.com/zhenxun-org/zhenxun_bot_plugins/main/plugins.json",
         name="basic_plugins",
     ).respond(404)
 

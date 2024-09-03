@@ -25,13 +25,25 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
         "https://data.jsdelivr.com/v1/packages/gh/zhenxun-org/zhenxun_bot_plugins@main",
         name="zhenxun_bot_plugins_metadata",
     ).respond(json=get_response_json("zhenxun_bot_plugins_metadata.json"))
+    mocked_api.head(
+        "https://raw.githubusercontent.com/zhenxun-org/zhenxun_bot_plugins/main/plugins.json",
+        name="head_basic_plugins",
+    ).respond(200, text="")
     mocked_api.get(
-        "https://cdn.jsdelivr.net/gh/zhenxun-org/zhenxun_bot_plugins/plugins.json",
+        "https://raw.githubusercontent.com/zhenxun-org/zhenxun_bot_plugins/main/plugins.json",
         name="basic_plugins",
+    ).respond(json=get_response_json("basic_plugins.json"))
+    mocked_api.get(
+        "https://cdn.jsdelivr.net/gh/zhenxun-org/zhenxun_bot_plugins@main/plugins.json",
+        name="basic_plugins_jsdelivr",
     ).respond(200, json=get_response_json("basic_plugins.json"))
     mocked_api.get(
         "https://raw.githubusercontent.com/zhenxun-org/zhenxun_bot_plugins_index/index/plugins.json",
         name="extra_plugins",
+    ).respond(200, json=get_response_json("extra_plugins.json"))
+    mocked_api.get(
+        "https://cdn.jsdelivr.net/gh/zhenxun-org/zhenxun_bot_plugins_index@index/plugins.json",
+        name="extra_plugins_jsdelivr",
     ).respond(200, json=get_response_json("extra_plugins.json"))
     mocked_api.get(
         "https://raw.githubusercontent.com/zhenxun-org/zhenxun_bot_plugins/main/plugins/search_image/__init__.py",
