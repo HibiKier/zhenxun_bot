@@ -196,18 +196,19 @@ class AsyncHttpx:
             for _ in range(3):
                 if not stream:
                     try:
-                        content = (
-                            await cls.get(
-                                url,
-                                params=params,
-                                headers=headers,
-                                cookies=cookies,
-                                use_proxy=use_proxy,
-                                proxy=proxy,
-                                timeout=timeout,
-                                **kwargs,
-                            )
-                        ).content
+                        response = await cls.get(
+                            url,
+                            params=params,
+                            headers=headers,
+                            cookies=cookies,
+                            use_proxy=use_proxy,
+                            proxy=proxy,
+                            timeout=timeout,
+                            follow_redirects=True,
+                            **kwargs,
+                        )
+                        response.raise_for_status()
+                        content = response.content
                         async with aiofiles.open(path, "wb") as wf:
                             await wf.write(content)
                             logger.info(f"下载 {url} 成功.. Path：{path.absolute()}")
@@ -230,8 +231,10 @@ class AsyncHttpx:
                                 headers=headers,
                                 cookies=cookies,
                                 timeout=timeout,
+                                follow_redirects=True,
                                 **kwargs,
                             ) as response:
+                                response.raise_for_status()
                                 logger.info(
                                     f"开始下载 {path.name}.. Path: {path.absolute()}"
                                 )
@@ -347,10 +350,9 @@ class AsyncHttpx:
             begin_time = time.time()
 
             response = await client.head(url=url, timeout=6)
-            response.raise_for_status()
 
             elapsed_time = (time.time() - begin_time) * 1000
-            content_length = int(response.headers["content-length"])
+            content_length = int(response.headers.get("content-length", 0))
 
             return {
                 "url": url,

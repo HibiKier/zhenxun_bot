@@ -70,11 +70,7 @@ class RepoInfo(BaseModel):
         """获取最快下载地址格式"""
         raw_format = "https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}"
         patterns: dict[str, str] = {
-            (
-                "https://raw.githubusercontent.com"
-                "/zhenxun-org/zhenxun_bot_plugins/main"
-                "/plugins.json"
-            ): raw_format,
+            "https://raw.githubusercontent.com/": raw_format,
             "https://ghproxy.cc/": f"https://ghproxy.cc/{raw_format}",
             "https://mirror.ghproxy.com/": f"https://mirror.ghproxy.com/{raw_format}",
             "https://gh-proxy.com/": f"https://gh-proxy.com/{raw_format}",
