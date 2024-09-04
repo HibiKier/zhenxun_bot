@@ -224,8 +224,8 @@ async def _(
                 await _id_img.circle_corner(10)
                 await background.paste(_id_img, (10, 0), center_type="height")
                 img_list.append(background)
-            A = await BuildImage.auto_paste(img_list, 1)
-            if A:
+            if img_list:
+                A = await BuildImage.auto_paste(img_list, 1)
                 result_image = BuildImage(
                     A.width, A.height + 30, color=(255, 255, 255), font_size=20
                 )
@@ -237,8 +237,8 @@ async def _(
             await MessageUtils.build_message("没有任何请求喔...").finish(reply_to=True)
         if len(req_image_list) == 1:
             await MessageUtils.build_message(req_image_list[0]).finish()
-        width = sum([img.width for img in req_image_list])
-        height = max([img.height for img in req_image_list])
+        width = sum(img.width for img in req_image_list)
+        height = max(img.height for img in req_image_list)
         background = BuildImage(width, height)
         await background.paste(req_image_list[0])
         await req_image_list[1].line((0, 10, 1, req_image_list[1].height - 10), width=1)

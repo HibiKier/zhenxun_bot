@@ -1,27 +1,27 @@
 import time
 from datetime import datetime
 
-from nonebot.plugin import PluginMetadata
 from nonebot import on_message, on_request
-from nonebot_plugin_session import EventSession
-from nonebot_plugin_apscheduler import scheduler
-from nonebot.adapters.onebot.v11 import Bot as v11Bot
-from nonebot.adapters.onebot.v12 import Bot as v12Bot
 from nonebot.adapters.onebot.v11 import (
     ActionFailed,
-    GroupRequestEvent,
     FriendRequestEvent,
+    GroupRequestEvent,
 )
+from nonebot.adapters.onebot.v11 import Bot as v11Bot
+from nonebot.adapters.onebot.v12 import Bot as v12Bot
+from nonebot.plugin import PluginMetadata
+from nonebot_plugin_apscheduler import scheduler
+from nonebot_plugin_session import EventSession
 
-from zhenxun.services.log import logger
-from zhenxun.utils.message import MessageUtils
+from zhenxun.configs.config import BotConfig, Config
+from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.models.fg_request import FgRequest
-from zhenxun.utils.platform import PlatformUtils
 from zhenxun.models.friend_user import FriendUser
-from zhenxun.configs.config import Config, BotConfig
 from zhenxun.models.group_console import GroupConsole
-from zhenxun.configs.utils import RegisterConfig, PluginExtraData
-from zhenxun.utils.enum import PluginType, RequestType, RequestHandleType
+from zhenxun.services.log import logger
+from zhenxun.utils.enum import PluginType, RequestHandleType, RequestType
+from zhenxun.utils.message import MessageUtils
+from zhenxun.utils.platform import PlatformUtils
 
 base_config = Config.get("invite_manager")
 
@@ -77,14 +77,6 @@ async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSessi
         # sex = user["sex"]
         # age = str(user["age"])
         comment = event.comment
-        if superuser:
-            await MessageUtils.build_message(
-                f"*****一份好友申请*****\n"
-                f"昵称：{nickname}({event.user_id})\n"
-                f"自动同意：{'√' if base_config.get('AUTO_ADD_FRIEND') else '×'}\n"
-                f"日期：{str(datetime.now()).split('.')[0]}\n"
-                f"备注：{event.comment}"
-            ).send(target=PlatformUtils.get_target(bot, superuser))
         if base_config.get("AUTO_ADD_FRIEND"):
             logger.debug(
                 "已开启好友请求自动同意，成功通过该请求",
@@ -102,7 +94,7 @@ async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSessi
                 user_id=str(event.user_id),
                 handle_type__isnull=True,
             ).update(handle_type=RequestHandleType.EXPIRE)
-            await FgRequest.create(
+            f = await FgRequest.create(
                 request_type=RequestType.FRIEND,
                 platform=session.platform,
                 bot_id=bot.self_id,
@@ -111,13 +103,22 @@ async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSessi
                 nickname=nickname,
                 comment=comment,
             )
+            if superuser:
+                await PlatformUtils.send_superuser(
+                    bot,
+                    f"*****一份好友申请*****\n"
+                    f"ID: {f.id}"
+                    f"昵称：{nickname}({event.user_id})\n"
+                    f"自动同意：{'√' if base_config.get('AUTO_ADD_FRIEND') else '×'}\n"
+                    f"日期：{str(datetime.now()).split('.')[0]}\n"
+                    f"备注：{event.comment}",
+                )
     else:
         logger.debug("好友请求五分钟内重复, 已忽略", "好友请求", target=event.user_id)
 
 
 @group_req.handle()
 async def _(bot: v12Bot | v11Bot, event: GroupRequestEvent, session: EventSession):
-    superuser = BotConfig.get_superuser("qq")
     if event.sub_type == "invite":
         if str(event.user_id) in bot.config.superusers:
             try:
@@ -168,12 +169,6 @@ async def _(bot: v12Bot | v11Bot, event: GroupRequestEvent, session: EventSessio
                 target=event.group_id,
             )
             nickname = await FriendUser.get_user_name(str(event.user_id))
-            await PlatformUtils.send_superuser(
-                bot,
-                f"*****一份入群申请*****\n申请人：{nickname}({event.user_id})\n群聊："
-                f"{event.group_id}\n邀请日期：{datetime.now().replace(microsecond=0)}",
-                superuser,
-            )
             await bot.send_private_msg(
                 user_id=event.user_id,
                 message=f"想要邀请我偷偷入群嘛~已经提醒{BotConfig.self_nickname}的管理员大人了\n"
@@ -187,7 +182,7 @@ async def _(bot: v12Bot | v11Bot, event: GroupRequestEvent, session: EventSessio
                 group_id=str(event.group_id),
                 handle_type__isnull=True,
             ).update(handle_type=RequestHandleType.EXPIRE)
-            await FgRequest.create(
+            f = await FgRequest.create(
                 request_type=RequestType.GROUP,
                 platform=session.platform,
                 bot_id=bot.self_id,
@@ -195,6 +190,13 @@ async def _(bot: v12Bot | v11Bot, event: GroupRequestEvent, session: EventSessio
                 user_id=str(event.user_id),
                 nickname=nickname,
                 group_id=str(event.group_id),
+            )
+            await PlatformUtils.send_superuser(
+                bot,
+                f"*****一份入群申请*****\n"
+                "ID：{f.id}\n"
+                "申请人：{nickname}({event.user_id})\n群聊："
+                f"{event.group_id}\n邀请日期：{datetime.now().replace(microsecond=0)}",
             )
         else:
             logger.debug(
