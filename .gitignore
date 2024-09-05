@@ -182,3 +182,4 @@ plugins/activity/
 !/data/genshin_alc/
 .vscode/launch.json
 /resources/template/my_info
+plugins_/

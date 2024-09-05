@@ -1,9 +1,9 @@
-from zhenxun.models.group_console import GroupConsole
-from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.task_info import TaskInfo
+from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.utils.enum import BlockType, PluginType
+from zhenxun.models.group_console import GroupConsole
 from zhenxun.utils.exception import GroupInfoNotFound
-from zhenxun.utils.image_utils import BuildImage, ImageTemplate, RowStyle
+from zhenxun.utils.image_utils import RowStyle, BuildImage, ImageTemplate
 
 
 def plugin_row_style(column: str, text: str) -> RowStyle:
@@ -17,16 +17,16 @@ def plugin_row_style(column: str, text: str) -> RowStyle:
         RowStyle: RowStyle
     """
     style = RowStyle()
-    if column == "全局状态":
-        if text == "开启":
-            style.font_color = "#67C23A"
-        else:
-            style.font_color = "#F56C6C"
-    if column == "加载状态":
-        if text == "SUCCESS":
-            style.font_color = "#67C23A"
-        else:
-            style.font_color = "#F56C6C"
+    if (
+        column == "全局状态"
+        and text == "开启"
+        or column != "全局状态"
+        and column == "加载状态"
+        and text == "SUCCESS"
+    ):
+        style.font_color = "#67C23A"
+    elif column in {"全局状态", "加载状态"}:
+        style.font_color = "#F56C6C"
     return style
 
 
@@ -44,22 +44,21 @@ async def build_plugin() -> BuildImage:
         "金币花费",
     ]
     plugin_list = await PluginInfo.filter(plugin_type__not=PluginType.HIDDEN).all()
-    column_data = []
-    for plugin in plugin_list:
-        column_data.append(
-            [
-                plugin.id,
-                plugin.module,
-                plugin.name,
-                "开启" if plugin.status else "关闭",
-                plugin.block_type,
-                "SUCCESS" if plugin.load_status else "ERROR",
-                plugin.menu_type,
-                plugin.author,
-                plugin.version,
-                plugin.cost_gold,
-            ]
-        )
+    column_data = [
+        [
+            plugin.id,
+            plugin.module,
+            plugin.name,
+            "开启" if plugin.status else "关闭",
+            plugin.block_type,
+            "SUCCESS" if plugin.load_status else "ERROR",
+            plugin.menu_type,
+            plugin.author,
+            plugin.version,
+            plugin.cost_gold,
+        ]
+        for plugin in plugin_list
+    ]
     return await ImageTemplate.table_page(
         "Plugin",
         "插件状态",
@@ -80,11 +79,8 @@ def task_row_style(column: str, text: str) -> RowStyle:
         RowStyle: RowStyle
     """
     style = RowStyle()
-    if column in ["群组状态", "全局状态"]:
-        if text == "开启":
-            style.font_color = "#67C23A"
-        else:
-            style.font_color = "#F56C6C"
+    if column in {"群组状态", "全局状态"}:
+        style.font_color = "#67C23A" if text == "开启" else "#F56C6C"
     return style
 
 
@@ -159,12 +155,13 @@ class PluginManage:
         if plugin_name.isdigit():
             plugin = await PluginInfo.get_or_none(id=int(plugin_name))
         else:
-            plugin = await PluginInfo.get_or_none(name=plugin_name)
+            plugin = await PluginInfo.get_or_none(name=plugin_name, load_status=True)
         if plugin:
             plugin.default_status = status
             await plugin.save(update_fields=["default_status"])
-            return f'成功将 {plugin.name} 进群默认状态修改为: {"开启" if status else "关闭"}'
-        return f"没有找到这个功能喔..."
+            status_text = "开启" if status else "关闭"
+            return f"成功将 {plugin.name} 进群默认状态修改为: {status_text}"
+        return "没有找到这个功能喔..."
 
     @classmethod
     async def set_all_plugin_status(
@@ -206,7 +203,7 @@ class PluginManage:
                 return f'成功将此群组所有功能状态修改为: {"开启" if status else "关闭"}'
             return "获取群组失败..."
         await PluginInfo.filter(plugin_type=PluginType.NORMAL).update(
-            status=status, block_type=BlockType.ALL if not status else None
+            status=status, block_type=None if status else BlockType.ALL
         )
         return f'成功将所有功能全局状态修改为: {"开启" if status else "关闭"}'
 
@@ -417,19 +414,18 @@ class PluginManage:
                         group.block_task = group.block_task.replace(f"{module},", "")
                 await group.save(update_fields=["block_task"])
                 return f"已成功{status_str}全部被动技能!"
-        else:
-            if task := await TaskInfo.get_or_none(name=task_name):
-                group, _ = await GroupConsole.get_or_create(
-                    group_id=group_id, channel_id__isnull=True
-                )
-                if status:
-                    group.block_task += f"{task.module},"
-                else:
-                    if f"super:{task.module}," in group.block_task:
-                        return f"{status_str} {task_name} 被动技能失败，当前群组该被动已被管理员禁用"
-                    group.block_task = group.block_task.replace(f"{task.module},", "")
-                await group.save(update_fields=["block_task"])
-                return f"已成功{status_str} {task_name} 被动技能!"
+        elif task := await TaskInfo.get_or_none(name=task_name):
+            group, _ = await GroupConsole.get_or_create(
+                group_id=group_id, channel_id__isnull=True
+            )
+            if status:
+                group.block_task += f"{task.module},"
+            elif f"super:{task.module}," in group.block_task:
+                return f"{status_str} {task_name} 被动技能失败，当前群组该被动已被管理员禁用"
+            else:
+                group.block_task = group.block_task.replace(f"{task.module},", "")
+            await group.save(update_fields=["block_task"])
+            return f"已成功{status_str} {task_name} 被动技能!"
         return "没有找到这个被动技能喔..."
 
     @classmethod
@@ -450,12 +446,12 @@ class PluginManage:
         if plugin_name.isdigit():
             plugin = await PluginInfo.get_or_none(id=int(plugin_name))
         else:
-            plugin = await PluginInfo.get_or_none(name=plugin_name)
-        status_str = "开启" if status else "关闭"
+            plugin = await PluginInfo.get_or_none(name=plugin_name, load_status=True)
         if plugin:
             group, _ = await GroupConsole.get_or_create(
                 group_id=group_id, channel_id__isnull=True
             )
+            status_str = "开启" if status else "关闭"
             if status:
                 if plugin.module in group.block_plugin:
                     group.block_plugin = group.block_plugin.replace(
@@ -463,11 +459,10 @@ class PluginManage:
                     )
                     await group.save(update_fields=["block_plugin"])
                     return f"已成功{status_str} {plugin.name} 功能!"
-            else:
-                if plugin.module not in group.block_plugin:
-                    group.block_plugin += f"{plugin.module},"
-                    await group.save(update_fields=["block_plugin"])
-                    return f"已成功{status_str} {plugin.name} 功能!"
+            elif plugin.module not in group.block_plugin:
+                group.block_plugin += f"{plugin.module},"
+                await group.save(update_fields=["block_plugin"])
+                return f"已成功{status_str} {plugin.name} 功能!"
             return f"该功能已经{status_str}了喔，不要重复{status_str}..."
         return "没有找到这个功能喔..."
 
@@ -485,22 +480,20 @@ class PluginManage:
         返回:
             str: 返回信息
         """
-        if task := await TaskInfo.get_or_none(name=task_name):
+        if not (task := await TaskInfo.get_or_none(name=task_name)):
+            return "没有找到这个功能喔..."
+        if group_id:
+            group, _ = await GroupConsole.get_or_create(
+                group_id=group_id, channel_id__isnull=True
+            )
+            if status:
+                group.block_task = group.block_task.replace(f"super:{task.module},", "")
+            else:
+                group.block_task += f"super:{task.module},"
+            await group.save(update_fields=["block_task"])
             status_str = "开启" if status else "关闭"
-            if group_id:
-                group, _ = await GroupConsole.get_or_create(
-                    group_id=group_id, channel_id__isnull=True
-                )
-                if status:
-                    group.block_task = group.block_task.replace(
-                        f"super:{task.module},", ""
-                    )
-                else:
-                    group.block_task += f"super:{task.module},"
-                await group.save(update_fields=["block_task"])
-                return f"已成功将群组 {group_id} 被动技能 {task_name} {status_str}!"
-            return "没有找到这个群组喔..."
-        return "没有找到这个功能喔..."
+            return f"已成功将群组 {group_id} 被动技能 {task_name} {status_str}!"
+        return "没有找到这个群组喔..."
 
     @classmethod
     async def superuser_block(
@@ -519,7 +512,7 @@ class PluginManage:
         if plugin_name.isdigit():
             plugin = await PluginInfo.get_or_none(id=int(plugin_name))
         else:
-            plugin = await PluginInfo.get_or_none(name=plugin_name)
+            plugin = await PluginInfo.get_or_none(name=plugin_name, load_status=True)
         if plugin:
             if group_id:
                 if group := await GroupConsole.get_or_none(
@@ -538,13 +531,12 @@ class PluginManage:
             await plugin.save(update_fields=["status", "block_type"])
             if not block_type:
                 return f"已成功将 {plugin.name} 全局启用!"
-            else:
-                if block_type == BlockType.ALL:
-                    return f"已成功将 {plugin.name} 全局关闭!"
-                if block_type == BlockType.GROUP:
-                    return f"已成功将 {plugin.name} 全局群组关闭!"
-                if block_type == BlockType.PRIVATE:
-                    return f"已成功将 {plugin.name} 全局私聊关闭!"
+            if block_type == BlockType.ALL:
+                return f"已成功将 {plugin.name} 全局关闭!"
+            if block_type == BlockType.GROUP:
+                return f"已成功将 {plugin.name} 全局群组关闭!"
+            if block_type == BlockType.PRIVATE:
+                return f"已成功将 {plugin.name} 全局私聊关闭!"
         return "没有找到这个功能喔..."
 
     @classmethod
@@ -564,7 +556,7 @@ class PluginManage:
         if plugin_name.isdigit():
             plugin = await PluginInfo.get_or_none(id=int(plugin_name))
         else:
-            plugin = await PluginInfo.get_or_none(name=plugin_name)
+            plugin = await PluginInfo.get_or_none(name=plugin_name, load_status=True)
         if plugin:
             if group_id:
                 if group := await GroupConsole.get_or_none(
@@ -585,11 +577,10 @@ class PluginManage:
             await plugin.save(update_fields=["status", "block_type"])
             if not block_type:
                 return f"已成功将 {plugin.name} 全局启用!"
-            else:
-                if block_type == BlockType.ALL:
-                    return f"已成功将 {plugin.name} 全局开启!"
-                if block_type == BlockType.GROUP:
-                    return f"已成功将 {plugin.name} 全局群组开启!"
-                if block_type == BlockType.PRIVATE:
-                    return f"已成功将 {plugin.name} 全局私聊开启!"
+            if block_type == BlockType.ALL:
+                return f"已成功将 {plugin.name} 全局开启!"
+            if block_type == BlockType.GROUP:
+                return f"已成功将 {plugin.name} 全局群组开启!"
+            if block_type == BlockType.PRIVATE:
+                return f"已成功将 {plugin.name} 全局私聊开启!"
         return "没有找到这个功能喔..."
