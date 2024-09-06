@@ -173,6 +173,7 @@ class AsyncHttpx:
         cookies: dict[str, str] | None = None,
         timeout: int = 30,
         stream: bool = False,
+        follow_redirects: bool = True,
         **kwargs,
     ) -> bool:
         """下载文件
@@ -204,7 +205,7 @@ class AsyncHttpx:
                             use_proxy=use_proxy,
                             proxy=proxy,
                             timeout=timeout,
-                            follow_redirects=True,
+                            follow_redirects=follow_redirects,
                             **kwargs,
                         )
                         response.raise_for_status()

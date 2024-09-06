@@ -3001,6 +3001,22 @@ url = "https://mirrors.aliyun.com/pypi/simple"
 reference = "ali"
 
 [[package]]
+name = "py-cpuinfo"
+version = "9.0.0"
+description = "Get CPU info with pure Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "py-cpuinfo-9.0.0.tar.gz", hash = "sha256:3cdbbf3fac90dc6f118bfd64384f309edeadd902d7c8fb17f02ffa1fc3f49690"},
+    {file = "py_cpuinfo-9.0.0-py3-none-any.whl", hash = "sha256:859625bc251f64e21f077d099d4162689c762b5d6a4c3c97553d56241c9674d5"},
+]
+
+[package.source]
+type = "legacy"
+url = "https://mirrors.aliyun.com/pypi/simple"
+reference = "ali"
+
+[[package]]
 name = "pyasn1"
 version = "0.6.0"
 description = "Pure-Python implementation of ASN.1 types and DER/BER/CER codecs (X.208)"
@@ -4909,4 +4925,4 @@ reference = "ali"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "706cc73807663c91c3eed8d689e7f04f49fd6f0b6d2b3a2e7e4e078a2c3f89c0"
+content-hash = "e66133515a2b17715ddf5f887ec31f128751acda1ea67736e9d27b29a9b16b65"
