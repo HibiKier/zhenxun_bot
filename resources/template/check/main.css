@@ -161,12 +161,15 @@ body {
 .status-text {
     font-family: 'fzrzFont';
     color: #EC859F;
-    height: 90px;
-    display: flex;
+    height: 185px;
 }
 
 .status-text-title {
-    height: 25%;
+    /* height: 25%; */
+    display: flex;
+    /* justify-content: center; */
+    align-items: center;
+    font-size: 14px;
 }
 
 .tip {

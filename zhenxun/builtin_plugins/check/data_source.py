@@ -1,16 +1,16 @@
 import platform
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 
-import psutil
 import cpuinfo
 import nonebot
-from pydantic import BaseModel
+import psutil
+from httpx import ConnectTimeout, NetworkError
 from nonebot.utils import run_sync
-from httpx import NetworkError, ConnectTimeout
+from pydantic import BaseModel
 
-from zhenxun.services.log import logger
 from zhenxun.configs.config import BotConfig
+from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
 
 BAIDU_URL = "https://www.baidu.com/"
@@ -105,11 +105,17 @@ class SystemInfo(BaseModel):
             "cpu_info": f"{self.cpu.usage}% - {self.cpu.freq}Ghz [{self.cpu.core} core]",
             "cpu_process": psutil.cpu_percent(),
             "ram_info": f"{self.ram.usage} / {self.ram.total} GB",
-            "ram_process": self.ram.usage / self.ram.total * 100,
+            "ram_process": (
+                0 if self.ram.total == 0 else (self.ram.usage / self.ram.total * 100)
+            ),
             "swap_info": f"{self.swap.usage} / {self.swap.total} GB",
-            "swap_process": self.swap.usage / self.swap.total * 100,
+            "swap_process": (
+                0 if self.swap.total == 0 else (self.swap.usage / self.swap.total * 100)
+            ),
             "disk_info": f"{self.disk.usage} / {self.disk.total} GB",
-            "disk_process": self.disk.usage / self.disk.total * 100,
+            "disk_process": (
+                0 if self.disk.total == 0 else (self.disk.usage / self.disk.total * 100)
+            ),
         }
 
 
@@ -142,10 +148,11 @@ async def __get_network_info():
 
 def __get_version() -> str | None:
     """获取版本信息"""
-    with open(VERSION_FILE, encoding="utf-8") as f:
-        if text := f.read():
-            text.split(":")[-1]
-        return None
+    if VERSION_FILE.exists():
+        with open(VERSION_FILE, encoding="utf-8") as f:
+            if text := f.read():
+                return text.split(":")[-1]
+    return None
 
 
 async def get_status_info() -> dict:
