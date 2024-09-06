@@ -25,6 +25,7 @@ from .config import (
     lik2level,
     lik2relation,
 )
+assert len(level2attitude)==len(lik2level)==len(lik2relation), '好感度态度、等级、关系长度不匹配！'
 
 AVA_URL = "http://q1.qlogo.cn/g?b=qq&nk={}&s=160"
 
@@ -146,9 +147,6 @@ async def _generate_card(
         impression
     )
     interpolation = next_impression - impression
-    if level == "9":
-        level = "8"
-        interpolation = 0
     await info_img.text((0, 0), f"· 好感度等级：{level} [{lik2relation[level]}]")
     await info_img.text(
         (0, 20), f"· {BotConfig.self_nickname}对你的态度：{level2attitude[level]}"
@@ -157,7 +155,7 @@ async def _generate_card(
 
     bar_bk = BuildImage(220, 20, background=SIGN_RESOURCE_PATH / "bar_white.png")
     bar = BuildImage(220, 20, background=SIGN_RESOURCE_PATH / "bar.png")
-    ratio = 1 - (next_impression - user.impression) / (
+    ratio = 1 - (next_impression - impression) / (
         next_impression - previous_impression
     )
     if next_impression == 0:
@@ -336,22 +334,25 @@ async def generate_progress_bar_pic():
     await bk.save(SIGN_RESOURCE_PATH / "bar_white.png")
 
 
-def get_level_and_next_impression(impression: float) -> tuple[str, int, int]:
+def get_level_and_next_impression(impression: float) -> tuple[str, int | float, int]:
     """获取当前好感等级与下一等级的差距
 
     参数:
         impression: 好感度
 
     返回:
-        tuple[str, int, int]: 好感度等级中文，好感度等级，下一等级好感差距
+        tuple[str, int, int]: 好感度等级，下一等级好感度要求，已达到的好感度要求
     """
-    if impression == 0:
-        return lik2level[10], 10, 0
+
     keys = list(lik2level.keys())
+    level, next_impression, previous_impression = lik2level[keys[-1]], keys[-2], keys[-1]
     for i in range(len(keys)):
-        if impression > keys[i]:
-            return lik2level[keys[i]], keys[i - 1], keys[i]
-    return lik2level[10], 10, 0
+        if impression >= keys[i]:
+            level, next_impression, previous_impression = lik2level[keys[i]], keys[i-1], keys[i]
+            if i==0:
+                next_impression = impression
+            break
+    return level, next_impression, previous_impression
 
 
 def clear_sign_data_pic():
@@ -367,7 +368,7 @@ def clear_sign_data_pic():
 async def _generate_html_card(
     user: SignUser,
     nickname: str,
-    impression: float,
+    add_impression: float,
     gold: int | None,
     gift: str,
     is_double: bool = False,
@@ -378,7 +379,7 @@ async def _generate_html_card(
     参数:
         user: SignUser
         nickname: 用户昵称
-        impression: 新增的好感度
+        add_impression: 新增的好感度
         gold: 金币
         gift: 礼物
         is_double: 是否触发双倍.
@@ -387,29 +388,27 @@ async def _generate_html_card(
     返回:
         Path: 卡片路径
     """
+    impression = float(user.impression)
     user_console = await user.user_console
-    if user_console and user_console.uid:
+    if user_console and (user_console.uid or user_console.uid==0):
         uid = f"{user_console.uid}".rjust(12, "0")
         uid = uid[:4] + " " + uid[4:8] + " " + uid[8:]
     else:
         uid = "XXXX XXXX XXXX"
     level, next_impression, previous_impression = get_level_and_next_impression(
-        float(user.impression)
+        float(impression)
     )
     interpolation = next_impression - impression
-    if level == "9":
-        level = "8"
-        interpolation = 0
     message = f"{BotConfig.self_nickname}希望你开心！"
     hour = datetime.now().hour
     if hour > 6 and hour < 10:
         message = random.choice(MORNING_MESSAGE)
     elif hour >= 0 and hour < 6:
         message = random.choice(LG_MESSAGE)
-    _impression = impression
+    _impression = add_impression
     if is_double:
-        _impression = f"{impression}(×2)"
-    process = 1 - (next_impression - user.impression) / (
+        _impression = f"{add_impression}(×2)"
+    process = 1 - (next_impression - impression) / (
         next_impression - previous_impression
     )
     if next_impression == 0:
@@ -421,7 +420,7 @@ async def _generate_html_card(
         "uid": uid,
         "sign_count": f"{user.sign_count}",
         "message": f"{BotConfig.self_nickname}说: {message}",
-        "cur_impression": f"{user.impression:.2f}",
+        "cur_impression": f"{impression:.2f}",
         "impression": f"好感度+{_impression}",
         "gold": f"金币+{gold}",
         "gift": gift,
@@ -429,7 +428,7 @@ async def _generate_html_card(
         "attitude": f"对你的态度: {level2attitude[level]}",
         "interpolation": f"{interpolation:.2f}",
         "heart2": [1 for _ in range(int(level))],
-        "heart1": [1 for _ in range(9 - int(level))],
+        "heart1": [1 for _ in range(len(lik2level)-int(level)-1)],
         "process": process * 100,
         "date": str(now.replace(microsecond=0)),
         "font_size": 45,
