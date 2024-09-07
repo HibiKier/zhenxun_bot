@@ -107,7 +107,7 @@ async def get_card(
 async def _generate_card(
     user: SignUser,
     nickname: str,
-    impression: float,
+    add_impression: float,
     gold: int | None,
     gift: str,
     is_double: bool = False,
@@ -118,7 +118,7 @@ async def _generate_card(
     参数:
         user: SignUser
         nickname: 用户昵称
-        impression: 新增的好感度
+        add_impression: 新增的好感度
         gold: 金币
         gift: 礼物
         is_double: 是否触发双倍.
@@ -140,7 +140,6 @@ async def _generate_card(
     await ava.circle()
     await ava_bk.paste(ava, (19, 18))
     await ava_bk.paste(ava_border, center_type="center")
-    add_impression = impression
     impression = float(user.impression)
     info_img = BuildImage(250, 150, color=(255, 255, 255, 0), font_size=15)
     level, next_impression, previous_impression = get_level_and_next_impression(
