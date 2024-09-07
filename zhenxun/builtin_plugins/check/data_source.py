@@ -1,22 +1,24 @@
+import os
 import platform
-from dataclasses import dataclass
+import subprocess
 from pathlib import Path
+from dataclasses import dataclass
 
+import psutil
 import cpuinfo
 import nonebot
-import psutil
-from httpx import ConnectTimeout, NetworkError
-from nonebot.utils import run_sync
 from pydantic import BaseModel
+from nonebot.utils import run_sync
 
-from zhenxun.configs.config import BotConfig
 from zhenxun.services.log import logger
+from zhenxun.configs.config import BotConfig
 from zhenxun.utils.http_utils import AsyncHttpx
 
 BAIDU_URL = "https://www.baidu.com/"
 GOOGLE_URL = "https://www.google.com/"
 
 VERSION_FILE = Path() / "__version__"
+ARM_KEY = "aarch64"
 
 
 @dataclass
@@ -31,9 +33,11 @@ class CPUInfo:
     @classmethod
     def get_cpu_info(cls):
         cpu_core = psutil.cpu_count(logical=False)
-        cpu_usage = psutil.cpu_percent(interval=1)
-        cpu_freq = round(psutil.cpu_freq().current / 1000, 2)
-
+        cpu_usage = psutil.cpu_percent(interval=0.1)
+        if _cpu_freq := psutil.cpu_freq():
+            cpu_freq = round(_cpu_freq.current / 1000, 2)
+        else:
+            cpu_freq = 0
         return CPUInfo(core=cpu_core, usage=cpu_usage, freq=cpu_freq)
 
 
@@ -102,8 +106,9 @@ class SystemInfo(BaseModel):
 
     def get_system_info(self):
         return {
-            "cpu_info": f"{self.cpu.usage}% - {self.cpu.freq}Ghz [{self.cpu.core} core]",
-            "cpu_process": psutil.cpu_percent(),
+            "cpu_info": f"{self.cpu.usage}% - {self.cpu.freq}Ghz "
+            f"[{self.cpu.core} core]",
+            "cpu_process": self.cpu.usage,
             "ram_info": f"{self.ram.usage} / {self.ram.total} GB",
             "ram_process": (
                 0 if self.ram.total == 0 else (self.ram.usage / self.ram.total * 100)
@@ -120,14 +125,14 @@ class SystemInfo(BaseModel):
 
 
 @run_sync
-def __build_status() -> dict:
+def __build_status() -> SystemInfo:
     """获取 `CPU` `RAM` `SWAP` `DISK` 信息"""
     cpu = CPUInfo.get_cpu_info()
     ram = RAMInfo.get_ram_info()
     swap = SwapMemory.get_swap_info()
     disk = DiskInfo.get_disk_info()
 
-    return SystemInfo(cpu=cpu, ram=ram, swap=swap, disk=disk).get_system_info()
+    return SystemInfo(cpu=cpu, ram=ram, swap=swap, disk=disk)
 
 
 async def __get_network_info():
@@ -155,16 +160,50 @@ def __get_version() -> str | None:
     return None
 
 
+def __get_arm_cpu():
+    env = os.environ.copy()
+    env["LC_ALL"] = "en_US.UTF-8"
+    cpu_info = subprocess.check_output(["lscpu"], env=env).decode()
+    model_name = ""
+    cpu_freq = 0
+    for line in cpu_info.splitlines():
+        if "Model name" in line:
+            model_name = line.split(":")[1].strip()
+        if "CPU MHz" in line:
+            cpu_freq = float(line.split(":")[1].strip())
+    return model_name, cpu_freq
+
+
+def __get_arm_oracle_cpu_freq():
+    cpu_freq = subprocess.check_output(
+        ["dmidecode", "-s", "processor-frequency"]
+    ).decode()
+    return round(float(cpu_freq.split()[0]) / 1000, 2)
+
+
 async def get_status_info() -> dict:
     """获取信息"""
     data = await __build_status()
+
+    system = platform.uname()
+    if system.machine == ARM_KEY and not (
+        cpuinfo.get_cpu_info().get("brand_raw") and data.cpu.freq
+    ):
+        model_name, cpu_freq = __get_arm_cpu()
+        if not data.cpu.freq:
+            data.cpu.freq = cpu_freq or __get_arm_oracle_cpu_freq()
+        data = data.get_system_info()
+        data["brand_raw"] = model_name
+    else:
+        data = data.get_system_info()
+        data["brand_raw"] = cpuinfo.get_cpu_info().get("brand_raw", "Unknown")
+
     baidu, google = await __get_network_info()
     data["baidu"] = "#8CC265" if baidu else "red"
     data["google"] = "#8CC265" if google else "red"
-    system = platform.uname()
+
     data["system"] = f"{system.system} {system.release}"
     data["version"] = __get_version()
-    data["brand_raw"] = cpuinfo.get_cpu_info()["brand_raw"]
     data["plugin_count"] = len(nonebot.get_loaded_plugins())
     data["nickname"] = BotConfig.self_nickname
     return data
