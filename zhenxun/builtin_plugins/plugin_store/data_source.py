@@ -8,8 +8,8 @@ from aiocache import cached
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.models.plugin_info import PluginInfo
-from zhenxun.utils.github_utils import parse_github_url
-from zhenxun.utils.github_utils.models import BaseAPI, PackageApi
+from zhenxun.utils.github_utils.models import RepoAPI
+from zhenxun.utils.github_utils import api_strategy, parse_github_url
 from zhenxun.builtin_plugins.plugin_store.models import StorePluginInfo
 from zhenxun.utils.image_utils import RowStyle, BuildImage, ImageTemplate
 from zhenxun.builtin_plugins.auto_update.config import REQ_TXT_FILE_STRING
@@ -208,23 +208,22 @@ class ShopManage:
     async def install_plugin_with_repo(
         cls, github_url: str, module_path: str, is_dir: bool, is_external: bool = False
     ):
-        package_api: PackageApi
         files: list[str]
-        package_info: BaseAPI
+        repo_api: RepoAPI
         repo_info = parse_github_url(github_url)
         logger.debug(f"成功获取仓库信息: {repo_info}", "插件管理")
-        for package_api in PackageApi:
+        for repo_api in api_strategy:
             try:
-                package_info = await package_api.value.parse_repo_info(repo_info)
+                await repo_api.parse_repo_info(repo_info)
                 break
             except Exception as e:
                 logger.warning(
-                    f"获取插件文件失败: {e} | API类型: {package_api.value}", "插件管理"
+                    f"获取插件文件失败: {e} | API类型: {repo_api.strategy}", "插件管理"
                 )
                 continue
         else:
             raise ValueError("所有API获取插件文件失败，请检查网络连接")
-        files = package_info.get_files(
+        files = repo_api.get_files(
             module_path=module_path.replace(".", "/") + ("" if is_dir else ".py"),
             is_dir=is_dir,
         )
@@ -239,8 +238,8 @@ class ShopManage:
         else:
             # 安装依赖
             plugin_path = base_path / "/".join(module_path.split("."))
-            req_files = package_info.get_files(REQ_TXT_FILE_STRING, False)
-            req_files.extend(package_info.get_files("requirement.txt", False))
+            req_files = repo_api.get_files(REQ_TXT_FILE_STRING, False)
+            req_files.extend(repo_api.get_files("requirement.txt", False))
             logger.debug(f"获取插件依赖文件列表: {req_files}", "插件管理")
             req_download_urls = [
                 await repo_info.get_raw_download_url(file) for file in req_files
