@@ -1,16 +1,15 @@
 import platform
-from dataclasses import dataclass
 from pathlib import Path
+from dataclasses import dataclass
 
+import psutil
 import cpuinfo
 import nonebot
-import psutil
-from httpx import ConnectTimeout, NetworkError
-from nonebot.utils import run_sync
 from pydantic import BaseModel
+from nonebot.utils import run_sync
 
-from zhenxun.configs.config import BotConfig
 from zhenxun.services.log import logger
+from zhenxun.configs.config import BotConfig
 from zhenxun.utils.http_utils import AsyncHttpx
 
 BAIDU_URL = "https://www.baidu.com/"
