@@ -28,5 +28,31 @@
   "python.analysis.autoImportCompletions": true,
   "python.testing.pytestArgs": ["tests"],
   "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true
+  "python.testing.pytestEnabled": true,
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff", // 默认使用 Ruff 格式化
+    "editor.wordBasedSuggestions": "allDocuments",
+    "editor.formatOnType": true,
+    "editor.formatOnSave": true, // 保存时自动格式化
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports": "explicit"
+    }
+  },
+  "ruff.format.preview": false,
+  "isort.check": true,
+  "ruff.importStrategy": "useBundled",
+  "ruff.organizeImports": false,
+  "[javascript]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  }
 }
