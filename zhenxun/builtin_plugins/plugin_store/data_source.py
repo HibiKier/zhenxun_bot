@@ -8,14 +8,11 @@ from aiocache import cached
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.utils.github_utils import parse_github_url
+from zhenxun.utils.github_utils.models import BaseAPI, PackageApi
+from zhenxun.builtin_plugins.plugin_store.models import StorePluginInfo
 from zhenxun.utils.image_utils import RowStyle, BuildImage, ImageTemplate
 from zhenxun.builtin_plugins.auto_update.config import REQ_TXT_FILE_STRING
-from zhenxun.builtin_plugins.plugin_store.models import (
-    BaseAPI,
-    RepoInfo,
-    PackageApi,
-    StorePluginInfo,
-)
 
 from .config import BASE_PATH, EXTRA_GITHUB_URL, DEFAULT_GITHUB_URL
 
@@ -81,12 +78,12 @@ class ShopManage:
         返回:
             dict: 插件信息数据
         """
-        default_github_url = await RepoInfo.parse_github_url(
+        default_github_url = await parse_github_url(
             DEFAULT_GITHUB_URL
-        ).get_download_url_with_path("plugins.json")
-        extra_github_url = await RepoInfo.parse_github_url(
+        ).get_raw_download_url("plugins.json")
+        extra_github_url = await parse_github_url(
             EXTRA_GITHUB_URL
-        ).get_download_url_with_path("plugins.json")
+        ).get_raw_download_url("plugins.json")
         res = await AsyncHttpx.get(default_github_url)
         res2 = await AsyncHttpx.get(extra_github_url)
 
@@ -214,7 +211,7 @@ class ShopManage:
         package_api: PackageApi
         files: list[str]
         package_info: BaseAPI
-        repo_info = RepoInfo.parse_github_url(github_url)
+        repo_info = parse_github_url(github_url)
         logger.debug(f"成功获取仓库信息: {repo_info}", "插件管理")
         for package_api in PackageApi:
             try:
@@ -231,9 +228,7 @@ class ShopManage:
             module_path=module_path.replace(".", "/") + ("" if is_dir else ".py"),
             is_dir=is_dir,
         )
-        download_urls = [
-            await repo_info.get_download_url_with_path(file) for file in files
-        ]
+        download_urls = [await repo_info.get_raw_download_url(file) for file in files]
         base_path = BASE_PATH / "plugins" if is_external else BASE_PATH
         download_paths: list[Path | str] = [base_path / file for file in files]
         logger.debug(f"插件下载路径: {download_paths}", "插件管理")
@@ -248,7 +243,7 @@ class ShopManage:
             req_files.extend(package_info.get_files("requirement.txt", False))
             logger.debug(f"获取插件依赖文件列表: {req_files}", "插件管理")
             req_download_urls = [
-                await repo_info.get_download_url_with_path(file) for file in req_files
+                await repo_info.get_raw_download_url(file) for file in req_files
             ]
             req_paths: list[Path | str] = [plugin_path / file for file in req_files]
             logger.debug(f"插件依赖文件下载路径: {req_paths}", "插件管理")
