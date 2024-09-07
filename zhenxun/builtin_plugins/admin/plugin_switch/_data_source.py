@@ -170,7 +170,9 @@ class PluginManage:
         if plugin_name.isdigit():
             plugin = await PluginInfo.get_or_none(id=int(plugin_name))
         else:
-            plugin = await PluginInfo.get_or_none(name=plugin_name, load_status=True)
+            plugin = await PluginInfo.get_or_none(
+                name=plugin_name, load_status=True, plugin_type__not=PluginType.PARENT
+            )
         if plugin:
             plugin.default_status = status
             await plugin.save(update_fields=["default_status"])
@@ -461,7 +463,9 @@ class PluginManage:
         if plugin_name.isdigit():
             plugin = await PluginInfo.get_or_none(id=int(plugin_name))
         else:
-            plugin = await PluginInfo.get_or_none(name=plugin_name, load_status=True)
+            plugin = await PluginInfo.get_or_none(
+                name=plugin_name, load_status=True, plugin_type__not=PluginType.PARENT
+            )
         if plugin:
             group, _ = await GroupConsole.get_or_create(
                 group_id=group_id, channel_id__isnull=True
@@ -527,7 +531,9 @@ class PluginManage:
         if plugin_name.isdigit():
             plugin = await PluginInfo.get_or_none(id=int(plugin_name))
         else:
-            plugin = await PluginInfo.get_or_none(name=plugin_name, load_status=True)
+            plugin = await PluginInfo.get_or_none(
+                name=plugin_name, load_status=True, plugin_type__not=PluginType.PARENT
+            )
         if plugin:
             if group_id:
                 if group := await GroupConsole.get_or_none(
@@ -571,7 +577,9 @@ class PluginManage:
         if plugin_name.isdigit():
             plugin = await PluginInfo.get_or_none(id=int(plugin_name))
         else:
-            plugin = await PluginInfo.get_or_none(name=plugin_name, load_status=True)
+            plugin = await PluginInfo.get_or_none(
+                name=plugin_name, load_status=True, plugin_type__not=PluginType.PARENT
+            )
         if plugin:
             if group_id:
                 if group := await GroupConsole.get_or_none(

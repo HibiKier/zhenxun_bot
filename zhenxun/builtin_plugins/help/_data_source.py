@@ -1,5 +1,6 @@
 import nonebot
 
+from zhenxun.utils.enum import PluginType
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.utils.image_utils import BuildImage, ImageTemplate
@@ -29,9 +30,11 @@ async def get_plugin_help(name: str, is_superuser: bool) -> str | BuildImage:
         is_superuser: 是否为超级用户
     """
     if name.isdigit():
-        plugin = await PluginInfo.get_or_none(id=int(name), load_status=True)
+        plugin = await PluginInfo.get_or_none(id=int(name))
     else:
-        plugin = await PluginInfo.get_or_none(name__iexact=name, load_status=True)
+        plugin = await PluginInfo.get_or_none(
+            name__iexact=name, load_status=True, plugin_type__not=PluginType.PARENT
+        )
     if plugin:
         _plugin = nonebot.get_plugin_by_module_name(plugin.module_path)
         if _plugin and _plugin.metadata:
