@@ -1,31 +1,34 @@
 import os
 import random
-from datetime import datetime
 from io import BytesIO
 from pathlib import Path
+from datetime import datetime
 
-import nonebot
 import pytz
+import nonebot
 from nonebot.drivers import Driver
 from nonebot_plugin_htmlrender import template_to_pic
 
-from zhenxun.configs.config import BotConfig, Config
-from zhenxun.configs.path_config import IMAGE_PATH, TEMPLATE_PATH
 from zhenxun.models.sign_log import SignLog
 from zhenxun.models.sign_user import SignUser
-from zhenxun.utils.image_utils import BuildImage
 from zhenxun.utils.utils import get_user_avatar
+from zhenxun.utils.image_utils import BuildImage
+from zhenxun.configs.config import Config, BotConfig
+from zhenxun.configs.path_config import IMAGE_PATH, TEMPLATE_PATH
 
 from .config import (
-    SIGN_BACKGROUND_PATH,
     SIGN_BORDER_PATH,
     SIGN_RESOURCE_PATH,
+    SIGN_BACKGROUND_PATH,
     SIGN_TODAY_CARD_PATH,
-    level2attitude,
     lik2level,
     lik2relation,
+    level2attitude,
 )
-assert len(level2attitude)==len(lik2level)==len(lik2relation), '好感度态度、等级、关系长度不匹配！'
+
+assert (
+    len(level2attitude) == len(lik2level) == len(lik2relation)
+), "好感度态度、等级、关系长度不匹配！"
 
 AVA_URL = "http://q1.qlogo.cn/g?b=qq&nk={}&s=160"
 
@@ -88,20 +91,20 @@ async def get_card(
     card_file = Path(SIGN_TODAY_CARD_PATH) / file_name
     if card_file.exists():
         return IMAGE_PATH / "sign" / "today_card" / file_name
-    else:
-        if add_impression == -1:
-            card_file = Path(SIGN_TODAY_CARD_PATH) / view_name
-            if card_file.exists():
-                return card_file
-            is_card_view = True
-        if base_config.get("IMAGE_STYLE") == "zhenxun":
-            return await _generate_html_card(
-                user, nickname, add_impression, gold, gift, is_double, is_card_view
-            )
-        else:
-            return await _generate_card(
-                user, nickname, add_impression, gold, gift, is_double, is_card_view
-            )
+    if add_impression == -1:
+        card_file = Path(SIGN_TODAY_CARD_PATH) / view_name
+        if card_file.exists():
+            return card_file
+        is_card_view = True
+    return (
+        await _generate_html_card(
+            user, nickname, add_impression, gold, gift, is_double, is_card_view
+        )
+        if base_config.get("IMAGE_STYLE") == "zhenxun"
+        else await _generate_card(
+            user, nickname, add_impression, gold, gift, is_double, is_card_view
+        )
+    )
 
 
 async def _generate_card(
@@ -154,16 +157,12 @@ async def _generate_card(
 
     bar_bk = BuildImage(220, 20, background=SIGN_RESOURCE_PATH / "bar_white.png")
     bar = BuildImage(220, 20, background=SIGN_RESOURCE_PATH / "bar.png")
-    ratio = 1 - (next_impression - impression) / (
-        next_impression - previous_impression
-    )
+    ratio = 1 - (next_impression - impression) / (next_impression - previous_impression)
     if next_impression == 0:
         ratio = 0
     await bar.resize(width=int(bar.width * ratio) or 1, height=bar.height)
     await bar_bk.paste(bar)
-    font_size = 30
-    if "好感度双倍加持卡" in gift:
-        font_size = 20
+    font_size = 20 if "好感度双倍加持卡" in gift else 30
     gift_border = BuildImage(
         270,
         100,
@@ -190,7 +189,7 @@ async def _generate_card(
     user_console = await user.user_console
     if user_console and user_console.uid is not None:
         uid = f"{user_console.uid}".rjust(12, "0")
-        uid = uid[:4] + " " + uid[4:8] + " " + uid[8:]
+        uid = f"{uid[:4]} {uid[4:8]} {uid[8:]}"
     else:
         uid = "XXXX XXXX XXXX"
     uid_img = await BuildImage.build_text_image(
@@ -246,9 +245,12 @@ async def _generate_card(
         default_setu_prob = (
             Config.get_config("send_setu", "INITIAL_SETU_PROBABILITY") * 100  # type: ignore
         )
+        setu_prob = (
+            default_setu_prob + float(user.impression) if user.impression < 100 else 100
+        )
         await today_data.text(
             (0, 50),
-            f"色图概率：{(default_setu_prob + float(user.impression) if user.impression < 100 else 100):.2f}%",
+            f"色图概率：{setu_prob:.2f}%",
         )
         await today_data.text((0, 75), f"开箱次数：{(20 + int(user.impression / 3))}")
         _type = "view"
@@ -308,11 +310,11 @@ async def generate_progress_bar_pic():
     step_g = (bg_2[1] - bg_1[1]) / width
     step_b = (bg_2[2] - bg_1[2]) / width
 
-    for y in range(0, width):
+    for y in range(width):
         bg_r = round(bg_1[0] + step_r * y)
         bg_g = round(bg_1[1] + step_g * y)
         bg_b = round(bg_1[2] + step_b * y)
-        for x in range(0, height):
+        for x in range(height):
             await A.point((y, x), fill=(bg_r, bg_g, bg_b))
     await bk.paste(img_y, (0, 0))
     await bk.paste(A, (25, 0))
@@ -344,11 +346,19 @@ def get_level_and_next_impression(impression: float) -> tuple[str, int | float, 
     """
 
     keys = list(lik2level.keys())
-    level, next_impression, previous_impression = lik2level[keys[-1]], keys[-2], keys[-1]
+    level, next_impression, previous_impression = (
+        lik2level[keys[-1]],
+        keys[-2],
+        keys[-1],
+    )
     for i in range(len(keys)):
         if impression >= keys[i]:
-            level, next_impression, previous_impression = lik2level[keys[i]], keys[i-1], keys[i]
-            if i==0:
+            level, next_impression, previous_impression = (
+                lik2level[keys[i]],
+                keys[i - 1],
+                keys[i],
+            )
+            if i == 0:
                 next_impression = impression
             break
     return level, next_impression, previous_impression
@@ -391,11 +401,11 @@ async def _generate_html_card(
     user_console = await user.user_console
     if user_console and user_console.uid is not None:
         uid = f"{user_console.uid}".rjust(12, "0")
-        uid = uid[:4] + " " + uid[4:8] + " " + uid[8:]
+        uid = f"{uid[:4]} {uid[4:8]} {uid[8:]}"
     else:
         uid = "XXXX XXXX XXXX"
     level, next_impression, previous_impression = get_level_and_next_impression(
-        float(impression)
+        impression
     )
     interpolation = next_impression - impression
     message = f"{BotConfig.self_nickname}希望你开心！"
@@ -404,9 +414,7 @@ async def _generate_html_card(
         message = random.choice(MORNING_MESSAGE)
     elif hour >= 0 and hour < 6:
         message = random.choice(LG_MESSAGE)
-    _impression = add_impression
-    if is_double:
-        _impression = f"{add_impression}(×2)"
+    _impression = f"{add_impression}(×2)" if is_double else add_impression
     process = 1 - (next_impression - impression) / (
         next_impression - previous_impression
     )
@@ -425,7 +433,7 @@ async def _generate_html_card(
         "attitude": f"对你的态度: {level2attitude[level]}",
         "interpolation": f"{interpolation:.2f}",
         "heart2": [1 for _ in range(int(level))],
-        "heart1": [1 for _ in range(len(lik2level)-int(level)-1)],
+        "heart1": [1 for _ in range(len(lik2level) - int(level) - 1)],
         "process": process * 100,
         "date": str(now.replace(microsecond=0)),
         "font_size": 45,

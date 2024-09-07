@@ -1,23 +1,23 @@
 import random
 import secrets
-from datetime import datetime
 from pathlib import Path
+from datetime import datetime
 
 import pytz
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.path_config import IMAGE_PATH
-from zhenxun.models.friend_user import FriendUser
-from zhenxun.models.group_member_info import GroupInfoUser
+from zhenxun.services.log import logger
 from zhenxun.models.sign_log import SignLog
 from zhenxun.models.sign_user import SignUser
-from zhenxun.models.user_console import UserConsole
-from zhenxun.services.log import logger
-from zhenxun.utils.image_utils import BuildImage, ImageTemplate
 from zhenxun.utils.utils import get_user_avatar
+from zhenxun.models.friend_user import FriendUser
+from zhenxun.configs.path_config import IMAGE_PATH
+from zhenxun.models.user_console import UserConsole
+from zhenxun.models.group_member_info import GroupInfoUser
+from zhenxun.utils.image_utils import BuildImage, ImageTemplate
 
-from ._random_event import random_event
 from .utils import get_card
+from ._random_event import random_event
 
 ICON_PATH = IMAGE_PATH / "_icon"
 
@@ -34,7 +34,7 @@ class SignManage:
     @classmethod
     async def rank(
         cls, user_id: str, num: int, group_id: str | None = None
-    ) -> BuildImage:
+    ) -> BuildImage:  # sourcery skip: avoid-builtin-shadow
         """好感度排行
 
         参数:
@@ -120,9 +120,8 @@ class SignManage:
             log_time = new_log.create_time.astimezone(
                 pytz.timezone("Asia/Shanghai")
             ).date()
-        if not is_card_view:
-            if not new_log or (log_time and log_time != now.date()):
-                return await cls._handle_sign_in(user, nickname, session)
+        if not is_card_view and (not new_log or (log_time and log_time != now.date())):
+            return await cls._handle_sign_in(user, nickname, session)
         return await get_card(
             user, nickname, -1, user_console.gold, "", is_card_view=is_card_view
         )
@@ -148,9 +147,7 @@ class SignManage:
         rand = random.random()
         add_probability = float(user.add_probability)
         specify_probability = user.specify_probability
-        if rand + add_probability > 0.97:
-            impression_added *= 2
-        elif rand < specify_probability:
+        if rand + add_probability > 0.97 or rand < specify_probability:
             impression_added *= 2
         await SignUser.sign(user, impression_added, session.bot_id, session.platform)
         gold = random.randint(1, 100)
