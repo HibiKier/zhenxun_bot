@@ -3,7 +3,22 @@ from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.utils.enum import BlockType, PluginType
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.utils.exception import GroupInfoNotFound
+from zhenxun.configs.path_config import DATA_PATH, IMAGE_PATH
 from zhenxun.utils.image_utils import RowStyle, BuildImage, ImageTemplate
+
+HELP_FILE = IMAGE_PATH / "SIMPLE_HELP.png"
+
+GROUP_HELP_PATH = DATA_PATH / "group_help"
+
+
+def delete_help_image(gid: str | None = None):
+    """删除帮助图片"""
+    if gid:
+        file = GROUP_HELP_PATH / f"{gid}.png"
+        if file.exists():
+            file.unlink()
+    elif HELP_FILE.exists():
+        HELP_FILE.unlink()
 
 
 def plugin_row_style(column: str, text: str) -> RowStyle:
@@ -421,7 +436,7 @@ class PluginManage:
             if status:
                 group.block_task += f"{task.module},"
             elif f"super:{task.module}," in group.block_task:
-                return f"{status_str} {task_name} 被动技能失败，当前群组该被动已被管理员禁用"
+                return f"{status_str} {task_name} 被动技能失败，当前群组该被动已被管理员禁用"  # noqa: E501
             else:
                 group.block_task = group.block_task.replace(f"{task.module},", "")
             await group.save(update_fields=["block_task"])
