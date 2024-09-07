@@ -188,7 +188,7 @@ async def _generate_card(
         nickname, size=50, font_color=(255, 255, 255)
     )
     user_console = await user.user_console
-    if user_console and user_console.uid:
+    if user_console and user_console.uid is not None:
         uid = f"{user_console.uid}".rjust(12, "0")
         uid = uid[:4] + " " + uid[4:8] + " " + uid[8:]
     else:
@@ -389,7 +389,7 @@ async def _generate_html_card(
     """
     impression = float(user.impression)
     user_console = await user.user_console
-    if user_console and (user_console.uid or user_console.uid==0):
+    if user_console and user_console.uid is not None:
         uid = f"{user_console.uid}".rjust(12, "0")
         uid = uid[:4] + " " + uid[4:8] + " " + uid[8:]
     else:
