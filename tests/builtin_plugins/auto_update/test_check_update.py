@@ -26,6 +26,20 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
         url="https://api.github.com/repos/HibiKier/zhenxun_bot/releases/latest",
         name="release_latest",
     ).respond(json=get_response_json("release_latest.json"))
+
+    mocked_api.head(
+        url="https://raw.githubusercontent.com/",
+        name="head_raw",
+    ).respond(text="")
+    mocked_api.head(
+        url="https://github.com/",
+        name="head_github",
+    ).respond(text="")
+    mocked_api.head(
+        url="https://codeload.github.com/",
+        name="head_codeload",
+    ).respond(text="")
+
     mocked_api.get(
         url="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/dev/__version__",
         name="dev_branch_version",
@@ -75,13 +89,13 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
         content=tar_buffer.getvalue(),
     )
     mocked_api.get(
-        url="https://ghproxy.cc/https://github.com/HibiKier/zhenxun_bot/archive/refs/heads/dev.zip",
+        url="https://github.com/HibiKier/zhenxun_bot/archive/refs/heads/dev.zip",
         name="dev_download_url",
     ).respond(
         content=zip_bytes.getvalue(),
     )
     mocked_api.get(
-        url="https://ghproxy.cc/https://github.com/HibiKier/zhenxun_bot/archive/refs/heads/main.zip",
+        url="https://github.com/HibiKier/zhenxun_bot/archive/refs/heads/main.zip",
         name="main_download_url",
     ).respond(
         content=zip_bytes.getvalue(),
@@ -306,7 +320,6 @@ async def test_check_update_release(
         )
         ctx.should_finished(_matcher)
     assert mocked_api["release_latest"].called
-    assert mocked_api["release_download_url"].called
     assert mocked_api["release_download_url_redirect"].called
 
     assert (mock_backup_path / PYPROJECT_FILE_STRING).exists()
