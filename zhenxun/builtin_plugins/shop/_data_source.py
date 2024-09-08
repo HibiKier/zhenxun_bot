@@ -12,18 +12,29 @@ from nonebot_plugin_alconna import UniMsg, UniMessage
 
 from zhenxun.services.log import logger
 from zhenxun.models.goods_info import GoodsInfo
+from zhenxun.utils.platform import PlatformUtils
+from zhenxun.models.friend_user import FriendUser
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.models.user_console import UserConsole
 from zhenxun.models.user_gold_log import UserGoldLog
 from zhenxun.utils.enum import GoldHandle, PropHandle
 from zhenxun.models.user_props_log import UserPropsLog
+from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.utils.image_utils import BuildImage, ImageTemplate, text2image
 
 ICON_PATH = IMAGE_PATH / "shop_icon"
 
+RANK_ICON_PATH = IMAGE_PATH / "_icon"
+
+PLATFORM_PATH = {
+    "dodo": RANK_ICON_PATH / "dodo.png",
+    "discord": RANK_ICON_PATH / "discord.png",
+    "kaiheila": RANK_ICON_PATH / "kook.png",
+    "qq": RANK_ICON_PATH / "qq.png",
+}
+
 
 class Goods(BaseModel):
-
     name: str
     """商品名称"""
     before_handle: list[Callable] = []
@@ -45,7 +56,6 @@ class Goods(BaseModel):
 
 
 class ShopParam(BaseModel):
-
     goods_name: str
     """商品名称"""
     user_id: int
@@ -70,8 +80,50 @@ class ShopParam(BaseModel):
     """UniMessage"""
 
 
-class ShopManage:
+async def gold_rank(user_id: str, group_id: str | None, num: int, platform: str):
+    query = UserConsole
+    if group_id:
+        uid_list = await GroupInfoUser.filter(group_id=group_id).values_list(
+            "user_id", flat=True
+        )
+        query = query.filter(user_id__in=uid_list)
+    user_list = await query.annotate().order_by("-gold").values_list("user_id", "gold")
+    user_id_list = [user[0] for user in user_list]
+    index = user_id_list.index(user_id) + 1
+    user_list = user_list[:num] if num < len(user_list) else user_list
+    friend_user = await FriendUser.filter(user_id__in=user_id_list).values_list(
+        "user_id", "user_name"
+    )
+    uid2name = {user[0]: user[1] for user in friend_user}
+    if diff_id := set(user_id_list).difference(set(uid2name.keys())):
+        group_user = await GroupInfoUser.filter(user_id__in=diff_id).values_list(
+            "user_id", "user_name"
+        )
+        for g in group_user:
+            uid2name[g[0]] = g[1]
+    column_name = ["排名", "-", "名称", "金币", "平台"]
+    data_list = []
+    for i, user in enumerate(user_list):
+        ava_bytes = await PlatformUtils.get_user_avatar(user[0], platform)
+        data_list.append(
+            [
+                f"{i+1}",
+                (ava_bytes, 30, 30) if platform == "qq" else "",
+                uid2name.get(user[0]),
+                user[1],
+                (PLATFORM_PATH.get(platform), 30, 30),
+            ]
+        )
+    if group_id:
+        title = "金币群组内排行"
+        tip = f"你的排名在本群第 {index} 位哦!"
+    else:
+        title = "金币全局排行"
+        tip = f"你的排名在全局第 {index} 位哦!"
+    return await ImageTemplate.table_page(title, tip, column_name, data_list)
 
+
+class ShopManage:
     uuid2goods: dict[str, Goods] = {}  # noqa: RUF012
 
     @classmethod

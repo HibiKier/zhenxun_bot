@@ -4,12 +4,16 @@ from nonebot_plugin_session import EventSession
 from nonebot_plugin_userinfo import UserInfo, EventUserInfo
 from nonebot_plugin_alconna import (
     Args,
+    Query,
+    Option,
     UniMsg,
     Alconna,
     Arparma,
     Subcommand,
     UniMessage,
+    AlconnaQuery,
     on_alconna,
+    store_true,
 )
 
 from zhenxun.services.log import logger
@@ -18,7 +22,7 @@ from zhenxun.utils.exception import GoodsNotFound
 from zhenxun.utils.enum import BlockType, PluginType
 from zhenxun.configs.utils import BaseBlock, PluginExtraData
 
-from ._data_source import ShopManage
+from ._data_source import ShopManage, gold_rank
 
 __plugin_meta__ = PluginMetadata(
     name="商店",
@@ -30,6 +34,8 @@ __plugin_meta__ = PluginMetadata(
         我的道具
         使用道具 [名称/Id]
         购买道具 [名称/Id]
+        金币排行 ?[num=10]
+        金币总排行 ?[num=10]
     """.strip(),
     extra=PluginExtraData(
         author="HibiKier",
@@ -44,10 +50,12 @@ __plugin_meta__ = PluginMetadata(
 _matcher = on_alconna(
     Alconna(
         "商店",
+        Option("--all", action=store_true),
         Subcommand("my-cost", help_text="我的金币"),
         Subcommand("my-props", help_text="我的道具"),
         Subcommand("buy", Args["name", str]["num", int, 1], help_text="购买道具"),
         Subcommand("use", Args["name", str]["num?", int, 1], help_text="使用道具"),
+        Subcommand("gold-list", Args["num?", int], help_text="使用道具"),
     ),
     priority=5,
     block=True,
@@ -78,6 +86,20 @@ _matcher.shortcut(
     "使用道具",
     command="商店",
     arguments=["use", "{%0}"],
+    prefix=True,
+)
+
+_matcher.shortcut(
+    "金币排行",
+    command="商店",
+    arguments=["gold-list"],
+    prefix=True,
+)
+
+_matcher.shortcut(
+    r"金币总排行",
+    command="商店",
+    arguments=["--all", "gold-list"],
     prefix=True,
 )
 
@@ -153,3 +175,22 @@ async def _(
         await MessageUtils.build_message(f"没有找到道具 {name} 或道具数量不足...").send(
             reply_to=True
         )
+
+
+@_matcher.assign("gold-list")
+async def _(
+    session: EventSession, arparma: Arparma, num: Query[int] = AlconnaQuery("num", 10)
+):
+    if session.id1:
+        gid = session.id3 or session.id2
+        if arparma.find("all"):
+            gid = None
+        result = await gold_rank(session.id1, gid, num.result, session.platform)
+        logger.info(
+            "查看金币排行",
+            arparma.header_result,
+            session=session,
+        )
+        await MessageUtils.build_message(result).send(reply_to=True)
+    else:
+        await MessageUtils.build_message("用户id为空...").send(reply_to=True)

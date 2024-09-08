@@ -30,7 +30,6 @@ PLATFORM_PATH = {
 
 
 class SignManage:
-
     @classmethod
     async def rank(
         cls, user_id: str, num: int, group_id: str | None = None
@@ -51,35 +50,36 @@ class SignManage:
                 "user_id", flat=True
             )
             query = query.filter(user_id__in=user_list)
-        all_list = (
+        user_list = (
             await query.annotate()
             .order_by("-impression")
-            .values_list("user_id", flat=True)
+            .values_list("user_id", "impression", "sign_count", "platform")
         )
-        index = all_list.index(user_id) + 1  # type: ignore
-        user_list = await query.annotate().order_by("-impression").limit(num).all()
-        user_id_list = [u.user_id for u in user_list]
+        user_id_list = [user[0] for user in user_list]
+        index = user_id_list.index(user_id) + 1
+        user_list = user_list[:num] if num < len(user_list) else user_list
         column_name = ["排名", "-", "名称", "好感度", "签到次数", "平台"]
         friend_list = await FriendUser.filter(user_id__in=user_id_list).values_list(
             "user_id", "user_name"
         )
         uid2name = {f[0]: f[1] for f in friend_list}
-        group_member_list = await GroupInfoUser.filter(
-            user_id__in=user_id_list
-        ).values_list("user_id", "user_name")
-        for gm in group_member_list:
-            uid2name[gm[0]] = gm[1]
+        if diff_id := set(user_id_list).difference(set(uid2name.keys())):
+            group_user = await GroupInfoUser.filter(user_id__in=diff_id).values_list(
+                "user_id", "user_name"
+            )
+            for g in group_user:
+                uid2name[g[0]] = g[1]
         data_list = []
         for i, user in enumerate(user_list):
-            bytes = await get_user_avatar(user.user_id)
+            bytes = await get_user_avatar(user[0])
             data_list.append(
                 [
                     f"{i+1}",
-                    (bytes, 30, 30) if user.platform == "qq" else "",
-                    uid2name.get(user.user_id),
-                    user.impression,
-                    user.sign_count,
-                    (PLATFORM_PATH.get(user.platform), 30, 30),
+                    (bytes, 30, 30) if user[3] == "qq" else "",
+                    uid2name.get(user[0]),
+                    user[1],
+                    user[2],
+                    (PLATFORM_PATH.get(user[3]), 30, 30),
                 ]
             )
         if group_id:

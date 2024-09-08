@@ -28,8 +28,8 @@ __plugin_meta__ = PluginMetadata(
     指令:
         签到
         我的签到
-        好感度排行
-        好感度总排行
+        好感度排行 ?[num=10]
+        好感度总排行 ?[num=10]
     * 签到时有 3% 概率 * 2 *
     """.strip(),
     extra=PluginExtraData(
@@ -116,7 +116,7 @@ _sign_matcher.shortcut(
 _sign_matcher.shortcut(
     "好感度总排行",
     command="签到",
-    arguments=["--list", "--global"],
+    arguments=["--global", "--list"],
     prefix=True,
 )
 
