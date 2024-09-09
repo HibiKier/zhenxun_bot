@@ -68,7 +68,6 @@ _t = on_message(priority=999, block=False, rule=lambda: False)
 
 @friend_req.handle()
 async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSession):
-    superuser = BotConfig.get_superuser("qq")
     if event.user_id and Timer.check(event.user_id):
         logger.debug("收录好友请求...", "好友请求", target=event.user_id)
         user = await bot.get_stranger_info(user_id=event.user_id)
@@ -102,16 +101,15 @@ async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSessi
                 nickname=nickname,
                 comment=comment,
             )
-            if superuser:
-                await PlatformUtils.send_superuser(
-                    bot,
-                    f"*****一份好友申请*****\n"
-                    f"ID: {f.id}"
-                    f"昵称：{nickname}({event.user_id})\n"
-                    f"自动同意：{'√' if base_config.get('AUTO_ADD_FRIEND') else '×'}\n"
-                    f"日期：{str(datetime.now()).split('.')[0]}\n"
-                    f"备注：{event.comment}",
-                )
+            await PlatformUtils.send_superuser(
+                bot,
+                f"*****一份好友申请*****\n"
+                f"ID: {f.id}"
+                f"昵称：{nickname}({event.user_id})\n"
+                f"自动同意：{'√' if base_config.get('AUTO_ADD_FRIEND') else '×'}\n"
+                f"日期：{str(datetime.now()).split('.')[0]}\n"
+                f"备注：{event.comment}",
+            )
     else:
         logger.debug("好友请求五分钟内重复, 已忽略", "好友请求", target=event.user_id)
 

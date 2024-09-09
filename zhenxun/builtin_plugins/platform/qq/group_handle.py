@@ -105,7 +105,7 @@ add_group = on_request(priority=1, block=False)
 
 @group_increase_handle.handle()
 async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent):
-    superuser = BotConfig.get_superuser("qq")
+    superusers = BotConfig.get_superuser("qq")
     user_id = str(event.user_id)
     group_id = str(event.group_id)
     if user_id == bot.self_id:
@@ -123,10 +123,11 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
                             group_id=event.group_id, message=result_msg
                         )
                     await bot.set_group_leave(group_id=event.group_id)
-                    await bot.send_private_msg(
-                        user_id=int(superuser),
-                        message=f"触发强制入群保护，已成功退出群聊 {group_id}...",
-                    )
+                    if superusers:
+                        await bot.send_private_msg(
+                            user_id=int(superusers[0]),
+                            message=f"触发强制入群保护，已成功退出群聊 {group_id}...",
+                        )
                     logger.info(
                         "强制拉群或未有群信息，退出群聊成功",
                         "入群检测",
@@ -144,10 +145,12 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
                         group_id=event.group_id,
                         e=e,
                     )
-                    await bot.send_private_msg(
-                        user_id=int(superuser),
-                        message=f"触发强制入群保护，退出群聊 {event.group_id} 失败...",
-                    )
+                    if superusers:
+                        await bot.send_private_msg(
+                            user_id=int(superusers[0]),
+                            message="触发强制入群保护，"
+                            f"退出群聊 {event.group_id} 失败...",
+                        )
                 await GroupConsole.filter(group_id=group_id).delete()
             else:
                 """允许群组并设置群认证，默认群功能开关"""
@@ -274,8 +277,8 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent | GroupMemberDecreaseEvent
             operator_name = "None"
         group = await GroupConsole.filter(group_id=str(group_id)).first()
         group_name = group.group_name if group else ""
-        if superuser := BotConfig.get_superuser("qq"):
-            coffee = int(superuser)
+        if superusers := BotConfig.get_superuser("qq"):
+            coffee = int(superusers[0])
             await bot.send_private_msg(
                 user_id=coffee,
                 message=f"****呜..一份踢出报告****\n"

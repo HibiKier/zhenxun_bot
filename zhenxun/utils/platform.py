@@ -1,29 +1,28 @@
 import random
-from collections.abc import Awaitable, Callable
 from typing import Literal
+from collections.abc import Callable, Awaitable
 
 import httpx
 import nonebot
+from pydantic import BaseModel
 from nonebot.adapters import Bot
-from nonebot.adapters.discord import Bot as DiscordBot
+from nonebot.utils import is_coroutine_callable
 from nonebot.adapters.dodo import Bot as DodoBot
-from nonebot.adapters.kaiheila import Bot as KaiheilaBot
 from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
-from nonebot.utils import is_coroutine_callable
-from nonebot_plugin_alconna.uniseg import Receipt, Target, UniMessage
-from pydantic import BaseModel
+from nonebot.adapters.discord import Bot as DiscordBot
+from nonebot.adapters.kaiheila import Bot as KaiheilaBot
+from nonebot_plugin_alconna.uniseg import Target, Receipt, UniMessage
 
-from zhenxun.configs.config import BotConfig
-from zhenxun.models.friend_user import FriendUser
-from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
-from zhenxun.utils.exception import NotFindSuperuser
+from zhenxun.configs.config import BotConfig
 from zhenxun.utils.message import MessageUtils
+from zhenxun.models.friend_user import FriendUser
+from zhenxun.utils.exception import NotFindSuperuser
+from zhenxun.models.group_console import GroupConsole
 
 
 class UserData(BaseModel):
-
     name: str
     """昵称"""
     card: str | None = None
@@ -41,7 +40,6 @@ class UserData(BaseModel):
 
 
 class PlatformUtils:
-
     @classmethod
     async def ban_user(cls, bot: Bot, user_id: str, group_id: str, duration: int):
         """禁言
