@@ -55,7 +55,7 @@ _matcher = on_alconna(
         Subcommand("my-props", help_text="我的道具"),
         Subcommand("buy", Args["name", str]["num", int, 1], help_text="购买道具"),
         Subcommand("use", Args["name", str]["num?", int, 1], help_text="使用道具"),
-        Subcommand("gold-list", Args["num?", int], help_text="使用道具"),
+        Subcommand("gold-list", Args["num", int], help_text="金币排行"),
     ),
     priority=5,
     block=True,
@@ -181,8 +181,14 @@ async def _(
 async def _(
     session: EventSession, arparma: Arparma, num: Query[int] = AlconnaQuery("num", 10)
 ):
+    if num.result > 50:
+        await MessageUtils.build_message("排行榜人数不能超过50哦...").finish()
     if session.id1:
         gid = session.id3 or session.id2
+        if not arparma.find("all") and not gid:
+            await MessageUtils.build_message(
+                "私聊中无法查看 '金币排行'，请发送 '金币总排行'"
+            ).finish()
         if arparma.find("all"):
             gid = None
         result = await gold_rank(session.id1, gid, num.result, session.platform)
