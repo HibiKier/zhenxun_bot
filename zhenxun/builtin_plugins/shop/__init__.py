@@ -55,7 +55,7 @@ _matcher = on_alconna(
         Subcommand("my-props", help_text="我的道具"),
         Subcommand("buy", Args["name", str]["num", int, 1], help_text="购买道具"),
         Subcommand("use", Args["name", str]["num?", int, 1], help_text="使用道具"),
-        Subcommand("gold-list", Args["num", int], help_text="使用道具"),
+        Subcommand("gold-list", Args["num", int], help_text="金币排行"),
     ),
     priority=5,
     block=True,
