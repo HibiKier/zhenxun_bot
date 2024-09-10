@@ -441,7 +441,7 @@ class ConfigsManager:
             self._data[module] = config_group
         logger.info(
             f"加载配置完成，共加载 <u><y>{len(temp_data)}</y></u> 个配置组及对应"
-            " <u><y>{count}</y></u> 个配置项"
+            f" <u><y>{count}</y></u> 个配置项"
         )
 
     def get_data(self) -> dict[str, ConfigGroup]:

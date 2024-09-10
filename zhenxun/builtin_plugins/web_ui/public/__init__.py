@@ -25,7 +25,7 @@ async def init_public(app: FastAPI):
         if not PUBLIC_PATH.exists():
             folders = await update_webui_assets()
         else:
-            folders = [x.name for x in PUBLIC_PATH.iterdir()]
+            folders = [x.name for x in PUBLIC_PATH.iterdir() if x.is_dir()]
         app.include_router(router)
         for pathname in folders:
             logger.debug(f"挂载文件夹: {pathname}")

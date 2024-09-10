@@ -35,7 +35,7 @@ def _file_handle(webui_assets_path: Path):
         logger.debug("解压 webui_assets 成功...", COMMAND_NAME)
     else:
         raise Exception("解压 webui_assets 失败，文件不存在...", COMMAND_NAME)
-    download_file_path = TMP_PATH / next(iter(TMP_PATH.iterdir()))
+    download_file_path = next(f for f in TMP_PATH.iterdir() if f.is_dir())
     shutil.rmtree(PUBLIC_PATH, ignore_errors=True)
     shutil.copytree(download_file_path / "dist", PUBLIC_PATH, dirs_exist_ok=True)
     logger.debug("复制 webui_assets 成功...", COMMAND_NAME)
