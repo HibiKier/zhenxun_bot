@@ -164,7 +164,7 @@ class HelpImageBuild:
             template_name="main.html",
             templates={"data": {"plugin_list": _data, "ava": AVA_URL.format(bot_id)}},
             pages={
-                "viewport": {"width": 637, "height": 975},
+                "viewport": {"width": 637, "height": 453},
                 "base_url": f"file://{TEMPLATE_PATH}",
             },
             wait=2,
