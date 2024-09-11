@@ -111,7 +111,7 @@ class HelpImageBuild:
                 )
         max_len = 0
         flag_index = -1
-        max_data = None
+        max_data = {}
         plugin_list = []
         for index, plu in enumerate(classify.keys()):
             data = {
@@ -124,9 +124,24 @@ class HelpImageBuild:
                 max_data = data
             plugin_list.append(data)
         del plugin_list[flag_index]
-        plugin_list.insert(0, max_data)
+        # plugin_list.insert(0, max_data)
         _data = []
         _left = 30
+        _pu1 = []
+        _pu2 = []
+        for i in range(len(max_data["items"])):
+            if i % 2:
+                _pu1.append(max_data["items"][i])
+            else:
+                _pu2.append(max_data["items"][i])
+        _plugins = [(30, 50, _pu1), (0, 50, _pu2)]
+        _data.append(
+            {
+                "name": max_data["name"],
+                "items": [(30, 50, _pu1), (0, 50, _pu2)],
+                "width": 100,
+            }
+        )
         for plugin in plugin_list:
             _plugins = []
             width = 50
