@@ -92,7 +92,7 @@ _sign_matcher = on_alconna(
         Option("--my", action=store_true, help_text="我的签到"),
         Option(
             "-l|--list",
-            Args["num", int],
+            Args["num?", int],
             help_text="好感度排行",
         ),
         Option("-g|--global", action=store_true, help_text="全局排行"),
