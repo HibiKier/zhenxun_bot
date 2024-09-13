@@ -20,4 +20,4 @@ def parse_github_url(github_url: str) -> "RepoInfo":
 jsdelivr_api = RepoAPI(JsdelivrStrategy())  # type: ignore
 github_api = RepoAPI(GitHubStrategy())  # type: ignore
 
-api_strategy = [jsdelivr_api, github_api]
+api_strategy = [github_api, jsdelivr_api]
