@@ -267,6 +267,18 @@ class PlatformUtils:
         return None
 
     @classmethod
+    async def get_user_avatar_url(cls, user_id: str, platform: str) -> str | None:
+        """快捷获取用户头像url
+
+        参数:
+            user_id: 用户id
+            platform: 平台
+        """
+        if platform == "qq":
+            return f"http://q1.qlogo.cn/g?b=qq&nk={user_id}&s=160"
+        return None
+
+    @classmethod
     async def get_group_avatar(cls, gid: str, platform: str) -> bytes | None:
         """快捷获取用群头像
 
