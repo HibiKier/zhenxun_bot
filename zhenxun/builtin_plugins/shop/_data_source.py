@@ -633,7 +633,7 @@ class ShopManage:
             # await A.apaste(bk, (0, current_h), True)
             # current_h += 90
         current_h = 0
-        h = sum(img.height + 10 for img in image_list)
+        h = sum(img.height + 10 for img in image_list) or 400
         A = BuildImage(1100, h, color="#f9f6f2")
         for img in image_list:
             await A.paste(img, (0, current_h))
