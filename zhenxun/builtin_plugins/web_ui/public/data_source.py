@@ -6,7 +6,7 @@ from nonebot.utils import run_sync
 
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
-from zhenxun.utils.github_utils import parse_github_url
+from zhenxun.utils.github_utils import GithubUtils
 
 from ..config import TMP_PATH, PUBLIC_PATH, WEBUI_DIST_GITHUB_URL
 
@@ -15,9 +15,9 @@ COMMAND_NAME = "WebUI资源管理"
 
 async def update_webui_assets():
     webui_assets_path = TMP_PATH / "webui_assets.zip"
-    download_url = await parse_github_url(
+    download_url = await GithubUtils.parse_github_url(
         WEBUI_DIST_GITHUB_URL
-    ).get_archive_download_url()
+    ).get_archive_download_urls()
     if await AsyncHttpx.download_file(
         download_url, webui_assets_path, follow_redirects=True
     ):

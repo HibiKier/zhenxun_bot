@@ -7,9 +7,9 @@ from pydantic import BaseModel
 from ..http_utils import AsyncHttpx
 from .consts import CACHED_API_TTL, GIT_API_TREES_FORMAT, JSD_PACKAGE_API_FORMAT
 from .func import (
-    get_fastest_raw_format,
-    get_fastest_archive_format,
-    get_fastest_release_source_format,
+    get_fastest_raw_formats,
+    get_fastest_archive_formats,
+    get_fastest_release_source_formats,
 )
 
 
@@ -20,21 +20,41 @@ class RepoInfo(BaseModel):
     repo: str
     branch: str = "main"
 
-    async def get_raw_download_url(self, path: str):
-        url_format = await get_fastest_raw_format()
-        return url_format.format(**self.dict(), path=path)
+    async def get_raw_download_url(self, path: str) -> str:
+        return (await self.get_raw_download_urls(path))[0]
 
-    async def get_archive_download_url(self):
-        url_format = await get_fastest_archive_format()
-        return url_format.format(**self.dict())
+    async def get_archive_download_url(self) -> str:
+        return (await self.get_archive_download_urls())[0]
 
-    async def get_release_source_download_url_tgz(self, version: str):
-        url_format = await get_fastest_release_source_format()
-        return url_format.format(**self.dict(), version=version, compress="tar.gz")
+    async def get_release_source_download_url_tgz(self, version: str) -> str:
+        return (await self.get_release_source_download_urls_tgz(version))[0]
 
-    async def get_release_source_download_url_zip(self, version: str):
-        url_format = await get_fastest_release_source_format()
-        return url_format.format(**self.dict(), version=version, compress="zip")
+    async def get_release_source_download_url_zip(self, version: str) -> str:
+        return (await self.get_release_source_download_urls_zip(version))[0]
+
+    async def get_raw_download_urls(self, path: str) -> list[str]:
+        url_formats = await get_fastest_raw_formats()
+        return [
+            url_format.format(**self.dict(), path=path) for url_format in url_formats
+        ]
+
+    async def get_archive_download_urls(self) -> list[str]:
+        url_formats = await get_fastest_archive_formats()
+        return [url_format.format(**self.dict()) for url_format in url_formats]
+
+    async def get_release_source_download_urls_tgz(self, version: str) -> list[str]:
+        url_formats = await get_fastest_release_source_formats()
+        return [
+            url_format.format(**self.dict(), version=version, compress="tar.gz")
+            for url_format in url_formats
+        ]
+
+    async def get_release_source_download_urls_zip(self, version: str) -> list[str]:
+        url_formats = await get_fastest_release_source_formats()
+        return [
+            url_format.format(**self.dict(), version=version, compress="zip")
+            for url_format in url_formats
+        ]
 
 
 class APIStrategy(Protocol):
