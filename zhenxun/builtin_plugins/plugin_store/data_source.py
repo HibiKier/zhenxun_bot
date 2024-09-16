@@ -252,11 +252,10 @@ class ShopManage:
                 )
                 for _id, success in enumerate(result):
                     if not success:
-                        break
+                        raise Exception("插件依赖文件下载失败")
                 else:
                     logger.debug(f"插件依赖文件列表: {req_paths}", "插件管理")
                     install_requirement(plugin_path)
-                raise Exception("插件依赖文件下载失败")
             return True
         raise Exception("插件下载失败")
 

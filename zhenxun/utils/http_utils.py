@@ -11,9 +11,9 @@ import httpx
 import aiofiles
 from retrying import retry
 from playwright.async_api import Page
-from httpx import Response, ConnectTimeout
 from nonebot_plugin_alconna import UniMessage
 from nonebot_plugin_htmlrender import get_browser
+from httpx import Response, ConnectTimeout, HTTPStatusError
 
 from zhenxun.services.log import logger
 from zhenxun.configs.config import BotConfig
@@ -205,34 +205,36 @@ class AsyncHttpx:
         path.parent.mkdir(parents=True, exist_ok=True)
         try:
             for _ in range(3):
-                if not stream:
-                    try:
-                        response = await cls.get(
-                            url,
-                            params=params,
-                            headers=headers,
-                            cookies=cookies,
-                            use_proxy=use_proxy,
-                            proxy=proxy,
-                            timeout=timeout,
-                            follow_redirects=follow_redirects,
-                            **kwargs,
-                        )
-                        response.raise_for_status()
-                        content = response.content
-                        async with aiofiles.open(path, "wb") as wf:
-                            await wf.write(content)
-                            logger.info(f"下载 {url} 成功.. Path：{path.absolute()}")
-                        return True
-                    except (TimeoutError, ConnectTimeout):
-                        pass
-                else:
-                    if not headers:
-                        headers = get_user_agent()
-                    _proxy = proxy if proxy else cls.proxy if use_proxy else None
-                    if not isinstance(url, list):
-                        url = [url]
-                    for u in url:
+                if not isinstance(url, list):
+                    url = [url]
+                for u in url:
+                    if not stream:
+                        try:
+                            response = await cls.get(
+                                u,
+                                params=params,
+                                headers=headers,
+                                cookies=cookies,
+                                use_proxy=use_proxy,
+                                proxy=proxy,
+                                timeout=timeout,
+                                follow_redirects=follow_redirects,
+                                **kwargs,
+                            )
+                            response.raise_for_status()
+                            content = response.content
+                            async with aiofiles.open(path, "wb") as wf:
+                                await wf.write(content)
+                                logger.info(
+                                    f"下载 {url} 成功.. Path：{path.absolute()}"
+                                )
+                            return True
+                        except (TimeoutError, ConnectTimeout, HTTPStatusError):
+                            pass
+                    else:
+                        if not headers:
+                            headers = get_user_agent()
+                        _proxy = proxy if proxy else cls.proxy if use_proxy else None
                         try:
                             async with httpx.AsyncClient(
                                 proxies=_proxy,  # type: ignore
@@ -277,7 +279,7 @@ class AsyncHttpx:
                                             f"Path：{path.absolute()}"
                                         )
                             return True
-                        except (TimeoutError, ConnectTimeout):
+                        except (TimeoutError, ConnectTimeout, HTTPStatusError):
                             pass
             else:
                 logger.error(f"下载 {url} 下载超时.. Path：{path.absolute()}")
