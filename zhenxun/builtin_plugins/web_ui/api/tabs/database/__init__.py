@@ -1,16 +1,16 @@
 import nonebot
-from fastapi import APIRouter, Request
-from nonebot.drivers import Driver
 from tortoise import Tortoise
+from nonebot.drivers import Driver
+from fastapi import Request, APIRouter
 from tortoise.exceptions import OperationalError
 
-from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.task_info import TaskInfo
+from zhenxun.models.plugin_info import PluginInfo
 
-from ....base_model import BaseResultModel, QueryModel, Result
-from ....utils import authentication
-from .models.model import SqlModel, SqlText
 from .models.sql_log import SqlLog
+from ....utils import authentication
+from .models.model import SqlText, SqlModel
+from ....base_model import Result, QueryModel, BaseResultModel
 
 router = APIRouter(prefix="/database")
 
@@ -24,7 +24,8 @@ SQL_DICT = {}
 SELECT_TABLE_SQL = """
 select a.tablename as name,d.description as desc from pg_tables a
     left join pg_class c on relname=tablename
-    left join pg_description d on oid=objoid and objsubid=0 where a.schemaname = 'public'
+    left join pg_description d on oid=objoid
+    and objsubid=0 where a.schemaname = 'public'
 """
 
 SELECT_TABLE_COLUMN_SQL = """
@@ -57,10 +58,7 @@ async def _():
         module2name = {r[0]: r[1] for r in result}
         for s in SQL_DICT:
             module = SQL_DICT[s].module
-            if module in module2name:
-                SQL_DICT[s].name = module2name[module]
-            else:
-                SQL_DICT[s].name = module
+            SQL_DICT[s].name = module2name.get(module, module)
 
 
 @router.get(
@@ -77,7 +75,7 @@ async def _() -> Result:
 )
 async def _(table_name: str) -> Result:
     db = Tortoise.get_connection("default")
-    print(SELECT_TABLE_COLUMN_SQL.format(table_name))
+    # print(SELECT_TABLE_COLUMN_SQL.format(table_name))
     query = await db.execute_query_dict(SELECT_TABLE_COLUMN_SQL.format(table_name))
     return Result.ok(query)
 
@@ -92,7 +90,7 @@ async def _(sql: SqlText, request: Request) -> Result:
             await SqlLog.add(ip or "0.0.0.0", sql.sql, "")
             return Result.ok(res, "执行成功啦!")
         else:
-            result = await TestSQL.raw(sql.sql)
+            result = await TaskInfo.raw(sql.sql)
             await SqlLog.add(ip or "0.0.0.0", sql.sql, str(result))
             return Result.ok(info="执行成功啦!")
     except OperationalError as e:
