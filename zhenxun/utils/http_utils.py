@@ -11,9 +11,9 @@ import httpx
 import aiofiles
 from retrying import retry
 from playwright.async_api import Page
-from httpx import Response, ConnectTimeout
 from nonebot_plugin_alconna import UniMessage
 from nonebot_plugin_htmlrender import get_browser
+from httpx import Response, ConnectTimeout, HTTPStatusError
 
 from zhenxun.services.log import logger
 from zhenxun.configs.config import BotConfig
@@ -33,7 +33,7 @@ class AsyncHttpx:
     @retry(stop_max_attempt_number=3)
     async def get(
         cls,
-        url: str,
+        url: str | list[str],
         *,
         params: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
@@ -56,6 +56,49 @@ class AsyncHttpx:
             proxy: 指定代理
             timeout: 超时时间
         """
+        urls = [url] if isinstance(url, str) else url
+        return await cls._get_first_successful(
+            urls,
+            params=params,
+            headers=headers,
+            cookies=cookies,
+            verify=verify,
+            use_proxy=use_proxy,
+            proxy=proxy,
+            timeout=timeout,
+            **kwargs,
+        )
+
+    @classmethod
+    async def _get_first_successful(
+        cls,
+        urls: list[str],
+        **kwargs,
+    ) -> Response:
+        last_exception = None
+        for url in urls:
+            try:
+                return await cls._get_single(url, **kwargs)
+            except Exception as e:
+                last_exception = e
+                if url != urls[-1]:
+                    logger.warning(f"获取 {url} 失败, 尝试下一个")
+        raise last_exception or Exception("All URLs failed")
+
+    @classmethod
+    async def _get_single(
+        cls,
+        url: str,
+        *,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        cookies: dict[str, str] | None = None,
+        verify: bool = True,
+        use_proxy: bool = True,
+        proxy: dict[str, str] | None = None,
+        timeout: int = 30,
+        **kwargs,
+    ) -> Response:
         if not headers:
             headers = get_user_agent()
         _proxy = proxy if proxy else cls.proxy if use_proxy else None
@@ -162,7 +205,7 @@ class AsyncHttpx:
     @classmethod
     async def download_file(
         cls,
-        url: str,
+        url: str | list[str],
         path: str | Path,
         *,
         params: dict[str, str] | None = None,
@@ -195,75 +238,79 @@ class AsyncHttpx:
         path.parent.mkdir(parents=True, exist_ok=True)
         try:
             for _ in range(3):
-                if not stream:
+                if not isinstance(url, list):
+                    url = [url]
+                for u in url:
                     try:
-                        response = await cls.get(
-                            url,
-                            params=params,
-                            headers=headers,
-                            cookies=cookies,
-                            use_proxy=use_proxy,
-                            proxy=proxy,
-                            timeout=timeout,
-                            follow_redirects=follow_redirects,
-                            **kwargs,
-                        )
-                        response.raise_for_status()
-                        content = response.content
-                        async with aiofiles.open(path, "wb") as wf:
-                            await wf.write(content)
-                            logger.info(f"下载 {url} 成功.. Path：{path.absolute()}")
-                        return True
-                    except (TimeoutError, ConnectTimeout):
-                        pass
-                else:
-                    if not headers:
-                        headers = get_user_agent()
-                    _proxy = proxy if proxy else cls.proxy if use_proxy else None
-                    try:
-                        async with httpx.AsyncClient(
-                            proxies=_proxy,  # type: ignore
-                            verify=verify,
-                        ) as client:
-                            async with client.stream(
-                                "GET",
-                                url,
+                        if not stream:
+                            response = await cls.get(
+                                u,
                                 params=params,
                                 headers=headers,
                                 cookies=cookies,
+                                use_proxy=use_proxy,
+                                proxy=proxy,
                                 timeout=timeout,
-                                follow_redirects=True,
+                                follow_redirects=follow_redirects,
                                 **kwargs,
-                            ) as response:
-                                response.raise_for_status()
-                                logger.info(
-                                    f"开始下载 {path.name}.. Path: {path.absolute()}"
-                                )
-                                async with aiofiles.open(path, "wb") as wf:
-                                    total = int(response.headers["Content-Length"])
-                                    with rich.progress.Progress(  # type: ignore
-                                        rich.progress.TextColumn(path.name),  # type: ignore
-                                        "[progress.percentage]{task.percentage:>3.0f}%",  # type: ignore
-                                        rich.progress.BarColumn(bar_width=None),  # type: ignore
-                                        rich.progress.DownloadColumn(),  # type: ignore
-                                        rich.progress.TransferSpeedColumn(),  # type: ignore
-                                    ) as progress:
-                                        download_task = progress.add_task(
-                                            "Download", total=total
-                                        )
-                                        async for chunk in response.aiter_bytes():
-                                            await wf.write(chunk)
-                                            await wf.flush()
-                                            progress.update(
-                                                download_task,
-                                                completed=response.num_bytes_downloaded,
-                                            )
+                            )
+                            response.raise_for_status()
+                            content = response.content
+                            async with aiofiles.open(path, "wb") as wf:
+                                await wf.write(content)
+                                logger.info(f"下载 {u} 成功.. Path：{path.absolute()}")
+                            return True
+                        else:
+                            if not headers:
+                                headers = get_user_agent()
+                            _proxy = (
+                                proxy if proxy else cls.proxy if use_proxy else None
+                            )
+                            async with httpx.AsyncClient(
+                                proxies=_proxy,  # type: ignore
+                                verify=verify,
+                            ) as client:
+                                async with client.stream(
+                                    "GET",
+                                    u,
+                                    params=params,
+                                    headers=headers,
+                                    cookies=cookies,
+                                    timeout=timeout,
+                                    follow_redirects=True,
+                                    **kwargs,
+                                ) as response:
+                                    response.raise_for_status()
                                     logger.info(
-                                        f"下载 {url} 成功.. Path：{path.absolute()}"
+                                        f"开始下载 {path.name}.. "
+                                        f"Path: {path.absolute()}"
                                     )
-                        return True
-                    except (TimeoutError, ConnectTimeout):
-                        pass
+                                    async with aiofiles.open(path, "wb") as wf:
+                                        total = int(response.headers["Content-Length"])
+                                        with rich.progress.Progress(  # type: ignore
+                                            rich.progress.TextColumn(path.name),  # type: ignore
+                                            "[progress.percentage]{task.percentage:>3.0f}%",  # type: ignore
+                                            rich.progress.BarColumn(bar_width=None),  # type: ignore
+                                            rich.progress.DownloadColumn(),  # type: ignore
+                                            rich.progress.TransferSpeedColumn(),  # type: ignore
+                                        ) as progress:
+                                            download_task = progress.add_task(
+                                                "Download", total=total
+                                            )
+                                            async for chunk in response.aiter_bytes():
+                                                await wf.write(chunk)
+                                                await wf.flush()
+                                                progress.update(
+                                                    download_task,
+                                                    completed=response.num_bytes_downloaded,
+                                                )
+                                        logger.info(
+                                            f"下载 {u} 成功.. "
+                                            f"Path：{path.absolute()}"
+                                        )
+                            return True
+                    except (TimeoutError, ConnectTimeout, HTTPStatusError):
+                        logger.warning(f"下载 {u} 失败.. 尝试下一个地址..")
             else:
                 logger.error(f"下载 {url} 下载超时.. Path：{path.absolute()}")
         except Exception as e:
@@ -273,7 +320,7 @@ class AsyncHttpx:
     @classmethod
     async def gather_download_file(
         cls,
-        url_list: list[str],
+        url_list: list[str] | list[list[str]],
         path_list: list[str | Path],
         *,
         limit_async_number: int | None = None,

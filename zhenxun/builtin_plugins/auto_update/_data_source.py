@@ -10,8 +10,8 @@ from nonebot.utils import run_sync
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.platform import PlatformUtils
+from zhenxun.utils.github_utils import GithubUtils
 from zhenxun.utils.github_utils.models import RepoInfo
-from zhenxun.utils.github_utils import parse_github_url
 
 from .config import (
     TMP_PATH,
@@ -170,19 +170,19 @@ class UpdateManage:
         cur_version = cls.__get_version()
         url = None
         new_version = None
-        repo_info = parse_github_url(DEFAULT_GITHUB_URL)
+        repo_info = GithubUtils.parse_github_url(DEFAULT_GITHUB_URL)
         if version_type in {"dev", "main"}:
             repo_info.branch = version_type
             new_version = await cls.__get_version_from_repo(repo_info)
             if new_version:
                 new_version = new_version.split(":")[-1].strip()
-            url = await repo_info.get_archive_download_url()
+            url = await repo_info.get_archive_download_urls()
         elif version_type == "release":
             data = await cls.__get_latest_data()
             if not data:
                 return "获取更新版本失败..."
             new_version = data.get("name", "")
-            url = await repo_info.get_release_source_download_url_tgz(new_version)
+            url = await repo_info.get_release_source_download_urls_tgz(new_version)
         if not url:
             return "获取版本下载链接失败..."
         if TMP_PATH.exists():
@@ -200,7 +200,7 @@ class UpdateManage:
         download_file = (
             DOWNLOAD_GZ_FILE if version_type == "release" else DOWNLOAD_ZIP_FILE
         )
-        if await AsyncHttpx.download_file(url, download_file):
+        if await AsyncHttpx.download_file(url, download_file, stream=True):
             logger.debug("下载真寻最新版文件完成...", "检查更新")
             await _file_handle(new_version)
             return (
@@ -253,7 +253,7 @@ class UpdateManage:
         返回:
             str: 版本号
         """
-        version_url = await repo_info.get_raw_download_url(path="__version__")
+        version_url = await repo_info.get_raw_download_urls(path="__version__")
         try:
             res = await AsyncHttpx.get(version_url)
             if res.status_code == 200:
