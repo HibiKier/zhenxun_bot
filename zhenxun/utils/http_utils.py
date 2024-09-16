@@ -56,28 +56,61 @@ class AsyncHttpx:
             proxy: 指定代理
             timeout: 超时时间
         """
-        if not isinstance(url, list):
-            url = [url]
+        urls = [url] if isinstance(url, str) else url
+        return await cls._get_first_successful(
+            urls,
+            params=params,
+            headers=headers,
+            cookies=cookies,
+            verify=verify,
+            use_proxy=use_proxy,
+            proxy=proxy,
+            timeout=timeout,
+            **kwargs,
+        )
+
+    @classmethod
+    async def _get_first_successful(
+        cls,
+        urls: list[str],
+        **kwargs,
+    ) -> Response:
+        last_exception = None
+        for url in urls:
+            try:
+                return await cls._get_single(url, **kwargs)
+            except Exception as e:
+                last_exception = e
+                if url != urls[-1]:
+                    logger.warning(f"获取 {url} 失败, 尝试下一个")
+        raise last_exception or Exception("All URLs failed")
+
+    @classmethod
+    async def _get_single(
+        cls,
+        url: str,
+        *,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        cookies: dict[str, str] | None = None,
+        verify: bool = True,
+        use_proxy: bool = True,
+        proxy: dict[str, str] | None = None,
+        timeout: int = 30,
+        **kwargs,
+    ) -> Response:
         if not headers:
             headers = get_user_agent()
-        last_exception = Exception
         _proxy = proxy if proxy else cls.proxy if use_proxy else None
-        for u in url:
-            try:
-                async with httpx.AsyncClient(proxies=_proxy, verify=verify) as client:  # type: ignore
-                    return await client.get(
-                        u,
-                        params=params,
-                        headers=headers,
-                        cookies=cookies,
-                        timeout=timeout,
-                        **kwargs,
-                    )
-            except Exception:
-                last_exception = Exception
-                if u != url[-1]:
-                    logger.warning(f"获取 {u} 失败, 尝试下一个")
-        raise last_exception
+        async with httpx.AsyncClient(proxies=_proxy, verify=verify) as client:  # type: ignore
+            return await client.get(
+                url,
+                params=params,
+                headers=headers,
+                cookies=cookies,
+                timeout=timeout,
+                **kwargs,
+            )
 
     @classmethod
     async def head(
@@ -208,8 +241,8 @@ class AsyncHttpx:
                 if not isinstance(url, list):
                     url = [url]
                 for u in url:
-                    if not stream:
-                        try:
+                    try:
+                        if not stream:
                             response = await cls.get(
                                 u,
                                 params=params,
@@ -225,17 +258,14 @@ class AsyncHttpx:
                             content = response.content
                             async with aiofiles.open(path, "wb") as wf:
                                 await wf.write(content)
-                                logger.info(
-                                    f"下载 {url} 成功.. Path：{path.absolute()}"
-                                )
+                                logger.info(f"下载 {u} 成功.. Path：{path.absolute()}")
                             return True
-                        except (TimeoutError, ConnectTimeout, HTTPStatusError):
-                            pass
-                    else:
-                        if not headers:
-                            headers = get_user_agent()
-                        _proxy = proxy if proxy else cls.proxy if use_proxy else None
-                        try:
+                        else:
+                            if not headers:
+                                headers = get_user_agent()
+                            _proxy = (
+                                proxy if proxy else cls.proxy if use_proxy else None
+                            )
                             async with httpx.AsyncClient(
                                 proxies=_proxy,  # type: ignore
                                 verify=verify,
@@ -279,8 +309,8 @@ class AsyncHttpx:
                                             f"Path：{path.absolute()}"
                                         )
                             return True
-                        except (TimeoutError, ConnectTimeout, HTTPStatusError):
-                            pass
+                    except (TimeoutError, ConnectTimeout, HTTPStatusError):
+                        logger.warning(f"下载 {u} 失败.. 尝试下一个地址..")
             else:
                 logger.error(f"下载 {url} 下载超时.. Path：{path.absolute()}")
         except Exception as e:
