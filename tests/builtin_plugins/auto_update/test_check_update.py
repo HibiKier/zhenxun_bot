@@ -43,11 +43,11 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
     mocked_api.get(
         url="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/dev/__version__",
         name="dev_branch_version",
-    ).respond(text="__version__: v0.2.2")
+    ).respond(text="__version__: v0.2.2-e6f17c4")
     mocked_api.get(
         url="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/__version__",
         name="main_branch_version",
-    ).respond(text="__version__: v0.2.2")
+    ).respond(text="__version__: v0.2.2-e6f17c4")
     mocked_api.get(
         url="https://api.github.com/repos/HibiKier/zhenxun_bot/tarball/v0.2.2",
         name="release_download_url",
@@ -197,6 +197,7 @@ def add_directory_to_tar(tarinfo, tar):
 def init_mocker_path(mocker: MockerFixture, tmp_path: Path):
     from zhenxun.builtin_plugins.auto_update.config import (
         REQ_TXT_FILE_STRING,
+        VERSION_FILE_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
     )
@@ -237,6 +238,11 @@ def init_mocker_path(mocker: MockerFixture, tmp_path: Path):
         "zhenxun.builtin_plugins.auto_update._data_source.REQ_TXT_FILE",
         new=tmp_path / REQ_TXT_FILE_STRING,
     )
+    mock_version_file = mocker.patch(
+        "zhenxun.builtin_plugins.auto_update._data_source.VERSION_FILE",
+        new=tmp_path / VERSION_FILE_STRING,
+    )
+    open(mock_version_file, "w").write("__version__: v0.2.2")
     return (
         mock_tmp_path,
         mock_base_path,
@@ -246,6 +252,7 @@ def init_mocker_path(mocker: MockerFixture, tmp_path: Path):
         mock_pyproject_file,
         mock_pyproject_lock_file,
         mock_req_txt_file,
+        mock_version_file,
     )
 
 
@@ -278,6 +285,7 @@ async def test_check_update_release(
         mock_pyproject_file,
         mock_pyproject_lock_file,
         mock_req_txt_file,
+        mock_version_file,
     ) = init_mocker_path(mocker, tmp_path)
 
     # 确保目录下有一个子目录，以便 os.listdir() 能返回一个目录名
@@ -306,7 +314,7 @@ async def test_check_update_release(
         ctx.should_call_api(
             "send_msg",
             _v11_private_message_send(
-                message="检测真寻已更新，版本更新：v0.2.2 -> v0.2.2\n开始更新...",
+                message="检测真寻已更新，版本更新：v0.2.2 -> v0.2.2\n" "开始更新...",
                 user_id=UserId.SUPERUSER,
             ),
         )
@@ -368,6 +376,7 @@ async def test_check_update_dev(
         mock_pyproject_file,
         mock_pyproject_lock_file,
         mock_req_txt_file,
+        mock_version_file,
     ) = init_mocker_path(mocker, tmp_path)
 
     # 确保目录下有一个子目录，以便 os.listdir() 能返回一个目录名
@@ -395,14 +404,17 @@ async def test_check_update_dev(
         ctx.should_call_api(
             "send_msg",
             _v11_private_message_send(
-                message="检测真寻已更新，版本更新：v0.2.2 -> v0.2.2\n开始更新...",
+                message="检测真寻已更新，版本更新：v0.2.2 -> v0.2.2-e6f17c4\n"
+                "开始更新...",
                 user_id=UserId.SUPERUSER,
             ),
         )
         ctx.should_call_send(
             event=event,
             message=Message(
-                "版本更新完成\n" "版本: v0.2.2 -> v0.2.2\n" "请重新启动真寻以完成更新!"
+                "版本更新完成\n"
+                "版本: v0.2.2 -> v0.2.2-e6f17c4\n"
+                "请重新启动真寻以完成更新!"
             ),
             result=None,
             bot=bot,
@@ -455,6 +467,7 @@ async def test_check_update_main(
         mock_pyproject_file,
         mock_pyproject_lock_file,
         mock_req_txt_file,
+        mock_version_file,
     ) = init_mocker_path(mocker, tmp_path)
 
     # 确保目录下有一个子目录，以便 os.listdir() 能返回一个目录名
@@ -482,14 +495,17 @@ async def test_check_update_main(
         ctx.should_call_api(
             "send_msg",
             _v11_private_message_send(
-                message="检测真寻已更新，版本更新：v0.2.2 -> v0.2.2\n开始更新...",
+                message="检测真寻已更新，版本更新：v0.2.2 -> v0.2.2-e6f17c4\n"
+                "开始更新...",
                 user_id=UserId.SUPERUSER,
             ),
         )
         ctx.should_call_send(
             event=event,
             message=Message(
-                "版本更新完成\n" "版本: v0.2.2 -> v0.2.2\n" "请重新启动真寻以完成更新!"
+                "版本更新完成\n"
+                "版本: v0.2.2 -> v0.2.2-e6f17c4\n"
+                "请重新启动真寻以完成更新!"
             ),
             result=None,
             bot=bot,
