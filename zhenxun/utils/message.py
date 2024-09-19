@@ -2,12 +2,12 @@ from io import BytesIO
 from pathlib import Path
 
 import nonebot
-from nonebot.adapters.onebot.v11 import Message, MessageSegment
-from nonebot_plugin_alconna import At, Image, Text, UniMessage, Video, Voice
 from pydantic import BaseModel
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
+from nonebot_plugin_alconna import At, Text, AtAll, Image, Video, Voice, UniMessage
 
-from zhenxun.configs.config import BotConfig
 from zhenxun.services.log import logger
+from zhenxun.configs.config import BotConfig
 from zhenxun.utils._build_image import BuildImage
 
 driver = nonebot.get_driver()
@@ -21,6 +21,7 @@ MESSAGE_TYPE = (
     | BytesIO
     | BuildImage
     | At
+    | AtAll
     | Image
     | Text
     | Voice
@@ -33,7 +34,6 @@ class Config(BaseModel):
 
 
 class MessageUtils:
-
     @classmethod
     def __build_message(cls, msg_list: list[MESSAGE_TYPE]) -> list[Text | Image]:
         """构造消息
@@ -47,7 +47,7 @@ class MessageUtils:
         config = nonebot.get_plugin_config(Config)
         message_list = []
         for msg in msg_list:
-            if isinstance(msg, Image | Text | At | Video | Voice):
+            if isinstance(msg, Image | Text | At | AtAll | Video | Voice):
                 message_list.append(msg)
             elif isinstance(msg, str | int | float):
                 message_list.append(Text(str(msg)))
