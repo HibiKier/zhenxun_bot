@@ -79,10 +79,17 @@ body {
     margin-top: 43px;
     margin-left: 30px;
     font-size: 47px;
-    height: 57px;
-    align-items: center;
-    justify-content: center;
-    display: flex
+    /* align-items: center;
+    justify-content: center; */
+    /* display: flex; */
+    width: 275px;
+    height: 67px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
 }
 
 .uid {
