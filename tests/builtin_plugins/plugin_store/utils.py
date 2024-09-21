@@ -17,6 +17,7 @@ def get_content_bytes(file: str) -> bytes:
 
 
 def init_mocked_api(mocked_api: MockRouter) -> None:
+    # metadata
     mocked_api.get(
         "https://data.jsdelivr.com/v1/packages/gh/zhenxun-org/zhenxun_bot_plugins@main",
         name="zhenxun_bot_plugins_metadata",
@@ -25,7 +26,12 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
         "https://data.jsdelivr.com/v1/packages/gh/xuanerwa/zhenxun_github_sub@main",
         name="zhenxun_github_sub_metadata",
     ).respond(json=get_response_json("zhenxun_github_sub_metadata.json"))
+    mocked_api.get(
+        "https://data.jsdelivr.com/v1/packages/gh/zhenxun-org/zhenxun_bot_plugins@b101fbc",
+        name="zhenxun_bot_plugins_metadata_commit",
+    ).respond(json=get_response_json("zhenxun_bot_plugins_metadata.json"))
 
+    # tree
     mocked_api.get(
         "https://api.github.com/repos/zhenxun-org/zhenxun_bot_plugins/git/trees/main?recursive=1",
         name="zhenxun_bot_plugins_tree",
@@ -34,6 +40,10 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
         "https://api.github.com/repos/xuanerwa/zhenxun_github_sub/git/trees/main?recursive=1",
         name="zhenxun_github_sub_tree",
     ).respond(json=get_response_json("zhenxun_github_sub_tree.json"))
+    mocked_api.get(
+        "https://api.github.com/repos/zhenxun-org/zhenxun_bot_plugins/git/trees/b101fbc?recursive=1",
+        name="zhenxun_bot_plugins_tree_commit",
+    ).respond(json=get_response_json("zhenxun_bot_plugins_tree.json"))
 
     mocked_api.head(
         "https://raw.githubusercontent.com/",
@@ -70,3 +80,7 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
         "https://raw.githubusercontent.com/xuanerwa/zhenxun_github_sub/main/github_sub/__init__.py",
         name="github_sub_plugin_file_init",
     ).respond(content=get_content_bytes("github_sub.py"))
+    mocked_api.get(
+        "https://raw.githubusercontent.com/zhenxun-org/zhenxun_bot_plugins/b101fbc/plugins/bilibili_sub/__init__.py",
+        name="bilibili_sub_plugin_file_init",
+    ).respond(content=get_content_bytes("bilibili_sub.py"))

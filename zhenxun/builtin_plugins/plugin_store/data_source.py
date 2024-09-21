@@ -195,6 +195,10 @@ class ShopManage:
         if plugin_info.github_url is None:
             plugin_info.github_url = DEFAULT_GITHUB_URL
             is_external = False
+        version_split = plugin_info.version.split("-")
+        if len(version_split) > 1:
+            github_url_split = plugin_info.github_url.split("/tree/")
+            plugin_info.github_url = f"{github_url_split[0]}/tree/{version_split[1]}"
         logger.info(f"正在安装插件 {plugin_key}...")
         await cls.install_plugin_with_repo(
             plugin_info.github_url,

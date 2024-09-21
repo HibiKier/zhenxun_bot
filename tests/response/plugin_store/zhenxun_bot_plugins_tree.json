@@ -135,60 +135,12 @@
       "url": "https://api.github.com/repos/zhenxun-org/zhenxun_bot_plugins/git/trees/236b6a8ce846884fb7dbb10aab58f95782844c27"
     },
     {
-      "path": "plugins/bilibili_sub/README.md",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "b05b281b72dc1276e176411f7167f5c7c52d90bb",
-      "size": 853,
-      "url": "https://api.github.com/repos/zhenxun-org/zhenxun_bot_plugins/git/blobs/b05b281b72dc1276e176411f7167f5c7c52d90bb"
-    },
-    {
-      "path": "plugins/bilibili_sub/Wbi.py",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "7ee68e789125b110a5796eab05f1a3cf0b32e481",
-      "size": 2503,
-      "url": "https://api.github.com/repos/zhenxun-org/zhenxun_bot_plugins/git/blobs/7ee68e789125b110a5796eab05f1a3cf0b32e481"
-    },
-    {
       "path": "plugins/bilibili_sub/__init__.py",
       "mode": "100644",
       "type": "blob",
       "sha": "2eec6bd0c8208e4026b0fe1400838c161ac826c4",
       "size": 14302,
       "url": "https://api.github.com/repos/zhenxun-org/zhenxun_bot_plugins/git/blobs/2eec6bd0c8208e4026b0fe1400838c161ac826c4"
-    },
-    {
-      "path": "plugins/bilibili_sub/auth.py",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "0bf48390942a71070d8a176414e8131820ad60b4",
-      "size": 2490,
-      "url": "https://api.github.com/repos/zhenxun-org/zhenxun_bot_plugins/git/blobs/0bf48390942a71070d8a176414e8131820ad60b4"
-    },
-    {
-      "path": "plugins/bilibili_sub/data_source.py",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "2140347d5338f945829a3c7ecf2931d059a2cf33",
-      "size": 15101,
-      "url": "https://api.github.com/repos/zhenxun-org/zhenxun_bot_plugins/git/blobs/2140347d5338f945829a3c7ecf2931d059a2cf33"
-    },
-    {
-      "path": "plugins/bilibili_sub/model.py",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "3df5e9a4b180fa014daf5338a5de05f1f42fb514",
-      "size": 6855,
-      "url": "https://api.github.com/repos/zhenxun-org/zhenxun_bot_plugins/git/blobs/3df5e9a4b180fa014daf5338a5de05f1f42fb514"
-    },
-    {
-      "path": "plugins/bilibili_sub/utils.py",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "6852ac0b05eb9e716e2eef3d0dcc35dd30992d6f",
-      "size": 7695,
-      "url": "https://api.github.com/repos/zhenxun-org/zhenxun_bot_plugins/git/blobs/6852ac0b05eb9e716e2eef3d0dcc35dd30992d6f"
     },
     {
       "path": "plugins/black_word",
