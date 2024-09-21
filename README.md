@@ -39,11 +39,12 @@
 :tada:喜欢真寻，于是真寻就来了！:tada:
 
 本项目符合 [OneBot](https://github.com/howmanybots/onebot) 标准，可基于以下项目与机器人框架/平台进行交互
-| 项目地址 | 平台 | 核心作者 | 备注 |
-| :---: | :---: | :---: | :---: |
-| [LLOneBot](https://github.com/LLOneBot/LLOneBot) | NTQQ | linyuchen | 可用 |
-| [Napcat](https://github.com/NapNeko/NapCatQQ) | NTQQ | NapNeko | 可用 |
-| [Lagrange.Core](https://github.com/LagrangeDev/Lagrange.Core) | | LagrangeDev/Linwenxuan04 | 可用
+
+|                           项目地址                            | 平台 |         核心作者         | 备注 |
+| :-----------------------------------------------------------: | :--: | :----------------------: | :--: |
+|       [LLOneBot](https://github.com/LLOneBot/LLOneBot)        | NTQQ |        linyuchen         | 可用 |
+|         [Napcat](https://github.com/NapNeko/NapCatQQ)         | NTQQ |         NapNeko          | 可用 |
+| [Lagrange.Core](https://github.com/LagrangeDev/Lagrange.Core) |      | LagrangeDev/Linwenxuan04 | 可用 |
 
 </div>
 
@@ -83,16 +84,13 @@ AccessToken: PUBLIC_ZHENXUN_TEST
   
 “不要害怕，你的背后还有千千万万的 <strong>伙伴</strong> 啊！”
 
-|                                              项目名称                                              | 主要用途 |                   仓库作者                    |                                备注                                |
-| :------------------------------------------------------------------------------------------------: | :------: | :-------------------------------------------: | :----------------------------------------------------------------: |
-|                    [插件库](https://github.com/zhenxun-org/zhenxun_bot_plugins)                    |   插件   | [zhenxun-org](https://github.com/zhenxun-org) |                       原 plugins 文件夹插件                        |
-|               [插件索引库](https://github.com/zhenxun-org/zhenxun_bot_plugins_index)               |   插件   | [zhenxun-org](https://github.com/zhenxun-org) |                           扩展插件索引库                           |
-|                       [WebUi](https://github.com/HibiKier/zhenxun_bot_webui)                       |   管理   |    [hibikier](https://github.com/HibiKier)    |                   基于真寻 WebApi 的 webui 实现                    |
-|                   [一键安装](https://github.com/zhenxun-org/zhenxun_bot-deploy)                    |   安装   |  [AkashiCoin](https://github.com/AkashiCoin)  |                            新版本未测试                            |
-|                  [Docker 单机版](https://github.com/Sakuracio/zhenxun_bot_docker)                  |   安装   | [zhenxun-org](https://github.com/zhenxun-org) |                            新版本未测试                            |
-| [Docker 全量版](https://shields.io/badge/GITHUB-SinKy--Yan-4476AF?logo=github&style=for-the-badge) |   安装   | [zhenxun-org](https://github.com/zhenxun-org) | 包含 真寻 Bot PostgreSQL 数据库 go-cqhttp webui 等（新版本未测试） |
-
-PS： **ARM 平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能无法正常启动全量版容器**
+|                                项目名称                                | 主要用途 |                      仓库作者                       |             备注              |
+| :--------------------------------------------------------------------: | :------: | :-------------------------------------------------: | :---------------------------: |
+|      [插件库](https://github.com/zhenxun-org/zhenxun_bot_plugins)      |   插件   |    [zhenxun-org](https://github.com/zhenxun-org)    |     原 plugins 文件夹插件     |
+| [插件索引库](https://github.com/zhenxun-org/zhenxun_bot_plugins_index) |   插件   |    [zhenxun-org](https://github.com/zhenxun-org)    |        扩展插件索引库         |
+|    [一键安装](https://github.com/soloxiaoye2022/zhenxun_bot-deploy)    |   安装   | [soloxiaoye2022](https://github.com/soloxiaoye2022) |           第三方试            |
+|         [WebUi](https://github.com/HibiKier/zhenxun_bot_webui)         |   管理   |       [hibikier](https://github.com/HibiKier)       | 基于真寻 WebApi 的 webui 实现 |
+|  [安卓 app(WebUi)](https://github.com/YuS1aN/zhenxun_bot_android_ui)   |   安装   |         [YuS1aN](https://github.com/YuS1aN)         |            第三方             |
 
 <details>
 <summary> <strong> WebUI </strong>后台示例图 </summary>
