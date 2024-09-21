@@ -74,6 +74,68 @@ async def test_add_plugin_basic(
 
 
 @pytest.mark.parametrize("package_api", ["jsd", "gh"])
+async def test_add_plugin_basic_commit_version(
+    package_api: str,
+    app: App,
+    mocker: MockerFixture,
+    mocked_api: MockRouter,
+    create_bot: Callable,
+    tmp_path: Path,
+) -> None:
+    """
+    测试添加基础插件
+    """
+    from zhenxun.builtin_plugins.plugin_store import _matcher
+
+    init_mocked_api(mocked_api=mocked_api)
+    mock_base_path = mocker.patch(
+        "zhenxun.builtin_plugins.plugin_store.data_source.BASE_PATH",
+        new=tmp_path / "zhenxun",
+    )
+
+    if package_api != "jsd":
+        mocked_api["zhenxun_bot_plugins_metadata_commit"].respond(404)
+    if package_api != "gh":
+        mocked_api["zhenxun_bot_plugins_tree_commit"].respond(404)
+
+    plugin_id = 3
+
+    async with app.test_matcher(_matcher) as ctx:
+        bot = create_bot(ctx)
+        bot: Bot = cast(Bot, bot)
+        raw_message = f"添加插件 {plugin_id}"
+        event: GroupMessageEvent = _v11_group_message_event(
+            message=raw_message,
+            self_id=BotId.QQ_BOT,
+            user_id=UserId.SUPERUSER,
+            group_id=GroupId.GROUP_ID_LEVEL_5,
+            message_id=MessageId.MESSAGE_ID,
+            to_me=True,
+        )
+        ctx.receive_event(bot=bot, event=event)
+        ctx.should_call_send(
+            event=event,
+            message=Message(message=f"正在添加插件 Id: {plugin_id}"),
+            result=None,
+            bot=bot,
+        )
+        ctx.should_call_send(
+            event=event,
+            message=Message(message="插件 B站订阅 安装成功! 重启后生效"),
+            result=None,
+            bot=bot,
+        )
+    assert mocked_api["basic_plugins"].called
+    assert mocked_api["extra_plugins"].called
+    if package_api == "jsd":
+        assert mocked_api["zhenxun_bot_plugins_metadata_commit"].called
+    if package_api == "gh":
+        assert mocked_api["zhenxun_bot_plugins_tree_commit"].called
+    assert mocked_api["bilibili_sub_plugin_file_init"].called
+    assert (mock_base_path / "plugins" / "bilibili_sub" / "__init__.py").is_file()
+
+
+@pytest.mark.parametrize("package_api", ["jsd", "gh"])
 async def test_add_plugin_basic_is_not_dir(
     package_api: str,
     app: App,
@@ -156,7 +218,7 @@ async def test_add_plugin_extra(
     if package_api != "gh":
         mocked_api["zhenxun_github_sub_tree"].respond(404)
 
-    plugin_id = 3
+    plugin_id = 4
 
     async with app.test_matcher(_matcher) as ctx:
         bot = create_bot(ctx)

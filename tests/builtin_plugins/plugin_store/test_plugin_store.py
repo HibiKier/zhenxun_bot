@@ -64,6 +64,15 @@ async def test_plugin_store(
             [
                 "",
                 3,
+                "B站订阅",
+                "非常便利的B站订阅通知",
+                "HibiKier",
+                "0.3-b101fbc",
+                "普通插件",
+            ],
+            [
+                "",
+                4,
                 "github订阅",
                 "订阅github用户或仓库",
                 "xuanerwa",
@@ -72,7 +81,7 @@ async def test_plugin_store(
             ],
             [
                 "",
-                4,
+                5,
                 "Minecraft查服",
                 "Minecraft服务器状态查询，支持IPv6",
                 "molanp",
