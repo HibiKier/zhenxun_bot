@@ -147,3 +147,28 @@ class MessageUtils:
                 s = str(r_list)
             forward_data.append(s)
         return cls.custom_forward_msg(forward_data, uni)
+
+    @classmethod
+    def template2alc(cls, msg_list: list[MessageSegment]) -> list:
+        """模板转alc
+
+        参数:
+            msg_list: 消息列表
+
+        返回:
+            list: alc模板
+        """
+        forward_data = []
+        for msg in msg_list:
+            if isinstance(msg, str):
+                forward_data.append(Text(msg))
+            elif msg.type == "at":
+                if msg.data["qq"] == "0":
+                    forward_data.append(AtAll())
+                else:
+                    forward_data.append(At(flag="user", target=msg.data["qq"]))
+            elif msg.type == "image":
+                forward_data.append(Image(url=msg.data["file"] or msg.data["url"]))
+            elif msg.type == "text" and msg.data["text"]:
+                forward_data.append(Text(msg.data["text"]))
+        return forward_data
