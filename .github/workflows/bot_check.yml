@@ -3,8 +3,14 @@ name: 检查bot是否运行正常
 on:
   push:
     branches: ["dev", "main"]
+    paths:
+      - zhenxun/**
+      - bot.py
   pull_request:
     branches: ["dev", "main"]
+    paths:
+      - zhenxun/**
+      - bot.py
 
 jobs:
   bot-check:
