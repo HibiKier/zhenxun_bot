@@ -286,7 +286,9 @@ class AsyncHttpx:
                                         f"Path: {path.absolute()}"
                                     )
                                     async with aiofiles.open(path, "wb") as wf:
-                                        total = int(response.headers["Content-Length"])
+                                        total = int(
+                                            response.headers.get("Content-Length", 0)
+                                        )
                                         with rich.progress.Progress(  # type: ignore
                                             rich.progress.TextColumn(path.name),  # type: ignore
                                             "[progress.percentage]{task.percentage:>3.0f}%",  # type: ignore
@@ -295,7 +297,8 @@ class AsyncHttpx:
                                             rich.progress.TransferSpeedColumn(),  # type: ignore
                                         ) as progress:
                                             download_task = progress.add_task(
-                                                "Download", total=total
+                                                "Download",
+                                                total=total if total else None,
                                             )
                                             async for chunk in response.aiter_bytes():
                                                 await wf.write(chunk)
