@@ -88,7 +88,7 @@ AccessToken: PUBLIC_ZHENXUN_TEST
 | :--------------------------------------------------------------------: | :------: | :-------------------------------------------------: | :---------------------------: |
 |      [插件库](https://github.com/zhenxun-org/zhenxun_bot_plugins)      |   插件   |    [zhenxun-org](https://github.com/zhenxun-org)    |     原 plugins 文件夹插件     |
 | [插件索引库](https://github.com/zhenxun-org/zhenxun_bot_plugins_index) |   插件   |    [zhenxun-org](https://github.com/zhenxun-org)    |        扩展插件索引库         |
-|    [一键安装](https://github.com/soloxiaoye2022/zhenxun_bot-deploy)    |   安装   | [soloxiaoye2022](https://github.com/soloxiaoye2022) |           第三方试            |
+|    [一键安装](https://github.com/soloxiaoye2022/zhenxun_bot-deploy)    |   安装   | [soloxiaoye2022](https://github.com/soloxiaoye2022) |            第三方             |
 |         [WebUi](https://github.com/HibiKier/zhenxun_bot_webui)         |   管理   |       [hibikier](https://github.com/HibiKier)       | 基于真寻 WebApi 的 webui 实现 |
 |  [安卓 app(WebUi)](https://github.com/YuS1aN/zhenxun_bot_android_ui)   |   安装   |         [YuS1aN](https://github.com/YuS1aN)         |            第三方             |
 
@@ -158,6 +158,8 @@ playwright install-deps
   '
   # 此处填写你的数据库地址
   # 示例: "postgres://user:password@127.0.0.1:5432/database"
+  # 示例: "mysql://user:password@127.0.0.1:5432/database"
+  # 示例: "sqlite:data/db/zhenxun.db"   在data目录下建立db文件夹
   DB_URL = ""   # 数据库地址
 
 
@@ -166,7 +168,7 @@ playwright install-deps
 
 ```
 
-## 功能列表 （旧版列表）
+<!-- ## 功能列表 （旧版列表）
 
 <details>
 <summary>已实现的功能</summary>
@@ -314,7 +316,7 @@ playwright install-deps
 - [x] 定时更新权限
 - [x] 自动配置重载
 
-</details>
+</details> -->
 
 ## [爱发电](https://afdian.net/@HibiKier)
 

@@ -17,8 +17,11 @@ def delete_help_image(gid: str | None = None):
         file = GROUP_HELP_PATH / f"{gid}.png"
         if file.exists():
             file.unlink()
-    elif HELP_FILE.exists():
-        HELP_FILE.unlink()
+    else:
+        if HELP_FILE.exists():
+            HELP_FILE.unlink()
+        for file in GROUP_HELP_PATH.iterdir():
+            file.unlink()
 
 
 def plugin_row_style(column: str, text: str) -> RowStyle:
@@ -155,7 +158,6 @@ async def build_task(group_id: str | None) -> BuildImage:
 
 
 class PluginManage:
-
     @classmethod
     async def set_default_status(cls, plugin_name: str, status: bool) -> str:
         """设置插件进群默认状态
