@@ -40,4 +40,4 @@ def _file_handle(webui_assets_path: Path):
     shutil.copytree(download_file_path / "dist", PUBLIC_PATH, dirs_exist_ok=True)
     logger.debug("复制 webui_assets 成功...", COMMAND_NAME)
     shutil.rmtree(TMP_PATH, ignore_errors=True)
-    return [x.name for x in PUBLIC_PATH.iterdir()]
+    return [x.name for x in PUBLIC_PATH.iterdir() if x.is_dir()]

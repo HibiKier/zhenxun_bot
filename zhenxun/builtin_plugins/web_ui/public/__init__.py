@@ -20,6 +20,11 @@ async def favicon():
     return FileResponse(PUBLIC_PATH / "favicon.ico")
 
 
+@router.get("/79edfa81f3308a9f.jfif")
+async def _():
+    return FileResponse(PUBLIC_PATH / "79edfa81f3308a9f.jfif")
+
+
 async def init_public(app: FastAPI):
     try:
         if not PUBLIC_PATH.exists():
