@@ -28,13 +28,12 @@ def __handle_item(plugin: PluginInfo, group: GroupConsole | None):
     if not plugin.status:
         if plugin.block_type == BlockType.ALL:
             plugin.name = f"{plugin.name}(不可用)"
-        elif (
-            group
-            and plugin.block_type == BlockType.GROUP
-            or not group
-            and plugin.block_type == BlockType.PRIVATE
-        ):
+        elif group and plugin.block_type == BlockType.GROUP:
             plugin.name = f"{plugin.name}(不可用)"
+        elif not group and plugin.block_type == BlockType.PRIVATE:
+            plugin.name = f"{plugin.name}(不可用)"
+    elif group and f"{plugin.module}," in group.block_plugin:
+        plugin.name = f"{plugin.name}(不可用)"
     return Item(plugin_name=f"{plugin.id}-{plugin.name}")
 
 
