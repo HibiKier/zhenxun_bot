@@ -10,6 +10,7 @@ from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.utils.github_utils import GithubUtils
 from zhenxun.utils.github_utils.models import RepoAPI
+from zhenxun.services.plugin_init import PluginInitManager
 from zhenxun.builtin_plugins.plugin_store.models import StorePluginInfo
 from zhenxun.utils.image_utils import RowStyle, BuildImage, ImageTemplate
 from zhenxun.builtin_plugins.auto_update.config import REQ_TXT_FILE_STRING
@@ -292,6 +293,7 @@ class ShopManage:
             shutil.rmtree(path)
         else:
             path.unlink()
+        await PluginInitManager.remove(f"zhenxun.{plugin_info.module_path}")
         return f"插件 {plugin_key} 移除成功! 重启后生效"
 
     @classmethod
