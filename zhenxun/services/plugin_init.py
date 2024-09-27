@@ -9,8 +9,6 @@ from zhenxun.services.log import logger
 
 driver = nonebot.get_driver()
 
-PLUGINS_METHOD = []
-
 
 class PluginInit(ABC):
     """

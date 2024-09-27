@@ -1,23 +1,22 @@
 import os
-import random
 import re
+import random
 from io import BytesIO
 from pathlib import Path
-from typing import Awaitable, Callable
+from collections.abc import Callable, Awaitable
 
 import cv2
 import imagehash
-from imagehash import ImageHash
-from nonebot.utils import is_coroutine_callable
 from PIL import Image
+from nonebot.utils import is_coroutine_callable
 
-from zhenxun.configs.path_config import IMAGE_PATH, TEMP_PATH
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.configs.path_config import TEMP_PATH, IMAGE_PATH
 
 from ._build_image import BuildImage, ColorAlias
-from ._build_mat import BuildMat, MatType
-from ._image_template import ImageTemplate, RowStyle
+from ._build_mat import MatType, BuildMat  # noqa: F401
+from ._image_template import RowStyle, ImageTemplate  # noqa: F401
 
 # TODO: text2image 长度错误
 
@@ -192,8 +191,9 @@ async def text2image(
                     s.strip(), font, font_size, font_color
                 )
             )
+        height = sum(img.height + 8 for img in image_list) + pw
         width += pw
-        height += ph
+        # height += ph
         A = BuildImage(
             width + left_padding,
             height + top_padding + 2,
@@ -386,7 +386,7 @@ def get_img_hash(image_file: str | Path) -> str:
         with open(image_file, "rb") as fp:
             hash_value = imagehash.average_hash(Image.open(fp))
     except Exception as e:
-        logger.warning(f"获取图片Hash出错", "禁言检测", e=e)
+        logger.warning("获取图片Hash出错", "禁言检测", e=e)
     return str(hash_value)
 
 
@@ -407,7 +407,7 @@ async def get_download_image_hash(url: str, mark: str) -> str:
             img_hash = get_img_hash(TEMP_PATH / f"compare_download_{mark}_img.jpg")
             return str(img_hash)
     except Exception as e:
-        logger.warning(f"下载读取图片Hash出错", e=e)
+        logger.warning("下载读取图片Hash出错", e=e)
     return ""
 
 

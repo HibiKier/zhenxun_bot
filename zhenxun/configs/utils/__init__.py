@@ -17,6 +17,32 @@ _yaml.indent = 2
 _yaml.allow_unicode = True
 
 
+class Example(BaseModel):
+    """
+    示例
+    """
+
+    exec: str
+    """执行命令"""
+    description: str = ""
+    """命令描述"""
+
+
+class Command(BaseModel):
+    """
+    具体参数说明
+    """
+
+    command: str
+    """命令"""
+    params: list[str] = []
+    """参数"""
+    description: str = ""
+    """描述"""
+    examples: list[Example] = []
+    """示例列表"""
+
+
 class RegisterConfig(BaseModel):
     """
     注册配置项
@@ -167,6 +193,8 @@ class PluginExtraData(BaseModel):
     """插件基本配置"""
     limits: list[BaseBlock | PluginCdBlock | PluginCountBlock] | None = None
     """插件限制"""
+    commands: list[Command] = []
+    """命令列表，用于说明帮助"""
     tasks: list[Task] | None = None
     """技能被动"""
     superuser_help: str | None = None
