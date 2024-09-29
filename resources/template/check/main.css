@@ -3,7 +3,7 @@
 @font-face {
     font-family: fzrzFont;
     /* 导入的字体文件 */
-    src: url("./res/font/fzrzExtraBold.ttf");
+    src: url("../../font/fzrzExtraBold.ttf");
 }
 
 

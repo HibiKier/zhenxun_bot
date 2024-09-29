@@ -34,11 +34,6 @@
     src: url("./res/font/jcyt.ttf");
 }
 
-@font-face {
-    font-family: yshsFont;
-    /* 导入的字体文件 */
-    src: url("/resources/font/YSHaoShenTi-2.ttf");
-}
 
 body {
     position: absolute;
