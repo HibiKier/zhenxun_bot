@@ -13,6 +13,7 @@ from zhenxun.models.sign_log import SignLog
 from zhenxun.models.sign_user import SignUser
 from zhenxun.utils.utils import get_user_avatar
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.platform import PlatformUtils
 from zhenxun.configs.config import Config, BotConfig
 from zhenxun.configs.path_config import IMAGE_PATH, TEMPLATE_PATH
 
@@ -419,8 +420,9 @@ async def _generate_html_card(
         next_impression - previous_impression
     )
     now = datetime.now()
+    ava_url = PlatformUtils.get_user_avatar_url(user.user_id, "qq")
     data = {
-        "ava": AVA_URL.format(user.user_id),
+        "ava_url": ava_url,
         "name": nickname,
         "uid": uid,
         "sign_count": f"{user.sign_count}",

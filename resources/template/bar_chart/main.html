@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <title>ECharts Example</title>
@@ -7,14 +8,15 @@
     <script src="https://cdn.bootcss.com/echarts/4.2.1/echarts.min.js"></script>
     <link rel="stylesheet" href="main.css">
 </head>
+
 <body>
     <!-- 图表容器 -->
     <div id="main" style="width: 1000px;height:500px;"></div>
- 
+
     <script type="text/javascript">
         // 基于准备好的dom，初始化echarts实例
         var myChart = echarts.init(document.getElementById('main'));
- 
+
         // 指定图表的配置项和数据
         var option = {
             xAxis: {
@@ -23,28 +25,35 @@
             },
             yAxis: {
                 type: 'category',
-                data: {{data.category_data|tojson}}
-            },
-            series: [
-                {
-                    data: {{data.data|tojson}},
-                    type: 'bar',
-                    itemStyle: {
-            // 为每个柱子设置随机颜色
-            color: function () {
-                // 生成一个随机颜色
-                return 'rgb(' +
-                    Math.round(Math.random() * 255) + ',' +
-                    Math.round(Math.random() * 255) + ',' +
-                    Math.round(Math.random() * 255) + ')';
-            }
-        }
+                data: {
+                    {
+                        data.category_data | tojson
+                    }
                 }
-            ]
-            };
- 
+            },
+            series: [{
+                data: {
+                    {
+                        data.data | tojson
+                    }
+                },
+                type: 'bar',
+                itemStyle: {
+                    // 为每个柱子设置随机颜色
+                    color: function () {
+                        // 生成一个随机颜色
+                        return 'rgb(' +
+                            Math.round(Math.random() * 255) + ',' +
+                            Math.round(Math.random() * 255) + ',' +
+                            Math.round(Math.random() * 255) + ')';
+                    }
+                }
+            }]
+        };
+
         // 使用刚指定的配置项和数据显示图表。
         myChart.setOption(option);
     </script>
 </body>
+
 </html>

@@ -267,7 +267,7 @@ class PlatformUtils:
         return None
 
     @classmethod
-    async def get_user_avatar_url(cls, user_id: str, platform: str) -> str | None:
+    def get_user_avatar_url(cls, user_id: str, platform: str) -> str | None:
         """快捷获取用户头像url
 
         参数:
