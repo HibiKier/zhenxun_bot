@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import Any, Generic, Optional, TypeVar
+from typing_extensions import Self
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, validator
-from typing_extensions import Self
 
 T = TypeVar("T")
 
@@ -28,7 +28,7 @@ class Result(BaseModel):
     """code"""
     info: str = "操作成功"
     """info"""
-    warning: Optional[str] = None
+    warning: str | None = None
     """警告信息"""
     data: Any = None
     """返回数据"""
@@ -102,7 +102,7 @@ class SystemFolderSize(BaseModel):
     """名称"""
     size: float
     """大小"""
-    full_path: Optional[str]
+    full_path: str | None
     """完整路径"""
     is_dir: bool
     """是否为文件夹"""

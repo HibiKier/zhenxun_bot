@@ -1,7 +1,6 @@
 import asyncio
-from typing import Awaitable, Callable, Generic, TypeVar
-
-PATTERN = r"\x1b(\[.*?[@-~]|\].*?(\x07|\x1b\\))"
+from typing import Generic, TypeVar
+from collections.abc import Callable, Awaitable
 
 _T = TypeVar("_T")
 LogListener = Callable[[_T], Awaitable[None]]
@@ -22,14 +21,13 @@ class LogStorage(Generic[_T]):
         self.logs[seq] = log
         asyncio.get_running_loop().call_later(self.rotation, self.remove, seq)
         await asyncio.gather(
-            *map(lambda listener: listener(log), self.listeners),
+            *(listener(log) for listener in self.listeners),
             return_exceptions=True,
         )
         return seq
 
     def remove(self, seq: int):
         del self.logs[seq]
-        return
 
 
 LOG_STORAGE: LogStorage[str] = LogStorage[str]()

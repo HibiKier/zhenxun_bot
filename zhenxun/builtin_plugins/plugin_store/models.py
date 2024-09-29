@@ -16,14 +16,23 @@ class StorePluginInfo(BaseModel):
     """插件信息"""
 
     module: str
+    """模块名"""
     module_path: str
+    """模块路径"""
     description: str
+    """简介"""
     usage: str
+    """用法"""
     author: str
+    """作者"""
     version: str
+    """版本"""
     plugin_type: PluginType
+    """插件类型"""
     is_dir: bool
+    """是否为文件夹插件"""
     github_url: str | None
+    """github链接"""
 
     @property
     def plugin_type_name(self):

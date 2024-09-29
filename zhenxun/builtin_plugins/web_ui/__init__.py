@@ -20,8 +20,10 @@ from .api.tabs.manage import router as manage_router
 from .api.tabs.system import router as system_router
 from .api.tabs.main import ws_router as status_routes
 from .api.tabs.database import router as database_router
+from .api.tabs.dashboard import router as dashboard_router
 from .api.tabs.manage.chat import ws_router as chat_routes
 from .api.tabs.plugin_manage import router as plugin_router
+from .api.tabs.plugin_manage.store import router as store_router
 
 __plugin_meta__ = PluginMetadata(
     name="WebUi",
@@ -71,6 +73,8 @@ BaseApiRouter = APIRouter(prefix="/zhenxun/api")
 
 
 BaseApiRouter.include_router(auth_router)
+BaseApiRouter.include_router(store_router)
+BaseApiRouter.include_router(dashboard_router)
 BaseApiRouter.include_router(main_router)
 BaseApiRouter.include_router(manage_router)
 BaseApiRouter.include_router(database_router)

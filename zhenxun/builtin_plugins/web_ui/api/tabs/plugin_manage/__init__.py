@@ -1,20 +1,20 @@
 import re
 
 import cattrs
-from fastapi import APIRouter, Query
+from fastapi import Query, APIRouter
 
-from zhenxun.configs.config import Config
-from zhenxun.models.plugin_info import PluginInfo as DbPluginInfo
 from zhenxun.services.log import logger
+from zhenxun.configs.config import Config
 from zhenxun.utils.enum import BlockType, PluginType
+from zhenxun.models.plugin_info import PluginInfo as DbPluginInfo
 
 from ....base_model import Result
 from ....utils import authentication
 from .model import (
-    PluginConfig,
-    PluginCount,
-    PluginDetail,
     PluginInfo,
+    PluginCount,
+    PluginConfig,
+    PluginDetail,
     PluginSwitch,
     UpdatePlugin,
 )
@@ -23,7 +23,9 @@ router = APIRouter(prefix="/plugin")
 
 
 @router.get(
-    "/get_plugin_list", dependencies=[authentication()], deprecated="获取插件列表"  # type: ignore
+    "/get_plugin_list",
+    dependencies=[authentication()],
+    deprecated="获取插件列表",  # type: ignore
 )
 async def _(
     plugin_type: list[PluginType] = Query(None), menu_type: str | None = None
@@ -57,7 +59,9 @@ async def _(
 
 
 @router.get(
-    "/get_plugin_count", dependencies=[authentication()], deprecated="获取插件数量"  # type: ignore
+    "/get_plugin_count",
+    dependencies=[authentication()],
+    deprecated="获取插件数量",  # type: ignore
 )
 async def _() -> Result:
     plugin_count = PluginCount()
@@ -93,10 +97,7 @@ async def _(plugin: UpdatePlugin) -> Result:
         db_plugin.level = plugin.level
         db_plugin.menu_type = plugin.menu_type
         db_plugin.block_type = plugin.block_type
-        if plugin.block_type == BlockType.ALL:
-            db_plugin.status = False
-        else:
-            db_plugin.status = True
+        db_plugin.status = plugin.block_type != BlockType.ALL
         await db_plugin.save()
         # 配置项
         if plugin.configs and (configs := Config.get(plugin.module)):
@@ -149,19 +150,15 @@ async def _(module: str) -> Result:
         for cfg in config.configs:
             type_str = ""
             type_inner = None
-            x = str(config.configs[cfg].type)
-            r = re.search(r"<class '(.*)'>", str(config.configs[cfg].type))
-            if r:
-                type_str = r.group(1)
-            else:
-                r = re.search(r"typing\.(.*)\[(.*)\]", str(config.configs[cfg].type))
-                if r:
-                    type_str = r.group(1)
-                    if type_str:
-                        type_str = type_str.lower()
-                    type_inner = r.group(2)
-                    if type_inner:
-                        type_inner = [x.strip() for x in type_inner.split(",")]
+            if r := re.search(r"<class '(.*)'>", str(config.configs[cfg].type)):
+                type_str = r[1]
+            elif r := re.search(r"typing\.(.*)\[(.*)\]", str(config.configs[cfg].type)):
+                type_str = r[1]
+                if type_str:
+                    type_str = type_str.lower()
+                type_inner = r[2]
+                if type_inner:
+                    type_inner = [x.strip() for x in type_inner.split(",")]
             config_list.append(
                 PluginConfig(
                     module=module,
