@@ -1,5 +1,3 @@
-from typing import Literal
-
 from pydantic import BaseModel
 
 from zhenxun.utils.enum import RequestType
@@ -232,7 +230,6 @@ class GroupDetail(BaseModel):
 
 
 class MessageItem(BaseModel):
-
     type: str
     """消息类型"""
     msg: str

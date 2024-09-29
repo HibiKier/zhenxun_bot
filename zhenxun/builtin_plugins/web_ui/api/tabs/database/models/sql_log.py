@@ -4,7 +4,6 @@ from zhenxun.services.db_context import Model
 
 
 class SqlLog(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     ip = fields.CharField(255)
@@ -18,7 +17,7 @@ class SqlLog(Model):
     create_time = fields.DatetimeField(auto_now_add=True)
     """创建时间"""
 
-    class Meta:
+    class Meta:  # type: ignore
         table = "sql_log"
         table_description = "sql执行日志"
 

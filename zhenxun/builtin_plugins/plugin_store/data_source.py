@@ -70,7 +70,7 @@ def install_requirement(plugin_path: Path):
 class ShopManage:
     @classmethod
     @cached(60)
-    async def __get_data(cls) -> dict[str, StorePluginInfo]:
+    async def get_data(cls) -> dict[str, StorePluginInfo]:
         """获取插件信息数据
 
         异常:
@@ -150,7 +150,7 @@ class ShopManage:
         返回:
             BuildImage | str: 返回消息
         """
-        data: dict[str, StorePluginInfo] = await cls.__get_data()
+        data: dict[str, StorePluginInfo] = await cls.get_data()
         column_name = ["-", "ID", "名称", "简介", "作者", "版本", "类型"]
         plugin_list = await cls.get_loaded_plugins("module", "version")
         suc_plugin = {p[0]: (p[1] or "0.1") for p in plugin_list}
@@ -184,7 +184,7 @@ class ShopManage:
         返回:
             str: 返回消息
         """
-        data: dict[str, StorePluginInfo] = await cls.__get_data()
+        data: dict[str, StorePluginInfo] = await cls.get_data()
         if plugin_id < 0 or plugin_id >= len(data):
             return "插件ID不存在..."
         plugin_key = list(data.keys())[plugin_id]
@@ -274,7 +274,7 @@ class ShopManage:
         返回:
             str: 返回消息
         """
-        data: dict[str, StorePluginInfo] = await cls.__get_data()
+        data: dict[str, StorePluginInfo] = await cls.get_data()
         if plugin_id < 0 or plugin_id >= len(data):
             return "插件ID不存在..."
         plugin_key = list(data.keys())[plugin_id]
@@ -306,7 +306,7 @@ class ShopManage:
         返回:
             BuildImage | str: 返回消息
         """
-        data: dict[str, StorePluginInfo] = await cls.__get_data()
+        data: dict[str, StorePluginInfo] = await cls.get_data()
         plugin_list = await cls.get_loaded_plugins("module", "version")
         suc_plugin = {p[0]: (p[1] or "Unknown") for p in plugin_list}
         filtered_data = [
@@ -349,7 +349,7 @@ class ShopManage:
         返回:
             str: 返回消息
         """
-        data: dict[str, StorePluginInfo] = await cls.__get_data()
+        data: dict[str, StorePluginInfo] = await cls.get_data()
         if plugin_id < 0 or plugin_id >= len(data):
             return "插件ID不存在..."
         plugin_key = list(data.keys())[plugin_id]
