@@ -408,13 +408,6 @@ class ConfigsManager:
         """
         if save_simple_data:
             with open(self._simple_file, "w", encoding="utf8") as f:
-                # yaml.dump(
-                #     self._simple_data,
-                #     f,
-                #     indent=2,
-                #     Dumper=yaml.RoundTripDumper,
-                #     allow_unicode=True,
-                # )
                 _yaml.dump(self._simple_data, f)
         path = path or self.file
         data = {}
@@ -426,14 +419,10 @@ class ConfigsManager:
                 del value["arg_parser"]
                 data[module][config] = value
         with open(path, "w", encoding="utf8") as f:
-            # yaml.dump(
-            #     data, f, indent=2, Dumper=yaml.RoundTripDumper, allow_unicode=True
-            # )
             _yaml.dump(data, f)
 
     def reload(self):
         """重新加载配置文件"""
-        _yaml = YAML()
         if self._simple_file.exists():
             with open(self._simple_file, encoding="utf8") as f:
                 self._simple_data = _yaml.load(f)
