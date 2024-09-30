@@ -1,7 +1,7 @@
-
 </html>
 <!DOCTYPE html>
 <html lang="zh-cn">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -10,12 +10,13 @@
     <!-- <link rel="stylesheet" href="./res/font-awesome/css/font-awesome.min.css"> -->
     <link rel="stylesheet" href="main.css">
 </head>
+
 <body>
     <div class="wrapper">
         <div class="top-head">
             <div style="display: flex;">
                 <div class="avatar">
-                    <img class="avatar-img" src="{{data.ava}}" alt="">
+                    <img class="avatar-img" src="{{data.ava_url}}" alt="">
                 </div>
                 <div style="position: relative;">
                     <p class="nickname" style="font-size: {{ data.font_size }}px;">{{data.name}}</p>
@@ -40,20 +41,21 @@
                 <p class="gift">{{data.impression}}</p>
             </div>
             <div class="abs-text" style="top: 83px;">
-                <p class="gift">{{data.gold}}</p></div>
-             <div class="abs-text" style="top: 123px;">
+                <p class="gift">{{data.gold}}</p>
+            </div>
+            <div class="abs-text" style="top: 123px;">
                 <p class="gift">{{data.gift}}</p>
-             </div>
+            </div>
         </div>
         <div class="line"></div>
         <div class="bottom-foot">
             <p class="cur-text">当前好感度: {{data.cur_impression}}</p>
             <div class="heart-list">
                 {% for i in data.heart2 %}
-                    <img class="heart-img" src="res/img/h2.png" alt=""/>
+                <img class="heart-img" src="res/img/h2.png" alt="" />
                 {% endfor %}
                 {% for i in data.heart1 %}
-                    <img class="heart-img" src="res/img/h1.png" alt=""/>
+                <img class="heart-img" src="res/img/h1.png" alt="" />
                 {% endfor %}
             </div>
             <div class="bot-text">
@@ -61,11 +63,11 @@
                 <p style="position: absolute; top: 58px">{{data.attitude}}</p>
                 <p style="position: absolute; top: 111px"">距离升级还差{{data.interpolation}}好感度</p>
             </div>
-            <div class="progress-border">
-                <div class="progress-bar" style="width: {{ data.process }}%;"></div>
+            <div class=" progress-border">
+                    <div class="progress-bar" style="width: {{ data.process }}%;"></div>
             </div>
             <img class="weather-img" src="res/img/weather/0.png" alt="">
-            <p class="wd" >28℃</p>
+            <p class="wd">28℃</p>
             <img class="mbl-img" src="res/img/2.png" alt="">
             <div class="date">
                 {{data.date}}
@@ -75,4 +77,5 @@
 </body>
 <script type="text/javascript" src="main.js">
 </script>
+
 </html>

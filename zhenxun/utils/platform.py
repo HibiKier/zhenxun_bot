@@ -23,7 +23,6 @@ from zhenxun.models.group_console import GroupConsole
 
 
 class UserData(BaseModel):
-
     name: str
     """昵称"""
     card: str | None = None
@@ -41,7 +40,6 @@ class UserData(BaseModel):
 
 
 class PlatformUtils:
-
     @classmethod
     async def ban_user(cls, bot: Bot, user_id: str, group_id: str, duration: int):
         """禁言
@@ -266,6 +264,18 @@ class PlatformUtils:
                             target=user_id,
                             platform=platform,
                         )
+        return None
+
+    @classmethod
+    def get_user_avatar_url(cls, user_id: str, platform: str) -> str | None:
+        """快捷获取用户头像url
+
+        参数:
+            user_id: 用户id
+            platform: 平台
+        """
+        if platform == "qq":
+            return f"http://q1.qlogo.cn/g?b=qq&nk={user_id}&s=160"
         return None
 
     @classmethod

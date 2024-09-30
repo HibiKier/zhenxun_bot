@@ -2,22 +2,38 @@ from io import BytesIO
 from pathlib import Path
 
 import nonebot
+from pydantic import BaseModel
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
-from nonebot_plugin_alconna import At, Image, Text, UniMessage
+from nonebot_plugin_alconna import At, Text, AtAll, Image, Video, Voice, UniMessage
 
-from zhenxun.configs.config import BotConfig
 from zhenxun.services.log import logger
+from zhenxun.configs.config import BotConfig
 from zhenxun.utils._build_image import BuildImage
 
 driver = nonebot.get_driver()
 
 MESSAGE_TYPE = (
-    str | int | float | Path | bytes | BytesIO | BuildImage | At | Image | Text
+    str
+    | int
+    | float
+    | Path
+    | bytes
+    | BytesIO
+    | BuildImage
+    | At
+    | AtAll
+    | Image
+    | Text
+    | Voice
+    | Video
 )
 
 
-class MessageUtils:
+class Config(BaseModel):
+    image_to_bytes: bool = False
 
+
+class MessageUtils:
     @classmethod
     def __build_message(cls, msg_list: list[MESSAGE_TYPE]) -> list[Text | Image]:
         """构造消息
@@ -28,20 +44,17 @@ class MessageUtils:
         返回:
             list[Text | Text]: 构造完成的消息列表
         """
-        is_bytes = False
-        try:
-            is_bytes = driver.config.image_to_bytes in ["True", "true"]
-        except AttributeError:
-            pass
+        config = nonebot.get_plugin_config(Config)
         message_list = []
         for msg in msg_list:
-            if isinstance(msg, (Image, Text, At)):
+            if isinstance(msg, Image | Text | At | AtAll | Video | Voice):
                 message_list.append(msg)
-            elif isinstance(msg, (str, int, float)):
+            elif isinstance(msg, str | int | float):
                 message_list.append(Text(str(msg)))
             elif isinstance(msg, Path):
                 if msg.exists():
-                    if is_bytes:
+                    if config.image_to_bytes:
+                        logger.debug("图片转为bytes发送", "MessageUtils")
                         image = BuildImage.open(msg)
                         message_list.append(Image(raw=image.pic2bytes()))
                     else:
@@ -120,7 +133,7 @@ class MessageUtils:
         forward_data = []
         for r_list in msg_list:
             s = ""
-            if isinstance(r_list, (UniMessage, list)):
+            if isinstance(r_list, UniMessage | list):
                 for r in r_list:
                     if isinstance(r, Text):
                         s += str(r)
@@ -134,3 +147,28 @@ class MessageUtils:
                 s = str(r_list)
             forward_data.append(s)
         return cls.custom_forward_msg(forward_data, uni)
+
+    @classmethod
+    def template2alc(cls, msg_list: list[MessageSegment]) -> list:
+        """模板转alc
+
+        参数:
+            msg_list: 消息列表
+
+        返回:
+            list: alc模板
+        """
+        forward_data = []
+        for msg in msg_list:
+            if isinstance(msg, str):
+                forward_data.append(Text(msg))
+            elif msg.type == "at":
+                if msg.data["qq"] == "0":
+                    forward_data.append(AtAll())
+                else:
+                    forward_data.append(At(flag="user", target=msg.data["qq"]))
+            elif msg.type == "image":
+                forward_data.append(Image(url=msg.data["file"] or msg.data["url"]))
+            elif msg.type == "text" and msg.data["text"]:
+                forward_data.append(Text(msg.data["text"]))
+        return forward_data

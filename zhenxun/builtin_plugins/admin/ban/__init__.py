@@ -2,23 +2,23 @@ from arclet.alconna import Args
 from nonebot.adapters import Bot
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
+from nonebot_plugin_session import EventSession
 from nonebot_plugin_alconna import (
-    Alconna,
-    Arparma,
     At,
     Match,
     Option,
+    Alconna,
+    Arparma,
     on_alconna,
     store_true,
 )
-from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import Config
-from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
-from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.rules import admin_check
+from zhenxun.utils.message import MessageUtils
+from zhenxun.configs.config import Config, BotConfig
+from zhenxun.configs.utils import RegisterConfig, PluginExtraData
 
 from ._data_source import BanManage
 
@@ -160,7 +160,9 @@ async def _(
     duration: Match[int],
     group_id: Match[str],
 ):
-    user_id = None
+    user_id = ""
+    if not session.id1:
+        await MessageUtils.build_message("用户id为空...").finish(reply_to=True)
     if user.available:
         if isinstance(user.result, At):
             user_id = user.result.target
@@ -169,14 +171,35 @@ async def _(
                 await MessageUtils.build_message("权限不足捏...").finish(reply_to=True)
             user_id = user.result
     _duration = duration.result * 60 if duration.available else -1
+    _duration_text = f"{duration.result} 分钟" if duration.available else " 到世界湮灭"
     if (gid := session.id3 or session.id2) and not group_id.available:
-        if group_id.available:
-            gid = group_id.result
+        if (
+            not user_id
+            or user_id == bot.self_id
+            and session.id1 not in bot.config.superusers
+        ):
+            _duration = 0.5
+            await MessageUtils.build_message("倒反天罡，小小管理速速退下！").send()
+            await BanManage.ban(session.id1, gid, 30, session, True)
+            _duration_text = "半 分钟"
+            logger.info(
+                f"尝试ban {BotConfig.self_nickname} 反被拿下",
+                arparma.header_result,
+                session=session,
+            )
+            await MessageUtils.build_message(
+                [
+                    "对 ",
+                    At(flag="user", target=session.id1),
+                    " 狠狠惩戒了一番，一脚踢进了小黑屋!"
+                    f" 在里面乖乖呆 {_duration_text}吧!",
+                ]
+            ).finish(reply_to=True)
         await BanManage.ban(
             user_id, gid, _duration, session, session.id1 in bot.config.superusers
         )
         logger.info(
-            f"管理员Ban",
+            "管理员Ban",
             arparma.header_result,
             session=session,
             target=f"{gid}:{user_id}",
@@ -184,20 +207,25 @@ async def _(
         await MessageUtils.build_message(
             [
                 "对 ",
-                At(flag="user", target=user_id) if isinstance(user.result, At) else user_id,  # type: ignore
-                f" 狠狠惩戒了一番，一脚踢进了小黑屋!",
+                (
+                    At(flag="user", target=user_id)
+                    if isinstance(user.result, At)
+                    else user_id
+                ),  # type: ignore
+                " 狠狠惩戒了一番，一脚踢进了小黑屋!",
+                f" 在里面乖乖呆 {_duration_text} 吧!",
             ]
         ).finish(reply_to=True)
     elif session.id1 in bot.config.superusers:
         _group_id = group_id.result if group_id.available else None
         await BanManage.ban(user_id, _group_id, _duration, session, True)
         logger.info(
-            f"超级用户Ban",
+            "超级用户Ban",
             arparma.header_result,
             session=session,
             target=f"{_group_id}:{user_id}",
         )
-        at_msg = user_id if user_id else f"群组:{_group_id}"
+        at_msg = user_id or f"群组:{_group_id}"
         await MessageUtils.build_message(
             f"对 {at_msg} 狠狠惩戒了一番，一脚踢进了小黑屋!"
         ).finish(reply_to=True)
@@ -211,7 +239,7 @@ async def _(
     user: Match[str | At],
     group_id: Match[str],
 ):
-    user_id = None
+    user_id = ""
     if user.available:
         if isinstance(user.result, At):
             user_id = user.result.target
@@ -228,7 +256,7 @@ async def _(
             user_id, gid, session, session.id1 in bot.config.superusers
         ):
             logger.info(
-                f"管理员UnBan",
+                "管理员UnBan",
                 arparma.header_result,
                 session=session,
                 target=f"{gid}:{user_id}",
@@ -236,28 +264,32 @@ async def _(
             await MessageUtils.build_message(
                 [
                     "将 ",
-                    At(flag="user", target=user_id) if isinstance(user.result, At) else u_d,  # type: ignore
-                    f" 从黑屋中拉了出来并急救了一下!",
+                    (
+                        At(flag="user", target=user_id)
+                        if isinstance(user.result, At)
+                        else u_d
+                    ),  # type: ignore
+                    " 从黑屋中拉了出来并急救了一下!",
                 ]
             ).finish(reply_to=True)
         else:
-            await MessageUtils.build_message(f"该用户不在黑名单中捏...").finish(
+            await MessageUtils.build_message("该用户不在黑名单中捏...").finish(
                 reply_to=True
             )
     elif session.id1 in bot.config.superusers:
         _group_id = group_id.result if group_id.available else None
         if await BanManage.unban(user_id, _group_id, session, True):
             logger.info(
-                f"超级用户UnBan",
+                "超级用户UnBan",
                 arparma.header_result,
                 session=session,
                 target=f"{_group_id}:{user_id}",
             )
-            at_msg = user_id if user_id else f"群组:{_group_id}"
+            at_msg = user_id or f"群组:{_group_id}"
             await MessageUtils.build_message(
                 f"对 {at_msg} 从黑屋中拉了出来并急救了一下!"
             ).finish(reply_to=True)
         else:
-            await MessageUtils.build_message(f"该用户不在黑名单中捏...").finish(
+            await MessageUtils.build_message("该用户不在黑名单中捏...").finish(
                 reply_to=True
             )

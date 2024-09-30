@@ -42,6 +42,8 @@ class PluginType(StrEnum):
     """依赖插件，一般为没有主动触发命令的插件，受权限控制"""
     HIDDEN = "HIDDEN"
     """隐藏插件，一般为没有主动触发命令的插件，不受权限控制，如消息统计"""
+    PARENT = "PARENT"
+    """父插件，仅仅标记"""
 
 
 class BlockType(StrEnum):

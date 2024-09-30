@@ -17,6 +17,32 @@ _yaml.indent = 2
 _yaml.allow_unicode = True
 
 
+class Example(BaseModel):
+    """
+    示例
+    """
+
+    exec: str
+    """执行命令"""
+    description: str = ""
+    """命令描述"""
+
+
+class Command(BaseModel):
+    """
+    具体参数说明
+    """
+
+    command: str
+    """命令"""
+    params: list[str] = []
+    """参数"""
+    description: str = ""
+    """描述"""
+    examples: list[Example] = []
+    """示例列表"""
+
+
 class RegisterConfig(BaseModel):
     """
     注册配置项
@@ -167,6 +193,8 @@ class PluginExtraData(BaseModel):
     """插件基本配置"""
     limits: list[BaseBlock | PluginCdBlock | PluginCountBlock] | None = None
     """插件限制"""
+    commands: list[Command] = []
+    """命令列表，用于说明帮助"""
     tasks: list[Task] | None = None
     """技能被动"""
     superuser_help: str | None = None
@@ -356,7 +384,7 @@ class ConfigsManager:
             value = default
         logger.debug(
             f"获取配置 MODULE: [<u><y>{module}</y></u>] | "
-            " KEY: [<u><y>{key}</y></u>] -> [<u><c>{value}</c></u>]"
+            f" KEY: [<u><y>{key}</y></u>] -> [<u><c>{value}</c></u>]"
         )
         return value
 
@@ -380,13 +408,6 @@ class ConfigsManager:
         """
         if save_simple_data:
             with open(self._simple_file, "w", encoding="utf8") as f:
-                # yaml.dump(
-                #     self._simple_data,
-                #     f,
-                #     indent=2,
-                #     Dumper=yaml.RoundTripDumper,
-                #     allow_unicode=True,
-                # )
                 _yaml.dump(self._simple_data, f)
         path = path or self.file
         data = {}
@@ -398,14 +419,10 @@ class ConfigsManager:
                 del value["arg_parser"]
                 data[module][config] = value
         with open(path, "w", encoding="utf8") as f:
-            # yaml.dump(
-            #     data, f, indent=2, Dumper=yaml.RoundTripDumper, allow_unicode=True
-            # )
             _yaml.dump(data, f)
 
     def reload(self):
         """重新加载配置文件"""
-        _yaml = YAML()
         if self._simple_file.exists():
             with open(self._simple_file, encoding="utf8") as f:
                 self._simple_data = _yaml.load(f)
@@ -441,7 +458,7 @@ class ConfigsManager:
             self._data[module] = config_group
         logger.info(
             f"加载配置完成，共加载 <u><y>{len(temp_data)}</y></u> 个配置组及对应"
-            " <u><y>{count}</y></u> 个配置项"
+            f" <u><y>{count}</y></u> 个配置项"
         )
 
     def get_data(self) -> dict[str, ConfigGroup]:

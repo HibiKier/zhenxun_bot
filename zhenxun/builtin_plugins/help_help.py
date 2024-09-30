@@ -2,29 +2,30 @@ import os
 import random
 
 from nonebot import on_message
+from nonebot.rule import to_me
 from nonebot.matcher import Matcher
 from nonebot.plugin import PluginMetadata
-from nonebot.rule import to_me
 from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.path_config import IMAGE_PATH
-from zhenxun.configs.utils import PluginExtraData
-from zhenxun.models.ban_console import BanConsole
-from zhenxun.models.group_console import GroupConsole
-from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.message import MessageUtils
+from zhenxun.configs.utils import PluginExtraData
+from zhenxun.models.ban_console import BanConsole
+from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.configs.path_config import IMAGE_PATH
+from zhenxun.models.group_console import GroupConsole
 
 __plugin_meta__ = PluginMetadata(
-    name="功能名称当命令检测",
+    name="笨蛋检测",
     description="功能名称当命令检测",
-    usage=f"""被动""".strip(),
+    usage="""被动""".strip(),
     extra=PluginExtraData(
         author="HibiKier",
         version="0.1",
         plugin_type=PluginType.DEPENDANT,
+        menu_type="其他",
     ).dict(),
 )
 
@@ -57,10 +58,12 @@ async def _(matcher: Matcher, message: UniMsg, session: EventSession):
             if image:
                 message_list.append(image)
             message_list.append(
-                f"桀桀桀，预判到会有 '笨蛋' 把功能名称当命令用，特地前来嘲笑！但还是好心来帮帮你啦！\n请at我发送 '帮助{plugin.name}' 或者 '帮助{plugin.id}' 来获取该功能帮助！"
+                "桀桀桀，预判到会有 '笨蛋' 把功能名称当命令用，特地前来嘲笑！"
+                f"但还是好心来帮帮你啦！\n请at我发送 '帮助{plugin.name}' 或者"
+                f" '帮助{plugin.id}' 来获取该功能帮助！"
             )
             logger.info(
-                f"检测到功能名称当命令使用，已发送帮助信息", "功能帮助", session=session
+                "检测到功能名称当命令使用，已发送帮助信息", "功能帮助", session=session
             )
             await MessageUtils.build_message(message_list).send(reply_to=True)
             matcher.stop_propagation()

@@ -1,26 +1,27 @@
-import asyncio
 import time
-from datetime import datetime, timedelta
+import asyncio
+import contextlib
 from pathlib import Path
+from datetime import datetime, timedelta
 
 import nonebot
-from fastapi import APIRouter, WebSocket
-from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
+from fastapi import APIRouter
 from tortoise.functions import Count
-from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
+from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
+from starlette.websockets import WebSocket, WebSocketState, WebSocketDisconnect
 
-from zhenxun.models.chat_history import ChatHistory
-from zhenxun.models.group_info import GroupInfo
-from zhenxun.models.plugin_info import PluginInfo
-from zhenxun.models.statistics import Statistics
 from zhenxun.services.log import logger
+from zhenxun.models.group_info import GroupInfo
+from zhenxun.models.statistics import Statistics
 from zhenxun.utils.platform import PlatformUtils
+from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.models.chat_history import ChatHistory
 
 from ....base_model import Result
-from ....config import AVA_URL, GROUP_AVA_URL, QueryDateType
-from ....utils import authentication, get_system_status
 from .data_source import bot_live
-from .model import ActiveGroup, BaseInfo, ChatHistoryCount, HotPlugin
+from ....utils import authentication, get_system_status
+from ....config import AVA_URL, GROUP_AVA_URL, QueryDateType
+from .model import BaseInfo, HotPlugin, ActiveGroup, ChatHistoryCount
 
 run_time = time.time()
 
@@ -131,7 +132,7 @@ async def _(bot_id: str) -> Result:
     "/get_ch_count", dependencies=[authentication()], description="获取接收消息数量"
 )
 async def _(bot_id: str, query_type: QueryDateType | None = None) -> Result:
-    if bots := nonebot.get_bots():
+    if nonebot.get_bot(bot_id):
         if not query_type:
             return Result.ok(await ChatHistory.filter(bot_id=bot_id).count())
         now = datetime.now()
@@ -210,7 +211,6 @@ async def _(date_type: QueryDateType | None = None) -> Result:
         .limit(5)
         .values_list("group_id", "count")
     )
-    active_group_list = []
     id2name = {}
     if data_list:
         if info_list := await GroupInfo.filter(
@@ -218,15 +218,15 @@ async def _(date_type: QueryDateType | None = None) -> Result:
         ).all():
             for group_info in info_list:
                 id2name[group_info.group_id] = group_info.group_name
-    for data in data_list:
-        active_group_list.append(
-            ActiveGroup(
-                group_id=data[0],
-                name=id2name.get(data[0]) or data[0],
-                chat_num=data[1],
-                ava_img=GROUP_AVA_URL.format(data[0], data[0]),
-            )
+    active_group_list = [
+        ActiveGroup(
+            group_id=data[0],
+            name=id2name.get(data[0]) or data[0],
+            chat_num=data[1],
+            ava_img=GROUP_AVA_URL.format(data[0], data[0]),
         )
+        for data in data_list
+    ]
     active_group_list = sorted(
         active_group_list, key=lambda x: x.chat_num, reverse=True
     )
@@ -263,13 +263,7 @@ async def _(date_type: QueryDateType | None = None) -> Result:
     for data in data_list:
         module = data[0]
         name = module2name.get(module) or module
-        hot_plugin_list.append(
-            HotPlugin(
-                module=data[0],
-                name=name,
-                count=data[1],
-            )
-        )
+        hot_plugin_list.append(HotPlugin(module=module, name=name, count=data[1]))
     hot_plugin_list = sorted(hot_plugin_list, key=lambda x: x.count, reverse=True)
     if len(hot_plugin_list) > 5:
         hot_plugin_list = hot_plugin_list[:5]
@@ -280,11 +274,11 @@ async def _(date_type: QueryDateType | None = None) -> Result:
 async def system_logs_realtime(websocket: WebSocket, sleep: int = 5):
     await websocket.accept()
     logger.debug("ws system_status is connect")
-    try:
+    with contextlib.suppress(
+        WebSocketDisconnect, ConnectionClosedError, ConnectionClosedOK
+    ):
         while websocket.client_state == WebSocketState.CONNECTED:
             system_status = await get_system_status()
             await websocket.send_text(system_status.json())
             await asyncio.sleep(sleep)
-    except (WebSocketDisconnect, ConnectionClosedError, ConnectionClosedOK):
-        pass
     return

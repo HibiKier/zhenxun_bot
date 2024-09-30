@@ -5,7 +5,6 @@ from nonebot_plugin_apscheduler import scheduler
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.configs.config import BotConfig
-from zhenxun.models.task_info import TaskInfo
 from zhenxun.utils.message import MessageUtils
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.utils.common_utils import CommonUtils
@@ -25,16 +24,6 @@ __plugin_meta__ = PluginMetadata(
 )
 
 driver = nonebot.get_driver()
-
-
-@driver.on_startup
-async def _():
-    if not await TaskInfo.exists(module="morning_goodnight"):
-        await TaskInfo.create(
-            module="morning_goodnight",
-            name="早晚安",
-            status=True,
-        )
 
 
 async def check(group_id: str) -> bool:

@@ -19,6 +19,10 @@ class MemberUpdateManage:
 
     @classmethod
     async def update(cls, bot: Bot, group_id: str):
+        if not group_id:
+            return logger.warning(
+                f"bot: {bot.self_id}，group_id为空，无法更新群成员信息..."
+            )
         if isinstance(bot, v11Bot):
             await cls.v11(bot, group_id)
         elif isinstance(bot, v12Bot):
@@ -145,14 +149,18 @@ class MemberUpdateManage:
         if delete_list:
             await GroupInfoUser.filter(id__in=delete_list).delete()
             logger.debug(f"删除重复数据 Ids: {delete_list}", "更新群组成员信息")
-        if delete_member_list := list(
-            set(exist_member_list).difference(set(db_user_uid))
-        ):
+
+        if delete_member_list := [
+            uid for uid in db_user_uid if uid not in exist_member_list
+        ]:
             await GroupInfoUser.filter(
                 user_id__in=delete_member_list, group_id=group_id
             ).delete()
             logger.info(
-                "删除已退群用户", "更新群组成员信息", group_id=group_id, platform="qq"
+                f"删除已退群用户 {len(delete_member_list)} 条",
+                "更新群组成员信息",
+                group_id=group_id,
+                platform="qq",
             )
 
     @classmethod

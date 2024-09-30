@@ -1,12 +1,12 @@
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_alconna import Alconna, Args, Subcommand, on_alconna
 from nonebot_plugin_session import EventSession
+from nonebot_plugin_alconna import Args, Alconna, Subcommand, on_alconna
 
-from zhenxun.configs.utils import PluginExtraData 
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.message import MessageUtils
+from zhenxun.configs.utils import PluginExtraData
 
 from .data_source import ShopManage
 
@@ -68,6 +68,7 @@ _matcher.shortcut(
     prefix=True,
 )
 
+
 @_matcher.assign("$main")
 async def _(session: EventSession):
     try:
@@ -82,9 +83,7 @@ async def _(session: EventSession):
 @_matcher.assign("add")
 async def _(session: EventSession, plugin_id: int):
     try:
-        await MessageUtils.build_message(
-            f"正在添加插件 Id: {plugin_id}"
-        ).send()
+        await MessageUtils.build_message(f"正在添加插件 Id: {plugin_id}").send()
         result = await ShopManage.add_plugin(plugin_id)
     except Exception as e:
         logger.error(f"添加插件 Id: {plugin_id}失败", "插件商店", session=session, e=e)
@@ -107,24 +106,29 @@ async def _(session: EventSession, plugin_id: int):
     logger.info(f"移除插件 Id: {plugin_id}", "插件商店", session=session)
     await MessageUtils.build_message(result).send()
 
+
 @_matcher.assign("search")
 async def _(session: EventSession, plugin_name_or_author: str):
     try:
         result = await ShopManage.search_plugin(plugin_name_or_author)
     except Exception as e:
-        logger.error(f"搜索插件 name: {plugin_name_or_author}失败", "插件商店", session=session, e=e)
+        logger.error(
+            f"搜索插件 name: {plugin_name_or_author}失败",
+            "插件商店",
+            session=session,
+            e=e,
+        )
         await MessageUtils.build_message(
             f"搜索插件 name: {plugin_name_or_author} 失败 e: {e}"
         ).finish()
     logger.info(f"搜索插件 name: {plugin_name_or_author}", "插件商店", session=session)
     await MessageUtils.build_message(result).send()
 
+
 @_matcher.assign("update")
 async def _(session: EventSession, plugin_id: int):
     try:
-        await MessageUtils.build_message(
-            f"正在更新插件 Id: {plugin_id}"
-        ).send()
+        await MessageUtils.build_message(f"正在更新插件 Id: {plugin_id}").send()
         result = await ShopManage.update_plugin(plugin_id)
     except Exception as e:
         logger.error(f"更新插件 Id: {plugin_id}失败", "插件商店", session=session, e=e)

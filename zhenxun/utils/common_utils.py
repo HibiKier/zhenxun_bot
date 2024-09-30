@@ -1,3 +1,5 @@
+from zhenxun.services.log import logger
+from zhenxun.configs.config import BotConfig
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.group_console import GroupConsole
@@ -34,3 +36,19 @@ class CommonUtils:
                 """群组是否被ban"""
                 return True
         return False
+
+
+class SqlUtils:
+
+    @classmethod
+    def random(cls, query, limit: int = 1) -> str:
+        db_class_name = BotConfig.get_sql_type()
+        if "postgres" in db_class_name or "sqlite" in db_class_name:
+            query = f"{query.sql()} ORDER BY RANDOM() LIMIT {limit};"
+        elif "mysql" in db_class_name:
+            query = f"{query.sql()} ORDER BY RAND() LIMIT {limit};"
+        else:
+            logger.warning(
+                f"Unsupported database type: {db_class_name}", query.__module__
+            )
+        return query

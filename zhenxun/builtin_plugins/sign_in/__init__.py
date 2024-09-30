@@ -3,9 +3,11 @@ from nonebot_plugin_session import EventSession
 from nonebot_plugin_apscheduler import scheduler
 from nonebot_plugin_alconna import (
     Args,
+    Query,
     Option,
     Alconna,
     Arparma,
+    AlconnaQuery,
     on_alconna,
     store_true,
 )
@@ -17,6 +19,7 @@ from zhenxun.configs.utils import PluginCdBlock, RegisterConfig, PluginExtraData
 
 from ._data_source import SignManage
 from .utils import clear_sign_data_pic
+from .goods_register import driver  # noqa: F401
 
 __plugin_meta__ = PluginMetadata(
     name="签到",
@@ -27,8 +30,8 @@ __plugin_meta__ = PluginMetadata(
     指令:
         签到
         我的签到
-        好感度排行
-        好感度总排行
+        好感度排行 ?[num=10]
+        好感度总排行 ?[num=10]
     * 签到时有 3% 概率 * 2 *
     """.strip(),
     extra=PluginExtraData(
@@ -89,7 +92,7 @@ _sign_matcher = on_alconna(
         Option("--my", action=store_true, help_text="我的签到"),
         Option(
             "-l|--list",
-            Args["num", int, 10],
+            Args["num?", int],
             help_text="好感度排行",
         ),
         Option("-g|--global", action=store_true, help_text="全局排行"),
@@ -115,7 +118,7 @@ _sign_matcher.shortcut(
 _sign_matcher.shortcut(
     "好感度总排行",
     command="签到",
-    arguments=["--list", "--global"],
+    arguments=["--global", "--list"],
     prefix=True,
 )
 
@@ -139,7 +142,11 @@ async def _(session: EventSession, arparma: Arparma, nickname: str = UserName())
 
 
 @_sign_matcher.assign("list")
-async def _(session: EventSession, arparma: Arparma, num: int):
+async def _(
+    session: EventSession, arparma: Arparma, num: Query[int] = AlconnaQuery("num", 10)
+):
+    if num.result > 50:
+        await MessageUtils.build_message("排行榜人数不能超过50哦...").finish()
     gid = session.id3 or session.id2
     if not arparma.find("global") and not gid:
         await MessageUtils.build_message(
@@ -148,7 +155,7 @@ async def _(session: EventSession, arparma: Arparma, num: int):
     if session.id1:
         if arparma.find("global"):
             gid = None
-        if image := await SignManage.rank(session.id1, num, gid):
+        if image := await SignManage.rank(session.id1, num.result, gid):
             logger.info("查看签到排行", arparma.header_result, session=session)
             await MessageUtils.build_message(image).finish()
     return MessageUtils.build_message("用户id为空...").send()

@@ -1,13 +1,14 @@
 from pathlib import Path
 
-from nonebot.plugin import PluginMetadata
+import aiofiles
 from nonebot.rule import to_me
-from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
+from nonebot.plugin import PluginMetadata
 from nonebot_plugin_session import EventSession
+from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
 
-from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.message import MessageUtils
+from zhenxun.configs.utils import PluginExtraData
 
 __plugin_meta__ = PluginMetadata(
     name="关于",
@@ -28,8 +29,9 @@ async def _(session: EventSession, arparma: Arparma):
     ver_file = Path() / "__version__"
     version = None
     if ver_file.exists():
-        with open(ver_file, "r", encoding="utf8") as f:
-            version = f.read().split(":")[-1].strip()
+        async with aiofiles.open(ver_file, encoding="utf8") as f:
+            if text := await f.read():
+                version = text.split(":")[-1].strip()
     info = f"""
 『绪山真寻Bot』
 版本：{version}
