@@ -115,7 +115,7 @@ AccessToken: PUBLIC_ZHENXUN_TEST
 - 通过 Config 配置项将所有插件配置统计保存至 config.yaml，利于统一用户修改
 - 方便增删插件，原生 nonebot2 matcher，不需要额外修改，仅仅通过简单的配置属性就可以生成`帮助图片`和`帮助信息`
 - 提供了 cd，阻塞，每日次数等限制，仅仅通过简单的属性就可以生成一个限制，例如：`PluginCdBlock` 等
-- **..... 更多详细请通过`传送门`查看文档！**
+- **..... 更多详细请通过[[传送门](https://hibikier.github.io/zhenxun_bot/)]查看文档！**
 
 ## 简单部署
 
@@ -133,9 +133,6 @@ poetry install          # 安装依赖
 # 开始运行
 poetry shell            # 进入虚拟环境
 python bot.py
-
-# 在Linux系统，你可能还需要运行此命令安装playwright依赖
-playwright install-deps
 
 # 首次后会在data目录下生成config.yaml文件
 # config.yaml用户配置插件
@@ -375,11 +372,11 @@ playwright install-deps
 
 </details>
 
-## 更新
+<!-- ## 更新
 
 ### 2024/8/11
 
-- 更新 dev
+- 更新 dev -->
 
 <!-- ### 2024/1/25
 
