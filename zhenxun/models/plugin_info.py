@@ -1,3 +1,5 @@
+from typing_extensions import Self
+
 from tortoise import fields
 
 from zhenxun.services.db_context import Model
@@ -50,6 +52,30 @@ class PluginInfo(Model):
     class Meta:  # type: ignore
         table = "plugin_info"
         table_description = "插件基本信息"
+
+    @classmethod
+    async def get_plugin(cls, load_status: bool = True, **kwargs) -> Self | None:
+        """获取插件列表
+
+        参数:
+            load_status: 加载状态.
+
+        返回:
+            Self | None: 插件
+        """
+        return await cls.get_or_none(load_status=load_status, **kwargs)
+
+    @classmethod
+    async def get_plugins(cls, load_status: bool = True, **kwargs) -> list[Self]:
+        """获取插件列表
+
+        参数:
+            load_status: 加载状态.
+
+        返回:
+            list[Self]: 插件列表
+        """
+        return await cls.filter(load_status=load_status, **kwargs).all()
 
     @classmethod
     async def _run_script(cls):

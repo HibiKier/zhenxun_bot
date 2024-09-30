@@ -88,7 +88,7 @@ class LimitManage:
     @classmethod
     async def check(
         cls,
-        module: str,
+        module_path: str,
         user_id: str,
         group_id: str | None,
         channel_id: str | None,
@@ -106,17 +106,17 @@ class LimitManage:
         异常:
             IgnoredException: IgnoredException
         """
-        if limit_model := cls.cd_limit.get(module):
+        if limit_model := cls.cd_limit.get(module_path):
             await cls.__check(limit_model, user_id, group_id, channel_id, session)
-        if limit_model := cls.block_limit.get(module):
+        if limit_model := cls.block_limit.get(module_path):
             await cls.__check(limit_model, user_id, group_id, channel_id, session)
-        if limit_model := cls.count_limit.get(module):
+        if limit_model := cls.count_limit.get(module_path):
             await cls.__check(limit_model, user_id, group_id, channel_id, session)
 
     @classmethod
     async def __check(
         cls,
-        limit_model: Limit,
+        limit_model: Limit | None,
         user_id: str,
         group_id: str | None,
         channel_id: str | None,
@@ -291,12 +291,14 @@ class AuthChecker:
         if not group_id:
             group_id = channel_id
             channel_id = None
-        limit_list: list[PluginLimit] = await plugin.plugin_limit.all()  # type: ignore
+        limit_list: list[PluginLimit] = await plugin.plugin_limit.filter(
+            status=True
+        ).all()  # type: ignore
         for limit in limit_list:
             LimitManage.add_limit(limit)
         if user_id:
             await LimitManage.check(
-                plugin.module, user_id, group_id, channel_id, session
+                plugin.module_path, user_id, group_id, channel_id, session
             )
 
     async def auth_plugin(

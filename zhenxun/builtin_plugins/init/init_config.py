@@ -1,16 +1,16 @@
 from pathlib import Path
 
 import nonebot
-from nonebot import get_loaded_plugins
-from nonebot.drivers import Driver
-from nonebot.plugin import Plugin
 from ruamel.yaml import YAML
+from nonebot.plugin import Plugin
+from nonebot.drivers import Driver
+from nonebot import get_loaded_plugins
 from ruamel.yaml.comments import CommentedMap
 
-from zhenxun.configs.config import Config
-from zhenxun.configs.path_config import DATA_PATH
-from zhenxun.configs.utils import RegisterConfig
 from zhenxun.services.log import logger
+from zhenxun.configs.config import Config
+from zhenxun.configs.utils import RegisterConfig
+from zhenxun.configs.path_config import DATA_PATH
 
 _yaml = YAML(pure=True)
 _yaml.allow_unicode = True
@@ -72,15 +72,14 @@ def _generate_simple_config():
                     Config.set_config(module, k, _data[module][k])
                 _tmp_data[module][k] = Config.get_config(module, k)
             except AttributeError as e:
-                raise AttributeError(f"{e}\n" + "可能为config.yaml配置文件填写不规范")
+                raise AttributeError(f"{e}\n可能为config.yaml配置文件填写不规范") from e
     Config.save()
     temp_file = DATA_PATH / "temp_config.yaml"
     # 重新生成简易配置文件
     try:
         with open(temp_file, "w", encoding="utf8") as wf:
-            # yaml.dump(_tmp_data, wf, Dumper=yaml.RoundTripDumper, allow_unicode=True)
             _yaml.dump(_tmp_data, wf)
-        with open(temp_file, "r", encoding="utf8") as rf:
+        with open(temp_file, encoding="utf8") as rf:
             _data = _yaml.load(rf)
         # 添加注释
         for module in _data.keys():
@@ -93,7 +92,7 @@ def _generate_simple_config():
         with SIMPLE_CONFIG_FILE.open("w", encoding="utf8") as wf:
             _yaml.dump(_data, wf)
     except Exception as e:
-        logger.error(f"生成简易配置注释错误...", e=e)
+        logger.error("生成简易配置注释错误...", e=e)
     if temp_file.exists():
         temp_file.unlink()
 

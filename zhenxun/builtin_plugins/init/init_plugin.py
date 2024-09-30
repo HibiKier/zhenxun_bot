@@ -21,6 +21,8 @@ from zhenxun.utils.enum import (
     PluginLimitType,
 )
 
+from .manager import manager
+
 _yaml = YAML(pure=True)
 _yaml.allow_unicode = True
 _yaml.indent = 2
@@ -148,23 +150,25 @@ async def _():
     #     ["name", "author", "version", "admin_level", "plugin_type"],
     #     10,
     # )
-    if limit_list:
-        limit_create = []
-        plugins = []
-        if module_path_list := [limit.module_path for limit in limit_list]:
-            plugins = await PluginInfo.filter(module_path__in=module_path_list).all()
-        if plugins:
-            for limit in limit_list:
-                if lmt := [p for p in plugins if p.module_path == limit.module_path]:
-                    plugin = lmt[0]
-                    limit_type_list = [
-                        _limit.limit_type for _limit in await plugin.plugin_limit.all()  # type: ignore
-                    ]
-                    if limit.limit_type not in limit_type_list:
-                        limit.plugin = plugin
-                        limit_create.append(limit)
-        if limit_create:
-            await PluginLimit.bulk_create(limit_create, 10)
+    # for limit in limit_list:
+    #     limit_create = []
+    #     plugins = []
+    #     if module_path_list := [limit.module_path for limit in limit_list]:
+    #         plugins = await PluginInfo.get_plugins(module_path__in=module_path_list)
+    #     if plugins:
+    #         for limit in limit_list:
+    #             if lmt := [p for p in plugins if p.module_path == limit.module_path]:
+    #                 plugin = lmt[0]
+    #                 """不在数据库中"""
+    #                 limit_type_list = [
+    #                     _limit.limit_type
+    #                     for _limit in await plugin.plugin_limit.all()  # type: ignore
+    #                 ]
+    #                 if limit.limit_type not in limit_type_list:
+    #                     limit.plugin = plugin
+    #                     limit_create.append(limit)
+    #     if limit_create:
+    #         await PluginLimit.bulk_create(limit_create, 10)
     if task_list:
         module_dict = {
             t[1]: t[0] for t in await TaskInfo.all().values_list("id", "module")
@@ -195,10 +199,18 @@ async def _():
     await data_migration()
     await PluginInfo.filter(module_path__in=load_plugin).update(load_status=True)
     await PluginInfo.filter(module_path__not_in=load_plugin).update(load_status=False)
+    manager.init()
+    if limit_list:
+        for limit in limit_list:
+            if not manager.exist(limit.module_path, limit.limit_type):
+                """不存在，添加"""
+                manager.add(limit.module_path, limit)
+    manager.save_file()
+    await manager.load_to_db()
 
 
 async def data_migration():
-    await limit_migration()
+    # await limit_migration()
     await plugin_migration()
     await group_migration()
 
