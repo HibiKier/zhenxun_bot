@@ -90,7 +90,8 @@ class ShopManage:
 
         # 检查请求结果
         if res.status_code != 200 or res2.status_code != 200:
-            raise ValueError(f"下载错误, code: {res.status_code}, {res2.status_code}")
+            raise ValueError(
+                f"下载错误, code: {res.status_code}, {res2.status_code}")
 
         # 解析并合并返回的 JSON 数据
         data1 = json.loads(res.text)
@@ -175,19 +176,22 @@ class ShopManage:
         )
 
     @classmethod
-    async def add_plugin(cls, plugin_id: int) -> str:
+    async def add_plugin(cls, plugin_id: int | str) -> str:
         """添加插件
 
         参数:
-            plugin_id: 插件id
+            plugin_id: 插件id或模块名
 
         返回:
             str: 返回消息
         """
         data: dict[str, StorePluginInfo] = await cls.get_data()
-        if plugin_id < 0 or plugin_id >= len(data):
+        if isinstance(plugin_id, int) and (plugin_id < 0 or plugin_id >= len(data)):
             return "插件ID不存在..."
-        plugin_key = list(data.keys())[plugin_id]
+        elif isinstance(plugin_id, str) and plugin_id not in [v.module for k, v in data.items()]:
+            return "插件Module不存在..."
+        plugin_key = list(data.keys())[plugin_id] if isinstance(plugin_id, int) else {
+            v.module: k for k, v in data.items()}[plugin_id]
         plugin_list = await cls.get_loaded_plugins("module")
         plugin_info = data[plugin_key]
         if plugin_info.module in [p[0] for p in plugin_list]:
@@ -229,7 +233,8 @@ class ShopManage:
         else:
             raise ValueError("所有API获取插件文件失败，请检查网络连接")
         files = repo_api.get_files(
-            module_path=module_path.replace(".", "/") + ("" if is_dir else ".py"),
+            module_path=module_path.replace(
+                ".", "/") + ("" if is_dir else ".py"),
             is_dir=is_dir,
         )
         download_urls = [await repo_info.get_raw_download_urls(file) for file in files]
@@ -249,7 +254,8 @@ class ShopManage:
             req_download_urls = [
                 await repo_info.get_raw_download_urls(file) for file in req_files
             ]
-            req_paths: list[Path | str] = [plugin_path / file for file in req_files]
+            req_paths: list[Path | str] = [
+                plugin_path / file for file in req_files]
             logger.debug(f"插件依赖文件下载路径: {req_paths}", "插件管理")
             if req_files:
                 result = await AsyncHttpx.gather_download_file(
@@ -265,20 +271,23 @@ class ShopManage:
         raise Exception("插件下载失败")
 
     @classmethod
-    async def remove_plugin(cls, plugin_id: int) -> str:
+    async def remove_plugin(cls, plugin_id: int | str) -> str:
         """移除插件
 
         参数:
-            plugin_id: 插件id
+            plugin_id: 插件id或模块名
 
         返回:
             str: 返回消息
         """
         data: dict[str, StorePluginInfo] = await cls.get_data()
-        if plugin_id < 0 or plugin_id >= len(data):
+        if isinstance(plugin_id, int) and (plugin_id < 0 or plugin_id >= len(data)):
             return "插件ID不存在..."
-        plugin_key = list(data.keys())[plugin_id]
-        plugin_info = data[plugin_key]  # type: ignore
+        elif isinstance(plugin_id, str) and plugin_id not in [v.module for k, v in data.items()]:
+            return "插件Module不存在..."
+        plugin_key = list(data.keys())[plugin_id] if isinstance(plugin_id, int) else {
+            v.module: k for k, v in data.items()}[plugin_id]
+        plugin_info = data[plugin_key]
         path = BASE_PATH
         if plugin_info.github_url:
             path = BASE_PATH / "plugins"
@@ -340,7 +349,7 @@ class ShopManage:
         )
 
     @classmethod
-    async def update_plugin(cls, plugin_id: int) -> str:
+    async def update_plugin(cls, plugin_id: int | str) -> str:
         """更新插件
 
         参数:
@@ -350,9 +359,12 @@ class ShopManage:
             str: 返回消息
         """
         data: dict[str, StorePluginInfo] = await cls.get_data()
-        if plugin_id < 0 or plugin_id >= len(data):
+        if isinstance(plugin_id, int) and (plugin_id < 0 or plugin_id >= len(data)):
             return "插件ID不存在..."
-        plugin_key = list(data.keys())[plugin_id]
+        elif isinstance(plugin_id, str) and plugin_id not in [v.module for k, v in data.items()]:
+            return "插件Module不存在..."
+        plugin_key = list(data.keys())[plugin_id] if isinstance(plugin_id, int) else {
+            v.module: k for k, v in data.items()}[plugin_id]
         logger.info(f"尝试更新插件 {plugin_key}", "插件管理")
         plugin_info = data[plugin_key]
         plugin_list = await cls.get_loaded_plugins("module", "version")
@@ -373,3 +385,41 @@ class ShopManage:
             is_external,
         )
         return f"插件 {plugin_key} 更新成功! 重启后生效"
+
+    @classmethod
+    async def update_all_plugin(cls) -> str:
+        """更新插件
+
+        参数:
+            plugin_id: 插件id
+
+        返回:
+            str: 返回消息
+        """
+        data: dict[str, StorePluginInfo] = await cls.get_data()
+        plugin_list = list(data.keys())
+        update_list = []
+        logger.info(f"尝试更新全部插件 {plugin_list}", "插件管理")
+        for plugin_key in plugin_list:
+            plugin_info = data[plugin_key]
+            plugin_list = await cls.get_loaded_plugins("module", "version")
+            suc_plugin = {p[0]: (p[1] or "Unknown") for p in plugin_list}
+            if plugin_info.module not in [p[0] for p in plugin_list]:
+                logger.debug(f"插件 {plugin_key} 未安装，跳过", "插件管理")
+                continue
+            if cls.check_version_is_new(plugin_info, suc_plugin):
+                logger.debug(f"插件 {plugin_key} 已是最新版本，跳过", "插件管理")
+                continue
+            logger.info(f"正在更新插件 {plugin_key}", "插件管理")
+            is_external = True
+            if plugin_info.github_url is None:
+                plugin_info.github_url = DEFAULT_GITHUB_URL
+                is_external = False
+            await cls.install_plugin_with_repo(
+                plugin_info.github_url,
+                plugin_info.module_path,
+                plugin_info.is_dir,
+                is_external,
+            )
+            update_list.append(plugin_key)
+        return "已更新插件 {}\n共计{}个插件! 重启后生效".format('\n- '.join(update_list), len(update_list))
