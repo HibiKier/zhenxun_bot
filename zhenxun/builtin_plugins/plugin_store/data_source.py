@@ -90,8 +90,7 @@ class ShopManage:
 
         # 检查请求结果
         if res.status_code != 200 or res2.status_code != 200:
-            raise ValueError(
-                f"下载错误, code: {res.status_code}, {res2.status_code}")
+            raise ValueError(f"下载错误, code: {res.status_code}, {res2.status_code}")
 
         # 解析并合并返回的 JSON 数据
         data1 = json.loads(res.text)
@@ -188,10 +187,15 @@ class ShopManage:
         data: dict[str, StorePluginInfo] = await cls.get_data()
         if isinstance(plugin_id, int) and (plugin_id < 0 or plugin_id >= len(data)):
             return "插件ID不存在..."
-        elif isinstance(plugin_id, str) and plugin_id not in [v.module for k, v in data.items()]:
+        elif isinstance(plugin_id, str) and plugin_id not in [
+            v.module for k, v in data.items()
+        ]:
             return "插件Module不存在..."
-        plugin_key = list(data.keys())[plugin_id] if isinstance(plugin_id, int) else {
-            v.module: k for k, v in data.items()}[plugin_id]
+        plugin_key = (
+            list(data.keys())[plugin_id]
+            if isinstance(plugin_id, int)
+            else {v.module: k for k, v in data.items()}[plugin_id]
+        )
         plugin_list = await cls.get_loaded_plugins("module")
         plugin_info = data[plugin_key]
         if plugin_info.module in [p[0] for p in plugin_list]:
@@ -233,8 +237,7 @@ class ShopManage:
         else:
             raise ValueError("所有API获取插件文件失败，请检查网络连接")
         files = repo_api.get_files(
-            module_path=module_path.replace(
-                ".", "/") + ("" if is_dir else ".py"),
+            module_path=module_path.replace(".", "/") + ("" if is_dir else ".py"),
             is_dir=is_dir,
         )
         download_urls = [await repo_info.get_raw_download_urls(file) for file in files]
@@ -254,8 +257,7 @@ class ShopManage:
             req_download_urls = [
                 await repo_info.get_raw_download_urls(file) for file in req_files
             ]
-            req_paths: list[Path | str] = [
-                plugin_path / file for file in req_files]
+            req_paths: list[Path | str] = [plugin_path / file for file in req_files]
             logger.debug(f"插件依赖文件下载路径: {req_paths}", "插件管理")
             if req_files:
                 result = await AsyncHttpx.gather_download_file(
@@ -283,10 +285,15 @@ class ShopManage:
         data: dict[str, StorePluginInfo] = await cls.get_data()
         if isinstance(plugin_id, int) and (plugin_id < 0 or plugin_id >= len(data)):
             return "插件ID不存在..."
-        elif isinstance(plugin_id, str) and plugin_id not in [v.module for k, v in data.items()]:
+        elif isinstance(plugin_id, str) and plugin_id not in [
+            v.module for k, v in data.items()
+        ]:
             return "插件Module不存在..."
-        plugin_key = list(data.keys())[plugin_id] if isinstance(plugin_id, int) else {
-            v.module: k for k, v in data.items()}[plugin_id]
+        plugin_key = (
+            list(data.keys())[plugin_id]
+            if isinstance(plugin_id, int)
+            else {v.module: k for k, v in data.items()}[plugin_id]
+        )
         plugin_info = data[plugin_key]
         path = BASE_PATH
         if plugin_info.github_url:
@@ -361,10 +368,15 @@ class ShopManage:
         data: dict[str, StorePluginInfo] = await cls.get_data()
         if isinstance(plugin_id, int) and (plugin_id < 0 or plugin_id >= len(data)):
             return "插件ID不存在..."
-        elif isinstance(plugin_id, str) and plugin_id not in [v.module for k, v in data.items()]:
+        elif isinstance(plugin_id, str) and plugin_id not in [
+            v.module for k, v in data.items()
+        ]:
             return "插件Module不存在..."
-        plugin_key = list(data.keys())[plugin_id] if isinstance(plugin_id, int) else {
-            v.module: k for k, v in data.items()}[plugin_id]
+        plugin_key = (
+            list(data.keys())[plugin_id]
+            if isinstance(plugin_id, int)
+            else {v.module: k for k, v in data.items()}[plugin_id]
+        )
         logger.info(f"尝试更新插件 {plugin_key}", "插件管理")
         plugin_info = data[plugin_key]
         plugin_list = await cls.get_loaded_plugins("module", "version")
@@ -422,4 +434,8 @@ class ShopManage:
                 is_external,
             )
             update_list.append(plugin_key)
-        return "已更新插件 {}\n共计{}个插件! 重启后生效".format('\n- '.join(update_list), len(update_list))
+        if len(update_list) == 0:
+            return "全部插件已是最新版本"
+        return "已更新插件 {}\n共计{}个插件! 重启后生效".format(
+            "\n- ".join(update_list), len(update_list)
+        )
