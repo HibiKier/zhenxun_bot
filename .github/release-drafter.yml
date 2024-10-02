@@ -29,6 +29,7 @@ autolabeler:
       - "pyproject.toml"
       - "requirements.txt"
       - "poetry.lock"
+    title:
       - "/:wrench:.+/"
       - "/🔧.+/"
   - label: "resources"
