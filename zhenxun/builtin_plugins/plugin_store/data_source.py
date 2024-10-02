@@ -185,17 +185,10 @@ class ShopManage:
             str: 返回消息
         """
         data: dict[str, StorePluginInfo] = await cls.get_data()
-        if isinstance(plugin_id, int) and (plugin_id < 0 or plugin_id >= len(data)):
-            return "插件ID不存在..."
-        elif isinstance(plugin_id, str) and plugin_id not in [
-            v.module for k, v in data.items()
-        ]:
-            return "插件Module不存在..."
-        plugin_key = (
-            list(data.keys())[plugin_id]
-            if isinstance(plugin_id, int)
-            else {v.module: k for k, v in data.items()}[plugin_id]
-        )
+        try:
+            plugin_key = await cls._resolve_plugin_key(plugin_id)
+        except ValueError as e:
+            return str(e)
         plugin_list = await cls.get_loaded_plugins("module")
         plugin_info = data[plugin_key]
         if plugin_info.module in [p[0] for p in plugin_list]:
