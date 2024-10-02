@@ -159,9 +159,9 @@ async def _(session: EventSession):
         await MessageUtils.build_message("正在更新全部插件").send()
         result = await ShopManage.update_all_plugin()
     except Exception as e:
-        logger.error(f"更新全部插件失败", "插件商店", session=session, e=e)
+        logger.error("更新全部插件失败", "插件商店", session=session, e=e)
         await MessageUtils.build_message(
             f"更新全部插件失败 e: {e}"
         ).finish()
-    logger.info(f"更新全部插件", "插件商店", session=session)
+    logger.info("更新全部插件", "插件商店", session=session)
     await MessageUtils.build_message(result).send()
