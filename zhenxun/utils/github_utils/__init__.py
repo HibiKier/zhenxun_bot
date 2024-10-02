@@ -1,6 +1,6 @@
 from collections.abc import Generator
 
-from .consts import GITHUB_REPO_URL_PATTERN
+from .const import GITHUB_REPO_URL_PATTERN
 from .func import get_fastest_raw_formats, get_fastest_archive_formats
 from .models import RepoAPI, RepoInfo, GitHubStrategy, JsdelivrStrategy
 

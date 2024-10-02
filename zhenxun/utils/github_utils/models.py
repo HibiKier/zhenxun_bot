@@ -5,7 +5,7 @@ from strenum import StrEnum
 from pydantic import BaseModel
 
 from ..http_utils import AsyncHttpx
-from .consts import CACHED_API_TTL, GIT_API_TREES_FORMAT, JSD_PACKAGE_API_FORMAT
+from .const import CACHED_API_TTL, GIT_API_TREES_FORMAT, JSD_PACKAGE_API_FORMAT
 from .func import (
     get_fastest_raw_formats,
     get_fastest_archive_formats,
@@ -199,13 +199,15 @@ class GitHubStrategy:
 
     body: TreeInfo
 
-    def export_files(self, module_path: str) -> list[str]:
+    def export_files(self, module_path: str, is_dir: bool) -> list[str]:
         """导出文件路径"""
         tree_info = self.body
         return [
             file.path
             for file in tree_info.tree
-            if file.type == TreeType.FILE and file.path.startswith(module_path)
+            if file.type == TreeType.FILE
+            and file.path.startswith(module_path)
+            and (not is_dir or file.path[len(module_path)] == "/")
         ]
 
     @classmethod
@@ -229,4 +231,4 @@ class GitHubStrategy:
 
     def get_files(self, module_path: str, is_dir: bool = True) -> list[str]:
         """获取文件路径"""
-        return self.export_files(module_path)
+        return self.export_files(module_path, is_dir)

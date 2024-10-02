@@ -1,7 +1,7 @@
 from aiocache import cached
 
 from ..http_utils import AsyncHttpx
-from .consts import (
+from .const import (
     ARCHIVE_URL_FORMAT,
     RAW_CONTENT_FORMAT,
     RELEASE_ASSETS_FORMAT,
