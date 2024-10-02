@@ -283,17 +283,10 @@ class ShopManage:
             str: 返回消息
         """
         data: dict[str, StorePluginInfo] = await cls.get_data()
-        if isinstance(plugin_id, int) and (plugin_id < 0 or plugin_id >= len(data)):
-            return "插件ID不存在..."
-        elif isinstance(plugin_id, str) and plugin_id not in [
-            v.module for k, v in data.items()
-        ]:
-            return "插件Module不存在..."
-        plugin_key = (
-            list(data.keys())[plugin_id]
-            if isinstance(plugin_id, int)
-            else {v.module: k for k, v in data.items()}[plugin_id]
-        )
+        try:
+            plugin_key = await cls._resolve_plugin_key(plugin_id)
+        except ValueError as e:
+            return str(e)
         plugin_info = data[plugin_key]
         path = BASE_PATH
         if plugin_info.github_url:
@@ -366,17 +359,10 @@ class ShopManage:
             str: 返回消息
         """
         data: dict[str, StorePluginInfo] = await cls.get_data()
-        if isinstance(plugin_id, int) and (plugin_id < 0 or plugin_id >= len(data)):
-            return "插件ID不存在..."
-        elif isinstance(plugin_id, str) and plugin_id not in [
-            v.module for k, v in data.items()
-        ]:
-            return "插件Module不存在..."
-        plugin_key = (
-            list(data.keys())[plugin_id]
-            if isinstance(plugin_id, int)
-            else {v.module: k for k, v in data.items()}[plugin_id]
-        )
+        try:
+            plugin_key = await cls._resolve_plugin_key(plugin_id)
+        except ValueError as e:
+            return str(e)
         logger.info(f"尝试更新插件 {plugin_key}", "插件管理")
         plugin_info = data[plugin_key]
         plugin_list = await cls.get_loaded_plugins("module", "version")
@@ -439,3 +425,14 @@ class ShopManage:
         return "已更新插件 {}\n共计{}个插件! 重启后生效".format(
             "\n- ".join(update_list), len(update_list)
         )
+    @classmethod
+    async def _resolve_plugin_key(cls, plugin_id: int | str) -> str:
+        data: dict[str, StorePluginInfo] = await cls.get_data()
+        if isinstance(plugin_id, int):
+            if plugin_id < 0 or plugin_id >= len(data):
+                raise ValueError("插件ID不存在...")
+            return list(data.keys())[plugin_id]
+        elif isinstance(plugin_id, str):
+            if plugin_id not in [v.module for k, v in data.items()]:
+                raise ValueError("插件Module不存在...")
+            return {v.module: k for k, v in data.items()}[plugin_id]
