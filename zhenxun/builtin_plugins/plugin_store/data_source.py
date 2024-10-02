@@ -175,19 +175,20 @@ class ShopManage:
         )
 
     @classmethod
-    async def add_plugin(cls, plugin_id: int) -> str:
+    async def add_plugin(cls, plugin_id: int | str) -> str:
         """添加插件
 
         参数:
-            plugin_id: 插件id
+            plugin_id: 插件id或模块名
 
         返回:
             str: 返回消息
         """
         data: dict[str, StorePluginInfo] = await cls.get_data()
-        if plugin_id < 0 or plugin_id >= len(data):
-            return "插件ID不存在..."
-        plugin_key = list(data.keys())[plugin_id]
+        try:
+            plugin_key = await cls._resolve_plugin_key(plugin_id)
+        except ValueError as e:
+            return str(e)
         plugin_list = await cls.get_loaded_plugins("module")
         plugin_info = data[plugin_key]
         if plugin_info.module in [p[0] for p in plugin_list]:
@@ -265,20 +266,21 @@ class ShopManage:
         raise Exception("插件下载失败")
 
     @classmethod
-    async def remove_plugin(cls, plugin_id: int) -> str:
+    async def remove_plugin(cls, plugin_id: int | str) -> str:
         """移除插件
 
         参数:
-            plugin_id: 插件id
+            plugin_id: 插件id或模块名
 
         返回:
             str: 返回消息
         """
         data: dict[str, StorePluginInfo] = await cls.get_data()
-        if plugin_id < 0 or plugin_id >= len(data):
-            return "插件ID不存在..."
-        plugin_key = list(data.keys())[plugin_id]
-        plugin_info = data[plugin_key]  # type: ignore
+        try:
+            plugin_key = await cls._resolve_plugin_key(plugin_id)
+        except ValueError as e:
+            return str(e)
+        plugin_info = data[plugin_key]
         path = BASE_PATH
         if plugin_info.github_url:
             path = BASE_PATH / "plugins"
@@ -340,7 +342,7 @@ class ShopManage:
         )
 
     @classmethod
-    async def update_plugin(cls, plugin_id: int) -> str:
+    async def update_plugin(cls, plugin_id: int | str) -> str:
         """更新插件
 
         参数:
@@ -350,9 +352,10 @@ class ShopManage:
             str: 返回消息
         """
         data: dict[str, StorePluginInfo] = await cls.get_data()
-        if plugin_id < 0 or plugin_id >= len(data):
-            return "插件ID不存在..."
-        plugin_key = list(data.keys())[plugin_id]
+        try:
+            plugin_key = await cls._resolve_plugin_key(plugin_id)
+        except ValueError as e:
+            return str(e)
         logger.info(f"尝试更新插件 {plugin_key}", "插件管理")
         plugin_info = data[plugin_key]
         plugin_list = await cls.get_loaded_plugins("module", "version")
@@ -373,3 +376,56 @@ class ShopManage:
             is_external,
         )
         return f"插件 {plugin_key} 更新成功! 重启后生效"
+
+    @classmethod
+    async def update_all_plugin(cls) -> str:
+        """更新插件
+
+        参数:
+            plugin_id: 插件id
+
+        返回:
+            str: 返回消息
+        """
+        data: dict[str, StorePluginInfo] = await cls.get_data()
+        plugin_list = list(data.keys())
+        update_list = []
+        logger.info(f"尝试更新全部插件 {plugin_list}", "插件管理")
+        for plugin_key in plugin_list:
+            plugin_info = data[plugin_key]
+            plugin_list = await cls.get_loaded_plugins("module", "version")
+            suc_plugin = {p[0]: (p[1] or "Unknown") for p in plugin_list}
+            if plugin_info.module not in [p[0] for p in plugin_list]:
+                logger.debug(f"插件 {plugin_key} 未安装，跳过", "插件管理")
+                continue
+            if cls.check_version_is_new(plugin_info, suc_plugin):
+                logger.debug(f"插件 {plugin_key} 已是最新版本，跳过", "插件管理")
+                continue
+            logger.info(f"正在更新插件 {plugin_key}", "插件管理")
+            is_external = True
+            if plugin_info.github_url is None:
+                plugin_info.github_url = DEFAULT_GITHUB_URL
+                is_external = False
+            await cls.install_plugin_with_repo(
+                plugin_info.github_url,
+                plugin_info.module_path,
+                plugin_info.is_dir,
+                is_external,
+            )
+            update_list.append(plugin_key)
+        if len(update_list) == 0:
+            return "全部插件已是最新版本"
+        return "已更新插件 {}\n共计{}个插件! 重启后生效".format(
+            "\n- ".join(update_list), len(update_list)
+        )
+    @classmethod
+    async def _resolve_plugin_key(cls, plugin_id: int | str) -> str:
+        data: dict[str, StorePluginInfo] = await cls.get_data()
+        if isinstance(plugin_id, int):
+            if plugin_id < 0 or plugin_id >= len(data):
+                raise ValueError("插件ID不存在...")
+            return list(data.keys())[plugin_id]
+        elif isinstance(plugin_id, str):
+            if plugin_id not in [v.module for k, v in data.items()]:
+                raise ValueError("插件Module不存在...")
+            return {v.module: k for k, v in data.items()}[plugin_id]
