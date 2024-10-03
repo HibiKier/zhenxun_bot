@@ -1,8 +1,8 @@
 import time
 
 import nonebot
-from nonebot.adapters.onebot.v11 import Bot
 from nonebot.drivers import Driver
+from nonebot.adapters.onebot.v11 import Bot
 
 driver: Driver = nonebot.get_driver()
 

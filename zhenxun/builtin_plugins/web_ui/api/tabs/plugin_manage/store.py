@@ -1,6 +1,8 @@
 from nonebot import require
 from fastapi import APIRouter
 
+from zhenxun.models.plugin_info import PluginInfo
+
 from .model import PluginIr
 from ....base_model import Result
 from ....utils import authentication
@@ -19,7 +21,14 @@ router = APIRouter(prefix="/store")
 async def _() -> Result:
     try:
         data = await ShopManage.get_data()
-        return Result.ok(data)
+        plugin_list = [
+            {**data[name].dict(), "name": name, "id": idx}
+            for idx, name in enumerate(data)
+        ]
+        modules = await PluginInfo.filter(load_status=True).values_list(
+            "module", flat=True
+        )
+        return Result.ok({"install_module": modules, "plugin_list": plugin_list})
     except Exception as e:
         return Result.fail(f"获取插件商店插件信息失败: {type(e)}: {e}")
 
@@ -32,9 +41,22 @@ async def _() -> Result:
 async def _(param: PluginIr) -> Result:
     try:
         result = await ShopManage.add_plugin(param.id)  # type: ignore
-        return Result.ok(result)
+        return Result.ok(info=result)
     except Exception as e:
         return Result.fail(f"安装插件失败: {type(e)}: {e}")
+
+
+@router.post(
+    "/update_plugin",
+    dependencies=[authentication()],
+    deprecated="更新插件",  # type: ignore
+)
+async def _(param: PluginIr) -> Result:
+    try:
+        result = await ShopManage.update_plugin(param.id)  # type: ignore
+        return Result.ok(info=result)
+    except Exception as e:
+        return Result.fail(f"更新插件失败: {type(e)}: {e}")
 
 
 @router.post(
@@ -45,6 +67,6 @@ async def _(param: PluginIr) -> Result:
 async def _(param: PluginIr) -> Result:
     try:
         result = await ShopManage.remove_plugin(param.id)  # type: ignore
-        return Result.ok(result)
+        return Result.ok(info=result)
     except Exception as e:
         return Result.fail(f"移除插件失败: {type(e)}: {e}")
