@@ -62,10 +62,7 @@ class BotManage:
         bot_info.connect_time = bot_live.get(bot.self_id) or 0
         if bot_info.connect_time:
             connect_date = datetime.fromtimestamp(CONNECT_TIME)
-            connect_date_str = connect_date.strftime("%Y-%m-%d %H:%M:%S")
-            bot_info.connect_date = datetime.strptime(
-                connect_date_str, "%Y-%m-%d %H:%M:%S"
-            )
+            bot_info.connect_date = connect_date.strftime("%Y-%m-%d %H:%M:%S")
         return bot_info
 
     @classmethod

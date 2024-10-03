@@ -1,8 +1,6 @@
-from datetime import datetime
-
+from pydantic import BaseModel
 from nonebot.adapters import Bot
 from nonebot.config import Config
-from pydantic import BaseModel
 
 
 class SystemStatus(BaseModel):
@@ -36,7 +34,7 @@ class BaseInfo(BaseModel):
     """今日 累计接收消息"""
     connect_time: int = 0
     """连接时间"""
-    connect_date: datetime | None = None
+    connect_date: str | None = None
     """连接日期"""
 
     plugin_count: int = 0
@@ -60,7 +58,7 @@ class BaseInfo(BaseModel):
         arbitrary_types_allowed = True
 
 
-class ChatHistoryCount(BaseModel):
+class QueryCount(BaseModel):
     """
     聊天记录数量
     """
@@ -103,3 +101,10 @@ class HotPlugin(BaseModel):
     """插件名称"""
     count: int
     """调用次数"""
+
+
+class NonebotData(BaseModel):
+    config: Config
+    """nb配置"""
+    run_time: int
+    """运行时间"""

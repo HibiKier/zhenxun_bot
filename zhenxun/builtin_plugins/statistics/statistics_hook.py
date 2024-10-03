@@ -1,16 +1,17 @@
 from datetime import datetime
 
-from nonebot.adapters import Bot, Event
-from nonebot.adapters.onebot.v11 import PokeNotifyEvent
 from nonebot.matcher import Matcher
-from nonebot.message import run_postprocessor
+from nonebot.adapters import Bot, Event
 from nonebot.plugin import PluginMetadata
+from nonebot.message import run_postprocessor
 from nonebot_plugin_session import EventSession
+from nonebot.adapters.onebot.v11 import PokeNotifyEvent
 
+from zhenxun.services.log import logger
+from zhenxun.utils.enum import PluginType
+from zhenxun.models.statistics import Statistics
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.plugin_info import PluginInfo
-from zhenxun.models.statistics import Statistics
-from zhenxun.utils.enum import PluginType
 
 __plugin_meta__ = PluginMetadata(
     name="功能调用统计",
@@ -36,13 +37,12 @@ async def _(
     if session.id1:
         plugin = await PluginInfo.get_or_none(module=matcher.module_name)
         plugin_type = plugin.plugin_type if plugin else None
-        if plugin_type == PluginType.NORMAL and matcher.plugin_name not in [
-            "update_info",
-            "statistics_handle",
-        ]:
+        if plugin_type == PluginType.NORMAL:
+            logger.debug(f"提交调用记录: {matcher.plugin_name}...", session=session)
             await Statistics.create(
                 user_id=session.id1,
                 group_id=session.id3 or session.id2,
                 plugin_name=matcher.plugin_name,
                 create_time=datetime.now(),
+                bot_id=bot.self_id,
             )
