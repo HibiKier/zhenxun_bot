@@ -5,6 +5,7 @@ from zhenxun.utils.enum import BlockType
 from zhenxun.utils.platform import PlatformUtils
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.configs.path_config import TEMPLATE_PATH
+from zhenxun.configs.config import BotConfig
 from zhenxun.models.group_console import GroupConsole
 
 from ._utils import classify_plugin
@@ -132,6 +133,7 @@ async def build_zhenxun_image(
             "data": {
                 "plugin_list": plugin_list,
                 "ava": PlatformUtils.get_user_avatar_url(bot_id, platform),
+                "bot_name": BotConfig.self_nickname,
             }
         },
         pages={
