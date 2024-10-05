@@ -1,12 +1,12 @@
+from typing import Any, overload
 from datetime import datetime, timedelta
-from typing import Any, Dict, overload
 
 from nonebot import require
 
 require("nonebot_plugin_session")
 from loguru import logger as logger_
-from nonebot.log import default_filter, default_format
 from nonebot_plugin_session import Session
+from nonebot.log import default_filter, default_format
 
 from zhenxun.configs.path_config import LOG_PATH
 
@@ -33,8 +33,10 @@ class logger:
     TEMPLATE_A = "Adapter[{}] {}"
     TEMPLATE_B = "Adapter[{}] [<u><c>{}</c></u>]: {}"
     TEMPLATE_C = "Adapter[{}] 用户[<u><e>{}</e></u>] 触发 [<u><c>{}</c></u>]: {}"
-    TEMPLATE_D = "Adapter[{}] 群聊[<u><e>{}</e></u>] 用户[<u><e>{}</e></u>] 触发 [<u><c>{}</c></u>]: {}"
-    TEMPLATE_E = "Adapter[{}] 群聊[<u><e>{}</e></u>] 用户[<u><e>{}</e></u>] 触发 [<u><c>{}</c></u>] [Target](<u><e>{}</e></u>): {}"
+    TEMPLATE_D = "Adapter[{}] 群聊[<u><e>{}</e></u>] 用户[<u><e>{}</e></u>] 触发"
+    " [<u><c>{}</c></u>]: {}"
+    TEMPLATE_E = "Adapter[{}] 群聊[<u><e>{}</e></u>] 用户[<u><e>{}</e></u>] 触发"
+    " [<u><c>{}</c></u>] [Target](<u><e>{}</e></u>): {}"
 
     TEMPLATE_ADAPTER = "Adapter[<m>{}</m>] "
     TEMPLATE_USER = "用户[<u><e>{}</e></u>] "
@@ -88,8 +90,7 @@ class logger:
         platform: str | None = None,
     ):
         user_id: str | None = session  # type: ignore
-        group_id = None
-        if type(session) == Session:
+        if isinstance(session, Session):
             user_id = session.id1
             adapter = session.bot_type
             if session.id3:
@@ -102,7 +103,7 @@ class logger:
         )
         try:
             logger_.opt(colors=True).info(template)
-        except Exception as e:
+        except Exception:
             logger_.info(template)
 
     @classmethod
@@ -110,7 +111,7 @@ class logger:
         cls,
         info: str,
         command: str,
-        param: Dict[str, Any] | None = None,
+        param: dict[str, Any] | None = None,
         result: str = "",
     ):
         param_str = ""
@@ -163,8 +164,7 @@ class logger:
         e: Exception | None = None,
     ):
         user_id: str | None = session  # type: ignore
-        group_id = None
-        if type(session) == Session:
+        if isinstance(session, Session):
             user_id = session.id1
             adapter = session.bot_type
             if session.id3:
@@ -224,8 +224,7 @@ class logger:
         e: Exception | None = None,
     ):
         user_id: str | None = session  # type: ignore
-        group_id = None
-        if type(session) == Session:
+        if isinstance(session, Session):
             user_id = session.id1
             adapter = session.bot_type
             if session.id3:
@@ -285,8 +284,7 @@ class logger:
         e: Exception | None = None,
     ):
         user_id: str | None = session  # type: ignore
-        group_id = None
-        if type(session) == Session:
+        if isinstance(session, Session):
             user_id = session.id1
             adapter = session.bot_type
             if session.id3:
