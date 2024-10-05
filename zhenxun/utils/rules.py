@@ -1,5 +1,5 @@
-from nonebot.adapters import Bot, Event
 from nonebot.internal.rule import Rule
+from nonebot.adapters import Bot, Event
 from nonebot.permission import SUPERUSER
 from nonebot_plugin_session import EventSession, SessionLevel
 
@@ -24,7 +24,7 @@ def admin_check(a: int | str, key: str | None = None) -> Rule:
             return True
         if session.id1 and session.id2:
             level = a
-            if type(a) == str and key:
+            if isinstance(a, str) and key:
                 level = Config.get_config(a, key)
             if level is not None:
                 return bool(
@@ -59,3 +59,26 @@ def ensure_private(session: EventSession) -> bool:
         bool: bool
     """
     return not session.id3 and not session.id2
+
+
+def notice_rule(event_type: type | list[type]) -> Rule:
+    """
+    Notice限制
+
+    参数:
+        event_type: Event类型
+
+    返回:
+        Rule: Rule
+    """
+
+    async def _rule(event: Event) -> bool:
+        if isinstance(event_type, list):
+            for et in event_type:
+                if isinstance(event, et):
+                    return True
+        else:
+            return isinstance(event, event_type)
+        return False
+
+    return Rule(_rule)
