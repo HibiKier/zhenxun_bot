@@ -75,9 +75,11 @@ async def _(group: UpdateGroup) -> Result:
             db_group.level = group.level
             db_group.status = group.status
             if group.close_plugins:
+                group.close_plugins = [f"<{module}" for module in group.close_plugins]
                 db_group.block_plugin = ",".join(group.close_plugins) + ","
             if group.task:
                 if block_task := [t for t in task_list if t not in group.task]:
+                    block_task = [f"<{module}" for module in block_task]
                     db_group.block_task = ",".join(block_task) + ","  # type: ignore
             await db_group.save(
                 update_fields=["level", "status", "block_plugin", "block_task"]
@@ -346,34 +348,46 @@ async def _(bot_id: str, group_id: str) -> Result:
         .values_list("plugin_name", "count")
     )
     like_plugin = {}
-    plugins = await PluginInfo.all()
+    plugins = await PluginInfo.get_plugins()
     module2name = {p.module: p.name for p in plugins}
     for data in like_plugin_list:
         name = module2name.get(data[0]) or data[0]
         like_plugin[name] = data[1]
-    close_plugins = []
+    close_plugins: list[Plugin] = []
     if group.block_plugin:
-        for module in group.block_plugin.split(","):
-            module_ = module.replace(":super", "")
-            is_super_block = module.endswith(":super")
-            plugin = Plugin(
-                module=module_,
-                plugin_name=module,
-                is_super_block=is_super_block,
-            )
-            plugin.plugin_name = module2name.get(module) or module
-            close_plugins.append(plugin)
+        for module in group.block_plugin.replace("<", "").split(","):
+            if module:
+                plugin = Plugin(
+                    module=module,
+                    plugin_name=module,
+                    is_super_block=False,
+                )
+                plugin.plugin_name = module2name.get(module) or module
+                close_plugins.append(plugin)
+    exists_modules = [p.module for p in close_plugins]
+    if group.superuser_block_plugin:
+        for module in group.superuser_block_plugin.replace("<", "").split(","):
+            if module and module not in exists_modules:
+                plugin = Plugin(
+                    module=module,
+                    plugin_name=module,
+                    is_super_block=True,
+                )
+                plugin.plugin_name = module2name.get(module) or module
+                close_plugins.append(plugin)
     all_task = await TaskInfo.annotate().values_list("module", "name")
     task_module2name = {x[0]: x[1] for x in all_task}
     task_list = []
-    if group.block_task:
-        split_task = group.block_task.split(",")
+    if group.block_task or group.superuser_block_plugin:
+        sbp = group.superuser_block_plugin.replace("<", "").split(",")
+        split_task = group.block_task.replace("<", "").split(",")
         for task in all_task:
             task_list.append(
                 Task(
                     name=task[0],
                     zh_name=task_module2name.get(task[0]) or task[0],
-                    status=task[0] not in split_task,
+                    status=task[0] not in split_task and task[0] not in sbp,
+                    is_super_block=task[0] in sbp,
                 )
             )
     else:
@@ -383,6 +397,7 @@ async def _(bot_id: str, group_id: str) -> Result:
                     name=task[0],
                     zh_name=task_module2name.get(task[0]) or task[0],
                     status=True,
+                    is_super_block=False,
                 )
             )
     group_detail = GroupDetail(
