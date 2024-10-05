@@ -70,16 +70,20 @@ async def _():
         data_list = []
         for group in await GroupConsole.all():
             if group.block_plugin:
-                if modules := group.block_plugin.split(",")[:-1]:
+                if modules := group.block_plugin.split(","):
                     if block_plugin := [
                         f"<{module}" for module in modules if not module.startswith("<")
                     ]:
-                        group.block_plugin = ",".join(block_plugin) + ","
+                        group.block_plugin = (",".join(block_plugin) + ",").replace(
+                            "<,", ""
+                        )
             if group.block_task:
-                if modules := group.block_task.split(",")[:-1]:
+                if modules := group.block_task.split(","):
                     if block_task := [
                         f"<{module}" for module in modules if not module.startswith("<")
                     ]:
-                        group.block_task = ",".join(block_task) + ","
+                        group.block_task = (",".join(block_task) + ",").replace(
+                            "<,", ""
+                        )
             data_list.append(group)
         await GroupConsole.bulk_update(data_list, ["block_plugin", "block_task"], 10)

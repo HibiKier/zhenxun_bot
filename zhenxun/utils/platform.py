@@ -604,6 +604,11 @@ async def broadcast_group(
                                 or group.channel_id in ignore_group
                             )
                         ) or key in _used_group:
+                            logger.debug(
+                                "广播方法群组重复, 已跳过...",
+                                log_cmd,
+                                group_id=group.group_id,
+                            )
                             continue
                         is_run = False
                         if check_func:
@@ -612,6 +617,11 @@ async def broadcast_group(
                             else:
                                 is_run = check_func(group.group_id)
                         if not is_run:
+                            logger.debug(
+                                "广播方法检测运行方法为 False, 已跳过...",
+                                log_cmd,
+                                group_id=group.group_id,
+                            )
                             continue
                         target = PlatformUtils.get_target(
                             _bot, None, group.group_id, group.channel_id

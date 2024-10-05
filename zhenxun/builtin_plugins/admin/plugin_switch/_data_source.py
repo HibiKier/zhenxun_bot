@@ -133,7 +133,7 @@ async def build_task(group_id: str | None) -> BuildImage:
                     task.id,
                     task.module,
                     task.name,
-                    "开启" if task.module not in group.block_task else "关闭",
+                    "开启" if f"<{task.module}," not in group.block_task else "关闭",
                     "开启" if task.status else "关闭",
                     task.run_time or "-",
                 ]
@@ -214,9 +214,6 @@ class PluginManage:
                             f"<{module},", ""
                         )
                 else:
-                    module_list = await PluginInfo.filter(
-                        plugin_type=PluginType.NORMAL
-                    ).values_list("module", flat=True)
                     module_list = [f"<{module}" for module in module_list]
                     group.block_plugin = ",".join(module_list) + ","  # type: ignore
                 await group.save(update_fields=["block_plugin"])
