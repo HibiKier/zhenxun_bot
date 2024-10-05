@@ -1,19 +1,19 @@
 import logging
 
-from nonebot.adapters import Bot, Event
-from nonebot.exception import IgnoredException
-from nonebot.matcher import Matcher
-from nonebot.message import run_preprocessor
 from nonebot.typing import T_State
+from nonebot.matcher import Matcher
 from nonebot_plugin_alconna import At
+from nonebot.adapters import Bot, Event
+from nonebot.message import run_preprocessor
+from nonebot.exception import IgnoredException
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.config import Config
+from zhenxun.utils.enum import PluginType
+from zhenxun.utils.utils import FreqLimiter
+from zhenxun.utils.message import MessageUtils
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.group_console import GroupConsole
-from zhenxun.utils.enum import PluginType
-from zhenxun.utils.message import MessageUtils
-from zhenxun.utils.utils import FreqLimiter
 
 Config.add_plugin_config(
     "hook",
@@ -58,12 +58,12 @@ async def _(
             else:
                 time = abs(int(time))
                 if time < 60:
-                    time_str = str(time) + " 秒"
+                    time_str = f"{time!s} 秒"
                 else:
                     minute = int(time / 60)
                     if minute > 60:
-                        hours = int(minute / 60)
-                        minute = minute % 60
+                        hours = minute // 60
+                        minute %= 60
                         time_str = f"{hours} 小时 {minute}分钟"
                     else:
                         time_str = f"{minute} 分钟"

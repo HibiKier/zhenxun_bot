@@ -1,19 +1,19 @@
 import nonebot
 from nonebot import on_notice
 from nonebot.adapters import Bot
-from nonebot.adapters.onebot.v11 import GroupIncreaseNoticeEvent
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
-from nonebot_plugin_apscheduler import scheduler
 from nonebot_plugin_session import EventSession
+from nonebot_plugin_apscheduler import scheduler
+from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
+from nonebot.adapters.onebot.v11 import GroupIncreaseNoticeEvent
 
-from zhenxun.configs.config import BotConfig
-from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.configs.config import BotConfig
 from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
-from zhenxun.utils.rules import admin_check, ensure_group
+from zhenxun.configs.utils import PluginExtraData
+from zhenxun.utils.rules import admin_check, notice_rule, ensure_group
 
 from ._data_source import MemberUpdateManage
 
@@ -42,7 +42,7 @@ _matcher = on_alconna(
 )
 
 
-_notice = on_notice(priority=1, block=False)
+_notice = on_notice(priority=1, block=False, rule=notice_rule(GroupIncreaseNoticeEvent))
 
 
 @_matcher.handle()

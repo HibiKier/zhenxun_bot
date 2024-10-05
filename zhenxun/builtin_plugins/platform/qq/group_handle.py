@@ -18,6 +18,7 @@ from nonebot.adapters.onebot.v12 import (
 )
 
 from zhenxun.services.log import logger
+from zhenxun.utils.rules import notice_rule
 from zhenxun.utils.utils import FreqLimiter
 from zhenxun.utils.message import MessageUtils
 from zhenxun.models.fg_request import FgRequest
@@ -95,9 +96,17 @@ limit_cd = base_config.get("welcome_msg_cd")
 _flmt = FreqLimiter(limit_cd)
 
 
-group_increase_handle = on_notice(priority=1, block=False)
+group_increase_handle = on_notice(
+    priority=1,
+    block=False,
+    rule=notice_rule([GroupIncreaseNoticeEvent, GroupMemberIncreaseEvent]),
+)
 """群员增加处理"""
-group_decrease_handle = on_notice(priority=1, block=False)
+group_decrease_handle = on_notice(
+    priority=1,
+    block=False,
+    rule=notice_rule([GroupDecreaseNoticeEvent, GroupMemberDecreaseEvent]),
+)
 """群员减少处理"""
 add_group = on_request(priority=1, block=False)
 """加群同意请求"""
