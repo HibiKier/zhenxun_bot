@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import shutil
 import tarfile
 import zipfile
@@ -98,6 +99,8 @@ def _file_handle(latest_version: str | None):
         shutil.move(_req_file, REQ_TXT_FILE)
     for folder in REPLACE_FOLDERS:
         """移动指定文件夹"""
+        if isinstance(folder, list):
+            folder = Path(*folder)
         _dir = BASE_PATH / folder
         _backup_dir = BACKUP_PATH / folder
         if _backup_dir.exists():
@@ -109,6 +112,8 @@ def _file_handle(latest_version: str | None):
         else:
             logger.warning(f"文件夹 {_dir} 不存在，跳过删除", "检查更新")
     for folder in REPLACE_FOLDERS:
+        if isinstance(folder, list):
+            folder = Path(*folder)
         src_folder_path = extract_path / folder
         dest_folder_path = target_path / folder
         if src_folder_path.exists():

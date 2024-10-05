@@ -52,7 +52,7 @@ async def _(session: EventSession, user_id: int, prob: float):
 @shop_register(
     name="测试道具A",
     price=99,
-    des="随便侧而出",
+    des="随便测而出",
     load_status=False,
     icon="sword.png",
 )
