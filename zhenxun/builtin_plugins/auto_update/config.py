@@ -29,6 +29,7 @@ DOWNLOAD_ZIP_FILE = TMP_PATH / DOWNLOAD_ZIP_FILE_STRING
 
 REPLACE_FOLDERS = [
     "builtin_plugins",
+    ["resources", "template"],
     "services",
     "utils",
     "models",
