@@ -136,8 +136,8 @@ async def _(bot_id: str | None = None) -> Result:
 async def _(bot_id: str | None = None) -> Result:
     now = datetime.now()
     query = Statistics
-    # if bot_id:
-    #     query = query.filter(bot_id=bot_id)
+    if bot_id:
+        query = query.filter(bot_id=bot_id)
     all_count = await query.annotate().count()
     day_count = await query.filter(
         create_time__gte=now - timedelta(hours=now.hour, minutes=now.minute)
