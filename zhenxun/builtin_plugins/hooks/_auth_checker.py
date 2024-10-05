@@ -319,8 +319,8 @@ class AuthChecker:
             is_poke = isinstance(event, PokeNotifyEvent)
             if group_id:
                 sid = group_id or user_id
-                if await GroupConsole.is_super_block_plugin(
-                    group_id, plugin.module, channel_id
+                if await GroupConsole.is_superuser_block_plugin(
+                    group_id, plugin.module
                 ):
                     """超级用户群组插件状态"""
                     if self.is_send_limit_message(plugin, sid) and not is_poke:
@@ -334,9 +334,7 @@ class AuthChecker:
                         session=session,
                     )
                     raise IgnoredException("超级管理员禁用了该群此功能...")
-                if await GroupConsole.is_block_plugin(
-                    group_id, plugin.module, channel_id
-                ):
+                if await GroupConsole.is_normal_block_plugin(group_id, plugin.module):
                     """群组插件状态"""
                     if self.is_send_limit_message(plugin, sid) and not is_poke:
                         self._flmt_s.start_cd(group_id or user_id)
