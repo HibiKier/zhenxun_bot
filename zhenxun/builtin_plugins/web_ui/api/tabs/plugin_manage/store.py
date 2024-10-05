@@ -7,9 +7,6 @@ from .model import PluginIr
 from ....base_model import Result
 from ....utils import authentication
 
-require("plugin_store")
-from zhenxun.builtin_plugins.plugin_store import ShopManage
-
 router = APIRouter(prefix="/store")
 
 
@@ -20,6 +17,9 @@ router = APIRouter(prefix="/store")
 )
 async def _() -> Result:
     try:
+        require("plugin_store")
+        from zhenxun.builtin_plugins.plugin_store import ShopManage
+
         data = await ShopManage.get_data()
         plugin_list = [
             {**data[name].dict(), "name": name, "id": idx}
@@ -40,6 +40,9 @@ async def _() -> Result:
 )
 async def _(param: PluginIr) -> Result:
     try:
+        require("plugin_store")
+        from zhenxun.builtin_plugins.plugin_store import ShopManage
+
         result = await ShopManage.add_plugin(param.id)  # type: ignore
         return Result.ok(info=result)
     except Exception as e:
@@ -53,6 +56,9 @@ async def _(param: PluginIr) -> Result:
 )
 async def _(param: PluginIr) -> Result:
     try:
+        require("plugin_store")
+        from zhenxun.builtin_plugins.plugin_store import ShopManage
+
         result = await ShopManage.update_plugin(param.id)  # type: ignore
         return Result.ok(info=result)
     except Exception as e:
@@ -66,6 +72,9 @@ async def _(param: PluginIr) -> Result:
 )
 async def _(param: PluginIr) -> Result:
     try:
+        require("plugin_store")
+        from zhenxun.builtin_plugins.plugin_store import ShopManage
+
         result = await ShopManage.remove_plugin(param.id)  # type: ignore
         return Result.ok(info=result)
     except Exception as e:
