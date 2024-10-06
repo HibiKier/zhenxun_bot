@@ -55,7 +55,7 @@ class GroupManager:
             block_plugin = ""
             if plugin_list := await PluginInfo.filter(default_status=False).all():
                 for plugin in plugin_list:
-                    block_plugin += f"{plugin.module},"
+                    block_plugin += f"<{plugin.module},"
             group_info = await bot.get_group_info(group_id=group_id)
             await GroupConsole.create(
                 group_id=group_info["group_id"],

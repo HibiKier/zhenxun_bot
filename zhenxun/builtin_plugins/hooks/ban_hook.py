@@ -1,5 +1,3 @@
-import logging
-
 from nonebot.typing import T_State
 from nonebot.matcher import Matcher
 from nonebot_plugin_alconna import At
@@ -8,6 +6,7 @@ from nonebot.message import run_preprocessor
 from nonebot.exception import IgnoredException
 from nonebot_plugin_session import EventSession
 
+from zhenxun.services.log import logger
 from zhenxun.configs.config import Config
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.utils import FreqLimiter
@@ -41,11 +40,11 @@ async def _(
         if user_id in bot.config.superusers:
             return
         if await BanConsole.is_ban(None, group_id):
-            logging.debug("群组处于黑名单中...", "ban_hook")
+            logger.debug("群组处于黑名单中...", "ban_hook")
             raise IgnoredException("群组处于黑名单中...")
         if g := await GroupConsole.get_group(group_id):
             if g.level < 0:
-                logging.debug("群黑名单, 群权限-1...", "ban_hook")
+                logger.debug("群黑名单, 群权限-1...", "ban_hook")
                 raise IgnoredException("群黑名单, 群权限-1..")
     if user_id:
         ban_result = Config.get_config("hook", "BAN_RESULT")
@@ -75,5 +74,5 @@ async def _(
                         f"{ban_result}\n在..在 {time_str} 后才会理你喔",
                     ]
                 ).send()
-            logging.debug("用户处于黑名单中...", "ban_hook")
+            logger.debug("用户处于黑名单中...", "ban_hook")
             raise IgnoredException("用户处于黑名单中...")

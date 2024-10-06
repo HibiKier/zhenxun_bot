@@ -73,7 +73,7 @@ class Manager:
 
     def add(
         self,
-        module_path: str,
+        module: str,
         data: BaseBlock | PluginCdBlock | PluginCountBlock | PluginLimit,
     ):
         """添加限制"""
@@ -106,20 +106,20 @@ class Manager:
                     max_count=data.max_count,
                 )
         if isinstance(data, PluginCdBlock):
-            self.cd_data[module_path] = data
+            self.cd_data[module] = data
         elif isinstance(data, PluginCountBlock):
-            self.count_data[module_path] = data
+            self.count_data[module] = data
         elif isinstance(data, BaseBlock):
-            self.block_data[module_path] = data
+            self.block_data[module] = data
 
-    def exist(self, module_path: str, type: PluginLimitType):
+    def exist(self, module: str, type: PluginLimitType):
         """是否存在"""
         if type == PluginLimitType.CD:
-            return module_path in self.cd_data
+            return module in self.cd_data
         elif type == PluginLimitType.BLOCK:
-            return module_path in self.block_data
+            return module in self.block_data
         elif type == PluginLimitType.COUNT:
-            return module_path in self.count_data
+            return module in self.count_data
 
     def init(self):
         if not self.cd_file.exists():
@@ -270,10 +270,10 @@ class Manager:
         if not db_data:
             return (
                 PluginLimit(
-                    module=k.split(".")[-1],
-                    module_path=k,
+                    module=k,
+                    module_path=module2plugin[k].module_path,
                     limit_type=limit_type,
-                    plugin=module2plugin.get(k),
+                    plugin=module2plugin[k],
                     cd=getattr(limit, "cd", None),
                     max_count=getattr(limit, "max_count", None),
                     status=limit.status,
@@ -329,12 +329,10 @@ class Manager:
         ]
         if data := self.__get_file_data(limit_type):
             db_type_limit_modules = [
-                (limit.module_path, limit.id) for limit in db_type_limits
+                (limit.module, limit.id) for limit in db_type_limits
             ]
             delete_list.extend(
-                id
-                for module_path, id in db_type_limit_modules
-                if module_path not in data.keys()
+                id for module, id in db_type_limit_modules if module not in data.keys()
             )
             for k, v in data.items():
                 if not module2plugin.get(k):
@@ -343,7 +341,7 @@ class Manager:
                             f"插件模块 {k} 未加载，已过滤当前 {v._type} 限制..."
                         )
                     continue
-                db_data = [limit for limit in db_type_limits if limit.module_path == k]
+                db_data = [limit for limit in db_type_limits if limit.module == k]
                 db_data, is_create = self.__set_data(
                     k, db_data[0] if db_data else None, v, limit_type, module2plugin
                 )
@@ -369,8 +367,8 @@ class Manager:
             + list(self.block_data.keys())
             + list(self.count_data.keys())
         )
-        plugins = await PluginInfo.get_plugins(module_path__in=modules)
-        module2plugin = {p.module_path: p for p in plugins}
+        plugins = await PluginInfo.get_plugins(module__in=modules)
+        module2plugin = {p.module: p for p in plugins}
         create_list, update_list, delete_list = self.__set_db_limits(
             db_limits, module2plugin, PluginLimitType.CD
         )
