@@ -51,7 +51,7 @@ class BanConsole(Model):
                 else await cls.get_or_none(user_id=user_id, group_id__isnull=True)
             )
         else:
-            return await cls.get_or_none(user_id=user_id, group_id=group_id)
+            return await cls.get_or_none(user_id="", group_id=group_id)
 
     @classmethod
     async def check_ban_level(
