@@ -110,17 +110,22 @@ async def _(bot_id: str | None = None) -> Result:
     dependencies=[authentication()],
     deprecated="获取聊天/调用记录的一个月数量",  # type: ignore
 )
-async def _() -> Result:
+async def _(bot_id: str | None = None) -> Result:
     now = datetime.now()
     filter_date = now - timedelta(days=30, hours=now.hour, minutes=now.minute)
+    chat_query = ChatHistory
+    call_query = Statistics
+    if bot_id:
+        chat_query = chat_query.filter(bot_id=bot_id)
+        call_query = call_query.filter(bot_id=bot_id)
     chat_date_list = (
-        await ChatHistory.filter(create_time__gte=filter_date)
+        await chat_query.filter(create_time__gte=filter_date)
         .annotate(date=RawSQL("DATE(create_time)"), count=Count("id"))
         .group_by("date")
         .values("date", "count")
     )
     call_date_list = (
-        await Statistics.filter(create_time__gte=filter_date)
+        await call_query.filter(create_time__gte=filter_date)
         .annotate(date=RawSQL("DATE(create_time)"), count=Count("id"))
         .group_by("date")
         .values("date", "count")

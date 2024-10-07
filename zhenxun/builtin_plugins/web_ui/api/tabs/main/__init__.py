@@ -11,11 +11,11 @@ from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
 from starlette.websockets import WebSocket, WebSocketState, WebSocketDisconnect
 
 from zhenxun.services.log import logger
-from zhenxun.models.group_info import GroupInfo
 from zhenxun.models.statistics import Statistics
 from zhenxun.utils.platform import PlatformUtils
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.chat_history import ChatHistory
+from zhenxun.models.group_console import GroupConsole
 
 from ....base_model import Result
 from .data_source import bot_live
@@ -236,17 +236,21 @@ async def _() -> Result:
 @router.get(
     "/get_active_group", dependencies=[authentication()], description="获取活跃群聊"
 )
-async def _(date_type: QueryDateType | None = None) -> Result:
+async def _(
+    date_type: QueryDateType | None = None, bot_id: str | None = None
+) -> Result:
     query = ChatHistory
     now = datetime.now()
+    if bot_id:
+        query = query.filter(bot_id=bot_id)
     if date_type == QueryDateType.DAY:
-        query = ChatHistory.filter(create_time__gte=now - timedelta(hours=now.hour))
+        query = query.filter(create_time__gte=now - timedelta(hours=now.hour))
     if date_type == QueryDateType.WEEK:
-        query = ChatHistory.filter(create_time__gte=now - timedelta(days=7))
+        query = query.filter(create_time__gte=now - timedelta(days=7))
     if date_type == QueryDateType.MONTH:
-        query = ChatHistory.filter(create_time__gte=now - timedelta(days=30))
+        query = query.filter(create_time__gte=now - timedelta(days=30))
     if date_type == QueryDateType.YEAR:
-        query = ChatHistory.filter(create_time__gte=now - timedelta(days=365))
+        query = query.filter(create_time__gte=now - timedelta(days=365))
     data_list = (
         await query.annotate(count=Count("id"))
         .filter(group_id__not_isnull=True)
@@ -257,7 +261,7 @@ async def _(date_type: QueryDateType | None = None) -> Result:
     )
     id2name = {}
     if data_list:
-        if info_list := await GroupInfo.filter(
+        if info_list := await GroupConsole.filter(
             group_id__in=[x[0] for x in data_list]
         ).all():
             for group_info in info_list:
@@ -282,17 +286,21 @@ async def _(date_type: QueryDateType | None = None) -> Result:
 @router.get(
     "/get_hot_plugin", dependencies=[authentication()], description="获取热门插件"
 )
-async def _(date_type: QueryDateType | None = None) -> Result:
+async def _(
+    date_type: QueryDateType | None = None, bot_id: str | None = None
+) -> Result:
     query = Statistics
     now = datetime.now()
+    if bot_id:
+        query = query.filter(bot_id=bot_id)
     if date_type == QueryDateType.DAY:
-        query = Statistics.filter(create_time__gte=now - timedelta(hours=now.hour))
+        query = query.filter(create_time__gte=now - timedelta(hours=now.hour))
     if date_type == QueryDateType.WEEK:
-        query = Statistics.filter(create_time__gte=now - timedelta(days=7))
+        query = query.filter(create_time__gte=now - timedelta(days=7))
     if date_type == QueryDateType.MONTH:
-        query = Statistics.filter(create_time__gte=now - timedelta(days=30))
+        query = query.filter(create_time__gte=now - timedelta(days=30))
     if date_type == QueryDateType.YEAR:
-        query = Statistics.filter(create_time__gte=now - timedelta(days=365))
+        query = query.filter(create_time__gte=now - timedelta(days=365))
     data_list = (
         await query.annotate(count=Count("id"))
         .group_by("plugin_name")

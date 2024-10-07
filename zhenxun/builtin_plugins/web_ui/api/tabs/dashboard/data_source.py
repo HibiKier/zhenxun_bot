@@ -53,7 +53,8 @@ class BotManage:
         bot_info.group_count = len(group_list)
         bot_info.friend_count = len(friend_list)
         bot_info.day_call = await Statistics.filter(
-            create_time__gte=now - timedelta(hours=now.hour, minutes=now.minute)
+            create_time__gte=now - timedelta(hours=now.hour, minutes=now.minute),
+            bot_id=bot.self_id,
         ).count()
         bot_info.received_messages = await ChatHistory.filter(
             bot_id=bot_info.self_id,
