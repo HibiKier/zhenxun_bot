@@ -7,10 +7,10 @@ import nonebot
 from pydantic import BaseModel
 from nonebot.adapters import Bot
 from nonebot.utils import is_coroutine_callable
+from nonebot_plugin_uninfo import get_interface
 from nonebot.adapters.dodo import Bot as DodoBot
 from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
-from nonebot.adapters.discord import Bot as DiscordBot
 from nonebot.adapters.kaiheila import Bot as KaiheilaBot
 from nonebot_plugin_alconna.uniseg import Target, Receipt, UniMessage
 
@@ -380,13 +380,11 @@ class PlatformUtils:
         返回:
             str | None: 平台
         """
-        if isinstance(bot, v11Bot | v12Bot):
-            return "qq"
-        if isinstance(bot, DodoBot):
-            return "dodo"
-        if isinstance(bot, KaiheilaBot):
-            return "kaiheila"
-        return "discord" if isinstance(bot, DiscordBot) else None
+        if interface := get_interface(bot):
+            info = interface.basic_info()
+            platform = info["scope"].lower()
+            return "qq" if platform.startswith("qq") else platform
+        return "unknown"
 
     @classmethod
     async def get_group_list(cls, bot: Bot) -> tuple[list[GroupConsole], str]:
