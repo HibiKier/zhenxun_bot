@@ -69,5 +69,5 @@ jobs:
           commit-message: ":tada: chore(version): Update version to ${{ steps.update_version.outputs.new_version }}"
           add-paths: __version__
           author: "AkashiCoin <i@loli.vet>"
-          committer: "${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>"
+          committer: "${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>"
           labels: automated-update
