@@ -124,6 +124,7 @@ class StatisticsManage:
         module2count = {x[0]: x[1] for x in data_list}
         plugin_info = await PluginInfo.filter(
             module__in=module2count.keys(),
+            load_status=True,
             plugin_type=PluginType.NORMAL,
         ).all()
         x_index = []
