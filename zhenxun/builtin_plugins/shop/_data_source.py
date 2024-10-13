@@ -58,9 +58,9 @@ class Goods(BaseModel):
 class ShopParam(BaseModel):
     goods_name: str
     """商品名称"""
-    user_id: int
+    user_id: str | None
     """用户id"""
-    group_id: int
+    group_id: str | None
     """群聊id"""
     bot: Any
     """bot"""

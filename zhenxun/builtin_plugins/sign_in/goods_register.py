@@ -38,7 +38,7 @@ driver: Driver = nonebot.get_driver()
         "好感度双倍加持卡Ⅲ_prob": 0.3,
     },  # type: ignore
 )
-async def _(session: EventSession, user_id: int, prob: float):
+async def _(session: EventSession, user_id: str, prob: float):
     if session.id1:
         user_console = await UserConsole.get_user(session.id1, session.platform)
         user, _ = await SignUser.get_or_create(
