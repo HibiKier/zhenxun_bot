@@ -4,10 +4,11 @@ from pathlib import Path
 
 import aiofiles
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 
 from zhenxun.utils._build_image import BuildImage
 
-from ....base_model import Result
+from ....base_model import Result, SystemFolderSize
 from ....utils import authentication, get_system_disk
 from .model import AddFile, DirFile, SaveFile, DeleteFile, RenameFile
 
@@ -17,9 +18,13 @@ IMAGE_TYPE = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"]
 
 
 @router.get(
-    "/get_dir_list", dependencies=[authentication()], description="获取文件列表"
+    "/get_dir_list",
+    dependencies=[authentication()],
+    response_model=Result[list[DirFile]],
+    response_class=JSONResponse,
+    description="获取文件列表",
 )
-async def _(path: str | None = None) -> Result:
+async def _(path: str | None = None) -> Result[list[DirFile]]:
     base_path = Path(path) if path else Path()
     data_list = []
     for file in os.listdir(base_path):
@@ -37,13 +42,23 @@ async def _(path: str | None = None) -> Result:
 
 
 @router.get(
-    "/get_resources_size", dependencies=[authentication()], description="获取文件列表"
+    "/get_resources_size",
+    dependencies=[authentication()],
+    response_model=Result[SystemFolderSize],
+    response_class=JSONResponse,
+    description="获取文件列表",
 )
-async def _(full_path: str | None = None) -> Result:
+async def _(full_path: str | None = None) -> Result[SystemFolderSize]:
     return Result.ok(await get_system_disk(full_path))
 
 
-@router.post("/delete_file", dependencies=[authentication()], description="删除文件")
+@router.post(
+    "/delete_file",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="删除文件",
+)
 async def _(param: DeleteFile) -> Result:
     path = Path(param.full_path)
     if not path or not path.exists():
@@ -56,7 +71,11 @@ async def _(param: DeleteFile) -> Result:
 
 
 @router.post(
-    "/delete_folder", dependencies=[authentication()], description="删除文件夹"
+    "/delete_folder",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="删除文件夹",
 )
 async def _(param: DeleteFile) -> Result:
     path = Path(param.full_path)
@@ -69,7 +88,13 @@ async def _(param: DeleteFile) -> Result:
         return Result.warning_(f"删除失败: {e!s}")
 
 
-@router.post("/rename_file", dependencies=[authentication()], description="重命名文件")
+@router.post(
+    "/rename_file",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="重命名文件",
+)
 async def _(param: RenameFile) -> Result:
     path = (
         (Path(param.parent) / param.old_name) if param.parent else Path(param.old_name)
@@ -84,7 +109,11 @@ async def _(param: RenameFile) -> Result:
 
 
 @router.post(
-    "/rename_folder", dependencies=[authentication()], description="重命名文件夹"
+    "/rename_folder",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="重命名文件夹",
 )
 async def _(param: RenameFile) -> Result:
     path = (
@@ -100,7 +129,13 @@ async def _(param: RenameFile) -> Result:
         return Result.warning_(f"重命名失败: {e!s}")
 
 
-@router.post("/add_file", dependencies=[authentication()], description="新建文件")
+@router.post(
+    "/add_file",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="新建文件",
+)
 async def _(param: AddFile) -> Result:
     path = (Path(param.parent) / param.name) if param.parent else Path(param.name)
     if path.exists():
@@ -112,7 +147,13 @@ async def _(param: AddFile) -> Result:
         return Result.warning_(f"新建文件失败: {e!s}")
 
 
-@router.post("/add_folder", dependencies=[authentication()], description="新建文件夹")
+@router.post(
+    "/add_folder",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="新建文件夹",
+)
 async def _(param: AddFile) -> Result:
     path = (Path(param.parent) / param.name) if param.parent else Path(param.name)
     if path.exists():
@@ -124,7 +165,13 @@ async def _(param: AddFile) -> Result:
         return Result.warning_(f"新建文件夹失败: {e!s}")
 
 
-@router.get("/read_file", dependencies=[authentication()], description="读取文件")
+@router.get(
+    "/read_file",
+    dependencies=[authentication()],
+    response_model=Result[str],
+    response_class=JSONResponse,
+    description="读取文件",
+)
 async def _(full_path: str) -> Result:
     path = Path(full_path)
     if not path.exists():
@@ -136,8 +183,14 @@ async def _(full_path: str) -> Result:
         return Result.warning_(f"读取文件失败: {e!s}")
 
 
-@router.post("/save_file", dependencies=[authentication()], description="读取文件")
-async def _(param: SaveFile) -> Result:
+@router.post(
+    "/save_file",
+    dependencies=[authentication()],
+    response_model=Result[str],
+    response_class=JSONResponse,
+    description="读取文件",
+)
+async def _(param: SaveFile) -> Result[str]:
     path = Path(param.full_path)
     try:
         async with aiofiles.open(path, "w", encoding="utf-8") as f:
@@ -147,8 +200,14 @@ async def _(param: SaveFile) -> Result:
         return Result.warning_(f"保存文件失败: {e!s}")
 
 
-@router.get("/get_image", dependencies=[authentication()], description="读取图片base64")
-async def _(full_path: str) -> Result:
+@router.get(
+    "/get_image",
+    dependencies=[authentication()],
+    response_model=Result[str],
+    response_class=JSONResponse,
+    description="读取图片base64",
+)
+async def _(full_path: str) -> Result[str]:
     path = Path(full_path)
     if not path.exists():
         return Result.warning_("文件不存在...")

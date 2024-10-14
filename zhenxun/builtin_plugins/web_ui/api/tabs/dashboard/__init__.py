@@ -4,6 +4,7 @@ from nonebot import require
 from fastapi import APIRouter
 from tortoise.functions import Count
 from tortoise.expressions import RawSQL
+from fastapi.responses import JSONResponse
 
 from zhenxun.models.statistics import Statistics
 from zhenxun.models.chat_history import ChatHistory
@@ -12,7 +13,7 @@ from zhenxun.models.bot_connect_log import BotConnectLog
 from .data_source import BotManage
 from ....utils import authentication
 from ....base_model import Result, QueryModel, BaseResultModel
-from .model import ChatCallMonthCount, QueryChatCallCount, AllChatAndCallCount
+from .model import BotInfo, ChatCallMonthCount, QueryChatCallCount, AllChatAndCallCount
 
 require("plugin_store")
 
@@ -22,9 +23,11 @@ router = APIRouter(prefix="/dashboard")
 @router.get(
     "/get_bot_list",
     dependencies=[authentication()],
+    response_model=Result[list[BotInfo]],
+    response_class=JSONResponse,
     deprecated="获取bot列表",  # type: ignore
 )
-async def _() -> Result:
+async def _() -> Result[list[BotInfo]]:
     try:
         return Result.ok(await BotManage.get_bot_list(), "拿到信息啦!")
     except Exception as e:
@@ -34,9 +37,11 @@ async def _() -> Result:
 @router.get(
     "/get_chat_and_call_count",
     dependencies=[authentication()],
+    response_model=Result[QueryChatCallCount],
+    response_class=JSONResponse,
     description="获取聊天/调用记录的全部和今日数量",
 )
-async def _(bot_id: str | None = None) -> Result:
+async def _(bot_id: str | None = None) -> Result[QueryChatCallCount]:
     now = datetime.now()
     query = ChatHistory
     if bot_id:
@@ -65,9 +70,11 @@ async def _(bot_id: str | None = None) -> Result:
 @router.get(
     "/get_all_chat_and_call_count",
     dependencies=[authentication()],
+    response_model=Result[AllChatAndCallCount],
+    response_class=JSONResponse,
     description="获取聊天/调用记录的全部数据次数",
 )
-async def _(bot_id: str | None = None) -> Result:
+async def _(bot_id: str | None = None) -> Result[AllChatAndCallCount]:
     now = datetime.now()
     query = ChatHistory
     if bot_id:
@@ -108,9 +115,11 @@ async def _(bot_id: str | None = None) -> Result:
 @router.get(
     "/get_chat_and_call_month",
     dependencies=[authentication()],
+    response_model=Result[ChatCallMonthCount],
+    response_class=JSONResponse,
     deprecated="获取聊天/调用记录的一个月数量",  # type: ignore
 )
-async def _(bot_id: str | None = None) -> Result:
+async def _(bot_id: str | None = None) -> Result[ChatCallMonthCount]:
     now = datetime.now()
     filter_date = now - timedelta(days=30, hours=now.hour, minutes=now.minute)
     chat_query = ChatHistory
@@ -158,9 +167,11 @@ async def _(bot_id: str | None = None) -> Result:
 @router.post(
     "/get_connect_log",
     dependencies=[authentication()],
+    response_model=Result[BaseResultModel],
+    response_class=JSONResponse,
     deprecated="获取Bot连接记录",  # type: ignore
 )
-async def _(query: QueryModel) -> Result:
+async def _(query: QueryModel) -> Result[BaseResultModel]:
     total = await BotConnectLog.all().count()
     if total % query.size:
         total += 1

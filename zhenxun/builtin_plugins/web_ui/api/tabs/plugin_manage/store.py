@@ -1,5 +1,6 @@
 from nonebot import require
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 
 from zhenxun.models.plugin_info import PluginInfo
 
@@ -13,9 +14,11 @@ router = APIRouter(prefix="/store")
 @router.get(
     "/get_plugin_store",
     dependencies=[authentication()],
+    response_model=Result[dict],
+    response_class=JSONResponse,
     deprecated="获取插件商店插件信息",  # type: ignore
 )
-async def _() -> Result:
+async def _() -> Result[dict]:
     try:
         require("plugin_store")
         from zhenxun.builtin_plugins.plugin_store import ShopManage
@@ -36,6 +39,8 @@ async def _() -> Result:
 @router.post(
     "/install_plugin",
     dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
     deprecated="安装插件",  # type: ignore
 )
 async def _(param: PluginIr) -> Result:
@@ -52,6 +57,8 @@ async def _(param: PluginIr) -> Result:
 @router.post(
     "/update_plugin",
     dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
     deprecated="更新插件",  # type: ignore
 )
 async def _(param: PluginIr) -> Result:
@@ -68,6 +75,8 @@ async def _(param: PluginIr) -> Result:
 @router.post(
     "/remove_plugin",
     dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
     deprecated="移除插件",  # type: ignore
 )
 async def _(param: PluginIr) -> Result:
