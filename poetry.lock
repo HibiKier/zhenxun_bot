@@ -270,18 +270,18 @@ reference = "ali"
 
 [[package]]
 name = "arclet-alconna"
-version = "1.8.23"
+version = "1.8.31"
 description = "A High-performance, Generality, Humane Command Line Arguments Parser Library."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 files = [
-    {file = "arclet_alconna-1.8.23-py3-none-any.whl", hash = "sha256:d4d8a427715408399e46530ec6bdefff4de72ff5d51183fa50ce5ea56a4e2a2a"},
-    {file = "arclet_alconna-1.8.23.tar.gz", hash = "sha256:f811caf60dc4231b70a6885fe1af35aa95ae93bad46566e9086b623f449c9a09"},
+    {file = "arclet_alconna-1.8.31-py3-none-any.whl", hash = "sha256:94e015163649b41af7a880fef7165ad85df6e2c812129de7d680d87d7b5e7b52"},
+    {file = "arclet_alconna-1.8.31.tar.gz", hash = "sha256:2d621068fc79e2febe0cece5512bd79bb207071b8fbb56e61b2a0565489c8551"},
 ]
 
 [package.dependencies]
 nepattern = ">=0.7.6,<1.0.0"
-tarina = ">=0.5.5"
+tarina = ">=0.6.1,<0.7.0"
 typing-extensions = ">=4.5.0"
 
 [package.extras]
@@ -294,17 +294,17 @@ reference = "ali"
 
 [[package]]
 name = "arclet-alconna-tools"
-version = "0.7.9"
+version = "0.7.10"
 description = "Builtin Tools for Alconna"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 files = [
-    {file = "arclet_alconna_tools-0.7.9-py3-none-any.whl", hash = "sha256:01a3462bb9f8dbe55010b394f7a0ac11e331799d463e326738870dce191aa608"},
-    {file = "arclet_alconna_tools-0.7.9.tar.gz", hash = "sha256:bded24c4157e13e2d803fe7b77ee246fda456206451337015513f150d1e4449c"},
+    {file = "arclet_alconna_tools-0.7.10-py3-none-any.whl", hash = "sha256:50e8b2f433fbc612dc8b99f4f5410006dcb1ef406c971c795071117a4eab8e20"},
+    {file = "arclet_alconna_tools-0.7.10.tar.gz", hash = "sha256:446a63a9c56886c23fb44548bb9a18655e0ba5b5dd80cc87915b858dfb02554c"},
 ]
 
 [package.dependencies]
-arclet-alconna = ">=1.8.21"
+arclet-alconna = ">=1.8.31"
 nepattern = ">=0.7.3,<1.0.0"
 
 [package.source]
@@ -2454,17 +2454,17 @@ reference = "ali"
 
 [[package]]
 name = "nonebot-plugin-alconna"
-version = "0.51.1"
+version = "0.53.0"
 description = "Alconna Adapter for Nonebot"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "nonebot_plugin_alconna-0.51.1-py3-none-any.whl", hash = "sha256:450a27afa9dcaedb6c82f649d57d42c4ca81596bf6accdf2e163f2dc9befc2c4"},
-    {file = "nonebot_plugin_alconna-0.51.1.tar.gz", hash = "sha256:aaec8206adc9892e284d7ad12c8bb03b43586bbc145d439f0a40a055146ed176"},
+    {file = "nonebot_plugin_alconna-0.53.0-py3-none-any.whl", hash = "sha256:a0351de37e9d55a92b4dbf2977815e9d0cfe700cab4f0dc345a80fe2883253a0"},
+    {file = "nonebot_plugin_alconna-0.53.0.tar.gz", hash = "sha256:404289034a9d41a8fbdb5b50d8fe2b069234c4aaffe20ccf417871aeb91f8cff"},
 ]
 
 [package.dependencies]
-arclet-alconna = ">=1.8.23"
+arclet-alconna = ">=1.8.29"
 arclet-alconna-tools = ">=0.7.9"
 importlib-metadata = ">=4.13.0"
 nepattern = ">=0.7.4"
@@ -5146,4 +5146,4 @@ reference = "ali"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "004f0d54741ddc661ed016e068f7285832248e97526ed78c74979c4f50fb1509"
+content-hash = "097837fdfce7cb819d425e78c40d7eeec36929a52981b492e6424c1c1886586b"
