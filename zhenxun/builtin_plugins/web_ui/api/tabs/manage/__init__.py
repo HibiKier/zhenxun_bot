@@ -1,6 +1,7 @@
 import nonebot
 from fastapi import APIRouter
 from tortoise.functions import Count
+from fastapi.responses import JSONResponse
 from nonebot.adapters.onebot.v11 import ActionFailed
 
 from zhenxun.services.log import logger
@@ -41,7 +42,11 @@ router = APIRouter(prefix="/manage")
 
 
 @router.get(
-    "/get_group_list", dependencies=[authentication()], description="获取群组列表"
+    "/get_group_list",
+    dependencies=[authentication()],
+    response_model=Result[list[GroupResult]],
+    response_class=JSONResponse,
+    description="获取群组列表",
 )
 async def _(bot_id: str) -> Result:
     """
@@ -65,9 +70,13 @@ async def _(bot_id: str) -> Result:
 
 
 @router.post(
-    "/update_group", dependencies=[authentication()], description="修改群组信息"
+    "/update_group",
+    dependencies=[authentication()],
+    response_model=Result[str],
+    response_class=JSONResponse,
+    description="修改群组信息",
 )
-async def _(group: UpdateGroup) -> Result:
+async def _(group: UpdateGroup) -> Result[str]:
     try:
         group_id = group.group_id
         if db_group := await GroupConsole.get_group(group_id):
@@ -91,9 +100,13 @@ async def _(group: UpdateGroup) -> Result:
 
 
 @router.get(
-    "/get_friend_list", dependencies=[authentication()], description="获取好友列表"
+    "/get_friend_list",
+    dependencies=[authentication()],
+    response_model=Result[list[Friend]],
+    response_class=JSONResponse,
+    description="获取好友列表",
 )
-async def _(bot_id: str) -> Result:
+async def _(bot_id: str) -> Result[list[Friend]]:
     """
     获取群信息
     """
@@ -118,9 +131,13 @@ async def _(bot_id: str) -> Result:
 
 
 @router.get(
-    "/get_request_count", dependencies=[authentication()], description="获取请求数量"
+    "/get_request_count",
+    dependencies=[authentication()],
+    response_model=Result[dict[str, int]],
+    response_class=JSONResponse,
+    description="获取请求数量",
 )
-async def _() -> Result:
+async def _() -> Result[dict[str, int]]:
     f_count = await FgRequest.filter(
         request_type=RequestType.FRIEND, handle_type__isnull=True
     ).count()
@@ -135,9 +152,13 @@ async def _() -> Result:
 
 
 @router.get(
-    "/get_request_list", dependencies=[authentication()], description="获取请求列表"
+    "/get_request_list",
+    dependencies=[authentication()],
+    response_model=Result[ReqResult],
+    response_class=JSONResponse,
+    description="获取请求列表",
 )
-async def _() -> Result:
+async def _() -> Result[ReqResult]:
     try:
         req_result = ReqResult()
         data_list = await FgRequest.filter(handle_type__isnull=True).all()
@@ -179,7 +200,11 @@ async def _() -> Result:
 
 
 @router.post(
-    "/clear_request", dependencies=[authentication()], description="清空请求列表"
+    "/clear_request",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="清空请求列表",
 )
 async def _(cr: ClearRequest) -> Result:
     await FgRequest.filter(
@@ -188,7 +213,13 @@ async def _(cr: ClearRequest) -> Result:
     return Result.ok(info="成功清除了数据!")
 
 
-@router.post("/refuse_request", dependencies=[authentication()], description="拒绝请求")
+@router.post(
+    "/refuse_request",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="拒绝请求",
+)
 async def _(parma: HandleRequest) -> Result:
     try:
         if bots := nonebot.get_bots():
@@ -209,14 +240,24 @@ async def _(parma: HandleRequest) -> Result:
         return Result.fail(f"{type(e)}: {e}")
 
 
-@router.post("/delete_request", dependencies=[authentication()], description="忽略请求")
+@router.post(
+    "/delete_request",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="忽略请求",
+)
 async def _(parma: HandleRequest) -> Result:
     await FgRequest.ignore(parma.id)
     return Result.ok(info="成功处理了请求!")
 
 
 @router.post(
-    "/approve_request", dependencies=[authentication()], description="同意请求"
+    "/approve_request",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="同意请求",
 )
 async def _(parma: HandleRequest) -> Result:
     try:
@@ -247,7 +288,13 @@ async def _(parma: HandleRequest) -> Result:
         return Result.fail(f"{type(e)}: {e}")
 
 
-@router.post("/leave_group", dependencies=[authentication()], description="退群")
+@router.post(
+    "/leave_group",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="退群",
+)
 async def _(param: LeaveGroup) -> Result:
     try:
         if bots := nonebot.get_bots():
@@ -266,7 +313,13 @@ async def _(param: LeaveGroup) -> Result:
         return Result.fail(f"{type(e)}: {e}")
 
 
-@router.post("/delete_friend", dependencies=[authentication()], description="删除好友")
+@router.post(
+    "/delete_friend",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="删除好友",
+)
 async def _(param: DeleteFriend) -> Result:
     try:
         if bots := nonebot.get_bots():
@@ -286,9 +339,13 @@ async def _(param: DeleteFriend) -> Result:
 
 
 @router.get(
-    "/get_friend_detail", dependencies=[authentication()], description="获取好友详情"
+    "/get_friend_detail",
+    dependencies=[authentication()],
+    response_model=Result[UserDetail],
+    response_class=JSONResponse,
+    description="获取好友详情",
 )
-async def _(bot_id: str, user_id: str) -> Result:
+async def _(bot_id: str, user_id: str) -> Result[UserDetail]:
     if bots := nonebot.get_bots():
         if bot_id in bots:
             if fd := [
@@ -329,9 +386,13 @@ async def _(bot_id: str, user_id: str) -> Result:
 
 
 @router.get(
-    "/get_group_detail", dependencies=[authentication()], description="获取群组详情"
+    "/get_group_detail",
+    dependencies=[authentication()],
+    response_model=Result[GroupDetail],
+    response_class=JSONResponse,
+    description="获取群组详情",
 )
-async def _(bot_id: str, group_id: str) -> Result:
+async def _(bot_id: str, group_id: str) -> Result[GroupDetail]:
     if not (bots := nonebot.get_bots()):
         return Result.warning_("无Bot连接...")
     if bot_id not in bots:
@@ -418,7 +479,11 @@ async def _(bot_id: str, group_id: str) -> Result:
 
 
 @router.post(
-    "/send_message", dependencies=[authentication()], description="获取群组详情"
+    "/send_message",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="获取群组详情",
 )
 async def _(param: SendMessage) -> Result:
     if not (bots := nonebot.get_bots()):
