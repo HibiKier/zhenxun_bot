@@ -16,6 +16,7 @@ from zhenxun.utils.platform import PlatformUtils
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.chat_history import ChatHistory
 from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.bot_connect_log import BotConnectLog
 
 from ....base_model import Result
 from .data_source import bot_live
@@ -94,6 +95,9 @@ async def _(bot_id: str | None = None) -> Result:
             create_time__gte=now - timedelta(hours=now.hour)
         ).count()
         select_bot.day_call = day_call
+        select_bot.connect_count = await BotConnectLog.filter(
+            bot_id=select_bot.self_id
+        ).count()
         return Result.ok(bot_list, "拿到信息啦!")
     return Result.warning_("无Bot连接...")
 

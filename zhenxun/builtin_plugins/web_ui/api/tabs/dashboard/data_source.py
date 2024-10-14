@@ -49,7 +49,7 @@ class BotManage:
         )
         group_list, _ = await PlatformUtils.get_group_list(bot)
         group_list = [g for g in group_list if g.channel_id is None]
-        friend_list = await PlatformUtils.get_friend_list(bot)
+        friend_list, _ = await PlatformUtils.get_friend_list(bot)
         bot_info.group_count = len(group_list)
         bot_info.friend_count = len(friend_list)
         bot_info.day_call = await Statistics.filter(
