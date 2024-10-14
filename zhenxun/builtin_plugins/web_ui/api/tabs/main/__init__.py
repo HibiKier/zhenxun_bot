@@ -61,7 +61,6 @@ async def _(bot_id: str | None = None) -> Result:
         else:
             select_bot = bot_list[0]
         select_bot.is_select = True
-        select_bot.config = select_bot.bot.config
         now = datetime.now()
         # 今日累计接收消息
         select_bot.received_messages = await ChatHistory.filter(
