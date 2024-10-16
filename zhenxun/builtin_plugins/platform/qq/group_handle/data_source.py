@@ -83,10 +83,10 @@ class GroupManager:
         ).values_list("user_id", flat=True)
         # 即刻刷新权限
         for user_info in member_list:
-            user_id = user_info["user_id"]
+            user_id = str(user_info["user_id"])
             role = user_info["role"]
             if user_id in bot.config.superusers:
-                await LevelUser.set_level(user_id, user_info["group_id"], 9)
+                await LevelUser.set_level(user_id, group_id, 9)
                 logger.debug(
                     "添加超级用户权限: 9",
                     "入群检测",
@@ -100,8 +100,8 @@ class GroupManager:
             ):
                 await LevelUser.set_level(
                     user_id,
-                    user_info["group_id"],
-                    admin_default_auth,
+                    group_id,
+                    admin_default_auth if role == "admin" else admin_default_auth + 1,
                 )
                 logger.debug(
                     f"添加默认群管理员权限: {admin_default_auth}",
