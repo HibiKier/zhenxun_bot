@@ -108,11 +108,10 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
         group, _ = await GroupConsole.get_or_create(
             group_id=group_id, channel_id__isnull=True
         )
-        if group.group_flag == 0:
-            try:
-                await GroupManager.add_bot(bot, str(event.operator_id), group_id, group)
-            except ForceAddGroupError as e:
-                await PlatformUtils.send_superuser(bot, e.get_info())
+        try:
+            await GroupManager.add_bot(bot, str(event.operator_id), group_id, group)
+        except ForceAddGroupError as e:
+            await PlatformUtils.send_superuser(bot, e.get_info())
     else:
         await GroupManager.add_user(bot, user_id, group_id)
 

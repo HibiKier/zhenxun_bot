@@ -36,13 +36,13 @@ class MemberUpdateManage:
         uid2name = {u.user_id: u.user_name for u in db_user}
         if member.id in driver.config.superusers:
             await LevelUser.set_level(member.id, group_id, 9)
-        elif default_auth:
-            if role != "MEMBER" and not await LevelUser.is_group_flag(
+        elif role and default_auth:
+            if role.id != "MEMBER" and not await LevelUser.is_group_flag(
                 member.id, group_id
             ):
-                if role == "OWNER":
+                if role.id == "OWNER":
                     await LevelUser.set_level(member.id, group_id, default_auth + 1)
-                elif role == "ADMINISTRATOR":
+                elif role.id == "ADMINISTRATOR":
                     await LevelUser.set_level(member.id, group_id, default_auth)
         if cnt := db_user_uid.count(member.id):
             users = [u for u in db_user if u.user_id == member.id]
