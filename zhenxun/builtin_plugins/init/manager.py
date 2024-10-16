@@ -208,6 +208,8 @@ class Manager:
                 temp = _yaml.load(f)
                 if "PluginCdLimit" in temp.keys():
                     for k, v in temp["PluginCdLimit"].items():
+                        if "." in k:
+                            k = k.split(".")[-1]
                         self.cd_data[k] = PluginCdBlock.parse_obj(v)
 
     def __load_block_file(self):
@@ -217,6 +219,8 @@ class Manager:
                 temp = _yaml.load(f)
                 if "PluginBlockLimit" in temp.keys():
                     for k, v in temp["PluginBlockLimit"].items():
+                        if "." in k:
+                            k = k.split(".")[-1]
                         self.block_data[k] = BaseBlock.parse_obj(v)
 
     def __load_count_file(self):
@@ -226,6 +230,8 @@ class Manager:
                 temp = _yaml.load(f)
                 if "PluginCountLimit" in temp.keys():
                     for k, v in temp["PluginCountLimit"].items():
+                        if "." in k:
+                            k = k.split(".")[-1]
                         self.count_data[k] = PluginCountBlock.parse_obj(v)
 
     def __replace_data(
