@@ -22,6 +22,7 @@ require("nonebot_plugin_alconna")
 require("nonebot_plugin_session")
 require("nonebot_plugin_userinfo")
 require("nonebot_plugin_htmlrender")
+require("nonebot_plugin_uninfo")
 
 
 driver: Driver = nonebot.get_driver()
