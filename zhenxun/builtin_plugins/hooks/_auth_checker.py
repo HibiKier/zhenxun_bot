@@ -501,7 +501,7 @@ class AuthChecker:
         返回:
             int: 需要消耗的金币
         """
-        if user.gold < plugin.cost_gold:
+        if user.gold < plugin.cost_gold and plugin.cost_gold > 0:
             """插件消耗金币不足"""
             try:
                 await MessageUtils.build_message(
