@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
 
+import nonebot
 from nonebot import require
 from fastapi import APIRouter
+from nonebot.config import Config
 from tortoise.functions import Count
 from tortoise.expressions import RawSQL
 from fastapi.responses import JSONResponse
@@ -18,6 +20,8 @@ from .model import BotInfo, ChatCallMonthCount, QueryChatCallCount, AllChatAndCa
 require("plugin_store")
 
 router = APIRouter(prefix="/dashboard")
+
+driver = nonebot.get_driver()
 
 
 @router.get(
@@ -184,3 +188,14 @@ async def _(query: QueryModel) -> Result[BaseResultModel]:
     for v in data:
         v.connect_time = v.connect_time.replace(tzinfo=None).replace(microsecond=0)
     return Result.ok(BaseResultModel(total=total, data=data))
+
+
+@router.get(
+    "/get_nonebot_config",
+    dependencies=[authentication()],
+    response_model=Result[Config],
+    response_class=JSONResponse,
+    deprecated="获取nb配置",  # type: ignore
+)
+async def _() -> Result[Config]:
+    return Result.ok(driver.config)

@@ -46,8 +46,6 @@ class BaseInfo(BaseModel):
 
     is_select: bool = False
     """当前选择"""
-    config: Config | None
-    """nb配置"""
     day_call: int = 0
     """今日调用插件次数"""
     version: str = "unknown"

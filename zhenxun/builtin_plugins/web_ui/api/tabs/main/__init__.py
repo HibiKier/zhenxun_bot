@@ -108,7 +108,6 @@ async def _(bot_id: str | None = None) -> Result[list[BaseInfo]]:
         day_call = await Statistics.filter(
             create_time__gte=now - timedelta(hours=now.hour)
         ).count()
-        select_bot.config = driver.config
         select_bot.day_call = day_call
         select_bot.connect_count = await BotConnectLog.filter(
             bot_id=select_bot.self_id
