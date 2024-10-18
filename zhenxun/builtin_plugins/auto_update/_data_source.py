@@ -14,6 +14,7 @@ from zhenxun.utils.github_utils import GithubUtils
 from zhenxun.utils.github_utils.models import RepoInfo
 
 from .config import (
+    TEMPLATE_FLODER_STRING,
     TMP_PATH,
     BASE_PATH,
     BACKUP_PATH,
@@ -21,6 +22,9 @@ from .config import (
     REQ_TXT_FILE,
     VERSION_FILE,
     PYPROJECT_FILE,
+    TEMPLATE_FLODER,
+    RESOURCES_FLODER,
+    RESOURCES_FLODER_STRING,
     REPLACE_FOLDERS,
     BASE_PATH_STRING,
     DOWNLOAD_GZ_FILE,
@@ -77,6 +81,26 @@ def _file_handle(latest_version: str | None):
     _lock_file = download_file_path / PYPROJECT_LOCK_FILE_STRING
     _req_file = download_file_path / REQ_TXT_FILE_STRING
     extract_path = download_file_path / BASE_PATH_STRING
+    template_path = (
+        download_file_path / RESOURCES_FLODER_STRING / TEMPLATE_FLODER_STRING
+    )
+
+
+    def generate_tree(pathname):
+        return os.popen(f"tree -a -C -f {pathname}").read()
+
+    logger.debug(
+        f"Download_files_list: {[item.name for item in download_file_path.iterdir()]}",
+        "检查更新",
+    )
+    logger.debug(
+        f"Root_floder_list: {generate_tree(BASE_PATH.parent)}",
+        "检查更新",
+    )
+    logger.debug(
+        f"Root_floder_parent_list: {generate_tree(BASE_PATH.parent.parent)}",
+        "检查更新",
+    )
     target_path = BASE_PATH
     if PYPROJECT_FILE.exists():
         logger.debug(f"移除备份文件: {PYPROJECT_FILE}", "检查更新")
@@ -87,6 +111,9 @@ def _file_handle(latest_version: str | None):
     if REQ_TXT_FILE.exists():
         logger.debug(f"移除备份文件: {REQ_TXT_FILE}", "检查更新")
         shutil.move(REQ_TXT_FILE, BACKUP_PATH / REQ_TXT_FILE_STRING)
+    if TEMPLATE_FLODER.is_dir():
+        logger.debug(f"移除备份文件: {TEMPLATE_FLODER}", "检查更新")
+        shutil.move(TEMPLATE_FLODER, BACKUP_PATH)
     if _pyproject.exists():
         logger.debug("移动文件: pyproject.toml", "检查更新")
         shutil.move(_pyproject, PYPROJECT_FILE)
@@ -96,6 +123,9 @@ def _file_handle(latest_version: str | None):
     if _req_file.exists():
         logger.debug("移动文件: requirements.txt", "检查更新")
         shutil.move(_req_file, REQ_TXT_FILE)
+    if template_path.is_dir():
+        logger.debug("移动文件夹: template", "检查更新")
+        shutil.move(template_path, RESOURCES_FLODER)
     for folder in REPLACE_FOLDERS:
         """移动指定文件夹"""
         _dir = BASE_PATH / folder
