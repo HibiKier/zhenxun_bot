@@ -33,7 +33,7 @@ class SignManage:
     @classmethod
     async def rank(
         cls, session: Uninfo, num: int, group_id: str | None = None
-    ) -> BuildImage:  # sourcery skip: avoid-builtin-shadow
+    ) -> BuildImage | str:  # sourcery skip: avoid-builtin-shadow
         """好感度排行
 
         参数:
@@ -56,6 +56,8 @@ class SignManage:
             .order_by("-impression")
             .values_list("user_id", "impression", "sign_count", "platform")
         )
+        if not user_list:
+            return "当前还没有人签到过哦..."
         user_id_list = [user[0] for user in user_list]
         index = user_id_list.index(session.user.id) + 1
         user_list = user_list[:num] if num < len(user_list) else user_list

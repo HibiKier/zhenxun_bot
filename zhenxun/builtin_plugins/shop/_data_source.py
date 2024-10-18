@@ -81,7 +81,9 @@ class ShopParam(BaseModel):
     """UniMessage"""
 
 
-async def gold_rank(session: Uninfo, group_id: str | None, num: int):
+async def gold_rank(
+    session: Uninfo, group_id: str | None, num: int
+) -> BuildImage | str:
     query = UserConsole
     if group_id:
         uid_list = await GroupInfoUser.filter(group_id=group_id).values_list(
@@ -90,6 +92,8 @@ async def gold_rank(session: Uninfo, group_id: str | None, num: int):
         if uid_list:
             query = query.filter(user_id__in=uid_list)
     user_list = await query.annotate().order_by("-gold").values_list("user_id", "gold")
+    if not user_list:
+        return "当前还没有人拥有金币哦..."
     user_id_list = [user[0] for user in user_list]
     index = user_id_list.index(session.user.id) + 1
     user_list = user_list[:num] if num < len(user_list) else user_list

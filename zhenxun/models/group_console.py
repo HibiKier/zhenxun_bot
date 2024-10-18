@@ -36,9 +36,11 @@ class GroupConsole(Model):
     superuser_block_plugin = fields.TextField(
         default="", description="超级用户禁用插件"
     )
+    """超级用户禁用插件"""
     block_task = fields.TextField(default="", description="禁用插件")
     """禁用插件"""
     superuser_block_task = fields.TextField(default="", description="超级用户禁用被动")
+    """超级用户禁用被动"""
     platform = fields.CharField(255, default="qq", description="所属平台")
     """所属平台"""
 
