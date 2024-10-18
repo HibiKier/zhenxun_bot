@@ -81,6 +81,7 @@ def _file_handle(latest_version: str | None):
     _req_file = download_file_path / REQ_TXT_FILE_STRING
     extract_path = download_file_path / BASE_PATH_STRING
     template_path = download_file_path / "resources" / TEMPLATE_FLODER_STRING
+    logger.debug(f"Template_path: {template_path}", "检查更新")
     target_path = BASE_PATH
     if PYPROJECT_FILE.exists():
         logger.debug(f"移除备份文件: {PYPROJECT_FILE}", "检查更新")
@@ -91,7 +92,7 @@ def _file_handle(latest_version: str | None):
     if REQ_TXT_FILE.exists():
         logger.debug(f"移除备份文件: {REQ_TXT_FILE}", "检查更新")
         shutil.move(REQ_TXT_FILE, BACKUP_PATH / REQ_TXT_FILE_STRING)
-    if TEMPLATE_FLODER.exists():
+    if TEMPLATE_FLODER.is_dir():
         logger.debug(f"移除备份文件: {TEMPLATE_FLODER}", "检查更新")
         shutil.move(TEMPLATE_FLODER, BACKUP_PATH)
     if _pyproject.exists():
@@ -103,7 +104,7 @@ def _file_handle(latest_version: str | None):
     if _req_file.exists():
         logger.debug("移动文件: requirements.txt", "检查更新")
         shutil.move(_req_file, REQ_TXT_FILE)
-    if template_path.exists():
+    if template_path.is_dir():
         logger.debug("移动文件夹: template", "检查更新")
         shutil.move(template_path, RESOURCES_FLODER)
     for folder in REPLACE_FOLDERS:

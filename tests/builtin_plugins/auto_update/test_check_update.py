@@ -458,8 +458,8 @@ async def test_check_update_main(
     from zhenxun.builtin_plugins.auto_update import _matcher
     from zhenxun.builtin_plugins.auto_update.config import (
         REPLACE_FOLDERS,
-        REQ_TXT_FILE_STRING,
         TEMPLATE_FLODER_STRING,
+        REQ_TXT_FILE_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
     )
