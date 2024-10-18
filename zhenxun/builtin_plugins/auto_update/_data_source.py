@@ -84,20 +84,35 @@ def _file_handle(latest_version: str | None):
     template_path = (
         download_file_path / RESOURCES_FLODER_STRING / TEMPLATE_FLODER_STRING
     )
+
+    tree_str = ""
+
+    def generate_tree(pathname, n=0):
+        nonlocal tree_str
+        if pathname.is_file():
+            tree_str += "    |" * n + "-" * 4 + pathname.name + "\n"
+        elif pathname.is_dir():
+            tree_str += (
+                "    |" * n
+                + "-" * 4
+                + str(pathname.relative_to(pathname.parent))
+                + "\\"
+                + "\n"
+            )
+            for cp in pathname.iterdir():
+                generate_tree(cp, n + 1)
+
+    os.makedirs(RESOURCES_FLODER, exist_ok=True)
     logger.debug(
         f"Download_files_list: {[item.name for item in download_file_path.iterdir()]}",
         "检查更新",
     )
     logger.debug(
-        f"Root_floder_list: {[item.name for item in BASE_PATH.parent.iterdir()]}",
+        f"Root_floder_list: {generate_tree(BASE_PATH.parent)}",
         "检查更新",
     )
     logger.debug(
-        f"Resources_file_list: {[item.name for item in RESOURCES_FLODER.iterdir()]}",
-        "检查更新",
-    )
-    logger.debug(
-        f"Download_resources_file_list: {[item.name for item in (download_file_path / RESOURCES_FLODER_STRING).iterdir()]}",
+        f"Root_floder_parent_list: {generate_tree(BASE_PATH.parent.parent)}",
         "检查更新",
     )
     target_path = BASE_PATH
