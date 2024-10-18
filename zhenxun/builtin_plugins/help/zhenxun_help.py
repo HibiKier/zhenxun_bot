@@ -143,6 +143,7 @@ async def build_zhenxun_image(session: Uninfo, group_id: str | None) -> bytes:
             "data": {
                 "plugin_list": plugin_list,
                 "ava": bot_ava,
+                "bot_name": BotConfig.self_nickname
             }
         },
         pages={
