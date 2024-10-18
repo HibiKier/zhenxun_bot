@@ -81,17 +81,23 @@ def _file_handle(latest_version: str | None):
     _lock_file = download_file_path / PYPROJECT_LOCK_FILE_STRING
     _req_file = download_file_path / REQ_TXT_FILE_STRING
     extract_path = download_file_path / BASE_PATH_STRING
-    template_path = download_file_path / RESOURCES_FLODER_STRING / TEMPLATE_FLODER_STRING
+    template_path = (
+        download_file_path / RESOURCES_FLODER_STRING / TEMPLATE_FLODER_STRING
+    )
     logger.debug(
         f"Download_files_list: {[item.name for item in download_file_path.iterdir()]}",
         "检查更新",
     )
     logger.debug(
-        f"Base_floder_list: {[item.name for item in BASE_PATH.iterdir()]}",
+        f"Root_floder_list: {[item.name for item in BASE_PATH.parent.iterdir()]}",
         "检查更新",
     )
     logger.debug(
-        f"BACKUP_file_list: {[item.name for item in BACKUP_PATH.iterdir()]}",
+        f"Resources_file_list: {[item.name for item in RESOURCES_FLODER.iterdir()]}",
+        "检查更新",
+    )
+    logger.debug(
+        f"Download_resources_file_list: {[item.name for item in (download_file_path / RESOURCES_FLODER_STRING).iterdir()]}",
         "检查更新",
     )
     target_path = BASE_PATH
