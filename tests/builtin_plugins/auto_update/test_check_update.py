@@ -64,7 +64,7 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
     from zhenxun.builtin_plugins.auto_update.config import (
         REPLACE_FOLDERS,
         REQ_TXT_FILE_STRING,
-        TEMPLATE_FLODER,
+        RESOURCES_FLODER_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
     )
@@ -73,7 +73,7 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
     # 指定要添加到压缩文件中的文件路径列表
     file_paths: list[str] = [
         PYPROJECT_FILE_STRING,
-        str(TEMPLATE_FLODER),
+        RESOURCES_FLODER_STRING,
         PYPROJECT_LOCK_FILE_STRING,
         REQ_TXT_FILE_STRING,
     ]
