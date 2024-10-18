@@ -81,7 +81,10 @@ def _file_handle(latest_version: str | None):
     _req_file = download_file_path / REQ_TXT_FILE_STRING
     extract_path = download_file_path / BASE_PATH_STRING
     template_path = download_file_path / "resources" / TEMPLATE_FLODER_STRING
-    logger.debug(f"Template_path: {template_path}", "检查更新")
+    logger.debug(
+        f"Download_file_list: {[item.name for item in download_file_path.iterdir()]}",
+        "检查更新",
+    )
     target_path = BASE_PATH
     if PYPROJECT_FILE.exists():
         logger.debug(f"移除备份文件: {PYPROJECT_FILE}", "检查更新")
