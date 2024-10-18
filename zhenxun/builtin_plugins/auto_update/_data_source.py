@@ -85,24 +85,10 @@ def _file_handle(latest_version: str | None):
         download_file_path / RESOURCES_FLODER_STRING / TEMPLATE_FLODER_STRING
     )
 
-    tree_str = ""
 
-    def generate_tree(pathname, n=0):
-        nonlocal tree_str
-        if pathname.is_file():
-            tree_str += "    |" * n + "-" * 4 + pathname.name + "\n"
-        elif pathname.is_dir():
-            tree_str += (
-                "    |" * n
-                + "-" * 4
-                + str(pathname.relative_to(pathname.parent))
-                + "\\"
-                + "\n"
-            )
-            for cp in pathname.iterdir():
-                generate_tree(cp, n + 1)
+    def generate_tree(pathname):
+        return os.popen(f"tree -a -C -f {pathname}")
 
-    os.makedirs(RESOURCES_FLODER, exist_ok=True)
     logger.debug(
         f"Download_files_list: {[item.name for item in download_file_path.iterdir()]}",
         "检查更新",
