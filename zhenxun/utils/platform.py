@@ -45,7 +45,7 @@ class UserData(BaseModel):
 
 class PlatformUtils:
     @classmethod
-    def is_qbot(cls, session: Uninfo) -> bool:
+    def is_qbot(cls, session: Uninfo | Bot) -> bool:
         """判断bot是否为qq官bot
 
         参数:
@@ -54,6 +54,8 @@ class PlatformUtils:
         返回:
             bool: 是否为官bot
         """
+        if isinstance(session, Bot):
+            return bool(BotConfig.get_qbot_uid(session.self_id))
         return session.scope == SupportScope.qq_api
 
     @classmethod
