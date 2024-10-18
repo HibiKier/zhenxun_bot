@@ -9,6 +9,13 @@ from nonebot.adapters import Bot
 from nonebot.drivers import Driver
 from tortoise.exceptions import OperationalError
 
+require("nonebot_plugin_apscheduler")
+require("nonebot_plugin_alconna")
+require("nonebot_plugin_session")
+require("nonebot_plugin_userinfo")
+require("nonebot_plugin_htmlrender")
+# require("nonebot_plugin_uninfo")
+
 from zhenxun.services.log import logger
 from zhenxun.models.sign_user import SignUser
 from zhenxun.models.goods_info import GoodsInfo
@@ -16,14 +23,6 @@ from zhenxun.models.user_console import UserConsole
 from zhenxun.utils.decorator.shop import shop_register
 from zhenxun.models.bot_connect_log import BotConnectLog
 from zhenxun.models.group_member_info import GroupInfoUser
-
-require("nonebot_plugin_apscheduler")
-require("nonebot_plugin_alconna")
-require("nonebot_plugin_session")
-require("nonebot_plugin_userinfo")
-require("nonebot_plugin_htmlrender")
-require("nonebot_plugin_uninfo")
-
 
 driver: Driver = nonebot.get_driver()
 

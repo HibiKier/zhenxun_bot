@@ -4,13 +4,11 @@ from tortoise.models import Model as Model_
 from nonebot.utils import is_coroutine_callable
 
 from zhenxun.configs.config import BotConfig
-from zhenxun.configs.path_config import DATA_PATH
 
 from .log import logger
 
 SCRIPT_METHOD = []
 MODELS: list[str] = []
-DATABASE_SETTING_FILE = DATA_PATH / "database.json"
 
 
 class Model(Model_):

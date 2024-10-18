@@ -1,7 +1,7 @@
 from nonebot.rule import to_me
 from nonebot.adapters import Bot
+from nonebot_plugin_uninfo import Uninfo
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_session import EventSession
 from nonebot_plugin_alconna import (
     Args,
     Match,
@@ -58,28 +58,26 @@ _matcher = on_alconna(
 async def _(
     bot: Bot,
     name: Match[str],
-    session: EventSession,
+    session: Uninfo,
     is_superuser: Query[bool] = AlconnaQuery("superuser.value", False),
 ):
-    if not session.id1:
-        await MessageUtils.build_message("用户id为空...").finish()
     _is_superuser = is_superuser.result if is_superuser.available else False
     if name.available:
-        if _is_superuser and session.id1 not in bot.config.superusers:
+        if _is_superuser and session.user.id not in bot.config.superusers:
             _is_superuser = False
-        if result := await get_plugin_help(session.id1, name.result, _is_superuser):
+        if result := await get_plugin_help(session.user.id, name.result, _is_superuser):
             await MessageUtils.build_message(result).send(reply_to=True)
         else:
             await MessageUtils.build_message("没有此功能的帮助信息...").send(
                 reply_to=True
             )
         logger.info(f"查看帮助详情: {name.result}", "帮助", session=session)
-    elif gid := session.id3 or session.id2:
+    elif session.group and (gid := session.group.id):
         _image_path = GROUP_HELP_PATH / f"{gid}.png"
         if not _image_path.exists():
-            await create_help_img(bot.self_id, gid, session.platform)
+            await create_help_img(session, gid)
         await MessageUtils.build_message(_image_path).finish()
     else:
         if not SIMPLE_HELP_IMAGE.exists():
-            await create_help_img(bot.self_id, None, session.platform)
+            await create_help_img(session, None)
         await MessageUtils.build_message(SIMPLE_HELP_IMAGE).finish()

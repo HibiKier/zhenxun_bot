@@ -16,7 +16,6 @@ from zhenxun.utils.common_utils import CommonUtils
 
 
 class BroadcastManage:
-
     @classmethod
     async def send(
         cls, bot: Bot, message: UniMsg, session: EventSession
@@ -43,8 +42,9 @@ class BroadcastManage:
             for group in group_list:
                 try:
                     if not await CommonUtils.task_is_block(
-                        group.group_id,
+                        bot,
                         "broadcast",  # group.channel_id
+                        group.group_id,
                     ):
                         target = PlatformUtils.get_target(
                             bot, None, group.channel_id or group.group_id

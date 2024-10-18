@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from nonebot.adapters import Bot
 from tortoise.functions import Count
 from tortoise.expressions import RawSQL
+from nonebot_plugin_uninfo import Uninfo
 from nonebot_plugin_htmlrender import template_to_pic
 
 from zhenxun.models.sign_user import SignUser
@@ -130,11 +131,12 @@ async def get_chat_history(
 
 
 async def get_user_info(
-    bot: Bot, user_id: str, group_id: str | None, nickname: str
+    session: Uninfo, bot: Bot, user_id: str, group_id: str | None, nickname: str
 ) -> bytes:
     """获取用户个人信息
 
     参数:
+        session: Uninfo
         bot: Bot
         user_id: 用户id
         group_id: 群id
@@ -162,7 +164,7 @@ async def get_user_info(
     data = {
         "date": now.date(),
         "weather": weather,
-        "ava_url": ava_url,
+        "ava_url": session.user.avatar,
         "nickname": nickname,
         "title": "勇 者",
         "race": random.choice(RACE),

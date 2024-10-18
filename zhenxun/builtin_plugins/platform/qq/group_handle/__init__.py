@@ -1,4 +1,5 @@
 from nonebot.adapters import Bot
+from nonebot_plugin_uninfo import Uninfo
 from nonebot import on_notice, on_request
 from nonebot.plugin import PluginMetadata
 from nonebot.adapters.onebot.v11 import (
@@ -100,7 +101,11 @@ add_group = on_request(priority=1, block=False)
 
 
 @group_increase_handle.handle()
-async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent):
+async def _(
+    bot: Bot,
+    session: Uninfo,
+    event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent,
+):
     user_id = str(event.user_id)
     group_id = str(event.group_id)
     if user_id == bot.self_id:
@@ -113,11 +118,15 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
         except ForceAddGroupError as e:
             await PlatformUtils.send_superuser(bot, e.get_info())
     else:
-        await GroupManager.add_user(bot, user_id, group_id)
+        await GroupManager.add_user(session, bot, user_id, group_id)
 
 
 @group_decrease_handle.handle()
-async def _(bot: Bot, event: GroupDecreaseNoticeEvent | GroupMemberDecreaseEvent):
+async def _(
+    bot: Bot,
+    session: Uninfo,
+    event: GroupDecreaseNoticeEvent | GroupMemberDecreaseEvent,
+):
     user_id = str(event.user_id)
     group_id = str(event.group_id)
     if event.sub_type == "kick_me":
@@ -128,6 +137,6 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent | GroupMemberDecreaseEvent
             bot, user_id, group_id, str(event.operator_id), event.sub_type
         )
         if result and not await CommonUtils.task_is_block(
-            "refund_group_remind", group_id
+            session, "refund_group_remind"
         ):
             await group_decrease_handle.send(result)
