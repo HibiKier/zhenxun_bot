@@ -53,6 +53,7 @@ async def _():
                             _group, _ = await GroupConsole.get_or_create(
                                 group_id=group.group_id, channel_id__isnull=True
                             )
+                            modules = [f"<{module}" for module in modules]
                             _group.block_task = ",".join(modules) + ","  # type: ignore
                             update_list.append(_group)
                             logger.info(

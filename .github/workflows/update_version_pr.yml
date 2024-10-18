@@ -1,0 +1,73 @@
+name: Update Version
+
+on:
+  push:
+    paths:
+      - .github/workflows/update_version_pr.yml
+      - zhenxun/**
+      - resources/**
+      - bot.py
+    branches:
+      - main
+      - dev
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Read current version
+        id: read_version
+        run: |
+          version_line=$(grep '__version__' __version__)
+          version=$(echo $version_line | sed -E 's/__version__:\s*v([0-9]+\.[0-9]+\.[0-9]+)(-.+)?/\1/')
+          echo "Current version: $version"
+          echo "current_version=$version" >> $GITHUB_OUTPUT
+
+      - name: Check for version file changes
+        id: check_diff
+        run: |
+          if git diff --name-only HEAD~1 HEAD | grep -q '__version__'; then
+            echo "Version file has changes"
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version file has no changes"
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get commit hash
+        id: get_commit_hash
+        run: echo "commit_hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Update version file
+        id: update_version
+        if: steps.check_diff.outputs.version_changed == 'false'
+        run: |
+          current_version="${{ steps.read_version.outputs.current_version }}"
+          commit_hash="${{ steps.get_commit_hash.outputs.commit_hash }}"
+          new_version="v${current_version}-${commit_hash}"
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
+          echo "Updating version to: $new_version"
+          echo "__version__: $new_version" > __version__
+
+      - name: Check updated version
+        if: steps.check_diff.outputs.version_changed == 'false'
+        run: cat __version__
+
+      - name: Create or update PR
+        if: steps.check_diff.outputs.version_changed == 'false'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          branch: create-pr/update_version
+          title: ":tada: chore(version): 自动更新版本到 ${{ steps.update_version.outputs.new_version }}"
+          body: "This PR updates the version file."
+          commit-message: ":tada: chore(version): Update version to ${{ steps.update_version.outputs.new_version }}"
+          add-paths: __version__
+          author: "AkashiCoin <i@loli.vet>"
+          committer: "${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>"
+          labels: automated-update

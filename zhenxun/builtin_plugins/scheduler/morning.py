@@ -1,4 +1,5 @@
 import nonebot
+from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_apscheduler import scheduler
 
@@ -26,15 +27,15 @@ __plugin_meta__ = PluginMetadata(
 driver = nonebot.get_driver()
 
 
-async def check(group_id: str) -> bool:
-    return not await CommonUtils.task_is_block("morning_goodnight", group_id)
+async def check(bot: Bot, group_id: str) -> bool:
+    return not await CommonUtils.task_is_block(bot, "morning_goodnight", group_id)
 
 
 # 早上好
 @scheduler.scheduled_job(
     "cron",
-    hour=6,
-    minute=1,
+    hour=14,
+    minute=52,
 )
 async def _():
     message = MessageUtils.build_message(["早上好", IMAGE_PATH / "zhenxun" / "zao.jpg"])

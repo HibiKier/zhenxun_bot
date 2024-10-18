@@ -1,15 +1,14 @@
 import time
-
-from tortoise import fields
 from typing_extensions import Self
 
-from zhenxun.services.db_context import Model
+from tortoise import fields
+
 from zhenxun.services.log import logger
+from zhenxun.services.db_context import Model
 from zhenxun.utils.exception import UserAndGroupIsNone
 
 
 class BanConsole(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_id = fields.CharField(255, null=True)
@@ -25,9 +24,9 @@ class BanConsole(Model):
     operator = fields.CharField(255)
     """使用Ban命令的用户"""
 
-    class Meta:
+    class Meta:  # type: ignore
         table = "ban_console"
-        table_description = ".ban/b了 封禁人员/群组数据表"
+        table_description = "封禁人员/群组数据表"
 
     @classmethod
     async def _get_data(cls, user_id: str | None, group_id: str | None) -> Self | None:
@@ -45,16 +44,14 @@ class BanConsole(Model):
         """
         if not user_id and not group_id:
             raise UserAndGroupIsNone()
-        user = None
         if user_id:
-            if group_id:
-                user = await cls.get_or_none(user_id=user_id, group_id=group_id)
-            else:
-                user = await cls.get_or_none(user_id=user_id, group_id__isnull=True)
+            return (
+                await cls.get_or_none(user_id=user_id, group_id=group_id)
+                if group_id
+                else await cls.get_or_none(user_id=user_id, group_id__isnull=True)
+            )
         else:
-            if group_id:
-                user = await cls.get_or_none(user_id__isnull=True, group_id=group_id)
-        return user
+            return await cls.get_or_none(user_id="", group_id=group_id)
 
     @classmethod
     async def check_ban_level(
@@ -91,7 +88,7 @@ class BanConsole(Model):
         返回:
             int: ban剩余时长，-1时为永久ban，0表示未被ban
         """
-        logger.debug(f"获取用户ban时长", target=f"{group_id}:{user_id}")
+        logger.debug("获取用户ban时长", target=f"{group_id}:{user_id}")
         user = await cls._get_data(user_id, group_id)
         if not user and user_id:
             user = await cls._get_data(user_id, None)
@@ -99,9 +96,7 @@ class BanConsole(Model):
             if user.duration == -1:
                 return -1
             _time = time.time() - (user.ban_time + user.duration)
-            if _time > 0:
-                return 0
-            return int(time.time() - user.ban_time - user.duration)
+            return 0 if _time > 0 else int(time.time() - user.ban_time - user.duration)
         return 0
 
     @classmethod
@@ -114,7 +109,7 @@ class BanConsole(Model):
         返回:
             bool: 是否被ban
         """
-        logger.debug(f"检测是否被ban", target=f"{group_id}:{user_id}")
+        logger.debug("检测是否被ban", target=f"{group_id}:{user_id}")
         if await cls.check_ban_time(user_id, group_id):
             return True
         else:
@@ -143,8 +138,8 @@ class BanConsole(Model):
             f"封禁用户/群组，等级:{ban_level}，时长: {duration}",
             target=f"{group_id}:{user_id}",
         )
-        user = await cls._get_data(user_id, group_id)
-        if user:
+        target = await cls._get_data(user_id, group_id)
+        if target:
             await cls.unban(user_id, group_id)
         await cls.create(
             user_id=user_id,

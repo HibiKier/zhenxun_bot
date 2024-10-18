@@ -32,11 +32,10 @@ class BanManage:
             query = query.filter(user_id=user_id)
         elif group_id:
             query = query.filter(group_id=group_id)
-        else:
-            if filter_type == "user":
-                query = query.filter(group_id__isnull=True)
-            elif filter_type == "group":
-                query = query.filter(user_id__isnull=True)
+        elif filter_type == "user":
+            query = query.filter(group_id__isnull=True)
+        elif filter_type == "group":
+            query = query.filter(user_id__isnull=True)
         data_list = await query.all()
         if not data_list:
             return None
@@ -85,26 +84,36 @@ class BanManage:
         user_id: str | None,
         group_id: str | None,
         session: EventSession,
+        idx: int | None = None,
         is_superuser: bool = False,
-    ) -> bool:
+    ) -> tuple[bool, str]:
         """unban目标用户
 
         参数:
             user_id: 用户id
             group_id: 群组id
             session: Session
+            idx: 指定id
             is_superuser: 是否为超级用户操作
 
         返回:
-            bool: 是否unban成功
+            tuple[bool, str]: 是否unban成功, 群组/用户id或提示
         """
         user_level = 9999
         if not is_superuser and user_id and session.id1:
             user_level = await LevelUser.get_user_level(session.id1, group_id)
-        if await BanConsole.check_ban_level(user_id, group_id, user_level):
+        if idx:
+            ban_data = await BanConsole.get_or_none(id=idx)
+            if not ban_data:
+                return False, "该用户/群组不在黑名单中不足捏..."
+            if ban_data.ban_level > user_level:
+                return False, "unBan权限等级不足捏..."
+            await ban_data.delete()
+            return True, str(ban_data.user_id or ban_data.group_id)
+        elif await BanConsole.check_ban_level(user_id, group_id, user_level):
             await BanConsole.unban(user_id, group_id)
-            return True
-        return False
+            return True, str(group_id)
+        return False, "该用户/群组不在黑名单中不足捏..."
 
     @classmethod
     async def ban(

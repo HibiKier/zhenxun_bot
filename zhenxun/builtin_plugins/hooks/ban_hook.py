@@ -1,19 +1,18 @@
-import logging
-
-from nonebot.adapters import Bot, Event
-from nonebot.exception import IgnoredException
-from nonebot.matcher import Matcher
-from nonebot.message import run_preprocessor
 from nonebot.typing import T_State
+from nonebot.matcher import Matcher
 from nonebot_plugin_alconna import At
+from nonebot.adapters import Bot, Event
+from nonebot.message import run_preprocessor
+from nonebot.exception import IgnoredException
 from nonebot_plugin_session import EventSession
 
+from zhenxun.services.log import logger
 from zhenxun.configs.config import Config
+from zhenxun.utils.enum import PluginType
+from zhenxun.utils.utils import FreqLimiter
+from zhenxun.utils.message import MessageUtils
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.group_console import GroupConsole
-from zhenxun.utils.enum import PluginType
-from zhenxun.utils.message import MessageUtils
-from zhenxun.utils.utils import FreqLimiter
 
 Config.add_plugin_config(
     "hook",
@@ -41,11 +40,11 @@ async def _(
         if user_id in bot.config.superusers:
             return
         if await BanConsole.is_ban(None, group_id):
-            logging.debug("群组处于黑名单中...", "ban_hook")
+            logger.debug("群组处于黑名单中...", "ban_hook")
             raise IgnoredException("群组处于黑名单中...")
         if g := await GroupConsole.get_group(group_id):
             if g.level < 0:
-                logging.debug("群黑名单, 群权限-1...", "ban_hook")
+                logger.debug("群黑名单, 群权限-1...", "ban_hook")
                 raise IgnoredException("群黑名单, 群权限-1..")
     if user_id:
         ban_result = Config.get_config("hook", "BAN_RESULT")
@@ -58,12 +57,12 @@ async def _(
             else:
                 time = abs(int(time))
                 if time < 60:
-                    time_str = str(time) + " 秒"
+                    time_str = f"{time!s} 秒"
                 else:
                     minute = int(time / 60)
                     if minute > 60:
-                        hours = int(minute / 60)
-                        minute = minute % 60
+                        hours = minute // 60
+                        minute %= 60
                         time_str = f"{hours} 小时 {minute}分钟"
                     else:
                         time_str = f"{minute} 分钟"
@@ -75,5 +74,5 @@ async def _(
                         f"{ban_result}\n在..在 {time_str} 后才会理你喔",
                     ]
                 ).send()
-            logging.debug("用户处于黑名单中...", "ban_hook")
+            logger.debug("用户处于黑名单中...", "ban_hook")
             raise IgnoredException("用户处于黑名单中...")

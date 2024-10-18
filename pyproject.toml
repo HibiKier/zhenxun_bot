@@ -47,10 +47,10 @@ dateparser = "^1.2.0"
 bilireq = "0.2.3post0"
 python-jose = { extras = ["cryptography"], version = "^3.3.0" }
 python-multipart = "^0.0.9"
-nonebot-plugin-alconna = "0.51.1"
-arclet-alconna = "1.8.23"
 aiocache = "^0.12.2"
 py-cpuinfo = "^9.0.0"
+nonebot-plugin-uninfo = "^0.4.1"
+nonebot-plugin-alconna = "^0.53.1"
 
 [tool.poetry.dev-dependencies]
 nonebug = "^0.3.2"

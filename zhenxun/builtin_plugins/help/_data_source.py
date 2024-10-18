@@ -1,4 +1,5 @@
 import nonebot
+from nonebot_plugin_uninfo import Uninfo
 
 from zhenxun.utils.enum import PluginType
 from zhenxun.models.level_user import LevelUser
@@ -19,19 +20,18 @@ background = IMAGE_PATH / "background" / "0.png"
 driver = nonebot.get_driver()
 
 
-async def create_help_img(bot_id: str, group_id: str | None, platform: str):
+async def create_help_img(session: Uninfo, group_id: str | None):
     """生成帮助图片
 
     参数:
-        bot_id: bot id
+        session: Uninfo
         group_id: 群号
-        platform: 平台
     """
     help_type: str = base_config.get("type")
     if help_type.lower() == "html":
         result = BuildImage.open(await build_html_image(group_id))
     elif help_type.lower() == "zhenxun":
-        result = BuildImage.open(await build_zhenxun_image(bot_id, group_id, platform))
+        result = BuildImage.open(await build_zhenxun_image(session, group_id))
     else:
         result = await build_normal_image(group_id)
     if group_id:

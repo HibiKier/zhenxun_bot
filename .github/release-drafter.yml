@@ -1,0 +1,77 @@
+template: $CHANGES
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+exclude-labels:
+  - reverted
+  - no-changelog
+  - skip-changelog
+  - invalid
+autolabeler:
+  - label: "bug"
+    title:
+      - "/:bug:.+/"
+      - "/🐛.+/"
+  - label: "enhancement"
+    title:
+      - "/:sparkles:.+/"
+      - "/✨.+/"
+  - label: "ci"
+    files:
+      - .github/**/*
+  - label: "breaking-change"
+    title:
+      - "/.+!:.+/"
+  - label: "documentation"
+    files:
+      - "*.md"
+  - label: "dependencies"
+    files:
+      - "pyproject.toml"
+      - "requirements.txt"
+      - "poetry.lock"
+    title:
+      - "/:wrench:.+/"
+      - "/🔧.+/"
+  - label: "resources"
+    files:
+      - resources/**/*
+categories:
+  - title: 💥 破坏性变更
+    labels:
+      - breaking-change
+  - title: 🚀 新功能
+    labels:
+      - enhancement
+  - title: 🐛 Bug 修复
+    labels:
+      - bug
+  - title: 📝 文档更新
+    labels:
+      - documentation
+  - title: 👻 自动化程序
+    labels:
+      - chore
+      - internal
+      - maintenance
+  - title: 🚦 测试
+    labels:
+      - test
+      - tests
+  - title: 📦 依赖更新
+    labels:
+      - dependencies
+    collapse-after: 15
+  - title: 💫 杂项
+change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
+change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
+version-resolver:
+  major:
+    labels:
+      - "major"
+  minor:
+    labels:
+      - "minor"
+  patch:
+    labels:
+      - "patch"
+  default: patch

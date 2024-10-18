@@ -44,7 +44,7 @@
 | :-----------------------------------------------------------: | :--: | :----------------------: | :--: |
 |       [LLOneBot](https://github.com/LLOneBot/LLOneBot)        | NTQQ |        linyuchen         | 可用 |
 |         [Napcat](https://github.com/NapNeko/NapCatQQ)         | NTQQ |         NapNeko          | 可用 |
-| [Lagrange.Core](https://github.com/LagrangeDev/Lagrange.Core) |      | LagrangeDev/Linwenxuan04 | 可用 |
+| [Lagrange.Core](https://github.com/LagrangeDev/Lagrange.Core) | NTQQ | LagrangeDev/Linwenxuan04 | 可用 |
 
 </div>
 

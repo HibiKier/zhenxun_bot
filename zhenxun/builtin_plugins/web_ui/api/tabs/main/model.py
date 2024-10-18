@@ -18,8 +18,6 @@ class BaseInfo(BaseModel):
     基础信息
     """
 
-    bot: Bot
-    """Bot"""
     self_id: str
     """SELF ID"""
     nickname: str
@@ -36,6 +34,8 @@ class BaseInfo(BaseModel):
     """连接时间"""
     connect_date: str | None = None
     """连接日期"""
+    connect_count: int = 0
+    """连接次数"""
 
     plugin_count: int = 0
     """加载插件数量"""
@@ -46,9 +46,6 @@ class BaseInfo(BaseModel):
 
     is_select: bool = False
     """当前选择"""
-
-    config: Config | None = None
-    """nb配置"""
     day_call: int = 0
     """今日调用插件次数"""
     version: str = "unknown"
@@ -56,6 +53,15 @@ class BaseInfo(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+
+class TemplateBaseInfo(BaseInfo):
+    """
+    基础信息
+    """
+
+    bot: Bot
+    """bot"""
 
 
 class QueryCount(BaseModel):
