@@ -62,6 +62,7 @@ def build_plugin_data(classify: dict[str, list[Item]]) -> list[dict[str, str]]:
         for menu, value in classify.items()
     ]
     plugin_list = build_line_data(plugin_list)
+
     plugin_list.insert(
         0,
         build_plugin_line(
@@ -69,13 +70,14 @@ def build_plugin_data(classify: dict[str, list[Item]]) -> list[dict[str, str]]:
             max_data,
             30,
             100,
+            True,
         ),
     )
     return plugin_list
 
 
 def build_plugin_line(
-    name: str, items: list, left: int, width: int | None = None
+    name: str, items: list, left: int, width: int | None = None, is_max: bool = False
 ) -> dict:
     """构造插件行数据
 
@@ -84,13 +86,14 @@ def build_plugin_line(
         items: 插件名称列表
         left: 左边距
         width: 总插件长度.
+        is_max: 是否为最大长度的插件菜单
 
     返回:
         dict: 插件数据
     """
     _plugins = []
     width = width or 50
-    if len(items) // 2 > 6:
+    if len(items) // 2 > 6 or is_max:
         width = 100
         plugin_list1 = []
         plugin_list2 = []
