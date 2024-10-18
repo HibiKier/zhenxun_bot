@@ -87,7 +87,7 @@ def _file_handle(latest_version: str | None):
 
 
     def generate_tree(pathname):
-        return os.popen(f"tree -a -C -f {pathname}")
+        return os.popen(f"tree -a -C -f {pathname}").read()
 
     logger.debug(
         f"Download_files_list: {[item.name for item in download_file_path.iterdir()]}",
