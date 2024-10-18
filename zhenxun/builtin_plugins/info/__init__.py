@@ -1,13 +1,12 @@
 from nonebot.adapters import Bot
+from nonebot_plugin_uninfo import Uninfo
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_session import EventSession
+from playwright.async_api import TimeoutError
 from nonebot_plugin_alconna import At, Args, Match, Alconna, Arparma, on_alconna
 
 from zhenxun.services.log import logger
-from zhenxun.utils.enum import PluginType
 from zhenxun.utils.depends import UserName
 from zhenxun.utils.message import MessageUtils
-from zhenxun.utils.platform import PlatformUtils
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.group_member_info import GroupInfoUser
 
@@ -31,26 +30,29 @@ _matcher = on_alconna(Alconna("我的信息", Args["at_user?", At]), priority=5,
 @_matcher.handle()
 async def _(
     bot: Bot,
-    session: EventSession,
+    session: Uninfo,
     arparma: Arparma,
     at_user: Match[At],
     nickname: str = UserName(),
 ):
-    user_id = session.id1
-    if at_user.available:
+    user_id = session.user.id
+    if at_user.available and session.group:
         user_id = at_user.result.target
         if user := await GroupInfoUser.get_or_none(
-            user_id=user_id, group_id=session.id2
+            user_id=user_id, group_id=session.group.id
         ):
             nickname = user.user_name
         else:
             nickname = user_id
-    if not user_id:
-        await MessageUtils.build_message("用户id为空...").finish(reply_to=True)
     try:
-        result = await get_user_info(bot, user_id, session.id2, nickname)
+        result = await get_user_info(
+            session, bot, user_id, session.group.id if session.group else None, nickname
+        )
         await MessageUtils.build_message(result).send(at_sender=True)
         logger.info("获取用户信息", arparma.header_result, session=session)
+    except TimeoutError as e:
+        logger.error("获取用户信息超时", arparma.header_result, session=session, e=e)
+        await MessageUtils.build_message("获取用户信息超时...").finish(reply_to=True)
     except Exception as e:
         logger.error("获取用户信息失败", arparma.header_result, session=session, e=e)
         await MessageUtils.build_message("获取用户信息失败...").finish(reply_to=True)

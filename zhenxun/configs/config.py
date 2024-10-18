@@ -15,6 +15,19 @@ class BotSetting(BaseModel):
     """数据库链接"""
     platform_superusers: dict[str, list[str]] = {}
     """平台超级用户"""
+    qbot_id_data: dict[str, str] = {}
+    """官bot id:账号id"""
+
+    def get_qbot_uid(self, qbot_id: str) -> str | None:
+        """获取官bot账号id
+
+        参数:
+            qbot_id: 官bot id
+
+        返回:
+            str: 账号id
+        """
+        return self.qbot_id_data.get(qbot_id)
 
     def get_superuser(self, platform: str) -> list[str]:
         """获取超级用户

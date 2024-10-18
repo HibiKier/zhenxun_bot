@@ -7,6 +7,7 @@ from datetime import datetime
 import ujson as json
 from nonebot.adapters import Bot
 from nonebot_plugin_alconna import At
+from nonebot_plugin_uninfo import Uninfo
 
 from zhenxun.services.log import logger
 from zhenxun.configs.config import Config
@@ -202,7 +203,7 @@ class GroupManager:
                 ).send()
 
     @classmethod
-    async def add_user(cls, bot: Bot, user_id: str, group_id: str):
+    async def add_user(cls, session: Uninfo, bot: Bot, user_id: str, group_id: str):
         """拉入用户
 
         参数:
@@ -219,7 +220,7 @@ class GroupManager:
         )
         logger.info(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新成功")
         if not await CommonUtils.task_is_block(
-            "group_welcome", group_id
+            session, "group_welcome"
         ) and cls._flmt.check(group_id):
             await cls.__send_welcome_message(user_id, group_id)
 
