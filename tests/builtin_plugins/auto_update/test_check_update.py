@@ -64,13 +64,16 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
     from zhenxun.builtin_plugins.auto_update.config import (
         REPLACE_FOLDERS,
         REQ_TXT_FILE_STRING,
+        TEMPLATE_FLODER,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
     )
 
+
     # 指定要添加到压缩文件中的文件路径列表
     file_paths: list[str] = [
         PYPROJECT_FILE_STRING,
+        str(TEMPLATE_FLODER),
         PYPROJECT_LOCK_FILE_STRING,
         REQ_TXT_FILE_STRING,
     ]
@@ -132,8 +135,6 @@ def add_files_and_folders_to_zip(
     zipf.writestr(base_folder, "")
 
     for folder in folders:
-        if isinstance(folder, list):
-            folder = Path(*folder)
         zipf.writestr(f"{base_folder}{folder}/", "")
 
 
@@ -174,8 +175,6 @@ def add_files_and_folders_to_tar(
     tarinfo = tarfile.TarInfo(base_folder)
     add_directory_to_tar(tarinfo, tar)
     for folder in folders:
-        if isinstance(folder, list):
-            folder = Path(*folder)
         tarinfo = tarfile.TarInfo(f"{base_folder}{folder}")
         add_directory_to_tar(tarinfo, tar)
 
@@ -273,6 +272,7 @@ async def test_check_update_release(
     from zhenxun.builtin_plugins.auto_update import _matcher
     from zhenxun.builtin_plugins.auto_update.config import (
         REPLACE_FOLDERS,
+        TEMPLATE_FLODER_STRING,
         REQ_TXT_FILE_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
@@ -296,8 +296,6 @@ async def test_check_update_release(
     mock_tmp_path.mkdir(parents=True, exist_ok=True)
 
     for folder in REPLACE_FOLDERS:
-        if isinstance(folder, list):
-            folder = Path(*folder)
         (mock_base_path / folder).mkdir(parents=True, exist_ok=True)
 
     mock_pyproject_file.write_bytes(b"")
@@ -339,6 +337,7 @@ async def test_check_update_release(
     assert (mock_backup_path / PYPROJECT_FILE_STRING).exists()
     assert (mock_backup_path / PYPROJECT_LOCK_FILE_STRING).exists()
     assert (mock_backup_path / REQ_TXT_FILE_STRING).exists()
+    assert (mock_backup_path / TEMPLATE_FLODER_STRING).exists()
 
     assert not mock_download_gz_file.exists()
     assert not mock_download_zip_file.exists()
@@ -348,12 +347,8 @@ async def test_check_update_release(
     assert mock_req_txt_file.read_bytes() == b"new"
 
     for folder in REPLACE_FOLDERS:
-        if isinstance(folder, list):
-            folder = Path(*folder)
         assert not (mock_base_path / folder).exists()
     for folder in REPLACE_FOLDERS:
-        if isinstance(folder, list):
-            folder = Path(*folder)
         assert (mock_backup_path / folder).exists()
 
 
@@ -370,6 +365,7 @@ async def test_check_update_dev(
     from zhenxun.builtin_plugins.auto_update import _matcher
     from zhenxun.builtin_plugins.auto_update.config import (
         REPLACE_FOLDERS,
+        TEMPLATE_FLODER_STRING,
         REQ_TXT_FILE_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
@@ -392,8 +388,6 @@ async def test_check_update_dev(
     # 确保目录下有一个子目录，以便 os.listdir() 能返回一个目录名
     mock_tmp_path.mkdir(parents=True, exist_ok=True)
     for folder in REPLACE_FOLDERS:
-        if isinstance(folder, list):
-            folder = Path(*folder)
         (mock_base_path / folder).mkdir(parents=True, exist_ok=True)
 
     mock_pyproject_file.write_bytes(b"")
@@ -436,6 +430,7 @@ async def test_check_update_dev(
     assert (mock_backup_path / PYPROJECT_FILE_STRING).exists()
     assert (mock_backup_path / PYPROJECT_LOCK_FILE_STRING).exists()
     assert (mock_backup_path / REQ_TXT_FILE_STRING).exists()
+    assert (mock_backup_path / TEMPLATE_FLODER_STRING).exists()
 
     assert not mock_download_gz_file.exists()
     assert not mock_download_zip_file.exists()
@@ -464,6 +459,7 @@ async def test_check_update_main(
     from zhenxun.builtin_plugins.auto_update.config import (
         REPLACE_FOLDERS,
         REQ_TXT_FILE_STRING,
+        TEMPLATE_FLODER_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
     )
@@ -485,8 +481,6 @@ async def test_check_update_main(
     # 确保目录下有一个子目录，以便 os.listdir() 能返回一个目录名
     mock_tmp_path.mkdir(parents=True, exist_ok=True)
     for folder in REPLACE_FOLDERS:
-        if isinstance(folder, list):
-            folder = Path(*folder)
         (mock_base_path / folder).mkdir(parents=True, exist_ok=True)
 
     mock_pyproject_file.write_bytes(b"")
@@ -529,6 +523,7 @@ async def test_check_update_main(
     assert (mock_backup_path / PYPROJECT_FILE_STRING).exists()
     assert (mock_backup_path / PYPROJECT_LOCK_FILE_STRING).exists()
     assert (mock_backup_path / REQ_TXT_FILE_STRING).exists()
+    assert (mock_backup_path / TEMPLATE_FLODER_STRING).exists()
 
     assert not mock_download_gz_file.exists()
     assert not mock_download_zip_file.exists()
@@ -538,10 +533,6 @@ async def test_check_update_main(
     assert mock_req_txt_file.read_bytes() == b"new"
 
     for folder in REPLACE_FOLDERS:
-        if isinstance(folder, list):
-            folder = Path(*folder)
         assert (mock_base_path / folder).exists()
     for folder in REPLACE_FOLDERS:
-        if isinstance(folder, list):
-            folder = Path(*folder)
         assert (mock_backup_path / folder).exists()

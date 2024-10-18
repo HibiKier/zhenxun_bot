@@ -18,6 +18,10 @@ REQ_TXT_FILE = Path() / REQ_TXT_FILE_STRING
 BASE_PATH_STRING = "zhenxun"
 BASE_PATH = Path() / BASE_PATH_STRING
 
+TEMPLATE_FLODER_STRING = "template"
+RESOURCES_FLODER = Path() / "resources"
+TEMPLATE_FLODER = RESOURCES_FLODER / TEMPLATE_FLODER_STRING
+
 TMP_PATH = TEMP_PATH / "auto_update"
 
 BACKUP_PATH = Path() / "backup"
@@ -29,7 +33,6 @@ DOWNLOAD_ZIP_FILE = TMP_PATH / DOWNLOAD_ZIP_FILE_STRING
 
 REPLACE_FOLDERS = [
     "builtin_plugins",
-    ["..", "resources", "template"],
     "services",
     "utils",
     "models",

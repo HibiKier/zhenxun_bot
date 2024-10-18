@@ -6,7 +6,6 @@ import subprocess
 
 from nonebot.adapters import Bot
 from nonebot.utils import run_sync
-from pathlib import Path
 
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
@@ -15,6 +14,7 @@ from zhenxun.utils.github_utils import GithubUtils
 from zhenxun.utils.github_utils.models import RepoInfo
 
 from .config import (
+    TEMPLATE_FLODER_STRING,
     TMP_PATH,
     BASE_PATH,
     BACKUP_PATH,
@@ -22,6 +22,8 @@ from .config import (
     REQ_TXT_FILE,
     VERSION_FILE,
     PYPROJECT_FILE,
+    TEMPLATE_FLODER,
+    RESOURCES_FLODER,
     REPLACE_FOLDERS,
     BASE_PATH_STRING,
     DOWNLOAD_GZ_FILE,
@@ -78,6 +80,7 @@ def _file_handle(latest_version: str | None):
     _lock_file = download_file_path / PYPROJECT_LOCK_FILE_STRING
     _req_file = download_file_path / REQ_TXT_FILE_STRING
     extract_path = download_file_path / BASE_PATH_STRING
+    template_path = download_file_path / "resources" / TEMPLATE_FLODER_STRING
     target_path = BASE_PATH
     if PYPROJECT_FILE.exists():
         logger.debug(f"移除备份文件: {PYPROJECT_FILE}", "检查更新")
@@ -88,6 +91,9 @@ def _file_handle(latest_version: str | None):
     if REQ_TXT_FILE.exists():
         logger.debug(f"移除备份文件: {REQ_TXT_FILE}", "检查更新")
         shutil.move(REQ_TXT_FILE, BACKUP_PATH / REQ_TXT_FILE_STRING)
+    if TEMPLATE_FLODER.exists():
+        logger.debug(f"移除备份文件: {TEMPLATE_FLODER}", "检查更新")
+        shutil.move(TEMPLATE_FLODER, BACKUP_PATH)
     if _pyproject.exists():
         logger.debug("移动文件: pyproject.toml", "检查更新")
         shutil.move(_pyproject, PYPROJECT_FILE)
@@ -97,10 +103,11 @@ def _file_handle(latest_version: str | None):
     if _req_file.exists():
         logger.debug("移动文件: requirements.txt", "检查更新")
         shutil.move(_req_file, REQ_TXT_FILE)
+    if template_path.exists():
+        logger.debug("移动文件夹: template", "检查更新")
+        shutil.move(template_path, RESOURCES_FLODER)
     for folder in REPLACE_FOLDERS:
         """移动指定文件夹"""
-        if isinstance(folder, list):
-            folder = Path(*folder)
         _dir = BASE_PATH / folder
         _backup_dir = BACKUP_PATH / folder
         if _backup_dir.exists():
@@ -112,8 +119,6 @@ def _file_handle(latest_version: str | None):
         else:
             logger.warning(f"文件夹 {_dir} 不存在，跳过删除", "检查更新")
     for folder in REPLACE_FOLDERS:
-        if isinstance(folder, list):
-            folder = Path(*folder)
         src_folder_path = extract_path / folder
         dest_folder_path = target_path / folder
         if src_folder_path.exists():
