@@ -62,7 +62,6 @@ def build_plugin_data(classify: dict[str, list[Item]]) -> list[dict[str, str]]:
         for menu, value in classify.items()
     ]
     plugin_list = build_line_data(plugin_list)
-
     plugin_list.insert(
         0,
         build_plugin_line(

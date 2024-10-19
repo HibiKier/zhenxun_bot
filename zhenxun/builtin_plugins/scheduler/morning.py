@@ -34,8 +34,8 @@ async def check(bot: Bot, group_id: str) -> bool:
 # 早上好
 @scheduler.scheduled_job(
     "cron",
-    hour=14,
-    minute=52,
+    hour=6,
+    minute=1,
 )
 async def _():
     message = MessageUtils.build_message(["早上好", IMAGE_PATH / "zhenxun" / "zao.jpg"])
