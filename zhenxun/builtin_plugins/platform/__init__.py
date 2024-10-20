@@ -20,4 +20,4 @@ try:
 
     nonebot.load_plugins(str((path / "qq_api").resolve()))
 except ImportError:
-    logger.warning("未安装 onebot-adapter，无法加载QQ官平台专用插件...")
+    logger.warning("未安装 qq-adapter，无法加载QQ官平台专用插件...")
