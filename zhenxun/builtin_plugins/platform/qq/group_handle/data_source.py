@@ -7,6 +7,7 @@ from datetime import datetime
 import ujson as json
 from nonebot.adapters import Bot
 from nonebot_plugin_alconna import At
+from nonebot_plugin_uninfo import Uninfo
 
 from zhenxun.services.log import logger
 from zhenxun.configs.config import Config
@@ -55,7 +56,7 @@ class GroupManager:
             block_plugin = ""
             if plugin_list := await PluginInfo.filter(default_status=False).all():
                 for plugin in plugin_list:
-                    block_plugin += f"{plugin.module},"
+                    block_plugin += f"<{plugin.module},"
             group_info = await bot.get_group_info(group_id=group_id)
             await GroupConsole.create(
                 group_id=group_info["group_id"],
@@ -83,10 +84,10 @@ class GroupManager:
         ).values_list("user_id", flat=True)
         # 即刻刷新权限
         for user_info in member_list:
-            user_id = user_info["user_id"]
+            user_id = str(user_info["user_id"])
             role = user_info["role"]
             if user_id in bot.config.superusers:
-                await LevelUser.set_level(user_id, user_info["group_id"], 9)
+                await LevelUser.set_level(user_id, group_id, 9)
                 logger.debug(
                     "添加超级用户权限: 9",
                     "入群检测",
@@ -100,8 +101,8 @@ class GroupManager:
             ):
                 await LevelUser.set_level(
                     user_id,
-                    user_info["group_id"],
-                    admin_default_auth,
+                    group_id,
+                    admin_default_auth if role == "admin" else admin_default_auth + 1,
                 )
                 logger.debug(
                     f"添加默认群管理员权限: {admin_default_auth}",
@@ -202,7 +203,7 @@ class GroupManager:
                 ).send()
 
     @classmethod
-    async def add_user(cls, bot: Bot, user_id: str, group_id: str):
+    async def add_user(cls, session: Uninfo, bot: Bot, user_id: str, group_id: str):
         """拉入用户
 
         参数:
@@ -219,7 +220,7 @@ class GroupManager:
         )
         logger.info(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新成功")
         if not await CommonUtils.task_is_block(
-            "group_welcome", group_id
+            session, "group_welcome"
         ) and cls._flmt.check(group_id):
             await cls.__send_welcome_message(user_id, group_id)
 

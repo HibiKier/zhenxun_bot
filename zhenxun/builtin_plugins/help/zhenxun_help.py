@@ -1,7 +1,9 @@
 from pydantic import BaseModel
+from nonebot_plugin_uninfo import Uninfo
 from nonebot_plugin_htmlrender import template_to_pic
 
 from zhenxun.utils.enum import BlockType
+from zhenxun.configs.config import BotConfig
 from zhenxun.utils.platform import PlatformUtils
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.configs.path_config import TEMPLATE_PATH
@@ -60,12 +62,21 @@ def build_plugin_data(classify: dict[str, list[Item]]) -> list[dict[str, str]]:
         for menu, value in classify.items()
     ]
     plugin_list = build_line_data(plugin_list)
-    plugin_list.insert(0, build_plugin_line(menu_key, max_data, 30, 100))
+    plugin_list.insert(
+        0,
+        build_plugin_line(
+            menu_key if menu_key not in ["normal", "功能"] else "主要功能",
+            max_data,
+            30,
+            100,
+            True,
+        ),
+    )
     return plugin_list
 
 
 def build_plugin_line(
-    name: str, items: list, left: int, width: int | None = None
+    name: str, items: list, left: int, width: int | None = None, is_max: bool = False
 ) -> dict:
     """构造插件行数据
 
@@ -74,13 +85,14 @@ def build_plugin_line(
         items: 插件名称列表
         left: 左边距
         width: 总插件长度.
+        is_max: 是否为最大长度的插件菜单
 
     返回:
         dict: 插件数据
     """
     _plugins = []
     width = width or 50
-    if len(items) // 2 > 6:
+    if len(items) // 2 > 6 or is_max:
         width = 100
         plugin_list1 = []
         plugin_list2 = []
@@ -113,25 +125,25 @@ def build_line_data(plugin_list: list[dict]) -> list[dict]:
     return data
 
 
-async def build_zhenxun_image(
-    bot_id: str, group_id: str | None, platform: str
-) -> bytes:
+async def build_zhenxun_image(session: Uninfo, group_id: str | None) -> bytes:
     """构造真寻帮助图片
 
     参数:
         bot_id: bot_id
         group_id: 群号
-        platform: 平台
     """
     classify = await classify_plugin(group_id, __handle_item)
     plugin_list = build_plugin_data(classify)
+    platform = PlatformUtils.get_platform(session)
+    bot_id = BotConfig.get_qbot_uid(session.self_id) or session.self_id
+    bot_ava = PlatformUtils.get_user_avatar_url(bot_id, platform)
     return await template_to_pic(
         template_path=str((TEMPLATE_PATH / "ss_menu").absolute()),
         template_name="main.html",
         templates={
             "data": {
                 "plugin_list": plugin_list,
-                "ava": PlatformUtils.get_user_avatar_url(bot_id, platform),
+                "ava": bot_ava,
             }
         },
         pages={

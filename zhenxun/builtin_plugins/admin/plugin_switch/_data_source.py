@@ -133,7 +133,7 @@ async def build_task(group_id: str | None) -> BuildImage:
                     task.id,
                     task.module,
                     task.name,
-                    "开启" if task.module not in group.block_task else "关闭",
+                    "开启" if f"<{task.module}," not in group.block_task else "关闭",
                     "开启" if task.status else "关闭",
                     task.run_time or "-",
                 ]
@@ -211,12 +211,10 @@ class PluginManage:
                 if status:
                     for module in module_list:
                         group.block_plugin = group.block_plugin.replace(
-                            f"{module},", ""
+                            f"<{module},", ""
                         )
                 else:
-                    module_list = await PluginInfo.filter(
-                        plugin_type=PluginType.NORMAL
-                    ).values_list("module", flat=True)
+                    module_list = [f"<{module}" for module in module_list]
                     group.block_plugin = ",".join(module_list) + ","  # type: ignore
                 await group.save(update_fields=["block_plugin"])
                 return f'成功将此群组所有功能状态修改为: {"开启" if status else "关闭"}'
@@ -413,7 +411,7 @@ class PluginManage:
         参数:
             task_name: 被动技能名称
             group_id: 群组Id
-            status: 状态
+            status: 状态，为True时是关闭
             is_all: 所有群被动
 
         返回:
@@ -426,6 +424,7 @@ class PluginManage:
                 group, _ = await GroupConsole.get_or_create(
                     group_id=group_id, channel_id__isnull=True
                 )
+                modules = [f"<{module}" for module in modules]
                 if status:
                     group.block_task = ",".join(modules) + ","  # type: ignore
                 else:
@@ -434,16 +433,12 @@ class PluginManage:
                 await group.save(update_fields=["block_task"])
                 return f"已成功{status_str}全部被动技能!"
         elif task := await TaskInfo.get_or_none(name=task_name):
-            group, _ = await GroupConsole.get_or_create(
-                group_id=group_id, channel_id__isnull=True
-            )
             if status:
-                group.block_task += f"{task.module},"
-            elif f"super:{task.module}," in group.block_task:
+                await GroupConsole.set_block_task(group_id, task.module)
+            elif await GroupConsole.is_superuser_block_task(group_id, task.module):
                 return f"{status_str} {task_name} 被动技能失败，当前群组该被动已被管理员禁用"  # noqa: E501
             else:
-                group.block_task = group.block_task.replace(f"{task.module},", "")
-            await group.save(update_fields=["block_task"])
+                await GroupConsole.set_unblock_task(group_id, task.module)
             return f"已成功{status_str} {task_name} 被动技能!"
         return "没有找到这个被动技能喔..."
 
@@ -469,20 +464,13 @@ class PluginManage:
                 name=plugin_name, load_status=True, plugin_type__not=PluginType.PARENT
             )
         if plugin:
-            group, _ = await GroupConsole.get_or_create(
-                group_id=group_id, channel_id__isnull=True
-            )
             status_str = "开启" if status else "关闭"
             if status:
-                if plugin.module in group.block_plugin:
-                    group.block_plugin = group.block_plugin.replace(
-                        f"{plugin.module},", ""
-                    )
-                    await group.save(update_fields=["block_plugin"])
+                if await GroupConsole.is_normal_block_plugin(group_id, plugin.module):
+                    await GroupConsole.set_unblock_plugin(group_id, plugin.module)
                     return f"已成功{status_str} {plugin.name} 功能!"
-            elif plugin.module not in group.block_plugin:
-                group.block_plugin += f"{plugin.module},"
-                await group.save(update_fields=["block_plugin"])
+            elif not await GroupConsole.is_normal_block_plugin(group_id, plugin.module):
+                await GroupConsole.set_block_plugin(group_id, plugin.module)
                 return f"已成功{status_str} {plugin.name} 功能!"
             return f"该功能已经{status_str}了喔，不要重复{status_str}..."
         return "没有找到这个功能喔..."
@@ -504,14 +492,10 @@ class PluginManage:
         if not (task := await TaskInfo.get_or_none(name=task_name)):
             return "没有找到这个功能喔..."
         if group_id:
-            group, _ = await GroupConsole.get_or_create(
-                group_id=group_id, channel_id__isnull=True
-            )
             if status:
-                group.block_task = group.block_task.replace(f"super:{task.module},", "")
+                await GroupConsole.set_unblock_task(group_id, task.module, True)
             else:
-                group.block_task += f"super:{task.module},"
-            await group.save(update_fields=["block_task"])
+                await GroupConsole.set_block_task(group_id, task.module, True)
             status_str = "开启" if status else "关闭"
             return f"已成功将群组 {group_id} 被动技能 {task_name} {status_str}!"
         return "没有找到这个群组喔..."
@@ -538,17 +522,12 @@ class PluginManage:
             )
         if plugin:
             if group_id:
-                if group := await GroupConsole.get_or_none(
-                    group_id=group_id, channel_id__isnull=True
+                if not await GroupConsole.is_superuser_block_plugin(
+                    group_id, plugin.module
                 ):
-                    if f"super:{plugin.module}," not in group.block_plugin:
-                        group.block_plugin += f"super:{plugin.module},"
-                        await group.save(update_fields=["block_plugin"])
-                        return (
-                            f"已成功关闭群组 {group.group_name} 的 {plugin_name} 功能!"
-                        )
-                    return "此群组该功能已被超级用户关闭，不要重复关闭..."
-                return "群组信息未更新，请先更新群组信息..."
+                    await GroupConsole.set_block_plugin(group_id, plugin.module, True)
+                    return f"已成功关闭群组 {group_id} 的 {plugin_name} 功能!"
+                return "此群组该功能已被超级用户关闭，不要重复关闭..."
             plugin.block_type = block_type
             plugin.status = not bool(block_type)
             await plugin.save(update_fields=["status", "block_type"])
@@ -584,19 +563,12 @@ class PluginManage:
             )
         if plugin:
             if group_id:
-                if group := await GroupConsole.get_or_none(
-                    group_id=group_id, channel_id__isnull=True
+                if await GroupConsole.is_superuser_block_plugin(
+                    group_id, plugin.module
                 ):
-                    if f"super:{plugin.module}," in group.block_plugin:
-                        group.block_plugin = group.block_plugin.replace(
-                            f"super:{plugin.module},", ""
-                        )
-                        await group.save(update_fields=["block_plugin"])
-                        return (
-                            f"已成功开启群组 {group.group_name} 的 {plugin_name} 功能!"
-                        )
-                    return "此群组该功能已被超级用户开启，不要重复开启..."
-                return "群组信息未更新，请先更新群组信息..."
+                    await GroupConsole.set_unblock_plugin(group_id, plugin.module, True)
+                    return f"已成功开启群组 {group_id} 的 {plugin_name} 功能!"
+                return "此群组该功能已被超级用户开启，不要重复开启..."
             plugin.block_type = block_type
             plugin.status = not bool(block_type)
             await plugin.save(update_fields=["status", "block_type"])

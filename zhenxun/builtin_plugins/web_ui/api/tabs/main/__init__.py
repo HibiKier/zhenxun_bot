@@ -6,31 +6,48 @@ from datetime import datetime, timedelta
 
 import nonebot
 from fastapi import APIRouter
+from nonebot.config import Config
 from tortoise.functions import Count
+from fastapi.responses import JSONResponse
 from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
 from starlette.websockets import WebSocket, WebSocketState, WebSocketDisconnect
 
 from zhenxun.services.log import logger
-from zhenxun.models.group_info import GroupInfo
 from zhenxun.models.statistics import Statistics
 from zhenxun.utils.platform import PlatformUtils
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.chat_history import ChatHistory
+from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.bot_connect_log import BotConnectLog
 
 from ....base_model import Result
 from .data_source import bot_live
 from ....utils import authentication, get_system_status
 from ....config import AVA_URL, GROUP_AVA_URL, QueryDateType
-from .model import BaseInfo, HotPlugin, ActiveGroup, ChatHistoryCount
+from .model import (
+    BaseInfo,
+    HotPlugin,
+    QueryCount,
+    ActiveGroup,
+    NonebotData,
+    TemplateBaseInfo,
+)
 
+driver = nonebot.get_driver()
 run_time = time.time()
 
 ws_router = APIRouter()
 router = APIRouter(prefix="/main")
 
 
-@router.get("/get_base_info", dependencies=[authentication()], description="基础信息")
-async def _(bot_id: str | None = None) -> Result:
+@router.get(
+    "/get_base_info",
+    dependencies=[authentication()],
+    response_model=Result[list[BaseInfo]],
+    response_class=JSONResponse,
+    description="基础信息",
+)
+async def _(bot_id: str | None = None) -> Result[list[BaseInfo]]:
     """获取Bot基础信息
 
     参数:
@@ -39,13 +56,14 @@ async def _(bot_id: str | None = None) -> Result:
     返回:
         Result: 获取指定bot信息与bot列表
     """
-    bot_list: list[BaseInfo] = []
+    global run_time
+    bot_list: list[TemplateBaseInfo] = []
     if bots := nonebot.get_bots():
         select_bot: BaseInfo
-        for key, bot in bots.items():
+        for _, bot in bots.items():
             login_info = await bot.get_login_info()
             bot_list.append(
-                BaseInfo(
+                TemplateBaseInfo(
                     bot=bot,  # type: ignore
                     self_id=bot.self_id,
                     nickname=login_info["nickname"],
@@ -58,7 +76,6 @@ async def _(bot_id: str | None = None) -> Result:
         else:
             select_bot = bot_list[0]
         select_bot.is_select = True
-        select_bot.config = select_bot.bot.config
         now = datetime.now()
         # 今日累计接收消息
         select_bot.received_messages = await ChatHistory.filter(
@@ -82,10 +99,7 @@ async def _(bot_id: str | None = None) -> Result:
         select_bot.connect_time = bot_live.get(select_bot.self_id) or 0
         if select_bot.connect_time:
             connect_date = datetime.fromtimestamp(select_bot.connect_time)
-            connect_date_str = connect_date.strftime("%Y-%m-%d %H:%M:%S")
-            select_bot.connect_date = datetime.strptime(
-                connect_date_str, "%Y-%m-%d %H:%M:%S"
-            )
+            select_bot.connect_date = connect_date.strftime("%Y-%m-%d %H:%M:%S")
         version_file = Path() / "__version__"
         if version_file.exists():
             if text := version_file.open().read():
@@ -95,30 +109,40 @@ async def _(bot_id: str | None = None) -> Result:
             create_time__gte=now - timedelta(hours=now.hour)
         ).count()
         select_bot.day_call = day_call
-        return Result.ok(bot_list, "拿到信息啦!")
+        select_bot.connect_count = await BotConnectLog.filter(
+            bot_id=select_bot.self_id
+        ).count()
+        return Result.ok([BaseInfo(**e.dict()) for e in bot_list], "拿到信息啦!")
     return Result.warning_("无Bot连接...")
 
 
 @router.get(
-    "/get_all_ch_count", dependencies=[authentication()], description="获取接收消息数量"
+    "/get_all_chat_count",
+    dependencies=[authentication()],
+    response_model=Result[QueryCount],
+    response_class=JSONResponse,
+    description="获取接收消息数量",
 )
-async def _(bot_id: str) -> Result:
+async def _(bot_id: str | None = None) -> Result[QueryCount]:
     now = datetime.now()
-    all_count = await ChatHistory.filter(bot_id=bot_id).count()
-    day_count = await ChatHistory.filter(
-        bot_id=bot_id, create_time__gte=now - timedelta(hours=now.hour)
+    query = ChatHistory
+    if bot_id:
+        query = query.filter(bot_id=bot_id)
+    all_count = await query.annotate().count()
+    day_count = await query.filter(
+        create_time__gte=now - timedelta(hours=now.hour, minutes=now.minute)
     ).count()
-    week_count = await ChatHistory.filter(
-        bot_id=bot_id, create_time__gte=now - timedelta(days=7)
+    week_count = await query.filter(
+        create_time__gte=now - timedelta(days=7, hours=now.hour, minutes=now.minute)
     ).count()
-    month_count = await ChatHistory.filter(
-        bot_id=bot_id, create_time__gte=now - timedelta(days=30)
+    month_count = await query.filter(
+        create_time__gte=now - timedelta(days=30, hours=now.hour, minutes=now.minute)
     ).count()
-    year_count = await ChatHistory.filter(
-        bot_id=bot_id, create_time__gte=now - timedelta(days=365)
+    year_count = await query.filter(
+        create_time__gte=now - timedelta(days=365, hours=now.hour, minutes=now.minute)
     ).count()
     return Result.ok(
-        ChatHistoryCount(
+        QueryCount(
             num=all_count,
             day=day_count,
             week=week_count,
@@ -129,44 +153,49 @@ async def _(bot_id: str) -> Result:
 
 
 @router.get(
-    "/get_ch_count", dependencies=[authentication()], description="获取接收消息数量"
+    "/get_all_call_count",
+    dependencies=[authentication()],
+    response_model=Result[QueryCount],
+    response_class=JSONResponse,
+    description="获取调用次数",
 )
-async def _(bot_id: str, query_type: QueryDateType | None = None) -> Result:
-    if nonebot.get_bot(bot_id):
-        if not query_type:
-            return Result.ok(await ChatHistory.filter(bot_id=bot_id).count())
-        now = datetime.now()
-        if query_type == QueryDateType.DAY:
-            return Result.ok(
-                await ChatHistory.filter(
-                    bot_id=bot_id, create_time__gte=now - timedelta(hours=now.hour)
-                ).count()
-            )
-        if query_type == QueryDateType.WEEK:
-            return Result.ok(
-                await ChatHistory.filter(
-                    bot_id=bot_id, create_time__gte=now - timedelta(days=7)
-                ).count()
-            )
-        if query_type == QueryDateType.MONTH:
-            return Result.ok(
-                await ChatHistory.filter(
-                    bot_id=bot_id, create_time__gte=now - timedelta(days=30)
-                ).count()
-            )
-        if query_type == QueryDateType.YEAR:
-            return Result.ok(
-                await ChatHistory.filter(
-                    bot_id=bot_id, create_time__gte=now - timedelta(days=365)
-                ).count()
-            )
-    return Result.warning_("无Bot连接...")
+async def _(bot_id: str | None = None) -> Result[QueryCount]:
+    now = datetime.now()
+    query = Statistics
+    if bot_id:
+        query = query.filter(bot_id=bot_id)
+    all_count = await query.annotate().count()
+    day_count = await query.filter(
+        create_time__gte=now - timedelta(hours=now.hour, minutes=now.minute)
+    ).count()
+    week_count = await query.filter(
+        create_time__gte=now - timedelta(days=7, hours=now.hour, minutes=now.minute)
+    ).count()
+    month_count = await query.filter(
+        create_time__gte=now - timedelta(days=30, hours=now.hour, minutes=now.minute)
+    ).count()
+    year_count = await query.filter(
+        create_time__gte=now - timedelta(days=365, hours=now.hour, minutes=now.minute)
+    ).count()
+    return Result.ok(
+        QueryCount(
+            num=all_count,
+            day=day_count,
+            week=week_count,
+            month=month_count,
+            year=year_count,
+        )
+    )
 
 
 @router.get(
-    "get_fg_count", dependencies=[authentication()], description="好友/群组数量"
+    "get_fg_count",
+    dependencies=[authentication()],
+    response_model=Result[dict[str, int]],
+    response_class=JSONResponse,
+    description="好友/群组数量",
 )
-async def _(bot_id: str) -> Result:
+async def _(bot_id: str) -> Result[dict[str, int]]:
     if bots := nonebot.get_bots():
         if bot_id not in bots:
             return Result.warning_("指定Bot未连接...")
@@ -183,26 +212,60 @@ async def _(bot_id: str) -> Result:
 
 
 @router.get(
-    "/get_run_time", dependencies=[authentication()], description="获取nb运行时间"
+    "/get_nb_data",
+    dependencies=[authentication()],
+    response_model=Result[NonebotData],
+    response_class=JSONResponse,
+    description="获取nb数据",
 )
-async def _() -> Result:
-    return Result.ok(int(time.time() - run_time))
+async def _() -> Result[NonebotData]:
+    return Result.ok(NonebotData(config=driver.config, run_time=int(run_time)))
 
 
 @router.get(
-    "/get_active_group", dependencies=[authentication()], description="获取活跃群聊"
+    "/get_nb_config",
+    dependencies=[authentication()],
+    response_model=Result[Config],
+    response_class=JSONResponse,
+    description="获取nb配置",
 )
-async def _(date_type: QueryDateType | None = None) -> Result:
+async def _() -> Result[Config]:
+    return Result.ok(driver.config)
+
+
+@router.get(
+    "/get_run_time",
+    dependencies=[authentication()],
+    response_model=Result[int],
+    response_class=JSONResponse,
+    description="获取nb运行时间",
+)
+async def _() -> Result[int]:
+    return Result.ok(int(run_time))
+
+
+@router.get(
+    "/get_active_group",
+    dependencies=[authentication()],
+    response_model=Result[list[ActiveGroup]],
+    response_class=JSONResponse,
+    description="获取活跃群聊",
+)
+async def _(
+    date_type: QueryDateType | None = None, bot_id: str | None = None
+) -> Result[list[ActiveGroup]]:
     query = ChatHistory
     now = datetime.now()
+    if bot_id:
+        query = query.filter(bot_id=bot_id)
     if date_type == QueryDateType.DAY:
-        query = ChatHistory.filter(create_time__gte=now - timedelta(hours=now.hour))
+        query = query.filter(create_time__gte=now - timedelta(hours=now.hour))
     if date_type == QueryDateType.WEEK:
-        query = ChatHistory.filter(create_time__gte=now - timedelta(days=7))
+        query = query.filter(create_time__gte=now - timedelta(days=7))
     if date_type == QueryDateType.MONTH:
-        query = ChatHistory.filter(create_time__gte=now - timedelta(days=30))
+        query = query.filter(create_time__gte=now - timedelta(days=30))
     if date_type == QueryDateType.YEAR:
-        query = ChatHistory.filter(create_time__gte=now - timedelta(days=365))
+        query = query.filter(create_time__gte=now - timedelta(days=365))
     data_list = (
         await query.annotate(count=Count("id"))
         .filter(group_id__not_isnull=True)
@@ -213,7 +276,7 @@ async def _(date_type: QueryDateType | None = None) -> Result:
     )
     id2name = {}
     if data_list:
-        if info_list := await GroupInfo.filter(
+        if info_list := await GroupConsole.filter(
             group_id__in=[x[0] for x in data_list]
         ).all():
             for group_info in info_list:
@@ -236,19 +299,27 @@ async def _(date_type: QueryDateType | None = None) -> Result:
 
 
 @router.get(
-    "/get_hot_plugin", dependencies=[authentication()], description="获取热门插件"
+    "/get_hot_plugin",
+    dependencies=[authentication()],
+    response_model=Result[list[HotPlugin]],
+    response_class=JSONResponse,
+    description="获取热门插件",
 )
-async def _(date_type: QueryDateType | None = None) -> Result:
+async def _(
+    date_type: QueryDateType | None = None, bot_id: str | None = None
+) -> Result[list[HotPlugin]]:
     query = Statistics
     now = datetime.now()
+    if bot_id:
+        query = query.filter(bot_id=bot_id)
     if date_type == QueryDateType.DAY:
-        query = Statistics.filter(create_time__gte=now - timedelta(hours=now.hour))
+        query = query.filter(create_time__gte=now - timedelta(hours=now.hour))
     if date_type == QueryDateType.WEEK:
-        query = Statistics.filter(create_time__gte=now - timedelta(days=7))
+        query = query.filter(create_time__gte=now - timedelta(days=7))
     if date_type == QueryDateType.MONTH:
-        query = Statistics.filter(create_time__gte=now - timedelta(days=30))
+        query = query.filter(create_time__gte=now - timedelta(days=30))
     if date_type == QueryDateType.YEAR:
-        query = Statistics.filter(create_time__gte=now - timedelta(days=365))
+        query = query.filter(create_time__gte=now - timedelta(days=365))
     data_list = (
         await query.annotate(count=Count("id"))
         .group_by("plugin_name")
@@ -281,4 +352,3 @@ async def system_logs_realtime(websocket: WebSocket, sleep: int = 5):
             system_status = await get_system_status()
             await websocket.send_text(system_status.json())
             await asyncio.sleep(sleep)
-    return

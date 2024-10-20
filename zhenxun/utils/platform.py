@@ -7,19 +7,23 @@ import nonebot
 from pydantic import BaseModel
 from nonebot.adapters import Bot
 from nonebot.utils import is_coroutine_callable
+from nonebot_plugin_alconna import SupportScope
 from nonebot.adapters.dodo import Bot as DodoBot
 from nonebot.adapters.onebot.v11 import Bot as v11Bot
 from nonebot.adapters.onebot.v12 import Bot as v12Bot
-from nonebot.adapters.discord import Bot as DiscordBot
+from nonebot_plugin_uninfo import Uninfo, get_interface
 from nonebot.adapters.kaiheila import Bot as KaiheilaBot
 from nonebot_plugin_alconna.uniseg import Target, Receipt, UniMessage
 
 from zhenxun.services.log import logger
 from zhenxun.configs.config import BotConfig
 from zhenxun.utils.message import MessageUtils
+from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.models.friend_user import FriendUser
 from zhenxun.utils.exception import NotFindSuperuser
 from zhenxun.models.group_console import GroupConsole
+
+driver = nonebot.get_driver()
 
 
 class UserData(BaseModel):
@@ -40,6 +44,20 @@ class UserData(BaseModel):
 
 
 class PlatformUtils:
+    @classmethod
+    def is_qbot(cls, session: Uninfo | Bot) -> bool:
+        """判断bot是否为qq官bot
+
+        参数:
+            session: Uninfo
+
+        返回:
+            bool: 是否为官bot
+        """
+        if isinstance(session, Bot):
+            return bool(BotConfig.get_qbot_uid(session.self_id))
+        return session.scope == SupportScope.qq_api
+
     @classmethod
     async def ban_user(cls, bot: Bot, user_id: str, group_id: str, duration: int):
         """禁言
@@ -244,30 +262,27 @@ class PlatformUtils:
         return None
 
     @classmethod
-    async def get_user_avatar(cls, user_id: str, platform: str) -> bytes | None:
+    async def get_user_avatar(
+        cls, user_id: str, platform: str, appid: str | None = None
+    ) -> bytes | None:
         """快捷获取用户头像
 
         参数:
             user_id: 用户id
             platform: 平台
         """
+        url = None
         if platform == "qq":
-            url = f"http://q1.qlogo.cn/g?b=qq&nk={user_id}&s=160"
-            async with httpx.AsyncClient() as client:
-                for _ in range(3):
-                    try:
-                        return (await client.get(url)).content
-                    except Exception:
-                        logger.error(
-                            "获取用户头像错误",
-                            "Util",
-                            target=user_id,
-                            platform=platform,
-                        )
-        return None
+            if user_id.isdigit():
+                url = f"http://q1.qlogo.cn/g?b=qq&nk={user_id}&s=160"
+            else:
+                url = f"https://q.qlogo.cn/qqapp/{appid}/{user_id}/100"
+        return await AsyncHttpx.get_content(url) if url else None
 
     @classmethod
-    def get_user_avatar_url(cls, user_id: str, platform: str) -> str | None:
+    def get_user_avatar_url(
+        cls, user_id: str, platform: str, appid: str | None = None
+    ) -> str | None:
         """快捷获取用户头像url
 
         参数:
@@ -275,8 +290,13 @@ class PlatformUtils:
             platform: 平台
         """
         if platform == "qq":
-            return f"http://q1.qlogo.cn/g?b=qq&nk={user_id}&s=160"
-        return None
+            return (
+                f"http://q1.qlogo.cn/g?b=qq&nk={user_id}&s=160"
+                if user_id.isdigit()
+                else f"https://q.qlogo.cn/qqapp/{appid}/{user_id}/100"
+            )
+        else:
+            return None
 
     @classmethod
     async def get_group_avatar(cls, gid: str, platform: str) -> bytes | None:
@@ -371,7 +391,7 @@ class PlatformUtils:
         return len(create_list)
 
     @classmethod
-    def get_platform(cls, bot: Bot) -> str | None:
+    def get_platform(cls, t: Bot | Uninfo) -> str:
         """获取平台
 
         参数:
@@ -380,13 +400,15 @@ class PlatformUtils:
         返回:
             str | None: 平台
         """
-        if isinstance(bot, v11Bot | v12Bot):
-            return "qq"
-        if isinstance(bot, DodoBot):
-            return "dodo"
-        if isinstance(bot, KaiheilaBot):
-            return "kaiheila"
-        return "discord" if isinstance(bot, DiscordBot) else None
+        if isinstance(t, Bot):
+            if interface := get_interface(t):
+                info = interface.basic_info()
+                platform = info["scope"].lower()
+                return "qq" if platform.startswith("qq") else platform
+        else:
+            platform = t.basic["scope"].lower()
+            return "qq" if platform.startswith("qq") else platform
+        return "unknown"
 
     @classmethod
     async def get_group_list(cls, bot: Bot) -> tuple[list[GroupConsole], str]:
@@ -550,7 +572,7 @@ async def broadcast_group(
     bot: Bot | list[Bot] | None = None,
     bot_id: str | set[str] | None = None,
     ignore_group: set[int] | None = None,
-    check_func: Callable[[str], Awaitable] | None = None,
+    check_func: Callable[[Bot, str], Awaitable] | None = None,
     log_cmd: str | None = None,
     platform: Literal["qq", "dodo", "kaiheila"] | None = None,
 ):
@@ -604,14 +626,24 @@ async def broadcast_group(
                                 or group.channel_id in ignore_group
                             )
                         ) or key in _used_group:
+                            logger.debug(
+                                "广播方法群组重复, 已跳过...",
+                                log_cmd,
+                                group_id=group.group_id,
+                            )
                             continue
                         is_run = False
                         if check_func:
                             if is_coroutine_callable(check_func):
-                                is_run = await check_func(group.group_id)
+                                is_run = await check_func(_bot, group.group_id)
                             else:
-                                is_run = check_func(group.group_id)
+                                is_run = check_func(_bot, group.group_id)
                         if not is_run:
+                            logger.debug(
+                                "广播方法检测运行方法为 False, 已跳过...",
+                                log_cmd,
+                                group_id=group.group_id,
+                            )
                             continue
                         target = PlatformUtils.get_target(
                             _bot, None, group.group_id, group.channel_id

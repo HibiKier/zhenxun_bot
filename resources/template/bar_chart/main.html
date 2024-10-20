@@ -5,13 +5,16 @@
     <meta charset="utf-8">
     <title>ECharts Example</title>
     <!-- 引入ECharts -->
-    <script src="https://cdn.bootcss.com/echarts/4.2.1/echarts.min.js"></script>
+    <script src="../js/echarts.min.js"></script>
     <link rel="stylesheet" href="main.css">
 </head>
 
 <body>
     <!-- 图表容器 -->
-    <div id="main" style="width: 1000px;height:500px;"></div>
+<div class="container">
+    <div id="main" style="height: 1000px; width: 1000px;">
+    </div>
+</div>
 
     <script type="text/javascript">
         // 基于准备好的dom，初始化echarts实例
@@ -19,25 +22,41 @@
 
         // 指定图表的配置项和数据
         var option = {
+            title: {
+                text: {{data.title | tojson}},
+                left: 'center',
+                top: 'top',
+                textStyle: {
+                    color: '#333',
+                    fontSize: 24
+                }
+            },
+            graphic: {
+                type: 'image',
+                id: 'background',
+                left: 0,
+                top: 0,
+                z: -10,
+                bounding: 'raw',
+                origin: [0, 0],
+
+            },
             xAxis: {
                 type: 'value',
                 boundaryGap: [0, 0.01]
             },
             yAxis: {
                 type: 'category',
-                data: {
-                    {
-                        data.category_data | tojson
-                    }
-                }
+                data: {{data.category_data | tojson}}
             },
             series: [{
-                data: {
-                    {
-                        data.data | tojson
-                    }
-                },
+                data: {{data.data | tojson}},
                 type: 'bar',
+                label: {
+                    show: true, // 显示标签
+                    position: 'right', // 数字显示在柱子上方
+                    formatter: '{c}' // 显示数值
+                },
                 itemStyle: {
                     // 为每个柱子设置随机颜色
                     color: function () {
@@ -57,3 +76,33 @@
 </body>
 
 </html>
+<style>
+.container {
+            position: relative;
+            width: 1000px;
+            height: 1000px;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url({{data.background_image|tojson}});
+            background-repeat: no-repeat;
+	    background-size: 100% 100%;
+            background-size: cover;
+            filter: blur(5px);
+            z-index: -1;
+        }
+
+        #main {
+            position: relative;
+            z-index: 1;
+            /* 其他内容样式 */
+        }
+
+</style>

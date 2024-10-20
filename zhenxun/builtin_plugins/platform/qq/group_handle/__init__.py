@@ -1,4 +1,5 @@
 from nonebot.adapters import Bot
+from nonebot_plugin_uninfo import Uninfo
 from nonebot import on_notice, on_request
 from nonebot.plugin import PluginMetadata
 from nonebot.adapters.onebot.v11 import (
@@ -11,6 +12,7 @@ from nonebot.adapters.onebot.v12 import (
 )
 
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.rules import notice_rule
 from zhenxun.utils.platform import PlatformUtils
 from zhenxun.utils.common_utils import CommonUtils
 from zhenxun.configs.config import Config, BotConfig
@@ -82,16 +84,28 @@ base_config = Config.get("invite_manager")
 limit_cd = base_config.get("welcome_msg_cd")
 
 
-group_increase_handle = on_notice(priority=1, block=False)
+group_increase_handle = on_notice(
+    priority=1,
+    block=False,
+    rule=notice_rule([GroupIncreaseNoticeEvent, GroupMemberIncreaseEvent]),
+)
 """群员增加处理"""
-group_decrease_handle = on_notice(priority=1, block=False)
+group_decrease_handle = on_notice(
+    priority=1,
+    block=False,
+    rule=notice_rule([GroupMemberDecreaseEvent, GroupMemberIncreaseEvent]),
+)
 """群员减少处理"""
 add_group = on_request(priority=1, block=False)
 """加群同意请求"""
 
 
 @group_increase_handle.handle()
-async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent):
+async def _(
+    bot: Bot,
+    session: Uninfo,
+    event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent,
+):
     user_id = str(event.user_id)
     group_id = str(event.group_id)
     if user_id == bot.self_id:
@@ -99,17 +113,20 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent
         group, _ = await GroupConsole.get_or_create(
             group_id=group_id, channel_id__isnull=True
         )
-        if group.group_flag == 0:
-            try:
-                await GroupManager.add_bot(bot, str(event.operator_id), group_id, group)
-            except ForceAddGroupError as e:
-                await PlatformUtils.send_superuser(bot, e.get_info())
+        try:
+            await GroupManager.add_bot(bot, str(event.operator_id), group_id, group)
+        except ForceAddGroupError as e:
+            await PlatformUtils.send_superuser(bot, e.get_info())
     else:
-        await GroupManager.add_user(bot, user_id, group_id)
+        await GroupManager.add_user(session, bot, user_id, group_id)
 
 
 @group_decrease_handle.handle()
-async def _(bot: Bot, event: GroupDecreaseNoticeEvent | GroupMemberDecreaseEvent):
+async def _(
+    bot: Bot,
+    session: Uninfo,
+    event: GroupDecreaseNoticeEvent | GroupMemberDecreaseEvent,
+):
     user_id = str(event.user_id)
     group_id = str(event.group_id)
     if event.sub_type == "kick_me":
@@ -120,6 +137,6 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent | GroupMemberDecreaseEvent
             bot, user_id, group_id, str(event.operator_id), event.sub_type
         )
         if result and not await CommonUtils.task_is_block(
-            "refund_group_remind", group_id
+            session, "refund_group_remind"
         ):
             await group_decrease_handle.send(result)

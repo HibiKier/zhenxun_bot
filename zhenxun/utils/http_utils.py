@@ -101,7 +101,7 @@ class AsyncHttpx:
     ) -> Response:
         if not headers:
             headers = get_user_agent()
-        _proxy = proxy if proxy else cls.proxy if use_proxy else None
+        _proxy = proxy or (cls.proxy if use_proxy else None)
         async with httpx.AsyncClient(proxies=_proxy, verify=verify) as client:  # type: ignore
             return await client.get(
                 url,
@@ -140,7 +140,7 @@ class AsyncHttpx:
         """
         if not headers:
             headers = get_user_agent()
-        _proxy = proxy if proxy else cls.proxy if use_proxy else None
+        _proxy = proxy or (cls.proxy if use_proxy else None)
         async with httpx.AsyncClient(proxies=_proxy, verify=verify) as client:  # type: ignore
             return await client.head(
                 url,
@@ -187,7 +187,7 @@ class AsyncHttpx:
         """
         if not headers:
             headers = get_user_agent()
-        _proxy = proxy if proxy else cls.proxy if use_proxy else None
+        _proxy = proxy or (cls.proxy if use_proxy else None)
         async with httpx.AsyncClient(proxies=_proxy, verify=verify) as client:  # type: ignore
             return await client.post(
                 url,
@@ -201,6 +201,11 @@ class AsyncHttpx:
                 timeout=timeout,
                 **kwargs,
             )
+
+    @classmethod
+    async def get_content(cls, url: str, **kwargs) -> bytes | None:
+        res = await cls.get(url, **kwargs)
+        return res.content if res and res.status_code == 200 else None
 
     @classmethod
     async def download_file(
@@ -259,13 +264,10 @@ class AsyncHttpx:
                             async with aiofiles.open(path, "wb") as wf:
                                 await wf.write(content)
                                 logger.info(f"下载 {u} 成功.. Path：{path.absolute()}")
-                            return True
                         else:
                             if not headers:
                                 headers = get_user_agent()
-                            _proxy = (
-                                proxy if proxy else cls.proxy if use_proxy else None
-                            )
+                            _proxy = proxy or (cls.proxy if use_proxy else None)
                             async with httpx.AsyncClient(
                                 proxies=_proxy,  # type: ignore
                                 verify=verify,
@@ -298,7 +300,7 @@ class AsyncHttpx:
                                         ) as progress:
                                             download_task = progress.add_task(
                                                 "Download",
-                                                total=total if total else None,
+                                                total=total or None,
                                             )
                                             async for chunk in response.aiter_bytes():
                                                 await wf.write(chunk)
@@ -311,11 +313,10 @@ class AsyncHttpx:
                                             f"下载 {u} 成功.. "
                                             f"Path：{path.absolute()}"
                                         )
-                            return True
+                        return True
                     except (TimeoutError, ConnectTimeout, HTTPStatusError):
                         logger.warning(f"下载 {u} 失败.. 尝试下一个地址..")
-            else:
-                logger.error(f"下载 {url} 下载超时.. Path：{path.absolute()}")
+            logger.error(f"下载 {url} 下载超时.. Path：{path.absolute()}")
         except Exception as e:
             logger.error(f"下载 {url} 错误 Path：{path.absolute()}", e=e)
         return False
@@ -479,10 +480,7 @@ class AsyncPlaywright:
         if isinstance(path, str):
             path = Path(path)
         wait_time = wait_time * 1000 if wait_time else None
-        if isinstance(element, str):
-            element_list = [element]
-        else:
-            element_list = element
+        element_list = [element] if isinstance(element, str) else element
         async with cls.new_page(
             viewport=viewport_size,
             user_agent=user_agent,

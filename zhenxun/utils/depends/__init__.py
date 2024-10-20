@@ -1,10 +1,10 @@
 from typing import Any
 
-from nonebot.internal.params import Depends
-from nonebot.matcher import Matcher
 from nonebot.params import Command
+from nonebot.matcher import Matcher
+from nonebot_plugin_uninfo import Uninfo
+from nonebot.internal.params import Depends
 from nonebot_plugin_session import EventSession
-from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 
 from zhenxun.configs.config import Config
 from zhenxun.utils.message import MessageUtils
@@ -49,10 +49,8 @@ def UserName():
     用户名称
     """
 
-    async def dependency(user_info: UserInfo = EventUserInfo()):
-        return (
-            user_info.user_displayname or user_info.user_remark or user_info.user_name
-        ) or ""
+    async def dependency(user_info: Uninfo):
+        return user_info.user.nick or user_info.user.name or ""
 
     return Depends(dependency)
 

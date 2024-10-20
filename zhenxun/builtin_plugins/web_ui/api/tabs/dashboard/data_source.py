@@ -49,11 +49,12 @@ class BotManage:
         )
         group_list, _ = await PlatformUtils.get_group_list(bot)
         group_list = [g for g in group_list if g.channel_id is None]
-        friend_list = await PlatformUtils.get_friend_list(bot)
+        friend_list, _ = await PlatformUtils.get_friend_list(bot)
         bot_info.group_count = len(group_list)
         bot_info.friend_count = len(friend_list)
         bot_info.day_call = await Statistics.filter(
-            create_time__gte=now - timedelta(hours=now.hour, minutes=now.minute)
+            create_time__gte=now - timedelta(hours=now.hour, minutes=now.minute),
+            bot_id=bot.self_id,
         ).count()
         bot_info.received_messages = await ChatHistory.filter(
             bot_id=bot_info.self_id,
@@ -62,10 +63,7 @@ class BotManage:
         bot_info.connect_time = bot_live.get(bot.self_id) or 0
         if bot_info.connect_time:
             connect_date = datetime.fromtimestamp(CONNECT_TIME)
-            connect_date_str = connect_date.strftime("%Y-%m-%d %H:%M:%S")
-            bot_info.connect_date = datetime.strptime(
-                connect_date_str, "%Y-%m-%d %H:%M:%S"
-            )
+            bot_info.connect_date = connect_date.strftime("%Y-%m-%d %H:%M:%S")
         return bot_info
 
     @classmethod

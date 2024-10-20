@@ -6,6 +6,7 @@ from types import MappingProxyType
 from collections.abc import Callable
 
 from nonebot.adapters import Bot, Event
+from nonebot_plugin_uninfo import Uninfo
 from pydantic import BaseModel, create_model
 from nonebot_plugin_session import EventSession
 from nonebot_plugin_alconna import UniMsg, UniMessage
@@ -58,9 +59,9 @@ class Goods(BaseModel):
 class ShopParam(BaseModel):
     goods_name: str
     """商品名称"""
-    user_id: int
+    user_id: str
     """用户id"""
-    group_id: int
+    group_id: str | None
     """群聊id"""
     bot: Any
     """bot"""
@@ -80,16 +81,21 @@ class ShopParam(BaseModel):
     """UniMessage"""
 
 
-async def gold_rank(user_id: str, group_id: str | None, num: int, platform: str):
+async def gold_rank(
+    session: Uninfo, group_id: str | None, num: int
+) -> BuildImage | str:
     query = UserConsole
     if group_id:
         uid_list = await GroupInfoUser.filter(group_id=group_id).values_list(
             "user_id", flat=True
         )
-        query = query.filter(user_id__in=uid_list)
+        if uid_list:
+            query = query.filter(user_id__in=uid_list)
     user_list = await query.annotate().order_by("-gold").values_list("user_id", "gold")
+    if not user_list:
+        return "当前还没有人拥有金币哦..."
     user_id_list = [user[0] for user in user_list]
-    index = user_id_list.index(user_id) + 1
+    index = user_id_list.index(session.user.id) + 1
     user_list = user_list[:num] if num < len(user_list) else user_list
     friend_user = await FriendUser.filter(user_id__in=user_id_list).values_list(
         "user_id", "user_name"
@@ -103,8 +109,11 @@ async def gold_rank(user_id: str, group_id: str | None, num: int, platform: str)
             uid2name[g[0]] = g[1]
     column_name = ["排名", "-", "名称", "金币", "平台"]
     data_list = []
+    platform = PlatformUtils.get_platform(session)
     for i, user in enumerate(user_list):
-        ava_bytes = await PlatformUtils.get_user_avatar(user[0], platform)
+        ava_bytes = await PlatformUtils.get_user_avatar(
+            user[0], platform, session.self_id
+        )
         data_list.append(
             [
                 f"{i+1}",
@@ -294,9 +303,12 @@ class ShopManage:
             str | MessageFactory | None: 使用完成后返回信息
         """
         if goods_name.isdigit():
-            user = await UserConsole.get_user(user_id=session.id1)  # type: ignore
-            uuid = list(user.props.keys())[int(goods_name)]
-            goods_info = await GoodsInfo.get_or_none(uuid=uuid)
+            try:
+                user = await UserConsole.get_user(user_id=session.id1)  # type: ignore
+                uuid = list(user.props.keys())[int(goods_name)]
+                goods_info = await GoodsInfo.get_or_none(uuid=uuid)
+            except IndexError:
+                return "仓库中道具不存在..."
         else:
             goods_info = await GoodsInfo.get_or_none(goods_name=goods_name)
         if not goods_info:
@@ -647,9 +659,10 @@ class ShopManage:
         shop = BuildImage(w, h, font_size=20, color="#f9f6f2")
         await shop.paste(A, (20, 230))
         await shop.paste(shop_logo, (450, 30))
+        tip = "注【通过 购买道具 序号 或者 商品名称 购买】"
         await shop.text(
             (
-                int((1000 - shop.getsize("注【通过 序号 或者 商品名称 购买】")[0]) / 2),
+                int((1000 - shop.getsize(tip)[0]) / 2),
                 170,
             ),
             "注【通过 序号 或者 商品名称 购买】",

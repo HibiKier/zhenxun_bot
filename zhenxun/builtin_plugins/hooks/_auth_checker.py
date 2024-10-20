@@ -88,7 +88,7 @@ class LimitManage:
     @classmethod
     async def check(
         cls,
-        module_path: str,
+        module: str,
         user_id: str,
         group_id: str | None,
         channel_id: str | None,
@@ -106,11 +106,11 @@ class LimitManage:
         异常:
             IgnoredException: IgnoredException
         """
-        if limit_model := cls.cd_limit.get(module_path):
+        if limit_model := cls.cd_limit.get(module):
             await cls.__check(limit_model, user_id, group_id, channel_id, session)
-        if limit_model := cls.block_limit.get(module_path):
+        if limit_model := cls.block_limit.get(module):
             await cls.__check(limit_model, user_id, group_id, channel_id, session)
-        if limit_model := cls.count_limit.get(module_path):
+        if limit_model := cls.count_limit.get(module):
             await cls.__check(limit_model, user_id, group_id, channel_id, session)
 
     @classmethod
@@ -298,7 +298,7 @@ class AuthChecker:
             LimitManage.add_limit(limit)
         if user_id:
             await LimitManage.check(
-                plugin.module_path, user_id, group_id, channel_id, session
+                plugin.module, user_id, group_id, channel_id, session
             )
 
     async def auth_plugin(
@@ -319,8 +319,8 @@ class AuthChecker:
             is_poke = isinstance(event, PokeNotifyEvent)
             if group_id:
                 sid = group_id or user_id
-                if await GroupConsole.is_super_block_plugin(
-                    group_id, plugin.module, channel_id
+                if await GroupConsole.is_superuser_block_plugin(
+                    group_id, plugin.module
                 ):
                     """超级用户群组插件状态"""
                     if self.is_send_limit_message(plugin, sid) and not is_poke:
@@ -334,9 +334,7 @@ class AuthChecker:
                         session=session,
                     )
                     raise IgnoredException("超级管理员禁用了该群此功能...")
-                if await GroupConsole.is_block_plugin(
-                    group_id, plugin.module, channel_id
-                ):
+                if await GroupConsole.is_normal_block_plugin(group_id, plugin.module):
                     """群组插件状态"""
                     if self.is_send_limit_message(plugin, sid) and not is_poke:
                         self._flmt_s.start_cd(group_id or user_id)
