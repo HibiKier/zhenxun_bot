@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import nonebot
 from nonebot.adapters import Bot
 from nonebot_plugin_uninfo import Member, SceneType, get_interface
@@ -59,7 +61,7 @@ class MemberUpdateManage:
                     user_id=member.id,
                     group_id=group_id,
                     user_name=nickname,
-                    user_join_time=member.joined_at,
+                    user_join_time=member.joined_at or datetime.now(),
                     platform=platform,
                 )
             )
@@ -94,6 +96,7 @@ class MemberUpdateManage:
             data_list = ([], [], [])
             exist_member_list = []
             for member in members:
+                logger.debug(f"即将更新群组成员: {member}", "更新群组成员信息")
                 await cls.__handle_user(member, db_user, group_id, data_list, platform)
                 exist_member_list.append(member.id)
             if data_list[0]:
