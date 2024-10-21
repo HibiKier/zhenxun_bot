@@ -64,13 +64,16 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
     from zhenxun.builtin_plugins.auto_update.config import (
         REPLACE_FOLDERS,
         REQ_TXT_FILE_STRING,
+        RESOURCES_FLODER_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
     )
 
+
     # 指定要添加到压缩文件中的文件路径列表
     file_paths: list[str] = [
         PYPROJECT_FILE_STRING,
+        RESOURCES_FLODER_STRING,
         PYPROJECT_LOCK_FILE_STRING,
         REQ_TXT_FILE_STRING,
     ]
@@ -269,6 +272,7 @@ async def test_check_update_release(
     from zhenxun.builtin_plugins.auto_update import _matcher
     from zhenxun.builtin_plugins.auto_update.config import (
         REPLACE_FOLDERS,
+        TEMPLATE_FLODER_STRING,
         REQ_TXT_FILE_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
@@ -333,6 +337,7 @@ async def test_check_update_release(
     assert (mock_backup_path / PYPROJECT_FILE_STRING).exists()
     assert (mock_backup_path / PYPROJECT_LOCK_FILE_STRING).exists()
     assert (mock_backup_path / REQ_TXT_FILE_STRING).exists()
+    assert (mock_backup_path / TEMPLATE_FLODER_STRING).exists()
 
     assert not mock_download_gz_file.exists()
     assert not mock_download_zip_file.exists()
@@ -360,6 +365,7 @@ async def test_check_update_dev(
     from zhenxun.builtin_plugins.auto_update import _matcher
     from zhenxun.builtin_plugins.auto_update.config import (
         REPLACE_FOLDERS,
+        TEMPLATE_FLODER_STRING,
         REQ_TXT_FILE_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
@@ -424,6 +430,7 @@ async def test_check_update_dev(
     assert (mock_backup_path / PYPROJECT_FILE_STRING).exists()
     assert (mock_backup_path / PYPROJECT_LOCK_FILE_STRING).exists()
     assert (mock_backup_path / REQ_TXT_FILE_STRING).exists()
+    assert (mock_backup_path / TEMPLATE_FLODER_STRING).exists()
 
     assert not mock_download_gz_file.exists()
     assert not mock_download_zip_file.exists()
@@ -451,6 +458,7 @@ async def test_check_update_main(
     from zhenxun.builtin_plugins.auto_update import _matcher
     from zhenxun.builtin_plugins.auto_update.config import (
         REPLACE_FOLDERS,
+        TEMPLATE_FLODER_STRING,
         REQ_TXT_FILE_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
@@ -515,6 +523,7 @@ async def test_check_update_main(
     assert (mock_backup_path / PYPROJECT_FILE_STRING).exists()
     assert (mock_backup_path / PYPROJECT_LOCK_FILE_STRING).exists()
     assert (mock_backup_path / REQ_TXT_FILE_STRING).exists()
+    assert (mock_backup_path / TEMPLATE_FLODER_STRING).exists()
 
     assert not mock_download_gz_file.exists()
     assert not mock_download_zip_file.exists()
