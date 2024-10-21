@@ -402,7 +402,7 @@ async def get_download_image_hash(url: str, mark: str) -> str:
     """
     try:
         if await AsyncHttpx.download_file(
-            url, TEMP_PATH / f"compare_download_{mark}_img.jpg"
+            url, TEMP_PATH / f"compare_download_{mark}_img.jpg", use_proxy=False
         ):
             img_hash = get_img_hash(TEMP_PATH / f"compare_download_{mark}_img.jpg")
             return str(img_hash)
