@@ -9,6 +9,8 @@ from nonebot.adapters import Bot
 from nonebot.drivers import Driver
 from tortoise.exceptions import OperationalError
 
+from zhenxun.utils.platform import PlatformUtils
+
 require("nonebot_plugin_apscheduler")
 require("nonebot_plugin_alconna")
 require("nonebot_plugin_session")
@@ -19,6 +21,7 @@ require("nonebot_plugin_htmlrender")
 from zhenxun.services.log import logger
 from zhenxun.models.sign_user import SignUser
 from zhenxun.models.goods_info import GoodsInfo
+from zhenxun.models.bot_console import BotConsole
 from zhenxun.models.user_console import UserConsole
 from zhenxun.utils.decorator.shop import shop_register
 from zhenxun.models.bot_connect_log import BotConnectLog
@@ -33,6 +36,10 @@ async def _(bot: Bot):
     await BotConnectLog.create(
         bot_id=bot.self_id, platform=bot.adapter, connect_time=datetime.now(), type=1
     )
+    if not await BotConsole.exists(bot_id=bot.self_id):
+        await BotConsole.create(
+            bot_id=bot.self_id, platform=PlatformUtils.get_platform(bot)
+        )
 
 
 @driver.on_bot_disconnect
