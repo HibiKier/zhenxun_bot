@@ -11,6 +11,7 @@ from zhenxun.services.log import logger
 from zhenxun.configs.config import Config
 from zhenxun.utils.message import MessageUtils
 from zhenxun.models.level_user import LevelUser
+from zhenxun.models.bot_console import BotConsole
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.plugin_limit import PluginLimit
 from zhenxun.models.user_console import UserConsole
@@ -244,6 +245,7 @@ class AuthChecker:
                         if not plugin.limit_superuser:
                             cost_gold = 0
                             raise IsSuperuserException()
+                    await self.auth_bot(plugin, bot.self_id)
                     await self.auth_group(plugin, session, message)
                     await self.auth_admin(plugin, session)
                     await self.auth_plugin(plugin, session, event)
@@ -277,6 +279,16 @@ class AuthChecker:
             logger.debug(f"调用功能花费金币: {cost_gold}", "HOOK", session=session)
         if is_ignore:
             raise IgnoredException("权限检测 ignore")
+
+    async def auth_bot(self, plugin: PluginInfo, bot_id: str):
+        """机器人权限
+
+        参数:
+            plugin: PluginInfo
+            bot_id: bot_id
+        """
+        if await BotConsole.is_block_plugin(plugin.module, bot_id):
+            raise IgnoredException("机器人权限检测 ignore")
 
     async def auth_limit(self, plugin: PluginInfo, session: EventSession):
         """插件限制
