@@ -27,14 +27,14 @@ def admin_check(a: int | str, key: str | None = None) -> Rule:
         if PlatformUtils.is_qbot(session):
             """官bot接口，放弃所有权限检查"""
             return False
-        if session.id and session.group:
+        if session.group:
             level = a
             if isinstance(a, str) and key:
                 level = Config.get_config(a, key)
             if level is not None:
                 return bool(
                     await LevelUser.check_level(
-                        session.id, session.group.id, int(level)
+                        session.user.id, session.group.id, int(level)
                     )
                 )
         return False
