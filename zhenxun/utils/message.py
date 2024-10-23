@@ -138,7 +138,7 @@ class MessageUtils:
                     if isinstance(r, Text):
                         s += str(r)
                     elif isinstance(r, Image):
-                        if v := r.url or r.path:
+                        if v := r.url or r.path or r.raw:
                             s += MessageSegment.image(v)
             elif isinstance(r_list, Image):
                 if v := r_list.url or r_list.path:
