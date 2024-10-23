@@ -184,7 +184,7 @@ async def _(
         elif isinstance(result, UniMessage):
             await result.finish(reply_to=True)
     except GoodsNotFound:
-        await MessageUtils.build_message(f"没有找到道具 {name} 或道具数量不足...").send(
+        await MessageUtils.build_message(f"没有找到道具 {name.result} 或道具数量不足...").send(
             reply_to=True
         )
 
