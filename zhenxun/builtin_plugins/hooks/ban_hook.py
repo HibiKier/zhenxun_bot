@@ -32,7 +32,7 @@ async def _(
     if plugin := matcher.plugin:
         if metadata := plugin.metadata:
             extra = metadata.extra
-            if extra.get("plugin_type") in [PluginType.HIDDEN, PluginType.DEPENDANT]:
+            if extra.get("plugin_type") in [PluginType.HIDDEN]:
                 return
     user_id = session.id1
     group_id = session.id3 or session.id2
