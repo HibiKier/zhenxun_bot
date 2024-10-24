@@ -235,7 +235,10 @@ class AuthChecker:
                 return
             if plugin := await PluginInfo.get_or_none(module_path=module_path):
                 if plugin.plugin_type == PluginType.HIDDEN:
-                    logger.debug("插件为HIDDEN，已跳过...")
+                    logger.debug(
+                        f"插件: {plugin.name}:{plugin.module} "
+                        "为HIDDEN，已跳过权限检查..."
+                    )
                     return
                 try:
                     cost_gold = await self.auth_cost(user, plugin, session)
