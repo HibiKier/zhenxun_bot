@@ -4,7 +4,17 @@ from pathlib import Path
 import nonebot
 from pydantic import BaseModel
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
-from nonebot_plugin_alconna import At, Text, AtAll, Image, Video, Voice, UniMessage
+from nonebot_plugin_alconna import (
+    At,
+    Text,
+    AtAll,
+    Image,
+    Video,
+    Voice,
+    Reference,
+    CustomNode,
+    UniMessage,
+)
 
 from zhenxun.services.log import logger
 from zhenxun.configs.config import BotConfig
@@ -88,6 +98,36 @@ class MessageUtils:
             _data = m if isinstance(m, list) else [m]
             message_list += cls.__build_message(_data)  # type: ignore
         return UniMessage(message_list)
+
+    @classmethod
+    def alc_forward_msg(
+        cls,
+        msg_list: list,
+        uin: str,
+        name: str,
+    ) -> UniMessage:
+        """生成自定义合并消息
+
+        参数:
+            msg_list: 消息列表
+            uin: 发送者 QQ
+            name: 自定义名称
+
+        返回:
+            list[dict]: 转发消息
+        """
+        node_list = []
+        for _message in msg_list:
+            if isinstance(_message, list):
+                for i in range(len(_message.copy())):
+                    if isinstance(_message[i], Path):
+                        _message[i] = Image(
+                            raw=BuildImage.open(_message[i]).pic2bytes()
+                        )
+            node_list.append(
+                CustomNode(uid=uin, name=name, content=UniMessage(_message))
+            )
+        return UniMessage(Reference(nodes=node_list))
 
     @classmethod
     def custom_forward_msg(

@@ -10,7 +10,6 @@ from ._build_image import BuildImage
 
 
 class RowStyle(BaseModel):
-
     font: FreeTypeFont | str | Path | None = "HYWenHei-85W.ttf"
     """字体"""
     font_size: int = 20
@@ -23,7 +22,6 @@ class RowStyle(BaseModel):
 
 
 class ImageTemplate:
-
     color_list = ["#C2CEFE", "#FFA94C", "#3FE6A0", "#D1D4F5"]  # noqa: RUF012
 
     @classmethod
@@ -88,7 +86,7 @@ class ImageTemplate:
         head_text: str,
         tip_text: str | None,
         column_name: list[str],
-        data_list: list[list[str | tuple[Path | BuildImage, int, int]]],
+        data_list: list[list[str | int | tuple[Path | BuildImage, int, int]]],
         row_space: int = 35,
         column_space: int = 30,
         padding: int = 5,
@@ -137,7 +135,7 @@ class ImageTemplate:
     async def table(
         cls,
         column_name: list[str],
-        data_list: list[list[str | tuple[Path | BuildImage, int, int]]],
+        data_list: list[list[str | int | tuple[Path | BuildImage, int, int]]],
         row_space: int = 25,
         column_space: int = 10,
         padding: int = 5,
@@ -163,7 +161,7 @@ class ImageTemplate:
             c = []
             for lst in data_list:
                 if len(lst) > i:
-                    c.append(lst[i])
+                    c.append(str(lst[i]))
                 else:
                     c.append("")
             column_data.append(c)
@@ -176,7 +174,7 @@ class ImageTemplate:
                 if isinstance(s, tuple):
                     w = s[1]
                 else:
-                    w, _ = BuildImage.get_text_size(s, font)
+                    w, _ = BuildImage.get_text_size(str(s), font)
                 if w > _temp["width"]:
                     _temp["width"] = w
             build_data_list.append(_temp)
