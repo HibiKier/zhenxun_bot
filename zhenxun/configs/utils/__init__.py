@@ -288,13 +288,6 @@ class ConfigsManager:
                 config.value = value
                 config.default_value = default_value
         else:
-            _module = None
-            if ":" in module:
-                module_split = module.split(":")
-                if len(module_split) < 2:
-                    raise ValueError(f"module: {module} 填写错误")
-                _module = module_split[-1]
-                module = module_split[0]
             key = key.upper()
             if not self._data.get(module):
                 self._data[module] = ConfigGroup(module=module)
@@ -311,7 +304,6 @@ class ConfigsManager:
         key: str,
         value: Any,
         auto_save: bool = False,
-        save_simple_data: bool = True,
     ):
         """设置配置值
 
@@ -320,15 +312,16 @@ class ConfigsManager:
             key: 配置名称
             value: 值
             auto_save: 自动保存.
-            save_simple_data: 保存至config.yaml.
         """
+        key = key.upper()
         if module in self._data:
-            data = self._data[module].configs.get(key)
-            if data and data != value:
+            if self._data[module].configs.get(key):
                 self._data[module].configs[key].value = value
-                self._simple_data[module][key] = value
+            else:
+                self.add_plugin_config(module, key, value)
+            self._simple_data[module][key] = value
             if auto_save:
-                self.save(save_simple_data=save_simple_data)
+                self.save(save_simple_data=True)
 
     def get_config(self, module: str, key: str, default: Any = None) -> Any:
         """获取指定配置值
