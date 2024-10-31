@@ -1,4 +1,4 @@
-from typing import NoReturn, overload
+from typing import overload
 
 from tortoise import fields
 
@@ -61,6 +61,80 @@ class BotConsole(Model):
         result = await cls.get_or_none(bot_id=bot_id)
         return result.status if result else False
 
+    @overload
+    @classmethod
+    async def get_tasks(cls) -> list[tuple[str, str]]: ...
+
+    @overload
+    @classmethod
+    async def get_tasks(cls, bot_id: str) -> str: ...
+
+    @overload
+    @classmethod
+    async def get_tasks(cls, *, status: bool) -> list[tuple[str, str]]: ...
+
+    @overload
+    @classmethod
+    async def get_tasks(cls, bot_id: str, status: bool = True) -> str: ...
+
+    @classmethod
+    async def get_tasks(cls, bot_id: str | None = None, status: bool | None = True):
+        """
+        获取bot被动技能
+
+        Args:
+            bot_id (str | None, optional): bot_id. Defaults to None.
+            status (bool | None, optional): 被动状态. Defaults to True.
+
+        Returns:
+            list[tuple[str, str]] | str: 被动技能
+        """
+        if not bot_id:
+            task_field = "available_tasks" if status else "block_task"
+            return await cls.all().values_list("bot_id", task_field)
+
+        result = await cls.get_or_none(bot_id=bot_id)
+        if result:
+            return result.available_tasks if status else result.block_task
+        return ""
+
+    @overload
+    @classmethod
+    async def get_plugins(cls) -> list[tuple[str, str]]: ...
+
+    @overload
+    @classmethod
+    async def get_plugins(cls, bot_id: str) -> str: ...
+
+    @overload
+    @classmethod
+    async def get_plugins(cls, *, status: bool) -> list[tuple[str, str]]: ...
+
+    @overload
+    @classmethod
+    async def get_plugins(cls, bot_id: str, status: bool = True) -> str: ...
+
+    @classmethod
+    async def get_plugins(cls, bot_id: str | None = None, status: bool = True):
+        """
+        获取bot插件
+
+        Args:
+            bot_id (str | None, optional): bot_id. Defaults to None.
+            status (bool, optional): 插件状态. Defaults to True.
+
+        Returns:
+            list[tuple[str, str]] | str: 插件
+        """
+        if not bot_id:
+            plugin_field = "available_plugins" if status else "block_plugin"
+            return await cls.all().values_list("bot_id", plugin_field)
+
+        result = await cls.get_or_none(bot_id=bot_id)
+        if result:
+            return result.available_plugins if status else result.block_plugin
+        return ""
+
     @classmethod
     async def set_bot_status(cls, status: bool, bot_id: str | None = None) -> None:
         """
@@ -104,7 +178,7 @@ class BotConsole(Model):
         block_field: str,
         data: str,
         to_block: bool,
-    ) -> NoReturn:
+    ) -> None:
         """
         在 available_field 和 block_field 之间移动指定的 data
 
@@ -148,7 +222,7 @@ class BotConsole(Model):
         await bot_data.save(update_fields=[available_field, block_field])
 
     @classmethod
-    async def set_block_plugin(cls, bot_id: str | None, module: str) -> NoReturn:
+    async def set_block_plugin(cls, bot_id: str | None, module: str) -> None:
         """
         禁用插件
 
@@ -172,7 +246,7 @@ class BotConsole(Model):
                 )
 
     @classmethod
-    async def set_unblock_plugin(cls, bot_id: str | None, module: str) -> NoReturn:
+    async def set_unblock_plugin(cls, bot_id: str | None, module: str) -> None:
         """
         启用插件
 
@@ -196,7 +270,7 @@ class BotConsole(Model):
                 )
 
     @classmethod
-    async def set_block_task(cls, bot_id: str | None, module: str) -> NoReturn:
+    async def set_block_task(cls, bot_id: str | None, module: str) -> None:
         """
         禁用被动技能
 
@@ -216,7 +290,7 @@ class BotConsole(Model):
                 )
 
     @classmethod
-    async def set_unblock_task(cls, bot_id: str | None, module: str) -> NoReturn:
+    async def set_unblock_task(cls, bot_id: str | None, module: str) -> None:
         """
         启用被动技能
 
