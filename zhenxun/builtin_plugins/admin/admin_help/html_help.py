@@ -50,6 +50,7 @@ async def build_html_help():
             "base_url": f"file://{TEMPLATE_PATH}",
         },
         wait=2,
+        screenshot_timeout=60_000,
     )
     result = await BuildImage.open(pic).resize(0.5)
     await result.save(ADMIN_HELP_IMAGE)

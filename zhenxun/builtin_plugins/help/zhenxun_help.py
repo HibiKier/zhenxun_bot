@@ -151,4 +151,5 @@ async def build_zhenxun_image(session: Uninfo, group_id: str | None) -> bytes:
             "base_url": f"file://{TEMPLATE_PATH}",
         },
         wait=2,
+        screenshot_timeout=60_000,
     )
