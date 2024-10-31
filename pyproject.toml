@@ -8,8 +8,8 @@ package-mode = false
 
 [[tool.poetry.source]]
 name = "ali"
-default = true
 url = "https://mirrors.aliyun.com/pypi/simple/"
+priority = "primary"
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -31,7 +31,7 @@ nonebot-adapter-dodo = "^0.1.4"
 pillow = "9.5"
 retrying = "^1.3.4"
 aiofiles = "^23.2.1"
-nonebot-plugin-htmlrender = "^0.3.0"
+nonebot-plugin-htmlrender = "^0.4.0"
 nonebot-plugin-userinfo = "^0.1.3"
 pypinyin = "^0.51.0"
 beautifulsoup4 = "^4.12.3"
