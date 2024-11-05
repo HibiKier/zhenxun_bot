@@ -68,7 +68,7 @@
 
 ### 1. 体验一下？
 
-这是一个免费的，版本为 dev 的 zhenxun，你可以通过 napcat 或拉格朗日等直接连接用于体验与测试  
+这是一个免费的，版本为 dev 的 zhenxun，你可以通过 [napcat](https://github.com/NapNeko/NapCatQQ) 或 [拉格朗日](https://github.com/LagrangeDev/Lagrange.Core) 以及 [matcha](https://github.com/A-kirami/matcha) 等直接连接用于体验与测试  
 （球球了测试君！）
 
 ```
@@ -95,6 +95,7 @@ AccessToken: PUBLIC_ZHENXUN_TEST
 <details>
 <summary> <strong> WebUI </strong>后台示例图 </summary>
 
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui0.png)
 ![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui1.png)
 ![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui2.png)
 ![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui3.png)
@@ -319,7 +320,7 @@ python bot.py
 
 <details>
 <summary>爱发电 以及 感谢投喂 </summary>
-<img width="365px" height="450px" src="https://user-images.githubusercontent.com/45528451/175059389-cfeb8174-fa07-4939-80ab-a039087a50f6.png">
+<img width="365px" height="450px" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/afd.jpg">
 
 ### 感谢名单
 
@@ -369,6 +370,7 @@ python bot.py
 [哇](https://afdian.net/u/9b266244f23911eca19052540025c377)  
 [yajiwa](https://github.com/yajiwa)  
 [爆金币](https://afdian.net/u/0d78879ef23711ecb22452540025c377)
+...
 
 </details>
 
