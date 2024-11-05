@@ -316,7 +316,7 @@ python bot.py
 
 </details> -->
 
-## [爱发电](https://afdian.net/@HibiKier)
+## [爱发电](https://afdian.com/a/HibiKier)
 
 <details>
 <summary>爱发电 以及 感谢投喂 </summary>
