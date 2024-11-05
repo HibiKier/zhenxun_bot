@@ -95,14 +95,14 @@ AccessToken: PUBLIC_ZHENXUN_TEST
 <details>
 <summary> <strong> WebUI </strong>后台示例图 </summary>
 
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui0.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui1.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui2.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui3.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui4.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui5.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui6.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui7.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui00.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui01.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui02.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui03.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui04.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui05.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui06.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui07.png)
 
 </details>
 
