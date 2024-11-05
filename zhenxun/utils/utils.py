@@ -189,6 +189,7 @@ def change_pixiv_image_links(
         url = (
             url.replace("i.pximg.net", nginx_url)
             .replace("i.pixiv.cat", nginx_url)
+            .replace("i.pixiv.re", nginx_url)
             .replace("_webp", "")
         )
     return url
