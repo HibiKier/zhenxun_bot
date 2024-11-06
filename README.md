@@ -72,7 +72,7 @@
 （球球了测试君！）
 
 ```
-Url： test.zhenxun.org:11451/onebot/v11/ws
+Url： test.zhenxun.org:8080/onebot/v11/ws
 AccessToken: PUBLIC_ZHENXUN_TEST
 
 注：你无法获得超级用户权限
