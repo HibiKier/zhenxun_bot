@@ -431,14 +431,20 @@ class AsyncHttpx:
 class AsyncPlaywright:
     @classmethod
     @asynccontextmanager
-    async def new_page(cls, **kwargs) -> AsyncGenerator[Page, None]:
+    async def new_page(
+        cls, cookies: list[dict[str, Any]] | dict[str, Any] | None = None, **kwargs
+    ) -> AsyncGenerator[Page, None]:
         """获取一个新页面
 
         参数:
-            user_agent: 请求头
+            cookies: cookies
         """
         browser = await get_browser()
         ctx = await browser.new_context(**kwargs)
+        if cookies:
+            if isinstance(cookies, dict):
+                cookies = [cookies]
+            await ctx.add_cookies(cookies)  # type: ignore
         page = await ctx.new_page()
         try:
             yield page
@@ -461,6 +467,7 @@ class AsyncPlaywright:
         timeout: float | None = None,
         type_: Literal["jpeg", "png"] | None = None,
         user_agent: str | None = None,
+        cookies: list[dict[str, Any]] | dict[str, Any] | None = None,
         **kwargs,
     ) -> UniMessage | None:
         """截图，该方法仅用于简单快捷截图，复杂截图请操作 page
@@ -474,6 +481,8 @@ class AsyncPlaywright:
             wait_until: 等待类型
             timeout: 超时限制
             type_: 保存类型
+            user_agent: user_agent
+            cookies: cookies
         """
         if viewport_size is None:
             viewport_size = {"width": 2560, "height": 1080}
@@ -482,6 +491,7 @@ class AsyncPlaywright:
         wait_time = wait_time * 1000 if wait_time else None
         element_list = [element] if isinstance(element, str) else element
         async with cls.new_page(
+            cookies,
             viewport=viewport_size,
             user_agent=user_agent,
             **kwargs,

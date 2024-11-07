@@ -60,7 +60,7 @@
 
 <img width="350" height="350" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/help.png"/>
 <img width="250" height="500" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/html_help.png"/>
-<img width="180" height="450" src="https://github.com/HibiKier/zhenxun_bot/blob/dev/docs_image/zhenxun_help.png"/>
+<img width="180" height="450" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/zhenxun_help.png"/>
 
 </div>
 

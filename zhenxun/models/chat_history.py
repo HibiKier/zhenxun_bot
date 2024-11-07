@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Literal, Tuple
+from typing import Literal
 
 from tortoise import fields
 from tortoise.functions import Count
@@ -27,7 +27,7 @@ class ChatHistory(Model):
     platform = fields.CharField(255, null=True)
     """平台"""
 
-    class Meta:
+    class Meta: # type: ignore
         table = "chat_history"
         table_description = "聊天记录数据表"
 
@@ -53,7 +53,7 @@ class ChatHistory(Model):
             query = query.filter(create_time__range=date_scope)
         return list(
             await query.annotate(count=Count("user_id"))
-            .order_by(o + "count")
+            .order_by(f"{o}count")
             .group_by("user_id")
             .limit(limit)
             .values_list("user_id", "count")
@@ -74,9 +74,7 @@ class ChatHistory(Model):
             )
         else:
             message = await cls.all().order_by("create_time").first()
-        if message:
-            return message.create_time
-        return None
+        return message.create_time if message else None
 
     @classmethod
     async def get_message(
@@ -85,7 +83,7 @@ class ChatHistory(Model):
         gid: str,
         type_: Literal["user", "group"],
         msg_type: Literal["private", "group"] | None = None,
-        days: int | Tuple[datetime, datetime] | None = None,
+        days: int | tuple[datetime, datetime] | None = None,
     ) -> list[Self]:
         """获取消息查询query
 
