@@ -49,9 +49,8 @@ class GroupManager:
             group: GroupConsole
         """
         if group:
-            await GroupConsole.filter(
-                group_id=group_id, channel_id__isnull=True
-            ).update(group_flag=1)
+            group.group_flag = 1
+            await group.save(update_fields=["group_flag"])
         else:
             block_plugin = ""
             if plugin_list := await PluginInfo.filter(default_status=False).all():
