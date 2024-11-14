@@ -46,7 +46,7 @@ async def _(
             nickname = user_id
     try:
         result = await get_user_info(
-            session, bot, user_id, session.group.id if session.group else None, nickname
+            session, user_id, session.group.id if session.group else None, nickname
         )
         await MessageUtils.build_message(result).send(at_sender=True)
         logger.info("获取用户信息", arparma.header_result, session=session)

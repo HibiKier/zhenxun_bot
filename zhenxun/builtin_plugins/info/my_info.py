@@ -1,7 +1,6 @@
 import random
 from datetime import datetime, timedelta
 
-from nonebot.adapters import Bot
 from tortoise.functions import Count
 from tortoise.expressions import RawSQL
 from nonebot_plugin_uninfo import Uninfo
@@ -131,7 +130,7 @@ async def get_chat_history(
 
 
 async def get_user_info(
-    session: Uninfo, bot: Bot, user_id: str, group_id: str | None, nickname: str
+    session: Uninfo, user_id: str, group_id: str | None, nickname: str
 ) -> bytes:
     """获取用户个人信息
 
@@ -145,7 +144,7 @@ async def get_user_info(
     返回:
         bytes: 图片数据
     """
-    platform = PlatformUtils.get_platform(bot) or ""
+    platform = PlatformUtils.get_platform(session) or "qq"
     ava_url = PlatformUtils.get_user_avatar_url(user_id, platform)
     user = await UserConsole.get_user(user_id, platform)
     level = await LevelUser.get_user_level(user_id, group_id)
@@ -164,7 +163,7 @@ async def get_user_info(
     data = {
         "date": now.date(),
         "weather": weather,
-        "ava_url": session.user.avatar,
+        "ava_url": ava_url,
         "nickname": nickname,
         "title": "勇 者",
         "race": random.choice(RACE),
