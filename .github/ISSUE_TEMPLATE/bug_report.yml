@@ -81,5 +81,5 @@ body:
   - type: textarea
     id: logs
     attributes:
-      label: 截图或日志
+      label: 截图或日志（请勿包含敏感信息如密码、令牌等）
       description: 提供有助于诊断问题的任何日志和截图
