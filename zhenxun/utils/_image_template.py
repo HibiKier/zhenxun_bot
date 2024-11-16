@@ -159,9 +159,11 @@ class ImageTemplate:
         column_data = []
         for i in range(len(column_name)):
             c = []
-            for lst in data_list:
-                if len(lst) > i:
-                    c.append(str(lst[i]))
+            for item in data_list:
+                if len(item) > i:
+                    c.append(
+                        item[i] if isinstance(item[i], tuple | list) else str(item[i])
+                    )
                 else:
                     c.append("")
             column_data.append(c)
@@ -197,7 +199,7 @@ class ImageTemplate:
                 style = RowStyle(font=font)
                 if text_style:
                     style = text_style(column_name[i], item)
-                if isinstance(item, tuple):
+                if isinstance(item, tuple | list):
                     """图片"""
                     data, width, height = item
                     image_ = None
@@ -219,8 +221,6 @@ class ImageTemplate:
                     )
                 cur_h += base_h + row_space
             column_image_list.append(background)
-        # height = max([bk.height for bk in column_image_list])
-        # width = sum([bk.width for bk in column_image_list])
         return await BuildImage.auto_paste(
             column_image_list, len(column_image_list), column_space
         )

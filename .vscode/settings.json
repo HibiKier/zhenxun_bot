@@ -25,7 +25,8 @@
     "ujson",
     "unban",
     "userinfo",
-    "zhenxun"
+    "zhenxun",
+    "jsdelivr"
   ],
   "python.analysis.autoImportCompletions": true,
   "python.testing.pytestArgs": ["tests"],
