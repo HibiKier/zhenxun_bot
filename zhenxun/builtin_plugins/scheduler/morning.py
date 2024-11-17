@@ -20,7 +20,14 @@ __plugin_meta__ = PluginMetadata(
         author="HibiKier",
         version="0.1",
         plugin_type=PluginType.HIDDEN,
-        tasks=[Task(module="morning_goodnight", name="早晚安")],
+        tasks=[
+            Task(
+                module="morning_goodnight",
+                name="早晚安",
+                create_status=False,
+                default_status=False,
+            )
+        ],
     ).dict(),
 )
 
