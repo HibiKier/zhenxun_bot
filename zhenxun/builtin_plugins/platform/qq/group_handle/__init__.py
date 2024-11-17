@@ -71,8 +71,18 @@ __plugin_meta__ = PluginMetadata(
             ),
         ],
         tasks=[
-            Task(module="group_welcome", name="进群欢迎"),
-            Task(module="refund_group_remind", name="退群提醒"),
+            Task(
+                module="group_welcome",
+                name="进群欢迎",
+                create_status=False,
+                default_status=False,
+            ),
+            Task(
+                module="refund_group_remind",
+                name="退群提醒",
+                create_status=False,
+                default_status=False,
+            ),
         ],
     ).dict(),
 )
