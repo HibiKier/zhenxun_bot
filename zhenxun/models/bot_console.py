@@ -50,10 +50,10 @@ class BotConsole(Model):
         """
         获取bot状态
 
-        Args:
+        参数:
             bot_id (str, optional): bot_id. Defaults to None.
 
-        Returns:
+        返回:
             list[tuple[str, bool]] | bool: bot状态
         """
         if not bot_id:
@@ -82,11 +82,11 @@ class BotConsole(Model):
         """
         获取bot被动技能
 
-        Args:
+        参数:
             bot_id (str | None, optional): bot_id. Defaults to None.
             status (bool | None, optional): 被动状态. Defaults to True.
 
-        Returns:
+        返回:
             list[tuple[str, str]] | str: 被动技能
         """
         if not bot_id:
@@ -119,11 +119,11 @@ class BotConsole(Model):
         """
         获取bot插件
 
-        Args:
+        参数:
             bot_id (str | None, optional): bot_id. Defaults to None.
             status (bool, optional): 插件状态. Defaults to True.
 
-        Returns:
+        返回:
             list[tuple[str, str]] | str: 插件
         """
         if not bot_id:
@@ -140,7 +140,7 @@ class BotConsole(Model):
         """
         设置bot状态
 
-        Args:
+        参数:
             status (bool): 状态
             bot_id (str, optional): bot_id. Defaults to None.
 
@@ -167,10 +167,10 @@ class BotConsole(Model):
         """
         在 `<aaa,<bbb,<ccc,` 和 `["aaa", "bbb", "ccc"]` 之间进行相互转换。
 
-        Args:
+        参数:
             data (str | list[str]): 输入数据，可能是格式化字符串或字符串列表。
 
-        Returns:
+        返回:
             str | list[str]: 根据输入类型返回转换后的数据。
         """
         if isinstance(data, str):
@@ -189,7 +189,7 @@ class BotConsole(Model):
         """
         在 from_field 和 to_field 之间移动指定的 data
 
-        Args:
+        参数:
             bot_id (str): 目标 bot 的 ID
             from_field (str): 源字段名称
             to_field (str): 目标字段名称
@@ -222,7 +222,7 @@ class BotConsole(Model):
         """
         禁用插件
 
-        Args:
+        参数:
             bot_id (str | None): bot_id
             plugin_name (str): 插件名称
         """
@@ -248,7 +248,7 @@ class BotConsole(Model):
         """
         启用插件
 
-        Args:
+        参数:
             bot_id (str | None): bot_id
             plugin_name (str): 插件名称
         """
@@ -274,7 +274,7 @@ class BotConsole(Model):
         """
         禁用被动技能
 
-        Args:
+        参数:
             bot_id (str | None): bot_id
             task_name (str): 被动技能名称
         """
@@ -300,7 +300,7 @@ class BotConsole(Model):
         """
         启用被动技能
 
-        Args:
+        参数:
             bot_id (str | None): bot_id
             task_name (str): 被动技能名称
         """
@@ -330,7 +330,7 @@ class BotConsole(Model):
         """
         禁用全部插件或被动技能
 
-        Args:
+        参数:
             bot_id (str): bot_id
             feat (Literal["plugins", "tasks"]): 插件或被动技能
         """
@@ -352,7 +352,7 @@ class BotConsole(Model):
         """
         启用全部插件或被动技能
 
-        Args:
+        参数:
             bot_id (str): bot_id
             feat (Literal["plugins", "tasks"]): 插件或被动技能
         """
@@ -370,11 +370,11 @@ class BotConsole(Model):
         """
         检查插件是否被禁用
 
-        Args:
+        参数:
             bot_id (str): bot_id
             plugin_name (str): 插件名称
 
-        Returns:
+        返回:
             bool: 是否被禁用
         """
         bot_data, _ = await cls.get_or_create(bot_id=bot_id)
@@ -385,11 +385,11 @@ class BotConsole(Model):
         """
         检查被动技能是否被禁用
 
-        Args:
+        参数:
             bot_id (str): bot_id
             task_name (str): 被动技能名称
 
-        Returns:
+        返回:
             bool: 是否被禁用
         """
         bot_data, _ = await cls.get_or_create(bot_id=bot_id)
