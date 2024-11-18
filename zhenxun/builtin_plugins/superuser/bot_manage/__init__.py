@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import cast
 
 import nonebot
 from nonebot.adapters import Bot
@@ -36,29 +37,45 @@ async def _(bot: Bot):
     参数:
         bot: Bot
     """
-    plugin_list = await PluginInfo.get_plugins(
-        plugin_type__in=[PluginType.NORMAL, PluginType.DEPENDANT, PluginType.ADMIN]
+
+    async def _filter_blocked_items(
+        items_list: list[str], block_list: list[str]
+    ) -> list[str]:
+        """过滤被block的项目
+
+        参数:
+            items_list: 需要过滤的项目列表
+            block_list: block列表
+
+        返回:
+            list: 过滤后且经过格式化的项目列表
+        """
+        return [item for item in items_list if item not in block_list]
+
+    plugin_list = [
+        plugin.module
+        for plugin in await PluginInfo.get_plugins(
+            plugin_type__in=[PluginType.NORMAL, PluginType.DEPENDANT, PluginType.ADMIN]
+        )
+    ]
+    task_list = cast(
+        list[str], await TaskInfo.filter(status=True).values_list("module", flat=True)
     )
-    available_tasks: list[str] = await TaskInfo.filter(status=True).values_list(
-        "module", flat=True
-    )  # type: ignore
-    available_plugins = [p.module for p in plugin_list]
-    # for _, bot in nonebot.get_bots().items():
     platform = PlatformUtils.get_platform(bot)
-    bot_data, is_create = await BotConsole.get_or_create(
+    bot_data, created = await BotConsole.get_or_create(
         bot_id=bot.self_id, platform=platform
     )
-    if not is_create:
+
+    if not created:
         block_plugins = await bot_data.get_plugins(bot.self_id, False)
-        block_plugins = BotConsole._convert_module_format(block_plugins)
-        for module in available_plugins.copy():
-            if module in block_plugins:
-                available_plugins.remove(module)
         block_tasks = await bot_data.get_tasks(bot.self_id, False)
-        block_tasks = BotConsole._convert_module_format(block_tasks)
-        for module in available_tasks.copy():
-            if module in block_plugins:
-                available_tasks.remove(module)
-    bot_data.available_plugins = BotConsole._convert_module_format(available_plugins)
-    bot_data.available_tasks = BotConsole._convert_module_format(available_tasks)
+        task_list = await _filter_blocked_items(
+            task_list, BotConsole.convert_module_format(block_tasks)
+        )
+        plugin_list = await _filter_blocked_items(
+            plugin_list, BotConsole.convert_module_format(block_plugins)
+        )
+
+    bot_data.available_plugins = BotConsole.convert_module_format(plugin_list)
+    bot_data.available_tasks = BotConsole.convert_module_format(task_list)
     await bot_data.save(update_fields=["available_plugins", "available_tasks"])
