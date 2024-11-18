@@ -156,14 +156,14 @@ class BotConsole(Model):
 
     @overload
     @classmethod
-    def _convert_module_format(cls, data: str) -> list[str]: ...
+    def convert_module_format(cls, data: str) -> list[str]: ...
 
     @overload
     @classmethod
-    def _convert_module_format(cls, data: list[str]) -> str: ...
+    def convert_module_format(cls, data: list[str]) -> str: ...
 
     @classmethod
-    def _convert_module_format(cls, data: str | list[str]) -> str | list[str]:
+    def convert_module_format(cls, data: str | list[str]) -> str | list[str]:
         """
         在 `<aaa,<bbb,<ccc,` 和 `["aaa", "bbb", "ccc"]` 之间进行相互转换。
 
