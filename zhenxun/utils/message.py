@@ -124,6 +124,8 @@ class MessageUtils:
                         _message[i] = Image(
                             raw=BuildImage.open(_message[i]).pic2bytes()
                         )
+                    elif isinstance(_message[i], BuildImage):
+                        _message[i] = Image(raw=_message[i].pic2bytes())
             node_list.append(
                 CustomNode(uid=uin, name=name, content=UniMessage(_message))
             )
