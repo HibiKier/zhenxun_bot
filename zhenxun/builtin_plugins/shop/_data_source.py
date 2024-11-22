@@ -95,7 +95,10 @@ async def gold_rank(
     if not user_list:
         return "当前还没有人拥有金币哦..."
     user_id_list = [user[0] for user in user_list]
-    index = user_id_list.index(session.user.id) + 1
+    if session.user.id in user_id_list:
+        index = user_id_list.index(session.user.id) + 1
+    else:
+        index = "-1（未统计）"
     user_list = user_list[:num] if num < len(user_list) else user_list
     friend_user = await FriendUser.filter(user_id__in=user_id_list).values_list(
         "user_id", "user_name"
