@@ -202,9 +202,9 @@ async def _():
     manager.init()
     if limit_list:
         for limit in limit_list:
-            if not manager.exist(limit.module_path, limit.limit_type):
+            if not manager.exists(limit.module, limit.limit_type):
                 """不存在，添加"""
-                manager.add(limit.module_path, limit)
+                manager.add(limit.module, limit)
     manager.save_file()
     await manager.load_to_db()
 

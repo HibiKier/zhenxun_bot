@@ -112,7 +112,7 @@ class Manager:
         elif isinstance(data, BaseBlock):
             self.block_data[module] = data
 
-    def exist(self, module: str, type: PluginLimitType):
+    def exists(self, module: str, type: PluginLimitType):
         """是否存在"""
         if type == PluginLimitType.CD:
             return module in self.cd_data
