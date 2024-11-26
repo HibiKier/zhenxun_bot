@@ -85,7 +85,7 @@ class LimitManage:
             if group_id and limit.watch_type == LimitWatchType.GROUP:
                 key_type = channel_id or group_id
             logger.debug(
-                f"解除对象: {key_type} 的block现在",
+                f"解除对象: {key_type} 的block限制",
                 "AuthChecker",
                 session=user_id,
                 group_id=group_id,
@@ -323,11 +323,12 @@ class AuthChecker:
         if not group_id:
             group_id = channel_id
             channel_id = None
-        limit_list: list[PluginLimit] = await plugin.plugin_limit.filter(
-            status=True
-        ).all()  # type: ignore
-        for limit in limit_list:
-            LimitManage.add_limit(limit)
+        if plugin.module not in LimitManage.add_module:
+            limit_list: list[PluginLimit] = await plugin.plugin_limit.filter(
+                status=True
+            ).all()  # type: ignore
+            for limit in limit_list:
+                LimitManage.add_limit(limit)
         if user_id:
             await LimitManage.check(
                 plugin.module, user_id, group_id, channel_id, session
