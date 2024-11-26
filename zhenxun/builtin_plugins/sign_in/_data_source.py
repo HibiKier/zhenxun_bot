@@ -59,7 +59,10 @@ class SignManage:
         if not user_list:
             return "当前还没有人签到过哦..."
         user_id_list = [user[0] for user in user_list]
-        index = user_id_list.index(session.user.id) + 1
+        if session.user.id in user_id_list:
+            index = user_id_list.index(session.user.id) + 1
+        else:
+            index = "-1（未统计）"
         user_list = user_list[:num] if num < len(user_list) else user_list
         column_name = ["排名", "-", "名称", "好感度", "签到次数", "平台"]
         friend_list = await FriendUser.filter(user_id__in=user_id_list).values_list(

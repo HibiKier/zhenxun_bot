@@ -1,3 +1,4 @@
+import base64
 from io import BytesIO
 from pathlib import Path
 
@@ -59,7 +60,14 @@ class MessageUtils:
         for msg in msg_list:
             if isinstance(msg, Image | Text | At | AtAll | Video | Voice):
                 message_list.append(msg)
-            elif isinstance(msg, str | int | float):
+            elif isinstance(msg, str):
+                if msg.startswith("base64://"):
+                    message_list.append(Image(raw=BytesIO(base64.b64decode(msg[9:]))))
+                elif msg.startswith("http://"):
+                    message_list.append(Image(url=msg))
+                else:
+                    message_list.append(Text(msg))
+            elif isinstance(msg, int | float):
                 message_list.append(Text(str(msg)))
             elif isinstance(msg, Path):
                 if msg.exists():
@@ -124,6 +132,8 @@ class MessageUtils:
                         _message[i] = Image(
                             raw=BuildImage.open(_message[i]).pic2bytes()
                         )
+                    elif isinstance(_message[i], BuildImage):
+                        _message[i] = Image(raw=_message[i].pic2bytes())
             node_list.append(
                 CustomNode(uid=uin, name=name, content=UniMessage(_message))
             )

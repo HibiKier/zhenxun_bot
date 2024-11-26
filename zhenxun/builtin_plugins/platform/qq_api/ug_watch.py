@@ -24,5 +24,8 @@ async def do_something(session: Uninfo):
             )
             logger.info("添加当前用户群组ID信息", "", session=session)
     elif not await FriendUser.exists(user_id=session.user.id, platform=platform):
-        await FriendUser.create(user_id=session.user.id, platform=platform)
-        logger.info("添加当前好友用户信息", "", session=session)
+        try:
+            await FriendUser.create(user_id=session.user.id, platform=platform)
+            logger.info("添加当前好友用户信息", "", session=session)
+        except Exception as e:
+            logger.error("添加当前好友用户信息失败", session=session, e=e)
