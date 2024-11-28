@@ -506,6 +506,11 @@ class AuthChecker:
         group = await GroupConsole.get_group(group_id)
         if not group:
             """群不存在"""
+            logger.debug(
+                "群组信息不存在...",
+                "AuthChecker",
+                session=session,
+            )
             raise IgnoredException("群不存在")
         if group.level < 0:
             """群权限小于0"""
