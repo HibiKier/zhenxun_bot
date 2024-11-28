@@ -48,10 +48,8 @@ def build_plugin_data(classify: dict[str, list[Item]]) -> list[dict[str, str]]:
     返回:
         list[dict[str, str]]: 前端插件数据
     """
-
-    lengths = [len(classify[c]) for c in classify]
-    index = lengths.index(max(lengths))
-    menu_key = list(classify.keys())[index]
+    classify = dict(sorted(classify.items(), key=lambda x: len(x[1]), reverse=True))
+    menu_key = next(iter(classify.keys()))
     max_data = classify[menu_key]
     del classify[menu_key]
     plugin_list = [
