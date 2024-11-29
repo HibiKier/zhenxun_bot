@@ -29,6 +29,7 @@ __plugin_meta__ = PluginMetadata(
         author="HibiKier",
         version="0.1",
         plugin_type=PluginType.DEPENDANT,
+        is_show=False,
         configs=[
             RegisterConfig(
                 key="type",

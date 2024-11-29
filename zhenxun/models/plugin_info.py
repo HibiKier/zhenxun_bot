@@ -48,6 +48,8 @@ class PluginInfo(Model):
     """是否删除"""
     parent = fields.CharField(max_length=255, null=True, description="父插件")
     """父插件"""
+    is_show = fields.BooleanField(default=True, description="是否显示在帮助中")
+    """是否显示在帮助中"""
 
     class Meta:  # type: ignore
         table = "plugin_info"
@@ -81,4 +83,5 @@ class PluginInfo(Model):
     async def _run_script(cls):
         return [
             "ALTER TABLE plugin_info ADD COLUMN parent character varying(255);",
+            "ALTER TABLE plugin_info ADD COLUMN is_show boolean DEFAULT true;",
         ]

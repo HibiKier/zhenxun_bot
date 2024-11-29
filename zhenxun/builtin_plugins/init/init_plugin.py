@@ -136,6 +136,7 @@ async def _():
                     "version",
                     "admin_level",
                     "plugin_type",
+                    "is_show",
                 ]
             )
             update_list.append(plugin)
