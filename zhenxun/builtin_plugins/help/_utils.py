@@ -13,6 +13,7 @@ async def sort_type() -> dict[str, list[PluginInfo]]:
         menu_type__not="",
         load_status=True,
         plugin_type__in=[PluginType.NORMAL, PluginType.DEPENDANT],
+        is_show=True,
     )
     sort_data = {}
     for plugin in data:

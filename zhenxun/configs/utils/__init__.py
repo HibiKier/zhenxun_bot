@@ -203,6 +203,8 @@ class PluginExtraData(BaseModel):
     """额外名称"""
     sql_list: list[str] | None = None
     """常用sql"""
+    is_show: bool = True
+    """是否显示在菜单中"""
 
 
 class NoSuchConfig(Exception):
