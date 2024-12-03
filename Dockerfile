@@ -1,11 +1,12 @@
-FROM python:3.11-slim-bookworm
-
-EXPOSE 8080
+# 第一阶段：安装依赖项
+FROM python:3.11-slim-bookworm AS builder
 
 WORKDIR /app/zhenxun
 
+# 复制项目文件
 COPY . /app/zhenxun
 
+# 更新包列表并安装必要的依赖项
 RUN apt update && \
     apt upgrade -y && \
     apt install -y --no-install-recommends \
@@ -13,18 +14,35 @@ RUN apt update && \
     g++ && \
     apt clean
 
+# 安装 Poetry 并设置不使用虚拟环境
 RUN pip install poetry
+ENV POETRY_VIRTUALENVS_CREATE=false
 
-RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
+# 安装项目依赖项
+RUN poetry install
 
-RUN pip install -r requirements.txt
+# 安装 Playwright 及其依赖项
+RUN poetry run playwright install --with-deps chromium
 
-VOLUME /app/zhenxun/data /app/zhenxun/data
+# 清理不必要的依赖项
+RUN apt purge -y gcc g++ && \
+    apt autoremove -y && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
 
-VOLUME /app/zhenxun/resources /app/zhenxun/resources
+# 第二阶段：运行应用
+FROM python:3.11-slim-bookworm
 
-VOLUME /app/zhenxun/.env.dev /app/zhenxun/.env.dev
+EXPOSE 8080
 
-RUN playwright install --with-deps chromium
+WORKDIR /app/zhenxun
 
+# 复制依赖项和应用代码
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /app/zhenxun /app/zhenxun
+
+# 设置数据和资源目录
+VOLUME /app/zhenxun/data /app/zhenxun/resources /app/zhenxun/.env.dev
+
+# 设置默认命令
 CMD ["python", "bot.py"]
