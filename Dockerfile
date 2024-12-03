@@ -37,6 +37,13 @@ EXPOSE 8080
 
 WORKDIR /app/zhenxun
 
+RUN apt update && \
+    apt install -y --no-install-recommends \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && apt clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # 复制依赖项和应用代码
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /app/zhenxun /app/zhenxun
