@@ -2,18 +2,17 @@ from datetime import datetime, timedelta
 
 from tortoise.functions import Count
 
-from zhenxun.models.group_console import GroupConsole
-from zhenxun.models.group_member_info import GroupInfoUser
-from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.utils.enum import PluginType
 from zhenxun.models.statistics import Statistics
+from zhenxun.utils.image_utils import BuildImage
+from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.utils.echart_utils import ChartUtils
 from zhenxun.utils.echart_utils.models import Barh
-from zhenxun.utils.enum import PluginType
-from zhenxun.utils.image_utils import BuildImage, BuildMat, MatType
+from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.group_member_info import GroupInfoUser
 
 
 class StatisticsManage:
-
     @classmethod
     async def get_statistics(
         cls,
@@ -28,12 +27,12 @@ class StatisticsManage:
         if search_type == "day":
             day = 1
             day_type = "日"
-        if search_type == "week":
-            day = 7
-            day_type = "周"
-        if search_type == "month":
+        elif search_type == "month":
             day = 30
             day_type = "月"
+        elif search_type == "week":
+            day = 7
+            day_type = "周"
         if day_type:
             day_type += f"({day}天)"
         title = ""
@@ -53,7 +52,7 @@ class StatisticsManage:
         else:
             title = "功能调用统计"
         if is_global and not user_id:
-            title = "全局 " + title
+            title = f"全局 {title}"
             return await cls.get_global_statistics(plugin_name, day, title)
         if user_id:
             return await cls.get_my_statistics(user_id, group_id, day, title)
@@ -76,9 +75,11 @@ class StatisticsManage:
             .group_by("plugin_name")
             .values_list("plugin_name", "count")
         )
-        if not data_list:
-            return "统计数据为空..."
-        return await cls.__build_image(data_list, title)
+        return (
+            await cls.__build_image(data_list, title)
+            if data_list
+            else "统计数据为空..."
+        )
 
     @classmethod
     async def get_my_statistics(
@@ -95,9 +96,11 @@ class StatisticsManage:
             .group_by("plugin_name")
             .values_list("plugin_name", "count")
         )
-        if not data_list:
-            return "统计数据为空..."
-        return await cls.__build_image(data_list, title)
+        return (
+            await cls.__build_image(data_list, title)
+            if data_list
+            else "统计数据为空..."
+        )
 
     @classmethod
     async def get_group_statistics(cls, group_id: str, day: int | None, title: str):
@@ -110,15 +113,18 @@ class StatisticsManage:
             .group_by("plugin_name")
             .values_list("plugin_name", "count")
         )
-        if not data_list:
-            return "统计数据为空..."
-        return await cls.__build_image(data_list, title)
+        return (
+            await cls.__build_image(data_list, title)
+            if data_list
+            else "统计数据为空..."
+        )
 
     @classmethod
     async def __build_image(cls, data_list: list[tuple[str, int]], title: str):
         module2count = {x[0]: x[1] for x in data_list}
         plugin_info = await PluginInfo.filter(
             module__in=module2count.keys(),
+            load_status=True,
             plugin_type=PluginType.NORMAL,
         ).all()
         x_index = []
@@ -126,5 +132,5 @@ class StatisticsManage:
         for plugin in plugin_info:
             x_index.append(plugin.name)
             data.append(module2count.get(plugin.module, 0))
-        barh = Barh(data=data, category_data=x_index)
+        barh = Barh(data=data, category_data=x_index, title=title)
         return await ChartUtils.barh(barh)

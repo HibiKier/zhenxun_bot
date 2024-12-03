@@ -123,3 +123,8 @@ class PluginDetail(PluginInfo):
     """
 
     config_list: list[PluginConfig]
+
+
+class PluginIr(BaseModel):
+    id: int
+    """插件id"""

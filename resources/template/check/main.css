@@ -1,0 +1,182 @@
+
+
+@font-face {
+    font-family: fzrzFont;
+    /* 导入的字体文件 */
+    src: url("../../font/fzrzExtraBold.ttf");
+}
+
+
+
+
+body {
+    position: absolute;
+    left: -8px;
+    top: -8px;
+}
+
+.wrapper{
+    height: 750px;
+    width: 395px;
+    background-color: antiquewhite;
+    position: relative;
+}
+
+.top-image {
+    height: 215px;
+    width: 395px;
+}
+
+.abs-image {
+    height: 426px;
+    width: 93px;
+    position: absolute;
+    right: 39px;
+    top: 240px;
+}
+
+.bot-text {
+    height: 55px;
+    width: 335px;
+    position: relative;
+    padding: 0 30px;
+    margin-top: 10px;
+}
+
+.main {
+    height: 448px;
+    width: 335px;
+    padding: 0 30px;
+    position: relative;
+}
+
+.title {
+    background-color: #EB869D;
+    height: 32px;
+    font-family: 'fzrzFont';
+    color: white;
+    width: max-content;
+    border-radius: 20px;
+    padding: 0 10px;
+    float: left;
+    margin-top: 10px;
+}
+
+.title-n {
+    height: 23px;
+    width: 23px;
+    border-radius: 50%;
+    background-color: white;
+    position: absolute;
+    left: 36px;
+    top: 15px;
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+}
+
+.title-a {
+    background-color: #ED859E;
+    height: 19px;
+    width: 19px;
+    border-radius: 50%;
+}
+
+.network {
+    display: flex;
+    margin-left: 10px;
+}
+
+.network-item {
+    font-family: 'fzrzFont';
+    color: #EC859F;
+    display: flex;
+    justify-items: center;
+    align-items: center;
+    margin-left: 20px;
+}
+
+.network-status {
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    margin-left: 5px;
+}
+
+.network-text {
+    margin-left: 5px;
+}
+
+.network-item {
+    margin-top: 10px;
+}
+
+.data-status-item {
+    margin-top: 10px;
+}
+
+.data-status {
+    width: 100%;
+    height: 240px;
+    /* background-color:blueviolet; */
+    margin-top: 22px;
+}
+
+.data-status-item {
+    display: flex;
+    font-family: 'fzrzFont';
+    font-size: 15px;
+    line-height: 18.5px;
+    height: 50px;
+}
+
+.process {
+    height: 28px;
+    width: 105px;
+    border: #ED859E 4px solid;
+    border-radius: 30px;
+    overflow: hidden;
+}
+
+.process-bar {
+    height: 28px;
+    width: 30px;
+    background-color: #EB869D;
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+}
+
+.data-status-item-text {
+    margin-left: 10px;
+    color: #EC839D;
+}
+
+.line {
+    background-color: #EC859F;
+    height: 2px;
+    width: 100%;
+    border-radius: 20px;
+}
+
+.status-text {
+    font-family: 'fzrzFont';
+    color: #EC859F;
+    height: 185px;
+}
+
+.status-text-title {
+    /* height: 25%; */
+    display: flex;
+    /* justify-content: center; */
+    align-items: center;
+    font-size: 14px;
+}
+
+.tip {
+    font-family: 'fzrzFont';
+    color: #ecbac7;
+    font-size: 10px;
+    position: absolute;
+    right: 5px;
+    bottom: 1px;
+}

@@ -174,11 +174,9 @@ data/
 /resources/image/prts/
 /configs/config.py
 configs/config.yaml
-./.env
-./.env.dev
 plugins/csgo_server/
 plugins/activity/
 !/resources/image/genshin/alc/back.png
 !/data/genshin_alc/
 .vscode/launch.json
-/resources/template/my_info
+plugins_/

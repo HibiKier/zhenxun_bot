@@ -1,5 +1,3 @@
-from typing import Literal
-
 from pydantic import BaseModel
 
 from zhenxun.utils.enum import RequestType
@@ -31,6 +29,8 @@ class Task(BaseModel):
     """被动中文名称"""
     status: bool
     """状态"""
+    is_super_block: bool
+    """是否超级用户禁用"""
 
 
 class Plugin(BaseModel):
@@ -232,7 +232,6 @@ class GroupDetail(BaseModel):
 
 
 class MessageItem(BaseModel):
-
     type: str
     """消息类型"""
     msg: str

@@ -1,17 +1,18 @@
+from tortoise import Tortoise
 from nonebot import on_command
+from nonebot.rule import to_me
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
-from nonebot.rule import to_me
 from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_session import EventSession
-from tortoise import Tortoise
 
-from zhenxun.configs.utils import PluginExtraData
-from zhenxun.models.ban_console import BanConsole
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
-from zhenxun.utils.image_utils import ImageTemplate
+from zhenxun.configs.config import BotConfig
 from zhenxun.utils.message import MessageUtils
+from zhenxun.configs.utils import PluginExtraData
+from zhenxun.models.ban_console import BanConsole
+from zhenxun.utils.image_utils import ImageTemplate
 
 __plugin_meta__ = PluginMetadata(
     name="数据库操作",
@@ -43,11 +44,28 @@ _table_matcher = on_command(
     block=True,
 )
 
-SELECT_TABLE_SQL = """
+SELECT_TABLE_MYSQL_SQL = """
+SELECT table_name AS name, table_comment AS `desc`
+FROM information_schema.tables
+WHERE table_schema = DATABASE();
+"""
+
+SELECT_TABLE_SQLITE_SQL = """
+SELECT name FROM sqlite_master WHERE type='table';
+"""
+
+SELECT_TABLE_PSQL_SQL = """
 select a.tablename as name,d.description as desc from pg_tables a
     left join pg_class c on relname=tablename
     left join pg_description d on oid=objoid and objsubid=0 where a.schemaname = 'public'
 """
+
+
+type2sql = {
+    "mysql": SELECT_TABLE_MYSQL_SQL,
+    "sqlite": SELECT_TABLE_SQLITE_SQL,
+    "postgres": SELECT_TABLE_PSQL_SQL,
+}
 
 
 @_matcher.handle()
@@ -70,9 +88,7 @@ async def _(session: EventSession, message: UniMsg):
                     _column = r.keys()
             data_list = []
             for r in res:
-                data = []
-                for c in _column:
-                    data.append(r.get(c))
+                data = [r.get(c) for c in _column]
                 data_list.append(data)
             if not data_list:
                 return await MessageUtils.build_message("查询结果为空!").send()
@@ -90,11 +106,13 @@ async def _(session: EventSession, message: UniMsg):
 async def _(session: EventSession):
     try:
         db = Tortoise.get_connection("default")
-        query = await db.execute_query_dict(SELECT_TABLE_SQL)
+        sql_type = BotConfig.get_sql_type()
+        select_sql = type2sql[sql_type]
+        query = await db.execute_query_dict(select_sql)
         column_name = ["表名", "简介"]
         data_list = []
         for table in query:
-            data_list.append([table["name"], table["desc"]])
+            data_list.append([table["name"], table.get("desc")])
         logger.info("查看数据库所有表", "查看所有表", session=session)
         table = await ImageTemplate.table_page(
             "数据库表", f"总共有 {len(data_list)} 张表捏", column_name, data_list

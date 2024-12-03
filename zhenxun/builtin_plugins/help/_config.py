@@ -1,13 +1,13 @@
-from pydantic import BaseModel
+from zhenxun.configs.config import Config
+from zhenxun.configs.path_config import DATA_PATH, IMAGE_PATH
 
+GROUP_HELP_PATH = DATA_PATH / "group_help"
+GROUP_HELP_PATH.mkdir(exist_ok=True, parents=True)
+for f in GROUP_HELP_PATH.iterdir():
+    f.unlink()
 
-class Item(BaseModel):
-    plugin_name: str
-    sta: int
+SIMPLE_HELP_IMAGE = IMAGE_PATH / "SIMPLE_HELP.png"
+if SIMPLE_HELP_IMAGE.exists():
+    SIMPLE_HELP_IMAGE.unlink()
 
-
-class PluginList(BaseModel):
-    plugin_type: str
-    icon: str
-    logo: str
-    items: list[Item]
+base_config = Config.get("help")

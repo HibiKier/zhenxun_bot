@@ -34,11 +34,6 @@
     src: url("./res/font/jcyt.ttf");
 }
 
-@font-face {
-    font-family: yshsFont;
-    /* 导入的字体文件 */
-    src: url("/resources/font/YSHaoShenTi-2.ttf");
-}
 
 body {
     position: absolute;
@@ -79,10 +74,17 @@ body {
     margin-top: 43px;
     margin-left: 30px;
     font-size: 47px;
-    height: 57px;
-    align-items: center;
-    justify-content: center;
-    display: flex
+    /* align-items: center;
+    justify-content: center; */
+    /* display: flex; */
+    width: 275px;
+    height: 67px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
 }
 
 .uid {
@@ -122,6 +124,7 @@ body {
     position: absolute;
     top: 72px;
     left: 130px;
+    width: 200px;
 }
 
 .sign-content{

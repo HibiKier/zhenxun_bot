@@ -1,24 +1,30 @@
 from nonebot.adapters import Bot, Event
+from nonebot_plugin_uninfo import Uninfo
 from nonebot.plugin import PluginMetadata
+from nonebot_plugin_session import EventSession
 from nonebot_plugin_alconna import (
-    Alconna,
     Args,
+    Match,
+    Query,
+    Option,
+    UniMsg,
+    Alconna,
     Arparma,
     Subcommand,
     UniMessage,
-    UniMsg,
+    AlconnaQuery,
     on_alconna,
+    store_true,
 )
-from nonebot_plugin_session import EventSession
-from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 
-from zhenxun.configs.utils import BaseBlock, PluginExtraData
 from zhenxun.services.log import logger
-from zhenxun.utils.enum import BlockType, PluginType
-from zhenxun.utils.exception import GoodsNotFound
+from zhenxun.utils.depends import UserName
 from zhenxun.utils.message import MessageUtils
+from zhenxun.utils.exception import GoodsNotFound
+from zhenxun.utils.enum import BlockType, PluginType
+from zhenxun.configs.utils import BaseBlock, PluginExtraData
 
-from ._data_source import ShopManage
+from ._data_source import ShopManage, gold_rank
 
 __plugin_meta__ = PluginMetadata(
     name="商店",
@@ -30,6 +36,8 @@ __plugin_meta__ = PluginMetadata(
         我的道具
         使用道具 [名称/Id]
         购买道具 [名称/Id]
+        金币排行 ?[num=10]
+        金币总排行 ?[num=10]
     """.strip(),
     extra=PluginExtraData(
         author="HibiKier",
@@ -44,10 +52,12 @@ __plugin_meta__ = PluginMetadata(
 _matcher = on_alconna(
     Alconna(
         "商店",
+        Option("--all", action=store_true),
         Subcommand("my-cost", help_text="我的金币"),
         Subcommand("my-props", help_text="我的道具"),
-        Subcommand("buy", Args["name", str]["num", int, 1], help_text="购买道具"),
-        Subcommand("use", Args["name", str]["num?", int, 1], help_text="使用道具"),
+        Subcommand("buy", Args["name?", str]["num?", int], help_text="购买道具"),
+        Subcommand("use", Args["name?", str]["num?", int], help_text="使用道具"),
+        Subcommand("gold-list", Args["num?", int], help_text="金币排行"),
     ),
     priority=5,
     block=True,
@@ -68,16 +78,30 @@ _matcher.shortcut(
 )
 
 _matcher.shortcut(
-    "购买道具",
+    "购买道具(?P<name>.*?)",
     command="商店",
-    arguments=["buy", "{%0}"],
+    arguments=["buy", "{name}"],
     prefix=True,
 )
 
 _matcher.shortcut(
-    "使用道具",
+    "使用道具(?P<name>.*?)",
     command="商店",
-    arguments=["use", "{%0}"],
+    arguments=["use", "{name}"],
+    prefix=True,
+)
+
+_matcher.shortcut(
+    "金币排行",
+    command="商店",
+    arguments=["gold-list"],
+    prefix=True,
+)
+
+_matcher.shortcut(
+    r"金币总排行",
+    command="商店",
+    arguments=["--all", "gold-list"],
     prefix=True,
 )
 
@@ -96,40 +120,42 @@ async def _(session: EventSession, arparma: Arparma):
         gold = await ShopManage.my_cost(session.id1, session.platform)
         await MessageUtils.build_message(f"你的当前余额: {gold}").send(reply_to=True)
     else:
-        await MessageUtils.build_message(f"用户id为空...").send(reply_to=True)
+        await MessageUtils.build_message("用户id为空...").send(reply_to=True)
 
 
 @_matcher.assign("my-props")
-async def _(
-    session: EventSession, arparma: Arparma, user_info: UserInfo = EventUserInfo()
-):
+async def _(session: EventSession, arparma: Arparma, nickname: str = UserName()):
     if session.id1:
         logger.info("查看道具", arparma.header_result, session=session)
         if image := await ShopManage.my_props(
             session.id1,
-            user_info.user_displayname or user_info.user_name,
+            nickname,
             session.platform,
         ):
             await MessageUtils.build_message(image.pic2bytes()).finish(reply_to=True)
-        return await MessageUtils.build_message(f"你的道具为空捏...").send(
-            reply_to=True
-        )
+        return await MessageUtils.build_message("你的道具为空捏...").send(reply_to=True)
     else:
-        await MessageUtils.build_message(f"用户id为空...").send(reply_to=True)
+        await MessageUtils.build_message("用户id为空...").send(reply_to=True)
 
 
 @_matcher.assign("buy")
-async def _(session: EventSession, arparma: Arparma, name: str, num: int):
-    if session.id1:
-        logger.info(
-            f"购买道具 {name}, 数量: {num}",
-            arparma.header_result,
-            session=session,
-        )
-        result = await ShopManage.buy_prop(session.id1, name, num, session.platform)
-        await MessageUtils.build_message(result).send(reply_to=True)
-    else:
-        await MessageUtils.build_message(f"用户id为空...").send(reply_to=True)
+async def _(
+    session: Uninfo,
+    arparma: Arparma,
+    name: Match[str],
+    num: Query[int] = AlconnaQuery("num", 1),
+):
+    if not name.available:
+        await MessageUtils.build_message(
+            "请在指令后跟需要购买的道具名称或id..."
+        ).finish(reply_to=True)
+    logger.info(
+        f"购买道具 {name}, 数量: {num}",
+        arparma.header_result,
+        session=session,
+    )
+    result = await ShopManage.buy_prop(session.user.id, name.result, num.result)
+    await MessageUtils.build_message(result).send(reply_to=True)
 
 
 @_matcher.assign("use")
@@ -139,11 +165,17 @@ async def _(
     message: UniMsg,
     session: EventSession,
     arparma: Arparma,
-    name: str,
-    num: int,
+    name: Match[str],
+    num: Query[int] = AlconnaQuery("num", 1),
 ):
+    if not name.available:
+        await MessageUtils.build_message(
+            "请在指令后跟需要使用的道具名称或id..."
+        ).finish(reply_to=True)
     try:
-        result = await ShopManage.use(bot, event, session, message, name, num, "")
+        result = await ShopManage.use(
+            bot, event, session, message, name.result, num.result, ""
+        )
         logger.info(
             f"使用道具 {name}, 数量: {num}", arparma.header_result, session=session
         )
@@ -152,6 +184,28 @@ async def _(
         elif isinstance(result, UniMessage):
             await result.finish(reply_to=True)
     except GoodsNotFound:
-        await MessageUtils.build_message(f"没有找到道具 {name} 或道具数量不足...").send(
+        await MessageUtils.build_message(f"没有找到道具 {name.result} 或道具数量不足...").send(
             reply_to=True
         )
+
+
+@_matcher.assign("gold-list")
+async def _(
+    session: Uninfo, arparma: Arparma, num: Query[int] = AlconnaQuery("num", 10)
+):
+    if num.result > 50:
+        await MessageUtils.build_message("排行榜人数不能超过50哦...").finish()
+    gid = session.group.id if session.group else None
+    if not arparma.find("all") and not gid:
+        await MessageUtils.build_message(
+            "私聊中无法查看 '金币排行'，请发送 '金币总排行'"
+        ).finish()
+    if arparma.find("all"):
+        gid = None
+    result = await gold_rank(session, gid, num.result)
+    logger.info(
+        "查看金币排行",
+        arparma.header_result,
+        session=session,
+    )
+    await MessageUtils.build_message(result).send(reply_to=True)

@@ -28,7 +28,7 @@
 
 <div align=center>
 
-## 绪山真寻Bot
+## 绪山真寻 Bot
 
 </div>
 
@@ -39,11 +39,12 @@
 :tada:喜欢真寻，于是真寻就来了！:tada:
 
 本项目符合 [OneBot](https://github.com/howmanybots/onebot) 标准，可基于以下项目与机器人框架/平台进行交互
-| 项目地址 | 平台 | 核心作者 | 备注 |
-| :---: | :---: | :---: | :---: |
-| [LLOneBot](https://github.com/LLOneBot/LLOneBot) | NTQQ | linyuchen | 可用 |
-| [Napcat](https://github.com/NapNeko/NapCatQQ) | NTQQ | NapNeko | 可用 |
-| [Lagrange.Core](https://github.com/LagrangeDev/Lagrange.Core) | | LagrangeDev/Linwenxuan04 | 可用
+
+|                           项目地址                            | 平台 |         核心作者         | 备注 |
+| :-----------------------------------------------------------: | :--: | :----------------------: | :--: |
+|       [LLOneBot](https://github.com/LLOneBot/LLOneBot)        | NTQQ |        linyuchen         | 可用 |
+|         [Napcat](https://github.com/NapNeko/NapCatQQ)         | NTQQ |         NapNeko          | 可用 |
+| [Lagrange.Core](https://github.com/LagrangeDev/Lagrange.Core) | NTQQ | LagrangeDev/Linwenxuan04 | 可用 |
 
 </div>
 
@@ -57,8 +58,9 @@
 
 <div align=center>
 
-<img width="400" height="400" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/help.png"/>
+<img width="350" height="350" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/help.png"/>
 <img width="250" height="500" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/html_help.png"/>
+<img width="180" height="450" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/zhenxun_help.png"/>
 
 </div>
 
@@ -66,11 +68,11 @@
 
 ### 1. 体验一下？
 
-这是一个免费的，版本为dev的zhenxun，你可以通过napcat或拉格朗日等直接连接用于体验与测试  
+这是一个免费的，版本为 dev 的 zhenxun，你可以通过 [napcat](https://github.com/NapNeko/NapCatQQ) 或 [拉格朗日](https://github.com/LagrangeDev/Lagrange.Core) 以及 [matcha](https://github.com/A-kirami/matcha) 等直接连接用于体验与测试  
 （球球了测试君！）
 
 ```
-Url： 43.143.112.57:11451/onebot/v11/ws
+Url: ws://test.zhenxun.org:8080/onebot/v11/ws
 AccessToken: PUBLIC_ZHENXUN_TEST
 
 注：你无法获得超级用户权限
@@ -82,27 +84,25 @@ AccessToken: PUBLIC_ZHENXUN_TEST
   
 “不要害怕，你的背后还有千千万万的 <strong>伙伴</strong> 啊！”
 
-|                                             项目名称                                              | 主要用途 |                   仓库作者                    |                              备注                               |
-| :-----------------------------------------------------------------------------------------------: | :------: | :-------------------------------------------: | :-------------------------------------------------------------: |
-|                   [插件库](https://github.com/zhenxun-org/zhenxun_bot_plugins)                    |   插件   | [zhenxun-org](https://github.com/zhenxun-org) |                       原plugins文件夹插件                       |
-|              [插件索引库](https://github.com/zhenxun-org/zhenxun_bot_plugins_index)               |   插件   | [zhenxun-org](https://github.com/zhenxun-org) |                         扩展插件索引库                          |
-|                      [WebUi](https://github.com/HibiKier/zhenxun_bot_webui)                       |   管理   |    [hibikier](https://github.com/HibiKier)    |                    基于真寻WebApi的webui实现                    |
-|                   [一键安装](https://github.com/zhenxun-org/zhenxun_bot-deploy)                   |   安装   |  [AkashiCoin](https://github.com/AkashiCoin)  |                          新版本未测试                           |
-|                  [Docker单机版](https://github.com/Sakuracio/zhenxun_bot_docker)                  |   安装   | [zhenxun-org](https://github.com/zhenxun-org) |                          新版本未测试                           |
-| [Docker全量版](https://shields.io/badge/GITHUB-SinKy--Yan-4476AF?logo=github&style=for-the-badge) |   安装   | [zhenxun-org](https://github.com/zhenxun-org) | 包含 真寻Bot PostgreSQL数据库 go-cqhttp webui等（新版本未测试） |
-
-PS： **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可能无法正常启动全量版容器**
+|                                项目名称                                | 主要用途 |                      仓库作者                       |             备注              |
+| :--------------------------------------------------------------------: | :------: | :-------------------------------------------------: | :---------------------------: |
+|      [插件库](https://github.com/zhenxun-org/zhenxun_bot_plugins)      |   插件   |    [zhenxun-org](https://github.com/zhenxun-org)    |     原 plugins 文件夹插件     |
+| [插件索引库](https://github.com/zhenxun-org/zhenxun_bot_plugins_index) |   插件   |    [zhenxun-org](https://github.com/zhenxun-org)    |        扩展插件索引库         |
+|    [一键安装](https://github.com/soloxiaoye2022/zhenxun_bot-deploy)    |   安装   | [soloxiaoye2022](https://github.com/soloxiaoye2022) |            第三方             |
+|         [WebUi](https://github.com/HibiKier/zhenxun_bot_webui)         |   管理   |       [hibikier](https://github.com/HibiKier)       | 基于真寻 WebApi 的 webui 实现 |
+|  [安卓 app(WebUi)](https://github.com/YuS1aN/zhenxun_bot_android_ui)   |   安装   |         [YuS1aN](https://github.com/YuS1aN)         |            第三方             |
 
 <details>
 <summary> <strong> WebUI </strong>后台示例图 </summary>
 
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui1.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui2.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui3.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui4.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui5.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui6.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui7.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui00.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui01.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui02.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui03.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui04.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui05.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui06.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui07.png)
 
 </details>
 
@@ -112,11 +112,12 @@ PS： **ARM平台** 请使用全量版 同时 **如果你的机器 RAM < 1G 可�
 
 ## ~~来点优点？~~ 可爱难道还不够吗
 
-- 实现了许多功能，且提供了大量功能管理命令
-- 通过Config配置项将所有插件配置统计保存至config.yaml，利于统一用户修改
-- 方便增删插件，原生nonebot2 matcher，不需要额外修改，仅仅通过简单的配置属性就可以生成`帮助图片`和`帮助信息`
-- 提供了cd，阻塞，每日次数等限制，仅仅通过简单的属性就可以生成一个限制，例如：`PluginCdBlock` 等
-- **..... 更多详细请通过`传送门`查看文档！**
+- 实现了许多功能，且提供了大量功能管理命令，进行了多平台适配，兼容 nb2 商店插件
+- 拥有完善可用的 webui
+- 通过 Config 配置项将所有插件配置统计保存至 config.yaml，利于统一用户修改
+- 方便增删插件，原生 nonebot2 matcher，不需要额外修改，仅仅通过简单的配置属性就可以生成`帮助图片`和`帮助信息`
+- 提供了 cd，阻塞，每日次数等限制，仅仅通过简单的属性就可以生成一个限制，例如：`PluginCdBlock` 等
+- **..... 更多详细请通过[[传送门](https://hibikier.github.io/zhenxun_bot/)]查看文档！**
 
 ## 简单部署
 
@@ -134,9 +135,6 @@ poetry install          # 安装依赖
 # 开始运行
 poetry shell            # 进入虚拟环境
 python bot.py
-
-# 在Linux系统，你可能还需要运行此命令安装playwright依赖
-playwright install-deps
 
 # 首次后会在data目录下生成config.yaml文件
 # config.yaml用户配置插件
@@ -159,6 +157,8 @@ playwright install-deps
   '
   # 此处填写你的数据库地址
   # 示例: "postgres://user:password@127.0.0.1:5432/database"
+  # 示例: "mysql://user:password@127.0.0.1:5432/database"
+  # 示例: "sqlite:data/db/zhenxun.db"   在data目录下建立db文件夹
   DB_URL = ""   # 数据库地址
 
 
@@ -167,165 +167,101 @@ playwright install-deps
 
 ```
 
-## 功能列表 （旧版列表）
+## 功能列表
 
 <details>
-<summary>已实现的功能</summary>
+<summary>内置功能</summary>
 
-### 已实现的常用功能
+**真寻原 `plugins` 插件文件夹已迁移至其他仓库，当前内置仅保留必要的功能**
 
-- [x] 昵称系统（群与群与私聊分开.）
+### 基础功能
 
-- [x] 图灵AI（会把'你'等关键字替换为你的昵称），且带有 [AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus)，够味
+- [x] 昵称系统（群与群与私聊分开）
 - [x] 签到/我的签到/好感度排行/好感度总排行（影响色图概率和开箱次数，支持配置）
-- [x] 发送某文件夹下的随机图片（支持自定义，默认：美图，萝莉，壁纸）
-- [x] 色图（这不是基础功能嘛喂）
-- [x] coser
-- [x] 黑白草图生成器
-- [x] 鸡汤/语录
-- [x] 骂我（钉宫语音）
-- [x] 戳一戳（概率发送美图，钉宫语音或者戳回去）
-- [x] 模拟开箱/我的开箱/群开箱统计/我的金色/设置cookie（csgo，内置爬虫脚本，需要提前抓取数据和图片，需要session，可能需要代理，阿里云服务器等ip也许已经被ban了（我无代理访问失败），如果访问太多账号API调用可能被禁止访问api！）
-- [x] 鲁迅说过
-- [x] 构造假消息（自定义的分享链接）
-- [x] 商店/我的金币/购买道具/使用道具
-- [x] 8种手游抽卡 (查看 [nonebot_plugin_gamedraw](https://github.com/HibiKier/nonebot_plugin_gamedraw))
-- [x] 我有一个朋友想问问..（借鉴pcrbot插件）
-- [x] 原神黄历
-- [x] 原神今日素材
-- [x] 原神资源查询 (借鉴[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
-- [x] 原神便笺查询
-- [x] 原神玩家查询
-- [x] 原神树脂提醒
-- [x] 原神签到/自动签到
-- [x] 金币红包
-- [x] 微博热搜
-- [x] B站主播/UP/番剧订阅
-
-- [x] pil对图片的一些操作
-- [x] BUFF饰品底价查询（需要session）
-- [x] 天气查询
-- [x] 疫情查询
-- [x] bt磁力搜索（咳咳，这功能我想dddd）
-- [x] reimu搜索（上车） (使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件)
-- [x] 靠图识番 (使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件)
-- [x] 以图搜图 (使用[nonebot_plugin_picsearcher](https://github.com/synodriver/nonebot_plugin_picsearcher)插件)
-- [x] 搜番
-- [x] 点歌 [nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2)插件（删除了选歌和评论）
-- [x] epic免费游戏
-- [x] p站排行榜
-- [x] p站搜图
-- [x] 翻译（日英韩）
-- [x] pix图库（一个自己的图库，含有增删查改，黑名单等命令）
-
+- [x] 商店/我的金币/购买道具/使用道具/金币排行（完整的商店添加/购买/使用流程）
 - [x] 查看当前群欢迎消息
-- [x] 查看该群自己的权限
-- [x] 我的信息（只是为了看看什么时候入群）
-- [x] 更新信息（如果继续更新的话）
-- [x] go-cqhttp最新版下载和上传（不需要请删除）
-- [x] 撤回
-- [x] 滴滴滴-（用户对超级用户发送消息）
-- [x] 金币红包/金币排行
-- [x] 俄罗斯轮盘/胜场排行/败场排行/欧洲人排行/慈善家排行
-- [x] 网易云热评
-- [x] 念首古诗
-- [x] 获取b站视频封面
-- [x] 通过PID获取图片
+- [x] 个人信息查看（群组内权限，聊天频率等）
+- [x] 消息撤回
 - [x] 功能统计可视化
-- [x] 词云
 - [x] 关于
+- [x] 三种样式的帮助菜单
 
-### 已实现的管理员功能
+### 管理员功能
 
+- [x] 管理员帮助
 - [x] 更新群组成员信息
-
 - [x] 95%的群功能开关
 - [x] 查看群内被动技能状态
 - [x] 自定义群欢迎消息（是真寻的不是管家的！）
-- [x] .ban/.unban（支持设置ban时长）= 黑白名单
-- [x] 刷屏禁言相关：刷屏检测设置/设置禁言时长/设置检测次数
-- [x] 上传图片/连续上传图片 （上传图片至指定图库）
-- [x] 移动图片 （同上）
-- [x] 删除图片 （同上）
-- [x] 群内B站订阅
-- [x] 词条设置
-- [x] 休息吧/醒来
+- [x] ban/unban（支持设置 ban 时长）= 群组及用户的黑名单
+- [x] 休息吧/醒来（群组内真寻状态）
 
-### 已实现的超级用户功能
+### 超级用户功能
 
+- [x] 超级用户帮助
 - [x] 添加/删除权限（是真寻的管理员权限，不是群管理员）
-
-- [x] 开启/关闭指定群的广播通知
+- [x] 群组管理，退群指令等
 - [x] 广播
 - [x] 自检（检查系统状态）
 - [x] 所有群组/所有好友
 - [x] 退出指定群
 - [x] 更新好友信息/更新群信息
-- [x] /t（对用户进行回复或发送消息）
-- [x] 上传/删除/修改商品（需要编写对应的商品功能）
-- [x] 节日红包发送
 - [x] 修改群权限
-- [x] ban
-- [x] 更新色图
-- [x] 更新价格/更加图片（csgo开箱）
-- [x] 重载原神/方舟/赛马娘/坎公骑冠剑卡池
-- [x] 更新原神今日素材/更新原神资源信息
-- [x] PIX相关操作
-- [x] 检查更新真寻
+- [x] 检查更新
 - [x] 重启
 - [x] 添加/删除/查看群白名单
 - [x] 功能开关(更多设置)
 - [x] 功能状态
-- [x] b了
-- [x] 执行sql
+- [x] 执行 SQL
 - [x] 重载配置
 - [x] 清理临时数据
 - [x] 增删群认证
 - [x] 同意/拒绝好友/群聊请求
-- [x] 配置重载
+- [x] 添加/移除/更新插件/插件商店（plugins 库以及扩展库）
+- [x] WebUI API（对真寻前端的支持）
 
 #### 超级用户的被动技能
 
-- [x] 邀请入群提醒(别人邀请真寻入群)
+- [x] 邀请入群提醒(别人邀请真寻入群，可配置自动同意)
 
-- [x] 添加好友提醒(别人添加真寻好友)
+- [x] 添加好友提醒(别人添加真寻好友，可配置自动同意)
 
-### 已实现的被动技能
-
-- [x] 进群欢迎消息
+### 被动技能
 
 - [x] 群早晚安
-- [x] 每日开箱重置提醒
-- [x] b站转发解析（解析b站分享信息，支持bv，bilibili链接，b站手机端转发卡片，cv，b23.tv），且5分钟内不解析相同url
-- [x] 丢人爬（爬表情包）
-- [x] epic通知（每日发送epic免费游戏链接）
-- [x] 原神黄历提醒
-- [x] 复读
 
-### 已实现的看不见的技能
-
-- [x] 刷屏禁言检测
+### 看不见的技能
 
 - [x] 功能调用统计
-- [x] 检测恶意触发命令（将被最高权限ban掉30分钟，只有最高权限(9级)可以进行unban）
-- [x] 自动同意好友请求，加群请求将会提醒管理员，退群提示，加群欢迎等等
-- [x] 群聊时间检测（当群聊最后一人发言时间大于当前36小时后将关闭该群所有通知（即被动技能））
+- [x] 聊天记录统计
+- [x] 检测恶意触发命令（将被最高权限 ban 掉 30 分钟，只有最高权限(9 级)可以进行 unban）
+- [x] 自动同意好友/群组请求，加群请求将会提醒管理员，退群提示，加群欢迎等等
+- [x] 群聊时间检测（当群聊最后一人发言时间大于当前 48 小时后将关闭该群所有通知（即被动技能））
 - [x] 群管理员监控，自动为新晋管理员增加权限，为失去群管理员的用户删除权限
 - [x] 群权限系统
 - [x] 定时更新权限
 - [x] 自动配置重载
+- [x] 强制入群保护
+- [x] 自定备份（可配置）
+- [x] 笨蛋检测（当使用功能名称当指令时真寻会跳出来狠狠嘲笑并帮助）
+
+### 更多插件...
+
+- [更多插件](https://github.com/zhenxun-org/zhenxun_bot_plugins)
+
+- [第三方插件索引库](https://github.com/zhenxun-org/zhenxun_bot_plugins_index)
 
 </details>
 
-## [爱发电](https://afdian.net/@HibiKier)
+## [爱发电](https://afdian.com/a/HibiKier)
 
 <details>
 <summary>爱发电 以及 感谢投喂 </summary>
-<img width="365px" height="450px" src="https://user-images.githubusercontent.com/45528451/175059389-cfeb8174-fa07-4939-80ab-a039087a50f6.png">
+<img width="365px" height="450px" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/afd.jpg">
 
 ### 感谢名单
 
-(可以告诉我你的 **github** 地址，我偷偷换掉0v|)
+(可以告诉我你的 **github** 地址，我偷偷换掉 0v|)
 
 [shenqi](https://afdian.net/u/fa923a8cfe3d11eba61752540025c377)
 [A_Kyuu](https://afdian.net/u/b83954fc2c1211eba9eb52540025c377)
@@ -343,13 +279,13 @@ playwright install-deps
 [本喵无敌哒](https://afdian.net/u/dffaa9005bc911ebb69b52540025c377)  
 [椎名冬羽](https://afdian.net/u/ca1ebd64395e11ed81b452540025c377)  
 [kaito](https://afdian.net/u/a055e20a498811eab1f052540025c377)  
-[笑柒XIAO_Q7](https://afdian.net/u/4696db5c529111ec84ea52540025c377)  
+[笑柒 XIAO_Q7](https://afdian.net/u/4696db5c529111ec84ea52540025c377)  
 [请问一份爱多少钱](https://afdian.net/u/f57ef6602dbd11ed977f52540025c377)  
 [咸鱼鱼鱼鱼](https://afdian.net/u/8e39b9a400e011ed9f4a52540025c377)  
 [Kafka](https://afdian.net/u/41d66798ef6911ecbc5952540025c377)  
 [墨然](https://afdian.net/u/8aa5874a644d11eb8a6752540025c377)
 [爱发电用户\_T9e4](https://afdian.net/u/2ad1bb82f3a711eca22852540025c377)  
-[笑柒XIAO_Q7](https://afdian.net/u/4696db5c529111ec84ea52540025c377)  
+[笑柒 XIAO_Q7](https://afdian.net/u/4696db5c529111ec84ea52540025c377)  
 [noahzark](https://afdian.net/a/noahzark)  
 [腊条](https://afdian.net/u/f739c4d69eca11eba94b52540025c377)  
 [ze roller](https://afdian.net/u/0e599e96257211ed805152540025c377)  
@@ -371,14 +307,15 @@ playwright install-deps
 [哇](https://afdian.net/u/9b266244f23911eca19052540025c377)  
 [yajiwa](https://github.com/yajiwa)  
 [爆金币](https://afdian.net/u/0d78879ef23711ecb22452540025c377)
+...
 
 </details>
 
-## 更新
+<!-- ## 更新
 
 ### 2024/8/11
 
-- 更新dev
+- 更新 dev -->
 
 <!-- ### 2024/1/25
 
@@ -820,20 +757,20 @@ playwright install-deps
 
 ## Todo
 
-- [x] web管理
+- [x] web 管理
 
 ## 感谢
 
 [botuniverse / onebot](https://github.com/botuniverse/onebot) ：超棒的机器人协议  
-[Mrs4s / go-cqhttp](https://github.com/Mrs4s/go-cqhttp) ：cqhttp的golang实现，轻量、原生跨平台.  
-[nonebot / nonebot2](https://github.com/nonebot/nonebot2) ：跨平台Python异步机器人框架  
-[Angel-Hair / XUN_Bot](https://github.com/Angel-Hair/XUN_Bot) ：一个基于NoneBot和酷Q的功能性QQ机器人  
-[pcrbot / cappuccilo_plugins](https://github.com/pcrbot/cappuccilo_plugins) ：hoshino插件合集  
+[Mrs4s / go-cqhttp](https://github.com/Mrs4s/go-cqhttp) ：cqhttp 的 golang 实现，轻量、原生跨平台.  
+[nonebot / nonebot2](https://github.com/nonebot/nonebot2) ：跨平台 Python 异步机器人框架  
+[Angel-Hair / XUN_Bot](https://github.com/Angel-Hair/XUN_Bot) ：一个基于 NoneBot 和酷 Q 的功能性 QQ 机器人  
+[pcrbot / cappuccilo_plugins](https://github.com/pcrbot/cappuccilo_plugins) ：hoshino 插件合集  
 [MeetWq /nonebot-plugin-withdraw](https://github.com/MeetWq/nonebot-plugin-withdraw) ：A simple withdraw plugin for Nonebot2  
-[maxesisn / nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2) ：适用于nonebot2的点歌插件  
+[maxesisn / nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2) ：适用于 nonebot2 的点歌插件  
 [nonepkg / nonebot-plugin-manager](https://github.com/nonepkg/nonebot-plugin-manager) ：Nonebot Plugin Manager base on import hook  
-[H-K-Y / Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot) ：原神bot，这是一个基于nonebot和HoshinoBot的原神娱乐及信息查询插件  
-[NothAmor / nonebot2_luxun_says](https://github.com/NothAmor/nonebot2_luxun_says) ：基于nonebot2机器人框架的鲁迅说插件  
-[Kyomotoi / AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus) ：一个~~特二刺螈~~（文爱）的适用于任何bot的词库  
-[Ailitonia / omega-miya](https://github.com/Ailitonia/omega-miya) ：基于nonebot2的qq机器人  
-[KimigaiiWuyi / GenshinUID](https://github.com/KimigaiiWuyi/GenshinUID) ：一个基于HoshinoBot/NoneBot2的原神UID查询插件
+[H-K-Y / Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot) ：原神 bot，这是一个基于 nonebot 和 HoshinoBot 的原神娱乐及信息查询插件  
+[NothAmor / nonebot2_luxun_says](https://github.com/NothAmor/nonebot2_luxun_says) ：基于 nonebot2 机器人框架的鲁迅说插件  
+[Kyomotoi / AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus) ：一个~~特二刺螈~~（文爱）的适用于任何 bot 的词库  
+[Ailitonia / omega-miya](https://github.com/Ailitonia/omega-miya) ：基于 nonebot2 的 qq 机器人  
+[KimigaiiWuyi / GenshinUID](https://github.com/KimigaiiWuyi/GenshinUID) ：一个基于 HoshinoBot/NoneBot2 的原神 UID 查询插件

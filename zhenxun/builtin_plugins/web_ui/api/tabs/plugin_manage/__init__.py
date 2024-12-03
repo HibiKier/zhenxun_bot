@@ -1,20 +1,21 @@
 import re
 
 import cattrs
-from fastapi import APIRouter, Query
+from fastapi import Query, APIRouter
+from fastapi.responses import JSONResponse
 
-from zhenxun.configs.config import Config
-from zhenxun.models.plugin_info import PluginInfo as DbPluginInfo
 from zhenxun.services.log import logger
+from zhenxun.configs.config import Config
 from zhenxun.utils.enum import BlockType, PluginType
+from zhenxun.models.plugin_info import PluginInfo as DbPluginInfo
 
 from ....base_model import Result
 from ....utils import authentication
 from .model import (
-    PluginConfig,
-    PluginCount,
-    PluginDetail,
     PluginInfo,
+    PluginCount,
+    PluginConfig,
+    PluginDetail,
     PluginSwitch,
     UpdatePlugin,
 )
@@ -23,11 +24,15 @@ router = APIRouter(prefix="/plugin")
 
 
 @router.get(
-    "/get_plugin_list", dependencies=[authentication()], deprecated="获取插件列表"  # type: ignore
+    "/get_plugin_list",
+    dependencies=[authentication()],
+    response_model=Result[list[PluginInfo]],
+    response_class=JSONResponse,
+    deprecated="获取插件列表",  # type: ignore
 )
 async def _(
     plugin_type: list[PluginType] = Query(None), menu_type: str | None = None
-) -> Result:
+) -> Result[list[PluginInfo]]:
     try:
         plugin_list: list[PluginInfo] = []
         query = DbPluginInfo
@@ -57,9 +62,13 @@ async def _(
 
 
 @router.get(
-    "/get_plugin_count", dependencies=[authentication()], deprecated="获取插件数量"  # type: ignore
+    "/get_plugin_count",
+    dependencies=[authentication()],
+    response_model=Result[int],
+    response_class=JSONResponse,
+    deprecated="获取插件数量",  # type: ignore
 )
-async def _() -> Result:
+async def _() -> Result[int]:
     plugin_count = PluginCount()
     plugin_count.normal = await DbPluginInfo.filter(
         plugin_type=PluginType.NORMAL, load_status=True
@@ -78,7 +87,11 @@ async def _() -> Result:
 
 
 @router.post(
-    "/update_plugin", dependencies=[authentication()], description="更新插件参数"
+    "/update_plugin",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="更新插件参数",
 )
 async def _(plugin: UpdatePlugin) -> Result:
     try:
@@ -93,10 +106,7 @@ async def _(plugin: UpdatePlugin) -> Result:
         db_plugin.level = plugin.level
         db_plugin.menu_type = plugin.menu_type
         db_plugin.block_type = plugin.block_type
-        if plugin.block_type == BlockType.ALL:
-            db_plugin.status = False
-        else:
-            db_plugin.status = True
+        db_plugin.status = plugin.block_type != BlockType.ALL
         await db_plugin.save()
         # 配置项
         if plugin.configs and (configs := Config.get(plugin.module)):
@@ -112,7 +122,13 @@ async def _(plugin: UpdatePlugin) -> Result:
     return Result.ok(info="已经帮你写好啦!")
 
 
-@router.post("/change_switch", dependencies=[authentication()], description="开关插件")
+@router.post(
+    "/change_switch",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="开关插件",
+)
 async def _(param: PluginSwitch) -> Result:
     db_plugin = await DbPluginInfo.get_or_none(module=param.module, load_status=True)
     if not db_plugin:
@@ -128,9 +144,13 @@ async def _(param: PluginSwitch) -> Result:
 
 
 @router.get(
-    "/get_plugin_menu_type", dependencies=[authentication()], description="获取插件类型"
+    "/get_plugin_menu_type",
+    dependencies=[authentication()],
+    response_model=Result[list[str]],
+    response_class=JSONResponse,
+    description="获取插件类型",
 )
-async def _() -> Result:
+async def _() -> Result[list[str]]:
     menu_type_list = []
     result = await DbPluginInfo.annotate().values_list("menu_type", flat=True)
     for r in result:
@@ -139,8 +159,14 @@ async def _() -> Result:
     return Result.ok(menu_type_list)
 
 
-@router.get("/get_plugin", dependencies=[authentication()], description="获取插件详情")
-async def _(module: str) -> Result:
+@router.get(
+    "/get_plugin",
+    dependencies=[authentication()],
+    response_model=Result[PluginDetail],
+    response_class=JSONResponse,
+    description="获取插件详情",
+)
+async def _(module: str) -> Result[PluginDetail]:
     db_plugin = await DbPluginInfo.get_or_none(module=module, load_status=True)
     if not db_plugin:
         return Result.fail("插件不存在...")
@@ -149,19 +175,15 @@ async def _(module: str) -> Result:
         for cfg in config.configs:
             type_str = ""
             type_inner = None
-            x = str(config.configs[cfg].type)
-            r = re.search(r"<class '(.*)'>", str(config.configs[cfg].type))
-            if r:
-                type_str = r.group(1)
-            else:
-                r = re.search(r"typing\.(.*)\[(.*)\]", str(config.configs[cfg].type))
-                if r:
-                    type_str = r.group(1)
-                    if type_str:
-                        type_str = type_str.lower()
-                    type_inner = r.group(2)
-                    if type_inner:
-                        type_inner = [x.strip() for x in type_inner.split(",")]
+            if r := re.search(r"<class '(.*)'>", str(config.configs[cfg].type)):
+                type_str = r[1]
+            elif r := re.search(r"typing\.(.*)\[(.*)\]", str(config.configs[cfg].type)):
+                type_str = r[1]
+                if type_str:
+                    type_str = type_str.lower()
+                type_inner = r[2]
+                if type_inner:
+                    type_inner = [x.strip() for x in type_inner.split(",")]
             config_list.append(
                 PluginConfig(
                     module=module,

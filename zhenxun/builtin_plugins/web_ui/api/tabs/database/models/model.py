@@ -22,3 +22,18 @@ class SqlModel(BaseModel):
     """插件名称"""
     sql_list: list[CommonSql]
     """插件列表"""
+
+
+class Column(BaseModel):
+    """
+    列
+    """
+
+    column_name: str
+    """列名"""
+    data_type: str
+    """数据类型"""
+    max_length: int | None
+    """最大长度"""
+    is_nullable: str
+    """是否可为空"""

@@ -7,7 +7,6 @@ from nonebot.adapters.onebot.v11 import Adapter as OneBotV11Adapter
 
 nonebot.init()
 
-from zhenxun.services.db_context import disconnect, init
 
 driver = nonebot.get_driver()
 driver.register_adapter(OneBotV11Adapter)
@@ -15,6 +14,7 @@ driver.register_adapter(KaiheilaAdapter)
 driver.register_adapter(DoDoAdapter)
 # driver.register_adapter(DiscordAdapter)
 
+from zhenxun.services.db_context import init, disconnect
 
 driver.on_startup(init)
 driver.on_shutdown(disconnect)

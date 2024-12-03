@@ -2,9 +2,9 @@ import nonebot
 import aiofiles
 import ujson as json
 from ruamel.yaml import YAML
-from nonebot.plugin import Plugin
 from nonebot.drivers import Driver
 from nonebot import get_loaded_plugins
+from nonebot.plugin import Plugin, PluginMetadata
 
 from zhenxun.services.log import logger
 from zhenxun.models.task_info import TaskInfo
@@ -20,6 +20,8 @@ from zhenxun.utils.enum import (
     LimitWatchType,
     PluginLimitType,
 )
+
+from .manager import manager
 
 _yaml = YAML(pure=True)
 _yaml.allow_unicode = True
@@ -41,64 +43,68 @@ async def _handle_setting(
         plugin_list: 插件列表
         limit_list: 插件限制列表
     """
-    if metadata := plugin.metadata:
-        extra = metadata.extra
-        extra_data = PluginExtraData(**extra)
-        logger.debug(f"{metadata.name}:{plugin.name} -> {extra}", "初始化插件数据")
-        setting = extra_data.setting or PluginSetting()
-        if metadata.type == "library":
-            extra_data.plugin_type = PluginType.HIDDEN
-        if (
-            extra_data.plugin_type
-            == PluginType.HIDDEN
-            # and extra_data.plugin_type != "功能"
-        ):
-            extra_data.menu_type = ""
-        plugin_list.append(
-            PluginInfo(
+    metadata = plugin.metadata
+    if not metadata:
+        if not plugin.sub_plugins:
+            return
+        """父插件"""
+        metadata = PluginMetadata(name=plugin.name, description="", usage="")
+    extra = metadata.extra
+    extra_data = PluginExtraData(**extra)
+    logger.debug(f"{metadata.name}:{plugin.name} -> {extra}", "初始化插件数据")
+    setting = extra_data.setting or PluginSetting()
+    if metadata.type == "library":
+        extra_data.plugin_type = PluginType.HIDDEN
+    if extra_data.plugin_type == PluginType.HIDDEN:
+        extra_data.menu_type = ""
+    if plugin.sub_plugins:
+        extra_data.plugin_type = PluginType.PARENT
+    plugin_list.append(
+        PluginInfo(
+            module=plugin.name,
+            module_path=plugin.module_name,
+            name=metadata.name,
+            author=extra_data.author,
+            version=extra_data.version,
+            level=setting.level,
+            default_status=setting.default_status,
+            limit_superuser=setting.limit_superuser,
+            menu_type=extra_data.menu_type,
+            cost_gold=setting.cost_gold,
+            plugin_type=extra_data.plugin_type,
+            admin_level=extra_data.admin_level,
+            parent=(plugin.parent_plugin.module_name if plugin.parent_plugin else None),
+        )
+    )
+    if extra_data.limits:
+        limit_list.extend(
+            PluginLimit(
                 module=plugin.name,
                 module_path=plugin.module_name,
-                name=metadata.name,
-                author=extra_data.author,
-                version=extra_data.version,
-                level=setting.level,
-                default_status=setting.default_status,
-                limit_superuser=setting.limit_superuser,
-                menu_type=extra_data.menu_type,
-                cost_gold=setting.cost_gold,
-                plugin_type=extra_data.plugin_type,
-                admin_level=extra_data.admin_level,
+                limit_type=limit._type,
+                watch_type=limit.watch_type,
+                status=limit.status,
+                check_type=limit.check_type,
+                result=limit.result,
+                cd=getattr(limit, "cd", None),
+                max_count=getattr(limit, "max_count", None),
             )
+            for limit in extra_data.limits
         )
-        if extra_data.limits:
-            limit_list.extend(
-                PluginLimit(
-                    module=plugin.name,
-                    module_path=plugin.module_name,
-                    limit_type=limit._type,
-                    watch_type=limit.watch_type,
-                    status=limit.status,
-                    check_type=limit.check_type,
-                    result=limit.result,
-                    cd=getattr(limit, "cd", None),
-                    max_count=getattr(limit, "max_count", None),
-                )
-                for limit in extra_data.limits
+    if extra_data.tasks:
+        task_list.extend(
+            (
+                task.create_status,
+                TaskInfo(
+                    module=task.module,
+                    name=task.name,
+                    status=task.status,
+                    run_time=task.run_time,
+                    default_status=task.default_status,
+                ),
             )
-        if extra_data.tasks:
-            task_list.extend(
-                (
-                    task.create_status,
-                    TaskInfo(
-                        module=task.module,
-                        name=task.name,
-                        status=task.status,
-                        run_time=task.run_time,
-                        default_status=task.default_status,
-                    ),
-                )
-                for task in extra_data.tasks
-            )
+            for task in extra_data.tasks
+        )
 
 
 @driver.on_startup
@@ -115,8 +121,7 @@ async def _():
         module2id = {m["module_path"]: m["id"] for m in module_list}
     for plugin in get_loaded_plugins():
         load_plugin.append(plugin.module_name)
-        if plugin.metadata:
-            await _handle_setting(plugin, plugin_list, limit_list, task_list)
+        await _handle_setting(plugin, plugin_list, limit_list, task_list)
     create_list = []
     update_list = []
     for plugin in plugin_list:
@@ -131,6 +136,7 @@ async def _():
                     "version",
                     "admin_level",
                     "plugin_type",
+                    "is_show",
                 ]
             )
             update_list.append(plugin)
@@ -145,23 +151,25 @@ async def _():
     #     ["name", "author", "version", "admin_level", "plugin_type"],
     #     10,
     # )
-    if limit_list:
-        limit_create = []
-        plugins = []
-        if module_path_list := [limit.module_path for limit in limit_list]:
-            plugins = await PluginInfo.filter(module_path__in=module_path_list).all()
-        if plugins:
-            for limit in limit_list:
-                if lmt := [p for p in plugins if p.module_path == limit.module_path]:
-                    plugin = lmt[0]
-                    limit_type_list = [
-                        _limit.limit_type for _limit in await plugin.plugin_limit.all()  # type: ignore
-                    ]
-                    if limit.limit_type not in limit_type_list:
-                        limit.plugin = plugin
-                        limit_create.append(limit)
-        if limit_create:
-            await PluginLimit.bulk_create(limit_create, 10)
+    # for limit in limit_list:
+    #     limit_create = []
+    #     plugins = []
+    #     if module_path_list := [limit.module_path for limit in limit_list]:
+    #         plugins = await PluginInfo.get_plugins(module_path__in=module_path_list)
+    #     if plugins:
+    #         for limit in limit_list:
+    #             if lmt := [p for p in plugins if p.module_path == limit.module_path]:
+    #                 plugin = lmt[0]
+    #                 """不在数据库中"""
+    #                 limit_type_list = [
+    #                     _limit.limit_type
+    #                     for _limit in await plugin.plugin_limit.all()  # type: ignore
+    #                 ]
+    #                 if limit.limit_type not in limit_type_list:
+    #                     limit.plugin = plugin
+    #                     limit_create.append(limit)
+    #     if limit_create:
+    #         await PluginLimit.bulk_create(limit_create, 10)
     if task_list:
         module_dict = {
             t[1]: t[0] for t in await TaskInfo.all().values_list("id", "module")
@@ -192,10 +200,18 @@ async def _():
     await data_migration()
     await PluginInfo.filter(module_path__in=load_plugin).update(load_status=True)
     await PluginInfo.filter(module_path__not_in=load_plugin).update(load_status=False)
+    manager.init()
+    if limit_list:
+        for limit in limit_list:
+            if not manager.exists(limit.module, limit.limit_type):
+                """不存在，添加"""
+                manager.add(limit.module, limit)
+    manager.save_file()
+    await manager.load_to_db()
 
 
 async def data_migration():
-    await limit_migration()
+    # await limit_migration()
     await plugin_migration()
     await group_migration()
 

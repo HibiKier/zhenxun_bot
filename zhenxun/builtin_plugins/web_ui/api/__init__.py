@@ -1,1 +1,1 @@
-from .tabs import *
+from .tabs import *  # noqa: F403

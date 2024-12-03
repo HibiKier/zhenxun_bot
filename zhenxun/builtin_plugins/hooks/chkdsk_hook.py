@@ -2,19 +2,19 @@ import time
 from collections import defaultdict
 
 from nonebot.adapters import Event
-from nonebot.adapters.onebot.v11 import Bot
-from nonebot.exception import IgnoredException
-from nonebot.matcher import Matcher
-from nonebot.message import run_preprocessor
 from nonebot.typing import T_State
+from nonebot.matcher import Matcher
 from nonebot_plugin_alconna import At
+from nonebot.adapters.onebot.v11 import Bot
+from nonebot.message import run_preprocessor
+from nonebot.exception import IgnoredException
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import Config
-from zhenxun.models.ban_console import BanConsole
 from zhenxun.services.log import logger
+from zhenxun.configs.config import Config
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.message import MessageUtils
+from zhenxun.models.ban_console import BanConsole
 
 malicious_check_time = Config.get_config("hook", "MALICIOUS_CHECK_TIME")
 malicious_ban_count = Config.get_config("hook", "MALICIOUS_BAN_COUNT")
@@ -36,12 +36,12 @@ class BanCheckLimiter:
         self.default_check_time = default_check_time
         self.default_count = default_count
 
-    def add(self, key: str | int | float):
+    def add(self, key: str | float):
         if self.mint[key] == 1:
             self.mtime[key] = time.time()
         self.mint[key] += 1
 
-    def check(self, key: str | int | float) -> bool:
+    def check(self, key: str | float) -> bool:
         if time.time() - self.mtime[key] > self.default_check_time:
             self.mtime[key] = time.time()
             self.mint[key] = 0
@@ -76,6 +76,7 @@ async def _(
                 PluginType.HIDDEN,
                 PluginType.DEPENDANT,
                 PluginType.ADMIN,
+                PluginType.SUPERUSER,
             ]:
                 return
         else:
@@ -101,7 +102,7 @@ async def _(
                 await MessageUtils.build_message(
                     [
                         At(flag="user", target=user_id),
-                        f"检测到恶意触发命令，您将被封禁 30 分钟",
+                        "检测到恶意触发命令，您将被封禁 30 分钟",
                     ]
                 ).send()
                 logger.debug(
