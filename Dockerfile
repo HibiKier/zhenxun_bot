@@ -13,7 +13,7 @@ RUN apt update && \
     g++ && \
     apt clean
 
-RUN pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
+RUN pip install -r requirements.txt
 
 VOLUME /app/zhenxun/data /app/zhenxun/data
 
