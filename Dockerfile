@@ -13,9 +13,7 @@ RUN apt update && \
     g++ && \
     apt clean
 
-RUN pip install poetry -i https://mirrors.aliyun.com/pypi/simple/
-
-RUN poetry install
+RUN pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
 
 VOLUME /app/zhenxun/data /app/zhenxun/data
 
@@ -23,6 +21,6 @@ VOLUME /app/zhenxun/resources /app/zhenxun/resources
 
 VOLUME /app/zhenxun/.env.dev /app/zhenxun/.env.dev
 
-RUN poetry run playwright install --with-deps chromium
+RUN playwright install --with-deps chromium
 
-CMD ["poetry", "run", "python", "bot.py"]
+CMD ["python", "bot.py"]
