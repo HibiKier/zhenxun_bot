@@ -13,6 +13,10 @@ RUN apt update && \
     g++ && \
     apt clean
 
+RUN pip install poetry
+
+RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
+
 RUN pip install -r requirements.txt
 
 VOLUME /app/zhenxun/data /app/zhenxun/data
