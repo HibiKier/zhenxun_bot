@@ -1,5 +1,3 @@
-from datetime import datetime
-from typing import Literal, Optional
 
 from pydantic import BaseModel
 
@@ -15,7 +13,7 @@ class DirFile(BaseModel):
     """是否为图片"""
     name: str
     """文件夹或文件名称"""
-    parent: Optional[str] = None
+    parent: str | None = None
     """父级"""
 
 
@@ -33,7 +31,7 @@ class RenameFile(BaseModel):
     删除文件
     """
 
-    parent: Optional[str]
+    parent: str | None
     """父路径"""
     old_name: str
     """旧名称"""
@@ -46,7 +44,7 @@ class AddFile(BaseModel):
     新建文件
     """
 
-    parent: Optional[str]
+    parent: str | None
     """父路径"""
     name: str
     """新名称"""

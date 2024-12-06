@@ -1,11 +1,9 @@
-from typing import Dict
 
 from tortoise import fields
 
 from zhenxun.services.db_context import Model
 from zhenxun.utils.enum import PropHandle
 
-from .sign_user import SignUser
 
 
 class UserPropsLog(Model):

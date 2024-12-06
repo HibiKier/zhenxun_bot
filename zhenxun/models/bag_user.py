@@ -1,4 +1,3 @@
-from typing import Dict
 
 from tortoise import fields
 
@@ -25,7 +24,7 @@ class BagUser(Model):
     """今日获取金币"""
     spend_today_gold = fields.IntField(default=0)
     """今日获取金币"""
-    property: Dict[str, int] = fields.JSONField(default={})  # type: ignore
+    property: dict[str, int] = fields.JSONField(default={})  # type: ignore
     """道具"""
 
     class Meta:
@@ -50,7 +49,7 @@ class BagUser(Model):
     @classmethod
     async def get_property(
         cls, user_id: str, group_id: str, only_active: bool = False
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """获取当前道具
 
         参数:

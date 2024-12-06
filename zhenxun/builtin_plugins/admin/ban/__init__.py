@@ -177,8 +177,8 @@ async def _(
     if (gid := session.id3 or session.id2) and not group_id.available:
         if (
             not user_id
-            or user_id == bot.self_id
-            and session.id1 not in bot.config.superusers
+            or (user_id == bot.self_id
+            and session.id1 not in bot.config.superusers)
         ):
             _duration = 0.5
             await MessageUtils.build_message("倒反天罡，小小管理速速退下！").send()

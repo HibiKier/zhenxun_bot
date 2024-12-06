@@ -1,4 +1,3 @@
-from typing import Optional
 
 from nonebot.adapters.onebot.v11 import Bot, Event
 from nonebot.matcher import Matcher
@@ -27,7 +26,7 @@ async def _(
 @run_postprocessor
 async def _(
     matcher: Matcher,
-    exception: Optional[Exception],
+    exception: Exception | None,
     bot: Bot,
     event: Event,
     session: EventSession,

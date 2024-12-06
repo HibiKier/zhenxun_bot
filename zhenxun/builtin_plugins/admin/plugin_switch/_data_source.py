@@ -36,11 +36,11 @@ def plugin_row_style(column: str, text: str) -> RowStyle:
     """
     style = RowStyle()
     if (
-        column == "全局状态"
-        and text == "开启"
-        or column != "全局状态"
+        (column == "全局状态"
+        and text == "开启")
+        or (column != "全局状态"
         and column == "加载状态"
-        and text == "SUCCESS"
+        and text == "SUCCESS")
     ):
         style.font_color = "#67C23A"
     elif column in {"全局状态", "加载状态"}:

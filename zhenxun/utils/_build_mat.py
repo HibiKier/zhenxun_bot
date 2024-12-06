@@ -1,7 +1,6 @@
 import random
 from io import BytesIO
 from pathlib import Path
-from re import S
 
 from pydantic import BaseModel
 from strenum import StrEnum

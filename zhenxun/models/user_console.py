@@ -1,4 +1,3 @@
-from typing import Dict
 
 from tortoise import fields
 
@@ -22,7 +21,7 @@ class UserConsole(Model):
     """金币数量"""
     sign = fields.ReverseRelation["SignUser"]  # type: ignore
     """好感度"""
-    props: Dict[str, int] = fields.JSONField(default={})  # type: ignore
+    props: dict[str, int] = fields.JSONField(default={})  # type: ignore
     """道具"""
     platform = fields.CharField(255, null=True, description="平台")
     """平台"""

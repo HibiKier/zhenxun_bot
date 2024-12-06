@@ -1,4 +1,3 @@
-from typing import Union
 
 from tortoise import fields
 

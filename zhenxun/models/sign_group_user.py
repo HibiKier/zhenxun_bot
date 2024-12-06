@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Literal, Optional, Tuple, Union
 
 from tortoise import fields
 
@@ -49,8 +48,8 @@ class SignGroupUser(Model):
 
     @classmethod
     async def get_all_impression(
-        cls, group_id: Union[int, str]
-    ) -> Tuple[List[str], List[float], List[str]]:
+        cls, group_id: int | str
+    ) -> tuple[list[str], list[float], list[str]]:
         """
         说明:
             获取该群所有用户 id 及对应 好感度

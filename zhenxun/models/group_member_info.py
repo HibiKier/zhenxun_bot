@@ -1,4 +1,3 @@
-from typing import Set
 
 from tortoise import fields
 
@@ -30,7 +29,7 @@ class GroupInfoUser(Model):
         unique_together = ("user_id", "group_id")
 
     @classmethod
-    async def get_all_uid(cls, group_id: str) -> Set[int]:
+    async def get_all_uid(cls, group_id: str) -> set[int]:
         """获取该群所有用户id
 
         参数:

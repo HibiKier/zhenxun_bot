@@ -5,9 +5,9 @@ from .func import get_fastest_raw_formats, get_fastest_archive_formats
 from .models import RepoAPI, RepoInfo, GitHubStrategy, JsdelivrStrategy
 
 __all__ = [
-    "get_fastest_raw_formats",
-    "get_fastest_archive_formats",
     "GithubUtils",
+    "get_fastest_archive_formats",
+    "get_fastest_raw_formats",
 ]
 
 

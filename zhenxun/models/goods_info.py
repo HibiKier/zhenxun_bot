@@ -1,5 +1,4 @@
 import uuid
-from typing import Dict
 
 from tortoise import fields
 from typing_extensions import Self
@@ -147,7 +146,7 @@ class GoodsInfo(Model):
         goods_lst = []
         for _ in range(len(query)):
             min_id = min(id_lst)
-            goods_lst.append([x for x in query if x.id == min_id][0])
+            goods_lst.append(next(x for x in query if x.id == min_id))
             id_lst.remove(min_id)
         return goods_lst
 

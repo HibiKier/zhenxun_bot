@@ -101,6 +101,7 @@ select = [
     "W",     # pycodestyle warnings
     "E",     # pycodestyle errors
     "UP",    # pyupgrade
+    "C90",   # flake8-complexity
     "ASYNC", # flake8-async
     "C4",    # flake8-comprehensions
     "T10",   # flake8-debugger
