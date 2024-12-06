@@ -52,3 +52,9 @@ class GoodsNotFound(Exception):
     """
 
     pass
+
+
+class PlaywrightRenderError(Exception):
+    """Playwright 渲染基础异常类"""
+
+    pass

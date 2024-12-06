@@ -26,6 +26,9 @@ from .config import (
     lik2relation,
     level2attitude,
 )
+from playwright.async_api import Error as PlaywrightError
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+from ...utils.exception import PlaywrightRenderError
 
 assert (
     len(level2attitude) == len(lik2level) == len(lik2relation)
@@ -457,16 +460,19 @@ async def _generate_html_card(
         data["impression"] = f"好感度排名第 {index} 位"
         data["gold"] = f"总金币：{gold}"
         data["gift"] = ""
-    pic = await template_to_pic(
-        template_path=str((TEMPLATE_PATH / "sign").absolute()),
-        template_name="main.html",
-        templates={"data": data},
-        pages={
-            "viewport": {"width": 465, "height": 926},
-            "base_url": f"file://{TEMPLATE_PATH}",
-        },
-        wait=2,
-    )
+    try:
+        pic = await template_to_pic(
+            template_path=str((TEMPLATE_PATH / "sign").absolute()),
+            template_name="main.html",
+            templates={"data": data},
+            pages={
+                "viewport": {"width": 465, "height": 926},
+                "base_url": f"file://{TEMPLATE_PATH}",
+            },
+            wait=2,
+        )
+    except (PlaywrightError, PlaywrightTimeoutError) as e:
+        raise PlaywrightRenderError("构建帮助图片失败") from e
     image = BuildImage.open(pic)
     date = now.date()
     await image.save(SIGN_TODAY_CARD_PATH / f"{user.user_id}_{_type}_{date}.png")

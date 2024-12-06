@@ -5,8 +5,11 @@ from zhenxun.models.task_info import TaskInfo
 from zhenxun.utils._build_image import BuildImage
 from zhenxun.configs.path_config import TEMPLATE_PATH
 from zhenxun.builtin_plugins.admin.admin_help.config import ADMIN_HELP_IMAGE
+from zhenxun.utils.exception import PlaywrightRenderError
 
 from .utils import get_plugins
+from playwright.async_api import Error as PlaywrightError
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 
 async def get_task() -> dict[str, str] | None:
@@ -35,21 +38,24 @@ async def build_html_help():
     if task := await get_task():
         plugin_list.append(task)
     plugin_list.sort(key=lambda p: len(p["description"]) + len(p["usage"]))
-    pic = await template_to_pic(
-        template_path=str((TEMPLATE_PATH / "help").absolute()),
-        template_name="main.html",
-        templates={
-            "data": {
-                "plugin_list": plugin_list,
-                "nickname": BotConfig.self_nickname,
-                "help_name": "群管理员",
-            }
-        },
-        pages={
-            "viewport": {"width": 1024, "height": 1024},
-            "base_url": f"file://{TEMPLATE_PATH}",
-        },
-        wait=2,
-    )
+    try:
+        pic = await template_to_pic(
+            template_path=str((TEMPLATE_PATH / "help").absolute()),
+            template_name="main.html",
+            templates={
+                "data": {
+                    "plugin_list": plugin_list,
+                    "nickname": BotConfig.self_nickname,
+                    "help_name": "群管理员",
+                }
+            },
+            pages={
+                "viewport": {"width": 1024, "height": 1024},
+                "base_url": f"file://{TEMPLATE_PATH}",
+            },
+            wait=2,
+        )
+    except (PlaywrightError, PlaywrightTimeoutError) as e:
+        raise PlaywrightRenderError("帮助图片渲染失败") from e
     result = await BuildImage.open(pic).resize(0.5)
     await result.save(ADMIN_HELP_IMAGE)

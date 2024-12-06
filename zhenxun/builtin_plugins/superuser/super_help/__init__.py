@@ -6,7 +6,7 @@ from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
 from zhenxun.services.log import logger
 from zhenxun.configs.config import Config
 from zhenxun.utils.enum import PluginType
-from zhenxun.utils.exception import EmptyError
+from zhenxun.utils.exception import EmptyError, PlaywrightRenderError
 from zhenxun.utils.message import MessageUtils
 from zhenxun.configs.utils import RegisterConfig, PluginExtraData
 
@@ -53,6 +53,10 @@ async def _(session: EventSession, arparma: Arparma):
                 await build_help()
         except EmptyError:
             await MessageUtils.build_message("当前超级用户帮助为空...").finish(
+                reply_to=True
+            )
+        except PlaywrightRenderError as e:
+            await MessageUtils.build_message(f"构建超级用户帮助失败: {e}").finish(
                 reply_to=True
             )
     await MessageUtils.build_message(SUPERUSER_HELP_IMAGE).send()

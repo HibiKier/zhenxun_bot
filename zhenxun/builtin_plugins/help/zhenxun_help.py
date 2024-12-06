@@ -8,8 +8,11 @@ from zhenxun.utils.platform import PlatformUtils
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.configs.path_config import TEMPLATE_PATH
 from zhenxun.models.group_console import GroupConsole
+from playwright.async_api import Error as PlaywrightError
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 from ._utils import classify_plugin
+from ...utils.exception import PlaywrightRenderError
 
 
 class Item(BaseModel):
@@ -135,18 +138,21 @@ async def build_zhenxun_image(session: Uninfo, group_id: str | None) -> bytes:
     platform = PlatformUtils.get_platform(session)
     bot_id = BotConfig.get_qbot_uid(session.self_id) or session.self_id
     bot_ava = PlatformUtils.get_user_avatar_url(bot_id, platform)
-    return await template_to_pic(
-        template_path=str((TEMPLATE_PATH / "ss_menu").absolute()),
-        template_name="main.html",
-        templates={
-            "data": {
-                "plugin_list": plugin_list,
-                "ava": bot_ava,
-            }
-        },
-        pages={
-            "viewport": {"width": 637, "height": 453},
-            "base_url": f"file://{TEMPLATE_PATH}",
-        },
-        wait=2,
-    )
+    try:
+        return await template_to_pic(
+            template_path=str((TEMPLATE_PATH / "ss_menu").absolute()),
+            template_name="main.html",
+            templates={
+                "data": {
+                    "plugin_list": plugin_list,
+                    "ava": bot_ava,
+                }
+            },
+            pages={
+                "viewport": {"width": 637, "height": 453},
+                "base_url": f"file://{TEMPLATE_PATH}",
+            },
+            wait=2,
+        )
+    except (PlaywrightError, PlaywrightTimeoutError) as e:
+        raise PlaywrightRenderError("构建帮助图片失败") from e

@@ -10,6 +10,10 @@ from zhenxun.configs.path_config import TEMPLATE_PATH
 from zhenxun.models.group_console import GroupConsole
 
 from ._utils import classify_plugin
+from playwright.async_api import Error as PlaywrightError
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+
+from ...utils.exception import PlaywrightRenderError
 
 LOGO_PATH = TEMPLATE_PATH / "menu" / "res" / "logo"
 
@@ -124,13 +128,16 @@ async def build_html_image(group_id: str | None) -> bytes:
     """
     classify = await classify_plugin(group_id, __handle_item)
     plugin_list = build_plugin_data(classify)
-    return await template_to_pic(
-        template_path=str((TEMPLATE_PATH / "menu").absolute()),
-        template_name="zhenxun_menu.html",
-        templates={"plugin_list": plugin_list},
-        pages={
-            "viewport": {"width": 1903, "height": 975},
-            "base_url": f"file://{TEMPLATE_PATH}",
-        },
-        wait=2,
-    )
+    try:
+        return await template_to_pic(
+            template_path=str((TEMPLATE_PATH / "menu").absolute()),
+            template_name="zhenxun_menu.html",
+            templates={"plugin_list": plugin_list},
+            pages={
+                "viewport": {"width": 1903, "height": 975},
+                "base_url": f"file://{TEMPLATE_PATH}",
+            },
+            wait=2,
+        )
+    except (PlaywrightError, PlaywrightTimeoutError) as e:
+        raise PlaywrightRenderError("菜单渲染失败") from e

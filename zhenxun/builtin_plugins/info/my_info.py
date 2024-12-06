@@ -13,6 +13,8 @@ from zhenxun.utils.platform import PlatformUtils
 from zhenxun.models.chat_history import ChatHistory
 from zhenxun.models.user_console import UserConsole
 from zhenxun.configs.path_config import TEMPLATE_PATH
+from playwright.async_api import Error as PlaywrightError
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 RACE = [
     "龙族",
@@ -182,13 +184,16 @@ async def get_user_info(
         "chart_date": chart_date,
         "count_list": count_list,
     }
-    return await template_to_pic(
-        template_path=str((TEMPLATE_PATH / "my_info").absolute()),
-        template_name="main.html",
-        templates={"data": data},
-        pages={
-            "viewport": {"width": 1754, "height": 1240},
-            "base_url": f"file://{TEMPLATE_PATH}",
-        },
-        wait=2,
-    )
+    try:
+        return await template_to_pic(
+            template_path=str((TEMPLATE_PATH / "my_info").absolute()),
+            template_name="main.html",
+            templates={"data": data},
+            pages={
+                "viewport": {"width": 1754, "height": 1240},
+                "base_url": f"file://{TEMPLATE_PATH}",
+            },
+            wait=2,
+        )
+    except (PlaywrightError, PlaywrightTimeoutError) as e:
+        raise PlaywrightError("个人信息渲染失败") from e
