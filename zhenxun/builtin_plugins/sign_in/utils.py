@@ -8,7 +8,7 @@ import pytz
 import nonebot
 from nonebot.drivers import Driver
 from nonebot_plugin_uninfo import Uninfo
-from nonebot_plugin_htmlrender import template_to_pic
+from zhenxun.builtin_plugins.htmlrender import template_to_pic
 
 from zhenxun.models.sign_log import SignLog
 from zhenxun.models.sign_user import SignUser

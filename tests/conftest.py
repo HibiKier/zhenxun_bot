@@ -2,10 +2,13 @@ import os
 import json
 from pathlib import Path
 from collections.abc import Callable
+from collections.abc import AsyncGenerator
 
+from loguru import logger
 import pytest
 import nonebot
 from nonebug.app import App
+from pytest_asyncio import is_async_test
 from respx import MockRouter
 from pytest_mock import MockerFixture
 from nonebug import NONEBOT_INIT_KWARGS
@@ -14,6 +17,13 @@ from nonebug.mixin.process import MatcherContext
 from tests.config import BotId, UserId
 
 nonebot.load_plugin("nonebot_plugin_session")
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]):
+    pytest_asyncio_tests = (item for item in items if is_async_test(item))
+    session_scope_marker = pytest.mark.asyncio(loop_scope="session")
+    for async_test in pytest_asyncio_tests:
+        async_test.add_marker(session_scope_marker, append=False)
 
 
 def get_response_json(path: str) -> dict:
@@ -53,8 +63,8 @@ def _init_bot(nonebug_init: None):
     nonebot.load_plugin("nonebot_plugin_alconna")
     nonebot.load_plugin("nonebot_plugin_apscheduler")
     nonebot.load_plugin("nonebot_plugin_userinfo")
-    nonebot.load_plugin("nonebot_plugin_htmlrender")
-
+    # nonebot.load_plugin("zhenxun.builtin_plugins.htmlrender")
+    logger.info("加载插件htmlrender")
     nonebot.load_plugins("zhenxun/builtin_plugins")
     nonebot.load_plugins("zhenxun/plugins")
 
@@ -77,6 +87,7 @@ async def app(app: App, tmp_path: Path, mocker: MockerFixture):
     mocker.patch("zhenxun.configs.path_config", new=mock_config_path)
 
     await init()
+    # await init_browser()
     # await driver._lifespan.startup()
     os.environ["AIOCACHE_DISABLE"] = "1"
 
@@ -85,6 +96,16 @@ async def app(app: App, tmp_path: Path, mocker: MockerFixture):
     del os.environ["AIOCACHE_DISABLE"]
     # await driver._lifespan.shutdown()
     await disconnect()
+    # await shutdown_browser()
+
+
+@pytest.fixture
+async def load_playwright() -> AsyncGenerator:
+    from zhenxun.builtin_plugins.htmlrender import init_browser, shutdown_browser
+
+    await init_browser()
+    yield
+    await shutdown_browser()
 
 
 @pytest.fixture
@@ -104,3 +125,8 @@ def create_bot() -> Callable:
 @pytest.fixture
 def mocked_api(respx_mock: MockRouter):
     return respx_mock
+
+
+@pytest.fixture(scope="session", autouse=True)
+async def after_nonebot_init(after_nonebot_init: None):
+    pass

@@ -1,11 +1,11 @@
-from nonebot_plugin_htmlrender import template_to_pic
+from zhenxun.builtin_plugins.htmlrender import template_to_pic
 
 from zhenxun.configs.config import BotConfig
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.utils._build_image import BuildImage
 from zhenxun.configs.path_config import TEMPLATE_PATH
 from zhenxun.builtin_plugins.admin.admin_help.config import ADMIN_HELP_IMAGE
-from zhenxun.utils.exception import PlaywrightRenderError
+from zhenxun.utils.exception import TemplateRenderError
 
 from .utils import get_plugins
 from playwright.async_api import Error as PlaywrightError
@@ -56,6 +56,11 @@ async def build_html_help():
             wait=2,
         )
     except (PlaywrightError, PlaywrightTimeoutError) as e:
-        raise PlaywrightRenderError("帮助图片渲染失败") from e
+        raise TemplateRenderError(
+            "构建帮助图片失败",
+            template_path=str((TEMPLATE_PATH / "help").absolute()),
+            template_name="main.html",
+            error=e,
+        ) from e
     result = await BuildImage.open(pic).resize(0.5)
     await result.save(ADMIN_HELP_IMAGE)

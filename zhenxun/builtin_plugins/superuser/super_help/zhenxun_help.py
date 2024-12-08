@@ -1,4 +1,4 @@
-from nonebot_plugin_htmlrender import template_to_pic
+from zhenxun.builtin_plugins.htmlrender import template_to_pic
 
 from zhenxun.configs.config import BotConfig
 from zhenxun.models.task_info import TaskInfo

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test</title> 
+</head>
+<body>
+  {% for count in counts %}
+    <p style="width: 10px; height: 10px; background-color: {{ count | count_to_color}};"></p>
+  {% endfor %}
+</body>
+</html>

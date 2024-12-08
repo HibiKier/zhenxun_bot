@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from tortoise.functions import Count
 from tortoise.expressions import RawSQL
 from nonebot_plugin_uninfo import Uninfo
-from nonebot_plugin_htmlrender import template_to_pic
+from zhenxun.builtin_plugins.htmlrender import template_to_pic
 
 from zhenxun.models.sign_user import SignUser
 from zhenxun.models.level_user import LevelUser

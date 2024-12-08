@@ -9,11 +9,13 @@ from nonebot.adapters import Bot
 from nonebot.drivers import Driver
 from tortoise.exceptions import OperationalError
 
+from zhenxun.builtin_plugins.htmlrender import init_browser, shutdown_browser
+
 require("nonebot_plugin_apscheduler")
 require("nonebot_plugin_alconna")
 require("nonebot_plugin_session")
 require("nonebot_plugin_userinfo")
-require("nonebot_plugin_htmlrender")
+# require("nonebot_plugin_htmlrender")
 # require("nonebot_plugin_uninfo")
 
 from zhenxun.services.log import logger
@@ -157,3 +159,20 @@ async def _():
                 logger.info("迁移签到数据完成!")
         except OperationalError as e:
             logger.warning("数据迁移", e=e)
+
+
+# @driver.on_startup
+# async def init(**kwargs):
+#     """Start Browser
+#
+#     Returns:
+#         Browser: Browser
+#     """
+#     logger.info("Browser Starting.")
+#     return await init_browser(**kwargs)
+#
+#
+# @driver.on_shutdown
+# async def shutdown():
+#     await shutdown_browser()
+#     logger.info("Browser Stopped.")

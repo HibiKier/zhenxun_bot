@@ -12,7 +12,7 @@ import aiofiles
 from retrying import retry
 from playwright.async_api import Page
 from nonebot_plugin_alconna import UniMessage
-from nonebot_plugin_htmlrender import get_browser
+from zhenxun.builtin_plugins.htmlrender import get_browser
 from httpx import Response, ConnectTimeout, HTTPStatusError
 
 from zhenxun.services.log import logger

@@ -1,14 +1,14 @@
 import os
 import random
 
-from nonebot_plugin_htmlrender import template_to_pic
+from zhenxun.builtin_plugins.htmlrender import template_to_pic
 from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 from zhenxun.configs.path_config import TEMPLATE_PATH
 from zhenxun.utils._build_image import BuildImage
 from .models import Barh
-from ..exception import PlaywrightRenderError
+from ..exception import PlaywrightRenderError, TemplateRenderError
 
 BACKGROUND_PATH = TEMPLATE_PATH / "bar_chart" / "background"
 
@@ -33,5 +33,5 @@ class ChartUtils:
                 wait=2,
             )
         except (PlaywrightError, PlaywrightTimeoutError) as e:
-            raise PlaywrightRenderError("横向统计图渲染失败") from e
+            raise TemplateRenderError("横向统计图渲染失败", "main.html", e) from e
         return BuildImage.open(pic)

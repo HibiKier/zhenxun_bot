@@ -2,7 +2,7 @@ import os
 import random
 
 from pydantic import BaseModel
-from nonebot_plugin_htmlrender import template_to_pic
+from zhenxun.builtin_plugins.htmlrender import template_to_pic
 
 from zhenxun.utils.enum import BlockType
 from zhenxun.models.plugin_info import PluginInfo
