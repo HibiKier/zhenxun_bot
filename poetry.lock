@@ -2531,32 +2531,6 @@ url = "https://mirrors.aliyun.com/pypi/simple"
 reference = "ali"
 
 [[package]]
-name = "nonebot-plugin-htmlrender"
-version = "0.5.0"
-description = "通过浏览器渲染图片"
-optional = false
-python-versions = "<4.0,>=3.9"
-files = [
-    {file = "nonebot_plugin_htmlrender-0.5.0-py3-none-any.whl", hash = "sha256:29af10ec95890ec8cb3331f1cb77b702b1cb6eaf5f1df9f7bf585dd8faf9b8f4"},
-    {file = "nonebot_plugin_htmlrender-0.5.0.tar.gz", hash = "sha256:254fb1024cb1d8c097332bca767107573b799735c79c9196167b5acccb660a22"},
-]
-
-[package.dependencies]
-aiofiles = ">=0.8.0"
-jinja2 = ">=3.0.3"
-markdown = ">=3.3.6"
-nonebot2 = ">=2.2.0"
-playwright = ">=1.48.0"
-pygments = ">=2.10.0"
-pymdown-extensions = ">=9.1"
-python-markdown-math = ">=0.8"
-
-[package.source]
-type = "legacy"
-url = "https://mirrors.aliyun.com/pypi/simple"
-reference = "ali"
-
-[[package]]
 name = "nonebot-plugin-session"
 version = "0.2.3"
 description = "Nonebot2 会话信息提取与会话id定义"
@@ -2680,13 +2654,13 @@ reference = "ali"
 
 [[package]]
 name = "nonebug"
-version = "0.3.7"
+version = "0.4.3"
 description = "nonebot2 test framework"
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = ">=3.9,<4.0"
 files = [
-    {file = "nonebug-0.3.7-py3-none-any.whl", hash = "sha256:c39f462aafe20660602a8b789a575db6c9346ab5b6f1985eb9d98b861528299a"},
-    {file = "nonebug-0.3.7.tar.gz", hash = "sha256:8a75183400681f34eafc7caa2bb6dd511c3b5660c59264f1c379a088c7ac2247"},
+    {file = "nonebug-0.4.3-py3-none-any.whl", hash = "sha256:eb9b2c8ab3d45459a4f00ebdaae90729e9e9628575c0685fca4c871dd4cfd425"},
+    {file = "nonebug-0.4.3.tar.gz", hash = "sha256:e9592d2c7a42b76f4a336f98726cba92e1300f6bab155c8822e865919786f10c"},
 ]
 
 [package.dependencies]
@@ -5182,4 +5156,4 @@ reference = "ali"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "3952358bc1f5c382f980af068a61a857a7d7b15e4c6748130bc0d62327cec239"
+content-hash = "5e3193a1d85d0320b02caedaf35797d3ce8379ca79467e0ebe26950165689baa"
