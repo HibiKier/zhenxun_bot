@@ -510,10 +510,13 @@ class BuildImage:
             bytes: bytes
         """
         buf = BytesIO()
-        if isinstance(self.markImg.format, str) and self.markImg.format.upper() in ["GIF"]:
+        img_format = self.markImg.format.upper() if self.markImg.format else "PNG"
+
+        if img_format == "GIF":
             self.markImg.save(buf, format="GIF", save_all=True, loop=0)
-            return buf.getvalue()
-        self.markImg.save(buf, format="PNG")
+        else:
+            self.markImg.save(buf, format="PNG")
+
         return buf.getvalue()
 
     def convert(self, type_: ModeType) -> Self:
