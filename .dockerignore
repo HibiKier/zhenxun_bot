@@ -1,7 +1,11 @@
 .devcontainer/
 .github/
 .vscode/
-assets/
+.idea/
+.pytest_cache/
+.ruff_cache/
+.venv/
+docs_image/
 k8s/
 tests/
 .dockerignore
@@ -9,6 +13,7 @@ tests/
 .gitignore
 .pre-commit-config.yaml
 .prettier*
+.env.dev
 docker-compose.yml
 Dockerfile
 LICENSE
