@@ -1,14 +1,14 @@
-from nonebot.rule import to_me
 from nonebot.adapters import Bot
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
+from nonebot.rule import to_me
+from nonebot_plugin_alconna import Alconna, Args, Match, on_alconna
 from nonebot_plugin_session import EventSession
-from nonebot_plugin_alconna import Args, Match, Alconna, on_alconna
 
+from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.message import MessageUtils
-from zhenxun.configs.utils import RegisterConfig, PluginExtraData
 
 from ._data_source import UpdateManage
 

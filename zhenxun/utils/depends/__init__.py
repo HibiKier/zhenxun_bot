@@ -1,10 +1,10 @@
 from typing import Any
 
-from nonebot.params import Command
-from nonebot.matcher import Matcher
-from nonebot_plugin_uninfo import Uninfo
 from nonebot.internal.params import Depends
+from nonebot.matcher import Matcher
+from nonebot.params import Command
 from nonebot_plugin_session import EventSession
+from nonebot_plugin_uninfo import Uninfo
 
 from zhenxun.configs.config import Config
 from zhenxun.utils.message import MessageUtils

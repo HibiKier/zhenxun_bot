@@ -4,11 +4,11 @@ import nonebot
 from nonebot.adapters import Bot
 from nonebot_plugin_uninfo import Member, SceneType, get_interface
 
-from zhenxun.services.log import logger
 from zhenxun.configs.config import Config
-from zhenxun.models.level_user import LevelUser
-from zhenxun.utils.platform import PlatformUtils
 from zhenxun.models.group_member_info import GroupInfoUser
+from zhenxun.models.level_user import LevelUser
+from zhenxun.services.log import logger
+from zhenxun.utils.platform import PlatformUtils
 
 
 class MemberUpdateManage:

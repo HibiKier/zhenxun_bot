@@ -1,14 +1,14 @@
-from PIL.ImageFont import FreeTypeFont
 from nonebot.plugin import PluginMetadata
+from PIL.ImageFont import FreeTypeFont
 
-from zhenxun.services.log import logger
-from zhenxun.models.task_info import TaskInfo
 from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.models.task_info import TaskInfo
+from zhenxun.services.log import logger
 from zhenxun.utils._build_image import BuildImage
-from zhenxun.utils.image_utils import text2image, group_image, build_sort_image
+from zhenxun.utils.image_utils import build_sort_image, group_image, text2image
 
-from .utils import get_plugins
 from .config import SUPERUSER_HELP_IMAGE
+from .utils import get_plugins
 
 
 async def build_usage_des_image(

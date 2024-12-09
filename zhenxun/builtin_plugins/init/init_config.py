@@ -1,16 +1,16 @@
 from pathlib import Path
 
 import nonebot
-from ruamel.yaml import YAML
-from nonebot.plugin import Plugin
-from nonebot.drivers import Driver
 from nonebot import get_loaded_plugins
+from nonebot.drivers import Driver
+from nonebot.plugin import Plugin
+from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
-from zhenxun.services.log import logger
 from zhenxun.configs.config import Config
-from zhenxun.configs.utils import RegisterConfig
 from zhenxun.configs.path_config import DATA_PATH
+from zhenxun.configs.utils import RegisterConfig
+from zhenxun.services.log import logger
 
 _yaml = YAML(pure=True)
 _yaml.allow_unicode = True

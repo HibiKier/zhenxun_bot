@@ -1,8 +1,8 @@
-from nonebot.internal.rule import Rule
 from nonebot.adapters import Bot, Event
+from nonebot.internal.rule import Rule
 from nonebot.permission import SUPERUSER
-from nonebot_plugin_uninfo import Uninfo
 from nonebot_plugin_session import EventSession
+from nonebot_plugin_uninfo import Uninfo
 
 from zhenxun.configs.config import Config
 from zhenxun.models.level_user import LevelUser

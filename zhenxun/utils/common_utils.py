@@ -1,11 +1,11 @@
 from nonebot.adapters import Bot
-from nonebot_plugin_uninfo import Uninfo, Session, SupportScope, get_interface
+from nonebot_plugin_uninfo import Session, SupportScope, Uninfo, get_interface
 
-from zhenxun.services.log import logger
 from zhenxun.configs.config import BotConfig
-from zhenxun.models.task_info import TaskInfo
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.task_info import TaskInfo
+from zhenxun.services.log import logger
 
 
 class CommonUtils:

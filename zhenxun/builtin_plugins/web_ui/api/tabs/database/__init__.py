@@ -1,18 +1,18 @@
-import nonebot
-from tortoise import Tortoise
-from nonebot.drivers import Driver
-from fastapi import Request, APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
+import nonebot
+from nonebot.drivers import Driver
+from tortoise import Tortoise
 from tortoise.exceptions import OperationalError
 
+from builtin_plugins.web_ui.base_model import BaseResultModel, QueryModel, Result
+from builtin_plugins.web_ui.utils import authentication
 from zhenxun.configs.config import BotConfig
-from zhenxun.models.task_info import TaskInfo
 from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.models.task_info import TaskInfo
 
+from .models.model import Column, SqlModel, SqlText
 from .models.sql_log import SqlLog
-from ....utils import authentication
-from .models.model import Column, SqlText, SqlModel
-from ....base_model import Result, QueryModel, BaseResultModel
 
 router = APIRouter(prefix="/database")
 

@@ -3,9 +3,9 @@ from pathlib import Path
 import nonebot
 from nonebot.adapters import Bot
 
+from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
 from zhenxun.utils.platform import PlatformUtils
-from zhenxun.models.group_console import GroupConsole
 
 nonebot.load_plugins(str(Path(__file__).parent.resolve()))
 

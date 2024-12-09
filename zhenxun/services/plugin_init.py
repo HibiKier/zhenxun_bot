@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 
 import nonebot
-from pydantic import BaseModel
 from nonebot.utils import is_coroutine_callable
+from pydantic import BaseModel
 
 from zhenxun.services.log import logger
 

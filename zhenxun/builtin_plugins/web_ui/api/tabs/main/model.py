@@ -1,6 +1,6 @@
-from pydantic import BaseModel
 from nonebot.adapters import Bot
 from nonebot.config import Config
+from pydantic import BaseModel
 
 
 class SystemStatus(BaseModel):
