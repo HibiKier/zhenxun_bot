@@ -510,6 +510,9 @@ class BuildImage:
             bytes: bytes
         """
         buf = BytesIO()
+        if self.markImg.format.upper() in ["GIF"]:
+            self.markImg.save(buf, format="GIF", save_all=True, loop=0)
+            return buf.getvalue()
         self.markImg.save(buf, format="PNG")
         return buf.getvalue()
 
