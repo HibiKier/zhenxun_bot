@@ -1,6 +1,7 @@
 from aiocache import cached
 
-from ..http_utils import AsyncHttpx
+from zhenxun.utils.http_utils import AsyncHttpx
+
 from .const import (
     ARCHIVE_URL_FORMAT,
     RAW_CONTENT_FORMAT,

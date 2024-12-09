@@ -1,7 +1,7 @@
+from nonebot.utils import is_coroutine_callable
 from tortoise import Tortoise
 from tortoise.connection import connections
 from tortoise.models import Model as Model_
-from nonebot.utils import is_coroutine_callable
 
 from zhenxun.configs.config import BotConfig
 

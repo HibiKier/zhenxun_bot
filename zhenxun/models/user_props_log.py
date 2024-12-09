@@ -1,15 +1,10 @@
-from typing import Dict
-
 from tortoise import fields
 
 from zhenxun.services.db_context import Model
 from zhenxun.utils.enum import PropHandle
 
-from .sign_user import SignUser
-
 
 class UserPropsLog(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_id = fields.CharField(255, description="用户id")

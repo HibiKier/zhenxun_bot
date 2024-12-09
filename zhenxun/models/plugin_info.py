@@ -2,9 +2,9 @@ from typing_extensions import Self
 
 from tortoise import fields
 
+from zhenxun.models.plugin_limit import PluginLimit  # noqa: F401
 from zhenxun.services.db_context import Model
 from zhenxun.utils.enum import BlockType, PluginType
-from zhenxun.models.plugin_limit import PluginLimit  # noqa: F401
 
 
 class PluginInfo(Model):

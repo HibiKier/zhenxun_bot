@@ -1,10 +1,10 @@
-from tortoise import fields
 from nonebot.adapters import Bot
+from tortoise import fields
 
-from zhenxun.services.db_context import Model
-from zhenxun.utils.exception import NotFoundError
 from zhenxun.models.group_console import GroupConsole
-from zhenxun.utils.enum import RequestType, RequestHandleType
+from zhenxun.services.db_context import Model
+from zhenxun.utils.enum import RequestHandleType, RequestType
+from zhenxun.utils.exception import NotFoundError
 
 
 class FgRequest(Model):

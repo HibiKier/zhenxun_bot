@@ -1,10 +1,10 @@
-import random
+from collections.abc import Callable
 from io import BytesIO
 from pathlib import Path
-from collections.abc import Callable
+import random
 
-from pydantic import BaseModel
 from PIL.ImageFont import FreeTypeFont
+from pydantic import BaseModel
 
 from ._build_image import BuildImage
 

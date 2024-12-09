@@ -25,7 +25,7 @@ statistics_user_file = DATA_PATH / "statistics" / "_prefix_user_count.json"
 
 for file in [statistics_group_file, statistics_user_file]:
     if file.exists():
-        with open(file, "r", encoding="utf8") as f:
+        with open(file, encoding="utf8") as f:
             data = json.load(f)
             if not (statistics_group_file.parent / f"{file}.bak").exists():
                 with open(f"{file}.bak", "w", encoding="utf8") as wf:

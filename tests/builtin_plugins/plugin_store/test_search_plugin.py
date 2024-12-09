@@ -1,17 +1,17 @@
-from typing import cast
-from pathlib import Path
 from collections.abc import Callable
+from pathlib import Path
+from typing import cast
 
-from nonebug import App
-from respx import MockRouter
-from pytest_mock import MockerFixture
 from nonebot.adapters.onebot.v11 import Bot
-from nonebot.adapters.onebot.v11.message import Message
 from nonebot.adapters.onebot.v11.event import GroupMessageEvent
+from nonebot.adapters.onebot.v11.message import Message
+from nonebug import App
+from pytest_mock import MockerFixture
+from respx import MockRouter
 
-from tests.utils import _v11_group_message_event
-from tests.config import BotId, UserId, GroupId, MessageId
 from tests.builtin_plugins.plugin_store.utils import init_mocked_api
+from tests.config import BotId, GroupId, MessageId, UserId
+from tests.utils import _v11_group_message_event
 
 
 async def test_search_plugin_name(

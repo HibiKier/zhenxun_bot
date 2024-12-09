@@ -1,5 +1,3 @@
-from typing import Union
-
 from tortoise import fields
 
 from zhenxun.configs.config import Config
@@ -78,6 +76,8 @@ class FriendUser(Model):
     @classmethod
     def _run_script(cls):
         return [
-            "ALTER TABLE friend_users ALTER COLUMN user_id TYPE character varying(255);",
-            "ALTER TABLE friend_users ADD COLUMN platform character varying(255) default 'qq';",
+            "ALTER TABLE friend_users "
+            "ALTER COLUMN user_id TYPE character varying(255);",
+            "ALTER TABLE friend_users "
+            "ADD COLUMN platform character varying(255) default 'qq';",
         ]

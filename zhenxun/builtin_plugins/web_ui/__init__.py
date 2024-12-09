@@ -1,29 +1,29 @@
 import asyncio
 import secrets
 
+from fastapi import APIRouter, FastAPI
 import nonebot
-from fastapi import FastAPI, APIRouter
-from nonebot.plugin import PluginMetadata
 from nonebot.log import default_filter, default_format
+from nonebot.plugin import PluginMetadata
 
-from zhenxun.utils.enum import PluginType
-from zhenxun.services.log import logger, logger_
 from zhenxun.configs.config import Config as gConfig
-from zhenxun.configs.utils import RegisterConfig, PluginExtraData
+from zhenxun.configs.utils import PluginExtraData, RegisterConfig
+from zhenxun.services.log import logger, logger_
+from zhenxun.utils.enum import PluginType
 
-from .public import init_public
-from .auth import router as auth_router
 from .api.logs import router as ws_log_routes
 from .api.logs.log_manager import LOG_STORAGE
-from .api.tabs.main import router as main_router
-from .api.tabs.manage import router as manage_router
-from .api.tabs.system import router as system_router
-from .api.tabs.main import ws_router as status_routes
-from .api.tabs.database import router as database_router
 from .api.tabs.dashboard import router as dashboard_router
+from .api.tabs.database import router as database_router
+from .api.tabs.main import router as main_router
+from .api.tabs.main import ws_router as status_routes
+from .api.tabs.manage import router as manage_router
 from .api.tabs.manage.chat import ws_router as chat_routes
 from .api.tabs.plugin_manage import router as plugin_router
 from .api.tabs.plugin_manage.store import router as store_router
+from .api.tabs.system import router as system_router
+from .auth import router as auth_router
+from .public import init_public
 
 __plugin_meta__ = PluginMetadata(
     name="WebUi",

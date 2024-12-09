@@ -1,15 +1,14 @@
 from datetime import datetime, timedelta
 from typing import Literal
+from typing_extensions import Self
 
 from tortoise import fields
 from tortoise.functions import Count
-from typing_extensions import Self
 
 from zhenxun.services.db_context import Model
 
 
 class ChatHistory(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_id = fields.CharField(255)
@@ -27,7 +26,7 @@ class ChatHistory(Model):
     platform = fields.CharField(255, null=True)
     """平台"""
 
-    class Meta: # type: ignore
+    class Meta:  # type: ignore
         table = "chat_history"
         table_description = "聊天记录数据表"
 
@@ -116,13 +115,20 @@ class ChatHistory(Model):
     @classmethod
     async def _run_script(cls):
         return [
-            "alter table chat_history alter group_id drop not null;",  # 允许 group_id 为空
-            "alter table chat_history alter text drop not null;",  # 允许 text 为空
-            "alter table chat_history alter plain_text drop not null;",  # 允许 plain_text 为空
-            "ALTER TABLE chat_history RENAME COLUMN user_qq TO user_id;",  # 将user_id改为user_id
-            "ALTER TABLE chat_history ALTER COLUMN user_id TYPE character varying(255);",
-            "ALTER TABLE chat_history ALTER COLUMN group_id TYPE character varying(255);",
-            "ALTER TABLE chat_history ADD bot_id VARCHAR(255);",  # 添加bot_id字段
+            # 允许 group_id 为空
+            "alter table chat_history alter group_id drop not null;",
+            # 允许 text 为空
+            "alter table chat_history alter text drop not null;",
+            # 允许 plain_text 为空
+            "alter table chat_history alter plain_text drop not null;",
+            # 将user_id改为user_id
+            "ALTER TABLE chat_history RENAME COLUMN user_qq TO user_id;",
+            "ALTER TABLE chat_history "
+            "ALTER COLUMN user_id TYPE character varying(255);",
+            "ALTER TABLE chat_history "
+            "ALTER COLUMN group_id TYPE character varying(255);",
+            # 添加bot_id字段
+            "ALTER TABLE chat_history ADD bot_id VARCHAR(255);",
             "ALTER TABLE chat_history ALTER COLUMN bot_id TYPE character varying(255);",
             "ALTER TABLE chat_history ADD COLUMN platform character varying(255);",
         ]

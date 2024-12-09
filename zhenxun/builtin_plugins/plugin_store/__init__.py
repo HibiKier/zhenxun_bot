@@ -1,12 +1,12 @@
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
+from nonebot_plugin_alconna import Alconna, Args, Subcommand, on_alconna
 from nonebot_plugin_session import EventSession
-from nonebot_plugin_alconna import Args, Alconna, Subcommand, on_alconna
 
+from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.message import MessageUtils
-from zhenxun.configs.utils import PluginExtraData
 
 from .data_source import ShopManage
 
@@ -153,6 +153,7 @@ async def _(session: EventSession, plugin_id: int | str):
     logger.info(f"更新插件 Id: {plugin_id}", "插件商店", session=session)
     await MessageUtils.build_message(result).send()
 
+
 @_matcher.assign("update_all")
 async def _(session: EventSession):
     try:
@@ -160,8 +161,6 @@ async def _(session: EventSession):
         result = await ShopManage.update_all_plugin()
     except Exception as e:
         logger.error("更新全部插件失败", "插件商店", session=session, e=e)
-        await MessageUtils.build_message(
-            f"更新全部插件失败 e: {e}"
-        ).finish()
+        await MessageUtils.build_message(f"更新全部插件失败 e: {e}").finish()
     logger.info("更新全部插件", "插件商店", session=session)
     await MessageUtils.build_message(result).send()

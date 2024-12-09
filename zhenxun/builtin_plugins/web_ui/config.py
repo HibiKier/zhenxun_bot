@@ -1,6 +1,6 @@
+from fastapi.middleware.cors import CORSMiddleware
 import nonebot
 from strenum import StrEnum
-from fastapi.middleware.cors import CORSMiddleware
 
 from zhenxun.configs.path_config import DATA_PATH, TEMP_PATH
 

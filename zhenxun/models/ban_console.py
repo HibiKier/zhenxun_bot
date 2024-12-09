@@ -3,8 +3,8 @@ from typing_extensions import Self
 
 from tortoise import fields
 
-from zhenxun.services.log import logger
 from zhenxun.services.db_context import Model
+from zhenxun.services.log import logger
 from zhenxun.utils.exception import UserAndGroupIsNone
 
 

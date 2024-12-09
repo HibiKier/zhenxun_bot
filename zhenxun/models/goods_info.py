@@ -1,8 +1,7 @@
+from typing_extensions import Self
 import uuid
-from typing import Dict
 
 from tortoise import fields
-from typing_extensions import Self
 
 from zhenxun.services.db_context import Model
 
@@ -147,7 +146,7 @@ class GoodsInfo(Model):
         goods_lst = []
         for _ in range(len(query)):
             min_id = min(id_lst)
-            goods_lst.append([x for x in query if x.id == min_id][0])
+            goods_lst.append(next(x for x in query if x.id == min_id))
             id_lst.remove(min_id)
         return goods_lst
 
@@ -158,5 +157,6 @@ class GoodsInfo(Model):
             "ALTER TABLE goods_info ADD daily_limit Integer DEFAULT 0;",
             "ALTER TABLE goods_info ADD is_passive boolean DEFAULT False;",
             "ALTER TABLE goods_info ADD icon VARCHAR(255);",
-            "ALTER TABLE goods_info DROP daily_purchase_limit;",  # 删除 daily_purchase_limit 字段
+            # 删除 daily_purchase_limit 字段
+            "ALTER TABLE goods_info DROP daily_purchase_limit;",
         ]

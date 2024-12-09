@@ -1,8 +1,8 @@
-from pydantic import BaseModel
 from nonebot.plugin import PluginMetadata
+from pydantic import BaseModel
 
-from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.configs.path_config import IMAGE_PATH
+from zhenxun.models.plugin_info import PluginInfo
 
 ADMIN_HELP_IMAGE = IMAGE_PATH / "ADMIN_HELP.png"
 if ADMIN_HELP_IMAGE.exists():

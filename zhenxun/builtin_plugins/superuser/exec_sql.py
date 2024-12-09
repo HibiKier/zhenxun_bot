@@ -1,18 +1,18 @@
-from tortoise import Tortoise
 from nonebot import on_command
-from nonebot.rule import to_me
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
+from nonebot.rule import to_me
 from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_session import EventSession
+from tortoise import Tortoise
 
-from zhenxun.services.log import logger
-from zhenxun.utils.enum import PluginType
 from zhenxun.configs.config import BotConfig
-from zhenxun.utils.message import MessageUtils
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.ban_console import BanConsole
+from zhenxun.services.log import logger
+from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import ImageTemplate
+from zhenxun.utils.message import MessageUtils
 
 __plugin_meta__ = PluginMetadata(
     name="数据库操作",
@@ -57,7 +57,8 @@ SELECT name FROM sqlite_master WHERE type='table';
 SELECT_TABLE_PSQL_SQL = """
 select a.tablename as name,d.description as desc from pg_tables a
     left join pg_class c on relname=tablename
-    left join pg_description d on oid=objoid and objsubid=0 where a.schemaname = 'public'
+    left join pg_description d on oid=objoid and objsubid=0
+    where a.schemaname = 'public'
 """
 
 

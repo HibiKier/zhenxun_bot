@@ -1,10 +1,10 @@
-from zhenxun.models.task_info import TaskInfo
-from zhenxun.models.plugin_info import PluginInfo
-from zhenxun.utils.enum import BlockType, PluginType
-from zhenxun.models.group_console import GroupConsole
-from zhenxun.utils.exception import GroupInfoNotFound
 from zhenxun.configs.path_config import DATA_PATH, IMAGE_PATH
-from zhenxun.utils.image_utils import RowStyle, BuildImage, ImageTemplate
+from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.models.task_info import TaskInfo
+from zhenxun.utils.enum import BlockType, PluginType
+from zhenxun.utils.exception import GroupInfoNotFound
+from zhenxun.utils.image_utils import BuildImage, ImageTemplate, RowStyle
 
 HELP_FILE = IMAGE_PATH / "SIMPLE_HELP.png"
 
@@ -35,12 +35,8 @@ def plugin_row_style(column: str, text: str) -> RowStyle:
         RowStyle: RowStyle
     """
     style = RowStyle()
-    if (
-        column == "全局状态"
-        and text == "开启"
-        or column != "全局状态"
-        and column == "加载状态"
-        and text == "SUCCESS"
+    if (column == "全局状态" and text == "开启") or (
+        column != "全局状态" and column == "加载状态" and text == "SUCCESS"
     ):
         style.font_color = "#67C23A"
     elif column in {"全局状态", "加载状态"}:

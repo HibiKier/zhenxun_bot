@@ -1,20 +1,20 @@
+from collections.abc import Callable
 import io
 import os
-import tarfile
-import zipfile
-from typing import cast
 from pathlib import Path
-from collections.abc import Callable
+import tarfile
+from typing import cast
+import zipfile
 
-from nonebug import App
-from respx import MockRouter
-from pytest_mock import MockerFixture
 from nonebot.adapters.onebot.v11 import Bot
 from nonebot.adapters.onebot.v11.message import Message
+from nonebug import App
+from pytest_mock import MockerFixture
+from respx import MockRouter
 
-from tests.config import BotId, UserId, GroupId, MessageId
-from tests.utils import get_response_json as _get_response_json
+from tests.config import BotId, GroupId, MessageId, UserId
 from tests.utils import _v11_group_message_event, _v11_private_message_send
+from tests.utils import get_response_json as _get_response_json
 
 
 def get_response_json(file: str) -> dict:
@@ -62,10 +62,10 @@ def init_mocked_api(mocked_api: MockRouter) -> None:
     zip_bytes = io.BytesIO()
 
     from zhenxun.builtin_plugins.auto_update.config import (
-        REPLACE_FOLDERS,
-        REQ_TXT_FILE_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
+        REPLACE_FOLDERS,
+        REQ_TXT_FILE_STRING,
     )
 
     # 指定要添加到压缩文件中的文件路径列表
@@ -196,10 +196,10 @@ def add_directory_to_tar(tarinfo, tar):
 
 def init_mocker_path(mocker: MockerFixture, tmp_path: Path):
     from zhenxun.builtin_plugins.auto_update.config import (
-        REQ_TXT_FILE_STRING,
-        VERSION_FILE_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
+        REQ_TXT_FILE_STRING,
+        VERSION_FILE_STRING,
     )
 
     mocker.patch(
@@ -268,10 +268,10 @@ async def test_check_update_release(
     """
     from zhenxun.builtin_plugins.auto_update import _matcher
     from zhenxun.builtin_plugins.auto_update.config import (
-        REPLACE_FOLDERS,
-        REQ_TXT_FILE_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
+        REPLACE_FOLDERS,
+        REQ_TXT_FILE_STRING,
     )
 
     init_mocked_api(mocked_api=mocked_api)
@@ -359,10 +359,10 @@ async def test_check_update_dev(
     """
     from zhenxun.builtin_plugins.auto_update import _matcher
     from zhenxun.builtin_plugins.auto_update.config import (
-        REPLACE_FOLDERS,
-        REQ_TXT_FILE_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
+        REPLACE_FOLDERS,
+        REQ_TXT_FILE_STRING,
     )
 
     init_mocked_api(mocked_api=mocked_api)
@@ -450,10 +450,10 @@ async def test_check_update_main(
     """
     from zhenxun.builtin_plugins.auto_update import _matcher
     from zhenxun.builtin_plugins.auto_update.config import (
-        REPLACE_FOLDERS,
-        REQ_TXT_FILE_STRING,
         PYPROJECT_FILE_STRING,
         PYPROJECT_LOCK_FILE_STRING,
+        REPLACE_FOLDERS,
+        REQ_TXT_FILE_STRING,
     )
 
     init_mocked_api(mocked_api=mocked_api)

@@ -1,6 +1,6 @@
 import asyncio
+from collections.abc import Awaitable, Callable
 from typing import Generic, TypeVar
-from collections.abc import Callable, Awaitable
 
 _T = TypeVar("_T")
 LogListener = Callable[[_T], Awaitable[None]]

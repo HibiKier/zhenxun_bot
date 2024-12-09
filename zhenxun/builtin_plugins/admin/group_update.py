@@ -41,5 +41,5 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma):
     try:
         await PlatformUtils.update_group(bot)
         await MessageUtils.build_message("已经成功更新了群组信息!").send(reply_to=True)
-    except Exception as e:
+    except Exception:
         await MessageUtils.build_message("更新群组信息失败!").finish(reply_to=True)

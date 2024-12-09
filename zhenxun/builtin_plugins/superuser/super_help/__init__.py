@@ -1,17 +1,17 @@
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_session import EventSession
 from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
+from nonebot_plugin_session import EventSession
 
-from zhenxun.services.log import logger
 from zhenxun.configs.config import Config
+from zhenxun.configs.utils import PluginExtraData, RegisterConfig
+from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.exception import EmptyError
 from zhenxun.utils.message import MessageUtils
-from zhenxun.configs.utils import RegisterConfig, PluginExtraData
 
-from .normal_help import build_help
 from .config import SUPERUSER_HELP_IMAGE
+from .normal_help import build_help
 from .zhenxun_help import build_html_help
 
 __plugin_meta__ = PluginMetadata(

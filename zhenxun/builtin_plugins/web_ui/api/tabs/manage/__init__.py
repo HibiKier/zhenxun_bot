@@ -1,41 +1,41 @@
-import nonebot
 from fastapi import APIRouter
-from tortoise.functions import Count
 from fastapi.responses import JSONResponse
+import nonebot
 from nonebot.adapters.onebot.v11 import ActionFailed
+from tortoise.functions import Count
 
-from zhenxun.services.log import logger
+from builtin_plugins.web_ui.base_model import Result
+from builtin_plugins.web_ui.config import AVA_URL, GROUP_AVA_URL
+from builtin_plugins.web_ui.utils import authentication
 from zhenxun.configs.config import BotConfig
-from zhenxun.models.task_info import TaskInfo
-from zhenxun.models.fg_request import FgRequest
-from zhenxun.models.statistics import Statistics
-from zhenxun.utils.platform import PlatformUtils
 from zhenxun.models.ban_console import BanConsole
-from zhenxun.models.plugin_info import PluginInfo
-from zhenxun.utils.exception import NotFoundError
 from zhenxun.models.chat_history import ChatHistory
+from zhenxun.models.fg_request import FgRequest
 from zhenxun.models.group_console import GroupConsole
-from zhenxun.utils.enum import RequestType, RequestHandleType
+from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.models.statistics import Statistics
+from zhenxun.models.task_info import TaskInfo
+from zhenxun.services.log import logger
+from zhenxun.utils.enum import RequestHandleType, RequestType
+from zhenxun.utils.exception import NotFoundError
+from zhenxun.utils.platform import PlatformUtils
 
-from ....base_model import Result
-from ....utils import authentication
-from ....config import AVA_URL, GROUP_AVA_URL
 from .model import (
-    Task,
-    Friend,
-    Plugin,
-    ReqResult,
-    LeaveGroup,
-    UserDetail,
-    GroupDetail,
-    GroupResult,
-    SendMessage,
-    UpdateGroup,
     ClearRequest,
     DeleteFriend,
-    HandleRequest,
-    GroupRequestResult,
+    Friend,
     FriendRequestResult,
+    GroupDetail,
+    GroupRequestResult,
+    GroupResult,
+    HandleRequest,
+    LeaveGroup,
+    Plugin,
+    ReqResult,
+    SendMessage,
+    Task,
+    UpdateGroup,
+    UserDetail,
 )
 
 router = APIRouter(prefix="/manage")

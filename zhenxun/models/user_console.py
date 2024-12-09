@@ -1,5 +1,3 @@
-from typing import Dict
-
 from tortoise import fields
 
 from zhenxun.models.goods_info import GoodsInfo
@@ -11,7 +9,6 @@ from .user_gold_log import UserGoldLog
 
 
 class UserConsole(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_id = fields.CharField(255, unique=True, description="用户id")
@@ -22,7 +19,7 @@ class UserConsole(Model):
     """金币数量"""
     sign = fields.ReverseRelation["SignUser"]  # type: ignore
     """好感度"""
-    props: Dict[str, int] = fields.JSONField(default={})  # type: ignore
+    props: dict[str, int] = fields.JSONField(default={})  # type: ignore
     """道具"""
     platform = fields.CharField(255, null=True, description="平台")
     """平台"""

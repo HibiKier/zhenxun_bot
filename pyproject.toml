@@ -40,7 +40,6 @@ psutil = "^5.9.8"
 feedparser = "^6.0.11"
 opencv-python = "^4.9.0.80"
 imagehash = "^4.3.1"
-black = "^24.4.2"
 cn2an = "^0.5.22"
 aiohttp = "^3.9.5"
 dateparser = "^1.2.0"
@@ -59,6 +58,9 @@ pytest-mock = "^3.6.1"
 pytest-asyncio = "^0.23.5"
 pytest-xdist = "^3.3.1"
 respx = "^0.21.1"
+ruff = "^0.8.0"
+pre-commit = "^4.0.0"
+
 
 [tool.nonebot]
 plugins = [
@@ -75,31 +77,19 @@ adapters = [
     { name = "开黑啦", module_name = "nonebot.adapters.kaiheila" },
 ]
 
-[tool.black]
-line-length = 88
-target-version = ["py39", "py310", "py311", "py312"]
-include = '\.pyi?$'
-extend-exclude = '''
-'''
-
-[tool.isort]
-profile = "black"
-line_length = 88
-length_sort = true
-skip_gitignore = true
-force_sort_within_sections = true
-src_paths = ["zhenxun", "tests"]
-extra_standard_library = ["typing_extensions"]
-
 [tool.ruff]
 line-length = 88
 target-version = "py310"
+
+[tool.ruff.format]
+line-ending = "lf"
 
 [tool.ruff.lint]
 select = [
     "F",     # Pyflakes
     "W",     # pycodestyle warnings
     "E",     # pycodestyle errors
+    "I",     # isort
     "UP",    # pyupgrade
     "ASYNC", # flake8-async
     "C4",    # flake8-comprehensions
@@ -108,6 +98,7 @@ select = [
     "PYI",   # flake8-pyi
     "PT",    # flake8-pytest-style
     "Q",     # flake8-quotes
+    "TID",   # flake8-tidy-imports
     "RUF",   # Ruff-specific rules
 ]
 ignore = [
@@ -118,9 +109,17 @@ ignore = [
     "RUF003", # ambiguous-unicode-character-comment
 ]
 
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+known-first-party = ["zhenxun", "tests/*"]
+extra-standard-library = ["typing_extensions"]
+
 [tool.ruff.lint.flake8-pytest-style]
 fixture-parentheses = false
 mark-parentheses = false
+
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = true
 
 [tool.pyright]
 pythonVersion = "3.10"

@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message, MessageSegment
 from nonebot.adapters.onebot.v11.event import Sender
-from nonebot.adapters.onebot.v11 import Message, MessageSegment, GroupMessageEvent
 
 
 def get_response_json(base_path: Path, file: str) -> dict:

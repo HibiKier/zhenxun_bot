@@ -1,13 +1,9 @@
-from datetime import datetime
-from typing import List, Literal, Optional, Tuple, Union
-
 from tortoise import fields
 
 from zhenxun.services.db_context import Model
 
 
 class SignLog(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_id = fields.CharField(255, description="用户id")

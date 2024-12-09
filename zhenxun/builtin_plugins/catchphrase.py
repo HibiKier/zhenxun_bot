@@ -2,8 +2,8 @@ from typing import Any
 
 from nonebot.adapters import Bot
 
-from zhenxun.services.log import logger
 from zhenxun.configs.config import Config
+from zhenxun.services.log import logger
 
 Config.add_plugin_config(
     "catchphrase",

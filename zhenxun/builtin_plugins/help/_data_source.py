@@ -1,16 +1,16 @@
 import nonebot
 from nonebot_plugin_uninfo import Uninfo
 
-from zhenxun.utils.enum import PluginType
+from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.models.level_user import LevelUser
 from zhenxun.models.plugin_info import PluginInfo
-from zhenxun.configs.path_config import IMAGE_PATH
+from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import BuildImage, ImageTemplate
 
+from ._config import GROUP_HELP_PATH, SIMPLE_HELP_IMAGE, base_config
 from .html_help import build_html_image
 from .normal_help import build_normal_image
 from .zhenxun_help import build_zhenxun_image
-from ._config import GROUP_HELP_PATH, SIMPLE_HELP_IMAGE, base_config
 
 random_bk_path = IMAGE_PATH / "background" / "help" / "simple_help"
 

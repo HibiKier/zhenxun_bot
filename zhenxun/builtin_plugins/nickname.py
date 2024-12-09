@@ -2,23 +2,23 @@ import random
 from typing import Any
 
 from nonebot import on_regex
-from nonebot.rule import to_me
 from nonebot.adapters import Bot
-from nonebot.plugin import PluginMetadata
 from nonebot.params import Depends, RegexGroup
+from nonebot.plugin import PluginMetadata
+from nonebot.rule import to_me
+from nonebot_plugin_alconna import Alconna, Option, on_alconna, store_true
 from nonebot_plugin_session import EventSession
-from nonebot_plugin_userinfo import UserInfo, EventUserInfo
-from nonebot_plugin_alconna import Option, Alconna, on_alconna, store_true
+from nonebot_plugin_userinfo import EventUserInfo, UserInfo
 
-from zhenxun.services.log import logger
-from zhenxun.utils.enum import PluginType
-from zhenxun.utils.depends import UserName
-from zhenxun.utils.message import MessageUtils
+from zhenxun.configs.config import BotConfig, Config
+from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.friend_user import FriendUser
-from zhenxun.configs.config import Config, BotConfig
 from zhenxun.models.group_member_info import GroupInfoUser
-from zhenxun.configs.utils import RegisterConfig, PluginExtraData
+from zhenxun.services.log import logger
+from zhenxun.utils.depends import UserName
+from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 
 __plugin_meta__ = PluginMetadata(
     name="昵称系统",
