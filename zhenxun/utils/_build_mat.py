@@ -1,7 +1,6 @@
-import random
 from io import BytesIO
 from pathlib import Path
-from re import S
+import random
 
 from pydantic import BaseModel
 from strenum import StrEnum
@@ -10,7 +9,6 @@ from ._build_image import BuildImage
 
 
 class MatType(StrEnum):
-
     LINE = "LINE"
     """折线图"""
     BAR = "BAR"
@@ -20,7 +18,6 @@ class MatType(StrEnum):
 
 
 class BuildMatData(BaseModel):
-
     mat_type: MatType
     """类型"""
     data: list[int | float] = []
@@ -64,7 +61,6 @@ class BuildMat:
     """
 
     class InitGraph(BaseModel):
-
         mark_image: BuildImage
         """BuildImage"""
         x_height: int
@@ -291,7 +287,8 @@ class BuildMat:
                         self.build_data.font, self.build_data.font_size + 4
                     )
                     title_width, title_height = BuildImage.get_text_size(
-                        self.build_data.x_name, font  # type: ignore
+                        self.build_data.x_name,
+                        font,  # type: ignore
                     )
                     pos = (
                         A.width - title_width - 20,

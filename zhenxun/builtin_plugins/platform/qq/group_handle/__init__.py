@@ -1,7 +1,5 @@
-from nonebot.adapters import Bot
-from nonebot_plugin_uninfo import Uninfo
 from nonebot import on_notice, on_request
-from nonebot.plugin import PluginMetadata
+from nonebot.adapters import Bot
 from nonebot.adapters.onebot.v11 import (
     GroupDecreaseNoticeEvent,
     GroupIncreaseNoticeEvent,
@@ -10,17 +8,19 @@ from nonebot.adapters.onebot.v12 import (
     GroupMemberDecreaseEvent,
     GroupMemberIncreaseEvent,
 )
+from nonebot.plugin import PluginMetadata
+from nonebot_plugin_uninfo import Uninfo
 
-from zhenxun.utils.enum import PluginType
-from zhenxun.utils.rules import notice_rule
-from zhenxun.utils.platform import PlatformUtils
-from zhenxun.utils.common_utils import CommonUtils
-from zhenxun.configs.config import Config, BotConfig
+from zhenxun.builtin_plugins.platform.qq.exception import ForceAddGroupError
+from zhenxun.configs.config import BotConfig, Config
+from zhenxun.configs.utils import PluginExtraData, RegisterConfig, Task
 from zhenxun.models.group_console import GroupConsole
-from zhenxun.configs.utils import Task, RegisterConfig, PluginExtraData
+from zhenxun.utils.common_utils import CommonUtils
+from zhenxun.utils.enum import PluginType
+from zhenxun.utils.platform import PlatformUtils
+from zhenxun.utils.rules import notice_rule
 
 from .data_source import GroupManager
-from ..exception import ForceAddGroupError
 
 __plugin_meta__ = PluginMetadata(
     name="QQ群事件处理",
@@ -71,8 +71,18 @@ __plugin_meta__ = PluginMetadata(
             ),
         ],
         tasks=[
-            Task(module="group_welcome", name="进群欢迎"),
-            Task(module="refund_group_remind", name="退群提醒"),
+            Task(
+                module="group_welcome",
+                name="进群欢迎",
+                create_status=False,
+                default_status=False,
+            ),
+            Task(
+                module="refund_group_remind",
+                name="退群提醒",
+                create_status=False,
+                default_status=False,
+            ),
         ],
     ).dict(),
 )

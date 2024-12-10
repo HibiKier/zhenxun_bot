@@ -1,19 +1,18 @@
-import random
 from datetime import datetime, timedelta
+import random
 
-from nonebot.adapters import Bot
-from tortoise.functions import Count
-from tortoise.expressions import RawSQL
-from nonebot_plugin_uninfo import Uninfo
 from nonebot_plugin_htmlrender import template_to_pic
+from nonebot_plugin_uninfo import Uninfo
+from tortoise.expressions import RawSQL
+from tortoise.functions import Count
 
-from zhenxun.models.sign_user import SignUser
-from zhenxun.models.level_user import LevelUser
-from zhenxun.models.statistics import Statistics
-from zhenxun.utils.platform import PlatformUtils
-from zhenxun.models.chat_history import ChatHistory
-from zhenxun.models.user_console import UserConsole
 from zhenxun.configs.path_config import TEMPLATE_PATH
+from zhenxun.models.chat_history import ChatHistory
+from zhenxun.models.level_user import LevelUser
+from zhenxun.models.sign_user import SignUser
+from zhenxun.models.statistics import Statistics
+from zhenxun.models.user_console import UserConsole
+from zhenxun.utils.platform import PlatformUtils
 
 RACE = [
     "龙族",
@@ -131,7 +130,7 @@ async def get_chat_history(
 
 
 async def get_user_info(
-    session: Uninfo, bot: Bot, user_id: str, group_id: str | None, nickname: str
+    session: Uninfo, user_id: str, group_id: str | None, nickname: str
 ) -> bytes:
     """获取用户个人信息
 
@@ -145,7 +144,7 @@ async def get_user_info(
     返回:
         bytes: 图片数据
     """
-    platform = PlatformUtils.get_platform(bot) or ""
+    platform = PlatformUtils.get_platform(session) or "qq"
     ava_url = PlatformUtils.get_user_avatar_url(user_id, platform)
     user = await UserConsole.get_user(user_id, platform)
     level = await LevelUser.get_user_level(user_id, group_id)
@@ -164,7 +163,7 @@ async def get_user_info(
     data = {
         "date": now.date(),
         "weather": weather,
-        "ava_url": session.user.avatar,
+        "ava_url": ava_url,
         "nickname": nickname,
         "title": "勇 者",
         "race": random.choice(RACE),

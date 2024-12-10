@@ -1,24 +1,24 @@
-import nonebot
 import aiofiles
-import ujson as json
-from ruamel.yaml import YAML
-from nonebot.drivers import Driver
+import nonebot
 from nonebot import get_loaded_plugins
+from nonebot.drivers import Driver
 from nonebot.plugin import Plugin, PluginMetadata
+from ruamel.yaml import YAML
+import ujson as json
 
-from zhenxun.services.log import logger
-from zhenxun.models.task_info import TaskInfo
 from zhenxun.configs.path_config import DATA_PATH
+from zhenxun.configs.utils import PluginExtraData, PluginSetting
+from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.plugin_limit import PluginLimit
-from zhenxun.models.group_console import GroupConsole
-from zhenxun.configs.utils import PluginSetting, PluginExtraData
+from zhenxun.models.task_info import TaskInfo
+from zhenxun.services.log import logger
 from zhenxun.utils.enum import (
     BlockType,
-    PluginType,
     LimitCheckType,
     LimitWatchType,
     PluginLimitType,
+    PluginType,
 )
 
 from .manager import manager
@@ -136,6 +136,7 @@ async def _():
                     "version",
                     "admin_level",
                     "plugin_type",
+                    "is_show",
                 ]
             )
             update_list.append(plugin)
@@ -202,9 +203,9 @@ async def _():
     manager.init()
     if limit_list:
         for limit in limit_list:
-            if not manager.exist(limit.module_path, limit.limit_type):
+            if not manager.exists(limit.module, limit.limit_type):
                 """不存在，添加"""
-                manager.add(limit.module_path, limit)
+                manager.add(limit.module, limit)
     manager.save_file()
     await manager.load_to_db()
 

@@ -46,7 +46,7 @@ class BotSetting(BaseModel):
         """获取数据库类型
 
         返回:
-            str: 数据库类型, postgres, aiomysql, sqlite
+            str: 数据库类型, postgres, mysql, sqlite
         """
         return self.db_url.split(":", 1)[0] if self.db_url else ""
 

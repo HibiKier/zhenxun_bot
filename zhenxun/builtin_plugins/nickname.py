@@ -1,5 +1,5 @@
 import random
-from typing import Any, List
+from typing import Any
 
 from nonebot import on_regex
 from nonebot.adapters import Bot
@@ -24,7 +24,8 @@ __plugin_meta__ = PluginMetadata(
     name="昵称系统",
     description="区区昵称，才不想叫呢！",
     usage=f"""
-    个人昵称，将替换{BotConfig.self_nickname}称呼你的名称，群聊 与 私聊 昵称相互独立，全局昵称设置将更改您目前所有群聊中及私聊的昵称
+    个人昵称，将替换{BotConfig.self_nickname}称呼你的名称，群聊 与 私聊 昵称相互独立，
+    全局昵称设置将更改您目前所有群聊中及私聊的昵称
     指令：
         以后叫我 [昵称]: 设置当前群聊/私聊的昵称
         全局昵称设置 [昵称]: 设置当前所有群聊和私聊的昵称
@@ -39,9 +40,10 @@ __plugin_meta__ = PluginMetadata(
             RegisterConfig(
                 key="BLACK_WORD",
                 value=["爸", "爹", "爷", "父"],
-                help="昵称所屏蔽的关键词，已设置的昵称会被替换为 *，未设置的昵称会在设置时提示",
+                help="昵称所屏蔽的关键词，已设置的昵称会被替换为 *，"
+                "未设置的昵称会在设置时提示",
                 default_value=None,
-                type=List[str],
+                type=list[str],
             )
         ],
     ).dict(),
@@ -167,9 +169,8 @@ async def _(
 ):
     if session.id1:
         (name,) = reg_group
-        if len(name) < 5:
-            if random.random() < 0.3:
-                name = "~".join(name)
+        if len(name) < 5 and random.random() < 0.3:
+            name = "~".join(name)
         if gid := session.id3 or session.id2:
             await GroupInfoUser.set_user_nickname(
                 session.id1,
@@ -181,9 +182,6 @@ async def _(
                 session.platform,
             )
             logger.info(f"设置群昵称成功: {name}", "昵称设置", session=session)
-            await MessageUtils.build_message(
-                random.choice(CALL_NAME).format(name)
-            ).finish(reply_to=True)
         else:
             await FriendUser.set_user_nickname(
                 session.id1,
@@ -194,9 +192,9 @@ async def _(
                 session.platform,
             )
             logger.info(f"设置私聊昵称成功: {name}", "昵称设置", session=session)
-            await MessageUtils.build_message(
-                random.choice(CALL_NAME).format(name)
-            ).finish(reply_to=True)
+        await MessageUtils.build_message(random.choice(CALL_NAME).format(name)).finish(
+            reply_to=True
+        )
     await MessageUtils.build_message("用户id为空...").send()
 
 

@@ -204,8 +204,8 @@ async def _(bot: Bot, session: EventSession, arparma: Arparma, group_id: int):
             await MessageUtils.build_message(f"退出群组 {group_id} 成功!").send()
             await GroupConsole.filter(group_id=group_id).delete()
         except Exception as e:
-            logger.error(f"退出群组失败", "退群", session=session, target=group_id, e=e)
+            logger.error("退出群组失败", "退群", session=session, target=group_id, e=e)
             await MessageUtils.build_message(f"退出群组 {group_id} 失败...").send()
     else:
         # TODO: 其他平台的退群操作
-        await MessageUtils.build_message(f"暂未支持退群操作...").send()
+        await MessageUtils.build_message("暂未支持退群操作...").send()

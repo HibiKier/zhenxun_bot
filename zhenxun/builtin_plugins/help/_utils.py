@@ -1,8 +1,8 @@
 from collections.abc import Callable
 
-from zhenxun.utils.enum import PluginType
-from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.utils.enum import PluginType
 
 
 async def sort_type() -> dict[str, list[PluginInfo]]:
@@ -13,6 +13,7 @@ async def sort_type() -> dict[str, list[PluginInfo]]:
         menu_type__not="",
         load_status=True,
         plugin_type__in=[PluginType.NORMAL, PluginType.DEPENDANT],
+        is_show=True,
     )
     sort_data = {}
     for plugin in data:

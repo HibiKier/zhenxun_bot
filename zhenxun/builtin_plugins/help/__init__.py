@@ -1,23 +1,23 @@
-from nonebot.rule import to_me
 from nonebot.adapters import Bot
-from nonebot_plugin_uninfo import Uninfo
 from nonebot.plugin import PluginMetadata
+from nonebot.rule import to_me
 from nonebot_plugin_alconna import (
-    Args,
-    Match,
-    Query,
-    Option,
     Alconna,
     AlconnaQuery,
+    Args,
+    Match,
+    Option,
+    Query,
     on_alconna,
     store_true,
 )
+from nonebot_plugin_uninfo import Uninfo
 
+from zhenxun.builtin_plugins.help._config import GROUP_HELP_PATH, SIMPLE_HELP_IMAGE
+from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.message import MessageUtils
-from zhenxun.configs.utils import RegisterConfig, PluginExtraData
-from zhenxun.builtin_plugins.help._config import GROUP_HELP_PATH, SIMPLE_HELP_IMAGE
 
 from ._data_source import create_help_img, get_plugin_help
 
@@ -29,6 +29,7 @@ __plugin_meta__ = PluginMetadata(
         author="HibiKier",
         version="0.1",
         plugin_type=PluginType.DEPENDANT,
+        is_show=False,
         configs=[
             RegisterConfig(
                 key="type",

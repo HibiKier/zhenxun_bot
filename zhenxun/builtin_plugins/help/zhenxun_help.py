@@ -1,13 +1,13 @@
-from pydantic import BaseModel
-from nonebot_plugin_uninfo import Uninfo
 from nonebot_plugin_htmlrender import template_to_pic
+from nonebot_plugin_uninfo import Uninfo
+from pydantic import BaseModel
 
-from zhenxun.utils.enum import BlockType
 from zhenxun.configs.config import BotConfig
-from zhenxun.utils.platform import PlatformUtils
-from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.configs.path_config import TEMPLATE_PATH
 from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.utils.enum import BlockType
+from zhenxun.utils.platform import PlatformUtils
 
 from ._utils import classify_plugin
 
@@ -48,10 +48,8 @@ def build_plugin_data(classify: dict[str, list[Item]]) -> list[dict[str, str]]:
     返回:
         list[dict[str, str]]: 前端插件数据
     """
-
-    lengths = [len(classify[c]) for c in classify]
-    index = lengths.index(max(lengths))
-    menu_key = list(classify.keys())[index]
+    classify = dict(sorted(classify.items(), key=lambda x: len(x[1]), reverse=True))
+    menu_key = next(iter(classify.keys()))
     max_data = classify[menu_key]
     del classify[menu_key]
     plugin_list = [

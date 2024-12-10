@@ -60,7 +60,7 @@
 
 <img width="350" height="350" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/help.png"/>
 <img width="250" height="500" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/html_help.png"/>
-<img width="180" height="450" src="https://github.com/HibiKier/zhenxun_bot/blob/dev/docs_image/zhenxun_help.png"/>
+<img width="180" height="450" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/zhenxun_help.png"/>
 
 </div>
 
@@ -68,11 +68,11 @@
 
 ### 1. 体验一下？
 
-这是一个免费的，版本为 dev 的 zhenxun，你可以通过 napcat 或拉格朗日等直接连接用于体验与测试  
+这是一个免费的，版本为 dev 的 zhenxun，你可以通过 [napcat](https://github.com/NapNeko/NapCatQQ) 或 [拉格朗日](https://github.com/LagrangeDev/Lagrange.Core) 以及 [matcha](https://github.com/A-kirami/matcha) 等直接连接用于体验与测试  
 （球球了测试君！）
 
 ```
-Url： 43.143.112.57:11451/onebot/v11/ws
+Url: ws://test.zhenxun.org:8080/onebot/v11/ws
 AccessToken: PUBLIC_ZHENXUN_TEST
 
 注：你无法获得超级用户权限
@@ -95,13 +95,14 @@ AccessToken: PUBLIC_ZHENXUN_TEST
 <details>
 <summary> <strong> WebUI </strong>后台示例图 </summary>
 
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui1.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui2.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui3.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui4.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui5.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui6.png)
-![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui7.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui00.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui01.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui02.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui03.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui04.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui05.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui06.png)
+![x](https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/webui07.png)
 
 </details>
 
@@ -111,7 +112,8 @@ AccessToken: PUBLIC_ZHENXUN_TEST
 
 ## ~~来点优点？~~ 可爱难道还不够吗
 
-- 实现了许多功能，且提供了大量功能管理命令
+- 实现了许多功能，且提供了大量功能管理命令，进行了多平台适配，兼容 nb2 商店插件
+- 拥有完善可用的 webui
 - 通过 Config 配置项将所有插件配置统计保存至 config.yaml，利于统一用户修改
 - 方便增删插件，原生 nonebot2 matcher，不需要额外修改，仅仅通过简单的配置属性就可以生成`帮助图片`和`帮助信息`
 - 提供了 cd，阻塞，每日次数等限制，仅仅通过简单的属性就可以生成一个限制，例如：`PluginCdBlock` 等
@@ -165,161 +167,97 @@ python bot.py
 
 ```
 
-<!-- ## 功能列表 （旧版列表）
+## 功能列表
 
 <details>
-<summary>已实现的功能</summary>
+<summary>内置功能</summary>
 
-### 已实现的常用功能
+**真寻原 `plugins` 插件文件夹已迁移至其他仓库，当前内置仅保留必要的功能**
 
-- [x] 昵称系统（群与群与私聊分开.）
+### 基础功能
 
-- [x] 图灵 AI（会把'你'等关键字替换为你的昵称），且带有 [AnimeThesaurus](https://github.com/Kyomotoi/AnimeThesaurus)，够味
+- [x] 昵称系统（群与群与私聊分开）
 - [x] 签到/我的签到/好感度排行/好感度总排行（影响色图概率和开箱次数，支持配置）
-- [x] 发送某文件夹下的随机图片（支持自定义，默认：美图，萝莉，壁纸）
-- [x] 色图（这不是基础功能嘛喂）
-- [x] coser
-- [x] 黑白草图生成器
-- [x] 鸡汤/语录
-- [x] 骂我（钉宫语音）
-- [x] 戳一戳（概率发送美图，钉宫语音或者戳回去）
-- [x] 模拟开箱/我的开箱/群开箱统计/我的金色/设置 cookie（csgo，内置爬虫脚本，需要提前抓取数据和图片，需要 session，可能需要代理，阿里云服务器等 ip 也许已经被 ban 了（我无代理访问失败），如果访问太多账号 API 调用可能被禁止访问 api！）
-- [x] 鲁迅说过
-- [x] 构造假消息（自定义的分享链接）
-- [x] 商店/我的金币/购买道具/使用道具
-- [x] 8 种手游抽卡 (查看 [nonebot_plugin_gamedraw](https://github.com/HibiKier/nonebot_plugin_gamedraw))
-- [x] 我有一个朋友想问问..（借鉴 pcrbot 插件）
-- [x] 原神黄历
-- [x] 原神今日素材
-- [x] 原神资源查询 (借鉴[Genshin_Impact_bot](https://github.com/H-K-Y/Genshin_Impact_bot)插件)
-- [x] 原神便笺查询
-- [x] 原神玩家查询
-- [x] 原神树脂提醒
-- [x] 原神签到/自动签到
-- [x] 金币红包
-- [x] 微博热搜
-- [x] B 站主播/UP/番剧订阅
-
-- [x] pil 对图片的一些操作
-- [x] BUFF 饰品底价查询（需要 session）
-- [x] 天气查询
-- [x] 疫情查询
-- [x] bt 磁力搜索（咳咳，这功能我想 dddd）
-- [x] reimu 搜索（上车） (使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件)
-- [x] 靠图识番 (使用[XUN_Langskip](https://github.com/Angel-Hair/XUN_Bot)的插件)
-- [x] 以图搜图 (使用[nonebot_plugin_picsearcher](https://github.com/synodriver/nonebot_plugin_picsearcher)插件)
-- [x] 搜番
-- [x] 点歌 [nonebot_plugin_songpicker2](https://github.com/maxesisn/nonebot_plugin_songpicker2)插件（删除了选歌和评论）
-- [x] epic 免费游戏
-- [x] p 站排行榜
-- [x] p 站搜图
-- [x] 翻译（日英韩）
-- [x] pix 图库（一个自己的图库，含有增删查改，黑名单等命令）
-
+- [x] 商店/我的金币/购买道具/使用道具/金币排行（完整的商店添加/购买/使用流程）
 - [x] 查看当前群欢迎消息
-- [x] 查看该群自己的权限
-- [x] 我的信息（只是为了看看什么时候入群）
-- [x] 更新信息（如果继续更新的话）
-- [x] go-cqhttp 最新版下载和上传（不需要请删除）
-- [x] 撤回
-- [x] 滴滴滴-（用户对超级用户发送消息）
-- [x] 金币红包/金币排行
-- [x] 俄罗斯轮盘/胜场排行/败场排行/欧洲人排行/慈善家排行
-- [x] 网易云热评
-- [x] 念首古诗
-- [x] 获取 b 站视频封面
-- [x] 通过 PID 获取图片
+- [x] 个人信息查看（群组内权限，聊天频率等）
+- [x] 消息撤回
 - [x] 功能统计可视化
-- [x] 词云
 - [x] 关于
+- [x] 三种样式的帮助菜单
 
-### 已实现的管理员功能
+### 管理员功能
 
+- [x] 管理员帮助
 - [x] 更新群组成员信息
-
 - [x] 95%的群功能开关
 - [x] 查看群内被动技能状态
 - [x] 自定义群欢迎消息（是真寻的不是管家的！）
-- [x] .ban/.unban（支持设置 ban 时长）= 黑白名单
-- [x] 刷屏禁言相关：刷屏检测设置/设置禁言时长/设置检测次数
-- [x] 上传图片/连续上传图片 （上传图片至指定图库）
-- [x] 移动图片 （同上）
-- [x] 删除图片 （同上）
-- [x] 群内 B 站订阅
-- [x] 词条设置
-- [x] 休息吧/醒来
+- [x] ban/unban（支持设置 ban 时长）= 群组及用户的黑名单
+- [x] 休息吧/醒来（群组内真寻状态）
 
-### 已实现的超级用户功能
+### 超级用户功能
 
+- [x] 超级用户帮助
 - [x] 添加/删除权限（是真寻的管理员权限，不是群管理员）
-
-- [x] 开启/关闭指定群的广播通知
+- [x] 群组管理，退群指令等
 - [x] 广播
 - [x] 自检（检查系统状态）
 - [x] 所有群组/所有好友
 - [x] 退出指定群
 - [x] 更新好友信息/更新群信息
-- [x] /t（对用户进行回复或发送消息）
-- [x] 上传/删除/修改商品（需要编写对应的商品功能）
-- [x] 节日红包发送
 - [x] 修改群权限
-- [x] ban
-- [x] 更新色图
-- [x] 更新价格/更加图片（csgo 开箱）
-- [x] 重载原神/方舟/赛马娘/坎公骑冠剑卡池
-- [x] 更新原神今日素材/更新原神资源信息
-- [x] PIX 相关操作
-- [x] 检查更新真寻
+- [x] 检查更新
 - [x] 重启
 - [x] 添加/删除/查看群白名单
 - [x] 功能开关(更多设置)
 - [x] 功能状态
-- [x] b 了
-- [x] 执行 sql
+- [x] 执行 SQL
 - [x] 重载配置
 - [x] 清理临时数据
 - [x] 增删群认证
 - [x] 同意/拒绝好友/群聊请求
-- [x] 配置重载
+- [x] 添加/移除/更新插件/插件商店（plugins 库以及扩展库）
+- [x] WebUI API（对真寻前端的支持）
 
 #### 超级用户的被动技能
 
-- [x] 邀请入群提醒(别人邀请真寻入群)
+- [x] 邀请入群提醒(别人邀请真寻入群，可配置自动同意)
 
-- [x] 添加好友提醒(别人添加真寻好友)
+- [x] 添加好友提醒(别人添加真寻好友，可配置自动同意)
 
-### 已实现的被动技能
-
-- [x] 进群欢迎消息
+### 被动技能
 
 - [x] 群早晚安
-- [x] 每日开箱重置提醒
-- [x] b 站转发解析（解析 b 站分享信息，支持 bv，bilibili 链接，b 站手机端转发卡片，cv，b23.tv），且 5 分钟内不解析相同 url
-- [x] 丢人爬（爬表情包）
-- [x] epic 通知（每日发送 epic 免费游戏链接）
-- [x] 原神黄历提醒
-- [x] 复读
 
-### 已实现的看不见的技能
-
-- [x] 刷屏禁言检测
+### 看不见的技能
 
 - [x] 功能调用统计
+- [x] 聊天记录统计
 - [x] 检测恶意触发命令（将被最高权限 ban 掉 30 分钟，只有最高权限(9 级)可以进行 unban）
-- [x] 自动同意好友请求，加群请求将会提醒管理员，退群提示，加群欢迎等等
-- [x] 群聊时间检测（当群聊最后一人发言时间大于当前 36 小时后将关闭该群所有通知（即被动技能））
+- [x] 自动同意好友/群组请求，加群请求将会提醒管理员，退群提示，加群欢迎等等
+- [x] 群聊时间检测（当群聊最后一人发言时间大于当前 48 小时后将关闭该群所有通知（即被动技能））
 - [x] 群管理员监控，自动为新晋管理员增加权限，为失去群管理员的用户删除权限
 - [x] 群权限系统
 - [x] 定时更新权限
 - [x] 自动配置重载
+- [x] 强制入群保护
+- [x] 自定备份（可配置）
+- [x] 笨蛋检测（当使用功能名称当指令时真寻会跳出来狠狠嘲笑并帮助）
 
-</details> -->
+### 更多插件
 
-## [爱发电](https://afdian.net/@HibiKier)
+- [更多插件](https://github.com/zhenxun-org/zhenxun_bot_plugins)
+
+- [第三方插件索引库](https://github.com/zhenxun-org/zhenxun_bot_plugins_index)
+
+</details>
+
+## [爱发电](https://afdian.com/a/HibiKier)
 
 <details>
 <summary>爱发电 以及 感谢投喂 </summary>
-<img width="365px" height="450px" src="https://user-images.githubusercontent.com/45528451/175059389-cfeb8174-fa07-4939-80ab-a039087a50f6.png">
+<img width="365px" height="450px" src="https://raw.githubusercontent.com/HibiKier/zhenxun_bot/main/docs_image/afd.jpg">
 
 ### 感谢名单
 
@@ -369,6 +307,7 @@ python bot.py
 [哇](https://afdian.net/u/9b266244f23911eca19052540025c377)  
 [yajiwa](https://github.com/yajiwa)  
 [爆金币](https://afdian.net/u/0d78879ef23711ecb22452540025c377)
+...
 
 </details>
 
@@ -819,6 +758,10 @@ python bot.py
 ## Todo
 
 - [x] web 管理
+
+## **特别感谢**
+
+首席设计师：[酥酥/coldly-ss](https://github.com/coldly-ss)
 
 ## 感谢
 

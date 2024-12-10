@@ -1,16 +1,15 @@
-import random
+from collections.abc import Callable
 from io import BytesIO
 from pathlib import Path
-from collections.abc import Callable
+import random
 
-from pydantic import BaseModel
 from PIL.ImageFont import FreeTypeFont
+from pydantic import BaseModel
 
 from ._build_image import BuildImage
 
 
 class RowStyle(BaseModel):
-
     font: FreeTypeFont | str | Path | None = "HYWenHei-85W.ttf"
     """字体"""
     font_size: int = 20
@@ -23,7 +22,6 @@ class RowStyle(BaseModel):
 
 
 class ImageTemplate:
-
     color_list = ["#C2CEFE", "#FFA94C", "#3FE6A0", "#D1D4F5"]  # noqa: RUF012
 
     @classmethod
@@ -88,7 +86,7 @@ class ImageTemplate:
         head_text: str,
         tip_text: str | None,
         column_name: list[str],
-        data_list: list[list[str | tuple[Path | BuildImage, int, int]]],
+        data_list: list[list[str | int | tuple[Path | BuildImage, int, int]]],
         row_space: int = 35,
         column_space: int = 30,
         padding: int = 5,
@@ -137,7 +135,7 @@ class ImageTemplate:
     async def table(
         cls,
         column_name: list[str],
-        data_list: list[list[str | tuple[Path | BuildImage, int, int]]],
+        data_list: list[list[str | int | tuple[Path | BuildImage, int, int]]],
         row_space: int = 25,
         column_space: int = 10,
         padding: int = 5,
@@ -161,9 +159,11 @@ class ImageTemplate:
         column_data = []
         for i in range(len(column_name)):
             c = []
-            for lst in data_list:
-                if len(lst) > i:
-                    c.append(lst[i])
+            for item in data_list:
+                if len(item) > i:
+                    c.append(
+                        item[i] if isinstance(item[i], tuple | list) else str(item[i])
+                    )
                 else:
                     c.append("")
             column_data.append(c)
@@ -176,7 +176,7 @@ class ImageTemplate:
                 if isinstance(s, tuple):
                     w = s[1]
                 else:
-                    w, _ = BuildImage.get_text_size(s, font)
+                    w, _ = BuildImage.get_text_size(str(s), font)
                 if w > _temp["width"]:
                     _temp["width"] = w
             build_data_list.append(_temp)
@@ -199,7 +199,7 @@ class ImageTemplate:
                 style = RowStyle(font=font)
                 if text_style:
                     style = text_style(column_name[i], item)
-                if isinstance(item, tuple):
+                if isinstance(item, tuple | list):
                     """图片"""
                     data, width, height = item
                     image_ = None
@@ -221,8 +221,6 @@ class ImageTemplate:
                     )
                 cur_h += base_h + row_space
             column_image_list.append(background)
-        # height = max([bk.height for bk in column_image_list])
-        # width = sum([bk.width for bk in column_image_list])
         return await BuildImage.auto_paste(
             column_image_list, len(column_image_list), column_space
         )

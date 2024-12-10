@@ -3,14 +3,14 @@ from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_apscheduler import scheduler
 
-from zhenxun.services.log import logger
-from zhenxun.utils.enum import PluginType
 from zhenxun.configs.config import BotConfig
-from zhenxun.utils.message import MessageUtils
 from zhenxun.configs.path_config import IMAGE_PATH
+from zhenxun.configs.utils import PluginExtraData, Task
+from zhenxun.services.log import logger
 from zhenxun.utils.common_utils import CommonUtils
+from zhenxun.utils.enum import PluginType
+from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import broadcast_group
-from zhenxun.configs.utils import Task, PluginExtraData
 
 __plugin_meta__ = PluginMetadata(
     name="早晚安被动技能",
@@ -20,7 +20,14 @@ __plugin_meta__ = PluginMetadata(
         author="HibiKier",
         version="0.1",
         plugin_type=PluginType.HIDDEN,
-        tasks=[Task(module="morning_goodnight", name="早晚安")],
+        tasks=[
+            Task(
+                module="morning_goodnight",
+                name="早晚安",
+                create_status=False,
+                default_status=False,
+            )
+        ],
     ).dict(),
 )
 

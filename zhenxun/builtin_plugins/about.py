@@ -1,16 +1,16 @@
 from pathlib import Path
 
 import aiofiles
-from nonebot.rule import to_me
-from nonebot_plugin_uninfo import Uninfo
 from nonebot.plugin import PluginMetadata
+from nonebot.rule import to_me
 from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
+from nonebot_plugin_uninfo import Uninfo
 
+from zhenxun.configs.path_config import DATA_PATH
+from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
-from zhenxun.configs.path_config import DATA_PATH
-from zhenxun.configs.utils import PluginExtraData
 
 __plugin_meta__ = PluginMetadata(
     name="关于",

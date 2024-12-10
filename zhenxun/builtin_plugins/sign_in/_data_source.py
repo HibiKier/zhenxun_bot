@@ -1,23 +1,23 @@
+from datetime import datetime
+from pathlib import Path
 import random
 import secrets
-from pathlib import Path
-from datetime import datetime
 
-import pytz
 from nonebot_plugin_uninfo import Uninfo
+import pytz
 
-from zhenxun.services.log import logger
+from zhenxun.configs.path_config import IMAGE_PATH
+from zhenxun.models.friend_user import FriendUser
+from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.models.sign_log import SignLog
 from zhenxun.models.sign_user import SignUser
-from zhenxun.utils.platform import PlatformUtils
-from zhenxun.models.friend_user import FriendUser
-from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.models.user_console import UserConsole
-from zhenxun.models.group_member_info import GroupInfoUser
+from zhenxun.services.log import logger
 from zhenxun.utils.image_utils import BuildImage, ImageTemplate
+from zhenxun.utils.platform import PlatformUtils
 
-from .utils import get_card
 from ._random_event import random_event
+from .utils import get_card
 
 ICON_PATH = IMAGE_PATH / "_icon"
 
@@ -59,7 +59,10 @@ class SignManage:
         if not user_list:
             return "当前还没有人签到过哦..."
         user_id_list = [user[0] for user in user_list]
-        index = user_id_list.index(session.user.id) + 1
+        if session.user.id in user_id_list:
+            index = user_id_list.index(session.user.id) + 1
+        else:
+            index = "-1（未统计）"
         user_list = user_list[:num] if num < len(user_list) else user_list
         column_name = ["排名", "-", "名称", "好感度", "签到次数", "平台"]
         friend_list = await FriendUser.filter(user_id__in=user_id_list).values_list(

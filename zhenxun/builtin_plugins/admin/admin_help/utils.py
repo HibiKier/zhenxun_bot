@@ -1,8 +1,8 @@
 import nonebot
 
+from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.exception import EmptyError
-from zhenxun.models.plugin_info import PluginInfo
 
 from .config import PluginData
 
