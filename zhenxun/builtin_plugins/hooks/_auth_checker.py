@@ -307,8 +307,15 @@ class AuthChecker:
             plugin: PluginInfo
             bot_id: bot_id
         """
-        if await BotConsole.is_block_plugin(plugin.module, bot_id):
-            raise IgnoredException("机器人权限检测 ignore")
+        if not await BotConsole.get_bot_status(bot_id):
+            logger.debug("Bot休眠中阻断权限检测...", "AuthChecker")
+            raise IgnoredException("BotConsole休眠权限检测 ignore")
+        if await BotConsole.is_block_plugin(bot_id, plugin.module):
+            logger.debug(
+                f"Bot插件 {plugin.name}({plugin.module}) 权限检查结果为关闭...",
+                "AuthChecker",
+            )
+            raise IgnoredException("BotConsole插件权限检测 ignore")
 
     async def auth_limit(self, plugin: PluginInfo, session: EventSession):
         """插件限制

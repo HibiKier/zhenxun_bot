@@ -113,6 +113,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.env.dev
 
 # Spyder project settings
 .spyderproject
@@ -151,9 +152,7 @@ backup/
 extensive_plugin/
 test/
 bot.py
-data/
-.env
-.env.dev
+.idea/
 /resources/text/
 # /resources/image/
 /resources/temp/
