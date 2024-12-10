@@ -4,6 +4,7 @@ import nonebot
 from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 
+from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.utils.platform import PlatformUtils
@@ -62,3 +63,4 @@ async def _(bot: Bot):
     bot_data.available_plugins = BotConsole._convert_module_format(available_plugins)
     bot_data.available_tasks = BotConsole._convert_module_format(available_tasks)
     await bot_data.save(update_fields=["available_plugins", "available_tasks"])
+    logger.info("初始化Bot管理完成...")

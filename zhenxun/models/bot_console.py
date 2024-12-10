@@ -63,19 +63,19 @@ class BotConsole(Model):
 
     @overload
     @classmethod
-    async def get_tasks(cls) -> list[tuple[str, str]]: ...
+    async def get_tasks(cls) -> list[tuple[str, list[str]]]: ...
 
     @overload
     @classmethod
-    async def get_tasks(cls, bot_id: str) -> str: ...
+    async def get_tasks(cls, bot_id: str) -> list[str]: ...
 
     @overload
     @classmethod
-    async def get_tasks(cls, *, status: bool) -> list[tuple[str, str]]: ...
+    async def get_tasks(cls, *, status: bool) -> dict[str, list[str]]: ...
 
     @overload
     @classmethod
-    async def get_tasks(cls, bot_id: str, status: bool = True) -> str: ...
+    async def get_tasks(cls, bot_id: str, status: bool = True) -> list[str]: ...
 
     @classmethod
     async def get_tasks(cls, bot_id: str | None = None, status: bool | None = True):
@@ -90,29 +90,32 @@ class BotConsole(Model):
             list[tuple[str, str]] | str: 被动技能
         """
         if not bot_id:
-            task_field = "available_tasks" if status else "block_tasks"
-            return await cls.all().values_list("bot_id", task_field)
-
+            task_field: Literal["available_tasks", "block_tasks"] = (
+                "available_tasks" if status else "block_tasks"
+            )
+            data_list = await cls.all().values_list("bot_id", task_field)
+            return {k: cls._convert_module_format(v) for k, v in data_list}
         result = await cls.get_or_none(bot_id=bot_id)
         if result:
-            return result.available_tasks if status else result.block_tasks
-        return ""
+            tasks = result.available_tasks if status else result.block_tasks
+            return cls._convert_module_format(tasks)
+        return []
 
     @overload
     @classmethod
-    async def get_plugins(cls) -> list[tuple[str, str]]: ...
+    async def get_plugins(cls) -> dict[str, list[str]]: ...
 
     @overload
     @classmethod
-    async def get_plugins(cls, bot_id: str) -> str: ...
+    async def get_plugins(cls, bot_id: str) -> list[str]: ...
 
     @overload
     @classmethod
-    async def get_plugins(cls, *, status: bool) -> list[tuple[str, str]]: ...
+    async def get_plugins(cls, *, status: bool) -> dict[str, list[str]]: ...
 
     @overload
     @classmethod
-    async def get_plugins(cls, bot_id: str, status: bool = True) -> str: ...
+    async def get_plugins(cls, bot_id: str, status: bool = True) -> list[str]: ...
 
     @classmethod
     async def get_plugins(cls, bot_id: str | None = None, status: bool = True):
@@ -128,12 +131,14 @@ class BotConsole(Model):
         """
         if not bot_id:
             plugin_field = "available_plugins" if status else "block_plugins"
-            return await cls.all().values_list("bot_id", plugin_field)
+            data_list = await cls.all().values_list("bot_id", plugin_field)
+            return {k: cls._convert_module_format(v) for k, v in data_list}
 
         result = await cls.get_or_none(bot_id=bot_id)
         if result:
-            return result.available_plugins if status else result.block_plugins
-        return ""
+            plugins = result.available_plugins if status else result.block_plugins
+            return cls._convert_module_format(plugins)
+        return []
 
     @classmethod
     async def set_bot_status(cls, status: bool, bot_id: str | None = None) -> None:
@@ -336,12 +341,27 @@ class BotConsole(Model):
         """
         bot_data, _ = await cls.get_or_create(bot_id=bot_id)
         if feat == "plugins":
+            available_plugins = cls._convert_module_format(bot_data.available_plugins)
+            block_plugins = cls._convert_module_format(bot_data.block_plugins)
+            bot_data.block_plugins = cls._convert_module_format(
+                available_plugins + block_plugins
+            )
             bot_data.available_plugins = ""
-            # todo)) 使用初始化方法重新写入bot_data.block_plugins以保证插件列表完整
         elif feat == "tasks":
+            available_tasks = cls._convert_module_format(bot_data.available_tasks)
+            block_tasks = cls._convert_module_format(bot_data.block_tasks)
+            bot_data.block_tasks = cls._convert_module_format(
+                available_tasks + block_tasks
+            )
             bot_data.available_tasks = ""
-            # todo)) 使用初始化方法重新写入bot_data.block_tasks以保证插件列表完整
-        await bot_data.save()
+        await bot_data.save(
+            update_fields=[
+                "available_tasks",
+                "block_tasks",
+                "available_plugins",
+                "block_plugins",
+            ]
+        )
 
     @classmethod
     async def enable_all(
@@ -358,12 +378,27 @@ class BotConsole(Model):
         """
         bot_data, _ = await cls.get_or_create(bot_id=bot_id)
         if feat == "plugins":
+            available_plugins = cls._convert_module_format(bot_data.available_plugins)
+            block_plugins = cls._convert_module_format(bot_data.block_plugins)
+            bot_data.available_plugins = cls._convert_module_format(
+                available_plugins + block_plugins
+            )
             bot_data.block_plugins = ""
-            # todo)) 使用初始化方法重新写入bot_data.available_plugins以保证插件列表完整
         elif feat == "tasks":
+            available_tasks = cls._convert_module_format(bot_data.available_tasks)
+            block_tasks = cls._convert_module_format(bot_data.block_tasks)
+            bot_data.available_tasks = cls._convert_module_format(
+                available_tasks + block_tasks
+            )
             bot_data.block_tasks = ""
-            # todo)) 使用初始化方法重新写入bot_data.available_tasks以保证插件列表完整
-        await bot_data.save()
+        await bot_data.save(
+            update_fields=[
+                "available_tasks",
+                "block_tasks",
+                "available_plugins",
+                "block_plugins",
+            ]
+        )
 
     @classmethod
     async def is_block_plugin(cls, bot_id: str, plugin_name: str) -> bool:
@@ -372,7 +407,7 @@ class BotConsole(Model):
 
         参数:
             bot_id (str): bot_id
-            plugin_name (str): 插件名称
+            plugin_name (str): 插件某款
 
         返回:
             bool: 是否被禁用

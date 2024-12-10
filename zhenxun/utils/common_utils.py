@@ -5,6 +5,7 @@ from zhenxun.services.log import logger
 from zhenxun.configs.config import BotConfig
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.models.ban_console import BanConsole
+from zhenxun.models.bot_console import BotConsole
 from zhenxun.models.group_console import GroupConsole
 
 
@@ -39,6 +40,13 @@ class CommonUtils:
             """被动全局状态"""
             if not task.status:
                 return True
+        if not await BotConsole.get_bot_status(session.self_id):
+            """bot是否休眠"""
+            return True
+        block_tasks = await BotConsole.get_tasks(session.self_id, False)
+        if module in block_tasks:
+            """bot是否禁用被动"""
+            return True
         if group_id:
             if await GroupConsole.is_block_task(group_id, module):
                 """群组是否禁用被动"""
