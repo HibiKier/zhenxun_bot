@@ -1,12 +1,12 @@
 from nonebot_plugin_htmlrender import template_to_pic
 
 from zhenxun.configs.config import BotConfig
+from zhenxun.configs.path_config import TEMPLATE_PATH
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.utils._build_image import BuildImage
-from zhenxun.configs.path_config import TEMPLATE_PATH
 
-from .utils import get_plugins
 from .config import SUPERUSER_HELP_IMAGE
+from .utils import get_plugins
 
 
 async def get_task() -> dict[str, str] | None:

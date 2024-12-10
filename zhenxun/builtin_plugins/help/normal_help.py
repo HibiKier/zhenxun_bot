@@ -1,8 +1,8 @@
-from zhenxun.utils.enum import BlockType
-from zhenxun.utils._build_image import BuildImage
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.models.group_console import GroupConsole
-from zhenxun.utils.image_utils import group_image, build_sort_image
+from zhenxun.utils._build_image import BuildImage
+from zhenxun.utils.enum import BlockType
+from zhenxun.utils.image_utils import build_sort_image, group_image
 
 from ._utils import sort_type
 

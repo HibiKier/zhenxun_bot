@@ -1,10 +1,10 @@
 from nonebot_plugin_htmlrender import template_to_pic
 
+from zhenxun.builtin_plugins.admin.admin_help.config import ADMIN_HELP_IMAGE
 from zhenxun.configs.config import BotConfig
+from zhenxun.configs.path_config import TEMPLATE_PATH
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.utils._build_image import BuildImage
-from zhenxun.configs.path_config import TEMPLATE_PATH
-from zhenxun.builtin_plugins.admin.admin_help.config import ADMIN_HELP_IMAGE
 
 from .utils import get_plugins
 

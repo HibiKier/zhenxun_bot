@@ -1,13 +1,13 @@
 import os
 import random
 
-from pydantic import BaseModel
 from nonebot_plugin_htmlrender import template_to_pic
+from pydantic import BaseModel
 
-from zhenxun.utils.enum import BlockType
-from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.configs.path_config import TEMPLATE_PATH
 from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.utils.enum import BlockType
 
 from ._utils import classify_plugin
 

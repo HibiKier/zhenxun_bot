@@ -1,5 +1,6 @@
-from tortoise import fields
 from typing_extensions import Self
+
+from tortoise import fields
 
 from zhenxun.services.db_context import Model
 
@@ -8,7 +9,6 @@ from .user_console import UserConsole
 
 
 class SignUser(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_id = fields.CharField(255, unique=True, description="用户id")

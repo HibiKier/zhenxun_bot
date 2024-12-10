@@ -1,18 +1,18 @@
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_session import EventSession
 from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
+from nonebot_plugin_session import EventSession
 
-from zhenxun.services.log import logger
 from zhenxun.configs.config import Config
+from zhenxun.configs.utils import PluginExtraData, RegisterConfig
+from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.exception import EmptyError
 from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.rules import admin_check, ensure_group
-from zhenxun.configs.utils import RegisterConfig, PluginExtraData
 
-from .normal_help import build_help
 from .config import ADMIN_HELP_IMAGE
 from .html_help import build_html_help
+from .normal_help import build_help
 
 __plugin_meta__ = PluginMetadata(
     name="群组管理员帮助",

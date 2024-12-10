@@ -1,17 +1,17 @@
+from dataclasses import dataclass
 import os
+from pathlib import Path
 import platform
 import subprocess
-from pathlib import Path
-from dataclasses import dataclass
 
-import psutil
 import cpuinfo
 import nonebot
-from pydantic import BaseModel
 from nonebot.utils import run_sync
+import psutil
+from pydantic import BaseModel
 
-from zhenxun.services.log import logger
 from zhenxun.configs.config import BotConfig
+from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
 
 BAIDU_URL = "https://www.baidu.com/"

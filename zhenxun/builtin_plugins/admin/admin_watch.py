@@ -1,13 +1,13 @@
 from nonebot import on_notice
-from nonebot.plugin import PluginMetadata
 from nonebot.adapters.onebot.v11 import GroupAdminNoticeEvent
+from nonebot.plugin import PluginMetadata
 
-from zhenxun.services.log import logger
 from zhenxun.configs.config import Config
+from zhenxun.configs.utils import PluginExtraData, RegisterConfig
+from zhenxun.models.level_user import LevelUser
+from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.rules import notice_rule
-from zhenxun.models.level_user import LevelUser
-from zhenxun.configs.utils import RegisterConfig, PluginExtraData
 
 __plugin_meta__ = PluginMetadata(
     name="群管理员变动监测",

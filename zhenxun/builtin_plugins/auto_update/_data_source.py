@@ -1,35 +1,35 @@
 import os
 import shutil
+import subprocess
 import tarfile
 import zipfile
-import subprocess
 
 from nonebot.adapters import Bot
 from nonebot.utils import run_sync
 
 from zhenxun.services.log import logger
-from zhenxun.utils.http_utils import AsyncHttpx
-from zhenxun.utils.platform import PlatformUtils
 from zhenxun.utils.github_utils import GithubUtils
 from zhenxun.utils.github_utils.models import RepoInfo
+from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.utils.platform import PlatformUtils
 
 from .config import (
-    TMP_PATH,
-    BASE_PATH,
     BACKUP_PATH,
-    RELEASE_URL,
-    REQ_TXT_FILE,
-    VERSION_FILE,
-    PYPROJECT_FILE,
-    REPLACE_FOLDERS,
+    BASE_PATH,
     BASE_PATH_STRING,
+    DEFAULT_GITHUB_URL,
     DOWNLOAD_GZ_FILE,
     DOWNLOAD_ZIP_FILE,
-    DEFAULT_GITHUB_URL,
-    PYPROJECT_LOCK_FILE,
-    REQ_TXT_FILE_STRING,
+    PYPROJECT_FILE,
     PYPROJECT_FILE_STRING,
+    PYPROJECT_LOCK_FILE,
     PYPROJECT_LOCK_FILE_STRING,
+    RELEASE_URL,
+    REPLACE_FOLDERS,
+    REQ_TXT_FILE,
+    REQ_TXT_FILE_STRING,
+    TMP_PATH,
+    VERSION_FILE,
 )
 
 

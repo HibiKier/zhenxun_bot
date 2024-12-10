@@ -1,14 +1,13 @@
 from collections.abc import Callable
 
-from pydantic import BaseModel
-from nonebot.plugin import require
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
+from nonebot.plugin import require
+from pydantic import BaseModel
 
 from zhenxun.models.goods_info import GoodsInfo
 
 
 class Goods(BaseModel):
-
     before_handle: list[Callable] = []
     after_handle: list[Callable] = []
     price: int
@@ -25,7 +24,6 @@ class Goods(BaseModel):
 
 
 class ShopRegister(dict):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._data: dict[str, Goods] = {}

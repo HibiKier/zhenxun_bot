@@ -1,14 +1,13 @@
+from pathlib import Path
 import shutil
 import zipfile
-from pathlib import Path
 
 from nonebot.utils import run_sync
 
+from builtin_plugins.web_ui.config import PUBLIC_PATH, TMP_PATH, WEBUI_DIST_GITHUB_URL
 from zhenxun.services.log import logger
-from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.github_utils import GithubUtils
-
-from ..config import TMP_PATH, PUBLIC_PATH, WEBUI_DIST_GITHUB_URL
+from zhenxun.utils.http_utils import AsyncHttpx
 
 COMMAND_NAME = "WebUI资源管理"
 

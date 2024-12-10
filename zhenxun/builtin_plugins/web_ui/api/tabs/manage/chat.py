@@ -1,15 +1,15 @@
-import nonebot
 from fastapi import APIRouter
+import nonebot
 from nonebot import on_message
-from nonebot_plugin_session import EventSession
 from nonebot.adapters.onebot.v11 import MessageEvent
-from nonebot_plugin_alconna import At, Text, Hyper, Image, UniMsg
-from starlette.websockets import WebSocket, WebSocketState, WebSocketDisconnect
+from nonebot_plugin_alconna import At, Hyper, Image, Text, UniMsg
+from nonebot_plugin_session import EventSession
+from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
-from zhenxun.utils.depends import UserName
+from builtin_plugins.web_ui.config import AVA_URL
 from zhenxun.models.group_member_info import GroupInfoUser
+from zhenxun.utils.depends import UserName
 
-from ....config import AVA_URL
 from .model import Message, MessageItem
 
 driver = nonebot.get_driver()

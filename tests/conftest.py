@@ -1,15 +1,15 @@
-import os
-import json
-from pathlib import Path
 from collections.abc import Callable
+import json
+import os
+from pathlib import Path
 
-import pytest
 import nonebot
-from nonebug.app import App
-from respx import MockRouter
-from pytest_mock import MockerFixture
 from nonebug import NONEBOT_INIT_KWARGS
+from nonebug.app import App
 from nonebug.mixin.process import MatcherContext
+import pytest
+from pytest_mock import MockerFixture
+from respx import MockRouter
 
 from tests.config import BotId, UserId
 
@@ -61,7 +61,7 @@ def _init_bot(nonebug_init: None):
 
 @pytest.fixture
 async def app(app: App, tmp_path: Path, mocker: MockerFixture):
-    from zhenxun.services.db_context import init, disconnect
+    from zhenxun.services.db_context import disconnect, init
 
     driver = nonebot.get_driver()
     # 清除连接钩子，现在 NoneBug 会自动触发 on_bot_connect
@@ -89,7 +89,7 @@ async def app(app: App, tmp_path: Path, mocker: MockerFixture):
 
 @pytest.fixture
 def create_bot() -> Callable:
-    from nonebot.adapters.onebot.v11 import Bot, Adapter
+    from nonebot.adapters.onebot.v11 import Adapter, Bot
 
     def _create_bot(context: MatcherContext) -> Bot:
         return context.create_bot(
