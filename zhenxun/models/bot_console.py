@@ -21,10 +21,8 @@ class BotConsole(Model):
     block_tasks = fields.TextField(default="", description="禁用被动技能")
     """禁用被动技能"""
     available_plugins = fields.TextField(default="", description="可用插件")
-    # todo))  计划任务 or on_startup 写入可用插件
     """可用插件"""
     available_tasks = fields.TextField(default="", description="可用被动技能")
-    # todo))  计划任务 or on_startup 写入可用被动技能
     """可用被动技能"""
 
     class Meta:  # type: ignore
@@ -94,11 +92,11 @@ class BotConsole(Model):
                 "available_tasks" if status else "block_tasks"
             )
             data_list = await cls.all().values_list("bot_id", task_field)
-            return {k: cls._convert_module_format(v) for k, v in data_list}
+            return {k: cls.convert_module_format(v) for k, v in data_list}
         result = await cls.get_or_none(bot_id=bot_id)
         if result:
             tasks = result.available_tasks if status else result.block_tasks
-            return cls._convert_module_format(tasks)
+            return cls.convert_module_format(tasks)
         return []
 
     @overload
@@ -132,12 +130,12 @@ class BotConsole(Model):
         if not bot_id:
             plugin_field = "available_plugins" if status else "block_plugins"
             data_list = await cls.all().values_list("bot_id", plugin_field)
-            return {k: cls._convert_module_format(v) for k, v in data_list}
+            return {k: cls.convert_module_format(v) for k, v in data_list}
 
         result = await cls.get_or_none(bot_id=bot_id)
         if result:
             plugins = result.available_plugins if status else result.block_plugins
-            return cls._convert_module_format(plugins)
+            return cls.convert_module_format(plugins)
         return []
 
     @classmethod
@@ -161,14 +159,14 @@ class BotConsole(Model):
 
     @overload
     @classmethod
-    def _convert_module_format(cls, data: str) -> list[str]: ...
+    def convert_module_format(cls, data: str) -> list[str]: ...
 
     @overload
     @classmethod
-    def _convert_module_format(cls, data: list[str]) -> str: ...
+    def convert_module_format(cls, data: list[str]) -> str: ...
 
     @classmethod
-    def _convert_module_format(cls, data: str | list[str]) -> str | list[str]:
+    def convert_module_format(cls, data: str | list[str]) -> str | list[str]:
         """
         在 `<aaa,<bbb,<ccc,` 和 `["aaa", "bbb", "ccc"]` 之间进行相互转换。
 
@@ -341,16 +339,16 @@ class BotConsole(Model):
         """
         bot_data, _ = await cls.get_or_create(bot_id=bot_id)
         if feat == "plugins":
-            available_plugins = cls._convert_module_format(bot_data.available_plugins)
-            block_plugins = cls._convert_module_format(bot_data.block_plugins)
-            bot_data.block_plugins = cls._convert_module_format(
+            available_plugins = cls.convert_module_format(bot_data.available_plugins)
+            block_plugins = cls.convert_module_format(bot_data.block_plugins)
+            bot_data.block_plugins = cls.convert_module_format(
                 available_plugins + block_plugins
             )
             bot_data.available_plugins = ""
         elif feat == "tasks":
-            available_tasks = cls._convert_module_format(bot_data.available_tasks)
-            block_tasks = cls._convert_module_format(bot_data.block_tasks)
-            bot_data.block_tasks = cls._convert_module_format(
+            available_tasks = cls.convert_module_format(bot_data.available_tasks)
+            block_tasks = cls.convert_module_format(bot_data.block_tasks)
+            bot_data.block_tasks = cls.convert_module_format(
                 available_tasks + block_tasks
             )
             bot_data.available_tasks = ""
@@ -378,16 +376,16 @@ class BotConsole(Model):
         """
         bot_data, _ = await cls.get_or_create(bot_id=bot_id)
         if feat == "plugins":
-            available_plugins = cls._convert_module_format(bot_data.available_plugins)
-            block_plugins = cls._convert_module_format(bot_data.block_plugins)
-            bot_data.available_plugins = cls._convert_module_format(
+            available_plugins = cls.convert_module_format(bot_data.available_plugins)
+            block_plugins = cls.convert_module_format(bot_data.block_plugins)
+            bot_data.available_plugins = cls.convert_module_format(
                 available_plugins + block_plugins
             )
             bot_data.block_plugins = ""
         elif feat == "tasks":
-            available_tasks = cls._convert_module_format(bot_data.available_tasks)
-            block_tasks = cls._convert_module_format(bot_data.block_tasks)
-            bot_data.available_tasks = cls._convert_module_format(
+            available_tasks = cls.convert_module_format(bot_data.available_tasks)
+            block_tasks = cls.convert_module_format(bot_data.block_tasks)
+            bot_data.available_tasks = cls.convert_module_format(
                 available_tasks + block_tasks
             )
             bot_data.block_tasks = ""
