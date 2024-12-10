@@ -1,10 +1,10 @@
+from nonebot_plugin_alconna import AlconnaMatch, Match
 from nonebot_plugin_uninfo import Uninfo
-from nonebot_plugin_alconna import Match, AlconnaMatch
 
+from zhenxun.builtin_plugins.superuser.bot_manage.command import bot_manage
+from zhenxun.models.bot_console import BotConsole
 from zhenxun.services.log import logger
 from zhenxun.utils.message import MessageUtils
-from zhenxun.models.bot_console import BotConsole
-from zhenxun.builtin_plugins.superuser.bot_manage.command import bot_manage
 
 
 @bot_manage.assign("bot_switch.enable")

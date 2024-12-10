@@ -4,13 +4,13 @@ import nonebot
 from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 
-from zhenxun.services.log import logger
-from zhenxun.utils.enum import PluginType
-from zhenxun.models.task_info import TaskInfo
-from zhenxun.utils.platform import PlatformUtils
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.bot_console import BotConsole
 from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.models.task_info import TaskInfo
+from zhenxun.services.log import logger
+from zhenxun.utils.enum import PluginType
+from zhenxun.utils.platform import PlatformUtils
 
 driver = nonebot.get_driver()
 

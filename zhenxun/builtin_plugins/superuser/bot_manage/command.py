@@ -1,7 +1,7 @@
-from nonebot.permission import SUPERUSER
+from arclet.alconna import Alconna, Args, Option, Subcommand
 from arclet.alconna.action import store_false
+from nonebot.permission import SUPERUSER
 from nonebot_plugin_alconna import on_alconna
-from arclet.alconna import Args, Option, Alconna, Subcommand
 
 bot_manage = on_alconna(
     Alconna(
