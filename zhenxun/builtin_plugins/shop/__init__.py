@@ -1,28 +1,28 @@
 from nonebot.adapters import Bot, Event
-from nonebot_plugin_uninfo import Uninfo
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_session import EventSession
 from nonebot_plugin_alconna import (
-    Args,
-    Match,
-    Query,
-    Option,
-    UniMsg,
     Alconna,
+    AlconnaQuery,
+    Args,
     Arparma,
+    Match,
+    Option,
+    Query,
     Subcommand,
     UniMessage,
-    AlconnaQuery,
+    UniMsg,
     on_alconna,
     store_true,
 )
+from nonebot_plugin_session import EventSession
+from nonebot_plugin_uninfo import Uninfo
 
+from zhenxun.configs.utils import BaseBlock, PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.depends import UserName
-from zhenxun.utils.message import MessageUtils
-from zhenxun.utils.exception import GoodsNotFound
 from zhenxun.utils.enum import BlockType, PluginType
-from zhenxun.configs.utils import BaseBlock, PluginExtraData
+from zhenxun.utils.exception import GoodsNotFound
+from zhenxun.utils.message import MessageUtils
 
 from ._data_source import ShopManage, gold_rank
 
@@ -184,9 +184,9 @@ async def _(
         elif isinstance(result, UniMessage):
             await result.finish(reply_to=True)
     except GoodsNotFound:
-        await MessageUtils.build_message(f"没有找到道具 {name.result} 或道具数量不足...").send(
-            reply_to=True
-        )
+        await MessageUtils.build_message(
+            f"没有找到道具 {name.result} 或道具数量不足..."
+        ).send(reply_to=True)
 
 
 @_matcher.assign("gold-list")

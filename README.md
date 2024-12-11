@@ -245,7 +245,7 @@ python bot.py
 - [x] 自定备份（可配置）
 - [x] 笨蛋检测（当使用功能名称当指令时真寻会跳出来狠狠嘲笑并帮助）
 
-### 更多插件...
+### 更多插件
 
 - [更多插件](https://github.com/zhenxun-org/zhenxun_bot_plugins)
 
@@ -758,6 +758,10 @@ python bot.py
 ## Todo
 
 - [x] web 管理
+
+## **特别感谢**
+
+首席设计师：[酥酥/coldly-ss](https://github.com/coldly-ss)
 
 ## 感谢
 

@@ -1,14 +1,15 @@
 from typing import Protocol
 
 from aiocache import cached
-from strenum import StrEnum
 from pydantic import BaseModel
+from strenum import StrEnum
 
-from ..http_utils import AsyncHttpx
+from zhenxun.utils.http_utils import AsyncHttpx
+
 from .const import CACHED_API_TTL, GIT_API_TREES_FORMAT, JSD_PACKAGE_API_FORMAT
 from .func import (
-    get_fastest_raw_formats,
     get_fastest_archive_formats,
+    get_fastest_raw_formats,
     get_fastest_release_source_formats,
 )
 

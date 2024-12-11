@@ -2,23 +2,23 @@ from arclet.alconna import Args
 from nonebot.adapters import Bot
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
-from nonebot_plugin_session import EventSession
 from nonebot_plugin_alconna import (
+    Alconna,
+    Arparma,
     At,
     Match,
     Option,
-    Alconna,
-    Arparma,
     on_alconna,
     store_true,
 )
+from nonebot_plugin_session import EventSession
 
+from zhenxun.configs.config import BotConfig, Config
+from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
-from zhenxun.utils.rules import admin_check
 from zhenxun.utils.message import MessageUtils
-from zhenxun.configs.config import Config, BotConfig
-from zhenxun.configs.utils import RegisterConfig, PluginExtraData
+from zhenxun.utils.rules import admin_check
 
 from ._data_source import BanManage
 
@@ -175,10 +175,8 @@ async def _(
     _duration = duration.result * 60 if duration.available else -1
     _duration_text = f"{duration.result} 分钟" if duration.available else " 到世界湮灭"
     if (gid := session.id3 or session.id2) and not group_id.available:
-        if (
-            not user_id
-            or user_id == bot.self_id
-            and session.id1 not in bot.config.superusers
+        if not user_id or (
+            user_id == bot.self_id and session.id1 not in bot.config.superusers
         ):
             _duration = 0.5
             await MessageUtils.build_message("倒反天罡，小小管理速速退下！").send()

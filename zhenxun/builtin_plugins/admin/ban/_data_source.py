@@ -3,8 +3,8 @@ from typing import Literal
 
 from nonebot_plugin_session import EventSession
 
-from zhenxun.models.level_user import LevelUser
 from zhenxun.models.ban_console import BanConsole
+from zhenxun.models.level_user import LevelUser
 from zhenxun.utils.image_utils import BuildImage, ImageTemplate
 
 

@@ -1,21 +1,21 @@
+from pathlib import Path
 import shutil
 import subprocess
-from pathlib import Path
 
-import ujson as json
 from aiocache import cached
+import ujson as json
 
-from zhenxun.services.log import logger
-from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.builtin_plugins.auto_update.config import REQ_TXT_FILE_STRING
+from zhenxun.builtin_plugins.plugin_store.models import StorePluginInfo
 from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.services.log import logger
+from zhenxun.services.plugin_init import PluginInitManager
 from zhenxun.utils.github_utils import GithubUtils
 from zhenxun.utils.github_utils.models import RepoAPI
-from zhenxun.services.plugin_init import PluginInitManager
-from zhenxun.builtin_plugins.plugin_store.models import StorePluginInfo
-from zhenxun.utils.image_utils import RowStyle, BuildImage, ImageTemplate
-from zhenxun.builtin_plugins.auto_update.config import REQ_TXT_FILE_STRING
+from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.utils.image_utils import BuildImage, ImageTemplate, RowStyle
 
-from .config import BASE_PATH, EXTRA_GITHUB_URL, DEFAULT_GITHUB_URL
+from .config import BASE_PATH, DEFAULT_GITHUB_URL, EXTRA_GITHUB_URL
 
 
 def row_style(column: str, text: str) -> RowStyle:
@@ -418,6 +418,7 @@ class ShopManage:
         return "已更新插件 {}\n共计{}个插件! 重启后生效".format(
             "\n- ".join(update_list), len(update_list)
         )
+
     @classmethod
     async def _resolve_plugin_key(cls, plugin_id: int | str) -> str:
         data: dict[str, StorePluginInfo] = await cls.get_data()

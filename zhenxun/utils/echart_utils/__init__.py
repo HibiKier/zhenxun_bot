@@ -3,8 +3,8 @@ import random
 
 from nonebot_plugin_htmlrender import template_to_pic
 
-from zhenxun.utils._build_image import BuildImage
 from zhenxun.configs.path_config import TEMPLATE_PATH
+from zhenxun.utils._build_image import BuildImage
 
 from .models import Barh
 
