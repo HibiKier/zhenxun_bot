@@ -5,8 +5,12 @@ from nonebot.drivers import Driver
 from tortoise import Tortoise
 from tortoise.exceptions import OperationalError
 
-from builtin_plugins.web_ui.base_model import BaseResultModel, QueryModel, Result
-from builtin_plugins.web_ui.utils import authentication
+from zhenxun.builtin_plugins.web_ui.base_model import (
+    BaseResultModel,
+    QueryModel,
+    Result,
+)
+from zhenxun.builtin_plugins.web_ui.utils import authentication
 from zhenxun.configs.config import BotConfig
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.task_info import TaskInfo

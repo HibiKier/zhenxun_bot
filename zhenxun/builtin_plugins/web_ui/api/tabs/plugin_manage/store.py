@@ -2,8 +2,8 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from nonebot import require
 
-from builtin_plugins.web_ui.base_model import Result
-from builtin_plugins.web_ui.utils import authentication
+from zhenxun.builtin_plugins.web_ui.base_model import Result
+from zhenxun.builtin_plugins.web_ui.utils import authentication
 from zhenxun.models.plugin_info import PluginInfo
 
 from .model import PluginIr

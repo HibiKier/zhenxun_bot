@@ -6,8 +6,8 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 import nonebot
 
-from builtin_plugins.web_ui.base_model import Result
-from builtin_plugins.web_ui.utils import (
+from zhenxun.builtin_plugins.web_ui.base_model import Result
+from zhenxun.builtin_plugins.web_ui.utils import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     create_token,
     get_user,

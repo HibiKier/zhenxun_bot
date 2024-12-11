@@ -6,8 +6,8 @@ import aiofiles
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from builtin_plugins.web_ui.base_model import Result, SystemFolderSize
-from builtin_plugins.web_ui.utils import authentication, get_system_disk
+from zhenxun.builtin_plugins.web_ui.base_model import Result, SystemFolderSize
+from zhenxun.builtin_plugins.web_ui.utils import authentication, get_system_disk
 from zhenxun.utils._build_image import BuildImage
 
 from .model import AddFile, DeleteFile, DirFile, RenameFile, SaveFile

@@ -4,9 +4,9 @@ import nonebot
 from nonebot.adapters.onebot.v11 import ActionFailed
 from tortoise.functions import Count
 
-from builtin_plugins.web_ui.base_model import Result
-from builtin_plugins.web_ui.config import AVA_URL, GROUP_AVA_URL
-from builtin_plugins.web_ui.utils import authentication
+from zhenxun.builtin_plugins.web_ui.base_model import Result
+from zhenxun.builtin_plugins.web_ui.config import AVA_URL, GROUP_AVA_URL
+from zhenxun.builtin_plugins.web_ui.utils import authentication
 from zhenxun.configs.config import BotConfig
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.chat_history import ChatHistory

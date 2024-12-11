@@ -5,7 +5,7 @@ import nonebot
 from nonebot.adapters import Bot
 from nonebot.drivers import Driver
 
-from builtin_plugins.web_ui.api.tabs.main.data_source import bot_live
+from zhenxun.builtin_plugins.web_ui.api.tabs.main.data_source import bot_live
 from zhenxun.models.chat_history import ChatHistory
 from zhenxun.models.statistics import Statistics
 from zhenxun.utils.platform import PlatformUtils
