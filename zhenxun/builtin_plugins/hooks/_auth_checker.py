@@ -1,30 +1,30 @@
-from pydantic import BaseModel
-from nonebot.matcher import Matcher
 from nonebot.adapters import Bot, Event
-from nonebot_plugin_alconna import At, UniMsg
-from nonebot.exception import IgnoredException
-from tortoise.exceptions import IntegrityError
-from nonebot_plugin_session import EventSession
 from nonebot.adapters.onebot.v11 import PokeNotifyEvent
+from nonebot.exception import IgnoredException
+from nonebot.matcher import Matcher
+from nonebot_plugin_alconna import At, UniMsg
+from nonebot_plugin_session import EventSession
+from pydantic import BaseModel
+from tortoise.exceptions import IntegrityError
 
-from zhenxun.services.log import logger
 from zhenxun.configs.config import Config
-from zhenxun.utils.message import MessageUtils
-from zhenxun.models.level_user import LevelUser
 from zhenxun.models.bot_console import BotConsole
+from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.level_user import LevelUser
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.plugin_limit import PluginLimit
 from zhenxun.models.user_console import UserConsole
-from zhenxun.utils.exception import InsufficientGold
-from zhenxun.models.group_console import GroupConsole
-from zhenxun.utils.utils import FreqLimiter, CountLimiter, UserBlockLimiter
+from zhenxun.services.log import logger
 from zhenxun.utils.enum import (
     BlockType,
     GoldHandle,
-    PluginType,
     LimitWatchType,
     PluginLimitType,
+    PluginType,
 )
+from zhenxun.utils.exception import InsufficientGold
+from zhenxun.utils.message import MessageUtils
+from zhenxun.utils.utils import CountLimiter, FreqLimiter, UserBlockLimiter
 
 base_config = Config.get("hook")
 
@@ -307,8 +307,15 @@ class AuthChecker:
             plugin: PluginInfo
             bot_id: bot_id
         """
-        if await BotConsole.is_block_plugin(plugin.module, bot_id):
-            raise IgnoredException("机器人权限检测 ignore")
+        if not await BotConsole.get_bot_status(bot_id):
+            logger.debug("Bot休眠中阻断权限检测...", "AuthChecker")
+            raise IgnoredException("BotConsole休眠权限检测 ignore")
+        if await BotConsole.is_block_plugin(bot_id, plugin.module):
+            logger.debug(
+                f"Bot插件 {plugin.name}({plugin.module}) 权限检查结果为关闭...",
+                "AuthChecker",
+            )
+            raise IgnoredException("BotConsole插件权限检测 ignore")
 
     async def auth_limit(self, plugin: PluginInfo, session: EventSession):
         """插件限制

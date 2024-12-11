@@ -1,17 +1,17 @@
+from collections.abc import Callable
+from pathlib import Path
 import platform
 from typing import cast
-from pathlib import Path
-from collections.abc import Callable
 
 import nonebot
-from nonebug import App
-from respx import MockRouter
-from pytest_mock import MockerFixture
 from nonebot.adapters.onebot.v11 import Bot
 from nonebot.adapters.onebot.v11.event import GroupMessageEvent
+from nonebug import App
+from pytest_mock import MockerFixture
+from respx import MockRouter
 
+from tests.config import BotId, GroupId, MessageId, UserId
 from tests.utils import _v11_group_message_event
-from tests.config import BotId, UserId, GroupId, MessageId
 
 platform_uname = platform.uname_result(
     system="Linux",
@@ -67,9 +67,9 @@ async def test_check(
     """
     测试自检
     """
-    from zhenxun.configs.config import BotConfig
     from zhenxun.builtin_plugins.check import _matcher
     from zhenxun.builtin_plugins.check.data_source import __get_version
+    from zhenxun.configs.config import BotConfig
 
     (
         mock_psutil,
@@ -137,9 +137,9 @@ async def test_check_arm(
     """
     测试自检（arm）
     """
-    from zhenxun.configs.config import BotConfig
     from zhenxun.builtin_plugins.check import _matcher
     from zhenxun.builtin_plugins.check.data_source import __get_version
+    from zhenxun.configs.config import BotConfig
 
     platform_uname_arm = platform.uname_result(
         system="Linux",

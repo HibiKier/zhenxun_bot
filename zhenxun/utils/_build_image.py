@@ -1,17 +1,17 @@
-import math
-import uuid
 import base64
-import itertools
 import contextlib
 from io import BytesIO
+import itertools
+import math
 from pathlib import Path
-from typing_extensions import Self
 from typing import Literal, TypeAlias, overload
+from typing_extensions import Self
+import uuid
 
 from nonebot.utils import run_sync
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from PIL.Image import Image as tImage
 from PIL.ImageFont import FreeTypeFont
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 from zhenxun.configs.path_config import FONT_PATH
 
@@ -510,7 +510,13 @@ class BuildImage:
             bytes: bytes
         """
         buf = BytesIO()
-        self.markImg.save(buf, format="PNG")
+        img_format = self.markImg.format.upper() if self.markImg.format else "PNG"
+
+        if img_format == "GIF":
+            self.markImg.save(buf, format="GIF", save_all=True, loop=0)
+        else:
+            self.markImg.save(buf, format="PNG")
+
         return buf.getvalue()
 
     def convert(self, type_: ModeType) -> Self:

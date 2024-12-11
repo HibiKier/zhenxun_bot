@@ -2,20 +2,20 @@ import os
 import random
 
 from nonebot import on_message
-from nonebot.rule import to_me
 from nonebot.matcher import Matcher
 from nonebot.plugin import PluginMetadata
+from nonebot.rule import to_me
 from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_session import EventSession
 
+from zhenxun.configs.path_config import IMAGE_PATH
+from zhenxun.configs.utils import PluginExtraData
+from zhenxun.models.ban_console import BanConsole
+from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.message import MessageUtils
-from zhenxun.configs.utils import PluginExtraData
-from zhenxun.models.ban_console import BanConsole
-from zhenxun.models.plugin_info import PluginInfo
-from zhenxun.configs.path_config import IMAGE_PATH
-from zhenxun.models.group_console import GroupConsole
 
 __plugin_meta__ = PluginMetadata(
     name="笨蛋检测",

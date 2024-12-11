@@ -1,23 +1,23 @@
 import os
-import platform
 from pathlib import Path
+import platform
 
-import nonebot
 import aiofiles
+import nonebot
 from nonebot import on_command
-from nonebot.rule import to_me
 from nonebot.adapters import Bot
 from nonebot.params import ArgStr
 from nonebot.permission import SUPERUSER
-from nonebot_plugin_uninfo import Uninfo
 from nonebot.plugin import PluginMetadata
+from nonebot.rule import to_me
+from nonebot_plugin_uninfo import Uninfo
 
+from zhenxun.configs.config import BotConfig
+from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
-from zhenxun.configs.config import BotConfig
 from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
-from zhenxun.configs.utils import PluginExtraData
 
 __plugin_meta__ = PluginMetadata(
     name="重启",

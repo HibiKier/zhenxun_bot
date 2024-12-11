@@ -1,35 +1,35 @@
-import time
 import asyncio
 import contextlib
-from pathlib import Path
 from datetime import datetime, timedelta
+from pathlib import Path
+import time
 
-import nonebot
 from fastapi import APIRouter
-from nonebot.config import Config
-from tortoise.functions import Count
 from fastapi.responses import JSONResponse
-from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
-from starlette.websockets import WebSocket, WebSocketState, WebSocketDisconnect
+import nonebot
+from nonebot.config import Config
+from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
+from tortoise.functions import Count
+from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 
-from zhenxun.services.log import logger
-from zhenxun.models.statistics import Statistics
-from zhenxun.utils.platform import PlatformUtils
-from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.builtin_plugins.web_ui.base_model import Result
+from zhenxun.builtin_plugins.web_ui.config import AVA_URL, GROUP_AVA_URL, QueryDateType
+from zhenxun.builtin_plugins.web_ui.utils import authentication, get_system_status
+from zhenxun.models.bot_connect_log import BotConnectLog
 from zhenxun.models.chat_history import ChatHistory
 from zhenxun.models.group_console import GroupConsole
-from zhenxun.models.bot_connect_log import BotConnectLog
+from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.models.statistics import Statistics
+from zhenxun.services.log import logger
+from zhenxun.utils.platform import PlatformUtils
 
-from ....base_model import Result
 from .data_source import bot_live
-from ....utils import authentication, get_system_status
-from ....config import AVA_URL, GROUP_AVA_URL, QueryDateType
 from .model import (
+    ActiveGroup,
     BaseInfo,
     HotPlugin,
-    QueryCount,
-    ActiveGroup,
     NonebotData,
+    QueryCount,
     TemplateBaseInfo,
 )
 
