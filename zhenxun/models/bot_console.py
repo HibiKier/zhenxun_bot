@@ -427,3 +427,12 @@ class BotConsole(Model):
         """
         bot_data, _ = await cls.get_or_create(bot_id=bot_id)
         return cls.format(task_name) in bot_data.block_tasks
+
+    @classmethod
+    async def _run_script(cls):
+        return [
+            "ALTER TABLE bot_console RENAME COLUMN block_plugin TO block_plugins;",
+            "ALTER TABLE bot_console RENAME COLUMN block_task TO block_tasks;",
+            "ALTER TABLE bot_console ADD available_plugins text default '';",
+            "ALTER TABLE bot_console ADD available_tasks text default '';",
+        ]
