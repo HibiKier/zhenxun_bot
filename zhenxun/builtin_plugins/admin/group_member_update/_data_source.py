@@ -116,7 +116,10 @@ class MemberUpdateManage:
                         try:
                             await u.save()
                         except Exception as e:
-                            logger.error(f"创建用户数据失败: {e}", "更新群组成员信息")
+                            logger.error(
+                                f"创建用户 {u.user_name}({u.user_id}) 数据失败: {e}",
+                                "更新群组成员信息",
+                            )
             if data_list[1]:
                 await GroupInfoUser.bulk_update(data_list[1], ["user_name"], 30)
                 logger.debug(
