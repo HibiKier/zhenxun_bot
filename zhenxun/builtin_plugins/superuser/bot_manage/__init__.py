@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import cast
 
 import nonebot
@@ -15,20 +14,30 @@ from zhenxun.utils.platform import PlatformUtils
 
 driver = nonebot.get_driver()
 
-_sub_plugins = set()
-_sub_plugins |= nonebot.load_plugins(str(Path(__file__).parent.resolve()))
-
 __plugin_meta__ = PluginMetadata(
     name="Bot管理",
     description="指定bot对象的功能/被动开关和状态",
     usage="""
+    指令:
+        bot被动状态                 : bot的被动技能状态
+        bot开启/关闭被动[被动名称]    : 被动技能开关
+        bot开启/关闭所有被动          : 所有被动技能开关
+        bot插件列表: bot插件列表状态  : bot插件列表
+        bot开启/关闭所有插件          : 所有插件开关
+        bot开启/关闭插件[插件名称]    : 插件开关
+        bot休眠                    : bot休眠，屏蔽所有消息
+        bot醒来                    : bot醒来
     """.strip(),
     extra=PluginExtraData(
         author="",
         version="0.1",
-        plugin_type=PluginType.PARENT,
+        plugin_type=PluginType.SUPERUSER,
     ).dict(),
 )
+
+from .bot_switch import *  # noqa: F403
+from .plugin import *  # noqa: F403
+from .task import *  # noqa: F403
 
 
 @driver.on_bot_connect

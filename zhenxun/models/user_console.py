@@ -106,7 +106,8 @@ class UserConsole(Model):
             InsufficientGold: 金币不足
         """
         user, _ = await cls.get_or_create(
-            user_id=user_id, defaults={"platform": platform, "uid": cls.get_new_uid()}
+            user_id=user_id,
+            defaults={"platform": platform, "uid": await cls.get_new_uid()},
         )
         if user.gold < gold:
             raise InsufficientGold()
