@@ -14,7 +14,7 @@ driver.register_adapter(KaiheilaAdapter)
 driver.register_adapter(DoDoAdapter)
 # driver.register_adapter(DiscordAdapter)
 
-from zhenxun.services.db_context import init, disconnect
+from zhenxun.services.db_context import disconnect, init
 
 driver.on_startup(init)
 driver.on_shutdown(disconnect)
