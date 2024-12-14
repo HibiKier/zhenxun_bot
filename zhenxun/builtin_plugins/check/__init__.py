@@ -61,7 +61,7 @@ async def _():
     await handle_self_check()
 
 #poke
-_self_check_poke_matcher = on_notice(priority=5, block=True, rule=notice_rule(PokeNotifyEvent) & to_me())
+_self_check_poke_matcher = on_notice(priority=5, block=False, rule=notice_rule(PokeNotifyEvent) & to_me())
 
 @_self_check_poke_matcher.handle()
 async def _(event: PokeNotifyEvent):
