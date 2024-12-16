@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "zhenxun_bot"
-version = "0.1.1"
+version = "0.2.4"
 description = "基于 Nonebot2 和 go-cqhttp 开发，以 postgresql 作为数据库，非常可爱的绪山真寻bot"
 authors = ["HibiKier <775757368@qq.com>"]
 license = "AGPL"
@@ -47,10 +47,10 @@ python-multipart = "^0.0.9"
 aiocache = "^0.12.2"
 py-cpuinfo = "^9.0.0"
 nonebot-plugin-uninfo = "^0.4.1"
-nonebot-plugin-alconna = "^0.53.1"
+nonebot-plugin-alconna = "^0.54.0"
 
 [tool.poetry.dev-dependencies]
-nonebug = "^0.3.2"
+nonebug = "^0.4.2"
 pytest-cov = "^5.0.0"
 pytest-mock = "^3.6.1"
 pytest-asyncio = "^0.23.5"
