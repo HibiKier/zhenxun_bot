@@ -78,7 +78,7 @@ if check_type in {"message", "mix"}:
 if check_type in {"poke", "mix"}:
     # poke
     _self_check_poke_matcher = on_notice(
-        priority=5, block=False, rule=notice_rule(PokeNotifyEvent) & to_me()
+        priority=5, permission=SUPERUSER, block=False, rule=notice_rule(PokeNotifyEvent) & to_me()
     )
 
     @_self_check_poke_matcher.handle()
