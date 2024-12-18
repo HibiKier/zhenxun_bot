@@ -66,8 +66,8 @@ jobs:
           poetry run sudo apt-get update
           poetry run sudo apt-get install -y libgstreamer-plugins-base1.0-0 libgstreamer1.0-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav flite x264 libx264-dev
           poetry run pip install playwright
-          poetry run sudo playwright install-deps
-          poetry run sudo playwright install
+          poetry run playwright install-deps
+          poetry run playwright install
 
       - name: Run tests
         run: poetry run pytest --cov=zhenxun --cov-report xml
