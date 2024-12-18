@@ -6,12 +6,14 @@ on:
     paths:
       - zhenxun/**
       - tests/**
+      - .github/workflows/bot_check.yml
       - bot.py
   pull_request:
     branches: ["main"]
     paths:
       - zhenxun/**
       - tests/**
+      - .github/workflows/bot_check.yml
       - bot.py
 
 jobs:
@@ -54,6 +56,7 @@ jobs:
       - name: Install dependencies
         if: steps.cache-poetry.outputs.cache-hit != 'true'
         run: |
+       	  rm -rf poetry.lock
           poetry source remove aliyun
           poetry install --no-root
       
