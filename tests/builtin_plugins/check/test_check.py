@@ -1,4 +1,3 @@
-
 from collections.abc import Callable
 from pathlib import Path
 import platform
@@ -230,7 +229,3 @@ async def test_check_arm(
     mock_template_to_pic.assert_awaited_once()
     mock_build_message.assert_called_once_with(mock_template_to_pic_return)
     mock_build_message_return.send.assert_awaited_once()
-
-
-
-
