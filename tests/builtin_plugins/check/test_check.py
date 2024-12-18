@@ -31,7 +31,11 @@
 #    mock_platform = mocker.patch("zhenxun.builtin_plugins.check.data_source.platform")
 #    mock_platform.uname.return_value = platform_uname
 
-#    mock_template_to_pic = mocker.patch("zhenxun.builtin_plugins.check.template_to_pic")
+#    mock_template_to_pic = mocker.patch(
+
+#		"zhenxun.builtin_plugins.check.template_to_pic"
+
+#		)
 #    mock_template_to_pic_return = mocker.AsyncMock()
 #    mock_template_to_pic.return_value = mock_template_to_pic_return
 
