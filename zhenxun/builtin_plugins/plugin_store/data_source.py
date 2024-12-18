@@ -256,12 +256,11 @@ class ShopManage:
                 result = await AsyncHttpx.gather_download_file(
                     req_download_urls, req_paths
                 )
-                for _id, success in enumerate(result):
+                for success in result:
                     if not success:
                         raise Exception("插件依赖文件下载失败")
-                else:
-                    logger.debug(f"插件依赖文件列表: {req_paths}", "插件管理")
-                    install_requirement(plugin_path)
+                logger.debug(f"插件依赖文件列表: {req_paths}", "插件管理")
+                install_requirement(plugin_path)
             return True
         raise Exception("插件下载失败")
 
@@ -389,35 +388,51 @@ class ShopManage:
         """
         data: dict[str, StorePluginInfo] = await cls.get_data()
         plugin_list = list(data.keys())
-        update_list = []
+        update_failed_list = []
+        update_success_list = []
+        result = "--已更新{}个插件 {}个失败 {}个成功--"
         logger.info(f"尝试更新全部插件 {plugin_list}", "插件管理")
         for plugin_key in plugin_list:
-            plugin_info = data[plugin_key]
-            plugin_list = await cls.get_loaded_plugins("module", "version")
-            suc_plugin = {p[0]: (p[1] or "Unknown") for p in plugin_list}
-            if plugin_info.module not in [p[0] for p in plugin_list]:
-                logger.debug(f"插件 {plugin_key} 未安装，跳过", "插件管理")
-                continue
-            if cls.check_version_is_new(plugin_info, suc_plugin):
-                logger.debug(f"插件 {plugin_key} 已是最新版本，跳过", "插件管理")
-                continue
-            logger.info(f"正在更新插件 {plugin_key}", "插件管理")
-            is_external = True
-            if plugin_info.github_url is None:
-                plugin_info.github_url = DEFAULT_GITHUB_URL
-                is_external = False
-            await cls.install_plugin_with_repo(
-                plugin_info.github_url,
-                plugin_info.module_path,
-                plugin_info.is_dir,
-                is_external,
-            )
-            update_list.append(plugin_key)
-        if len(update_list) == 0:
+            try:
+                plugin_info = data[plugin_key]
+                plugin_list = await cls.get_loaded_plugins("module", "version")
+                suc_plugin = {p[0]: (p[1] or "Unknown") for p in plugin_list}
+                if plugin_info.module not in [p[0] for p in plugin_list]:
+                    logger.debug(f"插件 {plugin_key} 未安装，跳过", "插件管理")
+                    continue
+                if cls.check_version_is_new(plugin_info, suc_plugin):
+                    logger.debug(f"插件 {plugin_key} 已是最新版本，跳过", "插件管理")
+                    continue
+                logger.info(f"正在更新插件 {plugin_key}", "插件管理")
+                is_external = True
+                if plugin_info.github_url is None:
+                    plugin_info.github_url = DEFAULT_GITHUB_URL
+                    is_external = False
+                await cls.install_plugin_with_repo(
+                    plugin_info.github_url,
+                    plugin_info.module_path,
+                    plugin_info.is_dir,
+                    is_external,
+                )
+                update_success_list.append(plugin_key)
+            except Exception as e:
+                logger.error(f"更新插件 {plugin_key} 失败: {e}", "插件管理")
+                update_failed_list.append(plugin_key)
+        if not update_success_list and not update_failed_list:
             return "全部插件已是最新版本"
-        return "已更新插件 {}\n共计{}个插件! 重启后生效".format(
-            "\n- ".join(update_list), len(update_list)
-        )
+        if update_success_list:
+            result += "\n* 以下插件更新成功:\n\t- {}".format(
+                "\n\t- ".join(update_success_list)
+            )
+        if update_failed_list:
+            result += "\n* 以下插件更新失败:\n\t- {}".format(
+                "\n\t- ".join(update_failed_list)
+            )
+        return result.format(
+                len([*update_success_list,*update_failed_list]),
+                len(update_failed_list),
+                len(update_success_list),
+            ) + "\n重启后生效"
 
     @classmethod
     async def _resolve_plugin_key(cls, plugin_id: int | str) -> str:
