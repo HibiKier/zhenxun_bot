@@ -1,29 +1,29 @@
-#from collections.abc import Callable
-#from pathlib import Path
-#import platform
-#from typing import cast
+# from collections.abc import Callable
+# from pathlib import Path
+# import platform
+# from typing import cast
 
-#import nonebot
-#from nonebot.adapters.onebot.v11 import Bot
-#from nonebot.adapters.onebot.v11.event import GroupMessageEvent
-#from nonebug import App
-#from pytest_mock import MockerFixture
-#from respx import MockRouter
+# import nonebot
+# from nonebot.adapters.onebot.v11 import Bot
+# from nonebot.adapters.onebot.v11.event import GroupMessageEvent
+# from nonebug import App
+# from pytest_mock import MockerFixture
+# from respx import MockRouter
 
-#from tests.config import BotId, GroupId, MessageId, UserId
-#from tests.utils import _v11_group_message_event
+# from tests.config import BotId, GroupId, MessageId, UserId
+# from tests.utils import _v11_group_message_event
 
-#platform_uname = platform.uname_result(
+# platform_uname = platform.uname_result(
 #    system="Linux",
 #    node="zhenxun",
 #    release="5.15.0-1027-azure",
 #    version="#1 SMP Debian 5.15.0-1027-azure",
 #    machine="x86_64",
-#)  # type: ignore
-#cpuinfo_get_cpu_info = {"brand_raw": "Intel(R) Core(TM) i7-10700K"}
+# )  # type: ignore
+# cpuinfo_get_cpu_info = {"brand_raw": "Intel(R) Core(TM) i7-10700K"}
 
 
-#def init_mocker(mocker: MockerFixture, tmp_path: Path):
+# def init_mocker(mocker: MockerFixture, tmp_path: Path):
 #    mock_psutil = mocker.patch("zhenxun.builtin_plugins.check.data_source.psutil")
 #    mock_cpuinfo = mocker.patch("zhenxun.builtin_plugins.check.data_source.cpuinfo")
 #    mock_cpuinfo.get_cpu_info.return_value = cpuinfo_get_cpu_info
@@ -57,13 +57,13 @@
 #    )
 
 
-#async def test_check(
+# async def test_check(
 #    app: App,
 #    mocker: MockerFixture,
 #    mocked_api: MockRouter,
 #    create_bot: Callable,
 #    tmp_path: Path,
-#) -> None:
+# ) -> None:
 #    """
 #    测试自检
 #    """
@@ -127,13 +127,13 @@
 #    mock_build_message_return.send.assert_awaited_once()
 
 
-#async def test_check_arm(
+# async def test_check_arm(
 #    app: App,
 #    mocker: MockerFixture,
 #    mocked_api: MockRouter,
 #    create_bot: Callable,
 #    tmp_path: Path,
-#) -> None:
+# ) -> None:
 #    """
 #    测试自检（arm）
 #    """
