@@ -81,7 +81,7 @@ async def test_check(
         mock_build_message_return,
         mock_template_path_new,
     ) = init_mocker(mocker, tmp_path)
-    async with app.test_matcher(_matcher) as ctx:
+    async with app.test_matcher(_self_check_matcher) as ctx:
         bot = create_bot(ctx)
         bot: Bot = cast(Bot, bot)
         raw_message = "自检"
@@ -171,7 +171,7 @@ async def test_check_arm(
     mock_cpuinfo.get_cpu_info.return_value = {}
     mock_psutil.cpu_freq.return_value = {}
 
-    async with app.test_matcher(_matcher) as ctx:
+    async with app.test_matcher(_self_check_matcher) as ctx:
         bot = create_bot(ctx)
         bot: Bot = cast(Bot, bot)
         raw_message = "自检"
