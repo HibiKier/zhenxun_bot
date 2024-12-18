@@ -57,7 +57,9 @@ async def test_update_all_plugin_basic_need_update(
         )
         ctx.should_call_send(
             event=event,
-            message=Message(message="已更新插件 识图\n共计1个插件! 重启后生效"),
+            message=Message(
+                message="--已更新1个插件 0个失败 1个成功--\n* 以下插件更新成功:\n\t- 识图\n重启后生效"  # noqa: E501
+            ),
             result=None,
             bot=bot,
         )
