@@ -67,7 +67,7 @@ async def test_check(
     """
     测试自检
     """
-    from zhenxun.builtin_plugins.check import _matcher
+    from zhenxun.builtin_plugins.check import _self_check_matcher
     from zhenxun.builtin_plugins.check.data_source import __get_version
     from zhenxun.configs.config import BotConfig
 
@@ -137,7 +137,7 @@ async def test_check_arm(
     """
     测试自检（arm）
     """
-    from zhenxun.builtin_plugins.check import _matcher
+    from zhenxun.builtin_plugins.check import _self_check_matcher
     from zhenxun.builtin_plugins.check.data_source import __get_version
     from zhenxun.configs.config import BotConfig
 
