@@ -430,7 +430,7 @@ class ShopManage:
             )
         return (
             result.format(
-                len([*update_success_list, *update_failed_list]),
+                len(update_success_list) + len(update_failed_list),
                 len(update_failed_list),
                 len(update_success_list),
             )
