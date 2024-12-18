@@ -1,20 +1,16 @@
+import nonebot
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-import nonebot
 from nonebot.drivers import Driver
 from tortoise import Tortoise
 from tortoise.exceptions import OperationalError
 
-from zhenxun.builtin_plugins.web_ui.base_model import (
-    BaseResultModel,
-    QueryModel,
-    Result,
-)
-from zhenxun.builtin_plugins.web_ui.utils import authentication
 from zhenxun.configs.config import BotConfig
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.task_info import TaskInfo
 
+from ....base_model import BaseResultModel, QueryModel, Result
+from ....utils import authentication
 from .models.model import Column, SqlModel, SqlText
 from .models.sql_log import SqlLog
 

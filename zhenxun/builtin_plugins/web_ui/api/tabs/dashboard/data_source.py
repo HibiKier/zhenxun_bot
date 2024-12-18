@@ -1,15 +1,15 @@
-from datetime import datetime, timedelta
 import time
+from datetime import datetime, timedelta
 
 import nonebot
 from nonebot.adapters import Bot
 from nonebot.drivers import Driver
 
-from zhenxun.builtin_plugins.web_ui.api.tabs.main.data_source import bot_live
 from zhenxun.models.chat_history import ChatHistory
 from zhenxun.models.statistics import Statistics
 from zhenxun.utils.platform import PlatformUtils
 
+from ..main.data_source import bot_live
 from .model import BotInfo
 
 driver: Driver = nonebot.get_driver()

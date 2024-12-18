@@ -2,9 +2,9 @@ from fastapi import APIRouter, FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from zhenxun.builtin_plugins.web_ui.config import PUBLIC_PATH
 from zhenxun.services.log import logger
 
+from ..config import PUBLIC_PATH
 from .data_source import COMMAND_NAME, update_webui_assets
 
 router = APIRouter()

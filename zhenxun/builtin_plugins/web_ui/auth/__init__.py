@@ -1,20 +1,21 @@
-from datetime import timedelta
 import json
+from datetime import timedelta
 
 import aiofiles
+import nonebot
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-import nonebot
 
-from zhenxun.builtin_plugins.web_ui.base_model import Result
-from zhenxun.builtin_plugins.web_ui.utils import (
+from zhenxun.configs.config import Config
+
+from ....base_model import Result
+from ....utils import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     create_token,
     get_user,
     token_data,
     token_file,
 )
-from zhenxun.configs.config import Config
 
 app = nonebot.get_app()
 
