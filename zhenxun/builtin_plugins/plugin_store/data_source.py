@@ -428,11 +428,14 @@ class ShopManage:
             result += "\n* 以下插件更新失败:\n\t- {}".format(
                 "\n\t- ".join(update_failed_list)
             )
-        return result.format(
-                len([*update_success_list,*update_failed_list]),
+        return (
+            result.format(
+                len([*update_success_list, *update_failed_list]),
                 len(update_failed_list),
                 len(update_success_list),
-            ) + "\n重启后生效"
+            )
+            + "\n重启后生效"
+        )
 
     @classmethod
     async def _resolve_plugin_key(cls, plugin_id: int | str) -> str:
