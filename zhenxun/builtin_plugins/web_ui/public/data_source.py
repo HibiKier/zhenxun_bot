@@ -1,6 +1,6 @@
+from pathlib import Path
 import shutil
 import zipfile
-from pathlib import Path
 
 from nonebot.utils import run_sync
 

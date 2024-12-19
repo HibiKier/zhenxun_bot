@@ -1,10 +1,10 @@
 import aiofiles
 import nonebot
-import ujson as json
 from nonebot import get_loaded_plugins
 from nonebot.drivers import Driver
 from nonebot.plugin import Plugin, PluginMetadata
 from ruamel.yaml import YAML
+import ujson as json
 
 from zhenxun.configs.path_config import DATA_PATH
 from zhenxun.configs.utils import PluginExtraData, PluginSetting

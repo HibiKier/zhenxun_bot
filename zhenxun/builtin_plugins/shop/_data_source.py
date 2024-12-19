@@ -1,7 +1,7 @@
 import asyncio
+from collections.abc import Callable
 import inspect
 import time
-from collections.abc import Callable
 from types import MappingProxyType
 from typing import Any, Literal
 
