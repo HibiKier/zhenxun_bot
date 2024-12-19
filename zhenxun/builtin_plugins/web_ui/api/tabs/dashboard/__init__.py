@@ -8,16 +8,12 @@ from nonebot.config import Config
 from tortoise.expressions import RawSQL
 from tortoise.functions import Count
 
-from zhenxun.builtin_plugins.web_ui.base_model import (
-    BaseResultModel,
-    QueryModel,
-    Result,
-)
-from zhenxun.builtin_plugins.web_ui.utils import authentication
 from zhenxun.models.bot_connect_log import BotConnectLog
 from zhenxun.models.chat_history import ChatHistory
 from zhenxun.models.statistics import Statistics
 
+from ....base_model import BaseResultModel, QueryModel, Result
+from ....utils import authentication
 from .data_source import BotManage
 from .model import AllChatAndCallCount, BotInfo, ChatCallMonthCount, QueryChatCallCount
 

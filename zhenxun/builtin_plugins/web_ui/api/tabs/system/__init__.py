@@ -6,10 +6,10 @@ import aiofiles
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from zhenxun.builtin_plugins.web_ui.base_model import Result, SystemFolderSize
-from zhenxun.builtin_plugins.web_ui.utils import authentication, get_system_disk
 from zhenxun.utils._build_image import BuildImage
 
+from ....base_model import Result, SystemFolderSize
+from ....utils import authentication, get_system_disk
 from .model import AddFile, DeleteFile, DirFile, RenameFile, SaveFile
 
 router = APIRouter(prefix="/system")

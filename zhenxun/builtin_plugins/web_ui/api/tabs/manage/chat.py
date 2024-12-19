@@ -6,10 +6,10 @@ from nonebot_plugin_alconna import At, Hyper, Image, Text, UniMsg
 from nonebot_plugin_session import EventSession
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
-from zhenxun.builtin_plugins.web_ui.config import AVA_URL
 from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.utils.depends import UserName
 
+from ....config import AVA_URL
 from .model import Message, MessageItem
 
 driver = nonebot.get_driver()

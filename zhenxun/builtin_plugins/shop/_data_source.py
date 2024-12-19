@@ -7,7 +7,6 @@ from typing import Any, Literal
 
 from nonebot.adapters import Bot, Event
 from nonebot_plugin_alconna import UniMessage, UniMsg
-from nonebot_plugin_session import EventSession
 from nonebot_plugin_uninfo import Uninfo
 from pydantic import BaseModel, create_model
 
@@ -52,8 +51,8 @@ class Goods(BaseModel):
     """单次使用最大次数"""
     model: Any = None
     """model"""
-    session: EventSession | None = None
-    """EventSession"""
+    session: Uninfo | None = None
+    """Uninfo"""
 
 
 class ShopParam(BaseModel):
@@ -75,8 +74,8 @@ class ShopParam(BaseModel):
     """是否发送使用成功信息"""
     max_num_limit: int = 1
     """单次使用最大次数"""
-    session: EventSession | None = None
-    """EventSession"""
+    session: Uninfo | None = None
+    """Uninfo"""
     message: UniMsg
     """UniMessage"""
 
@@ -143,7 +142,7 @@ class ShopManage:
         cls,
         bot: Bot,
         event: Event,
-        session: EventSession,
+        session: Uninfo,
         message: UniMsg,
         goods: Goods,
         num: int,
@@ -158,14 +157,19 @@ class ShopManage:
             num: 数量
             text: 其他信息
         """
+        group_id = None
+        if session.group:
+            group_id = (
+                session.group.parent.id if session.group.parent else session.group.id
+            )
         _kwargs = goods.params
         model = goods.model(
             **{
                 "goods_name": goods.name,
                 "bot": bot,
                 "event": event,
-                "user_id": session.id1,
-                "group_id": session.id3 or session.id2,
+                "user_id": session.user.id,
+                "group_id": group_id,
                 "num": num,
                 "text": text,
                 "session": session,
@@ -176,8 +180,8 @@ class ShopManage:
             **_kwargs,
             "_bot": bot,
             "event": event,
-            "user_id": session.id1,
-            "group_id": session.id3 or session.id2,
+            "user_id": session.user.id,
+            "group_id": group_id,
             "num": num,
             "text": text,
             "goods_name": goods.name,
@@ -189,7 +193,7 @@ class ShopManage:
         cls,
         args: MappingProxyType,
         param: ShopParam,
-        session: EventSession,
+        session: Uninfo,
         **kwargs,
     ) -> list[Any]:
         """解析参数
@@ -253,7 +257,7 @@ class ShopManage:
         cls,
         goods: Goods,
         param: ShopParam,
-        session: EventSession,
+        session: Uninfo,
         **kwargs,
     ) -> str | UniMessage | None:
         """运行道具函数
@@ -285,7 +289,7 @@ class ShopManage:
         cls,
         bot: Bot,
         event: Event,
-        session: EventSession,
+        session: Uninfo,
         message: UniMsg,
         goods_name: str,
         num: int,
@@ -307,7 +311,7 @@ class ShopManage:
         """
         if goods_name.isdigit():
             try:
-                user = await UserConsole.get_user(user_id=session.id1)  # type: ignore
+                user = await UserConsole.get_user(user_id=session.user.id)
                 uuid = list(user.props.keys())[int(goods_name)]
                 goods_info = await GoodsInfo.get_or_none(uuid=uuid)
             except IndexError:

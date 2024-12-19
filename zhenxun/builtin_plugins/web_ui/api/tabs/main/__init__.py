@@ -12,9 +12,6 @@ from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 from tortoise.functions import Count
 from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 
-from zhenxun.builtin_plugins.web_ui.base_model import Result
-from zhenxun.builtin_plugins.web_ui.config import AVA_URL, GROUP_AVA_URL, QueryDateType
-from zhenxun.builtin_plugins.web_ui.utils import authentication, get_system_status
 from zhenxun.models.bot_connect_log import BotConnectLog
 from zhenxun.models.chat_history import ChatHistory
 from zhenxun.models.group_console import GroupConsole
@@ -23,6 +20,9 @@ from zhenxun.models.statistics import Statistics
 from zhenxun.services.log import logger
 from zhenxun.utils.platform import PlatformUtils
 
+from ....base_model import Result
+from ....config import AVA_URL, GROUP_AVA_URL, QueryDateType
+from ....utils import authentication, get_system_status
 from .data_source import bot_live
 from .model import (
     ActiveGroup,
