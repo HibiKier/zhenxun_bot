@@ -1,7 +1,7 @@
 import asyncio
-from collections.abc import Callable
 import inspect
 import time
+from collections.abc import Callable
 from types import MappingProxyType
 from typing import Any, Literal
 
@@ -332,7 +332,9 @@ class ShopManage:
             return f"{goods_info.goods_name} 单次使用最大数量为{param.max_num_limit}..."
         await cls.run_before_after(goods, param, "before", **kwargs)
         result = await cls.__run(goods, param, session, **kwargs)
-        await UserConsole.use_props(session.id1, goods_info.uuid, num, session.platform)  # type: ignore
+        await UserConsole.use_props(
+            session.user.id, goods_info.uuid, num, PlatformUtils.get_platform(session)
+        )
         await cls.run_before_after(goods, param, "after", **kwargs)
         if not result and param.send_success_msg:
             result = f"使用道具 {goods.name} {num} 次成功！"
