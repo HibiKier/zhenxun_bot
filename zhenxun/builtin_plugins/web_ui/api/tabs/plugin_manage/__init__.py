@@ -39,7 +39,7 @@ async def _(
         if plugin_type:
             query = query.filter(plugin_type__in=plugin_type, load_status=True)
         if menu_type:
-            query = query.filter(menu_type=menu_type)
+            query = query.filter(menu_type=menu_type, load_status=True)
         plugins = await query.all()
         for plugin in plugins:
             plugin_info = PluginInfo(
@@ -116,6 +116,7 @@ async def _(plugin: UpdatePlugin) -> Result:
                     if c.type and value is not None:
                         value = cattrs.structure(value, c.type)
                     Config.set_config(plugin.module, key, value)
+            Config.save(save_simple_data=True)
     except Exception as e:
         logger.error("调用API错误", "/update_plugins", e=e)
         return Result.fail(f"{type(e)}: {e}")
@@ -152,7 +153,11 @@ async def _(param: PluginSwitch) -> Result:
 )
 async def _() -> Result[list[str]]:
     menu_type_list = []
-    result = await DbPluginInfo.annotate().values_list("menu_type", flat=True)
+    result = (
+        await DbPluginInfo.filter(load_status=True)
+        .annotate()
+        .values_list("menu_type", flat=True)
+    )
     for r in result:
         if r not in menu_type_list and r:
             menu_type_list.append(r)

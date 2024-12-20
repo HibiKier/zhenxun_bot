@@ -13,6 +13,7 @@ from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.statistics import Statistics
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
+from zhenxun.utils.common_utils import CommonUtils
 from zhenxun.utils.enum import RequestHandleType, RequestType
 from zhenxun.utils.exception import NotFoundError
 from zhenxun.utils.platform import PlatformUtils
@@ -84,12 +85,16 @@ async def _(group: UpdateGroup) -> Result[str]:
             db_group.level = group.level
             db_group.status = group.status
             if group.close_plugins:
-                group.close_plugins = [f"<{module}" for module in group.close_plugins]
-                db_group.block_plugin = ",".join(group.close_plugins) + ","
+                db_group.block_plugin = CommonUtils.convert_module_format(
+                    group.close_plugins
+                )
+            else:
+                db_group.block_plugin = ""
             if group.task:
                 if block_task := [t for t in task_list if t not in group.task]:
-                    block_task = [f"<{module}" for module in block_task]
-                    db_group.block_task = ",".join(block_task) + ","  # type: ignore
+                    db_group.block_task = CommonUtils.convert_module_format(block_task)  # type: ignore
+            else:
+                db_group.block_task = CommonUtils.convert_module_format(task_list)  # type: ignore
             await db_group.save(
                 update_fields=["level", "status", "block_plugin", "block_task"]
             )
@@ -302,8 +307,8 @@ async def _(param: LeaveGroup) -> Result:
             platform = PlatformUtils.get_platform(bots[bot_id])
             if platform != "qq":
                 return Result.warning_("该平台不支持退群操作...")
-            group_list = await bots[bot_id].get_group_list()
-            if param.group_id not in [str(g["group_id"]) for g in group_list]:
+            group_list, _ = await PlatformUtils.get_group_list(bots[bot_id])
+            if param.group_id not in [g.group_id for g in group_list]:
                 return Result.warning_("Bot未在该群聊中...")
             await bots[bot_id].set_group_leave(group_id=param.group_id)
             return Result.ok(info="成功处理了请求!")
