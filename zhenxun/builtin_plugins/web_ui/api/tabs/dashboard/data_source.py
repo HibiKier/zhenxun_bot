@@ -47,8 +47,7 @@ class BotManage:
         bot_info = BotInfo(
             self_id=bot.self_id, nickname=nickname, ava_url=ava_url, platform=platform
         )
-        group_list, _ = await PlatformUtils.get_group_list(bot)
-        group_list = [g for g in group_list if g.channel_id is None]
+        group_list, _ = await PlatformUtils.get_group_list(bot, True)
         friend_list, _ = await PlatformUtils.get_friend_list(bot)
         bot_info.group_count = len(group_list)
         bot_info.friend_count = len(friend_list)

@@ -61,12 +61,16 @@ async def _(bot_id: str | None = None) -> Result[list[BaseInfo]]:
     if bots := nonebot.get_bots():
         select_bot: BaseInfo
         for _, bot in bots.items():
-            login_info = await bot.get_login_info()
+            login_info = None
+            try:
+                login_info = await bot.get_login_info()
+            except Exception as e:
+                logger.warning("调用接口get_login_info失败", "webui", e=e)
             bot_list.append(
                 TemplateBaseInfo(
                     bot=bot,  # type: ignore
                     self_id=bot.self_id,
-                    nickname=login_info["nickname"],
+                    nickname=login_info["nickname"] if login_info else bot.self_id,
                     ava_url=AVA_URL.format(bot.self_id),
                 )
             )
@@ -83,9 +87,11 @@ async def _(bot_id: str | None = None) -> Result[list[BaseInfo]]:
             create_time__gte=now - timedelta(hours=now.hour),
         ).count()
         # 群聊数量
-        select_bot.group_count = len(await select_bot.bot.get_group_list())
+        select_bot.group_count = len(await PlatformUtils.get_group_list(select_bot.bot))
         # 好友数量
-        select_bot.friend_count = len(await select_bot.bot.get_friend_list())
+        select_bot.friend_count = len(
+            await PlatformUtils.get_friend_list(select_bot.bot)
+        )
         for bot in bot_list:
             bot.bot = None  # type: ignore
         # 插件加载数量
