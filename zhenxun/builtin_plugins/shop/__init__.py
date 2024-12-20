@@ -14,7 +14,6 @@ from nonebot_plugin_alconna import (
     on_alconna,
     store_true,
 )
-from nonebot_plugin_session import EventSession
 from nonebot_plugin_uninfo import Uninfo
 
 from zhenxun.configs.utils import BaseBlock, PluginExtraData
@@ -23,6 +22,7 @@ from zhenxun.utils.depends import UserName
 from zhenxun.utils.enum import BlockType, PluginType
 from zhenxun.utils.exception import GoodsNotFound
 from zhenxun.utils.message import MessageUtils
+from zhenxun.utils.platform import PlatformUtils
 
 from ._data_source import ShopManage, gold_rank
 
@@ -107,35 +107,31 @@ _matcher.shortcut(
 
 
 @_matcher.assign("$main")
-async def _(session: EventSession, arparma: Arparma):
+async def _(session: Uninfo, arparma: Arparma):
     image = await ShopManage.build_shop_image()
     logger.info("查看商店", arparma.header_result, session=session)
     await MessageUtils.build_message(image).send()
 
 
 @_matcher.assign("my-cost")
-async def _(session: EventSession, arparma: Arparma):
-    if session.id1:
-        logger.info("查看金币", arparma.header_result, session=session)
-        gold = await ShopManage.my_cost(session.id1, session.platform)
-        await MessageUtils.build_message(f"你的当前余额: {gold}").send(reply_to=True)
-    else:
-        await MessageUtils.build_message("用户id为空...").send(reply_to=True)
+async def _(session: Uninfo, arparma: Arparma):
+    logger.info("查看金币", arparma.header_result, session=session)
+    gold = await ShopManage.my_cost(
+        session.user.id, PlatformUtils.get_platform(session)
+    )
+    await MessageUtils.build_message(f"你的当前余额: {gold}").send(reply_to=True)
 
 
 @_matcher.assign("my-props")
-async def _(session: EventSession, arparma: Arparma, nickname: str = UserName()):
-    if session.id1:
-        logger.info("查看道具", arparma.header_result, session=session)
-        if image := await ShopManage.my_props(
-            session.id1,
-            nickname,
-            session.platform,
-        ):
-            await MessageUtils.build_message(image.pic2bytes()).finish(reply_to=True)
-        return await MessageUtils.build_message("你的道具为空捏...").send(reply_to=True)
-    else:
-        await MessageUtils.build_message("用户id为空...").send(reply_to=True)
+async def _(session: Uninfo, arparma: Arparma, nickname: str = UserName()):
+    logger.info("查看道具", arparma.header_result, session=session)
+    if image := await ShopManage.my_props(
+        session.user.id,
+        nickname,
+        PlatformUtils.get_platform(session),
+    ):
+        await MessageUtils.build_message(image.pic2bytes()).finish(reply_to=True)
+    return await MessageUtils.build_message("你的道具为空捏...").send(reply_to=True)
 
 
 @_matcher.assign("buy")
@@ -163,7 +159,7 @@ async def _(
     bot: Bot,
     event: Event,
     message: UniMsg,
-    session: EventSession,
+    session: Uninfo,
     arparma: Arparma,
     name: Match[str],
     num: Query[int] = AlconnaQuery("num", 1),
