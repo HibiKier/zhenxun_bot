@@ -13,11 +13,15 @@ from tortoise.functions import Count
 from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 
 from zhenxun.models.bot_connect_log import BotConnectLog
+from zhenxun.models.bot_console import BotConsole
 from zhenxun.models.chat_history import ChatHistory
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.statistics import Statistics
+from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
+from zhenxun.utils.common_utils import CommonUtils
+from zhenxun.utils.enum import PluginType
 from zhenxun.utils.platform import PlatformUtils
 
 from ....base_model import Result
@@ -27,6 +31,9 @@ from .data_source import bot_live
 from .model import (
     ActiveGroup,
     BaseInfo,
+    BotBlockModule,
+    BotManageUpdateParam,
+    BotStatusParam,
     HotPlugin,
     NonebotData,
     QueryCount,
@@ -94,13 +101,7 @@ async def _(bot_id: str | None = None) -> Result[list[BaseInfo]]:
         )
         for bot in bot_list:
             bot.bot = None  # type: ignore
-        # 插件加载数量
-        select_bot.plugin_count = await PluginInfo.all().count()
-        fail_count = await PluginInfo.filter(load_status=False).count()
-        select_bot.fail_plugin_count = fail_count
-        select_bot.success_plugin_count = (
-            select_bot.plugin_count - select_bot.fail_plugin_count
-        )
+        select_bot.status = await BotConsole.get_bot_status(select_bot.self_id)
         # 连接时间
         select_bot.connect_time = bot_live.get(select_bot.self_id) or 0
         if select_bot.connect_time:
@@ -345,6 +346,76 @@ async def _(
     if len(hot_plugin_list) > 5:
         hot_plugin_list = hot_plugin_list[:5]
     return Result.ok(hot_plugin_list)
+
+
+@router.post(
+    "/change_bot_status",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="修改bot全局开关",
+)
+async def _(param: BotStatusParam):
+    try:
+        await BotConsole.set_bot_status(param.status, param.bot_id)
+        return Result.ok(info="修改bot全局开关成功！")
+    except ValueError:
+        return Result.fail("Bot未初始化...")
+
+
+@router.get(
+    "/get_bot_block_module",
+    dependencies=[authentication()],
+    response_model=Result[BotBlockModule],
+    response_class=JSONResponse,
+    description="修改bot全局开关",
+)
+async def _(bot_id: str) -> Result[BotBlockModule]:
+    try:
+        bot_data = await BotConsole.get_or_none(bot_id=bot_id)
+        if not bot_data:
+            return Result.fail("Bot数据不存在...")
+        block_tasks = []
+        block_plugins = []
+        all_plugins = await PluginInfo.filter(
+            load_status=True, plugin_type=PluginType.NORMAL
+        ).values("module", "name")
+        all_task = await TaskInfo.annotate().values("module", "name")
+        if bot_data.block_tasks:
+            tasks = CommonUtils.convert_module_format(bot_data.block_tasks)
+            block_tasks = [t["module"] for t in all_task if t["module"] in tasks]
+        if bot_data.block_plugins:
+            plugins = CommonUtils.convert_module_format(bot_data.block_plugins)
+            block_plugins = [t["module"] for t in all_plugins if t["module"] in plugins]
+        return Result.ok(
+            BotBlockModule(
+                bot_id=bot_id,
+                block_tasks=block_tasks,
+                block_plugins=block_plugins,
+                all_plugins=all_plugins,
+                all_tasks=all_task,
+            )
+        )
+    except Exception as e:
+        logger.error("获取Bot数据失败", "webui", e=e)
+        return Result.fail(f"获取Bot数据失败 {type(e)}:{e}...")
+
+
+@router.post(
+    "/update_bot_manage",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="修改bot全局开关",
+)
+async def _(param: BotManageUpdateParam):
+    bot_data = await BotConsole.get_or_none(bot_id=param.bot_id)
+    if not bot_data:
+        return Result.fail("Bot数据不存在...")
+    bot_data.block_plugins = CommonUtils.convert_module_format(param.block_plugins)
+    bot_data.block_tasks = CommonUtils.convert_module_format(param.block_tasks)
+    await bot_data.save(update_fields=["block_plugins", "block_tasks"])
+    return Result.ok()
 
 
 @ws_router.websocket("/system_status")

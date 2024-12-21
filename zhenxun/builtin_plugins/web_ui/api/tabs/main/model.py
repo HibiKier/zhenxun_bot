@@ -1,6 +1,43 @@
+from typing import Any
+
 from nonebot.adapters import Bot
 from nonebot.config import Config
 from pydantic import BaseModel
+
+
+class BotManageUpdateParam(BaseModel):
+    """bot更新参数"""
+
+    bot_id: str
+    """bot id"""
+    block_plugins: list[str]
+    """禁用插件"""
+    block_tasks: list[str]
+    """禁用被动"""
+
+
+class BotStatusParam(BaseModel):
+    """bot状态参数"""
+
+    bot_id: str
+    """bot id"""
+    status: bool
+    """状态"""
+
+
+class BotBlockModule(BaseModel):
+    """bot禁用模块参数"""
+
+    bot_id: str
+    """bot id"""
+    block_plugins: list[str]
+    """禁用插件"""
+    block_tasks: list[str]
+    """禁用被动"""
+    all_plugins: list[dict[str, Any]]
+    """所有插件"""
+    all_tasks: list[dict[str, Any]]
+    """所有被动"""
 
 
 class SystemStatus(BaseModel):
@@ -36,13 +73,8 @@ class BaseInfo(BaseModel):
     """连接日期"""
     connect_count: int = 0
     """连接次数"""
-
-    plugin_count: int = 0
-    """加载插件数量"""
-    success_plugin_count: int = 0
-    """加载成功插件数量"""
-    fail_plugin_count: int = 0
-    """加载失败插件数量"""
+    status: bool = False
+    """全局状态"""
 
     is_select: bool = False
     """当前选择"""
