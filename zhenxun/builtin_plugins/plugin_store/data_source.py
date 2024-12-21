@@ -229,12 +229,15 @@ class ShopManage:
                 continue
         else:
             raise ValueError("所有API获取插件文件失败，请检查网络连接")
+        if module_path == ".":
+            module_path = ""
         files = repo_api.get_files(
             module_path=module_path.replace(".", "/") + ("" if is_dir else ".py"),
             is_dir=is_dir,
         )
         download_urls = [await repo_info.get_raw_download_urls(file) for file in files]
         base_path = BASE_PATH / "plugins" if is_external else BASE_PATH
+        base_path = base_path if module_path else base_path / repo_info.repo
         download_paths: list[Path | str] = [base_path / file for file in files]
         logger.debug(f"插件下载路径: {download_paths}", "插件管理")
         result = await AsyncHttpx.gather_download_file(download_urls, download_paths)
