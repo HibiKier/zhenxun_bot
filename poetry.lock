@@ -2227,23 +2227,23 @@ reference = "aliyun"
 
 [[package]]
 name = "nonebot-plugin-alconna"
-version = "0.53.1"
+version = "0.54.1"
 description = "Alconna Adapter for Nonebot"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "nonebot_plugin_alconna-0.53.1-py3-none-any.whl", hash = "sha256:a7734d4c7f1b2fedec586b7d235da119ffaa23d0e17a8aa0a0acc0e76a1662d0"},
-    {file = "nonebot_plugin_alconna-0.53.1.tar.gz", hash = "sha256:dc9eef228bb819d05ce9816f8a5a1bead455ee85d1ea7d5e409f9fb11665805e"},
+    {file = "nonebot_plugin_alconna-0.54.1-py3-none-any.whl", hash = "sha256:4edb4b081cd64ce37717c7a92d31aadd2cf287a5a0adc2ac86ed82d9bcad5048"},
+    {file = "nonebot_plugin_alconna-0.54.1.tar.gz", hash = "sha256:66fae03120b8eff25bb0027d65f149e399aa6f73c7585ebdd388d1904cecdeee"},
 ]
 
 [package.dependencies]
-arclet-alconna = ">=1.8.31,<2.0"
+arclet-alconna = ">=1.8.35,<2.0"
 arclet-alconna-tools = ">=0.7.10"
 importlib-metadata = ">=4.13.0"
-nepattern = ">=0.7.4,<1.0"
+nepattern = ">=0.7.7,<1.0"
 nonebot-plugin-waiter = ">=0.6.0"
 nonebot2 = ">=2.3.0"
-tarina = ">=0.6.3,<0.7"
+tarina = ">=0.6.8,<0.7"
 
 [package.source]
 type = "legacy"
@@ -2420,13 +2420,13 @@ reference = "aliyun"
 
 [[package]]
 name = "nonebug"
-version = "0.3.7"
+version = "0.4.3"
 description = "nonebot2 test framework"
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = ">=3.9,<4.0"
 files = [
-    {file = "nonebug-0.3.7-py3-none-any.whl", hash = "sha256:c39f462aafe20660602a8b789a575db6c9346ab5b6f1985eb9d98b861528299a"},
-    {file = "nonebug-0.3.7.tar.gz", hash = "sha256:8a75183400681f34eafc7caa2bb6dd511c3b5660c59264f1c379a088c7ac2247"},
+    {file = "nonebug-0.4.3-py3-none-any.whl", hash = "sha256:eb9b2c8ab3d45459a4f00ebdaae90729e9e9628575c0685fca4c871dd4cfd425"},
+    {file = "nonebug-0.4.3.tar.gz", hash = "sha256:e9592d2c7a42b76f4a336f98726cba92e1300f6bab155c8822e865919786f10c"},
 ]
 
 [package.dependencies]
@@ -4932,4 +4932,4 @@ reference = "aliyun"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "d2be32cc7ba17b302a015de327b8e8d815bee185400547f4024fd93e141d3ac8"
+content-hash = "37341271bbd43fcb6af878cb09491459cf21b13c24659a5fd94f9c2b5248a5d8"
