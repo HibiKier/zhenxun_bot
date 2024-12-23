@@ -1,5 +1,6 @@
 import asyncio
 from collections.abc import Callable
+from datetime import datetime, timedelta
 import inspect
 import time
 from types import MappingProxyType
@@ -413,8 +414,15 @@ class ShopManage:
         price = goods.goods_price * num * goods.goods_discount
         if user.gold < price:
             return "糟糕! 您的金币好像不太够哦..."
+        today = datetime.now()
+        create_time = today - timedelta(
+            hours=today.hour, minutes=today.minute, seconds=today.second
+        )
         count = await UserPropsLog.filter(
-            user_id=user_id, handle=PropHandle.BUY
+            user_id=user_id,
+            handle=PropHandle.BUY,
+            uuid=goods.uuid,
+            create_time__gte=create_time,
         ).count()
         if goods.daily_limit and count >= goods.daily_limit:
             return "今天的购买已达限制了喔!"
