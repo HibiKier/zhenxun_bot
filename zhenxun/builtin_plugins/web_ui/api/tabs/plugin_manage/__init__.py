@@ -84,7 +84,7 @@ async def _(param: UpdatePlugin) -> Result:
     try:
         await ApiDataSource.update_plugin(param)
         return Result.ok(info="已经帮你写好啦!")
-    except ValueError:
+    except (ValueError, KeyError):
         return Result.fail("插件数据不存在...")
     except Exception as e:
         logger.error(f"{router.prefix}/update_plugin 调用错误", "WebUi", e=e)
@@ -152,7 +152,7 @@ async def _(module: str) -> Result[PluginDetail]:
         return Result.ok(
             await ApiDataSource.get_plugin_detail(module), "已经帮你写好啦!"
         )
-    except ValueError:
+    except (ValueError, KeyError):
         return Result.fail("插件数据不存在...")
     except Exception as e:
         logger.error(f"{router.prefix}/get_plugin 调用错误", "WebUi", e=e)

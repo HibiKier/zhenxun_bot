@@ -13,6 +13,7 @@ from zhenxun.utils.enum import PluginType
 
 from .api.logs import router as ws_log_routes
 from .api.logs.log_manager import LOG_STORAGE
+from .api.menu import router as menu_router
 from .api.tabs.dashboard import router as dashboard_router
 from .api.tabs.database import router as database_router
 from .api.tabs.main import router as main_router
@@ -80,6 +81,7 @@ BaseApiRouter.include_router(manage_router)
 BaseApiRouter.include_router(database_router)
 BaseApiRouter.include_router(plugin_router)
 BaseApiRouter.include_router(system_router)
+BaseApiRouter.include_router(menu_router)
 
 
 WsApiRouter = APIRouter(prefix="/zhenxun/socket")

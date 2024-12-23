@@ -107,7 +107,7 @@ async def _(bot_id: str) -> Result[dict[str, int]]:
             "group_count": len(await PlatformUtils.get_group_list(bot)),
         }
         return Result.ok(data, "拿到信息啦!")
-    except ValueError:
+    except (ValueError, KeyError):
         return Result.warning_("指定Bot未连接...")
     except Exception as e:
         logger.error(f"{router.prefix}/get_fg_count 调用错误", "WebUi", e=e)
@@ -198,7 +198,7 @@ async def _(param: BotStatusParam):
     try:
         await BotConsole.set_bot_status(param.status, param.bot_id)
         return Result.ok(info="修改bot全局开关成功！")
-    except ValueError:
+    except (ValueError, KeyError):
         return Result.fail("Bot未初始化...")
 
 

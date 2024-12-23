@@ -53,10 +53,10 @@ async def _(bot_id: str) -> Result:
                     group_id=g.group_id, group_name=g.group_name, ava_url=ava_url
                 )
             )
-    except ValueError:
+    except (ValueError, KeyError):
         return Result.warning_("指定Bot未连接...")
     except Exception as e:
-        logger.error("调用API错误", "/get_group_list", e=e)
+        logger.error(f"{router.prefix}/get_group_list 调用错误", "WebUi", e=e)
         return Result.fail(f"{type(e)}: {e}")
     return Result.ok(group_list_result, "拿到了新鲜出炉的数据!")
 
@@ -101,7 +101,7 @@ async def _(bot_id: str) -> Result[list[Friend]]:
             result_list,
             "拿到了新鲜出炉的数据!",
         )
-    except ValueError:
+    except (ValueError, KeyError):
         return Result.warning_("指定Bot未连接...")
     except Exception as e:
         logger.error("调用API错误", "/get_group_list", e=e)
@@ -180,7 +180,7 @@ async def _(param: HandleRequest) -> Result:
         except NotFoundError:
             return Result.warning_("未找到此Id请求...")
         return Result.ok(info="成功处理了请求!")
-    except ValueError:
+    except (ValueError, KeyError):
         return Result.warning_("指定Bot未连接...")
     except Exception as e:
         logger.error(f"{router.prefix}/refuse_request 调用错误", "WebUi", e=e)
@@ -226,7 +226,7 @@ async def _(param: HandleRequest) -> Result:
         except ActionFailed:
             await FgRequest.expire(param.id)
             return Result.warning_("请求失败，可能该请求已失效或请求数据错误...")
-    except ValueError:
+    except (ValueError, KeyError):
         return Result.warning_("指定Bot未连接...")
     except Exception as e:
         logger.error(f"{router.prefix}/approve_request 调用错误", "WebUi", e=e)
@@ -251,7 +251,7 @@ async def _(param: LeaveGroup) -> Result:
             return Result.warning_("Bot未在该群聊中...")
         await bot.set_group_leave(group_id=param.group_id)
         return Result.ok(info="成功处理了请求!")
-    except ValueError:
+    except (ValueError, KeyError):
         return Result.warning_("指定Bot未连接...")
     except Exception as e:
         logger.error(f"{router.prefix}/leave_group 调用错误", "WebUi", e=e)
@@ -276,7 +276,7 @@ async def _(param: DeleteFriend) -> Result:
             return Result.warning_("Bot未有其好友...")
         await bot.delete_friend(user_id=param.user_id)
         return Result.ok(info="成功处理了请求!")
-    except ValueError:
+    except (ValueError, KeyError):
         return Result.warning_("指定Bot未连接...")
     except Exception as e:
         logger.error(f"{router.prefix}/delete_friend 调用错误", "WebUi", e=e)
@@ -298,7 +298,7 @@ async def _(bot_id: str, user_id: str) -> Result[UserDetail]:
             if result
             else Result.warning_("未找到该好友...")
         )
-    except ValueError:
+    except (ValueError, KeyError):
         return Result.warning_("指定Bot未连接...")
     except Exception as e:
         logger.error(f"{router.prefix}/get_friend_detail 调用错误", "WebUi", e=e)
@@ -334,7 +334,7 @@ async def _(param: SendMessageParam) -> Result:
             bot, param.user_id, param.group_id, param.message
         )
         return Result.ok("发送成功!")
-    except ValueError:
+    except (ValueError, KeyError):
         return Result.warning_("指定Bot未连接...")
     except Exception as e:
         logger.error(f"{router.prefix}/send_message 调用错误", "WebUi", e=e)
