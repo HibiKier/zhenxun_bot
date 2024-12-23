@@ -8,6 +8,7 @@ from nonebug import NONEBOT_INIT_KWARGS
 from nonebug.app import App
 from nonebug.mixin.process import MatcherContext
 import pytest
+from pytest_asyncio import is_async_test
 from pytest_mock import MockerFixture
 from respx import MockRouter
 
@@ -20,6 +21,13 @@ def get_response_json(path: str) -> dict:
     return json.loads(
         (Path(__file__).parent / "response" / path).read_text(encoding="utf8")
     )
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]):
+    pytest_asyncio_tests = (item for item in items if is_async_test(item))
+    session_scope_marker = pytest.mark.asyncio(loop_scope="session")
+    for async_test in pytest_asyncio_tests:
+        async_test.add_marker(session_scope_marker, append=False)
 
 
 def pytest_configure(config: pytest.Config) -> None:

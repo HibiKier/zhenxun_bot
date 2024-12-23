@@ -2,7 +2,7 @@ from nonebot import on_notice
 from nonebot.adapters.onebot.v11 import PokeNotifyEvent
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
-from nonebot.rule import to_me
+from nonebot.rule import Rule, to_me
 from nonebot_plugin_alconna import Alconna, on_alconna
 from nonebot_plugin_htmlrender import template_to_pic
 
@@ -41,9 +41,32 @@ __plugin_meta__ = PluginMetadata(
 )
 
 
+def commandRule() -> Rule:
+    return Rule(lambda: Config.get_config("check", "type") in {"message", "mix"})
+
+
+def noticeRule() -> Rule:
+    return Rule(lambda: Config.get_config("check", "type") in {"poke", "mix"})
+
+
+_self_check_matcher = _self_check_matcher = on_alconna(
+    Alconna("自检"),
+    rule=to_me() & commandRule(),
+    permission=SUPERUSER,
+    block=True,
+    priority=1,
+)
+
+_self_check_poke_matcher = on_notice(
+    priority=5,
+    permission=SUPERUSER,
+    block=False,
+    rule=notice_rule(PokeNotifyEvent) & to_me() & noticeRule(),
+)
+
+
 async def handle_self_check():
     try:
-        logger.info("触发自检")
         data = await get_status_info()
         image = await template_to_pic(
             template_path=str((TEMPLATE_PATH / "check").absolute()),
@@ -56,34 +79,17 @@ async def handle_self_check():
             wait=2,
         )
         await MessageUtils.build_message(image).send()
-        logger.info("自检成功")
+        logger.info("自检成功", "自检")
     except Exception as e:
         await MessageUtils.build_message(f"自检失败: {e}").send()
-        logger.error("自检失败", e=e)
+        logger.error("自检失败", "自检", e=e)
 
 
-check_type = Config.get_config("check", "type")
-
-if check_type in {"message", "mix"}:
-    # message
-    _self_check_matcher = on_alconna(
-        Alconna("自检"), rule=to_me(), permission=SUPERUSER, block=True, priority=1
-    )
-
-    @_self_check_matcher.handle()
-    async def handle_message_check():
-        await handle_self_check()
+@_self_check_matcher.handle()
+async def handle_message_check():
+    await handle_self_check()
 
 
-if check_type in {"poke", "mix"}:
-    # poke
-    _self_check_poke_matcher = on_notice(
-        priority=5,
-        permission=SUPERUSER,
-        block=False,
-        rule=notice_rule(PokeNotifyEvent) & to_me(),
-    )
-
-    @_self_check_poke_matcher.handle()
-    async def handle_poke_check(event: PokeNotifyEvent):
-        await handle_self_check()
+@_self_check_poke_matcher.handle()
+async def handle_poke_check():
+    await handle_self_check()
