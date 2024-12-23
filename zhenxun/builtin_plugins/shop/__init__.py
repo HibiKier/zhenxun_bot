@@ -173,7 +173,9 @@ async def _(
             bot, event, session, message, name.result, num.result, ""
         )
         logger.info(
-            f"使用道具 {name}, 数量: {num}", arparma.header_result, session=session
+            f"使用道具 {name.result}, 数量: {num.result}",
+            arparma.header_result,
+            session=session,
         )
         if isinstance(result, str):
             await MessageUtils.build_message(result).send(reply_to=True)

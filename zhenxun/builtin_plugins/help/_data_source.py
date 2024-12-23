@@ -27,17 +27,18 @@ async def create_help_img(session: Uninfo, group_id: str | None):
         session: Uninfo
         group_id: 群号
     """
-    help_type: str = base_config.get("type")
-    if help_type.lower() == "html":
-        result = BuildImage.open(await build_html_image(group_id))
-    elif help_type.lower() == "zhenxun":
-        result = BuildImage.open(await build_zhenxun_image(session, group_id))
-    else:
-        result = await build_normal_image(group_id)
-    if group_id:
-        await result.save(GROUP_HELP_PATH / f"{group_id}.png")
-    else:
-        await result.save(SIMPLE_HELP_IMAGE)
+    help_type = base_config.get("type", "").strip().lower()
+
+    match help_type:
+        case "html":
+            result = BuildImage.open(await build_html_image(group_id))
+        case "zhenxun":
+            result = BuildImage.open(await build_zhenxun_image(session, group_id))
+        case _:
+            result = await build_normal_image(group_id)
+
+    save_path = GROUP_HELP_PATH / f"{group_id}.png" if group_id else SIMPLE_HELP_IMAGE
+    await result.save(save_path)
 
 
 async def get_user_allow_help(user_id: str) -> list[PluginType]:

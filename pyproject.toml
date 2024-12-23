@@ -50,7 +50,7 @@ nonebot-plugin-uninfo = "^0.4.1"
 nonebot-plugin-alconna = "^0.54.0"
 
 [tool.poetry.dev-dependencies]
-nonebug = "^0.4.2"
+nonebug = "^0.4"
 pytest-cov = "^5.0.0"
 pytest-mock = "^3.6.1"
 pytest-asyncio = "^0.23.5"
@@ -137,6 +137,7 @@ disableBytesTypePromotions = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
