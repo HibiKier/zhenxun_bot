@@ -89,7 +89,7 @@ async def _(bot: Bot):
         async with aiofiles.open(RESTART_MARK, encoding="utf8") as f:
             bot_id, user_id = (await f.read()).split()
         if bot := nonebot.get_bot(bot_id):
-            if target := PlatformUtils.get_target(bot, user_id):
+            if target := PlatformUtils.get_target(user_id=user_id):
                 await MessageUtils.build_message(
                     f"{BotConfig.self_nickname}已成功重启！"
                 ).send(target, bot=bot)

@@ -112,6 +112,6 @@ async def _():
         app.include_router(BaseApiRouter)
         app.include_router(WsApiRouter)
         await init_public(app)
-        logger.info("<g>API启动成功</g>", "Web UI")
+        logger.info("<g>API启动成功</g>", "WebUi")
     except Exception as e:
-        logger.error("<g>API启动失败</g>", "Web UI", e=e)
+        logger.error("<g>API启动失败</g>", "WebUi", e=e)

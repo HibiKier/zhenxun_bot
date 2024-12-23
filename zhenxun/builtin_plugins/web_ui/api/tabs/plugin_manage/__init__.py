@@ -11,6 +11,7 @@ from zhenxun.utils.enum import BlockType, PluginType
 
 from ....base_model import Result
 from ....utils import authentication
+from .data_source import ApiDataSource
 from .model import (
     PluginConfig,
     PluginCount,
@@ -34,31 +35,12 @@ async def _(
     plugin_type: list[PluginType] = Query(None), menu_type: str | None = None
 ) -> Result[list[PluginInfo]]:
     try:
-        plugin_list: list[PluginInfo] = []
-        query = DbPluginInfo
-        if plugin_type:
-            query = query.filter(plugin_type__in=plugin_type, load_status=True)
-        if menu_type:
-            query = query.filter(menu_type=menu_type, load_status=True)
-        plugins = await query.all()
-        for plugin in plugins:
-            plugin_info = PluginInfo(
-                module=plugin.module,
-                plugin_name=plugin.name,
-                default_status=plugin.default_status,
-                limit_superuser=plugin.limit_superuser,
-                cost_gold=plugin.cost_gold,
-                menu_type=plugin.menu_type,
-                version=plugin.version or "0",
-                level=plugin.level,
-                status=plugin.status,
-                author=plugin.author,
-            )
-            plugin_list.append(plugin_info)
+        return Result.ok(
+            await ApiDataSource.get_plugin_list(plugin_type, menu_type), "拿到信息啦!"
+        )
     except Exception as e:
-        logger.error("调用API错误", "/get_plugins", e=e)
-        return Result.fail(f"{type(e)}: {e}")
-    return Result.ok(plugin_list, "拿到了新鲜出炉的数据!")
+        logger.error(f"{router.prefix}/get_plugin_list 调用错误", "WebUi", e=e)
+        return Result.fail(f"发生了一点错误捏 {type(e)}: {e}")
 
 
 @router.get(
@@ -69,21 +51,26 @@ async def _(
     deprecated="获取插件数量",  # type: ignore
 )
 async def _() -> Result[int]:
-    plugin_count = PluginCount()
-    plugin_count.normal = await DbPluginInfo.filter(
-        plugin_type=PluginType.NORMAL, load_status=True
-    ).count()
-    plugin_count.admin = await DbPluginInfo.filter(
-        plugin_type__in=[PluginType.ADMIN, PluginType.SUPER_AND_ADMIN], load_status=True
-    ).count()
-    plugin_count.superuser = await DbPluginInfo.filter(
-        plugin_type__in=[PluginType.SUPERUSER, PluginType.SUPER_AND_ADMIN],
-        load_status=True,
-    ).count()
-    plugin_count.other = await DbPluginInfo.filter(
-        plugin_type__in=[PluginType.HIDDEN, PluginType.DEPENDANT], load_status=True
-    ).count()
-    return Result.ok(plugin_count)
+    try:
+        plugin_count = PluginCount()
+        plugin_count.normal = await DbPluginInfo.filter(
+            plugin_type=PluginType.NORMAL, load_status=True
+        ).count()
+        plugin_count.admin = await DbPluginInfo.filter(
+            plugin_type__in=[PluginType.ADMIN, PluginType.SUPER_AND_ADMIN],
+            load_status=True,
+        ).count()
+        plugin_count.superuser = await DbPluginInfo.filter(
+            plugin_type__in=[PluginType.SUPERUSER, PluginType.SUPER_AND_ADMIN],
+            load_status=True,
+        ).count()
+        plugin_count.other = await DbPluginInfo.filter(
+            plugin_type__in=[PluginType.HIDDEN, PluginType.DEPENDANT], load_status=True
+        ).count()
+        return Result.ok(plugin_count, "拿到信息啦!")
+    except Exception as e:
+        logger.error(f"{router.prefix}/get_plugin_count 调用错误", "WebUi", e=e)
+        return Result.fail(f"发生了一点错误捏 {type(e)}: {e}")
 
 
 @router.post(
@@ -93,34 +80,15 @@ async def _() -> Result[int]:
     response_class=JSONResponse,
     description="更新插件参数",
 )
-async def _(plugin: UpdatePlugin) -> Result:
+async def _(param: UpdatePlugin) -> Result:
     try:
-        db_plugin = await DbPluginInfo.get_or_none(
-            module=plugin.module, load_status=True
-        )
-        if not db_plugin:
-            return Result.fail("插件不存在...")
-        db_plugin.default_status = plugin.default_status
-        db_plugin.limit_superuser = plugin.limit_superuser
-        db_plugin.cost_gold = plugin.cost_gold
-        db_plugin.level = plugin.level
-        db_plugin.menu_type = plugin.menu_type
-        db_plugin.block_type = plugin.block_type
-        db_plugin.status = plugin.block_type != BlockType.ALL
-        await db_plugin.save()
-        # 配置项
-        if plugin.configs and (configs := Config.get(plugin.module)):
-            for key in plugin.configs:
-                if c := configs.configs.get(key):
-                    value = plugin.configs[key]
-                    if c.type and value is not None:
-                        value = cattrs.structure(value, c.type)
-                    Config.set_config(plugin.module, key, value)
-            Config.save(save_simple_data=True)
+        await ApiDataSource.update_plugin(param)
+        return Result.ok(info="已经帮你写好啦!")
+    except ValueError:
+        return Result.fail("插件数据不存在...")
     except Exception as e:
-        logger.error("调用API错误", "/update_plugins", e=e)
+        logger.error(f"{router.prefix}/update_plugin 调用错误", "WebUi", e=e)
         return Result.fail(f"{type(e)}: {e}")
-    return Result.ok(info="已经帮你写好啦!")
 
 
 @router.post(
@@ -131,17 +99,21 @@ async def _(plugin: UpdatePlugin) -> Result:
     description="开关插件",
 )
 async def _(param: PluginSwitch) -> Result:
-    db_plugin = await DbPluginInfo.get_or_none(module=param.module, load_status=True)
-    if not db_plugin:
-        return Result.fail("插件不存在...")
-    if not param.status:
-        db_plugin.block_type = BlockType.ALL
-        db_plugin.status = False
-    else:
-        db_plugin.block_type = None
-        db_plugin.status = True
-    await db_plugin.save()
-    return Result.ok(info="成功改变了开关状态!")
+    try:
+        db_plugin = await DbPluginInfo.get_plugin(module=param.module)
+        if not db_plugin:
+            return Result.fail("插件不存在...")
+        if not param.status:
+            db_plugin.block_type = BlockType.ALL
+            db_plugin.status = False
+        else:
+            db_plugin.block_type = None
+            db_plugin.status = True
+        await db_plugin.save()
+        return Result.ok(info="成功改变了开关状态!")
+    except Exception as e:
+        logger.error(f"{router.prefix}/change_switch 调用错误", "WebUi", e=e)
+        return Result.fail(f"{type(e)}: {e}")
 
 
 @router.get(
@@ -152,16 +124,20 @@ async def _(param: PluginSwitch) -> Result:
     description="获取插件类型",
 )
 async def _() -> Result[list[str]]:
-    menu_type_list = []
-    result = (
-        await DbPluginInfo.filter(load_status=True)
-        .annotate()
-        .values_list("menu_type", flat=True)
-    )
-    for r in result:
-        if r not in menu_type_list and r:
-            menu_type_list.append(r)
-    return Result.ok(menu_type_list)
+    try:
+        menu_type_list = []
+        result = (
+            await DbPluginInfo.filter(load_status=True)
+            .annotate()
+            .values_list("menu_type", flat=True)
+        )
+        for r in result:
+            if r not in menu_type_list and r:
+                menu_type_list.append(r)
+        return Result.ok(menu_type_list)
+    except Exception as e:
+        logger.error(f"{router.prefix}/get_plugin_menu_type 调用错误", "WebUi", e=e)
+        return Result.fail(f"{type(e)}: {e}")
 
 
 @router.get(
@@ -172,46 +148,12 @@ async def _() -> Result[list[str]]:
     description="获取插件详情",
 )
 async def _(module: str) -> Result[PluginDetail]:
-    db_plugin = await DbPluginInfo.get_or_none(module=module, load_status=True)
-    if not db_plugin:
-        return Result.fail("插件不存在...")
-    config_list = []
-    if config := Config.get(module):
-        for cfg in config.configs:
-            type_str = ""
-            type_inner = None
-            if r := re.search(r"<class '(.*)'>", str(config.configs[cfg].type)):
-                type_str = r[1]
-            elif r := re.search(r"typing\.(.*)\[(.*)\]", str(config.configs[cfg].type)):
-                type_str = r[1]
-                if type_str:
-                    type_str = type_str.lower()
-                type_inner = r[2]
-                if type_inner:
-                    type_inner = [x.strip() for x in type_inner.split(",")]
-            config_list.append(
-                PluginConfig(
-                    module=module,
-                    key=cfg,
-                    value=config.configs[cfg].value,
-                    help=config.configs[cfg].help,
-                    default_value=config.configs[cfg].default_value,
-                    type=type_str,
-                    type_inner=type_inner,  # type: ignore
-                )
-            )
-    plugin_info = PluginDetail(
-        module=module,
-        plugin_name=db_plugin.name,
-        default_status=db_plugin.default_status,
-        limit_superuser=db_plugin.limit_superuser,
-        cost_gold=db_plugin.cost_gold,
-        menu_type=db_plugin.menu_type,
-        version=db_plugin.version or "0",
-        level=db_plugin.level,
-        status=db_plugin.status,
-        author=db_plugin.author,
-        config_list=config_list,
-        block_type=db_plugin.block_type,
-    )
-    return Result.ok(plugin_info)
+    try:
+        return Result.ok(
+            await ApiDataSource.get_plugin_detail(module), "已经帮你写好啦!"
+        )
+    except ValueError:
+        return Result.fail("插件数据不存在...")
+    except Exception as e:
+        logger.error(f"{router.prefix}/get_plugin 调用错误", "WebUi", e=e)
+        return Result.fail(f"{type(e)}: {e}")

@@ -268,7 +268,7 @@ class PlatformUtils:
         返回:
             Receipt | None: 是否发送成功
         """
-        if target := cls.get_target(bot, user_id, group_id):
+        if target := cls.get_target(user_id=user_id, group_id=group_id):
             send_message = (
                 MessageUtils.build_message(message)
                 if isinstance(message, str)
@@ -425,7 +425,7 @@ class PlatformUtils:
     @classmethod
     def get_target(
         cls,
-        bot: Bot,
+        *,
         user_id: str | None = None,
         group_id: str | None = None,
         channel_id: str | None = None,
@@ -530,7 +530,9 @@ async def broadcast_group(
                             )
                             continue
                         target = PlatformUtils.get_target(
-                            _bot, None, group.group_id, group.channel_id
+                            user_id=None,
+                            group_id=group.group_id,
+                            channel_id=group.channel_id,
                         )
                         if target:
                             _used_group.append(key)

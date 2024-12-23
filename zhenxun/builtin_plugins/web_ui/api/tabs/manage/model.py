@@ -257,7 +257,7 @@ class Message(BaseModel):
     """用户头像"""
 
 
-class SendMessage(BaseModel):
+class SendMessageParam(BaseModel):
     """
     发送消息
     """
