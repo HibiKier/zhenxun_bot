@@ -106,8 +106,8 @@ class JsdelivrStrategy:
     def get_file_paths(self, module_path: str, is_dir: bool = True) -> list[str]:
         """获取文件路径"""
         paths = module_path.split("/")
-        filename = "" if is_dir else paths[-1]
-        paths = paths if is_dir else paths[:-1]
+        filename = "" if is_dir and module_path else paths[-1]
+        paths = paths if is_dir and module_path else paths[:-1]
         cur_file = self.body
         for path in paths:  # 导航到正确的目录
             cur_file = next(
@@ -141,7 +141,8 @@ class JsdelivrStrategy:
                 ]
             return []
 
-        return collect_files(cur_file, "/".join(paths), filename)
+        files = collect_files(cur_file, "/".join(paths), filename)
+        return files if module_path else [f[1:] for f in files]
 
     @classmethod
     @cached(ttl=CACHED_API_TTL)
@@ -208,7 +209,7 @@ class GitHubStrategy:
             for file in tree_info.tree
             if file.type == TreeType.FILE
             and file.path.startswith(module_path)
-            and (not is_dir or file.path[len(module_path)] == "/")
+            and (not is_dir or file.path[len(module_path)] == "/" or not module_path)
         ]
 
     @classmethod
