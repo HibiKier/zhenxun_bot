@@ -94,6 +94,7 @@ async def test_check(
             to_me=True,
         )
         ctx.receive_event(bot=bot, event=event)
+        ctx.should_ignore_rule(_self_check_matcher)
     mock_template_to_pic.assert_awaited_once_with(
         template_path=str((mock_template_path_new / "check").absolute()),
         template_name="main.html",
@@ -184,6 +185,7 @@ async def test_check_arm(
             to_me=True,
         )
         ctx.receive_event(bot=bot, event=event)
+        ctx.should_ignore_rule(_self_check_matcher)
     mock_template_to_pic.assert_awaited_once_with(
         template_path=str((mock_template_path_new / "check").absolute()),
         template_name="main.html",
