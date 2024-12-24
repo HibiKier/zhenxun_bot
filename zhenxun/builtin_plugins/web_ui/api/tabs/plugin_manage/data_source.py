@@ -5,11 +5,10 @@ from fastapi import Query
 
 from zhenxun.configs.config import Config
 from zhenxun.configs.utils import ConfigGroup
-from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.plugin_info import PluginInfo as DbPluginInfo
 from zhenxun.utils.enum import BlockType, PluginType
 
-from .model import PluginConfig, PluginDetail, UpdatePlugin
+from .model import PluginConfig, PluginDetail, PluginInfo, UpdatePlugin
 
 
 class ApiDataSource:

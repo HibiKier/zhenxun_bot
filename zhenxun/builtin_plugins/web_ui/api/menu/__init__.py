@@ -6,7 +6,7 @@ from zhenxun.services.log import logger
 from ...base_model import Result
 from ...utils import authentication
 from .data_source import menu_manage
-from .model import MenuItem
+from .model import MenuData
 
 router = APIRouter(prefix="/menu")
 
@@ -14,11 +14,11 @@ router = APIRouter(prefix="/menu")
 @router.get(
     "/get_menus",
     dependencies=[authentication()],
-    response_model=Result[list[MenuItem]],
+    response_model=Result[list[MenuData]],
     response_class=JSONResponse,
     deprecated="获取菜单列表",  # type: ignore
 )
-async def _() -> Result[list[MenuItem]]:
+async def _() -> Result[list[MenuData]]:
     try:
         return Result.ok(menu_manage.get_menus(), "拿到菜单了哦！")
     except Exception as e:

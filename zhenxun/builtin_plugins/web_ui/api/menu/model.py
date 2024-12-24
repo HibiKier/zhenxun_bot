@@ -12,3 +12,10 @@ class MenuItem(BaseModel):
     """图标"""
     default: bool = False
     """默认选中"""
+
+
+class MenuData(BaseModel):
+    bot_type: str = "zhenxun"
+    """bot类型"""
+    menus: list[MenuItem]
+    """菜单列表"""

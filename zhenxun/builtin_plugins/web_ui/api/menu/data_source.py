@@ -3,7 +3,7 @@ import ujson as json
 from zhenxun.configs.path_config import DATA_PATH
 from zhenxun.services.log import logger
 
-from .model import MenuItem
+from .model import MenuData, MenuItem
 
 
 class MenuManage:
@@ -52,7 +52,7 @@ class MenuManage:
             self.save()
 
     def get_menus(self):
-        return self.menu
+        return MenuData(menus=self.menu)
 
     def save(self):
         self.file.parent.mkdir(parents=True, exist_ok=True)
