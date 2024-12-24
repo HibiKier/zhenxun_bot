@@ -37,7 +37,7 @@
 
 <div align=center>
 
-[![tencent-qq](https://img.shields.io/badge/%E7%BE%A4-是真寻酱哒-red?style=logo=tencent-qq)](https://jq.qq.com/?_wv=1027&k=u8PgBkMZ)
+[![tencent-qq](https://img.shields.io/badge/%E7%BE%A4-是真寻酱哒-red?style=logo=tencent-qq)](https://qm.qq.com/q/mRNtLSl6uc)
 [![tencent-qq](https://img.shields.io/badge/%E7%BE%A4-真寻的技术群-c73e7e?style=logo=tencent-qq)](https://qm.qq.com/q/YYYt5rkMYc)
 
 </div>
@@ -122,7 +122,7 @@ AccessToken: PUBLIC_ZHENXUN_TEST
 - 通过 Config 配置项将所有插件配置统计保存至 config.yaml，利于统一用户修改
 - 方便增删插件，原生 nonebot2 matcher，不需要额外修改，仅仅通过简单的配置属性就可以生成`帮助图片`和`帮助信息`
 - 提供了 cd，阻塞，每日次数等限制，仅仅通过简单的属性就可以生成一个限制，例如：`PluginCdBlock` 等
-- **更多详细请通过[传送门](https://hibikier.github.io/zhenxun_bot/)查看文档！**
+- **更多详细请通过 [传送门](https://hibikier.github.io/zhenxun_bot/) 查看文档！**
 
 ## 🛠️ 简单部署
 
@@ -144,28 +144,27 @@ python bot.py           # 运行机器人
 
 ## 📝 简单配置
 
+> [!TIP]
+> config.yaml 需要启动一次 Bot 后生成
+
 1.在 .env.dev 文件中填写你的机器人配置项
 
 2.在 configs/config.yaml 文件中修改你需要修改的插件配置项
 
-> [!TIP]
-> config.yaml 需要启动一次 Bot 后生成
-
 <details>
 <summary>数据库地址（DB_URL）配置说明</summary>
+
 DB_URL 是基于 Tortoise ORM 的数据库连接字符串，用于指定项目所使用的数据库。以下是 DB_URL 的组成部分以及示例：
 
 格式为： ```<数据库类型>://<用户名>:<密码>@<主机>:<端口>/<数据库名>?<参数>```
 
-说明
-
-- <数据库类型>：表示数据库类型，例如 postgres、mysql、sqlite 等。
-- <用户名>：数据库的用户名，例如 root。
-- <密码>：数据库的密码，例如 123456。
-- <主机>：数据库的主机地址，例如 127.0.0.1（本地）或远程服务器 IP。
-- <端口>：数据库的端口号，例如：PostgreSQL：5432, MySQL：3306
-- <数据库名>：指定要使用的数据库名称，例如 zhenxun。
-- <参数>（可选）：用于传递额外的配置，例如字符集设置。
+- 数据库类型：表示数据库类型，例如 postgres、mysql、sqlite 等。
+- 用户名：数据库的用户名，例如 root。
+- 密码：数据库的密码，例如 123456。
+- 主机：数据库的主机地址，例如 127.0.0.1（本地）或远程服务器 IP。
+- 端口：数据库的端口号，例如：PostgreSQL：5432, MySQL：3306
+- 数据库名：指定要使用的数据库名称，例如 zhenxun。
+- 参数（可选）：用于传递额外的配置，例如字符集设置。
 
 </details>
 
@@ -269,6 +268,16 @@ DB_URL 是基于 Tortoise ORM 的数据库连接字符串，用于指定项目�
 
 欢迎查看我们的 [贡献指南](CONTRIBUTING.md) 和 [行为守则](CODE_OF_CONDUCT.md) 以了解如何参与贡献。
 
+## ❔ 需要帮助？
+
+> [!TIP]
+> 发起 [issue](https://github.com/HibiKier/zhenxun_bot/issues/new/choose) 前，我们希望你能够阅读过或者了解 [提问的智慧](https://github.com/ryanhanwu/How-To-Ask-Questions-The-Smart-Way/blob/main/README-zh_CN.md)
+>
+> - 善用[搜索引擎](https://www.google.com/)
+> - 查阅 issue 中是否有类似问题，如果没有请按照模板发起 issue
+
+欢迎前往 [issue](https://github.com/HibiKier/zhenxun_bot/issues/new/choose) 中提出你遇到的问题，或者加入我们的 [用户群](https://qm.qq.com/q/mRNtLSl6uc) 或 [技术群](https://qm.qq.com/q/YYYt5rkMYc)与我们联系
+
 ## 🛠️ 进度追踪
 
 Project [zhenxun_bot](https://github.com/users/HibiKier/projects/2)
@@ -297,14 +306,14 @@ Project [zhenxun_bot](https://github.com/users/HibiKier/projects/2)
 
 <a href="https://next.ossinsight.io/widgets/official/compose-last-28-days-stats?repo_id=368008334" target="_blank" style="display: block" align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-last-28-days-stats/thumbnail.png?repo_id=368008334&image_size=auto&color_scheme=dark" width="655" height="auto">
-    <img alt="Performance Stats of HibiKier/zhenxun_bot - Last 28 days" src="https://next.ossinsight.io/widgets/official/compose-last-28-days-stats/thumbnail.png?repo_id=368008334&image_size=auto&color_scheme=light" width="655" height="auto">
+    <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-last-28-days-stats/thumbnail.png?repo_id=368008334&image_size=auto&color_scheme=dark" width="800" height="auto">
+    <img alt="Performance Stats of HibiKier/zhenxun_bot - Last 28 days" src="https://next.ossinsight.io/widgets/official/compose-last-28-days-stats/thumbnail.png?repo_id=368008334&image_size=auto&color_scheme=light" width="800" height="auto">
   </picture>
 </a>
 <a href="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors?repo_id=368008334&limit=30" target="_blank" style="display: block" align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors/thumbnail.png?repo_id=368008334&limit=30&image_size=auto&color_scheme=dark" width="655" height="auto">
-    <img alt="Active Contributors of HibiKier/zhenxun_bot - Last 28 days" src="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors/thumbnail.png?repo_id=368008334&limit=30&image_size=auto&color_scheme=light" width="655" height="auto">
+    <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors/thumbnail.png?repo_id=368008334&limit=30&image_size=auto&color_scheme=dark" width="800" height="auto">
+    <img alt="Active Contributors of HibiKier/zhenxun_bot - Last 28 days" src="https://next.ossinsight.io/widgets/official/compose-recent-active-contributors/thumbnail.png?repo_id=368008334&limit=30&image_size=auto&color_scheme=light" width="800" height="auto">
   </picture>
 </a>
 
