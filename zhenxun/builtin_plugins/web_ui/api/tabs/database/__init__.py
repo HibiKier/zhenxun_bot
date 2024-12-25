@@ -3,7 +3,6 @@ from fastapi.responses import JSONResponse
 import nonebot
 from nonebot.drivers import Driver
 from tortoise import Tortoise
-from tortoise.exceptions import OperationalError
 
 from zhenxun.configs.config import BotConfig
 from zhenxun.models.plugin_info import PluginInfo
@@ -141,5 +140,5 @@ async def _(query: QueryModel) -> Result[BaseResultModel]:
 )
 async def _(plugin_name: str | None = None) -> Result[dict]:
     if plugin_name:
-        return Result.ok(SQL_DICT.get(plugin_name))
-    return Result.ok(str(SQL_DICT))
+        return Result.ok(ApiDataSource.SQL_DICT.get(plugin_name))
+    return Result.ok(str(ApiDataSource.SQL_DICT))
