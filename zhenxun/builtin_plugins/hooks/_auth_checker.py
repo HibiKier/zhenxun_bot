@@ -387,7 +387,7 @@ class AuthChecker:
                         session=session,
                     )
                     raise IgnoredException("该群未开启此功能...")
-                if not plugin.status and plugin.block_type == BlockType.GROUP:
+                if plugin.block_type == BlockType.GROUP:
                     """全局群组禁用"""
                     try:
                         if self.is_send_limit_message(plugin, sid) and not is_poke:
@@ -410,7 +410,7 @@ class AuthChecker:
                     raise IgnoredException("该插件在群组中已被禁用...")
             else:
                 sid = user_id
-                if not plugin.status and plugin.block_type == BlockType.PRIVATE:
+                if plugin.block_type == BlockType.PRIVATE:
                     """全局私聊禁用"""
                     try:
                         if self.is_send_limit_message(plugin, sid) and not is_poke:

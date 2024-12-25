@@ -2,19 +2,11 @@ from datetime import datetime
 import uuid
 
 import nonebot
-from nonebot import require
 from nonebot.adapters import Bot
 from nonebot.drivers import Driver
 from tortoise import Tortoise
 from tortoise.exceptions import OperationalError
 import ujson as json
-
-require("nonebot_plugin_apscheduler")
-require("nonebot_plugin_alconna")
-require("nonebot_plugin_session")
-require("nonebot_plugin_userinfo")
-require("nonebot_plugin_htmlrender")
-# require("nonebot_plugin_uninfo")
 
 from zhenxun.models.bot_connect_log import BotConnectLog
 from zhenxun.models.bot_console import BotConsole

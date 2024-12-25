@@ -1,7 +1,5 @@
 import asyncio
 import contextlib
-from datetime import datetime, timedelta
-from pathlib import Path
 import time
 
 from fastapi import APIRouter
@@ -9,28 +7,26 @@ from fastapi.responses import JSONResponse
 import nonebot
 from nonebot.config import Config
 from starlette.websockets import WebSocket, WebSocketDisconnect, WebSocketState
-from tortoise.functions import Count
 from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 
-from zhenxun.models.bot_connect_log import BotConnectLog
-from zhenxun.models.chat_history import ChatHistory
-from zhenxun.models.group_console import GroupConsole
-from zhenxun.models.plugin_info import PluginInfo
-from zhenxun.models.statistics import Statistics
+from zhenxun.models.bot_console import BotConsole
 from zhenxun.services.log import logger
+from zhenxun.utils.common_utils import CommonUtils
 from zhenxun.utils.platform import PlatformUtils
 
 from ....base_model import Result
-from ....config import AVA_URL, GROUP_AVA_URL, QueryDateType
+from ....config import QueryDateType
 from ....utils import authentication, get_system_status
-from .data_source import bot_live
+from .data_source import ApiDataSource
 from .model import (
     ActiveGroup,
     BaseInfo,
+    BotBlockModule,
+    BotManageUpdateParam,
+    BotStatusParam,
     HotPlugin,
     NonebotData,
     QueryCount,
-    TemplateBaseInfo,
 )
 
 driver = nonebot.get_driver()
@@ -56,64 +52,14 @@ async def _(bot_id: str | None = None) -> Result[list[BaseInfo]]:
     返回:
         Result: 获取指定bot信息与bot列表
     """
-    global run_time
-    bot_list: list[TemplateBaseInfo] = []
-    if bots := nonebot.get_bots():
-        select_bot: BaseInfo
-        for _, bot in bots.items():
-            login_info = await bot.get_login_info()
-            bot_list.append(
-                TemplateBaseInfo(
-                    bot=bot,  # type: ignore
-                    self_id=bot.self_id,
-                    nickname=login_info["nickname"],
-                    ava_url=AVA_URL.format(bot.self_id),
-                )
-            )
-        # 获取指定qq号的bot信息，若无指定   则获取第一个
-        if _bl := [b for b in bot_list if b.self_id == bot_id]:
-            select_bot = _bl[0]
-        else:
-            select_bot = bot_list[0]
-        select_bot.is_select = True
-        now = datetime.now()
-        # 今日累计接收消息
-        select_bot.received_messages = await ChatHistory.filter(
-            bot_id=select_bot.self_id,
-            create_time__gte=now - timedelta(hours=now.hour),
-        ).count()
-        # 群聊数量
-        select_bot.group_count = len(await select_bot.bot.get_group_list())
-        # 好友数量
-        select_bot.friend_count = len(await select_bot.bot.get_friend_list())
-        for bot in bot_list:
-            bot.bot = None  # type: ignore
-        # 插件加载数量
-        select_bot.plugin_count = await PluginInfo.all().count()
-        fail_count = await PluginInfo.filter(load_status=False).count()
-        select_bot.fail_plugin_count = fail_count
-        select_bot.success_plugin_count = (
-            select_bot.plugin_count - select_bot.fail_plugin_count
-        )
-        # 连接时间
-        select_bot.connect_time = bot_live.get(select_bot.self_id) or 0
-        if select_bot.connect_time:
-            connect_date = datetime.fromtimestamp(select_bot.connect_time)
-            select_bot.connect_date = connect_date.strftime("%Y-%m-%d %H:%M:%S")
-        version_file = Path() / "__version__"
-        if version_file.exists():
-            if text := version_file.open().read():
-                if ver := text.replace("__version__: ", "").strip():
-                    select_bot.version = ver
-        day_call = await Statistics.filter(
-            create_time__gte=now - timedelta(hours=now.hour)
-        ).count()
-        select_bot.day_call = day_call
-        select_bot.connect_count = await BotConnectLog.filter(
-            bot_id=select_bot.self_id
-        ).count()
-        return Result.ok([BaseInfo(**e.dict()) for e in bot_list], "拿到信息啦!")
-    return Result.warning_("无Bot连接...")
+    try:
+        result = await ApiDataSource.get_base_info(bot_id)
+        if not result:
+            Result.warning_("无Bot连接...")
+        return Result.ok(result, "拿到信息啦!")
+    except Exception as e:
+        logger.error(f"{router.prefix}/get_base_info 调用错误", "WebUi", e=e)
+        return Result.fail(f"发生了一点错误捏 {type(e)}: {e}")
 
 
 @router.get(
@@ -124,32 +70,11 @@ async def _(bot_id: str | None = None) -> Result[list[BaseInfo]]:
     description="获取接收消息数量",
 )
 async def _(bot_id: str | None = None) -> Result[QueryCount]:
-    now = datetime.now()
-    query = ChatHistory
-    if bot_id:
-        query = query.filter(bot_id=bot_id)
-    all_count = await query.annotate().count()
-    day_count = await query.filter(
-        create_time__gte=now - timedelta(hours=now.hour, minutes=now.minute)
-    ).count()
-    week_count = await query.filter(
-        create_time__gte=now - timedelta(days=7, hours=now.hour, minutes=now.minute)
-    ).count()
-    month_count = await query.filter(
-        create_time__gte=now - timedelta(days=30, hours=now.hour, minutes=now.minute)
-    ).count()
-    year_count = await query.filter(
-        create_time__gte=now - timedelta(days=365, hours=now.hour, minutes=now.minute)
-    ).count()
-    return Result.ok(
-        QueryCount(
-            num=all_count,
-            day=day_count,
-            week=week_count,
-            month=month_count,
-            year=year_count,
-        )
-    )
+    try:
+        return Result.ok(await ApiDataSource.get_all_chat_count(bot_id), "拿到信息啦!")
+    except Exception as e:
+        logger.error(f"{router.prefix}/get_all_chat_count 调用错误", "WebUi", e=e)
+        return Result.fail(f"发生了一点错误捏 {type(e)}: {e}")
 
 
 @router.get(
@@ -160,32 +85,11 @@ async def _(bot_id: str | None = None) -> Result[QueryCount]:
     description="获取调用次数",
 )
 async def _(bot_id: str | None = None) -> Result[QueryCount]:
-    now = datetime.now()
-    query = Statistics
-    if bot_id:
-        query = query.filter(bot_id=bot_id)
-    all_count = await query.annotate().count()
-    day_count = await query.filter(
-        create_time__gte=now - timedelta(hours=now.hour, minutes=now.minute)
-    ).count()
-    week_count = await query.filter(
-        create_time__gte=now - timedelta(days=7, hours=now.hour, minutes=now.minute)
-    ).count()
-    month_count = await query.filter(
-        create_time__gte=now - timedelta(days=30, hours=now.hour, minutes=now.minute)
-    ).count()
-    year_count = await query.filter(
-        create_time__gte=now - timedelta(days=365, hours=now.hour, minutes=now.minute)
-    ).count()
-    return Result.ok(
-        QueryCount(
-            num=all_count,
-            day=day_count,
-            week=week_count,
-            month=month_count,
-            year=year_count,
-        )
-    )
+    try:
+        return Result.ok(await ApiDataSource.get_all_call_count(bot_id), "拿到信息啦!")
+    except Exception as e:
+        logger.error(f"{router.prefix}/get_all_call_count 调用错误", "WebUi", e=e)
+        return Result.fail(f"发生了一点错误捏 {type(e)}: {e}")
 
 
 @router.get(
@@ -196,19 +100,18 @@ async def _(bot_id: str | None = None) -> Result[QueryCount]:
     description="好友/群组数量",
 )
 async def _(bot_id: str) -> Result[dict[str, int]]:
-    if bots := nonebot.get_bots():
-        if bot_id not in bots:
-            return Result.warning_("指定Bot未连接...")
-        bot = bots[bot_id]
-        platform = PlatformUtils.get_platform(bot)
-        if platform == "qq":
-            data = {
-                "friend_count": len(await bot.get_friend_list()),
-                "group_count": len(await bot.get_group_list()),
-            }
-            return Result.ok(data)
-        return Result.warning_("暂不支持该平台...")
-    return Result.warning_("无Bot连接...")
+    try:
+        bot = nonebot.get_bot(bot_id)
+        data = {
+            "friend_count": len(await PlatformUtils.get_friend_list(bot)),
+            "group_count": len(await PlatformUtils.get_group_list(bot)),
+        }
+        return Result.ok(data, "拿到信息啦!")
+    except (ValueError, KeyError):
+        return Result.warning_("指定Bot未连接...")
+    except Exception as e:
+        logger.error(f"{router.prefix}/get_fg_count 调用错误", "WebUi", e=e)
+        return Result.fail(f"发生了一点错误捏 {type(e)}: {e}")
 
 
 @router.get(
@@ -219,6 +122,7 @@ async def _(bot_id: str) -> Result[dict[str, int]]:
     description="获取nb数据",
 )
 async def _() -> Result[NonebotData]:
+    global run_time
     return Result.ok(NonebotData(config=driver.config, run_time=int(run_time)))
 
 
@@ -241,6 +145,7 @@ async def _() -> Result[Config]:
     description="获取nb运行时间",
 )
 async def _() -> Result[int]:
+    global run_time
     return Result.ok(int(run_time))
 
 
@@ -254,48 +159,13 @@ async def _() -> Result[int]:
 async def _(
     date_type: QueryDateType | None = None, bot_id: str | None = None
 ) -> Result[list[ActiveGroup]]:
-    query = ChatHistory
-    now = datetime.now()
-    if bot_id:
-        query = query.filter(bot_id=bot_id)
-    if date_type == QueryDateType.DAY:
-        query = query.filter(create_time__gte=now - timedelta(hours=now.hour))
-    if date_type == QueryDateType.WEEK:
-        query = query.filter(create_time__gte=now - timedelta(days=7))
-    if date_type == QueryDateType.MONTH:
-        query = query.filter(create_time__gte=now - timedelta(days=30))
-    if date_type == QueryDateType.YEAR:
-        query = query.filter(create_time__gte=now - timedelta(days=365))
-    data_list = (
-        await query.annotate(count=Count("id"))
-        .filter(group_id__not_isnull=True)
-        .group_by("group_id")
-        .order_by("-count")
-        .limit(5)
-        .values_list("group_id", "count")
-    )
-    id2name = {}
-    if data_list:
-        if info_list := await GroupConsole.filter(
-            group_id__in=[x[0] for x in data_list]
-        ).all():
-            for group_info in info_list:
-                id2name[group_info.group_id] = group_info.group_name
-    active_group_list = [
-        ActiveGroup(
-            group_id=data[0],
-            name=id2name.get(data[0]) or data[0],
-            chat_num=data[1],
-            ava_img=GROUP_AVA_URL.format(data[0], data[0]),
+    try:
+        return Result.ok(
+            await ApiDataSource.get_active_group(date_type, bot_id), "拿到信息啦!"
         )
-        for data in data_list
-    ]
-    active_group_list = sorted(
-        active_group_list, key=lambda x: x.chat_num, reverse=True
-    )
-    if len(active_group_list) > 5:
-        active_group_list = active_group_list[:5]
-    return Result.ok(active_group_list)
+    except Exception as e:
+        logger.error(f"{router.prefix}/get_active_group 调用错误", "WebUi", e=e)
+        return Result.fail(f"发生了一点错误捏 {type(e)}: {e}")
 
 
 @router.get(
@@ -308,37 +178,66 @@ async def _(
 async def _(
     date_type: QueryDateType | None = None, bot_id: str | None = None
 ) -> Result[list[HotPlugin]]:
-    query = Statistics
-    now = datetime.now()
-    if bot_id:
-        query = query.filter(bot_id=bot_id)
-    if date_type == QueryDateType.DAY:
-        query = query.filter(create_time__gte=now - timedelta(hours=now.hour))
-    if date_type == QueryDateType.WEEK:
-        query = query.filter(create_time__gte=now - timedelta(days=7))
-    if date_type == QueryDateType.MONTH:
-        query = query.filter(create_time__gte=now - timedelta(days=30))
-    if date_type == QueryDateType.YEAR:
-        query = query.filter(create_time__gte=now - timedelta(days=365))
-    data_list = (
-        await query.annotate(count=Count("id"))
-        .group_by("plugin_name")
-        .order_by("-count")
-        .limit(5)
-        .values_list("plugin_name", "count")
-    )
-    hot_plugin_list = []
-    module_list = [x[0] for x in data_list]
-    plugins = await PluginInfo.filter(module__in=module_list).all()
-    module2name = {p.module: p.name for p in plugins}
-    for data in data_list:
-        module = data[0]
-        name = module2name.get(module) or module
-        hot_plugin_list.append(HotPlugin(module=module, name=name, count=data[1]))
-    hot_plugin_list = sorted(hot_plugin_list, key=lambda x: x.count, reverse=True)
-    if len(hot_plugin_list) > 5:
-        hot_plugin_list = hot_plugin_list[:5]
-    return Result.ok(hot_plugin_list)
+    try:
+        return Result.ok(
+            await ApiDataSource.get_hot_plugin(date_type, bot_id), "拿到信息啦!"
+        )
+    except Exception as e:
+        logger.error(f"{router.prefix}/get_hot_plugin 调用错误", "WebUi", e=e)
+        return Result.fail(f"发生了一点错误捏 {type(e)}: {e}")
+
+
+@router.post(
+    "/change_bot_status",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="修改bot全局开关",
+)
+async def _(param: BotStatusParam):
+    try:
+        await BotConsole.set_bot_status(param.status, param.bot_id)
+        return Result.ok(info="修改bot全局开关成功！")
+    except (ValueError, KeyError):
+        return Result.fail("Bot未初始化...")
+
+
+@router.get(
+    "/get_bot_block_module",
+    dependencies=[authentication()],
+    response_model=Result[BotBlockModule],
+    response_class=JSONResponse,
+    description="获取bot层面的禁用模块",
+)
+async def _(bot_id: str) -> Result[BotBlockModule]:
+    try:
+        return Result.ok(
+            await ApiDataSource.get_bot_block_module(bot_id), "拿到信息啦!"
+        )
+    except Exception as e:
+        logger.error(f"{router.prefix}/get_bot_block_module 调用错误", "WebUi", e=e)
+        return Result.fail(f"发生了一点错误捏 {type(e)}: {e}")
+
+
+@router.post(
+    "/update_bot_manage",
+    dependencies=[authentication()],
+    response_model=Result,
+    response_class=JSONResponse,
+    description="修改bot全局开关",
+)
+async def _(param: BotManageUpdateParam):
+    try:
+        bot_data = await BotConsole.get_or_none(bot_id=param.bot_id)
+        if not bot_data:
+            return Result.fail("Bot数据不存在...")
+        bot_data.block_plugins = CommonUtils.convert_module_format(param.block_plugins)
+        bot_data.block_tasks = CommonUtils.convert_module_format(param.block_tasks)
+        await bot_data.save(update_fields=["block_plugins", "block_tasks"])
+        return Result.ok()
+    except Exception as e:
+        logger.error(f"{router.prefix}/update_bot_manage 调用错误", "WebUi", e=e)
+        return Result.fail(f"发生了一点错误捏 {type(e)}: {e}")
 
 
 @ws_router.websocket("/system_status")

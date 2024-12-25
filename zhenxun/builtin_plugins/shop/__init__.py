@@ -126,7 +126,9 @@ async def _(session: Uninfo, arparma: Arparma):
 async def _(session: Uninfo, arparma: Arparma, nickname: str = UserName()):
     logger.info("查看道具", arparma.header_result, session=session)
     if image := await ShopManage.my_props(
-        session.user.id, nickname, PlatformUtils.get_platform(session)
+        session.user.id,
+        nickname,
+        PlatformUtils.get_platform(session),
     ):
         await MessageUtils.build_message(image.pic2bytes()).finish(reply_to=True)
     return await MessageUtils.build_message("你的道具为空捏...").send(reply_to=True)

@@ -37,8 +37,7 @@ async def _():
     update_list = []
     if modules := await TaskInfo.annotate().values_list("module", flat=True):
         for bot in nonebot.get_bots().values():
-            group_list, _ = await PlatformUtils.get_group_list(bot)
-            group_list = [g for g in group_list if g.channel_id is None]
+            group_list, _ = await PlatformUtils.get_group_list(bot, True)
             for group in group_list:
                 try:
                     last_message = (

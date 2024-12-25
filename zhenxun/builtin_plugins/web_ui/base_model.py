@@ -31,7 +31,7 @@ class Result(Generic[RT], BaseModel):
     """info"""
     warning: str | None = None
     """警告信息"""
-    data: RT = None
+    data: RT | None = None
     """返回数据"""
 
     @classmethod
