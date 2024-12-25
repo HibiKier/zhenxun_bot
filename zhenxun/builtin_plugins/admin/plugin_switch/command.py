@@ -133,16 +133,16 @@ _status_matcher.shortcut(
 )
 
 _status_matcher.shortcut(
-    r"关闭(?P<name>.+)",
+    r"关闭(插件|功能)df(?P<name>.+)",
     command="switch",
-    arguments=["close", "{name}"],
+    arguments=["close", "{name}", "-df"],
     prefix=True,
 )
 
 _status_matcher.shortcut(
-    r"关闭(插件|功能)df(?P<name>.+)",
+    r"关闭(?P<name>.+)",
     command="switch",
-    arguments=["close", "{name}", "-df"],
+    arguments=["close", "{name}"],
     prefix=True,
 )
 

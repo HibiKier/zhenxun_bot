@@ -1,11 +1,13 @@
-from typing import Any
+from typing import Any, overload
 from typing_extensions import Self
 
 from tortoise import fields
 from tortoise.backends.base.client import BaseDBAsyncClient
 
+from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.db_context import Model
+from zhenxun.utils.enum import PluginType
 
 
 class GroupConsole(Model):
@@ -49,6 +51,34 @@ class GroupConsole(Model):
         table_description = "群组信息表"
         unique_together = ("group_id", "channel_id")
 
+    @staticmethod
+    def format(name: str) -> str:
+        return f"<{name},"
+
+    @overload
+    @classmethod
+    def convert_module_format(cls, data: str) -> list[str]: ...
+
+    @overload
+    @classmethod
+    def convert_module_format(cls, data: list[str]) -> str: ...
+
+    @classmethod
+    def convert_module_format(cls, data: str | list[str]) -> str | list[str]:
+        """
+        在 `<aaa,<bbb,<ccc,` 和 `["aaa", "bbb", "ccc"]` 之间进行相互转换。
+
+        参数:
+            data (str | list[str]): 输入数据，可能是格式化字符串或字符串列表。
+
+        返回:
+            str | list[str]: 根据输入类型返回转换后的数据。
+        """
+        if isinstance(data, str):
+            return [item.strip(",") for item in data.split("<") if item]
+        elif isinstance(data, list):
+            return "".join(cls.format(item) for item in data)
+
     @classmethod
     async def create(
         cls, using_db: BaseDBAsyncClient | None = None, **kwargs: Any
@@ -58,9 +88,15 @@ class GroupConsole(Model):
         if modules := await TaskInfo.filter(default_status=False).values_list(
             "module", flat=True
         ):
-            modules = [f"<{module}" for module in modules]
-            group.block_task = ",".join(modules) + ","  # type: ignore
-            await group.save(using_db=using_db, update_fields=["block_task"])
+            group.block_task = cls.convert_module_format(modules)  # type: ignore
+        if modules := await PluginInfo.filter(
+            plugin_type__in=[PluginType.NORMAL, PluginType.DEPENDANT],
+            default_status=False,
+        ).values_list("module", flat=True):
+            group.block_plugin = cls.convert_module_format(modules)  # type: ignore
+        await group.save(
+            using_db=using_db, update_fields=["block_plugin", "block_task"]
+        )
         return group
 
     @classmethod
@@ -79,9 +115,15 @@ class GroupConsole(Model):
                 "module", flat=True
             )
         ):
-            modules = [f"<{module}" for module in modules]
-            group.block_task = ",".join(modules) + ","  # type: ignore
-            await group.save(using_db=using_db, update_fields=["block_task"])
+            group.block_task = cls.convert_module_format(modules)  # type: ignore
+        if modules := await PluginInfo.filter(
+            plugin_type__in=[PluginType.NORMAL, PluginType.DEPENDANT],
+            default_status=False,
+        ).values_list("module", flat=True):
+            group.block_plugin = cls.convert_module_format(modules)  # type: ignore
+        await group.save(
+            using_db=using_db, update_fields=["block_plugin", "block_task"]
+        )
         return group, is_create
 
     @classmethod
@@ -100,9 +142,15 @@ class GroupConsole(Model):
                 "module", flat=True
             )
         ):
-            modules = [f"<{module}" for module in modules]
-            group.block_task = ",".join(modules) + ","  # type: ignore
-            await group.save(using_db=using_db, update_fields=["block_task"])
+            group.block_task = cls.convert_module_format(modules)  # type: ignore
+        if modules := await PluginInfo.filter(
+            plugin_type__in=[PluginType.NORMAL, PluginType.DEPENDANT],
+            default_status=False,
+        ).values_list("module", flat=True):
+            group.block_plugin = cls.convert_module_format(modules)  # type: ignore
+        await group.save(
+            using_db=using_db, update_fields=["block_plugin", "block_task"]
+        )
         return group, is_create
 
     @classmethod
