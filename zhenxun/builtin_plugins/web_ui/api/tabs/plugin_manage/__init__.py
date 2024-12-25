@@ -1,10 +1,6 @@
-import re
-
-import cattrs
 from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 
-from zhenxun.configs.config import Config
 from zhenxun.models.plugin_info import PluginInfo as DbPluginInfo
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import BlockType, PluginType
@@ -13,7 +9,6 @@ from ....base_model import Result
 from ....utils import authentication
 from .data_source import ApiDataSource
 from .model import (
-    PluginConfig,
     PluginCount,
     PluginDetail,
     PluginInfo,
