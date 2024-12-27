@@ -23,7 +23,7 @@ driver = nonebot.get_driver()
     dependencies=[authentication()],
     response_model=Result[list[BotInfo]],
     response_class=JSONResponse,
-    deprecated="获取bot列表",  # type: ignore
+    description="获取bot列表",  # type: ignore
 )
 async def _() -> Result[list[BotInfo]]:
     try:
@@ -74,7 +74,7 @@ async def _(bot_id: str | None = None) -> Result[AllChatAndCallCount]:
     dependencies=[authentication()],
     response_model=Result[ChatCallMonthCount],
     response_class=JSONResponse,
-    deprecated="获取聊天/调用记录的一个月数量",  # type: ignore
+    description="获取聊天/调用记录的一个月数量",  # type: ignore
 )
 async def _(bot_id: str | None = None) -> Result[ChatCallMonthCount]:
     try:
@@ -91,7 +91,7 @@ async def _(bot_id: str | None = None) -> Result[ChatCallMonthCount]:
     dependencies=[authentication()],
     response_model=Result[BaseResultModel],
     response_class=JSONResponse,
-    deprecated="获取Bot连接记录",  # type: ignore
+    description="获取Bot连接记录",  # type: ignore
 )
 async def _(query: QueryModel) -> Result[BaseResultModel]:
     try:
@@ -106,7 +106,7 @@ async def _(query: QueryModel) -> Result[BaseResultModel]:
     dependencies=[authentication()],
     response_model=Result[Config],
     response_class=JSONResponse,
-    deprecated="获取nb配置",  # type: ignore
+    description="获取nb配置",  # type: ignore
 )
 async def _() -> Result[Config]:
     return Result.ok(driver.config)

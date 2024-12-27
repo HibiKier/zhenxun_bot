@@ -1,7 +1,8 @@
 from collections.abc import Callable
 import copy
+from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import cattrs
 from pydantic import BaseModel
@@ -157,6 +158,29 @@ class PluginSetting(BaseModel):
     """调用插件花费金币"""
 
 
+class SchedulerModel(BaseModel):
+    trigger: Literal["date", "interval", "cron"]
+    """trigger"""
+    day: int | None = None
+    """天数"""
+    hour: int | None = None
+    """小时"""
+    minute: int | None = None
+    """分钟"""
+    second: int | None = None
+    """秒"""
+    run_date: datetime | None = None
+    """运行日期"""
+    id: str | None = None
+    """id"""
+    max_instances: int | None = None
+    """最大运行实例"""
+    args: list | None = None
+    """参数"""
+    kwargs: dict | None = None
+    """参数"""
+
+
 class Task(BaseBlock):
     module: str
     """被动技能模块名"""
@@ -168,8 +192,14 @@ class Task(BaseBlock):
     """初次加载默认开关状态"""
     default_status: bool = True
     """进群时默认状态"""
-    run_time: str | None = None
-    """运行时间"""
+    scheduler: SchedulerModel | None = None
+    """定时任务配置"""
+    run_func: Callable | None = None
+    """运行函数"""
+    check: Callable | None = None
+    """检查函数"""
+    check_args: list = []
+    """检查函数参数"""
 
 
 class PluginExtraData(BaseModel):

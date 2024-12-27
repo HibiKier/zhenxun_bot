@@ -16,7 +16,7 @@ router = APIRouter(prefix="/store")
     dependencies=[authentication()],
     response_model=Result[dict],
     response_class=JSONResponse,
-    deprecated="获取插件商店插件信息",  # type: ignore
+    description="获取插件商店插件信息",  # type: ignore
 )
 async def _() -> Result[dict]:
     try:
@@ -41,7 +41,7 @@ async def _() -> Result[dict]:
     dependencies=[authentication()],
     response_model=Result,
     response_class=JSONResponse,
-    deprecated="安装插件",  # type: ignore
+    description="安装插件",  # type: ignore
 )
 async def _(param: PluginIr) -> Result:
     try:
@@ -59,7 +59,7 @@ async def _(param: PluginIr) -> Result:
     dependencies=[authentication()],
     response_model=Result,
     response_class=JSONResponse,
-    deprecated="更新插件",  # type: ignore
+    description="更新插件",  # type: ignore
 )
 async def _(param: PluginIr) -> Result:
     try:
@@ -77,7 +77,7 @@ async def _(param: PluginIr) -> Result:
     dependencies=[authentication()],
     response_model=Result,
     response_class=JSONResponse,
-    deprecated="移除插件",  # type: ignore
+    description="移除插件",  # type: ignore
 )
 async def _(param: PluginIr) -> Result:
     try:

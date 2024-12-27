@@ -85,9 +85,6 @@ async def _(group: UpdateGroup) -> Result[str]:
     description="获取好友列表",
 )
 async def _(bot_id: str) -> Result[list[Friend]]:
-    """
-    获取群信息
-    """
     try:
         bot = nonebot.get_bot(bot_id)
         friend_list, _ = await PlatformUtils.get_friend_list(bot)
@@ -95,7 +92,7 @@ async def _(bot_id: str) -> Result[list[Friend]]:
         for f in friend_list:
             ava_url = AVA_URL.format(f.user_id)
             result_list.append(
-                Friend(user_id=f.user_id, nickname=f.nickname, ava_url=ava_url)
+                Friend(user_id=f.user_id, nickname=f.user_name or "", ava_url=ava_url)
             )
         return Result.ok(
             result_list,
