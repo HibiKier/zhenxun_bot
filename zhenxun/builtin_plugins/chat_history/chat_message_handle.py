@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import (
@@ -12,7 +13,6 @@ from nonebot_plugin_alconna import (
     store_true,
 )
 from nonebot_plugin_session import EventSession
-import pytz
 
 from zhenxun.configs.utils import Command, PluginExtraData
 from zhenxun.models.chat_history import ChatHistory
@@ -113,9 +113,9 @@ async def _(
             idx += 1
         if not date_scope:
             if date_scope := await ChatHistory.get_group_first_msg_datetime(group_id):
-                date_scope = date_scope.astimezone(
-                    pytz.timezone("Asia/Shanghai")
-                ).replace(microsecond=0)
+                date_scope = date_scope.astimezone(ZoneInfo("Asia/Shanghai")).replace(
+                    microsecond=0
+                )
             else:
                 date_scope = time_now.replace(microsecond=0)
             date_str = f"{str(date_scope).split('+')[0]} - 至今"
@@ -132,13 +132,3 @@ async def _(
         )
         await MessageUtils.build_message(A).finish(reply_to=True)
     await MessageUtils.build_message("群组消息记录为空...").finish()
-
-
-# # @test.handle()
-# # async def _(event: MessageEvent):
-# #     print(await ChatHistory.get_user_msg(event.user_id, "private"))
-# #     print(await ChatHistory.get_user_msg_count(event.user_id, "private"))
-# #     print(await ChatHistory.get_user_msg(event.user_id, "group"))
-# #     print(await ChatHistory.get_user_msg_count(event.user_id, "group"))
-# #     print(await ChatHistory.get_group_msg(event.group_id))
-# #     print(await ChatHistory.get_group_msg_count(event.group_id))
