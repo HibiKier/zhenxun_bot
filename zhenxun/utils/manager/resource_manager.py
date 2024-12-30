@@ -11,6 +11,10 @@ from zhenxun.utils.http_utils import AsyncHttpx
 CMD_STRING = "ResourceManager"
 
 
+class DownloadResourceException(Exception):
+    pass
+
+
 class ResourceManager:
     GITHUB_URL = "https://github.com/zhenxun-org/zhenxun-bot-resources/tree/main"
 
@@ -23,8 +27,8 @@ class ResourceManager:
     UNZIP_PATH = None
 
     @classmethod
-    async def init_resources(cls):
-        if FONT_PATH.exists() and os.listdir(FONT_PATH):
+    async def init_resources(cls, force: bool = False):
+        if (FONT_PATH.exists() and os.listdir(FONT_PATH)) and not force:
             return
         if cls.TMP_PATH.exists():
             logger.debug(
@@ -66,7 +70,7 @@ class ResourceManager:
         url = await repo_info.get_archive_download_urls()
         logger.debug("开始下载resources资源包...", CMD_STRING)
         if not await AsyncHttpx.download_file(url, cls.ZIP_FILE, stream=True):
-            raise Exception("下载resources资源包失败...")
+            raise DownloadResourceException("下载resources资源包失败...")
         logger.debug("下载resources资源文件压缩包完成...", CMD_STRING)
         tf = zipfile.ZipFile(cls.ZIP_FILE)
         tf.extractall(cls.TMP_PATH)

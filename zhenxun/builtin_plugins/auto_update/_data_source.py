@@ -11,6 +11,10 @@ from zhenxun.services.log import logger
 from zhenxun.utils.github_utils import GithubUtils
 from zhenxun.utils.github_utils.models import RepoInfo
 from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.utils.manager.resource_manager import (
+    DownloadResourceException,
+    ResourceManager,
+)
 from zhenxun.utils.platform import PlatformUtils
 
 from .config import (
@@ -171,7 +175,7 @@ class UpdateManage:
         url = None
         new_version = None
         repo_info = GithubUtils.parse_github_url(DEFAULT_GITHUB_URL)
-        if version_type in {"dev", "main"}:
+        if version_type in {"main"}:
             repo_info.branch = version_type
             new_version = await cls.__get_version_from_repo(repo_info)
             if new_version:
@@ -203,8 +207,13 @@ class UpdateManage:
         if await AsyncHttpx.download_file(url, download_file, stream=True):
             logger.debug("下载真寻最新版文件完成...", "检查更新")
             await _file_handle(new_version)
+            result = "版本更新完成\n"
+            try:
+                await ResourceManager.init_resources(True)
+            except DownloadResourceException:
+                result += "资源下载失败..."
             return (
-                f"版本更新完成\n"
+                f"{result}\n"
                 f"版本: {cur_version} -> {new_version}\n"
                 "请重新启动真寻以完成更新!"
             )
