@@ -1,10 +1,10 @@
-from nonebot.adapters import Bot, Event
+from nonebot.adapters import Bot
 from nonebot.exception import IgnoredException
 from nonebot.matcher import Matcher
 from nonebot.message import run_preprocessor
-from nonebot.typing import T_State
 from nonebot_plugin_alconna import At
-from nonebot_plugin_session import EventSession
+from nonebot_plugin_uninfo import Uninfo
+from tortoise.exceptions import MultipleObjectsReturned
 
 from zhenxun.configs.config import Config
 from zhenxun.models.ban_console import BanConsole
@@ -26,53 +26,77 @@ _flmt = FreqLimiter(300)
 
 # 检查是否被ban
 @run_preprocessor
-async def _(
-    matcher: Matcher, bot: Bot, event: Event, state: T_State, session: EventSession
-):
+async def _(matcher: Matcher, bot: Bot, session: Uninfo):
     if plugin := matcher.plugin:
         if metadata := plugin.metadata:
             extra = metadata.extra
             if extra.get("plugin_type") in [PluginType.HIDDEN]:
                 return
-    user_id = session.id1
-    group_id = session.id3 or session.id2
+    user_id = session.user.id
+    group_id = session.group.id if session.group else None
+    if user_id in bot.config.superusers:
+        return
     if group_id:
-        if user_id in bot.config.superusers:
-            return
-        if await BanConsole.is_ban(None, group_id):
-            logger.debug("群组处于黑名单中...", "ban_hook")
-            raise IgnoredException("群组处于黑名单中...")
-        if g := await GroupConsole.get_group(group_id):
-            if g.level < 0:
-                logger.debug("群黑名单, 群权限-1...", "ban_hook")
-                raise IgnoredException("群黑名单, 群权限-1..")
+        try:
+            if await BanConsole.is_ban(None, group_id):
+                logger.debug("群组处于黑名单中...", "ban_hook")
+                raise IgnoredException("群组处于黑名单中...")
+        except MultipleObjectsReturned:
+            logger.warning(
+                "群组黑名单数据重复，过滤该次hook并移除多余数据...", "ban_hook"
+            )
+            ids = await BanConsole.filter(user_id="", group_id=group_id).values_list(
+                "id", flat=True
+            )
+            await BanConsole.filter(id__in=ids[:-1]).delete()
+        try:
+            if g := await GroupConsole.get_group(group_id):
+                if g.level < 0:
+                    logger.debug("群黑名单, 群权限-1...", "ban_hook")
+                    raise IgnoredException("群黑名单, 群权限-1..")
+        except MultipleObjectsReturned:
+            logger.warning("群组数据重复，过滤该次hook并移除多余数据...", "ban_hook")
+            ids = await GroupConsole.filter(group_id=group_id).values_list(
+                "id", flat=True
+            )
+            await GroupConsole.filter(id__in=ids[:-1]).delete()
     if user_id:
         ban_result = Config.get_config("hook", "BAN_RESULT")
-        if user_id in bot.config.superusers:
-            return
-        if await BanConsole.is_ban(user_id, group_id):
-            time = await BanConsole.check_ban_time(user_id, group_id)
-            if time == -1:
-                time_str = "∞"
-            else:
-                time = abs(int(time))
-                if time < 60:
-                    time_str = f"{time!s} 秒"
+        try:
+            if await BanConsole.is_ban(user_id, group_id):
+                time = await BanConsole.check_ban_time(user_id, group_id)
+                if time == -1:
+                    time_str = "∞"
                 else:
-                    minute = int(time / 60)
-                    if minute > 60:
-                        hours = minute // 60
-                        minute %= 60
-                        time_str = f"{hours} 小时 {minute}分钟"
+                    time = abs(int(time))
+                    if time < 60:
+                        time_str = f"{time!s} 秒"
                     else:
-                        time_str = f"{minute} 分钟"
-            if time != -1 and ban_result and _flmt.check(user_id):
-                _flmt.start_cd(user_id)
-                await MessageUtils.build_message(
-                    [
-                        At(flag="user", target=user_id),
-                        f"{ban_result}\n在..在 {time_str} 后才会理你喔",
-                    ]
-                ).send()
-            logger.debug("用户处于黑名单中...", "ban_hook")
-            raise IgnoredException("用户处于黑名单中...")
+                        minute = int(time / 60)
+                        if minute > 60:
+                            hours = minute // 60
+                            minute %= 60
+                            time_str = f"{hours} 小时 {minute}分钟"
+                        else:
+                            time_str = f"{minute} 分钟"
+                if time != -1 and ban_result and _flmt.check(user_id):
+                    _flmt.start_cd(user_id)
+                    await MessageUtils.build_message(
+                        [
+                            At(flag="user", target=user_id),
+                            f"{ban_result}\n在..在 {time_str} 后才会理你喔",
+                        ]
+                    ).send()
+                logger.debug("用户处于黑名单中...", "ban_hook")
+                raise IgnoredException("用户处于黑名单中...")
+        except MultipleObjectsReturned:
+            logger.warning("黑名单数据重复，过滤该次hook并移除多余数据...", "ban_hook")
+            if group_id:
+                ids = await BanConsole.filter(
+                    user_id=user_id, group_id=group_id
+                ).values_list("id", flat=True)
+            else:
+                ids = await BanConsole.filter(
+                    user_id=user_id, group_id__isnull=True
+                ).values_list("id", flat=True)
+            await BanConsole.filter(id__in=ids[:-1]).delete()
