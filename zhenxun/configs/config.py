@@ -17,6 +17,7 @@ class BotSetting(BaseModel):
     """平台超级用户"""
     qbot_id_data: dict[str, str] = {}
     """官bot id:账号id"""
+    time_zone: str = "Asia/Shanghai"
 
     def get_qbot_uid(self, qbot_id: str) -> str | None:
         """获取官bot账号id
