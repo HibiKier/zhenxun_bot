@@ -2,12 +2,24 @@ from nonebot.adapters import Bot
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
-from nonebot_plugin_alconna import Alconna, Args, Match, on_alconna
+from nonebot_plugin_alconna import (
+    Alconna,
+    Args,
+    Match,
+    Option,
+    Query,
+    on_alconna,
+    store_true,
+)
 from nonebot_plugin_session import EventSession
 
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.manager.resource_manager import (
+    DownloadResourceException,
+    ResourceManager,
+)
 from zhenxun.utils.message import MessageUtils
 
 from ._data_source import UpdateManage
@@ -19,7 +31,11 @@ __plugin_meta__ = PluginMetadata(
     usage：
         检查更新真寻最新版本，包括了自动更新
         指令：
-            检查更新真寻
+            检查更新 [main|release] ?[-r]
+            -r: 下载资源文件
+            示例:
+            检查更新 main
+            检查更新 main -r
     """.strip(),
     extra=PluginExtraData(
         author="HibiKier",
@@ -37,7 +53,11 @@ __plugin_meta__ = PluginMetadata(
 )
 
 _matcher = on_alconna(
-    Alconna("检查更新", Args["ver_type?", ["main", "dev", "release"]]),
+    Alconna(
+        "检查更新",
+        Args["ver_type?", ["main", "release"]],
+        Option("-r|--resource", action=store_true, help_text="下载资源文件"),
+    ),
     priority=1,
     block=True,
     permission=SUPERUSER,
@@ -46,7 +66,13 @@ _matcher = on_alconna(
 
 
 @_matcher.handle()
-async def _(bot: Bot, session: EventSession, ver_type: Match[str]):
+async def _(
+    bot: Bot,
+    session: EventSession,
+    ver_type: Match[str],
+    resource: Query[bool] = Query("resource", False),
+):
+    result = ""
     if not session.id1:
         await MessageUtils.build_message("用户id为空...").finish()
     if not ver_type.available:
@@ -58,6 +84,10 @@ async def _(bot: Bot, session: EventSession, ver_type: Match[str]):
     except Exception as e:
         logger.error("版本更新失败...", "检查更新", session=session, e=e)
         await MessageUtils.build_message(f"更新版本失败...e: {e}").finish()
+    try:
+        await ResourceManager.init_resources(True)
+    except DownloadResourceException:
+        result += "\n资源更新下载失败..."
     if result:
         await MessageUtils.build_message(result).finish()
     await MessageUtils.build_message("更新版本失败...").finish()

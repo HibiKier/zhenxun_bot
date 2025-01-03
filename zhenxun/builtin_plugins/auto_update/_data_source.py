@@ -11,10 +11,6 @@ from zhenxun.services.log import logger
 from zhenxun.utils.github_utils import GithubUtils
 from zhenxun.utils.github_utils.models import RepoInfo
 from zhenxun.utils.http_utils import AsyncHttpx
-from zhenxun.utils.manager.resource_manager import (
-    DownloadResourceException,
-    ResourceManager,
-)
 from zhenxun.utils.platform import PlatformUtils
 
 from .config import (
@@ -159,7 +155,7 @@ class UpdateManage:
         )
 
     @classmethod
-    async def update(cls, bot: Bot, user_id: str, version_type: str) -> str | None:
+    async def update(cls, bot: Bot, user_id: str, version_type: str) -> str:
         """更新操作
 
         参数:
@@ -208,10 +204,6 @@ class UpdateManage:
             logger.debug("下载真寻最新版文件完成...", "检查更新")
             await _file_handle(new_version)
             result = "版本更新完成\n"
-            try:
-                await ResourceManager.init_resources(True)
-            except DownloadResourceException:
-                result += "资源下载失败..."
             return (
                 f"{result}\n"
                 f"版本: {cur_version} -> {new_version}\n"
@@ -219,7 +211,7 @@ class UpdateManage:
             )
         else:
             logger.debug("下载真寻最新版文件失败...", "检查更新")
-        return None
+        return ""
 
     @classmethod
     def __get_version(cls) -> str:
