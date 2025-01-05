@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>test</title>
+    <!-- <link rel="stylesheet" href="./res/font-awesome/css/font-awesome.min.css"> -->
+    <link rel="stylesheet" href="main.css">
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="top-title">
+            {{name}}的神秘商店
+        </div>
+        <div class="split"></div>
+        <div class="top-head"></div>
+        <div class="shop-border">
+            {% for data in data_list %}
+            <div class="shop-item">
+                <div class="shop-item-title">
+                    <span class="shop-item-title-text">{{data.partition}}</span>
+                </div>
+                <div class="shop-item-border">
+                    <div class="shop-item-left">
+                        <img src="./res/img/{{data.left_image[2]}}" class="{{data.left_image[1]}} left-img"
+                            style="top:{{data.left_image[0]}}px" />
+                    </div>
+                    <div class="shop-item-mid">
+                        <div class="shop-item-mid-bk-inner"></div>
+                        <div class="shop-item-mid-bk-out">
+                            {% for goods in data['goods_list'] %}
+                            <div class="goods-item">
+                                <div class="goods-id">
+                                    <div class="goods-id-text">{{goods.id}}</div>
+                                </div>
+                                <div class="goods-item-left">
+                                    <div class="goods-item-left-o"></div>
+                                    <div class="goods-item-left-o"></div>
+                                    <div class="goods-item-left-o"></div>
+                                </div>
+                                <div class="goods-item-icon">
+                                    <img src="{{goods.icon}}" class="goods-item-icon-img" />
+                                </div>
+                                <div class="goods-item-right">
+                                    <div class="goods-item-right-des">
+                                        <div class="goods-item-name">
+                                            {{goods.name}}
+                                        </div>
+                                        <div class="goods-item-name-line"></div>
+                                        {{goods.description}}
+                                    </div>
+                                    <div class="goods-item-right-price">
+                                        <span>{{goods.price}}金币</span>
+                                        <span class="goods-item-right-btn">
+                                            <span class="goods-item-right-btn-buy">立即购买</span>
+                                            <span class="goods-item-right-btn-line"></span>
+                                            <span class="goods-item-right-btn-limit">限购: {{goods.daily_limit}}</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <img src="./res/img/bag1.png" class="shop-item-mid-bag1" />
+                        <img src="./res/img/bag2.png" class="shop-item-mid-bag2" />
+                    </div>
+                    <div class="shop-item-right">
+                        <img src="./res/img/{{data.right_image[2]}}" class="{{data.right_image[1]}} right-img"
+                            style="top:{{data.right_image[0]}}px" />
+                    </div>
+                </div>
+
+                <!-- <div class="shop-item-border">
+                <div class="shop-item-left">
+                    <img src="./res/img/2.png" class="shop-item-right-zx" />
+                </div>
+                <div class="shop-item-mid">
+                    <div class="shop-item-mid-bk-inner"></div>
+                    <div class="shop-item-mid-bk-out">
+                        <div class="goods-item">
+                            <div class="goods-id">
+                                <div class="goods-id-text">11</div>
+                            </div>
+                            <div class="goods-item-left">
+                                <div class="goods-item-left-o"></div>
+                                <div class="goods-item-left-o"></div>
+                                <div class="goods-item-left-o"></div>
+                            </div>
+                            <div class="goods-item-icon">
+                                <img src="./res/img/bag1.png" class="goods-item-icon-img" />
+                            </div>
+                            <div class="goods-item-right">
+                                <div class="goods-item-right-des">
+                                    <div class="goods-item-name">
+                                        签到道具
+                                    </div>
+                                    <div class="goods-item-name-line"></div>
+                                    背包
+                                </div>
+                                <div class="goods-item-right-price">
+                                    <span>100金币</span>
+                                    <span class="goods-item-right-btn">
+                                        <span class="goods-item-right-btn-buy">立即购买</span>
+                                        <span class="goods-item-right-btn-line"></span>
+                                        <span class="goods-item-right-btn-limit">限购: 0</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <img src="./res/img/bag1.png" class="shop-item-mid-bag1" />
+                    <img src="./res/img/bag2.png" class="shop-item-mid-bag2" />
+                </div>
+                <div class="shop-item-right">
+                    <img src="./res/img/1.png" class="shop-item-right-zx" />
+                </div>
+            </div> -->
+            </div>
+            {% endfor %}
+        </div>
+        <div class="split bottom-s"></div>
+    </div>
+</body>
+<script type="text/javascript" src="main.js">
+</script>
+
+</html>

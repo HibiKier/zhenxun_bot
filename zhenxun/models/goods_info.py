@@ -27,10 +27,12 @@ class GoodsInfo(Model):
     """每日限购"""
     is_passive = fields.BooleanField(default=False)
     """是否为被动道具"""
+    partition = fields.CharField(255, null=True)
+    """分区名称"""
     icon = fields.TextField(null=True)
     """图标路径"""
 
-    class Meta:
+    class Meta:  # type: ignore
         table = "goods_info"
         table_description = "商品数据表"
 
@@ -159,4 +161,5 @@ class GoodsInfo(Model):
             "ALTER TABLE goods_info ADD icon VARCHAR(255);",
             # 删除 daily_purchase_limit 字段
             "ALTER TABLE goods_info DROP daily_purchase_limit;",
+            "ALTER TABLE goods_info ADD partition VARCHAR(255);",
         ]
