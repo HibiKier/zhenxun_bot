@@ -46,6 +46,7 @@ class GoodsInfo(Model):
         goods_limit_time: int = 0,
         daily_limit: int = 0,
         is_passive: bool = False,
+        partition: str | None = None,
         icon: str | None = None,
     ) -> str:
         """添加商品
@@ -58,6 +59,7 @@ class GoodsInfo(Model):
             goods_limit_time: 商品限时
             daily_limit: 每日购买限制
             is_passive: 是否为被动道具
+            partition: 分区名称
             icon: 图标
         """
         if not await cls.exists(goods_name=goods_name):
@@ -71,6 +73,7 @@ class GoodsInfo(Model):
                 goods_limit_time=goods_limit_time,
                 daily_limit=daily_limit,
                 is_passive=is_passive,
+                partition=partition,
                 icon=icon,
             )
             return str(uuid_)

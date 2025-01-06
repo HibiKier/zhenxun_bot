@@ -27,7 +27,7 @@ body {
 }
 
 .wrapper {
-  width: 800px;
+  width: 850px;
   font-family: "hywhFont";
   padding: 10px 0;
   background-color: #fbe4e4;
@@ -36,17 +36,19 @@ body {
 
 .top-title {
   color: #e87692;
-  font-size: 50px;
+  font-size: 85px;
   text-align: center;
   font-family: "fzrzFont";
+  margin-bottom: -30px;
 }
 
 .split {
   background-image: url("./res/img/split.png");
-  background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  height: 41px;
+  height: 15px;
+  margin-top: 70px;
+  margin-bottom: 30px;
 }
 
 .top-head {
@@ -54,11 +56,23 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  height: 400px;
+  height: 586px;
+}
+
+.top-aaaa {
+  font-family: 'syhtFont';
+  font-size: 34px;
+  text-align: center;
+  color: #E87692;
+  height: 50px;
+}
+
+.shop-border {
+  margin-bottom: 50px;
 }
 
 .shop-item {
-  padding-top: 30px;
+  padding-top: 100px;
   box-sizing: border-box;
 }
 
@@ -87,7 +101,7 @@ body {
 .shop-item-left {
   min-height: 460px;
   position: relative;
-  width: 140px;
+  width: 158px;
 }
 
 .shop-item-left-qq {
@@ -96,11 +110,14 @@ body {
 }
 
 .left-img {
-  left: 10px;
+  position: absolute;
+  left: 5px;
+  z-index: 10;
 }
 
 .shop-item-right {
-  width: 130px;
+  width: 210px;
+  position: relative;
 }
 
 .shop-item-right-zx {
@@ -111,7 +128,9 @@ body {
 }
 
 .right-img {
-  right: 10px;
+  position: absolute;
+  right: -2px;
+  z-index: 10;
 }
 
 .shop-item-mid {
@@ -279,10 +298,6 @@ body {
   z-index: 4;
 }
 
-.bottom-s {
-  margin-top: 70px;
-}
-
 .goods-item-name {
   font-size: 18px;
   font-family: "syhtFont";
@@ -294,4 +309,12 @@ body {
   margin: 3px 0;
   background-color: #731c1c;
   border-radius: 10px;
+}
+
+.create-text {
+  position: absolute;
+  bottom: 1px;
+  right: 10px;
+  color: #97979c;
+  font-size: 15px;
 }

@@ -1,4 +1,3 @@
-import random
 import time
 
 from nonebot_plugin_htmlrender import template_to_pic
@@ -9,7 +8,7 @@ from zhenxun.configs.path_config import TEMPLATE_PATH
 from zhenxun.models.goods_info import GoodsInfo
 from zhenxun.utils._build_image import BuildImage
 
-from .config import ICON_PATH, LEFT_RIGHT_IMAGE
+from .config import ICON_PATH
 
 
 class GoodsItem(BaseModel):
@@ -17,30 +16,6 @@ class GoodsItem(BaseModel):
     """商品列表"""
     partition: str
     """分区名称"""
-    left_image: tuple[int, str, str]
-    """左图"""
-    right_image: tuple[int, str, str]
-    """右图"""
-
-
-def get_left_right_image() -> tuple[tuple[int, str, str], tuple[int, str, str]]:
-    qq_top = random.randint(0, 280)
-    img_top = random.randint(10, 80)
-    left_image = random.choice(LEFT_RIGHT_IMAGE)
-    right_image = None
-    if left_image == "qq.png":
-        left_top = qq_top
-        right_top = img_top
-        left_css = "shop-item-left-qq"
-        right_css = "shop-item-right-zx"
-        right_image = random.choice(LEFT_RIGHT_IMAGE[:-1])
-    else:
-        left_top = img_top
-        right_top = qq_top
-        right_image = "qq.png"
-        left_css = "shop-item-right-zx"
-        right_css = "shop-item-left-qq"
-    return (left_top, left_css, left_image), (right_top, right_css, right_image)
 
 
 async def html_image() -> bytes:
@@ -69,13 +44,10 @@ async def html_image() -> bytes:
         )
     data_list = []
     for partition in partition_dict:
-        left, right = get_left_right_image()
         data_list.append(
             GoodsItem(
                 goods_list=partition_dict[partition],
                 partition=partition,
-                left_image=left,
-                right_image=right,
             )
         )
 
@@ -84,7 +56,7 @@ async def html_image() -> bytes:
         template_name="main.html",
         templates={"name": BotConfig.self_nickname, "data_list": data_list},
         pages={
-            "viewport": {"width": 800, "height": 1024},
+            "viewport": {"width": 850, "height": 1024},
             "base_url": f"file://{TEMPLATE_PATH}",
         },
         wait=2,

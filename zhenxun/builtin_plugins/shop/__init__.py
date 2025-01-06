@@ -25,6 +25,7 @@ from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
 
 from ._data_source import ShopManage, gold_rank
+from .goods_register import *  # noqa: F403
 
 __plugin_meta__ = PluginMetadata(
     name="商店",
