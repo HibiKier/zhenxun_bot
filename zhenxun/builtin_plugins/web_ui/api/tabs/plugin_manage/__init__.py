@@ -24,7 +24,7 @@ router = APIRouter(prefix="/plugin")
     dependencies=[authentication()],
     response_model=Result[list[PluginInfo]],
     response_class=JSONResponse,
-    deprecated="获取插件列表",  # type: ignore
+    description="获取插件列表",  # type: ignore
 )
 async def _(
     plugin_type: list[PluginType] = Query(None), menu_type: str | None = None
@@ -43,7 +43,7 @@ async def _(
     dependencies=[authentication()],
     response_model=Result[int],
     response_class=JSONResponse,
-    deprecated="获取插件数量",  # type: ignore
+    description="获取插件数量",  # type: ignore
 )
 async def _() -> Result[int]:
     try:

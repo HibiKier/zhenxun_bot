@@ -16,7 +16,7 @@ router = APIRouter(prefix="/menu")
     dependencies=[authentication()],
     response_model=Result[list[MenuData]],
     response_class=JSONResponse,
-    deprecated="获取菜单列表",  # type: ignore
+    description="获取菜单列表",
 )
 async def _() -> Result[list[MenuData]]:
     try:

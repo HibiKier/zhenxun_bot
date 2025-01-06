@@ -12,6 +12,8 @@ class TaskInfo(Model):
     """被动技能名称"""
     status = fields.BooleanField(default=True, description="全局开关状态")
     """全局开关状态"""
+    load_status = fields.BooleanField(default=True, description="进群默认开关状态")
+    """加载状态"""
     default_status = fields.BooleanField(default=True, description="进群默认开关状态")
     """全局开关状态"""
     run_time = fields.CharField(255, null=True, description="运行时间")
@@ -27,5 +29,6 @@ class TaskInfo(Model):
     async def _run_script(cls):
         return [
             "ALTER TABLE task_info ADD default_status boolean DEFAULT true;",
+            "ALTER TABLE task_info ADD load_status boolean DEFAULT false;",
             # 默认状态
         ]

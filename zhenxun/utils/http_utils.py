@@ -285,6 +285,7 @@ class AsyncHttpx:
                                     response.raise_for_status()
                                     logger.info(
                                         f"开始下载 {path.name}.. "
+                                        f"Url: {u}.. "
                                         f"Path: {path.absolute()}"
                                     )
                                     async with aiofiles.open(path, "wb") as wf:
