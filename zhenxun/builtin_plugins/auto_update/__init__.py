@@ -13,7 +13,7 @@ from nonebot_plugin_alconna import (
 )
 from nonebot_plugin_uninfo import Uninfo
 
-from zhenxun.configs.utils import PluginExtraData, RegisterConfig
+from zhenxun.configs.utils import PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.manager.resource_manager import (
@@ -30,25 +30,19 @@ __plugin_meta__ = PluginMetadata(
     usage="""
     usage：
         检查更新真寻最新版本，包括了自动更新
+        资源文件大小一般在130mb左右，除非必须更新一般仅更新代码文件
         指令：
             检查更新 [main|release] ?[-r]
             -r: 下载资源文件
             示例:
             检查更新 main
             检查更新 main -r
+            检查更新 release -r
     """.strip(),
     extra=PluginExtraData(
         author="HibiKier",
         version="0.1",
         plugin_type=PluginType.SUPERUSER,
-        configs=[
-            RegisterConfig(
-                key="UPDATE_REMIND",
-                value=True,
-                help="是否检测更新版本",
-                default_value=True,
-            ),
-        ],
     ).dict(),
 )
 
@@ -87,6 +81,9 @@ async def _(
             await ResourceManager.init_resources(True)
         except DownloadResourceException:
             result += "\n资源更新下载失败..."
+        except Exception as e:
+            logger.error("资源更新下载失败...", "检查更新", session=session, e=e)
+            result += "\n资源更新未知错误..."
     if result:
         await MessageUtils.build_message(result).finish()
     await MessageUtils.build_message("更新版本失败...").finish()
