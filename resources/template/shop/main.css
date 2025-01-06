@@ -175,6 +175,7 @@ body {
   display: flex;
   position: relative;
   border: 1px solid #994446;
+  margin-bottom: 10px;
 }
 
 .goods-id {
