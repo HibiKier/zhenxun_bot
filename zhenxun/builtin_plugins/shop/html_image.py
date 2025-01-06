@@ -31,14 +31,19 @@ async def html_image() -> bytes:
             goods[1].partition = "默认分区"
         if goods[1].partition not in partition_dict:
             partition_dict[goods[1].partition] = []
+        icon = None
+        if goods[1].icon:
+            icon = (
+                "data:image/png;base64,"
+                + BuildImage.open(ICON_PATH / goods[1].icon).pic2bs4()[9:]
+            )
         partition_dict[goods[1].partition].append(
             {
                 "id": goods[0],
                 "price": goods[1].goods_price,
                 "daily_limit": goods[1].daily_limit or "∞",
                 "name": goods[1].goods_name,
-                "icon": "data:image/png;base64,"
-                + BuildImage.open(ICON_PATH / goods[1].icon).pic2bs4()[9:],
+                "icon": icon,
                 "description": goods[1].goods_description,
             }
         )
