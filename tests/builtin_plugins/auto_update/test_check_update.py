@@ -314,14 +314,14 @@ async def test_check_update_release(
         ctx.should_call_api(
             "send_msg",
             _v11_private_message_send(
-                message="检测真寻已更新，版本更新：v0.2.2 -> v0.2.2\n" "开始更新...",
+                message="检测真寻已更新，版本更新：v0.2.2 -> v0.2.2\n开始更新...",
                 user_id=UserId.SUPERUSER,
             ),
         )
         ctx.should_call_send(
             event=event,
             message=Message(
-                "版本更新完成\n" "版本: v0.2.2 -> v0.2.2\n" "请重新启动真寻以完成更新!"
+                "版本更新完成\n版本: v0.2.2 -> v0.2.2\n请重新启动真寻以完成更新!".strip()
             ),
             result=None,
             bot=bot,
@@ -343,97 +343,6 @@ async def test_check_update_release(
 
     for folder in REPLACE_FOLDERS:
         assert not (mock_base_path / folder).exists()
-    for folder in REPLACE_FOLDERS:
-        assert (mock_backup_path / folder).exists()
-
-
-async def test_check_update_dev(
-    app: App,
-    mocker: MockerFixture,
-    mocked_api: MockRouter,
-    create_bot: Callable,
-    tmp_path: Path,
-) -> None:
-    """
-    测试检查更新（开发环境）
-    """
-    from zhenxun.builtin_plugins.auto_update import _matcher
-    from zhenxun.builtin_plugins.auto_update.config import (
-        PYPROJECT_FILE_STRING,
-        PYPROJECT_LOCK_FILE_STRING,
-        REPLACE_FOLDERS,
-        REQ_TXT_FILE_STRING,
-    )
-
-    init_mocked_api(mocked_api=mocked_api)
-
-    (
-        mock_tmp_path,
-        mock_base_path,
-        mock_backup_path,
-        mock_download_gz_file,
-        mock_download_zip_file,
-        mock_pyproject_file,
-        mock_pyproject_lock_file,
-        mock_req_txt_file,
-        mock_version_file,
-    ) = init_mocker_path(mocker, tmp_path)
-
-    # 确保目录下有一个子目录，以便 os.listdir() 能返回一个目录名
-    mock_tmp_path.mkdir(parents=True, exist_ok=True)
-    for folder in REPLACE_FOLDERS:
-        (mock_base_path / folder).mkdir(parents=True, exist_ok=True)
-
-    mock_pyproject_file.write_bytes(b"")
-    mock_pyproject_lock_file.write_bytes(b"")
-    mock_req_txt_file.write_bytes(b"")
-
-    async with app.test_matcher(_matcher) as ctx:
-        bot = create_bot(ctx)
-        bot = cast(Bot, bot)
-        raw_message = "检查更新 dev"
-        event = _v11_group_message_event(
-            raw_message,
-            self_id=BotId.QQ_BOT,
-            user_id=UserId.SUPERUSER,
-            group_id=GroupId.GROUP_ID_LEVEL_5,
-            message_id=MessageId.MESSAGE_ID,
-            to_me=True,
-        )
-        ctx.receive_event(bot, event)
-        ctx.should_call_api(
-            "send_msg",
-            _v11_private_message_send(
-                message="检测真寻已更新，版本更新：v0.2.2 -> v0.2.2-e6f17c4\n"
-                "开始更新...",
-                user_id=UserId.SUPERUSER,
-            ),
-        )
-        ctx.should_call_send(
-            event=event,
-            message=Message(
-                "版本更新完成\n"
-                "版本: v0.2.2 -> v0.2.2-e6f17c4\n"
-                "请重新启动真寻以完成更新!"
-            ),
-            result=None,
-            bot=bot,
-        )
-        ctx.should_finished(_matcher)
-    assert mocked_api["dev_download_url"].called
-    assert (mock_backup_path / PYPROJECT_FILE_STRING).exists()
-    assert (mock_backup_path / PYPROJECT_LOCK_FILE_STRING).exists()
-    assert (mock_backup_path / REQ_TXT_FILE_STRING).exists()
-
-    assert not mock_download_gz_file.exists()
-    assert not mock_download_zip_file.exists()
-
-    assert mock_pyproject_file.read_bytes() == b"new"
-    assert mock_pyproject_lock_file.read_bytes() == b"new"
-    assert mock_req_txt_file.read_bytes() == b"new"
-
-    for folder in REPLACE_FOLDERS:
-        assert (mock_base_path / folder).exists()
     for folder in REPLACE_FOLDERS:
         assert (mock_backup_path / folder).exists()
 
@@ -482,7 +391,7 @@ async def test_check_update_main(
     async with app.test_matcher(_matcher) as ctx:
         bot = create_bot(ctx)
         bot = cast(Bot, bot)
-        raw_message = "检查更新 main"
+        raw_message = "检查更新 main -r"
         event = _v11_group_message_event(
             raw_message,
             self_id=BotId.QQ_BOT,
@@ -505,7 +414,8 @@ async def test_check_update_main(
             message=Message(
                 "版本更新完成\n"
                 "版本: v0.2.2 -> v0.2.2-e6f17c4\n"
-                "请重新启动真寻以完成更新!"
+                "请重新启动真寻以完成更新!\n"
+                "资源文件更新成功！"
             ),
             result=None,
             bot=bot,

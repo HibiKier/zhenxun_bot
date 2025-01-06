@@ -203,7 +203,7 @@ class UpdateManage:
         if await AsyncHttpx.download_file(url, download_file, stream=True):
             logger.debug("下载真寻最新版文件完成...", "检查更新")
             await _file_handle(new_version)
-            result = "版本更新完成\n"
+            result = "版本更新完成"
             return (
                 f"{result}\n"
                 f"版本: {cur_version} -> {new_version}\n"

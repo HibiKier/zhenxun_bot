@@ -37,9 +37,15 @@ async def _(bot: Bot):
 @driver.on_bot_disconnect
 async def _(bot: Bot):
     logger.debug(f"Bot: {bot.self_id} 断开连接...")
-    await BotConnectLog.create(
-        bot_id=bot.self_id, platform=bot.adapter, connect_time=datetime.now(), type=0
-    )
+    try:
+        await BotConnectLog.create(
+            bot_id=bot.self_id,
+            platform=bot.adapter,
+            connect_time=datetime.now(),
+            type=0,
+        )
+    except Exception as e:
+        logger.warning(f"记录bot: {bot.self_id} 断开连接失败", e=e)
 
 
 SIGN_SQL = """
