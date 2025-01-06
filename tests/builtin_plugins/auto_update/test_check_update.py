@@ -321,7 +321,7 @@ async def test_check_update_release(
         ctx.should_call_send(
             event=event,
             message=Message(
-                "版本更新完成\n版本: v0.2.2 -> v0.2.2\n请重新启动真寻以完成更新!".strip()
+                "版本更新完成\n版本: v0.2.2 -> v0.2.2\n请重新启动真寻以完成更新!"
             ),
             result=None,
             bot=bot,
