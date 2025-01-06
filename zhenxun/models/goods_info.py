@@ -27,10 +27,12 @@ class GoodsInfo(Model):
     """每日限购"""
     is_passive = fields.BooleanField(default=False)
     """是否为被动道具"""
+    partition = fields.CharField(255, null=True)
+    """分区名称"""
     icon = fields.TextField(null=True)
     """图标路径"""
 
-    class Meta:
+    class Meta:  # type: ignore
         table = "goods_info"
         table_description = "商品数据表"
 
@@ -44,6 +46,7 @@ class GoodsInfo(Model):
         goods_limit_time: int = 0,
         daily_limit: int = 0,
         is_passive: bool = False,
+        partition: str | None = None,
         icon: str | None = None,
     ) -> str:
         """添加商品
@@ -56,6 +59,7 @@ class GoodsInfo(Model):
             goods_limit_time: 商品限时
             daily_limit: 每日购买限制
             is_passive: 是否为被动道具
+            partition: 分区名称
             icon: 图标
         """
         if not await cls.exists(goods_name=goods_name):
@@ -69,6 +73,7 @@ class GoodsInfo(Model):
                 goods_limit_time=goods_limit_time,
                 daily_limit=daily_limit,
                 is_passive=is_passive,
+                partition=partition,
                 icon=icon,
             )
             return str(uuid_)
@@ -159,4 +164,5 @@ class GoodsInfo(Model):
             "ALTER TABLE goods_info ADD icon VARCHAR(255);",
             # 删除 daily_purchase_limit 字段
             "ALTER TABLE goods_info DROP daily_purchase_limit;",
+            "ALTER TABLE goods_info ADD partition VARCHAR(255);",
         ]

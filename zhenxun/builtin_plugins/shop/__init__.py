@@ -16,7 +16,7 @@ from nonebot_plugin_alconna import (
 )
 from nonebot_plugin_uninfo import Uninfo
 
-from zhenxun.configs.utils import BaseBlock, PluginExtraData
+from zhenxun.configs.utils import BaseBlock, PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.depends import UserName
 from zhenxun.utils.enum import BlockType, PluginType
@@ -25,6 +25,7 @@ from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
 
 from ._data_source import ShopManage, gold_rank
+from .goods_register import *  # noqa: F403
 
 __plugin_meta__ = PluginMetadata(
     name="商店",
@@ -45,6 +46,14 @@ __plugin_meta__ = PluginMetadata(
         plugin_type=PluginType.NORMAL,
         menu_type="商店",
         limits=[BaseBlock(check_type=BlockType.GROUP)],
+        configs=[
+            RegisterConfig(
+                key="style",
+                value="zhenxun",
+                help="商店样式类型，[normal, zhenxun]",
+                default_value="zhenxun",
+            )
+        ],
     ).dict(),
 )
 
@@ -108,7 +117,7 @@ _matcher.shortcut(
 
 @_matcher.assign("$main")
 async def _(session: Uninfo, arparma: Arparma):
-    image = await ShopManage.build_shop_image()
+    image = await ShopManage.get_shop_image()
     logger.info("查看商店", arparma.header_result, session=session)
     await MessageUtils.build_message(image).send()
 

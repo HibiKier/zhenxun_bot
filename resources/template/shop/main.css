@@ -1,0 +1,321 @@
+@font-face {
+  font-family: fzrzFont;
+  /* 导入的字体文件 */
+  src: url("../../font/fzrzExtraBold.ttf");
+}
+
+@font-face {
+  font-family: msyhFont;
+  /* 导入的字体文件 */
+  src: url("../../font/msyh.ttf");
+}
+@font-face {
+  font-family: hywhFont;
+  /* 导入的字体文件 */
+  src: url("../../font/HYWenHei-85W.ttf");
+}
+@font-face {
+  font-family: syhtFont;
+  /* 导入的字体文件 */
+  src: url("../../font/syht.otf");
+}
+
+body {
+  position: absolute;
+  left: -8px;
+  top: -8px;
+}
+
+.wrapper {
+  width: 850px;
+  font-family: "hywhFont";
+  padding: 10px 0;
+  background-color: #fbe4e4;
+  box-sizing: border-box;
+}
+
+.top-title {
+  color: #e87692;
+  font-size: 85px;
+  text-align: center;
+  font-family: "fzrzFont";
+  margin-bottom: -30px;
+}
+
+.split {
+  background-image: url("./res/img/split.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 15px;
+  margin-top: 70px;
+  margin-bottom: 30px;
+}
+
+.top-head {
+  background-image: url("./res/img/head.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 586px;
+}
+
+.top-aaaa {
+  font-family: 'syhtFont';
+  font-size: 34px;
+  text-align: center;
+  color: #E87692;
+  height: 50px;
+}
+
+.shop-border {
+  margin-bottom: 50px;
+}
+
+.shop-item {
+  padding-top: 100px;
+  box-sizing: border-box;
+}
+
+.shop-item-border {
+  display: flex;
+  position: relative;
+}
+
+.shop-item-title {
+  background-image: url("./res/img/title-bk.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 100px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.shop-item-title-text {
+  color: white;
+  font-size: 30px;
+  margin-top: 13px;
+}
+
+.shop-item-left {
+  min-height: 460px;
+  position: relative;
+  width: 158px;
+}
+
+.shop-item-left-qq {
+  position: absolute;
+  height: 100px;
+}
+
+.left-img {
+  position: absolute;
+  left: 5px;
+  z-index: 10;
+}
+
+.shop-item-right {
+  width: 210px;
+  position: relative;
+}
+
+.shop-item-right-zx {
+  height: 460px;
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+}
+
+.right-img {
+  position: absolute;
+  right: -2px;
+  z-index: 10;
+}
+
+.shop-item-mid {
+  width: 480px;
+  box-sizing: border-box;
+  padding-top: 20px;
+  position: relative;
+}
+
+.shop-item-mid-bk-inner {
+  width: 520px;
+  box-sizing: border-box;
+  padding-top: 30px;
+  background-color: #be5972;
+  border: 1px solid #b14b5f;
+  border-radius: 10px;
+  position: absolute;
+  right: -50px;
+  top: 10px;
+  z-index: 1;
+  height: calc(100% - 20px);
+}
+
+.shop-item-mid-bk-out {
+  width: 520px;
+  box-sizing: border-box;
+  background-color: #f096a8;
+  border: 1px solid #812528;
+  border-radius: 10px;
+  height: 100%;
+  z-index: 2;
+  position: relative;
+  padding: 30px;
+}
+
+.goods-item {
+  background-color: #f8cfd8;
+  width: 100%;
+  min-height: 130px;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  position: relative;
+  border: 1px solid #994446;
+  margin-bottom: 10px;
+}
+
+.goods-id {
+  position: absolute;
+  color: white;
+  font-size: 15px;
+  border-top-left-radius: 10px;
+  top: 0;
+  left: 0;
+  border-right: 60px solid transparent;
+  border-bottom: 60px solid transparent;
+  border-top: 60px solid #ea7492;
+}
+
+.goods-id-text {
+  position: absolute;
+  top: -54px;
+  left: 9px;
+  color: white;
+  font-size: 16px;
+  font-family: "fzrzFont";
+  transform: rotate(-45deg);
+}
+
+.goods-item-left {
+  height: 100%;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 30px;
+  box-sizing: border-box;
+}
+
+.goods-item-left-o {
+  height: 24px;
+  width: 20px;
+  background-color: #e99eab;
+  border-radius: 40%;
+  border: 1px solid #994446;
+}
+
+.goods-item-icon {
+  background-color: #fefefe;
+  border: 1px solid #994446;
+  margin-left: 20px;
+  width: 120px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.goods-item-icon-img {
+  height: 104px;
+  width: 104px;
+}
+
+.goods-item-right-des {
+  width: 272px;
+  min-height: 80px;
+  background-color: #fefefe;
+  border: 1px solid #994446;
+  margin-left: 10px;
+  border-radius: 10px;
+  padding: 5px;
+  font-family: "msyhFont";
+}
+
+.goods-item-right-price {
+  min-height: 30px;
+  background-color: #fefefe;
+  border-radius: 30px;
+  border: 1px solid #994446;
+  height: 20px;
+  margin-left: 10px;
+  margin-top: 5px;
+  font-size: 15px;
+  font-family: "msyhFont";
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  position: relative;
+}
+
+.goods-item-right-btn {
+  min-height: 30px;
+  background-color: #bf9ac6;
+  color: white;
+  border-radius: 30px;
+  position: absolute;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+}
+
+.goods-item-right-btn-line {
+  width: 1px;
+  height: 20px;
+  background-color: #994446;
+  margin: 0 10px;
+}
+
+.shop-item-mid-bag1 {
+  position: absolute;
+  width: 70px;
+  height: 78px;
+  bottom: -35px;
+  left: -35px;
+  z-index: 4;
+}
+
+.shop-item-mid-bag2 {
+  position: absolute;
+  width: 121px;
+  height: 89px;
+  right: -35px;
+  bottom: -35px;
+  z-index: 4;
+}
+
+.goods-item-name {
+  font-size: 18px;
+  font-family: "syhtFont";
+}
+
+.goods-item-name-line {
+  height: 2px;
+  width: 100%;
+  margin: 3px 0;
+  background-color: #731c1c;
+  border-radius: 10px;
+}
+
+.create-text {
+  position: absolute;
+  bottom: 1px;
+  right: 10px;
+  color: #97979c;
+  font-size: 15px;
+}
