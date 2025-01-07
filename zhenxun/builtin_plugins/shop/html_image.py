@@ -35,8 +35,10 @@ async def html_image() -> bytes:
         if goods[1].icon:
             path = ICON_PATH / goods[1].icon
             if path.exists():
-                icon = "data:image/png;base64,"
-                f"{BuildImage.open(ICON_PATH / goods[1].icon).pic2bs4()[9:]}"
+                icon = (
+                    "data:image/png;base64,"
+                    f"{BuildImage.open(ICON_PATH / goods[1].icon).pic2bs4()[9:]}"
+                )
         partition_dict[goods[1].partition].append(
             {
                 "id": goods[0],
