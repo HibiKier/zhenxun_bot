@@ -41,11 +41,11 @@ async def _(
 @router.get(
     "/get_plugin_count",
     dependencies=[authentication()],
-    response_model=Result[int],
+    response_model=Result[PluginCount],
     response_class=JSONResponse,
     description="获取插件数量",  # type: ignore
 )
-async def _() -> Result[int]:
+async def _() -> Result[PluginCount]:
     try:
         plugin_count = PluginCount()
         plugin_count.normal = await DbPluginInfo.filter(

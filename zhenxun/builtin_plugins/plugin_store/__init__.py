@@ -25,7 +25,7 @@ __plugin_meta__ = PluginMetadata(
         author="HibiKier",
         version="0.1",
         plugin_type=PluginType.SUPERUSER,
-    ).dict(),
+    ).to_dict(),
 )
 
 _matcher = on_alconna(

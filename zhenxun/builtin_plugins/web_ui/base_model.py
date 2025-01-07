@@ -18,7 +18,7 @@ class Token(BaseModel):
     token_type: str
 
 
-class Result(Generic[RT], BaseModel):
+class Result(BaseModel, Generic[RT]):
     """
     总体返回
     """
@@ -58,7 +58,7 @@ class QueryModel(BaseModel, Generic[T]):
     """页数"""
     size: int
     """每页数量"""
-    data: T
+    data: T | None = None
     """携带数据"""
 
     @validator("index")

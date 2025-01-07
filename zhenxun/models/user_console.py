@@ -174,6 +174,8 @@ class UserConsole(Model):
         if goods_uuid not in user.props or user.props[goods_uuid] < num:
             raise GoodsNotFound("未找到商品或道具数量不足...")
         user.props[goods_uuid] -= num
+        if user.props[goods_uuid] <= 0:
+            del user.props[goods_uuid]
         await user.save(update_fields=["props"])
 
     @classmethod

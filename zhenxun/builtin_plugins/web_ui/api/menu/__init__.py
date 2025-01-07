@@ -14,11 +14,11 @@ router = APIRouter(prefix="/menu")
 @router.get(
     "/get_menus",
     dependencies=[authentication()],
-    response_model=Result[list[MenuData]],
+    response_model=Result[MenuData],
     response_class=JSONResponse,
     description="获取菜单列表",
 )
-async def _() -> Result[list[MenuData]]:
+async def _() -> Result[MenuData]:
     try:
         return Result.ok(menu_manage.get_menus(), "拿到菜单了哦！")
     except Exception as e:

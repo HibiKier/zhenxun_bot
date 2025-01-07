@@ -37,7 +37,7 @@ __plugin_meta__ = PluginMetadata(
                 default_value="mix",
             )
         ],
-    ).dict(),
+    ).to_dict(),
 )
 
 

@@ -82,7 +82,7 @@ __plugin_meta__ = PluginMetadata(
             ),
         ],
         limits=[PluginCdBlock()],
-    ).dict(),
+    ).to_dict(),
 )
 
 

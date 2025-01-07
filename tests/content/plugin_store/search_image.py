@@ -14,5 +14,5 @@ __plugin_meta__ = PluginMetadata(
         author="HibiKier",
         version="0.1",
         menu_type="一些工具",
-    ).dict(),
+    ).to_dict(),
 )

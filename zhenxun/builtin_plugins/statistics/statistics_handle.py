@@ -45,7 +45,7 @@ __plugin_meta__ = PluginMetadata(
         "全局周功能调用统计",
         "全局月功能调用统计",
         """.strip(),
-    ).dict(),
+    ).to_dict(),
 )
 
 

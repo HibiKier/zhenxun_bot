@@ -17,7 +17,7 @@ __plugin_meta__ = PluginMetadata(
     usage="""
     引用消息 撤回
     """.strip(),
-    extra=PluginExtraData(author="HibiKier", version="0.1", menu_type="其他").dict(),
+    extra=PluginExtraData(author="HibiKier", version="0.1", menu_type="其他").to_dict(),
 )
 
 

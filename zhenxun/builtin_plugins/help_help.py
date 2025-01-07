@@ -26,7 +26,7 @@ __plugin_meta__ = PluginMetadata(
         version="0.1",
         plugin_type=PluginType.DEPENDANT,
         menu_type="其他",
-    ).dict(),
+    ).to_dict(),
 )
 
 _matcher = on_message(rule=to_me(), priority=996, block=False)

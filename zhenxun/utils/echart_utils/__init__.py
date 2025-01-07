@@ -15,7 +15,7 @@ class ChartUtils:
     @classmethod
     async def barh(cls, data: Barh) -> BuildImage:
         """横向统计图"""
-        to_json = data.dict()
+        to_json = data.to_dict()
         to_json["background_image"] = (
             f"./background/{random.choice(os.listdir(BACKGROUND_PATH))}"
         )

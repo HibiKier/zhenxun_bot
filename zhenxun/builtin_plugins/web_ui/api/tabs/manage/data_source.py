@@ -107,7 +107,7 @@ class ApiDataSource:
         """
         bot = nonebot.get_bot(bot_id)
         friend_list, _ = await PlatformUtils.get_friend_list(bot)
-        fd = [x for x in friend_list if x == user_id]
+        fd = [x for x in friend_list if x.user_id == user_id]
         if not fd:
             return None
         like_plugin_list = (

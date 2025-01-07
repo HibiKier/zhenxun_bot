@@ -45,7 +45,7 @@ __plugin_meta__ = PluginMetadata(
         version="0.1",
         plugin_type=PluginType.NORMAL,
         menu_type="数据统计",
-    ).dict(),
+    ).to_dict(),
 )
 
 

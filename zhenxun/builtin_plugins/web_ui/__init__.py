@@ -61,7 +61,7 @@ __plugin_meta__ = PluginMetadata(
                 default_value=None,
             ),
         ],
-    ).dict(),
+    ).to_dict(),
 )
 
 driver = nonebot.get_driver()

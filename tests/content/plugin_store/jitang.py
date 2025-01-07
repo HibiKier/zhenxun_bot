@@ -13,5 +13,5 @@ __plugin_meta__ = PluginMetadata(
     extra=PluginExtraData(
         author="HibiKier",
         version="0.1",
-    ).dict(),
+    ).to_dict(),
 )

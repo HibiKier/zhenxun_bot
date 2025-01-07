@@ -12,7 +12,7 @@ from zhenxun.services.log import logger
 from ....base_model import BaseResultModel, QueryModel, Result
 from ....utils import authentication
 from .data_source import ApiDataSource, type2sql
-from .models.model import Column, SqlModel, SqlText
+from .models.model import Column, SqlLogInfo, SqlModel, SqlText
 from .models.sql_log import SqlLog
 
 router = APIRouter(prefix="/database")
@@ -125,7 +125,8 @@ async def _(query: QueryModel) -> Result[BaseResultModel]:
             .offset((query.index - 1) * query.size)
             .limit(query.size)
         )
-        return Result.ok(BaseResultModel(total=total, data=data))
+        result_list = [SqlLogInfo(sql=e.sql) for e in data]
+        return Result.ok(BaseResultModel(total=total, data=result_list))
     except Exception as e:
         logger.error(f"{router.prefix}/get_sql_log 调用错误", "WebUi", e=e)
         return Result.fail(f"发生了一点错误捏 {type(e)}: {e}")

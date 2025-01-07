@@ -38,7 +38,7 @@ __plugin_meta__ = PluginMetadata(
                 default_value="zhenxun",
             )
         ],
-    ).dict(),
+    ).to_dict(),
 )
 
 

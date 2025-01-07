@@ -19,7 +19,7 @@ __plugin_meta__ = PluginMetadata(
     指令：
         关于
     """.strip(),
-    extra=PluginExtraData(author="HibiKier", version="0.1", menu_type="其他").dict(),
+    extra=PluginExtraData(author="HibiKier", version="0.1", menu_type="其他").to_dict(),
 )
 
 

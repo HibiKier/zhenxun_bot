@@ -57,7 +57,7 @@ __plugin_meta__ = PluginMetadata(
                 default_value=2,
             )
         ],
-    ).dict(),
+    ).to_dict(),
 )
 
 _matcher = on_command(

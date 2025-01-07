@@ -3,6 +3,11 @@ from pydantic import BaseModel
 from zhenxun.utils.plugin_models.base import CommonSql
 
 
+class SqlLogInfo(BaseModel):
+    sql: str
+    """sql语句"""
+
+
 class SqlText(BaseModel):
     """
     sql语句

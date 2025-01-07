@@ -37,7 +37,7 @@ __plugin_meta__ = PluginMetadata(
                 type=int,
             ),
         ],
-    ).dict(),
+    ).to_dict(),
 )
 
 _matcher = on_alconna(

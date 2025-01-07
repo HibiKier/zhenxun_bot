@@ -42,7 +42,7 @@ __plugin_meta__ = PluginMetadata(
                 default_value=False,
             )
         ],
-    ).dict(),
+    ).to_dict(),
 )
 
 

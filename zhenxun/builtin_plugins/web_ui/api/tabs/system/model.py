@@ -43,7 +43,7 @@ class AddFile(BaseModel):
     新建文件
     """
 
-    parent: str | None
+    parent: str | None = None
     """父路径"""
     name: str
     """新名称"""

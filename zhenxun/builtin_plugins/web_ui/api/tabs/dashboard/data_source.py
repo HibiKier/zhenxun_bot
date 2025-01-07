@@ -14,7 +14,13 @@ from zhenxun.utils.platform import PlatformUtils
 
 from ....base_model import BaseResultModel, QueryModel
 from ..main.data_source import bot_live
-from .model import AllChatAndCallCount, BotInfo, ChatCallMonthCount, QueryChatCallCount
+from .model import (
+    AllChatAndCallCount,
+    BotConnectLogInfo,
+    BotInfo,
+    ChatCallMonthCount,
+    QueryChatCallCount,
+)
 
 driver: Driver = nonebot.get_driver()
 
@@ -235,6 +241,12 @@ class ApiDataSource:
             .offset((query.index - 1) * query.size)
             .limit(query.size)
         )
+        result_list = []
         for v in data:
             v.connect_time = v.connect_time.replace(tzinfo=None).replace(microsecond=0)
-        return BaseResultModel(total=total, data=data)
+            result_list.append(
+                BotConnectLogInfo(
+                    bot_id=v.bot_id, connect_time=v.connect_time, type=v.type
+                )
+            )
+        return BaseResultModel(total=total, data=result_list)
