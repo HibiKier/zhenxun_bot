@@ -1,3 +1,4 @@
+from nonebot.compat import model_dump
 from pydantic import BaseModel
 
 from zhenxun.utils.enum import PluginType
@@ -31,9 +32,12 @@ class StorePluginInfo(BaseModel):
     """插件类型"""
     is_dir: bool
     """是否为文件夹插件"""
-    github_url: str | None
+    github_url: str | None = None
     """github链接"""
 
     @property
     def plugin_type_name(self):
         return type2name[self.plugin_type.value]
+
+    def to_dict(self, **kwargs):
+        return model_dump(self, **kwargs)

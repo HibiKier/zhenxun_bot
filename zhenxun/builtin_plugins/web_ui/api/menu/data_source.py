@@ -56,7 +56,7 @@ class MenuManage:
 
     def save(self):
         self.file.parent.mkdir(parents=True, exist_ok=True)
-        temp = [menu.dict() for menu in self.menu]
+        temp = [menu.to_dict() for menu in self.menu]
         with self.file.open("w", encoding="utf8") as f:
             json.dump(temp, f, ensure_ascii=False, indent=4)
 

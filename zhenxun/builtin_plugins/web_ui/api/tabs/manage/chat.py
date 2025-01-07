@@ -100,4 +100,4 @@ async def _(
             name=uname,
             ava_url=AVA_URL.format(session.user.id),
         )
-        await ws_conn.send_json(data.dict())
+        await ws_conn.send_json(data.to_dict())

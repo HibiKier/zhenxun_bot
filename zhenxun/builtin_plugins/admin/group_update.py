@@ -23,7 +23,7 @@ __plugin_meta__ = PluginMetadata(
         version="0.1",
         plugin_type=PluginType.SUPER_AND_ADMIN,
         admin_level=1,
-    ).dict(),
+    ).to_dict(),
 )
 
 

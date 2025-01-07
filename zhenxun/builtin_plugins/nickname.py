@@ -46,7 +46,7 @@ __plugin_meta__ = PluginMetadata(
                 type=list[str],
             )
         ],
-    ).dict(),
+    ).to_dict(),
 )
 
 _nickname_matcher = on_regex(

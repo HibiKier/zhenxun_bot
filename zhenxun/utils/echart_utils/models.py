@@ -1,3 +1,4 @@
+from nonebot.compat import model_dump
 from pydantic import BaseModel
 
 
@@ -8,3 +9,6 @@ class Barh(BaseModel):
     """实际数据"""
     title: str
     """标题"""
+
+    def to_dict(self, **kwargs):
+        return model_dump(self, **kwargs)

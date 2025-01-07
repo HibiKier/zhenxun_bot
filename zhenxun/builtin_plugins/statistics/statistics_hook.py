@@ -20,7 +20,7 @@ __plugin_meta__ = PluginMetadata(
     usage="""""".strip(),
     extra=PluginExtraData(
         author="HibiKier", version="0.1", plugin_type=PluginType.HIDDEN
-    ).dict(),
+    ).to_dict(),
 )
 
 TEMP_LIST = []

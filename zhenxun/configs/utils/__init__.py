@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import cattrs
+from nonebot.compat import model_dump
 from pydantic import BaseModel
 from ruamel.yaml import YAML
 from ruamel.yaml.scanner import ScannerError
@@ -81,6 +82,9 @@ class ConfigModel(BaseModel):
     arg_parser: Callable | None = None
     """参数解析"""
 
+    def to_dict(self, **kwargs):
+        return model_dump(self, **kwargs)
+
 
 class ConfigGroup(BaseModel):
     """
@@ -103,6 +107,9 @@ class ConfigGroup(BaseModel):
                 return cfg.default_value
         return default
 
+    def to_dict(self, **kwargs):
+        return model_dump(self, **kwargs)
+
 
 class BaseBlock(BaseModel):
     """
@@ -119,6 +126,9 @@ class BaseBlock(BaseModel):
     """阻断时回复内容"""
     _type: PluginLimitType = PluginLimitType.BLOCK
     """类型"""
+
+    def to_dict(self, **kwargs):
+        return model_dump(self, **kwargs)
 
 
 class PluginCdBlock(BaseBlock):
@@ -235,6 +245,9 @@ class PluginExtraData(BaseModel):
     """常用sql"""
     is_show: bool = True
     """是否显示在菜单中"""
+
+    def to_dict(self, **kwargs):
+        return model_dump(self, **kwargs)
 
 
 class NoSuchConfig(Exception):

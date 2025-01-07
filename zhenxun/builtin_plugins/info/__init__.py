@@ -20,7 +20,7 @@ __plugin_meta__ = PluginMetadata(
     指令：
         我的信息 ?[at]
     """.strip(),
-    extra=PluginExtraData(author="HibiKier", version="0.1").dict(),
+    extra=PluginExtraData(author="HibiKier", version="0.1").to_dict(),
 )
 
 

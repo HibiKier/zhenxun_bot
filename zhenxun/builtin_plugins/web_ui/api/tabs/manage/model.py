@@ -1,3 +1,4 @@
+from nonebot.compat import model_dump
 from pydantic import BaseModel
 
 from zhenxun.utils.enum import RequestType
@@ -255,6 +256,9 @@ class Message(BaseModel):
     """用户名称"""
     ava_url: str
     """用户头像"""
+
+    def to_dict(self, **kwargs):
+        return model_dump(self, **kwargs)
 
 
 class SendMessageParam(BaseModel):

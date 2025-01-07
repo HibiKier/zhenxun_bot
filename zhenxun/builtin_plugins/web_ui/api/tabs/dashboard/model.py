@@ -1,4 +1,15 @@
+from datetime import datetime
+
 from pydantic import BaseModel
+
+
+class BotConnectLogInfo(BaseModel):
+    bot_id: str
+    """机器人ID"""
+    connect_time: datetime
+    """连接日期"""
+    type: int
+    """连接类型"""
 
 
 class BotInfo(BaseModel):

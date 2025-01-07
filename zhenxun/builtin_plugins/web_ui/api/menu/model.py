@@ -1,3 +1,4 @@
+from nonebot.compat import model_dump
 from pydantic import BaseModel
 
 
@@ -12,6 +13,9 @@ class MenuItem(BaseModel):
     """图标"""
     default: bool = False
     """默认选中"""
+
+    def to_dict(self, **kwargs):
+        return model_dump(self, **kwargs)
 
 
 class MenuData(BaseModel):

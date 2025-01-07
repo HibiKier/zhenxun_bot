@@ -27,7 +27,7 @@ __plugin_meta__ = PluginMetadata(
     """.strip(),
     extra=PluginExtraData(
         author="HibiKier", version="0.1", plugin_type=PluginType.SUPERUSER
-    ).dict(),
+    ).to_dict(),
 )
 
 

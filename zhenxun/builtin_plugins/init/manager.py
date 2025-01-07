@@ -181,7 +181,7 @@ class Manager:
                 del temp_data["test"]["check_type"]
         else:
             for v in temp_data:
-                temp_data[v] = temp_data[v].dict()
+                temp_data[v] = temp_data[v].to_dict()
                 if check_type := temp_data[v].get("check_type"):
                     temp_data[v]["check_type"] = str(check_type)
                 if watch_type := temp_data[v].get("watch_type"):

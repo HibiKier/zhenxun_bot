@@ -33,5 +33,5 @@ __plugin_meta__ = PluginMetadata(
                 检测b站
                 bil_logout 12345<-(退出登录的b站uid，通过检测b站获取)
         """,
-    ).dict(),
+    ).to_dict(),
 )

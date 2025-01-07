@@ -33,7 +33,7 @@ __plugin_meta__ = PluginMetadata(
                 default_value="zhenxun",
             )
         ],
-    ).dict(),
+    ).to_dict(),
 )
 
 _matcher = on_alconna(

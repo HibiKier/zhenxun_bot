@@ -4,9 +4,10 @@ from datetime import datetime, timedelta
 import inspect
 import time
 from types import MappingProxyType
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 from nonebot.adapters import Bot, Event
+from nonebot.compat import model_dump
 from nonebot_plugin_alconna import UniMessage, UniMsg
 from nonebot_plugin_uninfo import Uninfo
 from pydantic import BaseModel, create_model
@@ -63,14 +64,22 @@ class ShopParam(BaseModel):
     """道具单次使用数量"""
     text: str
     """text"""
-    send_success_msg: bool = True
+    send_success_msg: ClassVar[bool] = True
     """是否发送使用成功信息"""
-    max_num_limit: int = 1
+    max_num_limit: ClassVar[int] = 1
     """单次使用最大次数"""
     session: Uninfo | None = None
     """Uninfo"""
     message: UniMsg
     """UniMessage"""
+    extra_data: ClassVar[dict[str, Any]] = {}
+    """额外数据"""
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def to_dict(self, **kwargs):
+        return model_dump(self, **kwargs)
 
 
 async def gold_rank(
@@ -207,7 +216,7 @@ class ShopManage:
         param_list = []
         _bot = param.bot
         param.bot = None
-        param_json = param.dict()
+        param_json = {**param.to_dict(), **param.extra_data}
         param_json["bot"] = _bot
         for par in args.keys():
             if par in ["shop_param"]:
@@ -366,10 +375,14 @@ class ShopManage:
         """
         if uuid in cls.uuid2goods:
             raise ValueError("该商品使用函数已被注册！")
-        kwargs["send_success_msg"] = send_success_msg
-        kwargs["max_num_limit"] = max_num_limit
         cls.uuid2goods[uuid] = Goods(
-            model=create_model(f"{uuid}_model", __base__=ShopParam, **kwargs),
+            model=create_model(
+                f"{uuid}_model",
+                send_success_msg=send_success_msg,
+                max_num_limit=max_num_limit,
+                __base__=ShopParam,
+                extra_data=kwargs,
+            ),
             params=kwargs,
             before_handle=before_handle,
             after_handle=after_handle,
@@ -457,15 +470,26 @@ class ShopManage:
         user = await UserConsole.get_user(user_id, platform)
         if not user.props:
             return None
+        is_change = False
+        for uuid in list(user.props.keys()):
+            if user.props[uuid] <= 0:
+                is_change = True
+                del user.props[uuid]
+        if is_change:
+            await user.save(update_fields=["props"])
         result = await GoodsInfo.filter(uuid__in=user.props.keys()).all()
         data_list = []
         uuid2goods = {item.uuid: item for item in result}
         column_name = ["-", "使用ID", "名称", "数量", "简介"]
         for i, p in enumerate(user.props):
             if prop := uuid2goods.get(p):
+                icon = ""
+                icon_path = ICON_PATH / prop.icon
+                if icon_path.exists():
+                    icon = (icon_path, 33, 33)
                 data_list.append(
                     [
-                        (ICON_PATH / prop.icon, 33, 33) if prop.icon else "",
+                        icon,
                         i,
                         prop.goods_name,
                         user.props[p],

@@ -37,7 +37,7 @@ class BotLive:
         self._data = {}
 
     def add(self, bot_id: str):
-        self._data[bot_id] = time.time()
+        self._data[bot_id] = int(time.time())
 
     def get(self, bot_id: str) -> int | None:
         return self._data.get(bot_id)
@@ -154,7 +154,7 @@ class ApiDataSource:
         for bot in bot_list:
             bot.bot = None  # type: ignore
         select_bot.is_select = True
-        return [BaseInfo(**e.dict()) for e in bot_list]
+        return [BaseInfo(**e.to_dict()) for e in bot_list]
 
     @classmethod
     async def get_all_chat_count(cls, bot_id: str | None) -> QueryCount:

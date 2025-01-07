@@ -1,6 +1,7 @@
 from typing import Protocol
 
 from aiocache import cached
+from nonebot.compat import model_dump
 from pydantic import BaseModel
 from strenum import StrEnum
 
@@ -36,26 +37,29 @@ class RepoInfo(BaseModel):
     async def get_raw_download_urls(self, path: str) -> list[str]:
         url_formats = await get_fastest_raw_formats()
         return [
-            url_format.format(**self.dict(), path=path) for url_format in url_formats
+            url_format.format(**self.to_dict(), path=path) for url_format in url_formats
         ]
 
     async def get_archive_download_urls(self) -> list[str]:
         url_formats = await get_fastest_archive_formats()
-        return [url_format.format(**self.dict()) for url_format in url_formats]
+        return [url_format.format(**self.to_dict()) for url_format in url_formats]
 
     async def get_release_source_download_urls_tgz(self, version: str) -> list[str]:
         url_formats = await get_fastest_release_source_formats()
         return [
-            url_format.format(**self.dict(), version=version, compress="tar.gz")
+            url_format.format(**self.to_dict(), version=version, compress="tar.gz")
             for url_format in url_formats
         ]
 
     async def get_release_source_download_urls_zip(self, version: str) -> list[str]:
         url_formats = await get_fastest_release_source_formats()
         return [
-            url_format.format(**self.dict(), version=version, compress="zip")
+            url_format.format(**self.to_dict(), version=version, compress="zip")
             for url_format in url_formats
         ]
+
+    def to_dict(self, **kwargs):
+        return model_dump(self, **kwargs)
 
 
 class APIStrategy(Protocol):
@@ -184,7 +188,7 @@ class Tree(BaseModel):
     mode: str
     type: TreeType
     sha: str
-    size: int | None
+    size: int | None = None
     url: str
 
 
