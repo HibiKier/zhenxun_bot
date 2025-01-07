@@ -25,7 +25,7 @@ class BagUser(Model):
     property: dict[str, int] = fields.JSONField(default={})  # type: ignore
     """道具"""
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "bag_users"
         table_description = "用户道具数据表"
         unique_together = ("user_id", "group_id")

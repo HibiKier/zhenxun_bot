@@ -17,6 +17,6 @@ class BotConnectLog(Model):
     create_time = fields.DatetimeField(auto_now_add=True)
     """创建时间"""
 
-    class Meta:  # type: ignore
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "bot_connect_log"
         table_description = "bot连接表"

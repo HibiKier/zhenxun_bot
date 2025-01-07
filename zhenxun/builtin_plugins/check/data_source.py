@@ -23,7 +23,7 @@ ARM_KEY = "aarch64"
 
 @dataclass
 class CPUInfo:
-    core: int
+    core: int | None
     """CPU 物理核心数"""
     usage: float
     """CPU 占用百分比，取值范围(0,100]"""

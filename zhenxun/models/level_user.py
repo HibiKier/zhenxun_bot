@@ -15,7 +15,7 @@ class LevelUser(Model):
     group_flag = fields.IntField(default=0)
     """特殊标记，是否随群管理员变更而设置权限"""
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "level_users"
         table_description = "用户权限数据库"
         unique_together = ("user_id", "group_id")

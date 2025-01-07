@@ -32,7 +32,7 @@ class SignUser(Model):
     platform = fields.CharField(255, null=True, description="平台")
     """平台"""
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "sign_users"
         table_description = "用户签到数据表"
 

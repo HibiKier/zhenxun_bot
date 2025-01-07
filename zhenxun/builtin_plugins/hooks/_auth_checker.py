@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from nonebot.adapters import Bot, Event
 from nonebot.adapters.onebot.v11 import PokeNotifyEvent
 from nonebot.exception import IgnoredException
@@ -38,11 +40,11 @@ class Limit(BaseModel):
 
 
 class LimitManage:
-    add_module = []  # noqa: RUF012
+    add_module: ClassVar[list] = []
 
-    cd_limit: dict[str, Limit] = {}  # noqa: RUF012
-    block_limit: dict[str, Limit] = {}  # noqa: RUF012
-    count_limit: dict[str, Limit] = {}  # noqa: RUF012
+    cd_limit: ClassVar[dict[str, Limit]] = {}
+    block_limit: ClassVar[dict[str, Limit]] = {}
+    count_limit: ClassVar[dict[str, Limit]] = {}
 
     @classmethod
     def add_limit(cls, limit: PluginLimit):

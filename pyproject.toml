@@ -68,8 +68,8 @@ plugins = [
 plugin_dirs = ["zhenxun/services", "zhenxun/builtin_plugins", "zhenxun/plugins"]
 adapters = [
     { name = "OneBot V11", module_name = "nonebot.adapters.onebot.v11" },
-    { name = "DoDo", module_name = "nonebot.adapters.dodo" },
-    { name = "开黑啦", module_name = "nonebot.adapters.kaiheila" },
+#    { name = "DoDo", module_name = "nonebot.adapters.dodo" },
+#    { name = "开黑啦", module_name = "nonebot.adapters.kaiheila" },
 ]
 
 [tool.ruff]

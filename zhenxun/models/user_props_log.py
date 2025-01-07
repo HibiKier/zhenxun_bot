@@ -20,6 +20,6 @@ class UserPropsLog(Model):
     create_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
     """创建时间"""
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "user_props_log"
         table_description = "用户道具记录表"

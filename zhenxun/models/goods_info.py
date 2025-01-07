@@ -32,7 +32,7 @@ class GoodsInfo(Model):
     icon = fields.TextField(null=True)
     """图标路径"""
 
-    class Meta:  # type: ignore
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "goods_info"
         table_description = "商品数据表"
 

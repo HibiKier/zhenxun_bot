@@ -17,7 +17,7 @@ class Statistics(Model):
     bot_id = fields.CharField(255, null=True)
     """Bot Id"""
 
-    class Meta:  # type: ignore
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "statistics"
         table_description = "插件调用统计数据库"
 

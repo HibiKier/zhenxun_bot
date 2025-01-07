@@ -16,7 +16,7 @@ class FriendUser(Model):
     platform = fields.CharField(255, null=True, description="平台")
     """平台"""
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "friend_users"
         table_description = "好友信息数据表"
 

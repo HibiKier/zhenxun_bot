@@ -23,7 +23,7 @@ class GroupInfo(Model):
     platform = fields.CharField(255, default="qq", description="所属平台")
     """所属平台"""
 
-    class Meta:  # type: ignore
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "group_info"
         table_description = "群聊信息表"
 
@@ -75,8 +75,8 @@ class GroupInfo(Model):
             group_id=group_id, defaults={"platform": platform}
         )
         if is_superuser:
-            if "module," not in group.superuser_block_plugin:
-                group.superuser_block_plugin += f"{module},"
+            if "module," not in group.superuser_block_plugin:  # type: ignore
+                group.superuser_block_plugin += f"{module},"  # type: ignore
         elif "module," not in group.block_plugin:
             group.block_plugin += f"{module},"
         await group.save(update_fields=["block_plugin", "superuser_block_plugin"])
@@ -99,8 +99,8 @@ class GroupInfo(Model):
             group_id=group_id, defaults={"platform": platform}
         )
         if is_superuser:
-            if "module," in group.superuser_block_plugin:
-                group.superuser_block_plugin = group.superuser_block_plugin.replace(
+            if "module," in group.superuser_block_plugin:  # type: ignore
+                group.superuser_block_plugin = group.superuser_block_plugin.replace(  # type: ignore
                     f"{module},", ""
                 )
         elif "module," in group.block_plugin:

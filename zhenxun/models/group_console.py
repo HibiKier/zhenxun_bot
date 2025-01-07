@@ -46,7 +46,7 @@ class GroupConsole(Model):
     platform = fields.CharField(255, default="qq", description="所属平台")
     """所属平台"""
 
-    class Meta:  # type: ignore
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "group_console"
         table_description = "群组信息表"
         unique_together = ("group_id", "channel_id")

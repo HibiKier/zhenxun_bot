@@ -51,7 +51,7 @@ class PluginInfo(Model):
     is_show = fields.BooleanField(default=True, description="是否显示在帮助中")
     """是否显示在帮助中"""
 
-    class Meta:  # type: ignore
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "plugin_info"
         table_description = "插件基本信息"
 

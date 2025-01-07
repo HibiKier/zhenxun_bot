@@ -206,6 +206,8 @@ class Manager:
         返回:
             list: 消息内容
         """
+        if not session.group:
+            return None
         json_data = cls.__get_data(session)
         if not json_data:
             return None
