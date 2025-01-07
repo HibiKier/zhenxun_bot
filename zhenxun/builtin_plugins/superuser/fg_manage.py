@@ -1,5 +1,4 @@
 from nonebot.adapters import Bot
-from nonebot.adapters.kaiheila.exception import ApiNotAvailable
 from nonebot.permission import SUPERUSER
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me

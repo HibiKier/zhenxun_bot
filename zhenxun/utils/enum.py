@@ -1,6 +1,21 @@
 from strenum import StrEnum
 
 
+class CacheType(StrEnum):
+    """
+    缓存类型
+    """
+
+    PLUGINS = "GLOBAL_ALL_PLUGINS"
+    """全局全部插件"""
+    GROUPS = "GLOBAL_ALL_GROUPS"
+    """全局全部群组"""
+    BAN = "GLOBAL_ALL_BAN"
+    """全局ban列表"""
+    BOT = "GLOBAL_BOT"
+    """全局bot信息"""
+
+
 class GoldHandle(StrEnum):
     """
     金币处理

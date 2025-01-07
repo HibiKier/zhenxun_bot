@@ -3,8 +3,13 @@ from pathlib import Path
 import nonebot
 from nonebot.adapters import Bot
 
+from zhenxun.models.ban_console import BanConsole
+from zhenxun.models.bot_console import BotConsole
 from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.services.log import logger
+from zhenxun.utils.cache_utils import Cache
+from zhenxun.utils.enum import CacheType
 from zhenxun.utils.platform import PlatformUtils
 
 nonebot.load_plugins(str(Path(__file__).parent.resolve()))
@@ -41,3 +46,66 @@ async def _(bot: Bot):
         f"更新Bot: {bot.self_id} 的群认证完成，共创建 {len(create_list)} 条数据，"
         f"共修改 {len(update_id)} 条数据..."
     )
+
+
+@Cache.listener(CacheType.PLUGINS)
+async def _():
+    data_list = await PluginInfo.get_plugins()
+    return {p.module: p for p in data_list}
+
+
+@Cache.getter(CacheType.PLUGINS, result_model=PluginInfo)
+def _(data: dict[str, PluginInfo], module: str):
+    return data.get(module, None)
+
+
+@Cache.listener(CacheType.GROUPS)
+async def _():
+    data_list = await GroupConsole.all()
+    return {p.group_id: p for p in data_list}
+
+
+@Cache.getter(CacheType.GROUPS, result_model=GroupConsole)
+def _(data: dict[str, GroupConsole], module: str):
+    return data.get(module, None)
+
+
+@Cache.listener(CacheType.BOT)
+async def _():
+    data_list = await BotConsole.all()
+    return {p.bot_id: p for p in data_list}
+
+
+@Cache.getter(CacheType.BOT, result_model=BotConsole)
+def _(data: dict[str, BotConsole], module: str):
+    return data.get(module, None)
+
+
+@Cache.listener(CacheType.BAN)
+async def _():
+    return await BanConsole.all()
+
+
+@Cache.getter(CacheType.BAN, result_model=list[BanConsole])
+def _(data_list: list[BanConsole], user_id: str, group_id: str):
+    if user_id:
+        if group_id:
+            return [
+                data
+                for data in data_list
+                if data.user_id == user_id and data.group_id == group_id
+            ]
+        else:
+            return [
+                data
+                for data in data_list
+                if data.user_id == user_id and not data.group_id
+            ]
+    else:
+        if group_id:
+            return [
+                data
+                for data in data_list
+                if not data.user_id and data.group_id == group_id
+            ]
+    return None

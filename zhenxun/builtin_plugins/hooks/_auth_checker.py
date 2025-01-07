@@ -15,8 +15,10 @@ from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.plugin_limit import PluginLimit
 from zhenxun.models.user_console import UserConsole
 from zhenxun.services.log import logger
+from zhenxun.utils.cache_utils import Cache
 from zhenxun.utils.enum import (
     BlockType,
+    CacheType,
     GoldHandle,
     LimitWatchType,
     PluginLimitType,
@@ -248,7 +250,7 @@ class AuthChecker:
                     e=e,
                 )
                 return
-            if plugin := await PluginInfo.get_or_none(module_path=module_path):
+            if plugin := await Cache.get(CacheType.PLUGINS, module_path):
                 if plugin.plugin_type == PluginType.HIDDEN:
                     logger.debug(
                         f"插件: {plugin.name}:{plugin.module} "
