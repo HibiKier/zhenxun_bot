@@ -24,7 +24,7 @@ class SignGroupUser(Model):
     """使用指定双倍概率"""
     # specify_probability = fields.DecimalField(10, 3, default=0)
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "sign_group_users"
         table_description = "群员签到数据表"
         unique_together = ("user_id", "group_id")

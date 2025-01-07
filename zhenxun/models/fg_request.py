@@ -33,7 +33,7 @@ class FgRequest(Model):
     )
     """处理类型"""
 
-    class Meta:  # type: ignore
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "fg_request"
         table_description = "好友群组请求"
 

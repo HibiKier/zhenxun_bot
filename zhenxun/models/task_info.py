@@ -21,7 +21,7 @@ class TaskInfo(Model):
     run_count = fields.IntField(default=0, description="运行次数")
     """运行次数"""
 
-    class Meta:  # type: ignore
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "task_info"
         table_description = "被动技能基本信息"
 

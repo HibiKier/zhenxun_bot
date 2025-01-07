@@ -26,7 +26,7 @@ class UserConsole(Model):
     create_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
     """创建时间"""
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "user_console"
         table_description = "用户数据表"
 

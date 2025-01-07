@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections.abc import Callable
 import copy
 from datetime import datetime
@@ -95,7 +96,7 @@ class ConfigGroup(BaseModel):
     """模块名"""
     name: str | None = None
     """插件名"""
-    configs: dict[str, ConfigModel] = {}
+    configs: dict[str, ConfigModel] = defaultdict()
     """配置项列表"""
 
     def get(self, c: str, default: Any = None) -> Any:

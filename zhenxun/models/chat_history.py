@@ -26,7 +26,7 @@ class ChatHistory(Model):
     platform = fields.CharField(255, null=True)
     """平台"""
 
-    class Meta:  # type: ignore
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "chat_history"
         table_description = "聊天记录数据表"
 

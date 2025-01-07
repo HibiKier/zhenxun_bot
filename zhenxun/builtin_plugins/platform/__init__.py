@@ -16,7 +16,9 @@ except ImportError:
 
 
 try:
-    from nonebot.adapters.qq import Bot  # noqa: F401
+    from nonebot.adapters.qq import (  # noqa: F401 # pyright: ignore [reportMissingImports]
+        Bot,
+    )
 
     nonebot.load_plugins(str((path / "qq_api").resolve()))
 except ImportError:

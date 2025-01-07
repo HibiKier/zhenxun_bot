@@ -15,6 +15,6 @@ class UserProps(Model):
     platform = fields.CharField(255, null=True)
     """平台"""
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "user_props"
         table_description = "用户道具表"

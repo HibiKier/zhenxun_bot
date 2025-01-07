@@ -35,6 +35,6 @@ class PluginLimit(Model):
     max_count = fields.IntField(null=True, description="最大调用次数")
     """最大调用次数"""
 
-    class Meta:  # type: ignore
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "plugin_limit"
         table_description = "插件限制"

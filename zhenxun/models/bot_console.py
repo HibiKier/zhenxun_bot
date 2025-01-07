@@ -25,7 +25,7 @@ class BotConsole(Model):
     available_tasks = fields.TextField(default="", description="可用被动技能")
     """可用被动技能"""
 
-    class Meta:  # type: ignore
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "bot_console"
         table_description = "Bot数据表"
 
