@@ -33,10 +33,10 @@ async def html_image() -> bytes:
             partition_dict[goods[1].partition] = []
         icon = None
         if goods[1].icon:
-            icon = (
-                "data:image/png;base64,"
-                + BuildImage.open(ICON_PATH / goods[1].icon).pic2bs4()[9:]
-            )
+            path = ICON_PATH / goods[1].icon
+            if path.exists():
+                icon = "data:image/png;base64,"
+                f"{BuildImage.open(ICON_PATH / goods[1].icon).pic2bs4()[9:]}"
         partition_dict[goods[1].partition].append(
             {
                 "id": goods[0],
@@ -47,15 +47,10 @@ async def html_image() -> bytes:
                 "description": goods[1].goods_description,
             }
         )
-    data_list = []
-    for partition in partition_dict:
-        data_list.append(
-            GoodsItem(
-                goods_list=partition_dict[partition],
-                partition=partition,
-            )
-        )
-
+    data_list = [
+        GoodsItem(goods_list=value, partition=partition)
+        for partition, value in partition_dict.items()
+    ]
     return await template_to_pic(
         template_path=str((TEMPLATE_PATH / "shop").absolute()),
         template_name="main.html",
