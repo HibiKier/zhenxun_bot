@@ -45,7 +45,7 @@ py-cpuinfo = "^9.0.0"
 nonebot-plugin-uninfo = "^0.4.1"
 nonebot-plugin-alconna = "^0.54.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 nonebug = "^0.4"
 pytest-cov = "^5.0.0"
 pytest-mock = "^3.6.1"
