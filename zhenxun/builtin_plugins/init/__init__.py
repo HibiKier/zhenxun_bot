@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 import nonebot
 from nonebot.adapters import Bot
@@ -6,9 +7,11 @@ from nonebot.adapters import Bot
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.bot_console import BotConsole
 from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.level_user import LevelUser
 from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.models.user_console import UserConsole
 from zhenxun.services.log import logger
-from zhenxun.utils.cache_utils import Cache
+from zhenxun.utils.cache_utils import CacheRoot
 from zhenxun.utils.enum import CacheType
 from zhenxun.utils.platform import PlatformUtils
 
@@ -48,45 +51,131 @@ async def _(bot: Bot):
     )
 
 
-@Cache.listener(CacheType.PLUGINS)
-async def _():
-    data_list = await PluginInfo.get_plugins()
-    return {p.module: p for p in data_list}
+@CacheRoot.new(CacheType.PLUGINS)
+async def _(data: dict[str, PluginInfo] = {}, key: str | None = None):
+    if data and key:
+        if plugin := await PluginInfo.get_plugin(module=key):
+            data[key] = plugin
+    else:
+        data_list = await PluginInfo.get_plugins()
+        return {p.module: p for p in data_list}
 
 
-@Cache.getter(CacheType.PLUGINS, result_model=PluginInfo)
-def _(data: dict[str, PluginInfo], module: str):
-    return data.get(module, None)
+@CacheRoot.updater(CacheType.PLUGINS)
+async def _(data: dict[str, PluginInfo], key: str, value: Any):
+    if value:
+        data[key] = value
+    elif plugin := await PluginInfo.get_plugin(module=key):
+        data[key] = plugin
 
 
-@Cache.listener(CacheType.GROUPS)
+@CacheRoot.getter(CacheType.PLUGINS, result_model=PluginInfo)
+async def _(data: dict[str, PluginInfo], module: str):
+    result = data.get(module, None)
+    if not result:
+        result = await PluginInfo.get_plugin(module=module)
+        if result:
+            data[module] = result
+    return result
+
+
+@CacheRoot.new(CacheType.GROUPS)
 async def _():
     data_list = await GroupConsole.all()
-    return {p.group_id: p for p in data_list}
+    return {p.group_id: p for p in data_list if not p.channel_id}
 
 
-@Cache.getter(CacheType.GROUPS, result_model=GroupConsole)
-def _(data: dict[str, GroupConsole], module: str):
-    return data.get(module, None)
+@CacheRoot.updater(CacheType.GROUPS)
+async def _(data: dict[str, GroupConsole], key: str, value: Any):
+    if value:
+        data[key] = value
+    elif group := await GroupConsole.get_group(group_id=key):
+        data[key] = group
 
 
-@Cache.listener(CacheType.BOT)
+@CacheRoot.getter(CacheType.GROUPS, result_model=GroupConsole)
+async def _(data: dict[str, GroupConsole], group_id: str):
+    result = data.get(group_id, None)
+    if not result:
+        result = await GroupConsole.get_group(group_id=group_id)
+        if result:
+            data[group_id] = result
+    return result
+
+
+@CacheRoot.new(CacheType.BOT)
 async def _():
     data_list = await BotConsole.all()
     return {p.bot_id: p for p in data_list}
 
 
-@Cache.getter(CacheType.BOT, result_model=BotConsole)
-def _(data: dict[str, BotConsole], module: str):
-    return data.get(module, None)
+@CacheRoot.updater(CacheType.BOT)
+async def _(data: dict[str, BotConsole], key: str, value: Any):
+    if value:
+        data[key] = value
+    elif bot := await BotConsole.get_or_none(bot_id=key):
+        data[key] = bot
 
 
-@Cache.listener(CacheType.BAN)
+@CacheRoot.getter(CacheType.BOT, result_model=BotConsole)
+async def _(data: dict[str, BotConsole], bot_id: str):
+    result = data.get(bot_id, None)
+    if not result:
+        result = await BotConsole.get_or_none(bot_id=bot_id)
+        if result:
+            data[bot_id] = result
+    return result
+
+
+@CacheRoot.new(CacheType.USERS)
+async def _():
+    data_list = await UserConsole.all()
+    return {p.user_id: p for p in data_list}
+
+
+@CacheRoot.updater(CacheType.USERS)
+async def _(data: dict[str, UserConsole], key: str, value: Any):
+    if value:
+        data[key] = value
+    elif user := await UserConsole.get_user(user_id=key):
+        data[key] = user
+
+
+@CacheRoot.getter(CacheType.USERS, result_model=UserConsole)
+async def _(data: dict[str, UserConsole], user_id: str):
+    result = data.get(user_id, None)
+    if not result:
+        result = await UserConsole.get_user(user_id=user_id)
+        if result:
+            data[user_id] = result
+    return result
+
+
+@CacheRoot.new(CacheType.LEVEL)
+async def _():
+    return await LevelUser().all()
+
+
+@CacheRoot.getter(CacheType.LEVEL, result_model=list[LevelUser])
+def _(data_list: list[LevelUser], user_id: str, group_id: str | None = None):
+    if not group_id:
+        return [
+            data for data in data_list if data.user_id == user_id and not data.group_id
+        ]
+    else:
+        return [
+            data
+            for data in data_list
+            if data.user_id == user_id and data.group_id == group_id
+        ]
+
+
+@CacheRoot.new(CacheType.BAN)
 async def _():
     return await BanConsole.all()
 
 
-@Cache.getter(CacheType.BAN, result_model=list[BanConsole])
+@CacheRoot.getter(CacheType.BAN, result_model=list[BanConsole])
 def _(data_list: list[BanConsole], user_id: str, group_id: str):
     if user_id:
         if group_id:

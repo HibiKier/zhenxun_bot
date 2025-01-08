@@ -1,10 +1,13 @@
+from typing import Any
 from typing_extensions import Self
 
 from tortoise import fields
+from tortoise.backends.base.client import BaseDBAsyncClient
 
 from zhenxun.models.plugin_limit import PluginLimit  # noqa: F401
 from zhenxun.services.db_context import Model
-from zhenxun.utils.enum import BlockType, PluginType
+from zhenxun.utils.cache_utils import CacheRoot
+from zhenxun.utils.enum import BlockType, CacheType, PluginType
 
 
 class PluginInfo(Model):
@@ -78,6 +81,13 @@ class PluginInfo(Model):
             list[Self]: 插件列表
         """
         return await cls.filter(load_status=load_status, **kwargs).all()
+
+    @classmethod
+    @CacheRoot.listener(CacheType.PLUGINS)
+    async def create(
+        cls, using_db: BaseDBAsyncClient | None = None, **kwargs: Any
+    ) -> Self:
+        return await super().create(using_db=using_db, **kwargs)
 
     @classmethod
     async def _run_script(cls):

@@ -7,7 +7,8 @@ from tortoise.backends.base.client import BaseDBAsyncClient
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.db_context import Model
-from zhenxun.utils.enum import PluginType
+from zhenxun.utils.cache_utils import CacheRoot
+from zhenxun.utils.enum import CacheType, PluginType
 
 
 class GroupConsole(Model):
@@ -46,8 +47,7 @@ class GroupConsole(Model):
     platform = fields.CharField(255, default="qq", description="所属平台")
     """所属平台"""
 
-    class Meta:  # type: ignore
-        table = "group_console"
+    class Meta:  # type: ignore       table = "group_console"
         table_description = "群组信息表"
         unique_together = ("group_id", "channel_id")
 
@@ -80,6 +80,7 @@ class GroupConsole(Model):
             return "".join(cls.format(item) for item in data)
 
     @classmethod
+    @CacheRoot.listener(CacheType.GROUPS)
     async def create(
         cls, using_db: BaseDBAsyncClient | None = None, **kwargs: Any
     ) -> Self:
@@ -100,6 +101,7 @@ class GroupConsole(Model):
         return group
 
     @classmethod
+    @CacheRoot.listener(CacheType.GROUPS)
     async def get_or_create(
         cls,
         defaults: dict | None = None,
@@ -127,6 +129,7 @@ class GroupConsole(Model):
         return group, is_create
 
     @classmethod
+    @CacheRoot.listener(CacheType.GROUPS)
     async def update_or_create(
         cls,
         defaults: dict | None = None,
@@ -216,6 +219,7 @@ class GroupConsole(Model):
         )
 
     @classmethod
+    @CacheRoot.listener(CacheType.GROUPS)
     async def set_block_plugin(
         cls,
         group_id: str,
@@ -242,6 +246,7 @@ class GroupConsole(Model):
         await group.save(update_fields=["block_plugin", "superuser_block_plugin"])
 
     @classmethod
+    @CacheRoot.listener(CacheType.GROUPS)
     async def set_unblock_plugin(
         cls,
         group_id: str,
@@ -338,6 +343,7 @@ class GroupConsole(Model):
         )
 
     @classmethod
+    @CacheRoot.listener(CacheType.GROUPS)
     async def set_block_task(
         cls,
         group_id: str,
@@ -364,6 +370,7 @@ class GroupConsole(Model):
         await group.save(update_fields=["block_task", "superuser_block_task"])
 
     @classmethod
+    @CacheRoot.listener(CacheType.GROUPS)
     async def set_unblock_task(
         cls,
         group_id: str,

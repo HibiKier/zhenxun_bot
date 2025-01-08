@@ -1,0 +1,2 @@
+class IsSuperuserException(Exception):
+    pass
