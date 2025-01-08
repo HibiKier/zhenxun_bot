@@ -16,18 +16,3 @@ async def _(user_id: str):
         "shop",
     )
     return "使用道具神秘药水成功！你滴金币+1000000！"
-
-
-@shop_register(
-    name="神秘药水2",
-    price=999999,
-    des="鬼知道会有什么效果，要不试试？",
-    partition="小秘密",
-)
-async def _(user_id: str):
-    await UserConsole.add_gold(
-        user_id,
-        1000000,
-        "shop",
-    )
-    return "使用道具神秘药水成功！你滴金币+1000000！"
