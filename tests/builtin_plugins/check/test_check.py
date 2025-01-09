@@ -95,6 +95,8 @@ async def test_check(
         )
         ctx.receive_event(bot=bot, event=event)
         ctx.should_ignore_rule(_self_check_matcher)
+    print("Template to pic call args:", mock_template_to_pic.call_args_list)
+
     mock_template_to_pic.assert_awaited_once_with(
         template_path=str((mock_template_path_new / "check").absolute()),
         template_name="main.html",

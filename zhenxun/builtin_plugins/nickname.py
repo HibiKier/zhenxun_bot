@@ -7,8 +7,7 @@ from nonebot.params import Depends, RegexGroup
 from nonebot.plugin import PluginMetadata
 from nonebot.rule import to_me
 from nonebot_plugin_alconna import Alconna, Option, on_alconna, store_true
-from nonebot_plugin_session import EventSession
-from nonebot_plugin_userinfo import EventUserInfo, UserInfo
+from nonebot_plugin_uninfo import Uninfo
 
 from zhenxun.configs.config import BotConfig, Config
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
@@ -19,6 +18,7 @@ from zhenxun.services.log import logger
 from zhenxun.utils.depends import UserName
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.message import MessageUtils
+from zhenxun.utils.platform import PlatformUtils
 
 __plugin_meta__ = PluginMetadata(
     name="昵称系统",
@@ -119,7 +119,7 @@ def CheckNickname():
 
     async def dependency(
         bot: Bot,
-        session: EventSession,
+        session: Uninfo,
         reg_group: tuple[Any, ...] = RegexGroup(),
     ):
         black_word = Config.get_config("nickname", "BLACK_WORD")
@@ -129,7 +129,7 @@ def CheckNickname():
             await MessageUtils.build_message("叫你空白？叫你虚空？叫你无名??").finish(
                 at_sender=True
             )
-        if session.id1 in bot.config.superusers:
+        if session.user.id in bot.config.superusers:
             logger.debug(
                 f"超级用户设置昵称, 跳过合法检测: {name}", "昵称设置", session=session
             )
@@ -163,110 +163,106 @@ def CheckNickname():
 
 @_nickname_matcher.handle(parameterless=[CheckNickname()])
 async def _(
-    session: EventSession,
-    user_info: UserInfo = EventUserInfo(),
+    session: Uninfo,
+    uname: str = UserName(),
     reg_group: tuple[Any, ...] = RegexGroup(),
 ):
-    if session.id1:
-        (name,) = reg_group
-        if len(name) < 5 and random.random() < 0.3:
-            name = "~".join(name)
-        if gid := session.id3 or session.id2:
-            await GroupInfoUser.set_user_nickname(
-                session.id1,
-                gid,
-                name,
-                user_info.user_displayname
-                or user_info.user_remark
-                or user_info.user_name,
-                session.platform,
-            )
-            logger.info(f"设置群昵称成功: {name}", "昵称设置", session=session)
-        else:
-            await FriendUser.set_user_nickname(
-                session.id1,
-                name,
-                user_info.user_displayname
-                or user_info.user_remark
-                or user_info.user_name,
-                session.platform,
-            )
-            logger.info(f"设置私聊昵称成功: {name}", "昵称设置", session=session)
-        await MessageUtils.build_message(random.choice(CALL_NAME).format(name)).finish(
-            reply_to=True
+    (name,) = reg_group
+    if len(name) < 5 and random.random() < 0.3:
+        name = "~".join(name)
+    group_id = None
+    if session.group:
+        group_id = session.group.parent.id if session.group.parent else session.group.id
+    if group_id:
+        await GroupInfoUser.set_user_nickname(
+            session.user.id,
+            group_id,
+            name,
+            uname,
+            PlatformUtils.get_platform(session),
         )
-    await MessageUtils.build_message("用户id为空...").send()
+        logger.info(f"设置群昵称成功: {name}", "昵称设置", session=session)
+    else:
+        await FriendUser.set_user_nickname(
+            session.user.id,
+            name,
+            uname,
+            PlatformUtils.get_platform(session),
+        )
+        logger.info(f"设置私聊昵称成功: {name}", "昵称设置", session=session)
+    await MessageUtils.build_message(random.choice(CALL_NAME).format(name)).finish(
+        reply_to=True
+    )
 
 
 @_global_nickname_matcher.handle(parameterless=[CheckNickname()])
 async def _(
-    session: EventSession,
+    session: Uninfo,
     nickname: str = UserName(),
     reg_group: tuple[Any, ...] = RegexGroup(),
 ):
-    if session.id1:
-        (name,) = reg_group
-        await FriendUser.set_user_nickname(
-            session.id1,
-            name,
-            nickname,
-            session.platform,
-        )
-        await GroupInfoUser.filter(user_id=session.id1).update(nickname=name)
-        logger.info(f"设置全局昵称成功: {name}", "设置全局昵称", session=session)
-        await MessageUtils.build_message(random.choice(CALL_NAME).format(name)).finish(
-            reply_to=True
-        )
-    await MessageUtils.build_message("用户id为空...").send()
+    (name,) = reg_group
+    await FriendUser.set_user_nickname(
+        session.user.id,
+        name,
+        nickname,
+        PlatformUtils.get_platform(session),
+    )
+    await GroupInfoUser.filter(user_id=session.user.id).update(nickname=name)
+    logger.info(f"设置全局昵称成功: {name}", "设置全局昵称", session=session)
+    await MessageUtils.build_message(random.choice(CALL_NAME).format(name)).finish(
+        reply_to=True
+    )
 
 
 @_matcher.assign("name")
-async def _(session: EventSession, user_info: UserInfo = EventUserInfo()):
-    if session.id1:
-        if gid := session.id3 or session.id2:
-            nickname = await GroupInfoUser.get_user_nickname(session.id1, gid)
-            card = user_info.user_displayname or user_info.user_name
-        else:
-            nickname = await FriendUser.get_user_nickname(session.id1)
-            card = user_info.user_name
-        if nickname:
-            await MessageUtils.build_message(
-                random.choice(REMIND).format(nickname)
-            ).finish(reply_to=True)
-        else:
-            await MessageUtils.build_message(
-                random.choice(
-                    [
-                        "没..没有昵称嘛，{}",
-                        "啊，你是{}啊，我想叫你的昵称！",
-                        "是{}啊，有什么事吗？",
-                        "你是{}？",
-                    ]
-                ).format(card)
-            ).finish(reply_to=True)
-    await MessageUtils.build_message("用户id为空...").send()
+async def _(session: Uninfo, uname: str = UserName()):
+    group_id = None
+    if session.group:
+        group_id = session.group.parent.id if session.group.parent else session.group.id
+    if group_id:
+        nickname = await GroupInfoUser.get_user_nickname(session.user.id, group_id)
+        card = uname
+    else:
+        nickname = await FriendUser.get_user_nickname(session.user.id)
+        card = uname
+    if nickname:
+        await MessageUtils.build_message(random.choice(REMIND).format(nickname)).finish(
+            reply_to=True
+        )
+    else:
+        await MessageUtils.build_message(
+            random.choice(
+                [
+                    "没..没有昵称嘛，{}",
+                    "啊，你是{}啊，我想叫你的昵称！",
+                    "是{}啊，有什么事吗？",
+                    "你是{}？",
+                ]
+            ).format(card)
+        ).finish(reply_to=True)
 
 
 @_matcher.assign("cancel")
-async def _(bot: Bot, session: EventSession, user_info: UserInfo = EventUserInfo()):
-    if session.id1:
-        gid = session.id3 or session.id2
-        if gid:
-            nickname = await GroupInfoUser.get_user_nickname(session.id1, gid)
+async def _(bot: Bot, session: Uninfo):
+    group_id = None
+    if session.group:
+        group_id = session.group.parent.id if session.group.parent else session.group.id
+    if group_id:
+        nickname = await GroupInfoUser.get_user_nickname(session.user.id, group_id)
+    else:
+        nickname = await FriendUser.get_user_nickname(session.user.id)
+    if nickname:
+        await MessageUtils.build_message(random.choice(CANCEL).format(nickname)).send(
+            reply_to=True
+        )
+        if group_id:
+            await GroupInfoUser.set_user_nickname(session.user.id, group_id, "")
         else:
-            nickname = await FriendUser.get_user_nickname(session.id1)
-        if nickname:
-            await MessageUtils.build_message(
-                random.choice(CANCEL).format(nickname)
-            ).send(reply_to=True)
-            if gid:
-                await GroupInfoUser.set_user_nickname(session.id1, gid, "")
-            else:
-                await FriendUser.set_user_nickname(session.id1, "")
-            await BanConsole.ban(session.id1, gid, 9, 60, bot.self_id)
-            return
-        else:
-            await MessageUtils.build_message("你在做梦吗？你没有昵称啊").finish(
-                reply_to=True
-            )
-    await MessageUtils.build_message("用户id为空...").send()
+            await FriendUser.set_user_nickname(session.user.id, "")
+        await BanConsole.ban(session.user.id, group_id, 9, 60, bot.self_id)
+        return
+    else:
+        await MessageUtils.build_message("你在做梦吗？你没有昵称啊").finish(
+            reply_to=True
+        )
