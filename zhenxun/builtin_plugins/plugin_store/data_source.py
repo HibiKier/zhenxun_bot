@@ -14,6 +14,7 @@ from zhenxun.utils.github_utils import GithubUtils
 from zhenxun.utils.github_utils.models import RepoAPI
 from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.image_utils import BuildImage, ImageTemplate, RowStyle
+from zhenxun.utils.utils import is_number
 
 from .config import BASE_PATH, DEFAULT_GITHUB_URL, EXTRA_GITHUB_URL
 
@@ -175,7 +176,7 @@ class ShopManage:
         )
 
     @classmethod
-    async def add_plugin(cls, plugin_id: int | str) -> str:
+    async def add_plugin(cls, plugin_id: str) -> str:
         """添加插件
 
         参数:
@@ -268,7 +269,7 @@ class ShopManage:
         raise Exception("插件下载失败")
 
     @classmethod
-    async def remove_plugin(cls, plugin_id: int | str) -> str:
+    async def remove_plugin(cls, plugin_id: str) -> str:
         """移除插件
 
         参数:
@@ -344,7 +345,7 @@ class ShopManage:
         )
 
     @classmethod
-    async def update_plugin(cls, plugin_id: int | str) -> str:
+    async def update_plugin(cls, plugin_id: str) -> str:
         """更新插件
 
         参数:
@@ -441,12 +442,13 @@ class ShopManage:
         )
 
     @classmethod
-    async def _resolve_plugin_key(cls, plugin_id: int | str) -> str:
+    async def _resolve_plugin_key(cls, plugin_id: str) -> str:
         data: dict[str, StorePluginInfo] = await cls.get_data()
-        if isinstance(plugin_id, int):
-            if plugin_id < 0 or plugin_id >= len(data):
+        if is_number(plugin_id):
+            idx = int(plugin_id)
+            if idx < 0 or idx >= len(data):
                 raise ValueError("插件ID不存在...")
-            return list(data.keys())[plugin_id]
+            return list(data.keys())[idx]
         elif isinstance(plugin_id, str):
             if plugin_id not in [v.module for k, v in data.items()]:
                 raise ValueError("插件Module不存在...")

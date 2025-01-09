@@ -228,3 +228,19 @@ def is_valid_date(date_text: str, separator: str = "-") -> bool:
         return True
     except ValueError:
         return False
+
+
+def is_number(text: str) -> bool:
+    """是否为数字
+
+    参数:
+        text: 文本
+
+    返回:
+        bool: 是否为数字
+    """
+    try:
+        float(text)
+        return True
+    except ValueError:
+        return False

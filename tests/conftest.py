@@ -47,7 +47,7 @@ def pytest_configure(config: pytest.Config) -> None:
         },
         "host": "127.0.0.1",
         "port": 8080,
-        "log_level": "DEBUG",
+        "log_level": "INFO",
     }
 
 
@@ -60,9 +60,7 @@ def _init_bot(nonebug_init: None):
 
     nonebot.load_plugin("nonebot_plugin_alconna")
     nonebot.load_plugin("nonebot_plugin_apscheduler")
-    nonebot.load_plugin("nonebot_plugin_userinfo")
     nonebot.load_plugin("nonebot_plugin_htmlrender")
-
     nonebot.load_plugins("zhenxun/builtin_plugins")
     nonebot.load_plugins("zhenxun/plugins")
 
