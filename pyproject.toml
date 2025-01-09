@@ -23,12 +23,11 @@ strenum = "^0.4.15"
 nonebot-plugin-session = "^0.2.3"
 ujson = "^5.9.0"
 nb-cli = "^1.3.0"
-nonebot2 = "^2.1.3"
+nonebot2 = {extras = ["fastapi"], version = "^2.3.3"}
 pillow = "^10.0.0"
 retrying = "^1.3.4"
 aiofiles = "^23.2.1"
 nonebot-plugin-htmlrender = "^0.3.0"
-nonebot-plugin-userinfo = "^0.1.3"
 pypinyin = "^0.51.0"
 beautifulsoup4 = "^4.12.3"
 lxml = "^5.1.0"
@@ -61,7 +60,6 @@ plugins = [
     "nonebot_plugin_apscheduler",
     "nonebot_plugin_session",
     "nonebot_plugin_htmlrender",
-    "nonebot_plugin_userinfo",
     "nonebot_plugin_alconna",
 ]
 plugin_dirs = ["zhenxun/services", "zhenxun/builtin_plugins", "zhenxun/plugins"]
