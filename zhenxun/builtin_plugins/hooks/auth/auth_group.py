@@ -4,8 +4,8 @@ from nonebot_plugin_uninfo import Uninfo
 
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.services.cache import Cache
 from zhenxun.services.log import logger
-from zhenxun.utils.cache_utils import Cache
 from zhenxun.utils.enum import CacheType
 
 

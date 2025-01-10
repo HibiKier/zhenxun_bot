@@ -2,7 +2,7 @@ from tortoise import fields
 
 from zhenxun.models.goods_info import GoodsInfo
 from zhenxun.services.db_context import Model
-from zhenxun.utils.enum import GoldHandle
+from zhenxun.utils.enum import CacheType, GoldHandle
 from zhenxun.utils.exception import GoodsNotFound, InsufficientGold
 
 from .user_gold_log import UserGoldLog
@@ -29,6 +29,8 @@ class UserConsole(Model):
     class Meta:
         table = "user_console"
         table_description = "用户数据表"
+
+    cache_type = CacheType.USERS
 
     @classmethod
     async def get_user(cls, user_id: str, platform: str | None = None) -> "UserConsole":

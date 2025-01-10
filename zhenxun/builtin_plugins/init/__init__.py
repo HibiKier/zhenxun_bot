@@ -10,8 +10,8 @@ from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.level_user import LevelUser
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.user_console import UserConsole
+from zhenxun.services.cache import CacheRoot
 from zhenxun.services.log import logger
-from zhenxun.utils.cache_utils import CacheRoot
 from zhenxun.utils.enum import CacheType
 from zhenxun.utils.platform import PlatformUtils
 
@@ -176,25 +176,23 @@ async def _():
 
 
 @CacheRoot.getter(CacheType.BAN, result_model=list[BanConsole])
-def _(data_list: list[BanConsole], user_id: str, group_id: str):
+def _(data_list: list[BanConsole], user_id: str | None, group_id: str | None = None):
     if user_id:
-        if group_id:
-            return [
+        return (
+            [
                 data
                 for data in data_list
                 if data.user_id == user_id and data.group_id == group_id
             ]
-        else:
-            return [
+            if group_id
+            else [
                 data
                 for data in data_list
                 if data.user_id == user_id and not data.group_id
             ]
-    else:
-        if group_id:
-            return [
-                data
-                for data in data_list
-                if not data.user_id and data.group_id == group_id
-            ]
+        )
+    if group_id:
+        return [
+            data for data in data_list if not data.user_id and data.group_id == group_id
+        ]
     return None

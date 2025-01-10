@@ -5,7 +5,7 @@ from nonebot_plugin_uninfo import Uninfo
 from zhenxun.models.level_user import LevelUser
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.services.log import logger
-from zhenxun.utils.cache_utils import Cache
+from zhenxun.services.cache import Cache
 from zhenxun.utils.enum import CacheType
 from zhenxun.utils.message import MessageUtils
 

@@ -3,7 +3,7 @@ from nonebot.exception import IgnoredException
 from zhenxun.models.bot_console import BotConsole
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.services.log import logger
-from zhenxun.utils.cache_utils import Cache
+from zhenxun.services.cache import Cache
 from zhenxun.utils.common_utils import CommonUtils
 from zhenxun.utils.enum import CacheType
 

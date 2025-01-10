@@ -1,6 +1,7 @@
 from tortoise import fields
 
 from zhenxun.services.db_context import Model
+from zhenxun.utils.enum import CacheType
 
 
 class LevelUser(Model):
@@ -19,6 +20,8 @@ class LevelUser(Model):
         table = "level_users"
         table_description = "用户权限数据库"
         unique_together = ("user_id", "group_id")
+
+    cache_type = CacheType.LEVEL
 
     @classmethod
     async def get_user_level(cls, user_id: str, group_id: str | None) -> int:

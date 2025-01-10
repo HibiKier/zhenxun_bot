@@ -5,6 +5,7 @@ from tortoise import fields
 
 from zhenxun.services.db_context import Model
 from zhenxun.services.log import logger
+from zhenxun.utils.enum import CacheType
 from zhenxun.utils.exception import UserAndGroupIsNone
 
 
@@ -27,6 +28,9 @@ class BanConsole(Model):
     class Meta:  # type: ignore
         table = "ban_console"
         table_description = "封禁人员/群组数据表"
+        unique_together = ("user_id", "group_id")
+
+    cache_type = CacheType.BAN
 
     @classmethod
     async def _get_data(cls, user_id: str | None, group_id: str | None) -> Self | None:

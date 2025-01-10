@@ -4,8 +4,8 @@ from nonebot_plugin_uninfo import Uninfo
 
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.plugin_info import PluginInfo
+from zhenxun.services.cache import Cache
 from zhenxun.services.log import logger
-from zhenxun.utils.cache_utils import Cache
 from zhenxun.utils.common_utils import CommonUtils
 from zhenxun.utils.enum import BlockType, CacheType
 from zhenxun.utils.message import MessageUtils
@@ -155,22 +155,23 @@ class PluginCheck:
         异常:
             IgnoredException: 忽略插件
         """
-        if not plugin.status and plugin.block_type == BlockType.ALL:
-            """全局状态"""
-            cache = Cache[GroupConsole](CacheType.GROUPS)
-            if self.group_id and (group := await cache.get(self.group_id)):
-                if group.is_super:
-                    raise IsSuperuserException()
-            logger.debug(
-                f"{plugin.name}({plugin.module}) 全局未开启此功能...",
-                "AuthChecker",
-                session=self.session,
-            )
-            sid = self.group_id or self.session.user.id
-            if freq.is_send_limit_message(plugin, sid, self.is_poke):
-                freq._flmt_s.start_cd(sid)
-                await MessageUtils.build_message("全局未开启此功能...").send()
-            raise IgnoredException("全局未开启此功能...")
+        if plugin.status or plugin.block_type != BlockType.ALL:
+            return
+        """全局状态"""
+        cache = Cache[GroupConsole](CacheType.GROUPS)
+        if self.group_id and (group := await cache.get(self.group_id)):
+            if group.is_super:
+                raise IsSuperuserException()
+        logger.debug(
+            f"{plugin.name}({plugin.module}) 全局未开启此功能...",
+            "AuthChecker",
+            session=self.session,
+        )
+        sid = self.group_id or self.session.user.id
+        if freq.is_send_limit_message(plugin, sid, self.is_poke):
+            freq._flmt_s.start_cd(sid)
+            await MessageUtils.build_message("全局未开启此功能...").send()
+        raise IgnoredException("全局未开启此功能...")
 
 
 async def auth_plugin(plugin: PluginInfo, session: Uninfo, event: Event):

@@ -8,7 +8,7 @@ from tortoise.exceptions import IntegrityError
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.user_console import UserConsole
 from zhenxun.services.log import logger
-from zhenxun.utils.cache_utils import Cache
+from zhenxun.services.cache import Cache
 from zhenxun.utils.enum import (
     CacheType,
     GoldHandle,

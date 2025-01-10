@@ -6,8 +6,8 @@ from tortoise.backends.base.client import BaseDBAsyncClient
 
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.task_info import TaskInfo
+from zhenxun.services.cache import CacheRoot
 from zhenxun.services.db_context import Model
-from zhenxun.utils.cache_utils import CacheRoot
 from zhenxun.utils.enum import CacheType, PluginType
 
 
@@ -47,9 +47,12 @@ class GroupConsole(Model):
     platform = fields.CharField(255, default="qq", description="所属平台")
     """所属平台"""
 
-    class Meta:  # type: ignore       table = "group_console"
+    class Meta:  # type: ignore
+        table = "group_console"
         table_description = "群组信息表"
         unique_together = ("group_id", "channel_id")
+
+    cache_type = CacheType.GROUPS
 
     @staticmethod
     def format(name: str) -> str:
@@ -198,7 +201,7 @@ class GroupConsole(Model):
         """
         return await cls.exists(
             group_id=group_id,
-            superuser_block_plugin__contains=f"<{module},",
+            superuser_block_plugin__contains=cls.format(module),
         )
 
     @classmethod
@@ -213,13 +216,12 @@ class GroupConsole(Model):
             bool: 是否禁用插件
         """
         return await cls.exists(
-            group_id=group_id, block_plugin__contains=f"<{module},"
+            group_id=group_id, block_plugin__contains=cls.format(module)
         ) or await cls.exists(
-            group_id=group_id, superuser_block_plugin__contains=f"<{module},"
+            group_id=group_id, superuser_block_plugin__contains=cls.format(module)
         )
 
     @classmethod
-    @CacheRoot.listener(CacheType.GROUPS)
     async def set_block_plugin(
         cls,
         group_id: str,
@@ -239,14 +241,13 @@ class GroupConsole(Model):
             group_id=group_id, defaults={"platform": platform}
         )
         if is_superuser:
-            if f"<{module}," not in group.superuser_block_plugin:
-                group.superuser_block_plugin += f"<{module},"
-        elif f"<{module}," not in group.block_plugin:
-            group.block_plugin += f"<{module},"
+            if cls.format(module) not in group.superuser_block_plugin:
+                group.superuser_block_plugin += cls.format(module)
+        elif cls.format(module) not in group.block_plugin:
+            group.block_plugin += cls.format(module)
         await group.save(update_fields=["block_plugin", "superuser_block_plugin"])
 
     @classmethod
-    @CacheRoot.listener(CacheType.GROUPS)
     async def set_unblock_plugin(
         cls,
         group_id: str,
@@ -266,12 +267,12 @@ class GroupConsole(Model):
             group_id=group_id, defaults={"platform": platform}
         )
         if is_superuser:
-            if f"<{module}," in group.superuser_block_plugin:
+            if cls.format(module) in group.superuser_block_plugin:
                 group.superuser_block_plugin = group.superuser_block_plugin.replace(
-                    f"<{module},", ""
+                    cls.format(module), ""
                 )
-        elif f"<{module}," in group.block_plugin:
-            group.block_plugin = group.block_plugin.replace(f"<{module},", "")
+        elif cls.format(module) in group.block_plugin:
+            group.block_plugin = group.block_plugin.replace(cls.format(module), "")
         await group.save(update_fields=["block_plugin", "superuser_block_plugin"])
 
     @classmethod
@@ -291,7 +292,7 @@ class GroupConsole(Model):
         return await cls.exists(
             group_id=group_id,
             channel_id=channel_id,
-            block_plugin__contains=f"<{module},",
+            block_plugin__contains=cls.format(module),
         )
 
     @classmethod
@@ -307,7 +308,7 @@ class GroupConsole(Model):
         """
         return await cls.exists(
             group_id=group_id,
-            superuser_block_task__contains=f"<{task},",
+            superuser_block_task__contains=cls.format(task),
         )
 
     @classmethod
@@ -328,22 +329,23 @@ class GroupConsole(Model):
             return await cls.exists(
                 group_id=group_id,
                 channel_id__isnull=True,
-                block_task__contains=f"<{task},",
+                block_task__contains=cls.format(task),
             ) or await cls.exists(
                 group_id=group_id,
                 channel_id__isnull=True,
-                superuser_block_task__contains=f"<{task},",
+                superuser_block_task__contains=cls.format(task),
             )
         return await cls.exists(
-            group_id=group_id, channel_id=channel_id, block_task__contains=f"<{task},"
+            group_id=group_id,
+            channel_id=channel_id,
+            block_task__contains=cls.format(task),
         ) or await cls.exists(
             group_id=group_id,
             channel_id__isnull=True,
-            superuser_block_task__contains=f"<{task},",
+            superuser_block_task__contains=cls.format(task),
         )
 
     @classmethod
-    @CacheRoot.listener(CacheType.GROUPS)
     async def set_block_task(
         cls,
         group_id: str,
@@ -363,14 +365,13 @@ class GroupConsole(Model):
             group_id=group_id, defaults={"platform": platform}
         )
         if is_superuser:
-            if f"<{task}," not in group.superuser_block_task:
-                group.superuser_block_task += f"<{task},"
-        elif f"<{task}," not in group.block_task:
-            group.block_task += f"<{task},"
+            if cls.format(task) not in group.superuser_block_task:
+                group.superuser_block_task += cls.format(task)
+        elif cls.format(task) not in group.block_task:
+            group.block_task += cls.format(task)
         await group.save(update_fields=["block_task", "superuser_block_task"])
 
     @classmethod
-    @CacheRoot.listener(CacheType.GROUPS)
     async def set_unblock_task(
         cls,
         group_id: str,
@@ -390,12 +391,12 @@ class GroupConsole(Model):
             group_id=group_id, defaults={"platform": platform}
         )
         if is_superuser:
-            if f"<{task}," in group.superuser_block_task:
+            if cls.format(task) in group.superuser_block_task:
                 group.superuser_block_task = group.superuser_block_task.replace(
-                    f"<{task},", ""
+                    cls.format(task), ""
                 )
-        elif f"<{task}," in group.block_task:
-            group.block_task = group.block_task.replace(f"<{task},", "")
+        elif cls.format(task) in group.block_task:
+            group.block_task = group.block_task.replace(cls.format(task), "")
         await group.save(update_fields=["block_task", "superuser_block_task"])
 
     @classmethod
