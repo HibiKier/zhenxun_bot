@@ -4,7 +4,7 @@ from nonebot_plugin_alconna import Alconna, Args, Arparma, At, Match, on_alconna
 from nonebot_plugin_uninfo import Uninfo
 from playwright.async_api import TimeoutError
 
-from zhenxun.configs.utils import PluginExtraData
+from zhenxun.configs.utils import Command, PluginExtraData
 from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.services.log import logger
 from zhenxun.utils.depends import UserName
@@ -20,7 +20,9 @@ __plugin_meta__ = PluginMetadata(
     指令：
         我的信息 ?[at]
     """.strip(),
-    extra=PluginExtraData(author="HibiKier", version="0.1").to_dict(),
+    extra=PluginExtraData(
+        author="HibiKier", version="0.1", commands=[Command(command="我的信息")]
+    ).to_dict(),
 )
 
 

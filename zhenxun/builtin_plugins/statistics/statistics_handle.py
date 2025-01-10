@@ -10,7 +10,7 @@ from nonebot_plugin_alconna import (
 )
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.utils import PluginExtraData
+from zhenxun.configs.utils import Command, PluginExtraData
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.message import MessageUtils
 
@@ -45,6 +45,15 @@ __plugin_meta__ = PluginMetadata(
         "全局周功能调用统计",
         "全局月功能调用统计",
         """.strip(),
+        commands=[
+            Command(command="功能调用统计"),
+            Command(command="日功能调用统计"),
+            Command(command="周功能调用统计"),
+            Command(command="我的功能调用统计"),
+            Command(command="我的日功能调用统计"),
+            Command(command="我的周功能调用统计"),
+            Command(command="我的月功能调用统计"),
+        ],
     ).to_dict(),
 )
 

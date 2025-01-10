@@ -10,7 +10,7 @@ from nonebot_plugin_alconna import Alconna, Option, on_alconna, store_true
 from nonebot_plugin_uninfo import Uninfo
 
 from zhenxun.configs.config import BotConfig, Config
-from zhenxun.configs.utils import PluginExtraData, RegisterConfig
+from zhenxun.configs.utils import Command, PluginExtraData, RegisterConfig
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.friend_user import FriendUser
 from zhenxun.models.group_member_info import GroupInfoUser
@@ -36,6 +36,11 @@ __plugin_meta__ = PluginMetadata(
         version="0.1",
         plugin_type=PluginType.NORMAL,
         menu_type="其他",
+        commands=[
+            Command(command="以后叫我 [昵称]"),
+            Command(command="全局昵称设置 [昵称]"),
+            Command(command=f"{BotConfig.self_nickname}我是谁"),
+        ],
         configs=[
             RegisterConfig(
                 key="BLACK_WORD",

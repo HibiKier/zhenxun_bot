@@ -26,11 +26,14 @@ async def sort_type() -> dict[str, list[PluginInfo]]:
     return sort_data
 
 
-async def classify_plugin(group_id: str | None, handle: Callable) -> dict[str, list]:
+async def classify_plugin(
+    group_id: str | None, is_detail: bool, handle: Callable
+) -> dict[str, list]:
     """对插件进行分类并判断状态
 
     参数:
         group_id: 群组id
+        is_detail: 是否详细帮助
 
     返回:
         dict[str, list[Item]]: 分类插件数据
@@ -42,5 +45,5 @@ async def classify_plugin(group_id: str | None, handle: Callable) -> dict[str, l
         for plugin in value:
             if not classify.get(menu):
                 classify[menu] = []
-            classify[menu].append(handle(plugin, group))
+            classify[menu].append(handle(plugin, group, is_detail))
     return classify

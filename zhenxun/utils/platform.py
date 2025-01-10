@@ -207,7 +207,7 @@ class PlatformUtils:
             if user_id.isdigit():
                 url = f"http://q1.qlogo.cn/g?b=qq&nk={user_id}&s=160"
             else:
-                url = f"https://q.qlogo.cn/qqapp/{appid}/{user_id}/100"
+                url = f"https://q.qlogo.cn/qqapp/{appid}/{user_id}/640"
         return await AsyncHttpx.get_content(url) if url else None
 
     @classmethod
@@ -220,14 +220,12 @@ class PlatformUtils:
             user_id: 用户id
             platform: 平台
         """
-        if platform == "qq":
-            return (
-                f"http://q1.qlogo.cn/g?b=qq&nk={user_id}&s=160"
-                if user_id.isdigit()
-                else f"https://q.qlogo.cn/qqapp/{appid}/{user_id}/100"
-            )
-        else:
+        if platform != "qq":
             return None
+        if user_id.isdigit():
+            return f"http://q1.qlogo.cn/g?b=qq&nk={user_id}&s=160"
+        else:
+            return f"https://q.qlogo.cn/qqapp/{appid}/{user_id}/640"
 
     @classmethod
     async def get_group_avatar(cls, gid: str, platform: str) -> bytes | None:

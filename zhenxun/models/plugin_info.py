@@ -44,6 +44,8 @@ class PluginInfo(Model):
     """插件限制"""
     admin_level = fields.IntField(default=0, null=True, description="调用所需权限等级")
     """调用所需权限等级"""
+    ignore_prompt = fields.BooleanField(default=False, description="是否忽略提示")
+    """是否忽略阻断提示"""
     is_delete = fields.BooleanField(default=False, description="是否删除")
     """是否删除"""
     parent = fields.CharField(max_length=255, null=True, description="父插件")
@@ -84,4 +86,5 @@ class PluginInfo(Model):
         return [
             "ALTER TABLE plugin_info ADD COLUMN parent character varying(255);",
             "ALTER TABLE plugin_info ADD COLUMN is_show boolean DEFAULT true;",
+            "ALTER TABLE plugin_info ADD COLUMN ignore_prompt boolean DEFAULT false;",
         ]

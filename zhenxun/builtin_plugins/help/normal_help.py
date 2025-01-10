@@ -9,11 +9,12 @@ from ._utils import sort_type
 BACKGROUND_PATH = IMAGE_PATH / "background" / "help" / "simple_help"
 
 
-async def build_normal_image(group_id: str | None) -> BuildImage:
+async def build_normal_image(group_id: str | None, is_detail: bool) -> BuildImage:
     """构造PIL帮助图片
 
     参数:
          group_id: 群号
+         is_detail: 详细帮助
     """
     image_list = []
     font_size = 24

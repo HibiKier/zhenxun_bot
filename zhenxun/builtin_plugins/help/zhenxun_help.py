@@ -1,9 +1,11 @@
+import nonebot
 from nonebot_plugin_htmlrender import template_to_pic
 from nonebot_plugin_uninfo import Uninfo
 from pydantic import BaseModel
 
 from zhenxun.configs.config import BotConfig
 from zhenxun.configs.path_config import TEMPLATE_PATH
+from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.utils.enum import BlockType
@@ -15,9 +17,11 @@ from ._utils import classify_plugin
 class Item(BaseModel):
     plugin_name: str
     """插件名称"""
+    commands: list[str]
+    """插件命令"""
 
 
-def __handle_item(plugin: PluginInfo, group: GroupConsole | None):
+def __handle_item(plugin: PluginInfo, group: GroupConsole | None, is_detail: bool):
     """构造Item
 
     参数:
@@ -36,7 +40,12 @@ def __handle_item(plugin: PluginInfo, group: GroupConsole | None):
             plugin.name = f"{plugin.name}(不可用)"
     elif group and f"{plugin.module}," in group.block_plugin:
         plugin.name = f"{plugin.name}(不可用)"
-    return Item(plugin_name=f"{plugin.id}-{plugin.name}")
+    commands = []
+    nb_plugin = nonebot.get_plugin_by_module_name(plugin.module_path)
+    if is_detail and nb_plugin and nb_plugin.metadata and nb_plugin.metadata.extra:
+        extra_data = PluginExtraData(**nb_plugin.metadata.extra)
+        commands = [cmd.command for cmd in extra_data.commands]
+    return Item(plugin_name=f"{plugin.id}-{plugin.name}", commands=commands)
 
 
 def build_plugin_data(classify: dict[str, list[Item]]) -> list[dict[str, str]]:
@@ -123,18 +132,24 @@ def build_line_data(plugin_list: list[dict]) -> list[dict]:
     return data
 
 
-async def build_zhenxun_image(session: Uninfo, group_id: str | None) -> bytes:
+async def build_zhenxun_image(
+    session: Uninfo, group_id: str | None, is_detail: bool
+) -> bytes:
     """构造真寻帮助图片
 
     参数:
         bot_id: bot_id
         group_id: 群号
+        is_detail: 是否详细帮助
     """
-    classify = await classify_plugin(group_id, __handle_item)
+    classify = await classify_plugin(group_id, is_detail, __handle_item)
     plugin_list = build_plugin_data(classify)
     platform = PlatformUtils.get_platform(session)
     bot_id = BotConfig.get_qbot_uid(session.self_id) or session.self_id
     bot_ava = PlatformUtils.get_user_avatar_url(bot_id, platform)
+    width = int(637 * 1.5) if is_detail else 637
+    title_font = int(53 * 1.5) if is_detail else 53
+    tip_font = int(19 * 1.5) if is_detail else 19
     return await template_to_pic(
         template_path=str((TEMPLATE_PATH / "ss_menu").absolute()),
         template_name="main.html",
@@ -142,10 +157,13 @@ async def build_zhenxun_image(session: Uninfo, group_id: str | None) -> bytes:
             "data": {
                 "plugin_list": plugin_list,
                 "ava": bot_ava,
+                "width": width,
+                "font_size": (title_font, tip_font),
+                "is_detail": is_detail,
             }
         },
         pages={
-            "viewport": {"width": 637, "height": 453},
+            "viewport": {"width": width, "height": 453},
             "base_url": f"file://{TEMPLATE_PATH}",
         },
         wait=2,

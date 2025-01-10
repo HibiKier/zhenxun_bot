@@ -14,7 +14,7 @@ from nonebot_plugin_alconna import (
 from nonebot_plugin_session import EventSession
 import pytz
 
-from zhenxun.configs.utils import PluginExtraData
+from zhenxun.configs.utils import Command, PluginExtraData
 from zhenxun.models.chat_history import ChatHistory
 from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.services.log import logger
@@ -45,6 +45,13 @@ __plugin_meta__ = PluginMetadata(
         version="0.1",
         plugin_type=PluginType.NORMAL,
         menu_type="数据统计",
+        commands=[
+            Command(command="消息统计"),
+            Command(command="日消息统计"),
+            Command(command="周消息排行"),
+            Command(command="月消息排行"),
+            Command(command="年消息排行"),
+        ],
     ).to_dict(),
 )
 

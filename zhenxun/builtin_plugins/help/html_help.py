@@ -47,12 +47,15 @@ ICON2STR = {
 }
 
 
-def __handle_item(plugin: PluginInfo, group: GroupConsole | None) -> Item:
+def __handle_item(
+    plugin: PluginInfo, group: GroupConsole | None, is_detail: bool
+) -> Item:
     """构造Item
 
     参数:
         plugin: PluginInfo
         group: 群组
+        is_detail: 是否详细
 
     返回:
         Item: Item
@@ -116,13 +119,14 @@ def build_plugin_data(classify: dict[str, list[Item]]) -> list[dict[str, str]]:
     return plugin_list
 
 
-async def build_html_image(group_id: str | None) -> bytes:
+async def build_html_image(group_id: str | None, is_detail: bool) -> bytes:
     """构造HTML帮助图片
 
     参数:
         group_id: 群号
+        is_detail: 是否详细帮助
     """
-    classify = await classify_plugin(group_id, __handle_item)
+    classify = await classify_plugin(group_id, is_detail, __handle_item)
     plugin_list = build_plugin_data(classify)
     return await template_to_pic(
         template_path=str((TEMPLATE_PATH / "menu").absolute()),
