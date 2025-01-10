@@ -47,12 +47,15 @@ ICON2STR = {
 }
 
 
-def __handle_item(plugin: PluginInfo, group: GroupConsole | None) -> Item:
+def __handle_item(
+    plugin: PluginInfo, group: GroupConsole | None, is_detail: bool
+) -> Item:
     """构造Item
 
     参数:
         plugin: PluginInfo
         group: 群组
+        is_detail: 是否详细
 
     返回:
         Item: Item
