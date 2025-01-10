@@ -5,7 +5,7 @@ from nonebot_plugin_alconna import Alconna, Arparma, on_alconna
 from nonebot_plugin_alconna.uniseg.tools import reply_fetch
 from nonebot_plugin_uninfo import Uninfo
 
-from zhenxun.configs.utils import PluginExtraData
+from zhenxun.configs.utils import Command, PluginExtraData
 from zhenxun.services.log import logger
 from zhenxun.utils.manager.message_manager import MessageManager
 from zhenxun.utils.message import MessageUtils
@@ -17,7 +17,12 @@ __plugin_meta__ = PluginMetadata(
     usage="""
     引用消息 撤回
     """.strip(),
-    extra=PluginExtraData(author="HibiKier", version="0.1", menu_type="其他").to_dict(),
+    extra=PluginExtraData(
+        author="HibiKier",
+        version="0.1",
+        menu_type="其他",
+        commands=[Command(command="[引用消息] 撤回")],
+    ).to_dict(),
 )
 
 

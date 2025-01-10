@@ -7,6 +7,7 @@ from nonebot.drivers import Driver
 from tortoise.expressions import RawSQL
 from tortoise.functions import Count
 
+from zhenxun.configs.config import BotConfig
 from zhenxun.models.bot_connect_log import BotConnectLog
 from zhenxun.models.chat_history import ChatHistory
 from zhenxun.models.statistics import Statistics
@@ -50,7 +51,12 @@ class ApiDataSource:
         if platform == "qq":
             login_info = await bot.get_login_info()
             nickname = login_info["nickname"]
-            ava_url = PlatformUtils.get_user_avatar_url(bot.self_id, "qq") or ""
+            ava_url = (
+                PlatformUtils.get_user_avatar_url(
+                    bot.self_id, "qq", BotConfig.get_qbot_uid(bot.self_id)
+                )
+                or ""
+            )
         else:
             nickname = bot.self_id
             ava_url = ""

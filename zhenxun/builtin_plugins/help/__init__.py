@@ -13,7 +13,11 @@ from nonebot_plugin_alconna import (
 )
 from nonebot_plugin_uninfo import Uninfo
 
-from zhenxun.builtin_plugins.help._config import GROUP_HELP_PATH, SIMPLE_HELP_IMAGE
+from zhenxun.builtin_plugins.help._config import (
+    GROUP_HELP_PATH,
+    SIMPLE_DETAIL_HELP_IMAGE,
+    SIMPLE_HELP_IMAGE,
+)
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
@@ -47,11 +51,20 @@ _matcher = on_alconna(
         "功能",
         Args["name?", str],
         Option("-s|--superuser", action=store_true, help_text="超级用户帮助"),
+        Option("-d|--detail", action=store_true, help_text="详细帮助"),
     ),
     aliases={"help", "帮助", "菜单"},
     rule=to_me(),
     priority=1,
     block=True,
+)
+
+
+_matcher.shortcut(
+    r"详细帮助",
+    command="功能",
+    arguments=["--detail"],
+    prefix=True,
 )
 
 
@@ -61,6 +74,7 @@ async def _(
     name: Match[str],
     session: Uninfo,
     is_superuser: Query[bool] = AlconnaQuery("superuser.value", False),
+    is_detail: Query[bool] = AlconnaQuery("detail.value", False),
 ):
     _is_superuser = is_superuser.result if is_superuser.available else False
     if name.available:
@@ -74,11 +88,15 @@ async def _(
             )
         logger.info(f"查看帮助详情: {name.result}", "帮助", session=session)
     elif session.group and (gid := session.group.id):
-        _image_path = GROUP_HELP_PATH / f"{gid}.png"
+        _image_path = GROUP_HELP_PATH / f"{gid}_{is_detail.result}.png"
         if not _image_path.exists():
-            await create_help_img(session, gid)
+            result = await create_help_img(session, gid, is_detail.result)
         await MessageUtils.build_message(_image_path).finish()
     else:
-        if not SIMPLE_HELP_IMAGE.exists():
-            await create_help_img(session, None)
-        await MessageUtils.build_message(SIMPLE_HELP_IMAGE).finish()
+        if is_detail.result:
+            _image_path = SIMPLE_DETAIL_HELP_IMAGE
+        else:
+            _image_path = SIMPLE_HELP_IMAGE
+        if not _image_path.exists():
+            result = await create_help_img(session, None, is_detail.result)
+        await MessageUtils.build_message(_image_path).finish()

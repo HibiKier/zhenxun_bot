@@ -37,7 +37,7 @@ class Command(BaseModel):
     """
 
     command: str
-    """命令"""
+    """命令名称"""
     params: list[str] = []
     """参数"""
     description: str = ""
@@ -236,6 +236,8 @@ class PluginExtraData(BaseModel):
     """插件限制"""
     commands: list[Command] = []
     """命令列表，用于说明帮助"""
+    ignore_prompt: bool = False
+    """是否忽略阻断提示"""
     tasks: list[Task] | None = None
     """技能被动"""
     superuser_help: str | None = None

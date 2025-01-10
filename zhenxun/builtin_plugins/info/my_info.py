@@ -145,7 +145,7 @@ async def get_user_info(
         bytes: 图片数据
     """
     platform = PlatformUtils.get_platform(session) or "qq"
-    ava_url = PlatformUtils.get_user_avatar_url(user_id, platform)
+    ava_url = PlatformUtils.get_user_avatar_url(user_id, platform, session.self_id)
     user = await UserConsole.get_user(user_id, platform)
     level = await LevelUser.get_user_level(user_id, group_id)
     sign_level = 0

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import nonebot
 from nonebot_plugin_uninfo import Uninfo
 
@@ -7,7 +9,12 @@ from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.image_utils import BuildImage, ImageTemplate
 
-from ._config import GROUP_HELP_PATH, SIMPLE_HELP_IMAGE, base_config
+from ._config import (
+    GROUP_HELP_PATH,
+    SIMPLE_DETAIL_HELP_IMAGE,
+    SIMPLE_HELP_IMAGE,
+    base_config,
+)
 from .html_help import build_html_image
 from .normal_help import build_normal_image
 from .zhenxun_help import build_zhenxun_image
@@ -20,7 +27,9 @@ background = IMAGE_PATH / "background" / "0.png"
 driver = nonebot.get_driver()
 
 
-async def create_help_img(session: Uninfo, group_id: str | None):
+async def create_help_img(
+    session: Uninfo, group_id: str | None, is_detail: bool
+) -> Path:
     """生成帮助图片
 
     参数:
@@ -31,14 +40,21 @@ async def create_help_img(session: Uninfo, group_id: str | None):
 
     match help_type:
         case "html":
-            result = BuildImage.open(await build_html_image(group_id))
+            result = BuildImage.open(await build_html_image(group_id, is_detail))
         case "zhenxun":
-            result = BuildImage.open(await build_zhenxun_image(session, group_id))
+            result = BuildImage.open(
+                await build_zhenxun_image(session, group_id, is_detail)
+            )
         case _:
-            result = await build_normal_image(group_id)
-
-    save_path = GROUP_HELP_PATH / f"{group_id}.png" if group_id else SIMPLE_HELP_IMAGE
+            result = await build_normal_image(group_id, is_detail)
+    if group_id:
+        save_path = GROUP_HELP_PATH / f"{group_id}_{is_detail}.png"
+    elif is_detail:
+        save_path = SIMPLE_DETAIL_HELP_IMAGE
+    else:
+        save_path = SIMPLE_HELP_IMAGE
     await result.save(save_path)
+    return save_path
 
 
 async def get_user_allow_help(user_id: str) -> list[PluginType]:

@@ -12,7 +12,12 @@ from nonebot_plugin_alconna import (
 from nonebot_plugin_apscheduler import scheduler
 from nonebot_plugin_uninfo import Uninfo
 
-from zhenxun.configs.utils import PluginCdBlock, PluginExtraData, RegisterConfig
+from zhenxun.configs.utils import (
+    Command,
+    PluginCdBlock,
+    PluginExtraData,
+    RegisterConfig,
+)
 from zhenxun.services.log import logger
 from zhenxun.utils.depends import UserName
 from zhenxun.utils.message import MessageUtils
@@ -37,6 +42,12 @@ __plugin_meta__ = PluginMetadata(
     extra=PluginExtraData(
         author="HibiKier",
         version="0.1",
+        commands=[
+            Command(command="签到"),
+            Command(command="我的签到"),
+            Command(command="签到排行"),
+            Command(command="签到总排行"),
+        ],
         configs=[
             RegisterConfig(
                 module="send_setu",
