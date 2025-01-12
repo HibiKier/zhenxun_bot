@@ -1,5 +1,7 @@
 import time
 
+from tortoise.expressions import Q
+
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.models.goods_info import GoodsInfo
 from zhenxun.utils._build_image import BuildImage
@@ -14,17 +16,20 @@ async def normal_image() -> bytes:
     返回:
         BuildImage: 商店图片
     """
-    goods_lst = await GoodsInfo.get_all_goods()
     h = 10
-    _list: list[GoodsInfo] = [
-        goods
-        for goods in goods_lst
-        if goods.goods_limit_time == 0 or time.time() < goods.goods_limit_time
-    ]
+    goods_list = (
+        await GoodsInfo.filter(
+            Q(goods_limit_time__gte=time.time()) | Q(goods_limit_time=0),
+            goods_limit_time=0,
+        )
+        .annotate()
+        .order_by("id")
+        .all()
+    )
     # A = BuildImage(1100, h, color="#f9f6f2")
     total_n = 0
     image_list = []
-    for idx, goods in enumerate(_list):
+    for idx, goods in enumerate(goods_list):
         name_image = BuildImage(
             580, 40, font_size=25, color="#e67b6b", font="CJGaoDeGuo.otf"
         )
