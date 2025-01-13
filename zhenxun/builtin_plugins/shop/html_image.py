@@ -1,3 +1,4 @@
+from datetime import datetime
 import time
 
 from nonebot_plugin_htmlrender import template_to_pic
@@ -19,12 +20,28 @@ class GoodsItem(BaseModel):
     """分区名称"""
 
 
+def get_limit_time(end_time: int):
+    now = int(time.time())
+    if now > end_time:
+        return None
+    current_datetime = datetime.fromtimestamp(now)
+    end_datetime = datetime.fromtimestamp(end_time)
+    time_difference = end_datetime - current_datetime
+    total_seconds = time_difference.total_seconds()
+    hours = int(total_seconds // 3600)
+    minutes = int((total_seconds % 3600) // 60)
+    return f"{hours}:{minutes}"
+
+
+def get_discount(price: int, discount: float):
+    return None if discount == 1.0 else int(price * discount)
+
+
 async def html_image() -> bytes:
     """构建图片"""
     goods_list = (
         await GoodsInfo.filter(
-            Q(goods_limit_time__gte=time.time()) | Q(goods_limit_time=0),
-            goods_limit_time=0,
+            Q(goods_limit_time__gte=time.time()) | Q(goods_limit_time=0)
         )
         .annotate()
         .order_by("id")
@@ -48,6 +65,8 @@ async def html_image() -> bytes:
             {
                 "id": idx + 1,
                 "price": goods.goods_price,
+                "discount_price": get_discount(goods.goods_price, goods.goods_discount),
+                "limit_time": get_limit_time(goods.goods_limit_time),
                 "daily_limit": goods.daily_limit or "∞",
                 "name": goods.goods_name,
                 "icon": icon,

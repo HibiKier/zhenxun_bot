@@ -410,15 +410,14 @@ class ShopManage:
             return "购买的数量要大于0!"
         goods_list = (
             await GoodsInfo.filter(
-                Q(goods_limit_time__gte=time.time()) | Q(goods_limit_time=0),
-                goods_limit_time=0,
+                Q(goods_limit_time__gte=time.time()) | Q(goods_limit_time=0)
             )
             .annotate()
             .order_by("id")
             .all()
         )
         if name.isdigit():
-            if int(name) >= len(goods_list) or int(name) <= 0:
+            if int(name) > len(goods_list) or int(name) <= 0:
                 return "道具编号不存在..."
             goods = goods_list[int(name) - 1]
         elif filter_goods := [g for g in goods_list if g.goods_name == name]:

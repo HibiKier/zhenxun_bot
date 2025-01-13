@@ -19,8 +19,7 @@ async def normal_image() -> bytes:
     h = 10
     goods_list = (
         await GoodsInfo.filter(
-            Q(goods_limit_time__gte=time.time()) | Q(goods_limit_time=0),
-            goods_limit_time=0,
+            Q(goods_limit_time__gte=time.time()) | Q(goods_limit_time=0)
         )
         .annotate()
         .order_by("id")
