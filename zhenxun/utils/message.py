@@ -7,6 +7,7 @@ from nonebot.adapters.onebot.v11 import Message, MessageSegment
 from nonebot_plugin_alconna import (
     At,
     AtAll,
+    Button,
     CustomNode,
     Image,
     Reference,
@@ -37,6 +38,7 @@ MESSAGE_TYPE = (
     | Text
     | Voice
     | Video
+    | Button
 )
 
 
@@ -58,9 +60,7 @@ class MessageUtils:
         config = nonebot.get_plugin_config(Config)
         message_list = []
         for msg in msg_list:
-            if isinstance(msg, Image | Text | At | AtAll | Video | Voice):
-                message_list.append(msg)
-            elif isinstance(msg, str):
+            if isinstance(msg, str):
                 if msg.startswith("base64://"):
                     message_list.append(Image(raw=BytesIO(base64.b64decode(msg[9:]))))
                 elif msg.startswith("http://"):
@@ -85,6 +85,8 @@ class MessageUtils:
                 message_list.append(Image(raw=msg))
             elif isinstance(msg, BuildImage):
                 message_list.append(Image(raw=msg.pic2bytes()))
+            else:
+                message_list.append(msg)
         return message_list
 
     @classmethod

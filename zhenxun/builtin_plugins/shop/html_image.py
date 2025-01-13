@@ -1,7 +1,9 @@
+from datetime import datetime
 import time
 
 from nonebot_plugin_htmlrender import template_to_pic
 from pydantic import BaseModel
+from tortoise.expressions import Q
 
 from zhenxun.configs.config import BotConfig
 from zhenxun.configs.path_config import TEMPLATE_PATH
@@ -18,35 +20,57 @@ class GoodsItem(BaseModel):
     """分区名称"""
 
 
+def get_limit_time(end_time: int):
+    now = int(time.time())
+    if now > end_time:
+        return None
+    current_datetime = datetime.fromtimestamp(now)
+    end_datetime = datetime.fromtimestamp(end_time)
+    time_difference = end_datetime - current_datetime
+    total_seconds = time_difference.total_seconds()
+    hours = int(total_seconds // 3600)
+    minutes = int((total_seconds % 3600) // 60)
+    return f"{hours}:{minutes}"
+
+
+def get_discount(price: int, discount: float):
+    return None if discount == 1.0 else int(price * discount)
+
+
 async def html_image() -> bytes:
     """构建图片"""
-    goods_list: list[tuple[int, GoodsInfo]] = [
-        (i + 1, goods)
-        for i, goods in enumerate(await GoodsInfo.get_all_goods())
-        if goods.goods_limit_time == 0 or time.time() < goods.goods_limit_time
-    ]
+    goods_list = (
+        await GoodsInfo.filter(
+            Q(goods_limit_time__gte=time.time()) | Q(goods_limit_time=0)
+        )
+        .annotate()
+        .order_by("id")
+        .all()
+    )
     partition_dict: dict[str, list[dict]] = {}
-    for goods in goods_list:
-        if not goods[1].partition:
-            goods[1].partition = "默认分区"
-        if goods[1].partition not in partition_dict:
-            partition_dict[goods[1].partition] = []
+    for idx, goods in enumerate(goods_list):
+        if not goods.partition:
+            goods.partition = "默认分区"
+        if goods.partition not in partition_dict:
+            partition_dict[goods.partition] = []
         icon = None
-        if goods[1].icon:
-            path = ICON_PATH / goods[1].icon
+        if goods.icon:
+            path = ICON_PATH / goods.icon
             if path.exists():
                 icon = (
                     "data:image/png;base64,"
-                    f"{BuildImage.open(ICON_PATH / goods[1].icon).pic2bs4()[9:]}"
+                    f"{BuildImage.open(ICON_PATH / goods.icon).pic2bs4()[9:]}"
                 )
-        partition_dict[goods[1].partition].append(
+        partition_dict[goods.partition].append(
             {
-                "id": goods[0],
-                "price": goods[1].goods_price,
-                "daily_limit": goods[1].daily_limit or "∞",
-                "name": goods[1].goods_name,
+                "id": idx + 1,
+                "price": goods.goods_price,
+                "discount_price": get_discount(goods.goods_price, goods.goods_discount),
+                "limit_time": get_limit_time(goods.goods_limit_time),
+                "daily_limit": goods.daily_limit or "∞",
+                "name": goods.goods_name,
                 "icon": icon,
-                "description": goods[1].goods_description,
+                "description": goods.goods_description,
             }
         )
     data_list = [
