@@ -266,6 +266,7 @@ class ConfigsManager:
         self._data: dict[str, ConfigGroup] = {}
         self._simple_data: dict = {}
         self._simple_file = DATA_PATH / "config.yaml"
+        self.add_module = []
         _yaml = YAML()
         if file:
             file.parent.mkdir(exist_ok=True, parents=True)
@@ -328,6 +329,7 @@ class ConfigsManager:
 
         if not module or not key:
             raise ValueError("add_plugin_config: module和key不能为为空")
+        self.add_module.append(f"{module}:{key}".lower())
         if module in self._data and (config := self._data[module].configs.get(key)):
             config.help = help
             config.arg_parser = arg_parser
