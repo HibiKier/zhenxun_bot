@@ -62,6 +62,7 @@ def _generate_simple_config(exists_module: list[str]):
     # 读取用户配置
     _data = {}
     _tmp_data = {}
+    exists_module += Config.add_module
     if SIMPLE_CONFIG_FILE.exists():
         _data = _yaml.load(SIMPLE_CONFIG_FILE.open(encoding="utf8"))
     # 将简易配置文件的数据填充到配置文件
