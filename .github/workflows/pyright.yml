@@ -1,0 +1,72 @@
+name: Pyright Lint
+
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    paths:
+      - "zhenxun/**"
+      - "tests/**"
+      - ".github/workflows/pyright.yml"
+      - "pyproject.toml"
+      - "poetry.lock"
+  workflow_dispatch:
+    inputs:
+      python-version:
+        description: "Python version"
+        required: false
+        type: choice
+        options:
+          - "all"
+          - "3.10"
+          - "3.11"
+          - "3.12"
+        default: "all"
+      debug-mode:
+        description: "enable debug mode"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  pyright:
+    name: Pyright Lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+      fail-fast: false
+    concurrency:
+      group: pyright-${{ github.ref }}-${{ matrix.python-version }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Cache Poetry packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run Pyright
+        shell: bash
+        run: |
+          extra_args="${{ github.event.inputs.debug-mode == 'true' && '--warnings --verbose --level verbose' || '--warnings --verbose' }}"
+          poetry run pyright . $extra_args
