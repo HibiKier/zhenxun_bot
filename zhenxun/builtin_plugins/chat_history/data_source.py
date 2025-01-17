@@ -702,7 +702,7 @@ class AdaptiveMessageQueue:
         if not self._running:
             return False
 
-        if metrics.last_process_time:
+        if not self._queue.empty() and metrics.last_process_time:
             delay = (current_time - metrics.last_process_time).total_seconds()
             if delay > self._health_config.max_delay_seconds:
                 logger.warning(f"Queue processing delay: {delay:.1f}s")
