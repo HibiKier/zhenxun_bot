@@ -7,6 +7,7 @@ import time
 from typing import Any, ClassVar, Literal
 
 import aiofiles
+from anyio import EndOfStream
 import httpx
 from httpx import ConnectTimeout, HTTPStatusError, Response
 from nonebot_plugin_alconna import UniMessage
@@ -311,12 +312,17 @@ class AsyncHttpx:
                                                     completed=response.num_bytes_downloaded,
                                                 )
                                         logger.info(
-                                            f"下载 {u} 成功.. "
-                                            f"Path：{path.absolute()}"
+                                            f"下载 {u} 成功.. Path：{path.absolute()}"
                                         )
                         return True
                     except (TimeoutError, ConnectTimeout, HTTPStatusError):
                         logger.warning(f"下载 {u} 失败.. 尝试下一个地址..")
+                    except EndOfStream as e:
+                        logger.warning(
+                            f"下载 {url} EndOfStream 异常 Path：{path.absolute()}", e=e
+                        )
+                        if path.exists():
+                            return True
             logger.error(f"下载 {url} 下载超时.. Path：{path.absolute()}")
         except Exception as e:
             logger.error(f"下载 {url} 错误 Path：{path.absolute()}", e=e)

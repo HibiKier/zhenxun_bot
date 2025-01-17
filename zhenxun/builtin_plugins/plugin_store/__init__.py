@@ -44,14 +44,14 @@ _matcher = on_alconna(
 )
 
 _matcher.shortcut(
-    r"添加插件",
+    r"(添加|安装)插件",
     command="插件商店",
     arguments=["add", "{%0}"],
     prefix=True,
 )
 
 _matcher.shortcut(
-    r"移除插件",
+    r"(移除|卸载)插件",
     command="插件商店",
     arguments=["remove", "{%0}"],
     prefix=True,
