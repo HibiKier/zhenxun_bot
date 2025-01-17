@@ -1,0 +1,31 @@
+name: Ruff Lint
+
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    paths:
+      - "zhenxun/**"
+      - "tests/**"
+      - ".github/workflows/ruff.yml"
+      - "pyproject.toml"
+      - "poetry.lock"
+
+jobs:
+  ruff:
+    name: Ruff Lint
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ruff-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Ruff Format
+        uses: astral-sh/ruff-action@v3
+      - name: Run Ruff Check
+        run: ruff check
+      - name: Run Ruff Format
+        run: ruff format
