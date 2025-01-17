@@ -232,8 +232,9 @@ class ShopManage:
             raise ValueError("所有API获取插件文件失败，请检查网络连接")
         if module_path == ".":
             module_path = ""
+        replace_module_path = module_path.replace(".", "/")
         files = repo_api.get_files(
-            module_path=module_path.replace(".", "/") + ("" if is_dir else ".py"),
+            module_path=replace_module_path + ("" if is_dir else ".py"),
             is_dir=is_dir,
         )
         download_urls = [await repo_info.get_raw_download_urls(file) for file in files]
@@ -248,8 +249,12 @@ class ShopManage:
         else:
             # 安装依赖
             plugin_path = base_path / "/".join(module_path.split("."))
-            req_files = repo_api.get_files(REQ_TXT_FILE_STRING, False)
-            req_files.extend(repo_api.get_files("requirement.txt", False))
+            req_files = repo_api.get_files(
+                f"{replace_module_path}/{REQ_TXT_FILE_STRING}", False
+            )
+            req_files.extend(
+                repo_api.get_files(f"{replace_module_path}/requirement.txt", False)
+            )
             logger.debug(f"获取插件依赖文件列表: {req_files}", "插件管理")
             req_download_urls = [
                 await repo_info.get_raw_download_urls(file) for file in req_files
