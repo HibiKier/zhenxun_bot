@@ -51,7 +51,7 @@ def install_requirement(plugin_path: Path):
 
     try:
         result = subprocess.run(
-            ["pip", "install", "-r", str(existing_requirements)],
+            ["poetry", "run", "pip", "install", "-r", str(existing_requirements)],
             check=True,
             capture_output=True,
             text=True,
