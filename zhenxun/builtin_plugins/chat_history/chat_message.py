@@ -3,7 +3,6 @@ from nonebot import on_message
 from nonebot.drivers import Driver
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import UniMsg
-from nonebot_plugin_apscheduler import scheduler
 from nonebot_plugin_uninfo import Uninfo
 
 from zhenxun.configs.config import Config
@@ -101,7 +100,7 @@ async def _(message: UniMsg, session: Uninfo):
             text=str(message),
             plain_text=message.extract_plain_text(),
             bot_id=session.self_id,
-            platform=session.platform,
+            platform=session.scope,
         )
 
         if not await queue.put(history):
@@ -109,22 +108,3 @@ async def _(message: UniMsg, session: Uninfo):
 
     except Exception as e:
         logger.error("消息处理失败", "MessageQueue", session=session, e=e)
-
-
-@scheduler.scheduled_job("interval", minutes=5)
-async def check_queue_health():
-    """定期检查队列健康状态"""
-    try:
-        queue = MessageQueueManager.get_instance()
-        status = await queue.get_queue_status()
-
-        if not status.is_healthy:
-            info = (
-                f"队列状态异常 - 大小: {status.queue_size}, "
-                f"失败率: {status.metrics.failure_rate:.2%}, "
-                f"消息率: {status.adaptive_metrics.current_message_rate:.1f}/min, "
-                f"负载: {status.adaptive_metrics.current_load:.2f}"
-            )
-            logger.warning(info, "QueueHealth", adapter="ChatHistory")
-    except Exception as e:
-        logger.error("队列健康检查失败", "QueueHealth", adapter="ChatHistory", e=e)
