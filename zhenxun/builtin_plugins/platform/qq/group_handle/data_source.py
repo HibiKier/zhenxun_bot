@@ -316,10 +316,13 @@ class GroupManager:
             group_id=group_id,
         )
         if sub_type == "kick":
-            operator = await bot.get_group_member_info(
-                user_id=int(operator_id), group_id=int(group_id)
-            )
-            operator_name = operator["card"] or operator["nickname"]
+            if operator_id != "0":
+                operator = await bot.get_group_member_info(
+                    user_id=int(operator_id), group_id=int(group_id)
+                )
+                operator_name = operator["card"] or operator["nickname"]
+            else:
+                operator_name = ""
             return f"{user_name} 被 {operator_name} 送走了."
         elif sub_type == "leave":
             return f"{user_name}离开了我们..."
