@@ -21,7 +21,7 @@ async def handle_api_call(bot: Bot, api: str, data: dict[str, Any]):
         if catchphrase and (message := data.get("message")):
             for i in range(len(message) - 1, -1, -1):
                 if message[i].type == "text":
-                    message[i].data["text"] += catchphrase
+                    message[i].data["text"] = f"{message[i].data['text']} {catchphrase}"
                     logger.debug(
                         f"文本: {message[i].data['text']} 添加口癖: {catchphrase}"
                     )
