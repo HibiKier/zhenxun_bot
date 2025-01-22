@@ -226,20 +226,22 @@ class GroupManager:
         ).send()
 
     @classmethod
-    async def add_user(cls, session: Uninfo, bot: Bot, user_id: str, group_id: str):
+    async def add_user(cls, session: Uninfo, bot: Bot):
         """拉入用户
 
         参数:
+            session: Uninfo
             bot: Bot
-            user_id: 用户id
-            group_id: 群组id
         """
+        user_id = session.user.id
+        group_id = session.group.id if session.group else ""
         join_time = datetime.now()
         try:
             user_info = await bot.get_group_member_info(
-                group_id=group_id, user_id=user_id, no_cache=True
+                group_id=int(group_id), user_id=int(user_id), no_cache=True
             )
-        except ActionFailed:
+        except ActionFailed as e:
+            logger.warning("获取用户信息识别...", e=e)
             user_info = {"user_id": user_id, "group_id": group_id, "nickname": ""}
         await GroupInfoUser.update_or_create(
             user_id=str(user_info["user_id"]),
