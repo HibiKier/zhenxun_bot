@@ -234,7 +234,12 @@ class GroupManager:
             bot: Bot
         """
         user_id = session.user.id
-        group_id = session.group.id if session.group else ""
+        group_id = ""
+        if session.group:
+            if session.group.parent:
+                group_id = session.group.parent.id
+            else:
+                group_id = session.group.id
         join_time = datetime.now()
         try:
             user_info = await bot.get_group_member_info(
