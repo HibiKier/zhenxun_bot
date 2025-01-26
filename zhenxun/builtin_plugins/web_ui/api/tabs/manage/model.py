@@ -1,3 +1,5 @@
+from dataclasses import field
+
 from nonebot.compat import model_dump
 from pydantic import BaseModel
 
@@ -172,9 +174,9 @@ class ReqResult(BaseModel):
     好友/群组请求列表
     """
 
-    friend: list[FriendRequestResult] = []
+    friend: list[FriendRequestResult] = field(default_factory=list)
     """好友请求列表"""
-    group: list[GroupRequestResult] = []
+    group: list[GroupRequestResult] = field(default_factory=list)
     """群组请求列表"""
 
 

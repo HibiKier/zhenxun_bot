@@ -1,3 +1,4 @@
+from dataclasses import field
 from typing import Protocol
 
 from aiocache import cached
@@ -99,7 +100,7 @@ class FileInfo(BaseModel):
 
     type: FileType
     name: str
-    files: list["FileInfo"] = []
+    files: list["FileInfo"] = field(default_factory=list)
 
 
 class JsdelivrStrategy:
