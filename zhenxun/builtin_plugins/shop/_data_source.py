@@ -12,6 +12,7 @@ from nonebot.compat import model_dump
 from nonebot_plugin_alconna import UniMessage, UniMsg
 from nonebot_plugin_uninfo import Uninfo
 from pydantic import BaseModel, create_model
+from tortoise.expressions import Q
 
 from zhenxun.models.friend_user import FriendUser
 from zhenxun.models.goods_info import GoodsInfo
@@ -406,17 +407,19 @@ class ShopManage:
         返回:
             str: 返回小
         """
-        if name == "神秘药水":
-            return "你们看看就好啦，这是不可能卖给你们的~"
         if num < 0:
             return "购买的数量要大于0!"
-        goods_list = await GoodsInfo.annotate().order_by("id").all()
-        goods_list = [
-            goods
-            for goods in goods_list
-            if goods.goods_limit_time > time.time() or goods.goods_limit_time == 0
-        ]
+        goods_list = (
+            await GoodsInfo.filter(
+                Q(goods_limit_time__gte=time.time()) | Q(goods_limit_time=0)
+            )
+            .annotate()
+            .order_by("id")
+            .all()
+        )
         if name.isdigit():
+            if int(name) > len(goods_list) or int(name) <= 0:
+                return "道具编号不存在..."
             goods = goods_list[int(name) - 1]
         elif filter_goods := [g for g in goods_list if g.goods_name == name]:
             goods = filter_goods[0]
