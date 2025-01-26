@@ -1,3 +1,4 @@
+from dataclasses import field
 from pathlib import Path
 
 import nonebot
@@ -13,9 +14,9 @@ class BotSetting(BaseModel):
     """系统代理"""
     db_url: str = ""
     """数据库链接"""
-    platform_superusers: dict[str, list[str]] = {}
+    platform_superusers: dict[str, list[str]] = field(default_factory=dict)
     """平台超级用户"""
-    qbot_id_data: dict[str, str] = {}
+    qbot_id_data: dict[str, str] = field(default_factory=dict)
     """官bot id:账号id"""
     time_zone: str = "Asia/Shanghai"
 

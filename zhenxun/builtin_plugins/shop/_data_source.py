@@ -1,5 +1,6 @@
 import asyncio
 from collections.abc import Callable
+from dataclasses import field
 from datetime import datetime, timedelta
 import inspect
 import time
@@ -31,9 +32,9 @@ from .normal_image import normal_image
 class Goods(BaseModel):
     name: str
     """商品名称"""
-    before_handle: list[Callable] = []
+    before_handle: list[Callable] = field(default_factory=list)
     """使用前函数"""
-    after_handle: list[Callable] = []
+    after_handle: list[Callable] = field(default_factory=list)
     """使用后函数"""
     func: Callable | None = None
     """使用函数"""
@@ -120,7 +121,7 @@ async def gold_rank(
         )
         data_list.append(
             [
-                f"{i+1}",
+                f"{i + 1}",
                 (ava_bytes, 30, 30) if platform == "qq" else "",
                 uid2name.get(user[0]),
                 user[1],

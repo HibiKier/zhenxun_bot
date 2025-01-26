@@ -1,6 +1,6 @@
-from collections import defaultdict
 from collections.abc import Callable
 import copy
+from dataclasses import field
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Literal
@@ -38,11 +38,11 @@ class Command(BaseModel):
 
     command: str
     """命令名称"""
-    params: list[str] = []
+    params: list[str] = field(default_factory=list)
     """参数"""
     description: str = ""
     """描述"""
-    examples: list[Example] = []
+    examples: list[Example] = field(default_factory=list)
     """示例列表"""
 
 
@@ -96,7 +96,7 @@ class ConfigGroup(BaseModel):
     """模块名"""
     name: str | None = None
     """插件名"""
-    configs: dict[str, ConfigModel] = defaultdict()
+    configs: dict[str, ConfigModel] = field(default_factory=dict)
     """配置项列表"""
 
     def get(self, c: str, default: Any = None) -> Any:
@@ -209,7 +209,7 @@ class Task(BaseBlock):
     """运行函数"""
     check: Callable | None = None
     """检查函数"""
-    check_args: list = []
+    check_args: list = field(default_factory=list)
     """检查函数参数"""
 
 
@@ -234,7 +234,7 @@ class PluginExtraData(BaseModel):
     """插件基本配置"""
     limits: list[BaseBlock | PluginCdBlock | PluginCountBlock] | None = None
     """插件限制"""
-    commands: list[Command] = []
+    commands: list[Command] = field(default_factory=list)
     """命令列表，用于说明帮助"""
     ignore_prompt: bool = False
     """是否忽略阻断提示"""
@@ -242,7 +242,7 @@ class PluginExtraData(BaseModel):
     """技能被动"""
     superuser_help: str | None = None
     """超级用户帮助"""
-    aliases: set[str] = set()
+    aliases: set[str] = field(default_factory=set)
     """额外名称"""
     sql_list: list[str] | None = None
     """常用sql"""
