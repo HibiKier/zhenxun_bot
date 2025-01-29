@@ -1,11 +1,8 @@
 from datetime import datetime, timedelta
 from typing import Any, overload
 
-import nonebot
-from nonebot import require
-
-require("nonebot_plugin_session")
 from loguru import logger as logger_
+import nonebot
 from nonebot.log import default_filter, default_format
 from nonebot_plugin_session import Session
 from nonebot_plugin_uninfo import Session as uninfoSession
