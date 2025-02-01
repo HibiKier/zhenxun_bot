@@ -17,6 +17,7 @@ from nonebot_plugin_alconna import (
     Voice,
 )
 from pydantic import BaseModel
+import ujson as json
 
 from zhenxun.configs.config import BotConfig
 from zhenxun.services.log import logger
@@ -140,6 +141,21 @@ class MessageUtils:
                 CustomNode(uid=uin, name=name, content=UniMessage(_message))
             )
         return UniMessage(Reference(nodes=node_list))
+
+    @classmethod
+    def markdown(cls, content: dict) -> Message:
+        """markdown格式消息
+
+        参数:
+            content: 消息内容
+
+        返回:
+            Message: 构造完成的消息
+        """
+        content_data = base64.b64encode(json.dumps(content).encode("utf-8")).decode(
+            "utf-8"
+        )
+        return Message(f"[CQ:markdown,data=base64://{content_data}]")
 
     @classmethod
     def custom_forward_msg(

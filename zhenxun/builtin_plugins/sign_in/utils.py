@@ -16,6 +16,7 @@ from zhenxun.models.sign_log import SignLog
 from zhenxun.models.sign_user import SignUser
 from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.platform import PlatformUtils
 
 from .config import (
     SIGN_BACKGROUND_PATH,
@@ -27,9 +28,9 @@ from .config import (
     lik2relation,
 )
 
-assert (
-    len(level2attitude) == len(lik2level) == len(lik2relation)
-), "好感度态度、等级、关系长度不匹配！"
+assert len(level2attitude) == len(lik2level) == len(lik2relation), (
+    "好感度态度、等级、关系长度不匹配！"
+)
 
 AVA_URL = "http://q1.qlogo.cn/g?b=qq&nk={}&s=160"
 
@@ -430,7 +431,9 @@ async def _generate_html_card(
     )
     now = datetime.now()
     data = {
-        "ava_url": session.user.avatar,
+        "ava_url": PlatformUtils.get_user_avatar_url(
+            user.user_id, PlatformUtils.get_platform(session), session.self_id
+        ),
         "name": nickname,
         "uid": uid,
         "sign_count": f"{user.sign_count}",

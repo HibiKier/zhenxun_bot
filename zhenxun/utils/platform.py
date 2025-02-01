@@ -55,6 +55,8 @@ class PlatformUtils:
         """
         if isinstance(session, Bot):
             return bool(BotConfig.get_qbot_uid(session.self_id))
+        if BotConfig.get_qbot_uid(session.self_id):
+            return True
         return session.scope == SupportScope.qq_api
 
     @classmethod
@@ -354,32 +356,30 @@ class PlatformUtils:
         返回:
             tuple[list[GroupConsole], str]: 群组列表, 平台
         """
-        if interface := get_interface(bot):
-            platform = cls.get_platform(bot)
-            result_list = []
-            scenes = await interface.get_scenes(SceneType.GROUP)
-            for scene in scenes:
-                group_id = scene.id
-                result_list.append(
-                    GroupConsole(
-                        group_id=scene.id,
-                        group_name=scene.name,
-                    )
+        if not (interface := get_interface(bot)):
+            return [], ""
+        platform = cls.get_platform(bot)
+        result_list = []
+        scenes = await interface.get_scenes(SceneType.GROUP)
+        for scene in scenes:
+            group_id = scene.id
+            result_list.append(
+                GroupConsole(
+                    group_id=scene.id,
+                    group_name=scene.name,
                 )
-                if not only_group and platform != "qq":
-                    if channel_list := await interface.get_scenes(
-                        parent_scene_id=group_id
-                    ):
-                        for channel in channel_list:
-                            result_list.append(
-                                GroupConsole(
-                                    group_id=scene.id,
-                                    group_name=channel.name,
-                                    channel_id=channel.id,
-                                )
-                            )
-            return result_list, platform
-        return [], ""
+            )
+            if not only_group and platform != "qq":
+                if channel_list := await interface.get_scenes(parent_scene_id=group_id):
+                    result_list.extend(
+                        GroupConsole(
+                            group_id=scene.id,
+                            group_name=channel.name,
+                            channel_id=channel.id,
+                        )
+                        for channel in channel_list
+                    )
+        return result_list, platform
 
     @classmethod
     async def update_friend(cls, bot: Bot) -> int:

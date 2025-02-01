@@ -5,6 +5,8 @@ from pydantic import BaseModel
 
 from .utils import ConfigsManager
 
+__all__ = ["BotConfig", "Config"]
+
 
 class BotSetting(BaseModel):
     self_nickname: str = ""
