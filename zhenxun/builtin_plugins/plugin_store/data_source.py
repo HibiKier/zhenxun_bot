@@ -249,29 +249,32 @@ class ShopManage:
         else:
             # 安装依赖
             plugin_path = base_path / "/".join(module_path.split("."))
-            req_files = repo_api.get_files(
-                f"{replace_module_path}/{REQ_TXT_FILE_STRING}", False
-            )
-            req_files.extend(
-                repo_api.get_files(f"{replace_module_path}/requirement.txt", False)
-            )
-            logger.debug(f"获取插件依赖文件列表: {req_files}", "插件管理")
-            req_download_urls = [
-                await repo_info.get_raw_download_urls(file) for file in req_files
-            ]
-            req_paths: list[Path | str] = [plugin_path / file for file in req_files]
-            logger.debug(f"插件依赖文件下载路径: {req_paths}", "插件管理")
-            if req_files:
-                result = await AsyncHttpx.gather_download_file(
-                    req_download_urls, req_paths
+            try:
+                req_files = repo_api.get_files(
+                    f"{replace_module_path}/{REQ_TXT_FILE_STRING}", False
                 )
-                for success in result:
-                    if not success:
-                        raise Exception("插件依赖文件下载失败")
-                logger.debug(f"插件依赖文件列表: {req_paths}", "插件管理")
-                install_requirement(plugin_path)
+                req_files.extend(
+                    repo_api.get_files(f"{replace_module_path}/requirement.txt", False)
+                )
+                logger.debug(f"获取插件依赖文件列表: {req_files}", "插件管理")
+                req_download_urls = [
+                    await repo_info.get_raw_download_urls(file) for file in req_files
+                ]
+                req_paths: list[Path | str] = [plugin_path / file for file in req_files]
+                logger.debug(f"插件依赖文件下载路径: {req_paths}", "插件管理")
+                if req_files:
+                    result = await AsyncHttpx.gather_download_file(
+                        req_download_urls, req_paths
+                    )
+                    for success in result:
+                        if not success:
+                            raise Exception("插件依赖文件下载失败")
+                    logger.debug(f"插件依赖文件列表: {req_paths}", "插件管理")
+                    install_requirement(plugin_path)
+            except ValueError as e:
+                logger.warning("未获取到依赖文件路径...", e=e)
             return True
-        raise Exception("插件下载失败")
+        raise Exception("插件下载失败...")
 
     @classmethod
     async def remove_plugin(cls, plugin_id: str) -> str:

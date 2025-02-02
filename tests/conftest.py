@@ -12,7 +12,7 @@ from pytest_asyncio import is_async_test
 from pytest_mock import MockerFixture
 from respx import MockRouter
 
-from tests.config import BotId, UserId
+from tests.config import BotId, GroupId, UserId
 
 nonebot.load_plugin("nonebot_plugin_session")
 
@@ -63,6 +63,37 @@ def _init_bot(nonebug_init: None):
     nonebot.load_plugin("nonebot_plugin_htmlrender")
     nonebot.load_plugins("zhenxun/builtin_plugins")
     nonebot.load_plugins("zhenxun/plugins")
+
+    # 手动缓存 uninfo 所需信息
+    from nonebot_plugin_uninfo import (
+        Scene,
+        SceneType,
+        Session,
+        SupportAdapter,
+        SupportScope,
+        User,
+    )
+    from nonebot_plugin_uninfo.adapters.onebot11.main import fetcher as onebot11_fetcher
+    from nonebot_plugin_uninfo.adapters.onebot12.main import fetcher as onebot12_fetcher
+
+    onebot11_fetcher.session_cache = {
+        f"group_{GroupId.GROUP_ID_LEVEL_5}_{UserId.SUPERUSER}": Session(
+            self_id="test",
+            adapter=SupportAdapter.onebot11,
+            scope=SupportScope.qq_client,
+            scene=Scene(str(GroupId.GROUP_ID_LEVEL_0), SceneType.GROUP),
+            user=User(str(UserId.SUPERUSER)),
+        ),
+    }
+    onebot12_fetcher.session_cache = {
+        f"group_{GroupId.GROUP_ID_LEVEL_5}_{UserId.SUPERUSER}": Session(
+            self_id="test",
+            adapter=SupportAdapter.onebot12,
+            scope=SupportScope.qq_client,
+            scene=Scene(str(GroupId.GROUP_ID_LEVEL_0), SceneType.GROUP),
+            user=User(str(UserId.SUPERUSER)),
+        ),
+    }
 
 
 @pytest.fixture
