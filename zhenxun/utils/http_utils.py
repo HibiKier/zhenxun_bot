@@ -471,7 +471,7 @@ class AsyncPlaywright:
         wait_until: (
             Literal["domcontentloaded", "load", "networkidle"] | None
         ) = "networkidle",
-        timeout: float | None = None,
+        timeout: float | None = None,  # noqa: ASYNC109
         type_: Literal["jpeg", "png"] | None = None,
         user_agent: str | None = None,
         cookies: list[dict[str, Any]] | dict[str, Any] | None = None,
