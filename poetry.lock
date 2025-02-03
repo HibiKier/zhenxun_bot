@@ -2226,13 +2226,13 @@ reference = "aliyun"
 
 [[package]]
 name = "nonebot-plugin-uninfo"
-version = "0.4.1"
+version = "0.6.8"
 description = "Universal Information Model for Nonebot2"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "nonebot_plugin_uninfo-0.4.1-py3-none-any.whl", hash = "sha256:2075874a540f27cb650ff5e64482324121c39e4374b850df323482744910beac"},
-    {file = "nonebot_plugin_uninfo-0.4.1.tar.gz", hash = "sha256:8c36d62684029d813dd01acd2cc759f07163923b8274935250dcd3e9293ef560"},
+    {file = "nonebot_plugin_uninfo-0.6.8-py3-none-any.whl", hash = "sha256:0adc7e731885883bfcb873ec715c69cff75b878092884d28c7d6ff314940ad6b"},
+    {file = "nonebot_plugin_uninfo-0.6.8.tar.gz", hash = "sha256:0a30b500b1172fa15cc175b370c7a5935eb2f0515d188a2c73bf8e8ed7ae81d1"},
 ]
 
 [package.dependencies]
@@ -4132,6 +4132,26 @@ url = "https://mirrors.aliyun.com/pypi/simple"
 reference = "aliyun"
 
 [[package]]
+name = "tenacity"
+version = "9.0.0"
+description = "Retry code until it succeeds"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "tenacity-9.0.0-py3-none-any.whl", hash = "sha256:93de0c98785b27fcf659856aa9f54bfbd399e29969b0621bc7f762bd441b4539"},
+    {file = "tenacity-9.0.0.tar.gz", hash = "sha256:807f37ca97d62aa361264d497b0e31e92b8027044942bfa756160d908320d73b"},
+]
+
+[package.extras]
+doc = ["reno", "sphinx"]
+test = ["pytest", "tornado (>=4.5)", "typeguard"]
+
+[package.source]
+type = "legacy"
+url = "https://mirrors.aliyun.com/pypi/simple"
+reference = "aliyun"
+
+[[package]]
 name = "text-unidecode"
 version = "1.3"
 description = "The most basic Text::Unidecode port"
@@ -4883,4 +4903,4 @@ reference = "aliyun"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "69299e37ab69af7e3a020cc383fc2f2706300cf869a92dc7b76fe133288c405d"
+content-hash = "2fc15734ee6edc0a9b2b2f025375e7f41204bc21970745b65d5bc445eed897c7"

@@ -54,6 +54,8 @@ def migrate(path: Path):
         path: 路径
     """
     text_file = path / "text.json"
+    if not text_file.exists():
+        return
     with text_file.open(encoding="utf8") as f:
         json_data = json.load(f)
     new_data = {}

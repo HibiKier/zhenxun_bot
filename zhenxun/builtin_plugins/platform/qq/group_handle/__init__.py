@@ -103,7 +103,7 @@ group_increase_handle = on_notice(
 group_decrease_handle = on_notice(
     priority=1,
     block=False,
-    rule=notice_rule([GroupMemberDecreaseEvent, GroupMemberIncreaseEvent]),
+    rule=notice_rule([GroupMemberDecreaseEvent, GroupDecreaseNoticeEvent]),
 )
 """群员减少处理"""
 add_group = on_request(priority=1, block=False)
@@ -116,19 +116,19 @@ async def _(
     session: Uninfo,
     event: GroupIncreaseNoticeEvent | GroupMemberIncreaseEvent,
 ):
-    user_id = str(event.user_id)
-    group_id = str(event.group_id)
-    if user_id == bot.self_id:
+    if session.user.id == bot.self_id:
         """新成员为bot本身"""
         group, _ = await GroupConsole.get_or_create(
-            group_id=group_id, channel_id__isnull=True
+            group_id=str(event.group_id), channel_id__isnull=True
         )
         try:
-            await GroupManager.add_bot(bot, str(event.operator_id), group_id, group)
+            await GroupManager.add_bot(
+                bot, str(event.operator_id), str(event.group_id), group
+            )
         except ForceAddGroupError as e:
             await PlatformUtils.send_superuser(bot, e.get_info())
     else:
-        await GroupManager.add_user(session, bot, user_id, group_id)
+        await GroupManager.add_user(session, bot)
 
 
 @group_decrease_handle.handle()

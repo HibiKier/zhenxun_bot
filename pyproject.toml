@@ -41,8 +41,9 @@ python-jose = { extras = ["cryptography"], version = "^3.3.0" }
 python-multipart = "^0.0.9"
 aiocache = "^0.12.2"
 py-cpuinfo = "^9.0.0"
-nonebot-plugin-uninfo = "^0.4.1"
 nonebot-plugin-alconna = "^0.54.0"
+tenacity = "^9.0.0"
+nonebot-plugin-uninfo = ">0.4.1"
 
 [tool.poetry.group.dev.dependencies]
 nonebug = "^0.4"

@@ -4,6 +4,7 @@ from pathlib import Path
 import random
 
 from nonebot.adapters import Bot
+from nonebot.exception import ActionFailed
 from nonebot_plugin_alconna import At, UniMessage
 from nonebot_plugin_uninfo import Uninfo
 import ujson as json
@@ -54,7 +55,7 @@ class GroupManager:
             if plugin_list := await PluginInfo.filter(default_status=False).all():
                 for plugin in plugin_list:
                     block_plugin += f"<{plugin.module},"
-            group_info = await bot.get_group_info(group_id=group_id)
+            group_info = await bot.get_group_info(group_id=group_id, no_cache=True)
             await GroupConsole.create(
                 group_id=group_info["group_id"],
                 group_name=group_info["group_name"],
@@ -215,33 +216,45 @@ class GroupManager:
                 msg_list.insert(0, At("user", user_id))
             logger.info("发送群欢迎消息...", "入群检测", session=session)
             if msg_list:
-                await MessageUtils.build_message(msg_list).send()  # type: ignore
-            else:
-                image = DEFAULT_IMAGE_PATH / random.choice(
-                    os.listdir(DEFAULT_IMAGE_PATH)
-                )
-                await MessageUtils.build_message(
-                    [
-                        "新人快跑啊！！本群现状↓（快使用自定义群欢迎消息！）",
-                        image,
-                    ]
-                ).send()
+                await MessageUtils.build_message(msg_list).finish()  # type: ignore
+        image = DEFAULT_IMAGE_PATH / random.choice(os.listdir(DEFAULT_IMAGE_PATH))
+        await MessageUtils.build_message(
+            [
+                "新人快跑啊！！本群现状↓（快使用自定义群欢迎消息！）",
+                image,
+            ]
+        ).send()
 
     @classmethod
-    async def add_user(cls, session: Uninfo, bot: Bot, user_id: str, group_id: str):
+    async def add_user(cls, session: Uninfo, bot: Bot):
         """拉入用户
 
         参数:
+            session: Uninfo
             bot: Bot
-            user_id: 用户id
-            group_id: 群组id
         """
+        user_id = session.user.id
+        group_id = ""
+        if session.group:
+            if session.group.parent:
+                group_id = session.group.parent.id
+            else:
+                group_id = session.group.id
         join_time = datetime.now()
-        user_info = await bot.get_group_member_info(group_id=group_id, user_id=user_id)
+        try:
+            user_info = await bot.get_group_member_info(
+                group_id=int(group_id), user_id=int(user_id), no_cache=True
+            )
+        except ActionFailed as e:
+            logger.warning("获取用户信息识别...", e=e)
+            user_info = {"user_id": user_id, "group_id": group_id, "nickname": ""}
         await GroupInfoUser.update_or_create(
             user_id=str(user_info["user_id"]),
             group_id=str(user_info["group_id"]),
-            defaults={"user_name": user_info["nickname"], "user_join_time": join_time},
+            defaults={
+                "user_name": user_info["nickname"],
+                "user_join_time": join_time,
+            },
         )
         logger.info(f"用户{user_info['user_id']} 所属{user_info['group_id']} 更新成功")
         if not await CommonUtils.task_is_block(
@@ -310,10 +323,13 @@ class GroupManager:
             group_id=group_id,
         )
         if sub_type == "kick":
-            operator = await bot.get_group_member_info(
-                user_id=int(operator_id), group_id=int(group_id)
-            )
-            operator_name = operator["card"] or operator["nickname"]
+            if operator_id != "0":
+                operator = await bot.get_group_member_info(
+                    user_id=int(operator_id), group_id=int(group_id)
+                )
+                operator_name = operator["card"] or operator["nickname"]
+            else:
+                operator_name = ""
             return f"{user_name} 被 {operator_name} 送走了."
         elif sub_type == "leave":
             return f"{user_name}离开了我们..."
