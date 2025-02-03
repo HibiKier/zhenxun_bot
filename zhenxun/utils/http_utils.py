@@ -42,7 +42,7 @@ class AsyncHttpx:
         verify: bool = True,
         use_proxy: bool = True,
         proxy: dict[str, str] | None = None,
-        timeout: int = 30,
+        timeout: int = 30,  # noqa: ASYNC109
         **kwargs,
     ) -> Response:
         """Get
@@ -97,7 +97,7 @@ class AsyncHttpx:
         verify: bool = True,
         use_proxy: bool = True,
         proxy: dict[str, str] | None = None,
-        timeout: int = 30,
+        timeout: int = 30,  # noqa: ASYNC109
         **kwargs,
     ) -> Response:
         if not headers:
@@ -124,7 +124,7 @@ class AsyncHttpx:
         verify: bool = True,
         use_proxy: bool = True,
         proxy: dict[str, str] | None = None,
-        timeout: int = 30,
+        timeout: int = 30,  # noqa: ASYNC109
         **kwargs,
     ) -> Response:
         """Get
@@ -167,7 +167,7 @@ class AsyncHttpx:
         params: dict[str, str] | None = None,
         headers: dict[str, str] | None = None,
         cookies: dict[str, str] | None = None,
-        timeout: int = 30,
+        timeout: int = 30,  # noqa: ASYNC109
         **kwargs,
     ) -> Response:
         """
@@ -220,7 +220,7 @@ class AsyncHttpx:
         proxy: dict[str, str] | None = None,
         headers: dict[str, str] | None = None,
         cookies: dict[str, str] | None = None,
-        timeout: int = 30,
+        timeout: int = 30,  # noqa: ASYNC109
         stream: bool = False,
         follow_redirects: bool = True,
         **kwargs,
@@ -340,7 +340,7 @@ class AsyncHttpx:
         proxy: dict[str, str] | None = None,
         headers: dict[str, str] | None = None,
         cookies: dict[str, str] | None = None,
-        timeout: int = 30,
+        timeout: int = 30,  # noqa: ASYNC109
         **kwargs,
     ) -> list[bool]:
         """分组同时下载文件
@@ -380,22 +380,22 @@ class AsyncHttpx:
         tasks = []
         result_ = []
         for x, y in zip(_split_url_list, _split_path_list):
-            for url, path in zip(x, y):
-                tasks.append(
-                    asyncio.create_task(
-                        cls.download_file(
-                            url,
-                            path,
-                            params=params,
-                            headers=headers,
-                            cookies=cookies,
-                            use_proxy=use_proxy,
-                            timeout=timeout,
-                            proxy=proxy,
-                            **kwargs,
-                        )
+            tasks.extend(
+                asyncio.create_task(
+                    cls.download_file(
+                        url,
+                        path,
+                        params=params,
+                        headers=headers,
+                        cookies=cookies,
+                        use_proxy=use_proxy,
+                        timeout=timeout,
+                        proxy=proxy,
+                        **kwargs,
                     )
                 )
+                for url, path in zip(x, y)
+            )
             _x = await asyncio.gather(*tasks)
             result_ = result_ + list(_x)
             tasks.clear()
