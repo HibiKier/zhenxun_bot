@@ -1,6 +1,5 @@
 import asyncio
 from collections.abc import Callable
-from dataclasses import field
 from datetime import datetime, timedelta
 import inspect
 import time
@@ -11,7 +10,7 @@ from nonebot.adapters import Bot, Event
 from nonebot.compat import model_dump
 from nonebot_plugin_alconna import UniMessage, UniMsg
 from nonebot_plugin_uninfo import Uninfo
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel, Field, create_model
 from tortoise.expressions import Q
 
 from zhenxun.models.friend_user import FriendUser
@@ -33,9 +32,9 @@ from .normal_image import normal_image
 class Goods(BaseModel):
     name: str
     """商品名称"""
-    before_handle: list[Callable] = field(default_factory=list)
+    before_handle: list[Callable] = Field(default_factory=list)
     """使用前函数"""
-    after_handle: list[Callable] = field(default_factory=list)
+    after_handle: list[Callable] = Field(default_factory=list)
     """使用后函数"""
     func: Callable | None = None
     """使用函数"""

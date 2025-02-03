@@ -1,9 +1,8 @@
-from dataclasses import field
 from typing import Protocol
 
 from aiocache import cached
 from nonebot.compat import model_dump
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from strenum import StrEnum
 
 from zhenxun.utils.http_utils import AsyncHttpx
@@ -100,7 +99,7 @@ class FileInfo(BaseModel):
 
     type: FileType
     name: str
-    files: list["FileInfo"] = field(default_factory=list)
+    files: list["FileInfo"] = Field(default_factory=list)
 
 
 class JsdelivrStrategy:
