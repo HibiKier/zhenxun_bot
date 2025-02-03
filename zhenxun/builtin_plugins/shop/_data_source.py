@@ -453,7 +453,7 @@ class ShopManage:
         if goods.uuid not in user.props:
             user.props[goods.uuid] = 0
         user.props[goods.uuid] += num
-        await user.save(update_Fields=["gold", "props"])
+        await user.save(update_fields=["gold", "props"])
         return f"花费 {price} 金币购买 {goods.goods_name} ×{num} 成功！"
 
     @classmethod
@@ -479,7 +479,7 @@ class ShopManage:
                 is_change = True
                 del user.props[uuid]
         if is_change:
-            await user.save(update_Fields=["props"])
+            await user.save(update_fields=["props"])
         result = await GoodsInfo.filter(uuid__in=user.props.keys()).all()
         data_list = []
         uuid2goods = {item.uuid: item for item in result}
