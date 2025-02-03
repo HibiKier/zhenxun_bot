@@ -1,4 +1,4 @@
-from typing import Any, overload
+from typing import Any, ClassVar, overload
 from typing_extensions import Self
 
 from tortoise import fields
@@ -8,7 +8,7 @@ from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.cache import CacheRoot
 from zhenxun.services.db_context import Model
-from zhenxun.utils.enum import CacheType, PluginType
+from zhenxun.utils.enum import CacheType, DbLockType, PluginType
 
 
 class GroupConsole(Model):
@@ -53,6 +53,9 @@ class GroupConsole(Model):
         unique_together = ("group_id", "channel_id")
 
     cache_type = CacheType.GROUPS
+    """缓存类型"""
+    enable_lock: ClassVar[list[DbLockType]] = [DbLockType.CREATE]
+    """开启锁"""
 
     @staticmethod
     def format(name: str) -> str:

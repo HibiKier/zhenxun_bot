@@ -103,7 +103,7 @@ group_increase_handle = on_notice(
 group_decrease_handle = on_notice(
     priority=1,
     block=False,
-    rule=notice_rule([GroupMemberDecreaseEvent, GroupMemberIncreaseEvent]),
+    rule=notice_rule([GroupMemberDecreaseEvent, GroupDecreaseNoticeEvent]),
 )
 """群员减少处理"""
 add_group = on_request(priority=1, block=False)

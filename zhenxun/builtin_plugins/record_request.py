@@ -104,7 +104,7 @@ async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSessi
             await PlatformUtils.send_superuser(
                 bot,
                 f"*****一份好友申请*****\n"
-                f"ID: {f.id}"
+                f"ID: {f.id}\n"
                 f"昵称：{nickname}({event.user_id})\n"
                 f"自动同意：{'√' if base_config.get('AUTO_ADD_FRIEND') else '×'}\n"
                 f"日期：{str(datetime.now()).split('.')[0]}\n"

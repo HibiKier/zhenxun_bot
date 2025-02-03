@@ -20,6 +20,21 @@ class CacheType(StrEnum):
     """用户权限"""
 
 
+class DbLockType(StrEnum):
+    """
+    锁类型
+    """
+
+    CREATE = "CREATE"
+    """创建"""
+    DELETE = "DELETE"
+    """删除"""
+    UPDATE = "UPDATE"
+    """更新"""
+    QUERY = "QUERY"
+    """查询"""
+
+
 class GoldHandle(StrEnum):
     """
     金币处理

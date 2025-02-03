@@ -1,5 +1,6 @@
+from asyncio import Semaphore
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, ClassVar
 from typing_extensions import Self
 
 import nonebot
@@ -10,6 +11,7 @@ from tortoise.connection import connections
 from tortoise.models import Model as TortoiseModel
 
 from zhenxun.configs.config import BotConfig
+from zhenxun.utils.enum import DbLockType
 
 from .cache import CacheRoot
 from .log import logger
@@ -31,16 +33,24 @@ def _():
 class Model(TortoiseModel):
     """
     自动添加模块
-
-    Args:
-        Model_: Model
     """
+
+    sem_data: ClassVar[dict[str, dict[str, Semaphore]]] = {}
 
     def __init_subclass__(cls, **kwargs):
         MODELS.append(cls.__module__)
 
         if func := getattr(cls, "_run_script", None):
             SCRIPT_METHOD.append((cls.__module__, func))
+        if enable_lock := getattr(cls, "enable_lock", []):
+            """创建锁"""
+            cls.sem_data[cls.__module__] = {}
+            for lock in enable_lock:
+                cls.sem_data[cls.__module__][lock] = Semaphore(1)
+
+    @classmethod
+    def get_semaphore(cls, lock_type: DbLockType):
+        return cls.sem_data.get(cls.__module__, {}).get(lock_type, None)
 
     @classmethod
     def get_cache_type(cls):
@@ -50,10 +60,7 @@ class Model(TortoiseModel):
     async def create(
         cls, using_db: BaseDBAsyncClient | None = None, **kwargs: Any
     ) -> Self:
-        result = await super().create(using_db=using_db, **kwargs)
-        if cache_type := cls.get_cache_type():
-            await CacheRoot.reload(cache_type)
-        return result
+        return await super().create(using_db=using_db, **kwargs)
 
     @classmethod
     async def get_or_create(
@@ -130,12 +137,25 @@ class Model(TortoiseModel):
         force_create: bool = False,
         force_update: bool = False,
     ):
-        await super().save(
-            using_db=using_db,
-            update_fields=update_fields,
-            force_create=force_create,
-            force_update=force_update,
-        )
+        if getattr(self, "id", None) is None:
+            sem = self.get_semaphore(DbLockType.CREATE)
+        else:
+            sem = self.get_semaphore(DbLockType.UPDATE)
+        if sem:
+            async with sem:
+                await super().save(
+                    using_db=using_db,
+                    update_fields=update_fields,
+                    force_create=force_create,
+                    force_update=force_update,
+                )
+        else:
+            await super().save(
+                using_db=using_db,
+                update_fields=update_fields,
+                force_create=force_create,
+                force_update=force_update,
+            )
         if CACHE_FLAG and (cache_type := getattr(self, "cache_type", None)):
             await CacheRoot.reload(cache_type)
 
