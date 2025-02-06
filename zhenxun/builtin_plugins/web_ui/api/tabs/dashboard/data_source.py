@@ -10,6 +10,7 @@ from tortoise.functions import Count
 from zhenxun.models.bot_connect_log import BotConnectLog
 from zhenxun.models.chat_history import ChatHistory
 from zhenxun.models.statistics import Statistics
+from zhenxun.services.log import logger
 from zhenxun.utils.platform import PlatformUtils
 
 from ....base_model import BaseResultModel, QueryModel
@@ -51,10 +52,15 @@ class ApiDataSource:
         bot_info = BotInfo(
             self_id=bot.self_id, nickname=nickname, ava_url=ava_url, platform=platform
         )
-        group_list, _ = await PlatformUtils.get_group_list(bot, True)
-        friend_list, _ = await PlatformUtils.get_friend_list(bot)
-        bot_info.group_count = len(group_list)
-        bot_info.friend_count = len(friend_list)
+        try:
+            group_list, _ = await PlatformUtils.get_group_list(bot, True)
+            friend_list, _ = await PlatformUtils.get_friend_list(bot)
+            bot_info.group_count = len(group_list)
+            bot_info.friend_count = len(friend_list)
+        except Exception as e:
+            logger.warning("获取bot好友/群组数量失败...", "WebUi", e=e)
+            bot_info.group_count = 0
+            bot_info.friend_count = 0
         bot_info.day_call = await Statistics.filter(
             create_time__gte=now - timedelta(hours=now.hour, minutes=now.minute),
             bot_id=bot.self_id,

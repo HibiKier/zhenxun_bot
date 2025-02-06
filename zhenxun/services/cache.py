@@ -42,7 +42,7 @@ class CacheData(BaseModel):
     """缓存数据"""
     expire: int
     """缓存过期时间"""
-    reload_time = time.time()
+    reload_time: float = time.time()
     """更新时间"""
     reload_count: int = 0
     """更新次数"""

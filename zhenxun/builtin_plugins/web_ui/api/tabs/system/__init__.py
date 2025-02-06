@@ -38,6 +38,7 @@ async def _(path: str | None = None) -> Result[list[DirFile]]:
                 parent=path,
             )
         )
+    sorted(data_list, key=lambda f: f.name)
     return Result.ok(data_list)
 
 
