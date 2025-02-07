@@ -23,11 +23,11 @@ strenum = "^0.4.15"
 nonebot-plugin-session = "^0.2.3"
 ujson = "^5.9.0"
 nb-cli = "^1.3.0"
-nonebot2 = {extras = ["fastapi"], version = "^2.3.3"}
+nonebot2 = { extras = ["fastapi"], version = "^2.3.3" }
 pillow = "^10.0.0"
 retrying = "^1.3.4"
 aiofiles = "^23.2.1"
-nonebot-plugin-htmlrender = "^0.3.0"
+nonebot-plugin-htmlrender = ">=0.6.0,<1.0.0"
 pypinyin = "^0.51.0"
 beautifulsoup4 = "^4.12.3"
 lxml = "^5.1.0"
@@ -66,8 +66,8 @@ plugins = [
 plugin_dirs = ["zhenxun/services", "zhenxun/builtin_plugins", "zhenxun/plugins"]
 adapters = [
     { name = "OneBot V11", module_name = "nonebot.adapters.onebot.v11" },
-#    { name = "DoDo", module_name = "nonebot.adapters.dodo" },
-#    { name = "开黑啦", module_name = "nonebot.adapters.kaiheila" },
+    #    { name = "DoDo", module_name = "nonebot.adapters.dodo" },
+    #    { name = "开黑啦", module_name = "nonebot.adapters.kaiheila" },
 ]
 
 [tool.ruff]
@@ -79,24 +79,24 @@ line-ending = "lf"
 
 [tool.ruff.lint]
 select = [
-    "F",     # Pyflakes
-    "W",     # pycodestyle warnings
-    "E",     # pycodestyle errors
-    "I",     # isort
-    "UP",    # pyupgrade
+    "F", # Pyflakes
+    "W", # pycodestyle warnings
+    "E", # pycodestyle errors
+    "I", # isort
+    "UP", # pyupgrade
     "ASYNC", # flake8-async
-    "C4",    # flake8-comprehensions
-    "T10",   # flake8-debugger
-    "T20",   # flake8-print
-    "PYI",   # flake8-pyi
-    "PT",    # flake8-pytest-style
-    "Q",     # flake8-quotes
-    "TID",   # flake8-tidy-imports
-    "RUF",   # Ruff-specific rules
+    "C4", # flake8-comprehensions
+    "T10", # flake8-debugger
+    "T20", # flake8-print
+    "PYI", # flake8-pyi
+    "PT", # flake8-pytest-style
+    "Q", # flake8-quotes
+    "TID", # flake8-tidy-imports
+    "RUF", # Ruff-specific rules
 ]
 ignore = [
-    "E402",   # module-import-not-at-top-of-file
-    "UP037",  # quoted-annotation
+    "E402", # module-import-not-at-top-of-file
+    "UP037", # quoted-annotation
     "RUF001", # ambiguous-unicode-character-string
     "RUF002", # ambiguous-unicode-character-docstring
     "RUF003", # ambiguous-unicode-character-comment
