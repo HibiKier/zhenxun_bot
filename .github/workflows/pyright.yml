@@ -1,6 +1,7 @@
 name: Pyright Lint
 
 on:
+  workflow_call: # 允许此工作流作为可重用工作流被调用
   push:
     branches:
       - "*"
@@ -42,8 +43,8 @@ jobs:
       cancel-in-progress: true
 
     steps:
-      - uses: actions/checkout@v4
-
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -66,7 +67,6 @@ jobs:
         run: poetry install
 
       - name: Run Pyright
-        shell: bash
-        run: |
-          extra_args="${{ github.event.inputs.debug-mode == 'true' && '--warnings --verbose --level verbose' || '--warnings --verbose' }}"
-          poetry run pyright . $extra_args
+        uses: jakebailey/pyright-action@v2
+        with:
+          pylance-version: latest-release
