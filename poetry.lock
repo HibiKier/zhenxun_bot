@@ -2319,14 +2319,14 @@ reference = "aliyun"
 
 [[package]]
 name = "nonebot-plugin-waiter"
-version = "0.8.0"
+version = "0.8.1"
 description = "An alternative for got-and-reject in Nonebot"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "nonebot_plugin_waiter-0.8.0-py3-none-any.whl", hash = "sha256:eabf284f783a1e534591a552139a747623e621453a790b554854bc8a386f783f"},
-    {file = "nonebot_plugin_waiter-0.8.0.tar.gz", hash = "sha256:b750f2a3b255ebe9ab7ce75056c1e829281d898c6da8d81552147df2b1686270"},
+    {file = "nonebot_plugin_waiter-0.8.1-py3-none-any.whl", hash = "sha256:3e1afc8f134496d3a4ecefd9c3a2a98d6ef28a5318268cb22b99a0ef61a44080"},
+    {file = "nonebot_plugin_waiter-0.8.1.tar.gz", hash = "sha256:5e54213dfea1fd8a1e20dbe6d93b7881f35cbeedf80005148cdc39c1fd2ccc0f"},
 ]
 
 [package.dependencies]
@@ -5057,4 +5057,8 @@ reference = "aliyun"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
+<<<<<<< Updated upstream
 content-hash = "7f22f8300bad17b4c821d401391663d328aee17ffc2be9230b45cb9c27f212ea"
+=======
+content-hash = "5409b38a3c23d8e2e6d464db225217f1301e0319c6019f4cbd3b354218dd191c"
+>>>>>>> Stashed changes

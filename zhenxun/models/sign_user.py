@@ -37,6 +37,24 @@ class SignUser(Model):
         table_description = "用户签到数据表"
 
     @classmethod
+    async def get_user(cls, user_id: str, platform: str | None = None) -> "SignUser":
+        """获取签到用户
+
+        参数:
+            user_id: 用户id
+            platform: 平台.
+
+        返回:
+            Self: SignUser
+        """
+        user_console = await UserConsole.get_user(user_id, platform)
+        user, _ = await SignUser.get_or_create(
+            user_id=user_id,
+            defaults={"user_console": user_console, "platform": platform},
+        )
+        return user
+
+    @classmethod
     async def sign(
         cls,
         user_id: str | Self,

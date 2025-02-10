@@ -1,3 +1,5 @@
+from typing_extensions import Self
+
 from nonebot.adapters import Bot
 from tortoise import fields
 
@@ -38,7 +40,7 @@ class FgRequest(Model):
         table_description = "好友群组请求"
 
     @classmethod
-    async def approve(cls, bot: Bot, id: int):
+    async def approve(cls, bot: Bot, id: int) -> Self:
         """同意请求
 
         参数:
@@ -48,10 +50,10 @@ class FgRequest(Model):
         异常:
             NotFoundError: 未发现请求
         """
-        await cls._handle_request(bot, id, RequestHandleType.APPROVE)
+        return await cls._handle_request(bot, id, RequestHandleType.APPROVE)
 
     @classmethod
-    async def refused(cls, bot: Bot, id: int):
+    async def refused(cls, bot: Bot, id: int) -> Self:
         """拒绝请求
 
         参数:
@@ -61,10 +63,10 @@ class FgRequest(Model):
         异常:
             NotFoundError: 未发现请求
         """
-        await cls._handle_request(bot, id, RequestHandleType.REFUSED)
+        return await cls._handle_request(bot, id, RequestHandleType.REFUSED)
 
     @classmethod
-    async def ignore(cls, id: int):
+    async def ignore(cls, id: int) -> Self:
         """忽略请求
 
         参数:
@@ -73,7 +75,7 @@ class FgRequest(Model):
         异常:
             NotFoundError: 未发现请求
         """
-        await cls._handle_request(None, id, RequestHandleType.IGNORE)
+        return await cls._handle_request(None, id, RequestHandleType.IGNORE)
 
     @classmethod
     async def expire(cls, id: int):
@@ -93,7 +95,7 @@ class FgRequest(Model):
         bot: Bot | None,
         id: int,
         handle_type: RequestHandleType,
-    ):
+    ) -> Self:
         """处理请求
 
         参数:
@@ -126,3 +128,4 @@ class FgRequest(Model):
                     sub_type="invite",
                     approve=handle_type == RequestHandleType.APPROVE,
                 )
+        return req
