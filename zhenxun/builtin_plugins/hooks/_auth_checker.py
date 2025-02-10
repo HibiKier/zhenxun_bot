@@ -367,7 +367,8 @@ class AuthChecker:
                     if self.is_send_limit_message(plugin, user_id):
                         self._flmt_s.start_cd(user_id)
                         await MessageUtils.build_message(
-                            "好感度不足哦，请继续签到提升好感度吧..."
+                            f"好感度不足哦，当前功能需要好感度: {plugin.impression}，"
+                            "请继续签到提升好感度吧！"
                         ).send(reply_to=True)
                     logger.debug(
                         f"{plugin.name}({plugin.module}) 用户好感度不足...",
