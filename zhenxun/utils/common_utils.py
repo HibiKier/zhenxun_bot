@@ -106,3 +106,19 @@ class SqlUtils:
                 f"Unsupported database type: {db_class_name}", query.__module__
             )
         return query
+
+    @classmethod
+    def add_column(
+        cls,
+        table_name: str,
+        column_name: str,
+        column_type: str,
+        default: str | None = None,
+        not_null: bool = False,
+    ) -> str:
+        sql = f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"
+        if default:
+            sql += f" DEFAULT {default}"
+        if not_null:
+            sql += " NOT NULL"
+        return sql
