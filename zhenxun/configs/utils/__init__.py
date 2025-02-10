@@ -166,6 +166,8 @@ class PluginSetting(BaseModel):
     """是否限制超级用户"""
     cost_gold: int = 0
     """调用插件花费金币"""
+    impression: float = 0.0
+    """调用插件好感度限制"""
 
 
 class SchedulerModel(BaseModel):
