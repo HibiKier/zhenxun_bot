@@ -156,43 +156,44 @@ class PlatformUtils:
         返回:
             UserData | None: 用户数据
         """
-        if interface := get_interface(bot):
-            member = None
-            user = None
-            if channel_id:
-                member = await interface.get_member(
-                    SceneType.CHANNEL_TEXT, channel_id, user_id
-                )
-                if member:
-                    user = member.user
-            elif group_id:
-                member = await interface.get_member(SceneType.GROUP, group_id, user_id)
-                if member:
-                    user = member.user
-            else:
-                user = await interface.get_user(user_id)
-            if not user:
-                return None
+        if not (interface := get_interface(bot)):
+            return None
+        member = None
+        user = None
+        if channel_id:
+            member = await interface.get_member(
+                SceneType.CHANNEL_TEXT, channel_id, user_id
+            )
             if member:
-                return UserData(
-                    name=user.name or "",
-                    card=member.nick,
-                    user_id=user.id,
-                    group_id=group_id,
-                    channel_id=channel_id,
-                    role=member.role.id if member.role else None,
-                    join_time=int(member.joined_at.timestamp())
-                    if member.joined_at
-                    else None,
-                )
-            else:
-                return UserData(
-                    name=user.name or "",
-                    user_id=user.id,
-                    group_id=group_id,
-                    channel_id=channel_id,
-                )
-        return None
+                user = member.user
+        elif group_id:
+            member = await interface.get_member(SceneType.GROUP, group_id, user_id)
+            if member:
+                user = member.user
+        else:
+            user = await interface.get_user(user_id)
+        if not user:
+            return None
+        return (
+            UserData(
+                name=user.name or "",
+                card=member.nick,
+                user_id=user.id,
+                group_id=group_id,
+                channel_id=channel_id,
+                role=member.role.id if member.role else None,
+                join_time=(
+                    int(member.joined_at.timestamp()) if member.joined_at else None
+                ),
+            )
+            if member
+            else UserData(
+                name=user.name or "",
+                user_id=user.id,
+                group_id=group_id,
+                channel_id=channel_id,
+            )
+        )
 
     @classmethod
     async def get_user_avatar(
@@ -342,6 +343,23 @@ class PlatformUtils:
             platform = t.basic["scope"].lower()
             return "qq" if platform.startswith("qq") else platform
         return "unknown"
+
+    @classmethod
+    def is_forward_merge_supported(cls, t: Bot | Uninfo) -> bool:
+        """是否支持转发消息
+
+        参数:
+            t: bot | Uninfo
+
+        返回:
+            bool: 是否支持转发消息
+        """
+        if not isinstance(t, Bot):
+            return t.basic["scope"] == SupportScope.qq_client
+        if interface := get_interface(t):
+            info = interface.basic_info()
+            return info["scope"] == SupportScope.qq_client
+        return False
 
     @classmethod
     async def get_group_list(
