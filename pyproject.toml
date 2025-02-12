@@ -44,6 +44,7 @@ py-cpuinfo = "^9.0.0"
 nonebot-plugin-alconna = "^0.54.0"
 tenacity = "^9.0.0"
 nonebot-plugin-uninfo = ">0.4.1"
+nonebot-plugin-waiter = "^0.8.1"
 
 [tool.poetry.group.dev.dependencies]
 nonebug = "^0.4"

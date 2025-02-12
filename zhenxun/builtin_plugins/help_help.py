@@ -48,7 +48,11 @@ async def _(matcher: Matcher, message: UniMsg, session: EventSession):
                 return
     if text := message.extract_plain_text().strip():
         if plugin := await PluginInfo.get_or_none(
-            name=text, load_status=True, plugin_type=PluginType.NORMAL
+            name=text,
+            load_status=True,
+            plugin_type=PluginType.NORMAL,
+            block_type__isnull=True,
+            status=True,
         ):
             image = None
             if _path.exists():
