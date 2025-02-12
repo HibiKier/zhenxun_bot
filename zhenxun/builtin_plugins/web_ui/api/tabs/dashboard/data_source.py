@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta
 import time
 
@@ -65,10 +66,12 @@ class ApiDataSource:
             self_id=bot.self_id, nickname=nickname, ava_url=ava_url, platform=platform
         )
         try:
-            group_list, _ = await PlatformUtils.get_group_list(bot, True)
-            friend_list, _ = await PlatformUtils.get_friend_list(bot)
-            bot_info.group_count = len(group_list)
-            bot_info.friend_count = len(friend_list)
+            group, friend = await asyncio.gather(
+                PlatformUtils.get_group_list(bot, True),
+                PlatformUtils.get_friend_list(bot),
+            )
+            bot_info.group_count = len(group[0])
+            bot_info.friend_count = len(friend[0])
         except Exception as e:
             logger.warning("获取bot好友/群组信息失败...", "WebUi", e=e)
             bot_info.group_count = 0
