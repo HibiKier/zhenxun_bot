@@ -1,9 +1,9 @@
+from pathlib import Path
 import shutil
 import subprocess
-from pathlib import Path
 
-import ujson as json
 from aiocache import cached
+import ujson as json
 
 from zhenxun.builtin_plugins.auto_update.config import REQ_TXT_FILE_STRING
 from zhenxun.builtin_plugins.plugin_store.models import StorePluginInfo
