@@ -1,9 +1,9 @@
-from pathlib import Path
 import shutil
 import subprocess
+from pathlib import Path
 
-from aiocache import cached
 import ujson as json
+from aiocache import cached
 
 from zhenxun.builtin_plugins.auto_update.config import REQ_TXT_FILE_STRING
 from zhenxun.builtin_plugins.plugin_store.models import StorePluginInfo
@@ -198,10 +198,10 @@ class ShopManage:
         if plugin_info.github_url is None:
             plugin_info.github_url = DEFAULT_GITHUB_URL
             is_external = False
-        version_split = plugin_info.version.split("-")
-        if len(version_split) > 1:
-            github_url_split = plugin_info.github_url.split("/tree/")
-            plugin_info.github_url = f"{github_url_split[0]}/tree/{version_split[1]}"
+        # version_split = plugin_info.version.split("-")
+        # if len(version_split) > 1:
+        #     github_url_split = plugin_info.github_url.split("/tree/")
+        #     plugin_info.github_url = f"{github_url_split[0]}/tree/{version_split[1]}"
         logger.info(f"正在安装插件 {plugin_key}...")
         await cls.install_plugin_with_repo(
             plugin_info.github_url,
@@ -218,7 +218,14 @@ class ShopManage:
         files: list[str]
         repo_api: RepoAPI
         repo_info = GithubUtils.parse_github_url(github_url)
-        logger.debug(f"成功获取仓库信息: {repo_info}", "插件管理")
+        try:
+            # 获取最新commit并更新分支
+            if not repo_info.is_commit_hash():
+                latest_commit = await repo_info.get_latest_commit()
+                repo_info.branch = latest_commit
+        except Exception as e:
+            logger.error(f"获取最新commit失败: {e}", "插件管理")
+            raise
         for repo_api in GithubUtils.iter_api_strategies():
             try:
                 await repo_api.parse_repo_info(repo_info)

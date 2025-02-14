@@ -1,3 +1,4 @@
+import string
 from typing import Protocol
 
 from aiocache import cached
@@ -60,6 +61,24 @@ class RepoInfo(BaseModel):
 
     def to_dict(self, **kwargs):
         return model_dump(self, **kwargs)
+
+    async def get_latest_commit(self) -> str:
+        """获取分支最新commit"""
+        if self.is_commit_hash():
+            return self.branch
+        url = f"https://api.github.com/repos/{self.owner}/{self.repo}/branches/{self.branch}"
+        headers = {"Accept": "application/vnd.github.v3+json"}
+        response = await AsyncHttpx.get(url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            return data["commit"]["sha"]
+        raise ValueError(f"获取最新commit失败: {response.text}")
+
+    def is_commit_hash(self) -> bool:
+        """判断branch是否为commit hash"""
+        return len(self.branch) in (7, 40) and all(
+            c in string.hexdigits.lower() for c in self.branch
+        )
 
 
 class APIStrategy(Protocol):
