@@ -28,7 +28,7 @@ __plugin_meta__ = PluginMetadata(
                 type=bool,
             )
         ],
-    ).dict(),
+    ).to_dict(),
 )
 
 
@@ -70,7 +70,7 @@ async def _():
             await ChatHistory.bulk_create(message_list)
         logger.debug(f"批量添加聊天记录 {len(message_list)} 条", "定时任务")
     except Exception as e:
-        logger.error(f"定时批量添加聊天记录", "定时任务", e=e)
+        logger.error("定时批量添加聊天记录", "定时任务", e=e)
 
 
 # @test.handle()

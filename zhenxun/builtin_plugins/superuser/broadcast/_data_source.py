@@ -1,5 +1,5 @@
-import nonebot_plugin_alconna as alc
 from nonebot.adapters import Bot
+import nonebot_plugin_alconna as alc
 
 # from nonebot.adapters.discord import Bot as DiscordBot
 # from nonebot.adapters.dodo import Bot as DodoBot
@@ -9,14 +9,13 @@ from nonebot.adapters import Bot
 from nonebot_plugin_alconna import Image, UniMsg
 from nonebot_plugin_session import EventSession
 
-from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
+from zhenxun.utils.common_utils import CommonUtils
 from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import PlatformUtils
 
 
 class BroadcastManage:
-
     @classmethod
     async def send(
         cls, bot: Bot, message: UniMsg, session: EventSession
@@ -42,12 +41,13 @@ class BroadcastManage:
             error_count = 0
             for group in group_list:
                 try:
-                    if not await TaskInfo.is_block(
-                        group.group_id,
+                    if not await CommonUtils.task_is_block(
+                        bot,
                         "broadcast",  # group.channel_id
+                        group.group_id,
                     ):
                         target = PlatformUtils.get_target(
-                            bot, None, group.channel_id or group.group_id
+                            group_id=group.group_id, channel_id=group.channel_id
                         )
                         if target:
                             await MessageUtils.build_message(message_list).send(

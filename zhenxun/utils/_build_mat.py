@@ -1,16 +1,14 @@
-import random
 from io import BytesIO
 from pathlib import Path
-from re import S
+import random
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from strenum import StrEnum
 
 from ._build_image import BuildImage
 
 
 class MatType(StrEnum):
-
     LINE = "LINE"
     """折线图"""
     BAR = "BAR"
@@ -20,18 +18,17 @@ class MatType(StrEnum):
 
 
 class BuildMatData(BaseModel):
-
     mat_type: MatType
     """类型"""
-    data: list[int | float] = []
+    data: list[int | float] = Field(default_factory=list)
     """数据"""
     x_name: str | None = None
     """X轴坐标名称"""
     y_name: str | None = None
     """Y轴坐标名称"""
-    x_index: list[str] = []
+    x_index: list[str] = Field(default_factory=list)
     """显示轴坐标值"""
-    y_index: list[int | float] = []
+    y_index: list[int | float] = Field(default_factory=list)
     """数据轴坐标值"""
     space: tuple[int, int] = (20, 20)
     """坐标值间隔(X, Y)"""
@@ -51,7 +48,7 @@ class BuildMatData(BaseModel):
     """背景颜色"""
     background: Path | bytes | None = None
     """背景图片"""
-    bar_color: list[str] = ["*"]
+    bar_color: list[str] = Field(default_factory=lambda: ["*"])
     """柱状图柱子颜色, 多个时随机, 使用 * 时七色随机"""
     padding: tuple[int, int] = (50, 50)
     """图表上下左右边距"""
@@ -64,7 +61,6 @@ class BuildMat:
     """
 
     class InitGraph(BaseModel):
-
         mark_image: BuildImage
         """BuildImage"""
         x_height: int
@@ -291,7 +287,8 @@ class BuildMat:
                         self.build_data.font, self.build_data.font_size + 4
                     )
                     title_width, title_height = BuildImage.get_text_size(
-                        self.build_data.x_name, font  # type: ignore
+                        self.build_data.x_name,
+                        font,  # type: ignore
                     )
                     pos = (
                         A.width - title_width - 20,

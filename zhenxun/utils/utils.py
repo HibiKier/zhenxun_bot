@@ -1,8 +1,8 @@
-import os
-import time
 from collections import defaultdict
 from datetime import datetime
+import os
 from pathlib import Path
+import time
 from typing import Any
 
 import httpx
@@ -18,7 +18,7 @@ class ResourceDirManager:
     临时文件管理器
     """
 
-    temp_path = []
+    temp_path = []  # noqa: RUF012
 
     @classmethod
     def __tree_append(cls, path: Path):
@@ -69,7 +69,7 @@ class CountLimiter:
         if day != self.today:
             self.today = day
             self.count.clear()
-        return bool(self.count[key] < self.max)
+        return self.count[key] < self.max
 
     def get_num(self, key):
         return self.count[key]
@@ -130,10 +130,7 @@ def cn2py(word: str) -> str:
     参数:
         word: 文本
     """
-    temp = ""
-    for i in pypinyin.pinyin(word, style=pypinyin.NORMAL):
-        temp += "".join(i)
-    return temp
+    return "".join("".join(i) for i in pypinyin.pinyin(word, style=pypinyin.NORMAL))
 
 
 async def get_user_avatar(uid: int | str) -> bytes | None:
@@ -147,7 +144,7 @@ async def get_user_avatar(uid: int | str) -> bytes | None:
         for _ in range(3):
             try:
                 return (await client.get(url)).content
-            except Exception as e:
+            except Exception:
                 logger.error("获取用户头像错误", "Util", target=uid)
     return None
 
@@ -163,7 +160,7 @@ async def get_group_avatar(gid: int | str) -> bytes | None:
         for _ in range(3):
             try:
                 return (await client.get(url)).content
-            except Exception as e:
+            except Exception:
                 logger.error("获取群头像错误", "Util", target=gid)
     return None
 
@@ -192,6 +189,7 @@ def change_pixiv_image_links(
         url = (
             url.replace("i.pximg.net", nginx_url)
             .replace("i.pixiv.cat", nginx_url)
+            .replace("i.pixiv.re", nginx_url)
             .replace("_webp", "")
         )
     return url
@@ -227,6 +225,22 @@ def is_valid_date(date_text: str, separator: str = "-") -> bool:
     """
     try:
         datetime.strptime(date_text, f"%Y{separator}%m{separator}%d")
+        return True
+    except ValueError:
+        return False
+
+
+def is_number(text: str) -> bool:
+    """是否为数字
+
+    参数:
+        text: 文本
+
+    返回:
+        bool: 是否为数字
+    """
+    try:
+        float(text)
         return True
     except ValueError:
         return False

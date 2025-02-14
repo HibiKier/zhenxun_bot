@@ -1,0 +1,16 @@
+default_install_hook_types: [pre-commit]
+ci:
+  autofix_commit_msg: ":rotating_light: auto fix by pre-commit hooks"
+  autofix_prs: true
+  autoupdate_branch: main
+  autoupdate_schedule: monthly
+  autoupdate_commit_msg: ":arrow_up: auto update by pre-commit hooks"
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.2
+    hooks:
+      - id: ruff
+        args: [--fix]
+        stages: [pre-commit]
+      - id: ruff-format
+        stages: [pre-commit]

@@ -1,5 +1,6 @@
-from tortoise import fields
 from typing_extensions import Self
+
+from tortoise import fields
 
 from zhenxun.services.db_context import Model
 
@@ -8,7 +9,6 @@ from .user_console import UserConsole
 
 
 class SignUser(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_id = fields.CharField(255, unique=True, description="用户id")
@@ -32,9 +32,27 @@ class SignUser(Model):
     platform = fields.CharField(255, null=True, description="平台")
     """平台"""
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "sign_users"
         table_description = "用户签到数据表"
+
+    @classmethod
+    async def get_user(cls, user_id: str, platform: str | None = None) -> "SignUser":
+        """获取签到用户
+
+        参数:
+            user_id: 用户id
+            platform: 平台.
+
+        返回:
+            Self: SignUser
+        """
+        user_console = await UserConsole.get_user(user_id, platform)
+        user, _ = await SignUser.get_or_create(
+            user_id=user_id,
+            defaults={"user_console": user_console, "platform": platform},
+        )
+        return user
 
     @classmethod
     async def sign(

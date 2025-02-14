@@ -1,35 +1,58 @@
-import platform
 from pathlib import Path
+
+import nonebot
+from pydantic import BaseModel, Field
 
 from .utils import ConfigsManager
 
-if platform.system() == "Linux":
-    import os
-
-    hostip = (
-        os.popen("cat /etc/resolv.conf | grep nameserver | awk '{ print $2 }'")
-        .read()
-        .replace("\n", "")
-    )
+__all__ = ["BotConfig", "Config"]
 
 
-# 回复消息名称
-NICKNAME: str = "小真寻"
+class BotSetting(BaseModel):
+    self_nickname: str = ""
+    """回复时NICKNAME"""
+    system_proxy: str | None = None
+    """系统代理"""
+    db_url: str = ""
+    """数据库链接"""
+    platform_superusers: dict[str, list[str]] = Field(default_factory=dict)
+    """平台超级用户"""
+    qbot_id_data: dict[str, str] = Field(default_factory=dict)
+    """官bot id:账号id"""
 
-# 数据库（必要）
-# 如果填写了bind就不需要再填写后面的字段了#）
-# 示例："bind": "postgres://user:password@127.0.0.1:5432/database"
-bind: str = ""  # 数据库连接链接
-sql_name: str = "postgres"
-user: str = ""  # 数据用户名
-password: str = ""  # 数据库密码
-address: str = ""  # 数据库地址
-port: str = ""  # 数据库端口
-database: str = ""  # 数据库名称
+    def get_qbot_uid(self, qbot_id: str) -> str | None:
+        """获取官bot账号id
 
-# 代理，例如 "http://127.0.0.1:7890"
-# 如果是WLS 可以 f"http://{hostip}:7890" 使用寄主机的代理
-SYSTEM_PROXY: str | None = None  # 全局代理
+        参数:
+            qbot_id: 官bot id
+
+        返回:
+            str: 账号id
+        """
+        return self.qbot_id_data.get(qbot_id)
+
+    def get_superuser(self, platform: str) -> list[str]:
+        """获取超级用户
+
+        参数:
+            platform: 对应平台
+
+        返回:
+            list[str]: 超级用户id
+        """
+        if self.platform_superusers:
+            return self.platform_superusers.get(platform, [])
+        return []
+
+    def get_sql_type(self) -> str:
+        """获取数据库类型
+
+        返回:
+            str: 数据库类型, postgres, mysql, sqlite
+        """
+        return self.db_url.split(":", 1)[0] if self.db_url else ""
 
 
 Config = ConfigsManager(Path() / "data" / "configs" / "plugins2config.yaml")
+
+BotConfig = nonebot.get_plugin_config(BotSetting)

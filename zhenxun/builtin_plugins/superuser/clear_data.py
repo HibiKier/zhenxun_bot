@@ -26,7 +26,7 @@ __plugin_meta__ = PluginMetadata(
         author="HibiKier",
         version="0.1",
         plugin_type=PluginType.SUPERUSER,
-    ).dict(),
+    ).to_dict(),
 )
 
 
@@ -47,10 +47,10 @@ async def _(session: EventSession):
     await MessageUtils.build_message("开始清理临时数据...").send()
     size = await _clear_data()
     await MessageUtils.build_message(
-        "共清理了 {:.2f}MB 的数据...".format(size / 1024 / 1024)
+        f"共清理了 {size / 1024 / 1024:.2f}MB 的数据..."
     ).send()
     logger.info(
-        "清理临时数据完成，共清理了 {:.2f}MB 的数据...".format(size / 1024 / 1024),
+        f"清理临时数据完成，共清理了 {size / 1024 / 1024:.2f}MB 的数据...",
         session=session,
     )
 
@@ -79,9 +79,7 @@ def _clear_data() -> float:
                         "清理临时数据",
                         e=e,
                     )
-        logger.debug(
-            "清理临时文件夹大小: {:.2f}MB".format(size / 1024 / 1024), "清理临时数据"
-        )
+        logger.debug(f"清理临时文件夹大小: {size / 1024 / 1024:.2f}MB", "清理临时数据")
     return float(size)
 
 
@@ -93,6 +91,6 @@ def _clear_data() -> float:
 async def _():
     size = await _clear_data()
     logger.info(
-        "自动清理临时数据完成，共清理了 {:.2f}MB 的数据...".format(size / 1024 / 1024),
+        f"自动清理临时数据完成，共清理了 {size / 1024 / 1024:.2f}MB 的数据...",
         "定时任务",
     )

@@ -1,12 +1,13 @@
 import nonebot
+from nonebot.adapters import Bot
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_apscheduler import scheduler
 
-from zhenxun.configs.config import NICKNAME
+from zhenxun.configs.config import BotConfig
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.configs.utils import PluginExtraData, Task
-from zhenxun.models.task_info import TaskInfo
 from zhenxun.services.log import logger
+from zhenxun.utils.common_utils import CommonUtils
 from zhenxun.utils.enum import PluginType
 from zhenxun.utils.message import MessageUtils
 from zhenxun.utils.platform import broadcast_group
@@ -20,27 +21,21 @@ __plugin_meta__ = PluginMetadata(
         version="0.1",
         plugin_type=PluginType.HIDDEN,
         tasks=[
-            Task(module="group_welcome", name="进群欢迎"),
-            Task(module="refund_group_remind", name="退群提醒"),
+            Task(
+                module="morning_goodnight",
+                name="早晚安",
+                create_status=False,
+                default_status=False,
+            )
         ],
-    ).dict(),
+    ).to_dict(),
 )
 
 driver = nonebot.get_driver()
 
 
-@driver.on_startup
-async def _():
-    if not await TaskInfo.exists(module="morning_goodnight"):
-        await TaskInfo.create(
-            module="morning_goodnight",
-            name="早晚安",
-            status=True,
-        )
-
-
-async def check(group_id: str) -> bool:
-    return not await TaskInfo.is_block("morning_goodnight", group_id)
+async def check(bot: Bot, group_id: str) -> bool:
+    return not await CommonUtils.task_is_block(bot, "morning_goodnight", group_id)
 
 
 # 早上好
@@ -63,7 +58,10 @@ async def _():
 )
 async def _():
     message = MessageUtils.build_message(
-        [f"{NICKNAME}要睡觉了，你们也要早点睡呀", IMAGE_PATH / "zhenxun" / "sleep.jpg"]
+        [
+            f"{BotConfig.self_nickname}要睡觉了，你们也要早点睡呀",
+            IMAGE_PATH / "zhenxun" / "sleep.jpg",
+        ]
     )
     await broadcast_group(
         message,

@@ -1,34 +1,58 @@
+from datetime import datetime
 import uuid
 
-from nonebot import require
+import nonebot
+from nonebot.adapters import Bot
 from nonebot.drivers import Driver
 from tortoise import Tortoise
 from tortoise.exceptions import OperationalError
+import ujson as json
 
+from zhenxun.models.bot_connect_log import BotConnectLog
+from zhenxun.models.bot_console import BotConsole
 from zhenxun.models.goods_info import GoodsInfo
 from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.models.sign_user import SignUser
 from zhenxun.models.user_console import UserConsole
 from zhenxun.services.log import logger
 from zhenxun.utils.decorator.shop import shop_register
-
-require("nonebot_plugin_apscheduler")
-require("nonebot_plugin_alconna")
-require("nonebot_plugin_session")
-require("nonebot_plugin_userinfo")
-require("nonebot_plugin_htmlrender")
-
-
-import nonebot
-import ujson as json
+from zhenxun.utils.manager.resource_manager import ResourceManager
+from zhenxun.utils.platform import PlatformUtils
 
 driver: Driver = nonebot.get_driver()
 
 
+@driver.on_bot_connect
+async def _(bot: Bot):
+    logger.debug(f"Bot: {bot.self_id} 建立连接...")
+    await BotConnectLog.create(
+        bot_id=bot.self_id, platform=bot.adapter, connect_time=datetime.now(), type=1
+    )
+    if not await BotConsole.exists(bot_id=bot.self_id):
+        await BotConsole.create(
+            bot_id=bot.self_id, platform=PlatformUtils.get_platform(bot)
+        )
+
+
+@driver.on_bot_disconnect
+async def _(bot: Bot):
+    logger.debug(f"Bot: {bot.self_id} 断开连接...")
+    try:
+        await BotConnectLog.create(
+            bot_id=bot.self_id,
+            platform=bot.adapter,
+            connect_time=datetime.now(),
+            type=0,
+        )
+    except Exception as e:
+        logger.warning(f"记录bot: {bot.self_id} 断开连接失败", e=e)
+
+
 SIGN_SQL = """
-select distinct on("user_id") t1.user_id, t1.checkin_count, t1.add_probability, t1.specify_probability, t1.impression
+select distinct on("user_id") t1.user_id, t1.checkin_count, t1.add_probability,
+t1.specify_probability, t1.impression
 from public.sign_group_users t1
-  join ( 
+  join (
     select user_id, max(t2.impression) as max_impression
     from public.sign_group_users t2
     group by user_id
@@ -38,7 +62,7 @@ from public.sign_group_users t1
 BAG_SQL = """
 select t1.user_id, t1.gold, t1.property
 from public.bag_users t1
-  join ( 
+  join (
     select user_id, max(t2.gold) as max_gold
     from public.bag_users t2
     group by user_id
@@ -48,6 +72,7 @@ from public.bag_users t1
 
 @driver.on_startup
 async def _():
+    await ResourceManager.init_resources()
     """签到与用户的数据迁移"""
     if goods_list := await GoodsInfo.filter(uuid__isnull=True).all():
         for goods in goods_list:
@@ -62,8 +87,8 @@ async def _():
             group_user = []
             try:
                 group_user = await GroupInfoUser.filter(uid__isnull=False).all()
-            except Exception:
-                logger.warning("获取GroupInfoUser数据uid失败...")
+            except Exception as e:
+                logger.warning("获取GroupInfoUser数据uid失败...", e=e)
             user2uid = {u.user_id: u.uid for u in group_user}
             db = Tortoise.get_connection("default")
             old_sign_list = await db.execute_query_dict(SIGN_SQL)
@@ -74,15 +99,12 @@ async def _():
             }
             create_list = []
             sign_id_list = []
-            max_uid = 0
-            if user2uid:
-                max_uid = max(user2uid.values()) + 1
+            max_uid = max(user2uid.values()) + 1 if user2uid else 0
             for old_sign in old_sign_list:
                 sign_id_list.append(old_sign["user_id"])
-                old_bag = [
+                if old_bag := [
                     b for b in old_bag_list if b["user_id"] == old_sign["user_id"]
-                ]
-                if old_bag:
+                ]:
                     old_bag = old_bag[0]
                     property = json.loads(old_bag["property"])
                     props = {}
@@ -115,9 +137,9 @@ async def _():
             create_list.clear()
             uc_dict = {u.user_id: u for u in await UserConsole.all()}
             for old_sign in old_sign_list:
-                user_console = uc_dict.get(old_sign["user_id"])
-                if not user_console:
-                    user_console = await UserConsole.get_user(old_sign["user_id"], "qq")
+                user_console = uc_dict.get(
+                    old_sign["user_id"]
+                ) or await UserConsole.get_user(old_sign["user_id"], "qq")
                 create_list.append(
                     SignUser(
                         user_id=old_sign["user_id"],

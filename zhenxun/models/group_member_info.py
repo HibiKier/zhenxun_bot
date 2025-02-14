@@ -1,5 +1,3 @@
-from typing import Set
-
 from tortoise import fields
 
 from zhenxun.configs.config import Config
@@ -24,13 +22,13 @@ class GroupInfoUser(Model):
     platform = fields.CharField(255, null=True, description="平台")
     """平台"""
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "group_info_users"
         table_description = "群员信息数据表"
         unique_together = ("user_id", "group_id")
 
     @classmethod
-    async def get_all_uid(cls, group_id: str) -> Set[int]:
+    async def get_all_uid(cls, group_id: str) -> set[int]:
         """获取该群所有用户id
 
         参数:
@@ -101,11 +99,18 @@ class GroupInfoUser(Model):
     @classmethod
     async def _run_script(cls):
         return [
-            "alter table group_info_users alter user_join_time drop not null;",  # 允许 user_join_time 为空
-            "ALTER TABLE group_info_users ALTER COLUMN user_join_time TYPE timestamp with time zone USING user_join_time::timestamp with time zone;",
-            "ALTER TABLE group_info_users RENAME COLUMN user_qq TO user_id;",  # 将user_id改为user_id
-            "ALTER TABLE group_info_users ALTER COLUMN user_id TYPE character varying(255);",
+            # 允许 user_join_time 为空
+            "alter table group_info_users alter user_join_time drop not null;",
+            "ALTER TABLE group_info_users "
+            "ALTER COLUMN user_join_time TYPE timestamp with time zone "
+            "USING user_join_time::timestamp with time zone;",
+            # 将user_id改为user_id
+            "ALTER TABLE group_info_users RENAME COLUMN user_qq TO user_id;",
+            "ALTER TABLE group_info_users "
+            "ALTER COLUMN user_id TYPE character varying(255);",
             # 将user_id字段类型改为character varying(255)
-            "ALTER TABLE group_info_users ALTER COLUMN group_id TYPE character varying(255);",
-            "ALTER TABLE group_info_users ADD COLUMN platform character varying(255) default 'qq';",
+            "ALTER TABLE group_info_users "
+            "ALTER COLUMN group_id TYPE character varying(255);",
+            "ALTER TABLE group_info_users "
+            "ADD COLUMN platform character varying(255) default 'qq';",
         ]

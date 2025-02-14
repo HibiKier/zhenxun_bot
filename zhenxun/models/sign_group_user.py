@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List, Literal, Optional, Tuple, Union
 
 from tortoise import fields
 
@@ -7,7 +6,6 @@ from zhenxun.services.db_context import Model
 
 
 class SignGroupUser(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_id = fields.CharField(255)
@@ -26,7 +24,7 @@ class SignGroupUser(Model):
     """使用指定双倍概率"""
     # specify_probability = fields.DecimalField(10, 3, default=0)
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "sign_group_users"
         table_description = "群员签到数据表"
         unique_together = ("user_id", "group_id")
@@ -49,8 +47,8 @@ class SignGroupUser(Model):
 
     @classmethod
     async def get_all_impression(
-        cls, group_id: Union[int, str]
-    ) -> Tuple[List[str], List[float], List[str]]:
+        cls, group_id: int | str
+    ) -> tuple[list[str], list[float], list[str]]:
         """
         说明:
             获取该群所有用户 id 及对应 好感度
@@ -74,8 +72,11 @@ class SignGroupUser(Model):
     @classmethod
     async def _run_script(cls):
         return [
-            "ALTER TABLE sign_group_users RENAME COLUMN user_qq TO user_id;",  # 将user_id改为user_id
-            "ALTER TABLE sign_group_users ALTER COLUMN user_id TYPE character varying(255);",
+            # 将user_id改为user_id
+            "ALTER TABLE sign_group_users RENAME COLUMN user_qq TO user_id;",
+            "ALTER TABLE sign_group_users "
+            "ALTER COLUMN user_id TYPE character varying(255);",
             # 将user_id字段类型改为character varying(255)
-            "ALTER TABLE sign_group_users ALTER COLUMN group_id TYPE character varying(255);",
+            "ALTER TABLE sign_group_users "
+            "ALTER COLUMN group_id TYPE character varying(255);",
         ]

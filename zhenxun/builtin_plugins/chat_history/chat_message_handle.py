@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 
-import pytz
 from nonebot.plugin import PluginMetadata
 from nonebot_plugin_alconna import (
     Alconna,
@@ -13,8 +12,9 @@ from nonebot_plugin_alconna import (
     store_true,
 )
 from nonebot_plugin_session import EventSession
+import pytz
 
-from zhenxun.configs.utils import PluginExtraData
+from zhenxun.configs.utils import Command, PluginExtraData
 from zhenxun.models.chat_history import ChatHistory
 from zhenxun.models.group_member_info import GroupInfoUser
 from zhenxun.services.log import logger
@@ -45,7 +45,14 @@ __plugin_meta__ = PluginMetadata(
         version="0.1",
         plugin_type=PluginType.NORMAL,
         menu_type="数据统计",
-    ).dict(),
+        commands=[
+            Command(command="消息统计"),
+            Command(command="日消息统计"),
+            Command(command="周消息排行"),
+            Command(command="月消息排行"),
+            Command(command="年消息排行"),
+        ],
+    ).to_dict(),
 )
 
 
@@ -113,7 +120,10 @@ async def _(
                 date_scope = time_now.replace(microsecond=0)
             date_str = f"{str(date_scope).split('+')[0]} - 至今"
         else:
-            date_str = f"{date_scope[0].replace(microsecond=0)} - {date_scope[1].replace(microsecond=0)}"
+            date_str = (
+                f"{date_scope[0].replace(microsecond=0)} - "
+                f"{date_scope[1].replace(microsecond=0)}"
+            )
         A = await ImageTemplate.table_page(
             f"消息排行({count.result})", date_str, column_name, data_list
         )

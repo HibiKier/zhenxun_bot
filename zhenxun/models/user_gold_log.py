@@ -5,7 +5,6 @@ from zhenxun.utils.enum import GoldHandle
 
 
 class UserGoldLog(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_id = fields.CharField(255, description="用户id")
@@ -19,6 +18,6 @@ class UserGoldLog(Model):
     create_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
     """创建时间"""
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "user_gold_log"
         table_description = "用户金币记录表"

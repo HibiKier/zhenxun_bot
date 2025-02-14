@@ -25,7 +25,7 @@ if old_config_file.exists():
     old_config_file.rename(SIMPLE_CONFIG_FILE)
 
 
-def _handle_config(plugin: Plugin):
+def _handle_config(plugin: Plugin, exists_module: list[str]):
     """处理配置项
 
     参数:
@@ -49,9 +49,10 @@ def _handle_config(plugin: Plugin):
                     arg_parser=reg_config.arg_parser,
                     _override=False,
                 )
+                exists_module.append(f"{module}:{reg_config.key}".lower())
 
 
-def _generate_simple_config():
+def _generate_simple_config(exists_module: list[str]):
     """
     生成简易配置
 
@@ -61,6 +62,7 @@ def _generate_simple_config():
     # 读取用户配置
     _data = {}
     _tmp_data = {}
+    exists_module += Config.add_module
     if SIMPLE_CONFIG_FILE.exists():
         _data = _yaml.load(SIMPLE_CONFIG_FILE.open(encoding="utf8"))
     # 将简易配置文件的数据填充到配置文件
@@ -70,17 +72,19 @@ def _generate_simple_config():
             try:
                 if _data.get(module) and k in _data[module].keys():
                     Config.set_config(module, k, _data[module][k])
-                _tmp_data[module][k] = Config.get_config(module, k)
+                if f"{module}:{k}".lower() in exists_module:
+                    _tmp_data[module][k] = Config.get_config(module, k)
             except AttributeError as e:
-                raise AttributeError(f"{e}\n" + "可能为config.yaml配置文件填写不规范")
+                raise AttributeError(f"{e}\n可能为config.yaml配置文件填写不规范") from e
+        if not _tmp_data[module]:
+            _tmp_data.pop(module)
     Config.save()
     temp_file = DATA_PATH / "temp_config.yaml"
     # 重新生成简易配置文件
     try:
         with open(temp_file, "w", encoding="utf8") as wf:
-            # yaml.dump(_tmp_data, wf, Dumper=yaml.RoundTripDumper, allow_unicode=True)
             _yaml.dump(_tmp_data, wf)
-        with open(temp_file, "r", encoding="utf8") as rf:
+        with open(temp_file, encoding="utf8") as rf:
             _data = _yaml.load(rf)
         # 添加注释
         for module in _data.keys():
@@ -93,7 +97,7 @@ def _generate_simple_config():
         with SIMPLE_CONFIG_FILE.open("w", encoding="utf8") as wf:
             _yaml.dump(_data, wf)
     except Exception as e:
-        logger.error(f"生成简易配置注释错误...", e=e)
+        logger.error("生成简易配置注释错误...", e=e)
     if temp_file.exists():
         temp_file.unlink()
 
@@ -104,9 +108,10 @@ def _():
     初始化插件数据配置
     """
     plugins2config_file = DATA_PATH / "configs" / "plugins2config.yaml"
+    exists_module = []
     for plugin in get_loaded_plugins():
         if plugin.metadata:
-            _handle_config(plugin)
+            _handle_config(plugin, exists_module)
     if not Config.is_empty():
         Config.save()
         _data: CommentedMap = _yaml.load(plugins2config_file.open(encoding="utf8"))
@@ -119,4 +124,4 @@ def _():
         # 存完插件基本设置
         with plugins2config_file.open("w", encoding="utf8") as wf:
             _yaml.dump(_data, wf)
-    _generate_simple_config()
+    _generate_simple_config(exists_module)

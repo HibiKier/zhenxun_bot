@@ -7,10 +7,12 @@ from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.models.level_user import LevelUser
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.rules import notice_rule
 
 __plugin_meta__ = PluginMetadata(
     name="群管理员变动监测",
-    description="检测群管理员变动, 添加与删除管理员默认权限, 当配置项 ADMIN_DEFAULT_AUTH 为空时, 不会添加管理员权限",
+    description="""检测群管理员变动, 添加与删除管理员默认权限,
+    当配置项 ADMIN_DEFAULT_AUTH 为空时, 不会添加管理员权限""",
     usage="",
     extra=PluginExtraData(
         author="HibiKier",
@@ -25,11 +27,11 @@ __plugin_meta__ = PluginMetadata(
                 default_value=5,
             )
         ],
-    ).dict(),
+    ).to_dict(),
 )
 
 
-admin_notice = on_notice(priority=5)
+admin_notice = on_notice(priority=5, rule=notice_rule(GroupAdminNoticeEvent))
 
 base_config = Config.get("admin_bot_manage")
 
@@ -52,7 +54,8 @@ async def _(event: GroupAdminNoticeEvent):
             )
         else:
             logger.warning(
-                f"配置项 MODULE: [<u><y>admin_bot_manage</y></u>] | KEY: [<u><y>ADMIN_DEFAULT_AUTH</y></u>] 为空"
+                "配置项 MODULE: [<u><y>admin_bot_manage</y></u>] |"
+                " KEY: [<u><y>ADMIN_DEFAULT_AUTH</y></u>] 为空"
             )
     elif event.sub_type == "unset":
         await LevelUser.delete_level(str(event.user_id), str(event.group_id))

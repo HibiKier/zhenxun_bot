@@ -13,7 +13,7 @@ from nonebot_plugin_alconna import (
 )
 from nonebot_plugin_session import EventSession
 
-from zhenxun.configs.config import Config
+from zhenxun.configs.config import BotConfig, Config
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
@@ -30,7 +30,7 @@ __plugin_meta__ = PluginMetadata(
     usage="""
     普通管理员
         格式:
-        ban [At用户] -t [时长(分钟)]
+        ban [At用户] ?[-t [时长(分钟)]]
 
         示例:
         ban @用户          : 永久拉黑用户
@@ -44,7 +44,8 @@ __plugin_meta__ = PluginMetadata(
         superuser_help="""
         超级管理员额外命令
         格式:
-        ban [At用户/用户Id] [时长]
+        ban [At用户/用户Id] ?[-t [时长]]
+        unban --id [idx]  : 通过id来进行unban操作
         ban列表: 获取所有Ban数据
 
         群组ban列表: 获取群组Ban数据
@@ -77,7 +78,7 @@ __plugin_meta__ = PluginMetadata(
                 type=int,
             )
         ],
-    ).dict(),
+    ).to_dict(),
 )
 
 
@@ -98,6 +99,7 @@ _unban_matcher = on_alconna(
         "unban",
         Args["user?", [str, At]],
         Option("-g|--group", Args["group_id", str]),
+        Option("--id", Args["idx", int]),
     ),
     rule=admin_check("ban", "BAN_LEVEL"),
     priority=5,
@@ -160,7 +162,9 @@ async def _(
     duration: Match[int],
     group_id: Match[str],
 ):
-    user_id = None
+    user_id = ""
+    if not session.id1:
+        await MessageUtils.build_message("用户id为空...").finish(reply_to=True)
     if user.available:
         if isinstance(user.result, At):
             user_id = user.result.target
@@ -169,14 +173,33 @@ async def _(
                 await MessageUtils.build_message("权限不足捏...").finish(reply_to=True)
             user_id = user.result
     _duration = duration.result * 60 if duration.available else -1
+    _duration_text = f"{duration.result} 分钟" if duration.available else " 到世界湮灭"
     if (gid := session.id3 or session.id2) and not group_id.available:
-        if group_id.available:
-            gid = group_id.result
+        if not user_id or (
+            user_id == bot.self_id and session.id1 not in bot.config.superusers
+        ):
+            _duration = 0.5
+            await MessageUtils.build_message("倒反天罡，小小管理速速退下！").send()
+            await BanManage.ban(session.id1, gid, 30, session, True)
+            _duration_text = "半 分钟"
+            logger.info(
+                f"尝试ban {BotConfig.self_nickname} 反被拿下",
+                arparma.header_result,
+                session=session,
+            )
+            await MessageUtils.build_message(
+                [
+                    "对 ",
+                    At(flag="user", target=session.id1),
+                    " 狠狠惩戒了一番，一脚踢进了小黑屋!"
+                    f" 在里面乖乖呆 {_duration_text}吧!",
+                ]
+            ).finish(reply_to=True)
         await BanManage.ban(
             user_id, gid, _duration, session, session.id1 in bot.config.superusers
         )
         logger.info(
-            f"管理员Ban",
+            "管理员Ban",
             arparma.header_result,
             session=session,
             target=f"{gid}:{user_id}",
@@ -184,20 +207,25 @@ async def _(
         await MessageUtils.build_message(
             [
                 "对 ",
-                At(flag="user", target=user_id) if isinstance(user.result, At) else user_id,  # type: ignore
-                f" 狠狠惩戒了一番，一脚踢进了小黑屋!",
+                (
+                    At(flag="user", target=user_id)
+                    if isinstance(user.result, At)
+                    else user_id
+                ),  # type: ignore
+                " 狠狠惩戒了一番，一脚踢进了小黑屋!",
+                f" 在里面乖乖呆 {_duration_text} 吧!",
             ]
         ).finish(reply_to=True)
     elif session.id1 in bot.config.superusers:
         _group_id = group_id.result if group_id.available else None
         await BanManage.ban(user_id, _group_id, _duration, session, True)
         logger.info(
-            f"超级用户Ban",
+            "超级用户Ban",
             arparma.header_result,
             session=session,
             target=f"{_group_id}:{user_id}",
         )
-        at_msg = user_id if user_id else f"群组:{_group_id}"
+        at_msg = user_id or f"群组:{_group_id}"
         await MessageUtils.build_message(
             f"对 {at_msg} 狠狠惩戒了一番，一脚踢进了小黑屋!"
         ).finish(reply_to=True)
@@ -210,8 +238,10 @@ async def _(
     arparma: Arparma,
     user: Match[str | At],
     group_id: Match[str],
+    idx: Match[int],
 ):
-    user_id = None
+    user_id = ""
+    _idx = idx.result if idx.available else None
     if user.available:
         if isinstance(user.result, At):
             user_id = user.result.target
@@ -220,44 +250,44 @@ async def _(
                 await MessageUtils.build_message("权限不足捏...").finish(reply_to=True)
             user_id = user.result
     if gid := session.id3 or session.id2:
-        u_d = user_id
         if group_id.available:
-            u_d = gid
             gid = group_id.result
-        if await BanManage.unban(
-            user_id, gid, session, session.id1 in bot.config.superusers
-        ):
-            logger.info(
-                f"管理员UnBan",
-                arparma.header_result,
-                session=session,
-                target=f"{gid}:{user_id}",
-            )
-            await MessageUtils.build_message(
-                [
-                    "将 ",
-                    At(flag="user", target=user_id) if isinstance(user.result, At) else u_d,  # type: ignore
-                    f" 从黑屋中拉了出来并急救了一下!",
-                ]
-            ).finish(reply_to=True)
-        else:
-            await MessageUtils.build_message(f"该用户不在黑名单中捏...").finish(
-                reply_to=True
-            )
+        is_unban, result = await BanManage.unban(
+            user_id, gid, session, _idx, session.id1 in bot.config.superusers
+        )
+        if not is_unban:
+            await MessageUtils.build_message(result).finish(reply_to=True)
+        logger.info(
+            "管理员UnBan",
+            arparma.header_result,
+            session=session,
+            target=f"{gid}:{result}",
+        )
+        await MessageUtils.build_message(
+            [
+                "将 ",
+                (
+                    At(flag="user", target=user_id)
+                    if isinstance(user.result, At)
+                    else result
+                ),  # type: ignore
+                " 从黑屋中拉了出来并急救了一下!",
+            ]
+        ).finish(reply_to=True)
     elif session.id1 in bot.config.superusers:
         _group_id = group_id.result if group_id.available else None
-        if await BanManage.unban(user_id, _group_id, session, True):
-            logger.info(
-                f"超级用户UnBan",
-                arparma.header_result,
-                session=session,
-                target=f"{_group_id}:{user_id}",
-            )
-            at_msg = user_id if user_id else f"群组:{_group_id}"
-            await MessageUtils.build_message(
-                f"对 {at_msg} 从黑屋中拉了出来并急救了一下!"
-            ).finish(reply_to=True)
-        else:
-            await MessageUtils.build_message(f"该用户不在黑名单中捏...").finish(
-                reply_to=True
-            )
+        is_unban, result = await BanManage.unban(
+            user_id, _group_id, session, _idx, True
+        )
+        if not is_unban:
+            await MessageUtils.build_message(result).finish(reply_to=True)
+        logger.info(
+            "超级用户UnBan",
+            arparma.header_result,
+            session=session,
+            target=f"{_group_id}:{user_id}",
+        )
+        at_msg = user_id or f"群组:{result}"
+        await MessageUtils.build_message(
+            f"对 {at_msg} 从黑屋中拉了出来并急救了一下!"
+        ).finish(reply_to=True)

@@ -1,18 +1,24 @@
 from datetime import datetime, timedelta
-from typing import Any, Dict, overload
+from typing import Any, overload
 
+import nonebot
 from nonebot import require
 
 require("nonebot_plugin_session")
 from loguru import logger as logger_
 from nonebot.log import default_filter, default_format
 from nonebot_plugin_session import Session
+from nonebot_plugin_uninfo import Session as uninfoSession
 
 from zhenxun.configs.path_config import LOG_PATH
 
+driver = nonebot.get_driver()
+
+log_level = driver.config.log_level or "INFO"
+
 logger_.add(
     LOG_PATH / f"{datetime.now().date()}.log",
-    level="INFO",
+    level=log_level,
     rotation="00:00",
     format=default_format,
     filter=default_filter,
@@ -33,8 +39,10 @@ class logger:
     TEMPLATE_A = "Adapter[{}] {}"
     TEMPLATE_B = "Adapter[{}] [<u><c>{}</c></u>]: {}"
     TEMPLATE_C = "Adapter[{}] 用户[<u><e>{}</e></u>] 触发 [<u><c>{}</c></u>]: {}"
-    TEMPLATE_D = "Adapter[{}] 群聊[<u><e>{}</e></u>] 用户[<u><e>{}</e></u>] 触发 [<u><c>{}</c></u>]: {}"
-    TEMPLATE_E = "Adapter[{}] 群聊[<u><e>{}</e></u>] 用户[<u><e>{}</e></u>] 触发 [<u><c>{}</c></u>] [Target](<u><e>{}</e></u>): {}"
+    TEMPLATE_D = "Adapter[{}] 群聊[<u><e>{}</e></u>] 用户[<u><e>{}</e></u>] 触发"
+    " [<u><c>{}</c></u>]: {}"
+    TEMPLATE_E = "Adapter[{}] 群聊[<u><e>{}</e></u>] 用户[<u><e>{}</e></u>] 触发"
+    " [<u><c>{}</c></u>] [Target](<u><e>{}</e></u>): {}"
 
     TEMPLATE_ADAPTER = "Adapter[<m>{}</m>] "
     TEMPLATE_USER = "用户[<u><e>{}</e></u>] "
@@ -75,21 +83,32 @@ class logger:
         platform: str | None = None,
     ): ...
 
+    @overload
     @classmethod
     def info(
         cls,
         info: str,
         command: str | None = None,
         *,
-        session: int | str | Session | None = None,
+        session: uninfoSession | None = None,
+        target: Any = None,
+        platform: str | None = None,
+    ): ...
+
+    @classmethod
+    def info(
+        cls,
+        info: str,
+        command: str | None = None,
+        *,
+        session: int | str | Session | uninfoSession | None = None,
         group_id: int | str | None = None,
         adapter: str | None = None,
         target: Any = None,
         platform: str | None = None,
     ):
         user_id: str | None = session  # type: ignore
-        group_id = None
-        if type(session) == Session:
+        if isinstance(session, Session):
             user_id = session.id1
             adapter = session.bot_type
             if session.id3:
@@ -97,12 +116,18 @@ class logger:
             elif session.id2:
                 group_id = f"{session.id2}"
             platform = platform or session.platform
+        elif isinstance(session, uninfoSession):
+            user_id = session.user.id
+            adapter = session.adapter
+            if session.group:
+                group_id = session.group.id
+            platform = session.basic["scope"]
         template = cls.__parser_template(
             info, command, user_id, group_id, adapter, target, platform
         )
         try:
             logger_.opt(colors=True).info(template)
-        except Exception as e:
+        except Exception:
             logger_.info(template)
 
     @classmethod
@@ -110,7 +135,7 @@ class logger:
         cls,
         info: str,
         command: str,
-        param: Dict[str, Any] | None = None,
+        param: dict[str, Any] | None = None,
         result: str = "",
     ):
         param_str = ""
@@ -149,13 +174,27 @@ class logger:
         e: Exception | None = None,
     ): ...
 
+    @overload
     @classmethod
     def warning(
         cls,
         info: str,
         command: str | None = None,
         *,
-        session: int | str | Session | None = None,
+        session: uninfoSession | None = None,
+        adapter: str | None = None,
+        target: Any = None,
+        platform: str | None = None,
+        e: Exception | None = None,
+    ): ...
+
+    @classmethod
+    def warning(
+        cls,
+        info: str,
+        command: str | None = None,
+        *,
+        session: int | str | Session | uninfoSession | None = None,
         group_id: int | str | None = None,
         adapter: str | None = None,
         target: Any = None,
@@ -163,8 +202,7 @@ class logger:
         e: Exception | None = None,
     ):
         user_id: str | None = session  # type: ignore
-        group_id = None
-        if type(session) == Session:
+        if isinstance(session, Session):
             user_id = session.id1
             adapter = session.bot_type
             if session.id3:
@@ -172,6 +210,12 @@ class logger:
             elif session.id2:
                 group_id = f"{session.id2}"
             platform = platform or session.platform
+        elif isinstance(session, uninfoSession):
+            user_id = session.user.id
+            adapter = session.adapter
+            if session.group:
+                group_id = session.group.id
+            platform = session.basic["scope"]
         template = cls.__parser_template(
             info, command, user_id, group_id, adapter, target, platform
         )
@@ -210,13 +254,26 @@ class logger:
         e: Exception | None = None,
     ): ...
 
+    @overload
     @classmethod
     def error(
         cls,
         info: str,
         command: str | None = None,
         *,
-        session: int | str | Session | None = None,
+        session: uninfoSession | None = None,
+        target: Any = None,
+        platform: str | None = None,
+        e: Exception | None = None,
+    ): ...
+
+    @classmethod
+    def error(
+        cls,
+        info: str,
+        command: str | None = None,
+        *,
+        session: int | str | Session | uninfoSession | None = None,
         group_id: int | str | None = None,
         adapter: str | None = None,
         target: Any = None,
@@ -224,8 +281,7 @@ class logger:
         e: Exception | None = None,
     ):
         user_id: str | None = session  # type: ignore
-        group_id = None
-        if type(session) == Session:
+        if isinstance(session, Session):
             user_id = session.id1
             adapter = session.bot_type
             if session.id3:
@@ -233,6 +289,12 @@ class logger:
             elif session.id2:
                 group_id = f"{session.id2}"
             platform = platform or session.platform
+        elif isinstance(session, uninfoSession):
+            user_id = session.user.id
+            adapter = session.adapter
+            if session.group:
+                group_id = session.group.id
+            platform = session.basic["scope"]
         template = cls.__parser_template(
             info, command, user_id, group_id, adapter, target, platform
         )
@@ -271,13 +333,26 @@ class logger:
         e: Exception | None = None,
     ): ...
 
+    @overload
     @classmethod
     def debug(
         cls,
         info: str,
         command: str | None = None,
         *,
-        session: int | str | Session | None = None,
+        session: uninfoSession | None = None,
+        target: Any = None,
+        platform: str | None = None,
+        e: Exception | None = None,
+    ): ...
+
+    @classmethod
+    def debug(
+        cls,
+        info: str,
+        command: str | None = None,
+        *,
+        session: int | str | Session | uninfoSession | None = None,
         group_id: int | str | None = None,
         adapter: str | None = None,
         target: Any = None,
@@ -285,8 +360,7 @@ class logger:
         e: Exception | None = None,
     ):
         user_id: str | None = session  # type: ignore
-        group_id = None
-        if type(session) == Session:
+        if isinstance(session, Session):
             user_id = session.id1
             adapter = session.bot_type
             if session.id3:
@@ -294,6 +368,12 @@ class logger:
             elif session.id2:
                 group_id = f"{session.id2}"
             platform = platform or session.platform
+        elif isinstance(session, uninfoSession):
+            user_id = session.user.id
+            adapter = session.adapter
+            if session.group:
+                group_id = session.group.id
+            platform = session.basic["scope"]
         template = cls.__parser_template(
             info, command, user_id, group_id, adapter, target, platform
         )

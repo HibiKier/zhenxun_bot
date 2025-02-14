@@ -16,6 +16,7 @@ from nonebot_plugin_alconna import (
 )
 from nonebot_plugin_session import EventSession
 
+from zhenxun.configs.config import BotConfig
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.fg_request import FgRequest
@@ -46,7 +47,7 @@ __plugin_meta__ = PluginMetadata(
         author="HibiKier",
         version="0.1",
         plugin_type=PluginType.SUPERUSER,
-    ).dict(),
+    ).to_dict(),
 )
 
 
@@ -134,14 +135,15 @@ async def _(
         "r": RequestHandleType.REFUSED,
         "i": RequestHandleType.IGNORE,
     }
+    req = None
     handle_type = type_dict[handle[-1]]
     try:
         if handle_type == RequestHandleType.APPROVE:
-            await FgRequest.approve(bot, id)
+            req = await FgRequest.approve(bot, id)
         if handle_type == RequestHandleType.REFUSED:
-            await FgRequest.refused(bot, id)
+            req = await FgRequest.refused(bot, id)
         if handle_type == RequestHandleType.IGNORE:
-            await FgRequest.ignore(id)
+            req = await FgRequest.ignore(id)
     except NotFoundError:
         await MessageUtils.build_message("未发现此id的请求...").finish(reply_to=True)
     except Exception:
@@ -149,7 +151,14 @@ async def _(
             reply_to=True
         )
     logger.info("处理请求", arparma.header_result, session=session)
-    await MessageUtils.build_message("成功处理请求!").finish(reply_to=True)
+    await MessageUtils.build_message("成功处理请求!").send(reply_to=True)
+    if req and handle_type == RequestHandleType.APPROVE:
+        await bot.send_private_msg(
+            user_id=req.user_id,
+            message=f"管理员已同意此次群组邀请，请不要让{BotConfig.self_nickname}受委屈哦（狠狠监控）"
+            "\n在群组中 群组管理员与群主 允许使用管理员帮助"
+            "（包括ban与功能开关等）\n请在群组中发送 '管理员帮助'",
+        )
 
 
 @_read_matcher.handle()
@@ -224,8 +233,8 @@ async def _(
                 await _id_img.circle_corner(10)
                 await background.paste(_id_img, (10, 0), center_type="height")
                 img_list.append(background)
-            A = await BuildImage.auto_paste(img_list, 1)
-            if A:
+            if img_list:
+                A = await BuildImage.auto_paste(img_list, 1)
                 result_image = BuildImage(
                     A.width, A.height + 30, color=(255, 255, 255), font_size=20
                 )
@@ -237,8 +246,8 @@ async def _(
             await MessageUtils.build_message("没有任何请求喔...").finish(reply_to=True)
         if len(req_image_list) == 1:
             await MessageUtils.build_message(req_image_list[0]).finish()
-        width = sum([img.width for img in req_image_list])
-        height = max([img.height for img in req_image_list])
+        width = sum(img.width for img in req_image_list)
+        height = max(img.height for img in req_image_list)
         background = BuildImage(width, height)
         await background.paste(req_image_list[0])
         await req_image_list[1].line((0, 10, 1, req_image_list[1].height - 10), width=1)

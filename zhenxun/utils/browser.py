@@ -5,7 +5,7 @@ from nonebot import get_driver
 from playwright.__main__ import main
 from playwright.async_api import Browser, Playwright, async_playwright
 
-from zhenxun.configs.config import SYSTEM_PROXY
+from zhenxun.configs.config import BotConfig
 from zhenxun.services.log import logger
 
 driver = get_driver()
@@ -45,12 +45,12 @@ def install():
         os.environ["PLAYWRIGHT_DOWNLOAD_HOST"] = (
             "https://npmmirror.com/mirrors/playwright/"
         )
-        if SYSTEM_PROXY:
-            os.environ["HTTPS_PROXY"] = SYSTEM_PROXY
+        if BotConfig.system_proxy:
+            os.environ["HTTPS_PROXY"] = BotConfig.system_proxy
 
     def restore_env_variables():
         os.environ.pop("PLAYWRIGHT_DOWNLOAD_HOST", None)
-        if SYSTEM_PROXY:
+        if BotConfig.system_proxy:
             os.environ.pop("HTTPS_PROXY", None)
         if original_proxy is not None:
             os.environ["HTTPS_PROXY"] = original_proxy

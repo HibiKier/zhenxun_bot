@@ -1,9 +1,10 @@
+import aiofiles
 import nonebot
-import ujson as json
 from nonebot import get_loaded_plugins
 from nonebot.drivers import Driver
-from nonebot.plugin import Plugin
+from nonebot.plugin import Plugin, PluginMetadata
 from ruamel.yaml import YAML
+import ujson as json
 
 from zhenxun.configs.path_config import DATA_PATH
 from zhenxun.configs.utils import PluginExtraData, PluginSetting
@@ -20,6 +21,8 @@ from zhenxun.utils.enum import (
     PluginType,
 )
 
+from .manager import manager
+
 _yaml = YAML(pure=True)
 _yaml.allow_unicode = True
 _yaml.indent = 2
@@ -31,7 +34,6 @@ async def _handle_setting(
     plugin: Plugin,
     plugin_list: list[PluginInfo],
     limit_list: list[PluginLimit],
-    task_list: list[TaskInfo],
 ):
     """处理插件设置
 
@@ -41,60 +43,56 @@ async def _handle_setting(
         limit_list: 插件限制列表
     """
     metadata = plugin.metadata
-    if metadata:
-        extra = metadata.extra
-        extra_data = PluginExtraData(**extra)
-        logger.debug(f"{metadata.name}:{plugin.name} -> {extra}", "初始化插件数据")
-        setting = extra_data.setting or PluginSetting()
-        if metadata.type == "library":
-            extra_data.plugin_type = PluginType.HIDDEN
-        if (
-            extra_data.plugin_type
-            == PluginType.HIDDEN
-            # and extra_data.plugin_type != "功能"
-        ):
-            extra_data.menu_type = ""
-        plugin_list.append(
-            PluginInfo(
+    if not metadata:
+        if not plugin.sub_plugins:
+            return
+        """父插件"""
+        metadata = PluginMetadata(name=plugin.name, description="", usage="")
+    extra = metadata.extra
+    extra_data = PluginExtraData(**extra)
+    logger.debug(f"{metadata.name}:{plugin.name} -> {extra}", "初始化插件数据")
+    setting = extra_data.setting or PluginSetting()
+    if metadata.type == "library":
+        extra_data.plugin_type = PluginType.HIDDEN
+    if extra_data.plugin_type == PluginType.HIDDEN:
+        extra_data.menu_type = ""
+    if plugin.sub_plugins:
+        extra_data.plugin_type = PluginType.PARENT
+    plugin_list.append(
+        PluginInfo(
+            module=plugin.name,
+            module_path=plugin.module_name,
+            name=metadata.name,
+            author=extra_data.author,
+            version=extra_data.version,
+            level=setting.level,
+            default_status=setting.default_status,
+            limit_superuser=setting.limit_superuser,
+            menu_type=extra_data.menu_type,
+            cost_gold=setting.cost_gold,
+            plugin_type=extra_data.plugin_type,
+            admin_level=extra_data.admin_level,
+            is_show=extra_data.is_show,
+            ignore_prompt=extra_data.ignore_prompt,
+            parent=(plugin.parent_plugin.module_name if plugin.parent_plugin else None),
+            impression=setting.impression,
+        )
+    )
+    if extra_data.limits:
+        limit_list.extend(
+            PluginLimit(
                 module=plugin.name,
                 module_path=plugin.module_name,
-                name=metadata.name,
-                author=extra_data.author,
-                version=extra_data.version,
-                level=setting.level,
-                default_status=setting.default_status,
-                limit_superuser=setting.limit_superuser,
-                menu_type=extra_data.menu_type,
-                cost_gold=setting.cost_gold,
-                plugin_type=extra_data.plugin_type,
-                admin_level=extra_data.admin_level,
+                limit_type=limit._type,
+                watch_type=limit.watch_type,
+                status=limit.status,
+                check_type=limit.check_type,
+                result=limit.result,
+                cd=getattr(limit, "cd", None),
+                max_count=getattr(limit, "max_count", None),
             )
+            for limit in extra_data.limits
         )
-        if extra_data.limits:
-            for limit in extra_data.limits:
-                limit_list.append(
-                    PluginLimit(
-                        module=plugin.name,
-                        module_path=plugin.module_name,
-                        limit_type=limit._type,
-                        watch_type=limit.watch_type,
-                        status=limit.status,
-                        check_type=limit.check_type,
-                        result=limit.result,
-                        cd=getattr(limit, "cd", None),
-                        max_count=getattr(limit, "max_count", None),
-                    )
-                )
-        if extra_data.tasks:
-            for task in extra_data.tasks:
-                task_list.append(
-                    TaskInfo(
-                        module=task.module,
-                        name=task.name,
-                        status=task.status,
-                        run_time=task.run_time,
-                    )
-                )
 
 
 @driver.on_startup
@@ -104,15 +102,13 @@ async def _():
     """
     plugin_list: list[PluginInfo] = []
     limit_list: list[PluginLimit] = []
-    task_list: list[TaskInfo] = []
     module2id = {}
     load_plugin = []
     if module_list := await PluginInfo.all().values("id", "module_path"):
         module2id = {m["module_path"]: m["id"] for m in module_list}
     for plugin in get_loaded_plugins():
         load_plugin.append(plugin.module_name)
-        if plugin.metadata:
-            await _handle_setting(plugin, plugin_list, limit_list, task_list)
+        await _handle_setting(plugin, plugin_list, limit_list)
     create_list = []
     update_list = []
     for plugin in plugin_list:
@@ -127,63 +123,55 @@ async def _():
                     "version",
                     "admin_level",
                     "plugin_type",
+                    "is_show",
                 ]
             )
             update_list.append(plugin)
     if create_list:
         await PluginInfo.bulk_create(create_list, 10)
-    if update_list:
-        # TODO: 批量更新无法更新plugin_type: tortoise.exceptions.OperationalError: column "superuser" does not exist
-        pass
-        # await PluginInfo.bulk_update(
-        #     update_list,
-        #     ["name", "author", "version", "admin_level", "plugin_type"],
-        #     10,
-        # )
-    if limit_list:
-        limit_create = []
-        plugins = []
-        if module_path_list := [limit.module_path for limit in limit_list]:
-            plugins = await PluginInfo.filter(module_path__in=module_path_list).all()
-        if plugins:
-            for limit in limit_list:
-                if l := [p for p in plugins if p.module_path == limit.module_path]:
-                    plugin = l[0]
-                    limit_type_list = [
-                        _limit.limit_type for _limit in await plugin.plugin_limit.all()  # type: ignore
-                    ]
-                    if limit.limit_type not in limit_type_list:
-                        limit.plugin = plugin
-                        limit_create.append(limit)
-        if limit_create:
-            await PluginLimit.bulk_create(limit_create, 10)
-    if task_list:
-        module_dict = {
-            t[1]: t[0] for t in await TaskInfo.all().values_list("id", "module")
-        }
-        create_list = []
-        update_list = []
-        for task in task_list:
-            if task.module not in module_dict:
-                create_list.append(task)
-            else:
-                task.id = module_dict[task.module]
-                update_list.append(task)
-        if create_list:
-            await TaskInfo.bulk_create(create_list, 10)
-        if update_list:
-            await TaskInfo.bulk_update(
-                update_list,
-                ["run_time", "status", "name"],
-                10,
-            )
+    # if update_list:
+    #     # TODO: 批量更新无法更新plugin_type: tortoise.exceptions.OperationalError:
+    #           column "superuser" does not exist
+    #     pass
+    # await PluginInfo.bulk_update(
+    #     update_list,
+    #     ["name", "author", "version", "admin_level", "plugin_type"],
+    #     10,
+    # )
+    # for limit in limit_list:
+    #     limit_create = []
+    #     plugins = []
+    #     if module_path_list := [limit.module_path for limit in limit_list]:
+    #         plugins = await PluginInfo.get_plugins(module_path__in=module_path_list)
+    #     if plugins:
+    #         for limit in limit_list:
+    #             if lmt := [p for p in plugins if p.module_path == limit.module_path]:
+    #                 plugin = lmt[0]
+    #                 """不在数据库中"""
+    #                 limit_type_list = [
+    #                     _limit.limit_type
+    #                     for _limit in await plugin.plugin_limit.all()  # type: ignore
+    #                 ]
+    #                 if limit.limit_type not in limit_type_list:
+    #                     limit.plugin = plugin
+    #                     limit_create.append(limit)
+    #     if limit_create:
+    #         await PluginLimit.bulk_create(limit_create, 10)
     await data_migration()
     await PluginInfo.filter(module_path__in=load_plugin).update(load_status=True)
     await PluginInfo.filter(module_path__not_in=load_plugin).update(load_status=False)
+    manager.init()
+    if limit_list:
+        for limit in limit_list:
+            if not manager.exists(limit.module, limit.limit_type):
+                """不存在，添加"""
+                manager.add(limit.module, limit)
+    manager.save_file()
+    await manager.load_to_db()
 
 
 async def data_migration():
-    await limit_migration()
+    # await limit_migration()
     await plugin_migration()
     await group_migration()
 
@@ -195,14 +183,14 @@ async def limit_migration():
     count_file = DATA_PATH / "configs" / "plugins2count.yaml"
     limit_data: dict[str, list[tuple[str, dict]]] = {}
     if cd_file.exists():
-        with open(cd_file, encoding="utf8") as f:
-            if data := _yaml.load(f):
+        async with aiofiles.open(cd_file, encoding="utf8") as f:
+            if data := _yaml.load(await f.read()):
                 for k in data["PluginCdLimit"]:
                     limit_data[k] = [("CD", data["PluginCdLimit"][k])]
         cd_file.unlink()
     if block_file.exists():
-        with open(block_file, encoding="utf8") as f:
-            if data := _yaml.load(f):
+        async with aiofiles.open(block_file, encoding="utf8") as f:
+            if data := _yaml.load(await f.read()):
                 for k in data["PluginBlockLimit"]:
                     if k in limit_data:
                         limit_data[k].append(("BLOCK", data["PluginBlockLimit"][k]))
@@ -210,8 +198,8 @@ async def limit_migration():
                         limit_data[k] = [("BLOCK", data["PluginBlockLimit"][k])]
         block_file.unlink()
     if count_file.exists():
-        with open(count_file, encoding="utf8") as f:
-            if data := _yaml.load(f):
+        async with aiofiles.open(count_file, encoding="utf8") as f:
+            if data := _yaml.load(await f.read()):
                 for k in data["PluginCountLimit"]:
                     if k in limit_data:
                         limit_data[k].append(("COUNT", data["PluginCountLimit"][k]))
@@ -287,7 +275,8 @@ async def limit_migration():
                             max_count=_limit.get("max_count"),
                         )
                     )
-        # TODO: 批量错误 tortoise.exceptions.OperationalError: syntax error at or near "ALL"
+        # TODO: 批量错误 tortoise.exceptions.OperationalError:
+        # syntax error at or near "ALL"
         # if update_list:
         #     await PluginLimit.bulk_update(
         #         update_list,
@@ -311,8 +300,8 @@ async def plugin_migration():
     setting_file = DATA_PATH / "configs" / "plugins2settings.yaml"
     plugin_file = DATA_PATH / "manager" / "plugins_manager.json"
     if setting_file.exists():
-        with open(setting_file, encoding="utf8") as f:
-            if data := _yaml.load(f):
+        async with aiofiles.open(setting_file, encoding="utf8") as f:
+            if data := _yaml.load(await f.read()):
                 logger.info("开始迁移插件setting数据...")
                 data = data["PluginSettings"]
                 plugins = await PluginInfo.filter(module__in=data.keys())
@@ -342,8 +331,8 @@ async def plugin_migration():
         setting_file.unlink()
         logger.info("迁移插件setting数据完成!")
     if plugin_file.exists():
-        with open(plugin_file, encoding="utf8") as f:
-            if data := json.load(f):
+        async with aiofiles.open(plugin_file, encoding="utf8") as f:
+            if data := json.loads(await f.read()):
                 logger.info("开始迁移插件数据...")
                 plugins = await PluginInfo.filter(module__in=data.keys())
                 for plugin in plugins:
@@ -359,7 +348,8 @@ async def plugin_migration():
                             block_type = BlockType.GROUP
                         plugin.block_type = block_type
                         await plugin.save(update_fields=["status", "block_type"])
-                # TODO: tortoise.exceptions.OperationalError: syntax error at or near "ALL"
+                # TODO: tortoise.exceptions.OperationalError: syntax error at
+                # or near "ALL"
                 # await PluginInfo.bulk_update(plugins, ["status", "block_type"], 10)
         plugin_file.unlink()
         logger.info("迁移插件数据完成!")
@@ -371,22 +361,20 @@ async def group_migration():
     """
     group_file = DATA_PATH / "manager" / "group_manager.json"
     if group_file.exists():
-        with open(group_file, encoding="utf8") as f:
-            if data := json.load(f):
+        async with aiofiles.open(group_file, encoding="utf8") as f:
+            if data := json.loads(await f.read()):
                 logger.info("开始迁移群组数据...")
                 update_list = []
                 create_list = []
                 white_group = data["white_group"]
-                close_task = data["close_task"]
                 old_group_list: dict = data["group_manager"]
-                if close_task:
+                if close_task := data["close_task"]:
                     """全局被动关闭"""
                     await TaskInfo.filter(module__in=close_task).update(status=False)
                 group_list = await GroupConsole.filter(
                     group_id__in=old_group_list.keys()
                 )
-                for old_group_id in old_group_list:
-                    old_group = old_group_list[old_group_id]
+                for old_group_id, old_group in old_group_list.items():
                     block_plugin = ""
                     block_task = ""
                     status = old_group.get("status", True)

@@ -113,6 +113,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.env.dev
 
 # Spyder project settings
 .spyderproject
@@ -151,34 +152,9 @@ backup/
 extensive_plugin/
 test/
 bot.py
-data/
-.env
-.env.dev
-/resources/text/
-# /resources/image/
-/resources/temp/
-/resources/image/genshin/
-/resources/image/draw_card/
-/resources/image/card/
-/resources/image/temp/
-/resources/image/sign/today_card/
-/resources/image/image_management/
-/resources/image/bilibili_sub/
-/resources/image/other/
-/resources/image/_setu/
-/resources/image/_r18/
-/resources/image/csgo_cases/
-!/resources/image/csgo_cases/_background/
-/resources/image/superuser_help.png
-/resources/image/update_img_help.png
-/resources/image/prts/
+.idea/
+resources/
 /configs/config.py
 configs/config.yaml
-./.env
-./.env.dev
-plugins/csgo_server/
-plugins/activity/
-!/resources/image/genshin/alc/back.png
-!/data/genshin_alc/
 .vscode/launch.json
-/resources/template/my_info
+plugins_/

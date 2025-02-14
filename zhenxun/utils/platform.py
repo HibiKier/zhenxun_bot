@@ -1,27 +1,29 @@
+from collections.abc import Awaitable, Callable
 import random
-from typing import Awaitable, Callable, Literal, Set
+from typing import Literal
 
 import httpx
 import nonebot
 from nonebot.adapters import Bot
-from nonebot.adapters.discord import Bot as DiscordBot
-from nonebot.adapters.dodo import Bot as DodoBot
-from nonebot.adapters.kaiheila import Bot as KaiheilaBot
-from nonebot.adapters.onebot.v11 import Bot as v11Bot
-from nonebot.adapters.onebot.v12 import Bot as v12Bot
 from nonebot.utils import is_coroutine_callable
+from nonebot_plugin_alconna import SupportScope
 from nonebot_plugin_alconna.uniseg import Receipt, Target, UniMessage
+from nonebot_plugin_uninfo import SceneType, Uninfo, get_interface
+from nonebot_plugin_uninfo.model import Member
 from pydantic import BaseModel
 
+from zhenxun.configs.config import BotConfig
 from zhenxun.models.friend_user import FriendUser
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
 from zhenxun.utils.exception import NotFindSuperuser
+from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.message import MessageUtils
+
+driver = nonebot.get_driver()
 
 
 class UserData(BaseModel):
-
     name: str
     """昵称"""
     card: str | None = None
@@ -30,6 +32,8 @@ class UserData(BaseModel):
     """用户id"""
     group_id: str | None = None
     """群组id"""
+    channel_id: str | None = None
+    """频道id"""
     role: str | None = None
     """角色"""
     avatar_url: str | None = None
@@ -39,6 +43,21 @@ class UserData(BaseModel):
 
 
 class PlatformUtils:
+    @classmethod
+    def is_qbot(cls, session: Uninfo | Bot) -> bool:
+        """判断bot是否为qq官bot
+
+        参数:
+            session: Uninfo
+
+        返回:
+            bool: 是否为官bot
+        """
+        if isinstance(session, Bot):
+            return bool(BotConfig.get_qbot_uid(session.self_id))
+        if BotConfig.get_qbot_uid(session.self_id):
+            return True
+        return session.scope == SupportScope.qq_api
 
     @classmethod
     async def ban_user(cls, bot: Bot, user_id: str, group_id: str, duration: int):
@@ -50,7 +69,7 @@ class PlatformUtils:
             group_id: 群组id
             duration: 禁言时长(分钟)
         """
-        if isinstance(bot, v11Bot):
+        if cls.get_platform(bot) == "qq":
             await bot.set_group_ban(
                 group_id=int(group_id),
                 user_id=int(user_id),
@@ -61,7 +80,7 @@ class PlatformUtils:
     async def send_superuser(
         cls,
         bot: Bot,
-        message: UniMessage,
+        message: UniMessage | str,
         superuser_id: str | None = None,
     ) -> Receipt | None:
         """发送消息给超级用户
@@ -78,11 +97,13 @@ class PlatformUtils:
             Receipt | None: Receipt
         """
         if not superuser_id:
-            platform = cls.get_platform(bot)
-            platform_superusers = bot.config.PLATFORM_SUPERUSERS.get(platform) or []
-            if not platform_superusers:
-                raise NotFindSuperuser()
-            superuser_id = random.choice(platform_superusers)
+            if platform := cls.get_platform(bot):
+                if platform_superusers := BotConfig.get_superuser(platform):
+                    superuser_id = random.choice(platform_superusers)
+                else:
+                    raise NotFindSuperuser()
+        if isinstance(message, str):
+            message = MessageUtils.build_message(message)
         return await cls.send_message(bot, superuser_id, None, message)
 
     @classmethod
@@ -96,195 +117,117 @@ class PlatformUtils:
         返回:
             list[UserData]: 用户数据列表
         """
-        if isinstance(bot, v11Bot):
-            if member_list := await bot.get_group_member_list(group_id=int(group_id)):
-                return [
-                    UserData(
-                        name=user["nickname"],
-                        card=user["card"],
-                        user_id=user["user_id"],
-                        group_id=user["group_id"],
-                        role=user["role"],
-                        join_time=user["join_time"],
-                    )
-                    for user in member_list
-                ]
-        if isinstance(bot, v12Bot):
-            if member_list := await bot.get_group_member_list(group_id=group_id):
-                return [
-                    UserData(
-                        name=user["user_name"],
-                        card=user["user_displayname"],
-                        user_id=user["user_id"],
-                        group_id=group_id,
-                    )
-                    for user in member_list
-                ]
-        if isinstance(bot, DodoBot):
-            if result_data := await bot.get_member_list(
-                island_source_id=group_id, page_size=100, max_id=0
-            ):
-                max_id = result_data.max_id
-                result_list = result_data.list
-                data_list = []
-                while max_id == 100:
-                    result_data = await bot.get_member_list(
-                        island_source_id=group_id, page_size=100, max_id=0
-                    )
-                    result_list += result_data.list
-                    max_id = result_data.max_id
-                for user in result_list:
-                    data_list.append(
-                        UserData(
-                            name=user.nick_name,
-                            card=user.personal_nick_name,
-                            avatar_url=user.avatar_url,
-                            user_id=user.dodo_source_id,
-                            group_id=user.island_source_id,
-                            join_time=int(user.join_time.timestamp()),
-                        )
-                    )
-                return data_list
-        if isinstance(bot, KaiheilaBot):
-            if result_data := await bot.guild_userList(guild_id=group_id):
-                if result_data.users:
-                    data_list = []
-                    for user in result_data.users:
-                        second = None
-                        if user.joined_at:
-                            second = int(user.joined_at / 1000)
-                        data_list.append(
-                            UserData(
-                                name=user.nickname or "",
-                                avatar_url=user.avatar,
-                                user_id=user.id_,  # type: ignore
-                                group_id=group_id,
-                                join_time=second,
-                            )
-                        )
-                    return data_list
-        if isinstance(bot, DiscordBot):
-            # TODO: discord获取用户
-            pass
+        if interface := get_interface(bot):
+            members: list[Member] = await interface.get_members(
+                SceneType.GROUP, group_id
+            )
+            return [
+                UserData(
+                    name=member.user.name or "",
+                    card=member.nick,
+                    user_id=member.user.id,
+                    group_id=group_id,
+                    role=member.role.id if member.role else "",
+                    avatar_url=member.user.avatar,
+                    join_time=int(member.joined_at.timestamp())
+                    if member.joined_at
+                    else None,
+                )
+                for member in members
+            ]
         return []
 
     @classmethod
     async def get_user(
-        cls, bot: Bot, user_id: str, group_id: str | None = None
+        cls,
+        bot: Bot,
+        user_id: str,
+        group_id: str | None = None,
+        channel_id: str | None = None,
     ) -> UserData | None:
         """获取用户信息
 
         参数:
             bot: Bot
             user_id: 用户id
-            group_id: 群组/频道id.
+            group_id: 群组id.
+            channel_id: 频道id.
 
         返回:
             UserData | None: 用户数据
         """
-        if isinstance(bot, v11Bot):
-            if group_id:
-                if user := await bot.get_group_member_info(
-                    group_id=int(group_id), user_id=int(user_id)
-                ):
-                    return UserData(
-                        name=user["nickname"],
-                        card=user["card"],
-                        user_id=user["user_id"],
-                        group_id=user["group_id"],
-                        role=user["role"],
-                        join_time=user["join_time"],
-                    )
+        if interface := get_interface(bot):
+            member = None
+            user = None
+            if channel_id:
+                member = await interface.get_member(
+                    SceneType.CHANNEL_TEXT, channel_id, user_id
+                )
+                if member:
+                    user = member.user
+            elif group_id:
+                member = await interface.get_member(SceneType.GROUP, group_id, user_id)
+                if member:
+                    user = member.user
             else:
-                if friend_list := await bot.get_friend_list():
-                    for f in friend_list:
-                        if f["user_id"] == int(user_id):
-                            return UserData(
-                                name=f["nickname"],
-                                card=f["remark"],
-                                user_id=f["user_id"],
-                            )
-        if isinstance(bot, v12Bot):
-            if group_id:
-                if user := await bot.get_group_member_info(
-                    group_id=group_id, user_id=user_id
-                ):
-                    return UserData(
-                        name=user["user_name"],
-                        card=user["user_displayname"],
-                        user_id=user["user_id"],
-                        group_id=group_id,
-                    )
+                user = await interface.get_user(user_id)
+            if not user:
+                return None
+            if member:
+                return UserData(
+                    name=user.name or "",
+                    card=member.nick,
+                    user_id=user.id,
+                    group_id=group_id,
+                    channel_id=channel_id,
+                    role=member.role.id if member.role else None,
+                    join_time=int(member.joined_at.timestamp())
+                    if member.joined_at
+                    else None,
+                )
             else:
-                if friend_list := await bot.get_friend_list():
-                    for f in friend_list:
-                        if f["user_id"] == int(user_id):
-                            return UserData(
-                                name=f["user_name"],
-                                card=f["user_remark"],
-                                user_id=f["user_id"],
-                            )
-        if isinstance(bot, DodoBot):
-            if group_id:
-                if user := await bot.get_member_info(
-                    island_source_id=group_id, dodo_source_id=user_id
-                ):
-                    return UserData(
-                        name=user.nick_name,
-                        card=user.personal_nick_name,
-                        avatar_url=user.avatar_url,
-                        user_id=user.dodo_source_id,
-                        group_id=user.island_source_id,
-                        join_time=int(user.join_time.timestamp()),
-                    )
-            else:
-                # TODO: DoDo个人数据
-                pass
-        if isinstance(bot, KaiheilaBot):
-            if group_id:
-                if user := await bot.user_view(guild_id=group_id, user_id=user_id):
-                    second = None
-                    if user.joined_at:
-                        second = int(user.joined_at / 1000)
-                    return UserData(
-                        name=user.nickname or "",
-                        avatar_url=user.avatar,
-                        user_id=user_id,
-                        group_id=group_id,
-                        join_time=second,
-                    )
-            else:
-                # TODO: kaiheila用户详情
-                pass
-        if isinstance(bot, DiscordBot):
-            # TODO: discord获取用户
-            pass
+                return UserData(
+                    name=user.name or "",
+                    user_id=user.id,
+                    group_id=group_id,
+                    channel_id=channel_id,
+                )
         return None
 
     @classmethod
-    async def get_user_avatar(cls, user_id: str, platform: str) -> bytes | None:
+    async def get_user_avatar(
+        cls, user_id: str, platform: str, appid: str | None = None
+    ) -> bytes | None:
         """快捷获取用户头像
 
         参数:
             user_id: 用户id
             platform: 平台
         """
+        url = None
         if platform == "qq":
-            url = f"http://q1.qlogo.cn/g?b=qq&nk={user_id}&s=160"
-            async with httpx.AsyncClient() as client:
-                for _ in range(3):
-                    try:
-                        return (await client.get(url)).content
-                    except Exception as e:
-                        logger.error(
-                            "获取用户头像错误",
-                            "Util",
-                            target=user_id,
-                            platform=platform,
-                        )
+            if user_id.isdigit():
+                url = f"http://q1.qlogo.cn/g?b=qq&nk={user_id}&s=160"
+            else:
+                url = f"https://q.qlogo.cn/qqapp/{appid}/{user_id}/640"
+        return await AsyncHttpx.get_content(url) if url else None
+
+    @classmethod
+    def get_user_avatar_url(
+        cls, user_id: str, platform: str, appid: str | None = None
+    ) -> str | None:
+        """快捷获取用户头像url
+
+        参数:
+            user_id: 用户id
+            platform: 平台
+        """
+        if platform != "qq":
+            return None
+        if user_id.isdigit():
+            return f"http://q1.qlogo.cn/g?b=qq&nk={user_id}&s=160"
         else:
-            pass
-        return None
+            return f"https://q.qlogo.cn/qqapp/{appid}/{user_id}/640"
 
     @classmethod
     async def get_group_avatar(cls, gid: str, platform: str) -> bytes | None:
@@ -300,12 +243,10 @@ class PlatformUtils:
                 for _ in range(3):
                     try:
                         return (await client.get(url)).content
-                    except Exception as e:
+                    except Exception:
                         logger.error(
                             "获取群头像错误", "Util", target=gid, platform=platform
                         )
-        else:
-            pass
         return None
 
     @classmethod
@@ -327,7 +268,7 @@ class PlatformUtils:
         返回:
             Receipt | None: 是否发送成功
         """
-        if target := cls.get_target(bot, user_id, group_id):
+        if target := cls.get_target(user_id=user_id, group_id=group_id):
             send_message = (
                 MessageUtils.build_message(message)
                 if isinstance(message, str)
@@ -347,26 +288,43 @@ class PlatformUtils:
             int: 更新个数
         """
         create_list = []
+        update_list = []
         group_list, platform = await cls.get_group_list(bot)
         if group_list:
-            exists_group_list = await GroupConsole.all().values_list(
-                "group_id", "channel_id"
-            )
+            db_group = await GroupConsole.all()
+            db_group_id: list[tuple[str, str]] = [
+                (group.group_id, group.channel_id) for group in db_group
+            ]
             for group in group_list:
                 group.platform = platform
-                if (group.group_id, group.channel_id) not in exists_group_list:
+                if (group.group_id, group.channel_id) not in db_group_id:
                     create_list.append(group)
                     logger.debug(
                         "群聊信息更新成功",
                         "更新群信息",
                         target=f"{group.group_id}:{group.channel_id}",
                     )
+                else:
+                    _group = next(
+                        g
+                        for g in db_group
+                        if g.group_id == group.group_id
+                        and g.channel_id == group.channel_id
+                    )
+                    _group.group_name = group.group_name
+                    _group.max_member_count = group.max_member_count
+                    _group.member_count = group.member_count
+                    update_list.append(_group)
         if create_list:
             await GroupConsole.bulk_create(create_list, 10)
+        if group_list:
+            await GroupConsole.bulk_update(
+                update_list, ["group_name", "max_member_count", "member_count"], 10
+            )
         return len(create_list)
 
     @classmethod
-    def get_platform(cls, bot: Bot) -> str | None:
+    def get_platform(cls, t: Bot | Uninfo) -> str:
         """获取平台
 
         参数:
@@ -375,84 +333,53 @@ class PlatformUtils:
         返回:
             str | None: 平台
         """
-        if isinstance(bot, (v11Bot, v12Bot)):
-            return "qq"
-        # if isinstance(bot, DodoBot):
-        #     return "dodo"
-        # if isinstance(bot, KaiheilaBot):
-        #     return "kaiheila"
-        # if isinstance(bot, DiscordBot):
-        #     return "discord"
-        return None
+        if isinstance(t, Bot):
+            if interface := get_interface(t):
+                info = interface.basic_info()
+                platform = info["scope"].lower()
+                return "qq" if platform.startswith("qq") else platform
+        else:
+            platform = t.basic["scope"].lower()
+            return "qq" if platform.startswith("qq") else platform
+        return "unknown"
 
     @classmethod
-    async def get_group_list(cls, bot: Bot) -> tuple[list[GroupConsole], str]:
+    async def get_group_list(
+        cls, bot: Bot, only_group: bool = False
+    ) -> tuple[list[GroupConsole], str]:
         """获取群组列表
 
         参数:
             bot: Bot
+            only_group: 是否只获取群组（不获取channel）
 
         返回:
             tuple[list[GroupConsole], str]: 群组列表, 平台
         """
-        if isinstance(bot, v11Bot):
-            group_list = await bot.get_group_list()
-            return [
+        if not (interface := get_interface(bot)):
+            return [], ""
+        platform = cls.get_platform(bot)
+        result_list = []
+        scenes = await interface.get_scenes(SceneType.GROUP)
+        for scene in scenes:
+            group_id = scene.id
+            result_list.append(
                 GroupConsole(
-                    group_id=str(g["group_id"]),
-                    group_name=g["group_name"],
-                    max_member_count=g["max_member_count"],
-                    member_count=g["member_count"],
+                    group_id=scene.id,
+                    group_name=scene.name,
                 )
-                for g in group_list
-            ], "qq"
-        if isinstance(bot, v12Bot):
-            group_list = await bot.get_group_list()
-            return [
-                GroupConsole(
-                    group_id=g.group_id,  # type: ignore
-                    user_name=g.group_name,  # type: ignore
-                )
-                for g in group_list
-            ], "qq"
-        if isinstance(bot, DodoBot):
-            island_list = await bot.get_island_list()
-            source_id_list = [
-                (g.island_source_id, g.island_name)
-                for g in island_list
-                if g.island_source_id
-            ]
-            group_list = []
-            for id, name in source_id_list:
-                channel_list = await bot.get_channel_list(island_source_id=id)
-                group_list.append(GroupConsole(group_id=id, group_name=name))
-                group_list += [
-                    GroupConsole(
-                        group_id=id, group_name=c.channel_name, channel_id=c.channel_id
+            )
+            if not only_group and platform != "qq":
+                if channel_list := await interface.get_scenes(parent_scene_id=group_id):
+                    result_list.extend(
+                        GroupConsole(
+                            group_id=scene.id,
+                            group_name=channel.name,
+                            channel_id=channel.id,
+                        )
+                        for channel in channel_list
                     )
-                    for c in channel_list
-                ]
-            return group_list, "dodo"
-        if isinstance(bot, KaiheilaBot):
-            group_list = []
-            guilds = await bot.guild_list()
-            if guilds.guilds:
-                for guild_id, name in [(g.id_, g.name) for g in guilds.guilds if g.id_]:
-                    view = await bot.guild_view(guild_id=guild_id)
-                    group_list.append(GroupConsole(group_id=guild_id, group_name=name))
-                    if view.channels:
-                        group_list += [
-                            GroupConsole(
-                                group_id=guild_id, group_name=c.name, channel_id=c.id_
-                            )
-                            for c in view.channels
-                            if c.type != 0
-                        ]
-            return group_list, "kaiheila"
-        if isinstance(bot, DiscordBot):
-            # TODO: discord群组列表
-            pass
-        return [], ""
+        return result_list, platform
 
     @classmethod
     async def update_friend(cls, bot: Bot) -> int:
@@ -486,36 +413,17 @@ class PlatformUtils:
         返回:
             list[FriendUser]: 好友列表
         """
-        if isinstance(bot, v11Bot):
-            friend_list = await bot.get_friend_list()
+        if interface := get_interface(bot):
+            user_list = await interface.get_users()
             return [
-                FriendUser(user_id=str(f["user_id"]), user_name=f["nickname"])
-                for f in friend_list
-            ], "qq"
-        if isinstance(bot, v12Bot):
-            friend_list = await bot.get_friend_list()
-            return [
-                FriendUser(
-                    user_id=f.user_id,  # type: ignore
-                    user_name=f.user_displayname or f.user_remark or f.user_name,  # type: ignore
-                )
-                for f in friend_list
-            ], "qq"
-        if isinstance(bot, DodoBot):
-            # TODO: dodo好友列表
-            pass
-        if isinstance(bot, KaiheilaBot):
-            # TODO: kaiheila好友列表
-            pass
-        if isinstance(bot, DiscordBot):
-            # TODO: discord好友列表
-            pass
+                FriendUser(user_id=u.id, user_name=u.name) for u in user_list
+            ], cls.get_platform(bot)
         return [], ""
 
     @classmethod
     def get_target(
         cls,
-        bot: Bot,
+        *,
         user_id: str | None = None,
         group_id: str | None = None,
         channel_id: str | None = None,
@@ -532,25 +440,21 @@ class PlatformUtils:
             target: 对应平台Target
         """
         target = None
-        if isinstance(bot, (v11Bot, v12Bot)):
-            if group_id:
-                target = Target(group_id)
-            elif user_id:
-                target = Target(user_id, private=True)
-        elif isinstance(bot, (DodoBot, KaiheilaBot)):
-            if group_id and channel_id:
-                target = Target(channel_id, parent_id=group_id, channel=True)
-            elif user_id:
-                target = Target(user_id, private=True)
+        if group_id and channel_id:
+            target = Target(channel_id, parent_id=group_id, channel=True)
+        elif group_id:
+            target = Target(group_id)
+        elif user_id:
+            target = Target(user_id, private=True)
         return target
 
 
 async def broadcast_group(
     message: str | UniMessage,
     bot: Bot | list[Bot] | None = None,
-    bot_id: str | Set[str] | None = None,
-    ignore_group: Set[int] | None = None,
-    check_func: Callable[[str], Awaitable] | None = None,
+    bot_id: str | set[str] | None = None,
+    ignore_group: set[int] | None = None,
+    check_func: Callable[[Bot, str], Awaitable] | None = None,
     log_cmd: str | None = None,
     platform: Literal["qq", "dodo", "kaiheila"] | None = None,
 ):
@@ -604,17 +508,29 @@ async def broadcast_group(
                                 or group.channel_id in ignore_group
                             )
                         ) or key in _used_group:
+                            logger.debug(
+                                "广播方法群组重复, 已跳过...",
+                                log_cmd,
+                                group_id=group.group_id,
+                            )
                             continue
                         is_run = False
                         if check_func:
                             if is_coroutine_callable(check_func):
-                                is_run = await check_func(group.group_id)
+                                is_run = await check_func(_bot, group.group_id)
                             else:
-                                is_run = check_func(group.group_id)
+                                is_run = check_func(_bot, group.group_id)
                         if not is_run:
+                            logger.debug(
+                                "广播方法检测运行方法为 False, 已跳过...",
+                                log_cmd,
+                                group_id=group.group_id,
+                            )
                             continue
                         target = PlatformUtils.get_target(
-                            _bot, None, group.group_id, group.channel_id
+                            user_id=None,
+                            group_id=group.group_id,
+                            channel_id=group.channel_id,
                         )
                         if target:
                             _used_group.append(key)

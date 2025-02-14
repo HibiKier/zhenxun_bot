@@ -1,5 +1,3 @@
-from typing import Dict
-
 from tortoise import fields
 
 from zhenxun.services.db_context import Model
@@ -8,7 +6,6 @@ from .goods_info import GoodsInfo
 
 
 class BagUser(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_id = fields.CharField(255)
@@ -25,10 +22,10 @@ class BagUser(Model):
     """今日获取金币"""
     spend_today_gold = fields.IntField(default=0)
     """今日获取金币"""
-    property: Dict[str, int] = fields.JSONField(default={})  # type: ignore
+    property: dict[str, int] = fields.JSONField(default={})  # type: ignore
     """道具"""
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "bag_users"
         table_description = "用户道具数据表"
         unique_together = ("user_id", "group_id")
@@ -50,7 +47,7 @@ class BagUser(Model):
     @classmethod
     async def get_property(
         cls, user_id: str, group_id: str, only_active: bool = False
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """获取当前道具
 
         参数:
@@ -153,8 +150,10 @@ class BagUser(Model):
     @classmethod
     async def _run_script(cls):
         return [
-            "ALTER TABLE bag_users DROP props;",  # 删除 props 字段
-            "ALTER TABLE bag_users RENAME COLUMN user_qq TO user_id;",  # 将user_qq改为user_id
+            # 删除 props 字段
+            "ALTER TABLE bag_users DROP props;",
+            # 将user_qq改为user_id
+            "ALTER TABLE bag_users RENAME COLUMN user_qq TO user_id;",
             "ALTER TABLE bag_users ALTER COLUMN user_id TYPE character varying(255);",
             # 将user_id字段类型改为character varying(255)
             "ALTER TABLE bag_users ALTER COLUMN group_id TYPE character varying(255);",

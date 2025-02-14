@@ -1,5 +1,3 @@
-from typing import Dict
-
 from tortoise import fields
 
 from zhenxun.models.goods_info import GoodsInfo
@@ -11,7 +9,6 @@ from .user_gold_log import UserGoldLog
 
 
 class UserConsole(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_id = fields.CharField(255, unique=True, description="用户id")
@@ -22,14 +19,14 @@ class UserConsole(Model):
     """金币数量"""
     sign = fields.ReverseRelation["SignUser"]  # type: ignore
     """好感度"""
-    props: Dict[str, int] = fields.JSONField(default={})  # type: ignore
+    props: dict[str, int] = fields.JSONField(default={})  # type: ignore
     """道具"""
     platform = fields.CharField(255, null=True, description="平台")
     """平台"""
     create_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
     """创建时间"""
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "user_console"
         table_description = "用户数据表"
 
@@ -109,7 +106,8 @@ class UserConsole(Model):
             InsufficientGold: 金币不足
         """
         user, _ = await cls.get_or_create(
-            user_id=user_id, defaults={"platform": platform, "uid": cls.get_new_uid()}
+            user_id=user_id,
+            defaults={"platform": platform, "uid": await cls.get_new_uid()},
         )
         if user.gold < gold:
             raise InsufficientGold()
@@ -176,6 +174,8 @@ class UserConsole(Model):
         if goods_uuid not in user.props or user.props[goods_uuid] < num:
             raise GoodsNotFound("未找到商品或道具数量不足...")
         user.props[goods_uuid] -= num
+        if user.props[goods_uuid] <= 0:
+            del user.props[goods_uuid]
         await user.save(update_fields=["props"])
 
     @classmethod

@@ -38,7 +38,7 @@ __plugin_meta__ = PluginMetadata(
             )
         ],
         tasks=[Task(module="broadcast", name="广播")],
-    ).dict(),
+    ).to_dict(),
 )
 
 _matcher = on_command("广播", priority=1, permission=SUPERUSER, block=True)

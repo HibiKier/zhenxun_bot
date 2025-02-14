@@ -1,13 +1,9 @@
-from datetime import datetime
-from typing import List, Literal, Optional, Tuple, Union
-
 from tortoise import fields
 
 from zhenxun.services.db_context import Model
 
 
 class SignLog(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_id = fields.CharField(255, description="用户id")
@@ -21,6 +17,6 @@ class SignLog(Model):
     platform = fields.CharField(255, null=True, description="平台")
     """平台"""
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "sign_log"
         table_description = "用户签到记录表"

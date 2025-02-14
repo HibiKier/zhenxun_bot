@@ -1,15 +1,10 @@
-from typing import Dict
-
 from tortoise import fields
 
 from zhenxun.services.db_context import Model
 from zhenxun.utils.enum import PropHandle
 
-from .sign_user import SignUser
-
 
 class UserPropsLog(Model):
-
     id = fields.IntField(pk=True, generated=True, auto_increment=True)
     """自增id"""
     user_id = fields.CharField(255, description="用户id")
@@ -25,6 +20,6 @@ class UserPropsLog(Model):
     create_time = fields.DatetimeField(auto_now_add=True, description="创建时间")
     """创建时间"""
 
-    class Meta:
+    class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "user_props_log"
         table_description = "用户道具记录表"

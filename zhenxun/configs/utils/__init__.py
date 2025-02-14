@@ -1,9 +1,12 @@
+from collections.abc import Callable
 import copy
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, Set, Type
+from typing import Any, Literal
 
 import cattrs
-from pydantic import BaseModel
+from nonebot.compat import model_dump
+from pydantic import BaseModel, Field
 from ruamel.yaml import YAML
 from ruamel.yaml.scanner import ScannerError
 
@@ -14,6 +17,32 @@ from zhenxun.utils.enum import BlockType, LimitWatchType, PluginLimitType, Plugi
 _yaml = YAML(pure=True)
 _yaml.indent = 2
 _yaml.allow_unicode = True
+
+
+class Example(BaseModel):
+    """
+    示例
+    """
+
+    exec: str
+    """执行命令"""
+    description: str = ""
+    """命令描述"""
+
+
+class Command(BaseModel):
+    """
+    具体参数说明
+    """
+
+    command: str
+    """命令名称"""
+    params: list[str] = Field(default_factory=list)
+    """参数"""
+    description: str = ""
+    """描述"""
+    examples: list[Example] = Field(default_factory=list)
+    """示例列表"""
 
 
 class RegisterConfig(BaseModel):
@@ -53,6 +82,9 @@ class ConfigModel(BaseModel):
     arg_parser: Callable | None = None
     """参数解析"""
 
+    def to_dict(self, **kwargs):
+        return model_dump(self, **kwargs)
+
 
 class ConfigGroup(BaseModel):
     """
@@ -63,7 +95,7 @@ class ConfigGroup(BaseModel):
     """模块名"""
     name: str | None = None
     """插件名"""
-    configs: Dict[str, ConfigModel] = {}
+    configs: dict[str, ConfigModel] = Field(default_factory=dict)
     """配置项列表"""
 
     def get(self, c: str, default: Any = None) -> Any:
@@ -74,6 +106,9 @@ class ConfigGroup(BaseModel):
             if cfg.default_value is not None:
                 return cfg.default_value
         return default
+
+    def to_dict(self, **kwargs):
+        return model_dump(self, **kwargs)
 
 
 class BaseBlock(BaseModel):
@@ -91,6 +126,9 @@ class BaseBlock(BaseModel):
     """阻断时回复内容"""
     _type: PluginLimitType = PluginLimitType.BLOCK
     """类型"""
+
+    def to_dict(self, **kwargs):
+        return model_dump(self, **kwargs)
 
 
 class PluginCdBlock(BaseBlock):
@@ -128,6 +166,31 @@ class PluginSetting(BaseModel):
     """是否限制超级用户"""
     cost_gold: int = 0
     """调用插件花费金币"""
+    impression: float = 0.0
+    """调用插件好感度限制"""
+
+
+class SchedulerModel(BaseModel):
+    trigger: Literal["date", "interval", "cron"]
+    """trigger"""
+    day: int | None = None
+    """天数"""
+    hour: int | None = None
+    """小时"""
+    minute: int | None = None
+    """分钟"""
+    second: int | None = None
+    """秒"""
+    run_date: datetime | None = None
+    """运行日期"""
+    id: str | None = None
+    """id"""
+    max_instances: int | None = None
+    """最大运行实例"""
+    args: list | None = None
+    """参数"""
+    kwargs: dict | None = None
+    """参数"""
 
 
 class Task(BaseBlock):
@@ -137,8 +200,18 @@ class Task(BaseBlock):
     """被动技能名称"""
     status: bool = True
     """全局开关状态"""
-    run_time: str | None = None
-    """运行时间"""
+    create_status: bool = False
+    """初次加载默认开关状态"""
+    default_status: bool = True
+    """进群时默认状态"""
+    scheduler: SchedulerModel | None = None
+    """定时任务配置"""
+    run_func: Callable | None = None
+    """运行函数"""
+    check: Callable | None = None
+    """检查函数"""
+    check_args: list = Field(default_factory=list)
+    """检查函数参数"""
 
 
 class PluginExtraData(BaseModel):
@@ -162,14 +235,23 @@ class PluginExtraData(BaseModel):
     """插件基本配置"""
     limits: list[BaseBlock | PluginCdBlock | PluginCountBlock] | None = None
     """插件限制"""
+    commands: list[Command] = Field(default_factory=list)
+    """命令列表，用于说明帮助"""
+    ignore_prompt: bool = False
+    """是否忽略阻断提示"""
     tasks: list[Task] | None = None
     """技能被动"""
     superuser_help: str | None = None
     """超级用户帮助"""
-    aliases: Set[str] = set()
+    aliases: set[str] = Field(default_factory=set)
     """额外名称"""
     sql_list: list[str] | None = None
     """常用sql"""
+    is_show: bool = True
+    """是否显示在菜单中"""
+
+    def to_dict(self, **kwargs):
+        return model_dump(self, **kwargs)
 
 
 class NoSuchConfig(Exception):
@@ -182,9 +264,10 @@ class ConfigsManager:
     """
 
     def __init__(self, file: Path):
-        self._data: Dict[str, ConfigGroup] = {}
+        self._data: dict[str, ConfigGroup] = {}
         self._simple_data: dict = {}
         self._simple_file = DATA_PATH / "config.yaml"
+        self.add_module = []
         _yaml = YAML()
         if file:
             file.parent.mkdir(exist_ok=True, parents=True)
@@ -192,14 +275,14 @@ class ConfigsManager:
             self.load_data()
         if self._simple_file.exists():
             try:
-                with open(self._simple_file, "r", encoding="utf8") as f:
+                with self._simple_file.open(encoding="utf8") as f:
                     self._simple_data = _yaml.load(f)
             except ScannerError as e:
                 raise ScannerError(
                     f"{e}\n**********************************************\n"
                     f"****** 可能为config.yaml配置文件填写不规范 ******\n"
                     f"**********************************************"
-                )
+                ) from e
 
     def set_name(self, module: str, name: str):
         """设置插件配置中文名出
@@ -224,7 +307,7 @@ class ConfigsManager:
         *,
         help: str | None = None,
         default_value: Any = None,
-        type: Type | None = None,
+        type: type | None = None,
         arg_parser: Callable | None = None,
         _override: bool = False,
     ):
@@ -247,6 +330,7 @@ class ConfigsManager:
 
         if not module or not key:
             raise ValueError("add_plugin_config: module和key不能为为空")
+        self.add_module.append(f"{module}:{key}".lower())
         if module in self._data and (config := self._data[module].configs.get(key)):
             config.help = help
             config.arg_parser = arg_parser
@@ -255,13 +339,6 @@ class ConfigsManager:
                 config.value = value
                 config.default_value = default_value
         else:
-            _module = None
-            if ":" in module:
-                module_split = module.split(":")
-                if len(module_split) < 2:
-                    raise ValueError(f"module: {module} 填写错误")
-                _module = module_split[-1]
-                module = module_split[0]
             key = key.upper()
             if not self._data.get(module):
                 self._data[module] = ConfigGroup(module=module)
@@ -278,7 +355,6 @@ class ConfigsManager:
         key: str,
         value: Any,
         auto_save: bool = False,
-        save_simple_data: bool = True,
     ):
         """设置配置值
 
@@ -287,15 +363,16 @@ class ConfigsManager:
             key: 配置名称
             value: 值
             auto_save: 自动保存.
-            save_simple_data: 保存至config.yaml.
         """
+        key = key.upper()
         if module in self._data:
-            data = self._data[module].configs.get(key)
-            if data and data != value:
+            if self._data[module].configs.get(key):
                 self._data[module].configs[key].value = value
-                self._simple_data[module][key] = value
+            else:
+                self.add_plugin_config(module, key, value)
+            self._simple_data[module][key] = value
             if auto_save:
-                self.save(save_simple_data=save_simple_data)
+                self.save(save_simple_data=True)
 
     def get_config(self, module: str, key: str, default: Any = None) -> Any:
         """获取指定配置值
@@ -312,45 +389,46 @@ class ConfigsManager:
             Any: 配置值
         """
         logger.debug(
-            f"尝试获取配置 MODULE: [<u><y>{module}</y></u>] | KEY: [<u><y>{key}</y></u>]"
+            f"尝试获取配置MODULE: [<u><y>{module}</y></u>] | KEY: [<u><y>{key}</y></u>]"
         )
         key = key.upper()
         value = None
         if module in self._data.keys():
-            config = self._data[module].configs.get(key)
-            if not config:
-                config = self._data[module].configs.get(key)
+            config = self._data[module].configs.get(key) or self._data[
+                module
+            ].configs.get(key)
             if not config:
                 raise NoSuchConfig(
                     f"未查询到配置项 MODULE: [ {module} ] | KEY: [ {key} ]"
                 )
-            if config.arg_parser:
-                value = config.arg_parser(value or config.default_value)
-            else:
-                try:
-                    if config.value is not None:
-                        value = (
-                            cattrs.structure(config.value, config.type)
-                            if config.type
-                            else config.value
-                        )
-                    else:
-                        if config.default_value is not None:
-                            value = (
-                                cattrs.structure(config.default_value, config.type)
-                                if config.type
-                                else config.default_value
-                            )
-                except Exception as e:
-                    logger.warning(
-                        f"配置项类型转换 MODULE: [<u><y>{module}</y></u>] | KEY: [<u><y>{key}</y></u>]",
-                        e=e,
+            try:
+                if config.arg_parser:
+                    value = config.arg_parser(value or config.default_value)
+                elif config.value is not None:
+                    # try:
+                    value = (
+                        cattrs.structure(config.value, config.type)
+                        if config.type
+                        else config.value
                     )
-                    value = config.value or config.default_value
+                elif config.default_value is not None:
+                    value = (
+                        cattrs.structure(config.default_value, config.type)
+                        if config.type
+                        else config.default_value
+                    )
+            except Exception as e:
+                logger.warning(
+                    f"配置项类型转换 MODULE: [<u><y>{module}</y></u>]"
+                    " | KEY: [<u><y>{key}</y></u>]",
+                    e=e,
+                )
+                value = config.value or config.default_value
         if value is None:
             value = default
         logger.debug(
-            f"获取配置 MODULE: [<u><y>{module}</y></u>] | KEY: [<u><y>{key}</y></u>] -> [<u><c>{value}</c></u>]"
+            f"获取配置 MODULE: [<u><y>{module}</y></u>] | "
+            f" KEY: [<u><y>{key}</y></u>] -> [<u><c>{value}</c></u>]"
         )
         return value
 
@@ -374,13 +452,6 @@ class ConfigsManager:
         """
         if save_simple_data:
             with open(self._simple_file, "w", encoding="utf8") as f:
-                # yaml.dump(
-                #     self._simple_data,
-                #     f,
-                #     indent=2,
-                #     Dumper=yaml.RoundTripDumper,
-                #     allow_unicode=True,
-                # )
                 _yaml.dump(self._simple_data, f)
         path = path or self.file
         data = {}
@@ -392,16 +463,12 @@ class ConfigsManager:
                 del value["arg_parser"]
                 data[module][config] = value
         with open(path, "w", encoding="utf8") as f:
-            # yaml.dump(
-            #     data, f, indent=2, Dumper=yaml.RoundTripDumper, allow_unicode=True
-            # )
             _yaml.dump(data, f)
 
     def reload(self):
         """重新加载配置文件"""
-        _yaml = YAML()
         if self._simple_file.exists():
-            with open(self._simple_file, "r", encoding="utf8") as f:
+            with open(self._simple_file, encoding="utf8") as f:
                 self._simple_data = _yaml.load(f)
         for key in self._simple_data.keys():
             for k in self._simple_data[key].keys():
@@ -414,31 +481,31 @@ class ConfigsManager:
         异常:
             ValueError: 配置文件为空！
         """
-        if self.file.exists():
-            with open(self.file, "r", encoding="utf8") as f:
-                temp_data = _yaml.load(f)
-            if not temp_data:
-                self.file.unlink()
-                raise ValueError(
-                    "配置文件为空！\n"
-                    "***********************************************************\n"
-                    "****** 配置文件 plugins2config.yaml 为空，已删除，请重启 ******\n"
-                    "***********************************************************"
-                )
-            count = 0
-            for module in temp_data:
-                config_group = ConfigGroup(module=module)
-                for config in temp_data[module]:
-                    config_group.configs[config] = ConfigModel(
-                        **temp_data[module][config]
-                    )
-                    count += 1
-                self._data[module] = config_group
-            logger.info(
-                f"加载配置完成，共加载 <u><y>{len(temp_data)}</y></u> 个配置组及对应 <u><y>{count}</y></u> 个配置项"
+        if not self.file.exists():
+            return
+        with open(self.file, encoding="utf8") as f:
+            temp_data = _yaml.load(f)
+        if not temp_data:
+            self.file.unlink()
+            raise ValueError(
+                "配置文件为空！\n"
+                "***********************************************************\n"
+                "****** 配置文件 plugins2config.yaml 为空，已删除，请重启 ******\n"
+                "***********************************************************"
             )
+        count = 0
+        for module in temp_data:
+            config_group = ConfigGroup(module=module)
+            for config in temp_data[module]:
+                config_group.configs[config] = ConfigModel(**temp_data[module][config])
+                count += 1
+            self._data[module] = config_group
+        logger.info(
+            f"加载配置完成，共加载 <u><y>{len(temp_data)}</y></u> 个配置组及对应"
+            f" <u><y>{count}</y></u> 个配置项"
+        )
 
-    def get_data(self) -> Dict[str, ConfigGroup]:
+    def get_data(self) -> dict[str, ConfigGroup]:
         return copy.deepcopy(self._data)
 
     def is_empty(self) -> bool:
