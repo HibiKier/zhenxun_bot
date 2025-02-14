@@ -214,7 +214,7 @@ class Task(BaseBlock):
     """检查函数参数"""
 
 
-class AbstractTool(BaseModel):
+class AICallableTag(BaseModel):
     name: str | None = None
     """工具名称"""
     parameters: dict[str, Any] | None = None
@@ -267,7 +267,7 @@ class PluginExtraData(BaseModel):
     """常用sql"""
     is_show: bool = True
     """是否显示在菜单中"""
-    smart_tools: list[AbstractTool] | None = None
+    smart_tools: list[AICallableTag] | None = None
     """智能模式函数工具集"""
 
     def to_dict(self, **kwargs):
