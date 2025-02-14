@@ -214,10 +214,28 @@ class Task(BaseBlock):
     """检查函数参数"""
 
 
+class AICallableProperties(BaseModel):
+    type: str
+    """参数类型"""
+    description: str
+    """参数描述"""
+    enums: list[str] = []
+    """参数枚举"""
+
+
+class AICallableParam(BaseModel):
+    type: str
+    """类型"""
+    properties: dict[str, AICallableProperties]
+    """参数列表"""
+    required: list[str]
+    """必要参数"""
+
+
 class AICallableTag(BaseModel):
-    name: str | None = None
+    name: str
     """工具名称"""
-    parameters: dict[str, Any] | None = None
+    parameters: dict[str, AICallableParam] | None = None
     """工具参数"""
     description: str | None = None
     """工具描述"""
