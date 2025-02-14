@@ -213,6 +213,7 @@ class Task(BaseBlock):
     check_args: list = Field(default_factory=list)
     """检查函数参数"""
 
+
 class AbstractTool(BaseModel):
     name: str | None = None
     """工具名称"""
@@ -225,10 +226,11 @@ class AbstractTool(BaseModel):
 
     def to_dict(self):
         return {
-            'name': self.name,
-            'description': self.description,
-            'parameters': self.parameters
+            "name": self.name,
+            "description": self.description,
+            "parameters": self.parameters,
         }
+
 
 class PluginExtraData(BaseModel):
     """
