@@ -257,9 +257,9 @@ class ShopManage:
                     else:
                         func(*cls.__parse_args(args, param, **kwargs))
                 elif asyncio.iscoroutinefunction(func):
-                    await func(**kwargs)
+                    await func()
                 else:
-                    func(**kwargs)
+                    func()
 
     @classmethod
     async def __run(
