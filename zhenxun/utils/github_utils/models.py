@@ -1,3 +1,4 @@
+import contextlib
 from typing import Protocol
 
 from aiocache import cached
@@ -63,6 +64,16 @@ class RepoInfo(BaseModel):
             url_format.format(**self.to_dict(), version=version, compress="zip")
             for url_format in url_formats
         ]
+
+    async def update_repo_commit(self):
+        with contextlib.suppress(Exception):
+            newest_commit = await self.get_newest_commit(
+                self.owner, self.repo, self.branch
+            )
+            if newest_commit:
+                self.branch = newest_commit
+                return True
+        return False
 
     def to_dict(self, **kwargs):
         return model_dump(self, **kwargs)
