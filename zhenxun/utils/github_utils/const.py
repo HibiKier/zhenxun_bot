@@ -33,3 +33,11 @@ RELEASE_SOURCE_FORMAT = (
     "https://codeload.github.com/{owner}/{repo}/legacy.{compress}/refs/tags/{version}"
 )
 """release 源码格式"""
+
+GIT_API_COMMIT_FORMAT = "https://api.github.com/repos/{owner}/{repo}/commits/{branch}"
+"""git api commit地址格式"""
+
+GIT_API_PROXY_COMMIT_FORMAT = (
+    "https://git-api.zhenxun.org/repos/{owner}/{repo}/commits/{branch}"
+)
+"""git api commit地址格式 (代理)"""

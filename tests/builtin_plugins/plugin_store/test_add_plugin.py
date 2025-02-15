@@ -16,8 +16,10 @@ from tests.utils import _v11_group_message_event
 
 
 @pytest.mark.parametrize("package_api", ["jsd", "gh"])
+@pytest.mark.parametrize("is_commit", [True, False])
 async def test_add_plugin_basic(
     package_api: str,
+    is_commit: bool,
     app: App,
     mocker: MockerFixture,
     mocked_api: MockRouter,
@@ -39,6 +41,12 @@ async def test_add_plugin_basic(
         mocked_api["zhenxun_bot_plugins_metadata"].respond(404)
     if package_api != "gh":
         mocked_api["zhenxun_bot_plugins_tree"].respond(404)
+
+    if not is_commit:
+        mocked_api["zhenxun_bot_plugins_commit"].respond(404)
+        mocked_api["zhenxun_bot_plugins_commit_proxy"].respond(404)
+        mocked_api["zhenxun_bot_plugins_index_commit"].respond(404)
+        mocked_api["zhenxun_bot_plugins_index_commit_proxy"].respond(404)
 
     plugin_id = 1
 
@@ -67,15 +75,22 @@ async def test_add_plugin_basic(
             result=None,
             bot=bot,
         )
-    assert mocked_api["basic_plugins"].called
-    assert mocked_api["extra_plugins"].called
-    assert mocked_api["search_image_plugin_file_init"].called
+    if is_commit:
+        assert mocked_api["search_image_plugin_file_init_commit"].called
+        assert mocked_api["basic_plugins"].called
+        assert mocked_api["extra_plugins"].called
+    else:
+        assert mocked_api["search_image_plugin_file_init"].called
+        assert mocked_api["basic_plugins_no_commit"].called
+        assert mocked_api["extra_plugins_no_commit"].called
     assert (mock_base_path / "plugins" / "search_image" / "__init__.py").is_file()
 
 
 @pytest.mark.parametrize("package_api", ["jsd", "gh"])
+@pytest.mark.parametrize("is_commit", [True, False])
 async def test_add_plugin_basic_commit_version(
     package_api: str,
+    is_commit: bool,
     app: App,
     mocker: MockerFixture,
     mocked_api: MockRouter,
@@ -98,6 +113,11 @@ async def test_add_plugin_basic_commit_version(
     if package_api != "gh":
         mocked_api["zhenxun_bot_plugins_tree_commit"].respond(404)
 
+    if not is_commit:
+        mocked_api["zhenxun_bot_plugins_commit"].respond(404)
+        mocked_api["zhenxun_bot_plugins_commit_proxy"].respond(404)
+        mocked_api["zhenxun_bot_plugins_index_commit"].respond(404)
+        mocked_api["zhenxun_bot_plugins_index_commit_proxy"].respond(404)
     plugin_id = 3
 
     async with app.test_matcher(_matcher) as ctx:
@@ -125,19 +145,25 @@ async def test_add_plugin_basic_commit_version(
             result=None,
             bot=bot,
         )
-    assert mocked_api["basic_plugins"].called
-    assert mocked_api["extra_plugins"].called
     if package_api == "jsd":
         assert mocked_api["zhenxun_bot_plugins_metadata_commit"].called
     if package_api == "gh":
         assert mocked_api["zhenxun_bot_plugins_tree_commit"].called
+    if is_commit:
+        assert mocked_api["basic_plugins"].called
+        assert mocked_api["extra_plugins"].called
+    else:
+        assert mocked_api["basic_plugins_no_commit"].called
+        assert mocked_api["extra_plugins_no_commit"].called
     assert mocked_api["bilibili_sub_plugin_file_init"].called
     assert (mock_base_path / "plugins" / "bilibili_sub" / "__init__.py").is_file()
 
 
 @pytest.mark.parametrize("package_api", ["jsd", "gh"])
+@pytest.mark.parametrize("is_commit", [True, False])
 async def test_add_plugin_basic_is_not_dir(
     package_api: str,
+    is_commit: bool,
     app: App,
     mocker: MockerFixture,
     mocked_api: MockRouter,
@@ -159,6 +185,12 @@ async def test_add_plugin_basic_is_not_dir(
         mocked_api["zhenxun_bot_plugins_metadata"].respond(404)
     if package_api != "gh":
         mocked_api["zhenxun_bot_plugins_tree"].respond(404)
+
+    if not is_commit:
+        mocked_api["zhenxun_bot_plugins_commit"].respond(404)
+        mocked_api["zhenxun_bot_plugins_commit_proxy"].respond(404)
+        mocked_api["zhenxun_bot_plugins_index_commit"].respond(404)
+        mocked_api["zhenxun_bot_plugins_index_commit_proxy"].respond(404)
 
     plugin_id = 0
 
@@ -187,15 +219,22 @@ async def test_add_plugin_basic_is_not_dir(
             result=None,
             bot=bot,
         )
-    assert mocked_api["basic_plugins"].called
-    assert mocked_api["extra_plugins"].called
-    assert mocked_api["jitang_plugin_file"].called
+    if is_commit:
+        assert mocked_api["jitang_plugin_file_commit"].called
+        assert mocked_api["basic_plugins"].called
+        assert mocked_api["extra_plugins"].called
+    else:
+        assert mocked_api["jitang_plugin_file"].called
+        assert mocked_api["basic_plugins_no_commit"].called
+        assert mocked_api["extra_plugins_no_commit"].called
     assert (mock_base_path / "plugins" / "alapi" / "jitang.py").is_file()
 
 
 @pytest.mark.parametrize("package_api", ["jsd", "gh"])
+@pytest.mark.parametrize("is_commit", [True, False])
 async def test_add_plugin_extra(
     package_api: str,
+    is_commit: bool,
     app: App,
     mocker: MockerFixture,
     mocked_api: MockRouter,
@@ -217,6 +256,14 @@ async def test_add_plugin_extra(
         mocked_api["zhenxun_github_sub_metadata"].respond(404)
     if package_api != "gh":
         mocked_api["zhenxun_github_sub_tree"].respond(404)
+
+    if not is_commit:
+        mocked_api["zhenxun_github_sub_commit"].respond(404)
+        mocked_api["zhenxun_github_sub_commit_proxy"].respond(404)
+        mocked_api["zhenxun_bot_plugins_commit"].respond(404)
+        mocked_api["zhenxun_bot_plugins_commit_proxy"].respond(404)
+        mocked_api["zhenxun_bot_plugins_index_commit"].respond(404)
+        mocked_api["zhenxun_bot_plugins_index_commit_proxy"].respond(404)
 
     plugin_id = 4
 
@@ -245,9 +292,14 @@ async def test_add_plugin_extra(
             result=None,
             bot=bot,
         )
-    assert mocked_api["basic_plugins"].called
-    assert mocked_api["extra_plugins"].called
-    assert mocked_api["github_sub_plugin_file_init"].called
+    if is_commit:
+        assert mocked_api["github_sub_plugin_file_init_commit"].called
+        assert mocked_api["basic_plugins"].called
+        assert mocked_api["extra_plugins"].called
+    else:
+        assert mocked_api["github_sub_plugin_file_init"].called
+        assert mocked_api["basic_plugins_no_commit"].called
+        assert mocked_api["extra_plugins_no_commit"].called
     assert (mock_base_path / "plugins" / "github_sub" / "__init__.py").is_file()
 
 
