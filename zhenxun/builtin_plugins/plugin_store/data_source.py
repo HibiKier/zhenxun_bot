@@ -80,12 +80,22 @@ class ShopManage:
         返回:
             dict: 插件信息数据
         """
-        default_github_url = await GithubUtils.parse_github_url(
-            DEFAULT_GITHUB_URL
-        ).get_raw_download_urls("plugins.json")
-        extra_github_url = await GithubUtils.parse_github_url(
-            EXTRA_GITHUB_URL
-        ).get_raw_download_urls("plugins.json")
+        default_github_repo = GithubUtils.parse_github_url(DEFAULT_GITHUB_URL)
+        extra_github_repo = GithubUtils.parse_github_url(EXTRA_GITHUB_URL)
+        for repo_info in [default_github_repo, extra_github_repo]:
+            try:
+                newest_commit = await repo_info.get_newest_commit(
+                    repo_info.owner, repo_info.repo, repo_info.branch
+                )
+                if newest_commit:
+                    repo_info.branch = newest_commit
+                    logger.info(f"获取最新提交: {newest_commit}", "插件管理")
+            except Exception as e:
+                logger.warning(f"获取最新提交失败: {e}", "插件管理")
+        default_github_url = await default_github_repo.get_raw_download_urls(
+            "plugins.json"
+        )
+        extra_github_url = await extra_github_repo.get_raw_download_urls("plugins.json")
         res = await AsyncHttpx.get(default_github_url)
         res2 = await AsyncHttpx.get(extra_github_url)
 
@@ -218,6 +228,15 @@ class ShopManage:
         files: list[str]
         repo_api: RepoAPI
         repo_info = GithubUtils.parse_github_url(github_url)
+        try:
+            newest_commit = await repo_info.get_newest_commit(
+                repo_info.owner, repo_info.repo, repo_info.branch
+            )
+            if newest_commit:
+                repo_info.branch = newest_commit
+                logger.info(f"获取最新提交: {newest_commit}", "插件管理")
+        except Exception as e:
+            logger.warning(f"获取最新提交失败: {e}", "插件管理")
         logger.debug(f"成功获取仓库信息: {repo_info}", "插件管理")
         for repo_api in GithubUtils.iter_api_strategies():
             try:
