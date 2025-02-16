@@ -237,6 +237,7 @@ class ShopManage:
         cls,
         goods: Goods,
         param: ShopParam,
+        session: Uninfo,
         run_type: Literal["after", "before"],
         **kwargs,
     ):
@@ -253,9 +254,9 @@ class ShopManage:
                 args = inspect.signature(func).parameters
                 if args and next(iter(args.keys())) != "kwargs":
                     if asyncio.iscoroutinefunction(func):
-                        await func(*cls.__parse_args(args, param, **kwargs))
+                        await func(*cls.__parse_args(args, param, session, **kwargs))
                     else:
-                        func(*cls.__parse_args(args, param, **kwargs))
+                        func(*cls.__parse_args(args, param, session, **kwargs))
                 elif asyncio.iscoroutinefunction(func):
                     await func()
                 else:
@@ -339,12 +340,12 @@ class ShopManage:
         )
         if num > param.max_num_limit:
             return f"{goods_info.goods_name} 单次使用最大数量为{param.max_num_limit}..."
-        await cls.run_before_after(goods, param, "before", **kwargs)
+        await cls.run_before_after(goods, param, session, "before", **kwargs)
         result = await cls.__run(goods, param, session, **kwargs)
         await UserConsole.use_props(
             session.user.id, goods_info.uuid, num, PlatformUtils.get_platform(session)
         )
-        await cls.run_before_after(goods, param, "after", **kwargs)
+        await cls.run_before_after(goods, param, session, "after", **kwargs)
         if not result and param.send_success_msg:
             result = f"使用道具 {goods.name} {num} 次成功！"
         return result
