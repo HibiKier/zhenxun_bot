@@ -170,6 +170,40 @@ class PluginSetting(BaseModel):
     """调用插件好感度限制"""
 
 
+class AICallableProperties(BaseModel):
+    type: str
+    """参数类型"""
+    description: str
+    """参数描述"""
+    enums: list[str] | None = None
+    """参数枚举"""
+
+
+class AICallableParam(BaseModel):
+    type: str
+    """类型"""
+    properties: dict[str, AICallableProperties]
+    """参数列表"""
+    required: list[str]
+    """必要参数"""
+
+
+class AICallableTag(BaseModel):
+    name: str
+    """工具名称"""
+    parameters: AICallableParam | None = None
+    """工具参数"""
+    description: str
+    """工具描述"""
+    func: Callable | None = None
+    """工具函数"""
+
+    def to_dict(self):
+        result = model_dump(self)
+        del result["func"]
+        return result
+
+
 class SchedulerModel(BaseModel):
     trigger: Literal["date", "interval", "cron"]
     """trigger"""
@@ -249,6 +283,8 @@ class PluginExtraData(BaseModel):
     """常用sql"""
     is_show: bool = True
     """是否显示在菜单中"""
+    smart_tools: list[AICallableTag] | None = None
+    """智能模式函数工具集"""
 
     def to_dict(self, **kwargs):
         return model_dump(self, **kwargs)
