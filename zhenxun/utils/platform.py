@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import Awaitable, Callable
 import random
 from typing import Literal
@@ -557,6 +558,7 @@ async def broadcast_group(
                                 target, _bot
                             )
                             logger.debug("发送成功", log_cmd, target=key)
+                            await asyncio.sleep(random.randint(1, 3))
                         else:
                             logger.warning("target为空", log_cmd, target=key)
                     except Exception as e:
