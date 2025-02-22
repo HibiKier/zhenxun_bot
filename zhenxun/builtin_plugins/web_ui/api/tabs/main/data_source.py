@@ -110,11 +110,18 @@ class ApiDataSource:
             create_time__gte=now - timedelta(hours=now.hour),
         ).count()
         # 群聊数量
-        select_bot.group_count = len(await PlatformUtils.get_group_list(select_bot.bot))
-        # 好友数量
-        select_bot.friend_count = len(
-            await PlatformUtils.get_friend_list(select_bot.bot)
-        )
+        try:
+            select_bot.group_count = len(
+                (await PlatformUtils.get_group_list(select_bot.bot, True))[0]
+            )
+            # 好友数量
+            select_bot.friend_count = len(
+                (await PlatformUtils.get_friend_list(select_bot.bot))[0]
+            )
+        except Exception as e:
+            logger.warning("获取bot好友/群组信息失败...", "WebUi", e=e)
+            select_bot.group_count = 0
+            select_bot.friend_count = 0
         select_bot.status = await BotConsole.get_bot_status(select_bot.self_id)
         # 连接时间
         select_bot.connect_time = bot_live.get(select_bot.self_id) or 0
@@ -248,13 +255,31 @@ class ApiDataSource:
         if bot_id:
             query = query.filter(bot_id=bot_id)
         if date_type == QueryDateType.DAY:
-            query = query.filter(create_time__gte=now - timedelta(hours=now.hour))
+            query = query.filter(
+                create_time__gte=now
+                - timedelta(hours=now.hour, minutes=now.minute, seconds=now.second)
+            )
         if date_type == QueryDateType.WEEK:
-            query = query.filter(create_time__gte=now - timedelta(days=7))
+            query = query.filter(
+                create_time__gte=now
+                - timedelta(
+                    days=7, hours=now.hour, minutes=now.minute, seconds=now.second
+                )
+            )
         if date_type == QueryDateType.MONTH:
-            query = query.filter(create_time__gte=now - timedelta(days=30))
+            query = query.filter(
+                create_time__gte=now
+                - timedelta(
+                    days=30, hours=now.hour, minutes=now.minute, seconds=now.second
+                )
+            )
         if date_type == QueryDateType.YEAR:
-            query = query.filter(create_time__gte=now - timedelta(days=365))
+            query = query.filter(
+                create_time__gte=now
+                - timedelta(
+                    days=365, hours=now.hour, minutes=now.minute, seconds=now.second
+                )
+            )
         return query
 
     @classmethod

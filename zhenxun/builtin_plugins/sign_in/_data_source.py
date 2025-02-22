@@ -83,7 +83,7 @@ class SignManage:
             )
             data_list.append(
                 [
-                    f"{i+1}",
+                    f"{i + 1}",
                     (bytes, 30, 30) if user[3] == "qq" else "",
                     uid2name.get(user[0]),
                     user[1],

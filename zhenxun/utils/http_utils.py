@@ -7,6 +7,7 @@ import time
 from typing import Any, ClassVar, Literal
 
 import aiofiles
+from anyio import EndOfStream
 import httpx
 from httpx import ConnectTimeout, HTTPStatusError, Response
 from nonebot_plugin_alconna import UniMessage
@@ -41,7 +42,7 @@ class AsyncHttpx:
         verify: bool = True,
         use_proxy: bool = True,
         proxy: dict[str, str] | None = None,
-        timeout: int = 30,
+        timeout: int = 30,  # noqa: ASYNC109
         **kwargs,
     ) -> Response:
         """Get
@@ -96,7 +97,7 @@ class AsyncHttpx:
         verify: bool = True,
         use_proxy: bool = True,
         proxy: dict[str, str] | None = None,
-        timeout: int = 30,
+        timeout: int = 30,  # noqa: ASYNC109
         **kwargs,
     ) -> Response:
         if not headers:
@@ -123,7 +124,7 @@ class AsyncHttpx:
         verify: bool = True,
         use_proxy: bool = True,
         proxy: dict[str, str] | None = None,
-        timeout: int = 30,
+        timeout: int = 30,  # noqa: ASYNC109
         **kwargs,
     ) -> Response:
         """Get
@@ -166,7 +167,7 @@ class AsyncHttpx:
         params: dict[str, str] | None = None,
         headers: dict[str, str] | None = None,
         cookies: dict[str, str] | None = None,
-        timeout: int = 30,
+        timeout: int = 30,  # noqa: ASYNC109
         **kwargs,
     ) -> Response:
         """
@@ -203,9 +204,9 @@ class AsyncHttpx:
             )
 
     @classmethod
-    async def get_content(cls, url: str, **kwargs) -> bytes | None:
+    async def get_content(cls, url: str, **kwargs) -> bytes:
         res = await cls.get(url, **kwargs)
-        return res.content if res and res.status_code == 200 else None
+        return res.content
 
     @classmethod
     async def download_file(
@@ -219,7 +220,7 @@ class AsyncHttpx:
         proxy: dict[str, str] | None = None,
         headers: dict[str, str] | None = None,
         cookies: dict[str, str] | None = None,
-        timeout: int = 30,
+        timeout: int = 30,  # noqa: ASYNC109
         stream: bool = False,
         follow_redirects: bool = True,
         **kwargs,
@@ -311,12 +312,17 @@ class AsyncHttpx:
                                                     completed=response.num_bytes_downloaded,
                                                 )
                                         logger.info(
-                                            f"下载 {u} 成功.. "
-                                            f"Path：{path.absolute()}"
+                                            f"下载 {u} 成功.. Path：{path.absolute()}"
                                         )
                         return True
                     except (TimeoutError, ConnectTimeout, HTTPStatusError):
                         logger.warning(f"下载 {u} 失败.. 尝试下一个地址..")
+                    except EndOfStream as e:
+                        logger.warning(
+                            f"下载 {url} EndOfStream 异常 Path：{path.absolute()}", e=e
+                        )
+                        if path.exists():
+                            return True
             logger.error(f"下载 {url} 下载超时.. Path：{path.absolute()}")
         except Exception as e:
             logger.error(f"下载 {url} 错误 Path：{path.absolute()}", e=e)
@@ -334,7 +340,7 @@ class AsyncHttpx:
         proxy: dict[str, str] | None = None,
         headers: dict[str, str] | None = None,
         cookies: dict[str, str] | None = None,
-        timeout: int = 30,
+        timeout: int = 30,  # noqa: ASYNC109
         **kwargs,
     ) -> list[bool]:
         """分组同时下载文件
@@ -374,22 +380,22 @@ class AsyncHttpx:
         tasks = []
         result_ = []
         for x, y in zip(_split_url_list, _split_path_list):
-            for url, path in zip(x, y):
-                tasks.append(
-                    asyncio.create_task(
-                        cls.download_file(
-                            url,
-                            path,
-                            params=params,
-                            headers=headers,
-                            cookies=cookies,
-                            use_proxy=use_proxy,
-                            timeout=timeout,
-                            proxy=proxy,
-                            **kwargs,
-                        )
+            tasks.extend(
+                asyncio.create_task(
+                    cls.download_file(
+                        url,
+                        path,
+                        params=params,
+                        headers=headers,
+                        cookies=cookies,
+                        use_proxy=use_proxy,
+                        timeout=timeout,
+                        proxy=proxy,
+                        **kwargs,
                     )
                 )
+                for url, path in zip(x, y)
+            )
             _x = await asyncio.gather(*tasks)
             result_ = result_ + list(_x)
             tasks.clear()
@@ -465,7 +471,7 @@ class AsyncPlaywright:
         wait_until: (
             Literal["domcontentloaded", "load", "networkidle"] | None
         ) = "networkidle",
-        timeout: float | None = None,
+        timeout: float | None = None,  # noqa: ASYNC109
         type_: Literal["jpeg", "png"] | None = None,
         user_agent: str | None = None,
         cookies: list[dict[str, Any]] | dict[str, Any] | None = None,
