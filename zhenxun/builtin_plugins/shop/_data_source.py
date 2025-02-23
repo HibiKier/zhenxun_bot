@@ -193,9 +193,7 @@ class ShopManage:
             "group_id": group_id,
             "num": num,
             "text": text,
-            "session": session,
             "goods_name": goods.name,
-            "message": message,
         }
 
     @classmethod
@@ -203,6 +201,8 @@ class ShopManage:
         cls,
         args: MappingProxyType,
         param: ShopParam,
+        session: Uninfo,
+        message: UniMsg,
         **kwargs,
     ) -> dict:
         """解析参数
@@ -221,6 +221,8 @@ class ShopManage:
             "kwargs": kwargs,
             **param.to_dict(),
             **param.extra_data,
+            "session": session,
+            "message": message,
         }
         for key in list(param_json.keys()):
             if key not in args:
@@ -232,6 +234,8 @@ class ShopManage:
         cls,
         goods: Goods,
         param: ShopParam,
+        session: Uninfo,
+        message: UniMsg,
         run_type: Literal["after", "before"],
         **kwargs,
     ):
@@ -247,9 +251,13 @@ class ShopManage:
             for func in fun_list:
                 if args := inspect.signature(func).parameters:
                     if asyncio.iscoroutinefunction(func):
-                        await func(**cls.__parse_args(args, param, **kwargs))
+                        await func(
+                            **cls.__parse_args(args, param, session, message, **kwargs)
+                        )
                     else:
-                        func(**cls.__parse_args(args, param, **kwargs))
+                        func(
+                            **cls.__parse_args(args, param, session, message, **kwargs)
+                        )
                 elif asyncio.iscoroutinefunction(func):
                     await func()
                 else:
@@ -260,6 +268,8 @@ class ShopManage:
         cls,
         goods: Goods,
         param: ShopParam,
+        session: Uninfo,
+        message: UniMsg,
         **kwargs,
     ) -> str | UniMessage | None:
         """运行道具函数
@@ -275,9 +285,13 @@ class ShopManage:
         if goods.func:
             if args:
                 return (
-                    await goods.func(**cls.__parse_args(args, param, **kwargs))
+                    await goods.func(
+                        **cls.__parse_args(args, param, session, message, **kwargs)
+                    )
                     if asyncio.iscoroutinefunction(goods.func)
-                    else goods.func(**cls.__parse_args(args, param, **kwargs))
+                    else goods.func(
+                        **cls.__parse_args(args, param, session, message, **kwargs)
+                    )
                 )
             if asyncio.iscoroutinefunction(goods.func):
                 return await goods.func()
@@ -330,12 +344,12 @@ class ShopManage:
         )
         if num > param.max_num_limit:
             return f"{goods_info.goods_name} 单次使用最大数量为{param.max_num_limit}..."
-        await cls.run_before_after(goods, param, "before", **kwargs)
-        result = await cls.__run(goods, param, **kwargs)
+        await cls.run_before_after(goods, param, session, message, "before", **kwargs)
+        result = await cls.__run(goods, param, session, message, **kwargs)
         await UserConsole.use_props(
             session.user.id, goods_info.uuid, num, PlatformUtils.get_platform(session)
         )
-        await cls.run_before_after(goods, param, "after", **kwargs)
+        await cls.run_before_after(goods, param, session, message, "after", **kwargs)
         if not result and param.send_success_msg:
             result = f"使用道具 {goods.name} {num} 次成功！"
         return result
