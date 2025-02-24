@@ -29,6 +29,7 @@ _flmt = FreqLimiter(300)
 async def _(
     matcher: Matcher, bot: Bot, event: Event, state: T_State, session: EventSession
 ):
+    extra = {}
     if plugin := matcher.plugin:
         if metadata := plugin.metadata:
             extra = metadata.extra
@@ -66,7 +67,12 @@ async def _(
                         time_str = f"{hours} 小时 {minute}分钟"
                     else:
                         time_str = f"{minute} 分钟"
-            if time != -1 and ban_result and _flmt.check(user_id):
+            if (
+                not extra.get("ignore_prompt")
+                and time != -1
+                and ban_result
+                and _flmt.check(user_id)
+            ):
                 _flmt.start_cd(user_id)
                 await MessageUtils.build_message(
                     [
