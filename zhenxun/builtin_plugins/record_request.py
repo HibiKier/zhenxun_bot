@@ -1,4 +1,6 @@
+import asyncio
 from datetime import datetime
+import random
 import time
 
 from nonebot import on_message, on_request
@@ -40,7 +42,15 @@ __plugin_meta__ = PluginMetadata(
                 help="是否自动同意好友添加",
                 type=bool,
                 default_value=False,
-            )
+            ),
+            RegisterConfig(
+                module="invite_manager",
+                key="AUTO_ADD_GROUP",
+                value=False,
+                help="是否自动同意邀请入群",
+                type=bool,
+                default_value=False,
+            ),
         ],
     ).to_dict(),
 )
@@ -81,6 +91,7 @@ async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSessi
                 "好友请求",
                 target=event.user_id,
             )
+            await asyncio.sleep(random.randint(1, 10))
             await bot.set_friend_add_request(flag=event.flag, approve=True)
             await FriendUser.create(
                 user_id=str(user["user_id"]), user_name=user["nickname"]
@@ -104,7 +115,7 @@ async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSessi
             await PlatformUtils.send_superuser(
                 bot,
                 f"*****一份好友申请*****\n"
-                f"ID: {f.id}"
+                f"ID: {f.id}\n"
                 f"昵称：{nickname}({event.user_id})\n"
                 f"自动同意：{'√' if base_config.get('AUTO_ADD_FRIEND') else '×'}\n"
                 f"日期：{str(datetime.now()).split('.')[0]}\n"
@@ -118,10 +129,10 @@ async def _(bot: v12Bot | v11Bot, event: FriendRequestEvent, session: EventSessi
 async def _(bot: v12Bot | v11Bot, event: GroupRequestEvent, session: EventSession):
     if event.sub_type != "invite":
         return
-    if str(event.user_id) in bot.config.superusers:
+    if str(event.user_id) in bot.config.superusers or base_config.get("AUTO_ADD_GROUP"):
         try:
             logger.debug(
-                "超级用户自动同意加入群聊",
+                "超级用户自动同意加入群聊或开启自动同意入群",
                 "群聊请求",
                 session=event.user_id,
                 target=event.group_id,
@@ -154,11 +165,41 @@ async def _(bot: v12Bot | v11Bot, event: GroupRequestEvent, session: EventSessio
             )
         except ActionFailed as e:
             logger.error(
-                "超级用户自动同意加入群聊发生错误",
+                "超超级用户自动同意加入群聊或开启自动同意入群，加入群组发生错误",
                 "群聊请求",
                 session=event.user_id,
                 target=event.group_id,
                 e=e,
+            )
+        if str(event.user_id) not in bot.config.superusers and base_config.get(
+            "AUTO_ADD_GROUP"
+        ):
+            # 非超级用户邀请自动加入群组
+            nickname = await FriendUser.get_user_name(str(event.user_id))
+            f = await FgRequest.create(
+                request_type=RequestType.GROUP,
+                platform=session.platform,
+                bot_id=bot.self_id,
+                flag=event.flag,
+                user_id=str(event.user_id),
+                nickname=nickname,
+                group_id=str(event.group_id),
+                handle_type=RequestHandleType.APPROVE,
+            )
+            await PlatformUtils.send_superuser(
+                bot,
+                f"*****一份入群申请*****\n"
+                f"ID：{f.id}\n"
+                f"申请人：{nickname}({event.user_id})\n群聊："
+                f"{event.group_id}\n邀请日期：{datetime.now().replace(microsecond=0)}\n"
+                "注: 该请求已自动同意",
+            )
+            await asyncio.sleep(random.randint(1, 5))
+            await bot.send_private_msg(
+                user_id=event.user_id,
+                message=f"管理员已开启自动同意群组邀请，请不要让{BotConfig.self_nickname}受委屈哦（狠狠监控）"
+                "\n在群组中 群组管理员与群主 允许使用管理员帮助"
+                "（包括ban与功能开关等）\n请在群组中发送 '管理员帮助'",
             )
     elif Timer.check(f"{event.user_id}:{event.group_id}"):
         logger.debug(

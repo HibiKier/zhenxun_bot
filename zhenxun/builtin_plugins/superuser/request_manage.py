@@ -16,6 +16,7 @@ from nonebot_plugin_alconna import (
 )
 from nonebot_plugin_session import EventSession
 
+from zhenxun.configs.config import BotConfig
 from zhenxun.configs.path_config import IMAGE_PATH
 from zhenxun.configs.utils import PluginExtraData
 from zhenxun.models.fg_request import FgRequest
@@ -134,14 +135,15 @@ async def _(
         "r": RequestHandleType.REFUSED,
         "i": RequestHandleType.IGNORE,
     }
+    req = None
     handle_type = type_dict[handle[-1]]
     try:
         if handle_type == RequestHandleType.APPROVE:
-            await FgRequest.approve(bot, id)
+            req = await FgRequest.approve(bot, id)
         if handle_type == RequestHandleType.REFUSED:
-            await FgRequest.refused(bot, id)
+            req = await FgRequest.refused(bot, id)
         if handle_type == RequestHandleType.IGNORE:
-            await FgRequest.ignore(id)
+            req = await FgRequest.ignore(id)
     except NotFoundError:
         await MessageUtils.build_message("未发现此id的请求...").finish(reply_to=True)
     except Exception:
@@ -149,7 +151,14 @@ async def _(
             reply_to=True
         )
     logger.info("处理请求", arparma.header_result, session=session)
-    await MessageUtils.build_message("成功处理请求!").finish(reply_to=True)
+    await MessageUtils.build_message("成功处理请求!").send(reply_to=True)
+    if req and handle_type == RequestHandleType.APPROVE:
+        await bot.send_private_msg(
+            user_id=req.user_id,
+            message=f"管理员已同意此次群组邀请，请不要让{BotConfig.self_nickname}受委屈哦（狠狠监控）"
+            "\n在群组中 群组管理员与群主 允许使用管理员帮助"
+            "（包括ban与功能开关等）\n请在群组中发送 '管理员帮助'",
+        )
 
 
 @_read_matcher.handle()

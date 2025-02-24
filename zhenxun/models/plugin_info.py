@@ -52,6 +52,8 @@ class PluginInfo(Model):
     """父插件"""
     is_show = fields.BooleanField(default=True, description="是否显示在帮助中")
     """是否显示在帮助中"""
+    impression = fields.FloatField(default=0, description="插件好感度限制")
+    """插件好感度限制"""
 
     class Meta:  # pyright: ignore [reportIncompatibleVariableOverride]
         table = "plugin_info"
@@ -87,4 +89,5 @@ class PluginInfo(Model):
             "ALTER TABLE plugin_info ADD COLUMN parent character varying(255);",
             "ALTER TABLE plugin_info ADD COLUMN is_show boolean DEFAULT true;",
             "ALTER TABLE plugin_info ADD COLUMN ignore_prompt boolean DEFAULT false;",
+            "ALTER TABLE plugin_info ADD COLUMN impression float DEFAULT 0;",
         ]

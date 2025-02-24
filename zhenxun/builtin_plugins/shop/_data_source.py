@@ -1,6 +1,5 @@
 import asyncio
 from collections.abc import Callable
-from dataclasses import field
 from datetime import datetime, timedelta
 import inspect
 import time
@@ -11,7 +10,7 @@ from nonebot.adapters import Bot, Event
 from nonebot.compat import model_dump
 from nonebot_plugin_alconna import UniMessage, UniMsg
 from nonebot_plugin_uninfo import Uninfo
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel, Field, create_model
 from tortoise.expressions import Q
 
 from zhenxun.models.friend_user import FriendUser
@@ -33,9 +32,9 @@ from .normal_image import normal_image
 class Goods(BaseModel):
     name: str
     """商品名称"""
-    before_handle: list[Callable] = field(default_factory=list)
+    before_handle: list[Callable] = Field(default_factory=list)
     """使用前函数"""
-    after_handle: list[Callable] = field(default_factory=list)
+    after_handle: list[Callable] = Field(default_factory=list)
     """使用后函数"""
     func: Callable | None = None
     """使用函数"""
@@ -195,7 +194,6 @@ class ShopManage:
             "num": num,
             "text": text,
             "goods_name": goods.name,
-            "message": message,
         }
 
     @classmethod
@@ -204,8 +202,9 @@ class ShopManage:
         args: MappingProxyType,
         param: ShopParam,
         session: Uninfo,
+        message: UniMsg,
         **kwargs,
-    ) -> list[Any]:
+    ) -> dict:
         """解析参数
 
         参数:
@@ -213,31 +212,30 @@ class ShopManage:
             param: ShopParam
 
         返回:
-            list[Any]: 参数
+            dict: 参数
         """
-        param_list = []
         _bot = param.bot
         param.bot = None
-        param_json = {**param.to_dict(), **param.extra_data}
-        param_json["bot"] = _bot
-        for par in args.keys():
-            if par in ["shop_param"]:
-                param_list.append(param)
-            elif par in ["session"]:
-                param_list.append(session)
-            elif par in ["message"]:
-                param_list.append(kwargs.get("message"))
-            elif par not in ["args", "kwargs"]:
-                param_list.append(param_json.get(par))
-                if kwargs.get(par) is not None:
-                    del kwargs[par]
-        return param_list
+        param_json = {
+            "bot": _bot,
+            "kwargs": kwargs,
+            **param.to_dict(),
+            **param.extra_data,
+            "session": session,
+            "message": message,
+        }
+        for key in list(param_json.keys()):
+            if key not in args:
+                del param_json[key]
+        return param_json
 
     @classmethod
     async def run_before_after(
         cls,
         goods: Goods,
         param: ShopParam,
+        session: Uninfo,
+        message: UniMsg,
         run_type: Literal["after", "before"],
         **kwargs,
     ):
@@ -251,16 +249,19 @@ class ShopManage:
         fun_list = goods.before_handle if run_type == "before" else goods.after_handle
         if fun_list:
             for func in fun_list:
-                args = inspect.signature(func).parameters
-                if args and next(iter(args.keys())) != "kwargs":
+                if args := inspect.signature(func).parameters:
                     if asyncio.iscoroutinefunction(func):
-                        await func(*cls.__parse_args(args, param, **kwargs))
+                        await func(
+                            **cls.__parse_args(args, param, session, message, **kwargs)
+                        )
                     else:
-                        func(*cls.__parse_args(args, param, **kwargs))
+                        func(
+                            **cls.__parse_args(args, param, session, message, **kwargs)
+                        )
                 elif asyncio.iscoroutinefunction(func):
-                    await func(**kwargs)
+                    await func()
                 else:
-                    func(**kwargs)
+                    func()
 
     @classmethod
     async def __run(
@@ -268,6 +269,7 @@ class ShopManage:
         goods: Goods,
         param: ShopParam,
         session: Uninfo,
+        message: UniMsg,
         **kwargs,
     ) -> str | UniMessage | None:
         """运行道具函数
@@ -281,18 +283,20 @@ class ShopManage:
         """
         args = inspect.signature(goods.func).parameters  # type: ignore
         if goods.func:
-            if args and next(iter(args.keys())) != "kwargs":
+            if args:
                 return (
-                    await goods.func(*cls.__parse_args(args, param, session, **kwargs))
+                    await goods.func(
+                        **cls.__parse_args(args, param, session, message, **kwargs)
+                    )
                     if asyncio.iscoroutinefunction(goods.func)
-                    else goods.func(*cls.__parse_args(args, param, session, **kwargs))
+                    else goods.func(
+                        **cls.__parse_args(args, param, session, message, **kwargs)
+                    )
                 )
             if asyncio.iscoroutinefunction(goods.func):
-                return await goods.func(
-                    **kwargs,
-                )
+                return await goods.func()
             else:
-                return goods.func(**kwargs)
+                return goods.func()
 
     @classmethod
     async def use(
@@ -340,12 +344,12 @@ class ShopManage:
         )
         if num > param.max_num_limit:
             return f"{goods_info.goods_name} 单次使用最大数量为{param.max_num_limit}..."
-        await cls.run_before_after(goods, param, "before", **kwargs)
-        result = await cls.__run(goods, param, session, **kwargs)
+        await cls.run_before_after(goods, param, session, message, "before", **kwargs)
+        result = await cls.__run(goods, param, session, message, **kwargs)
         await UserConsole.use_props(
             session.user.id, goods_info.uuid, num, PlatformUtils.get_platform(session)
         )
-        await cls.run_before_after(goods, param, "after", **kwargs)
+        await cls.run_before_after(goods, param, session, message, "after", **kwargs)
         if not result and param.send_success_msg:
             result = f"使用道具 {goods.name} {num} 次成功！"
         return result

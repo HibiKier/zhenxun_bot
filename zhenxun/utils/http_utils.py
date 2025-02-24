@@ -204,9 +204,9 @@ class AsyncHttpx:
             )
 
     @classmethod
-    async def get_content(cls, url: str, **kwargs) -> bytes | None:
+    async def get_content(cls, url: str, **kwargs) -> bytes:
         res = await cls.get(url, **kwargs)
-        return res.content if res and res.status_code == 200 else None
+        return res.content
 
     @classmethod
     async def download_file(
