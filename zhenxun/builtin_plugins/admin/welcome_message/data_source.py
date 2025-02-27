@@ -248,9 +248,11 @@ class Manager:
         返回:
             list: 消息内容
         """
+        path = cls.get_path(session)
         json_data = cls.__get_data(session)
-        if not json_data:
+        if not json_data or not path:
             return None
+        file = path / "text.json"
         key_list = list(json_data.keys())
         if idx < 0 or idx >= len(key_list):
             return None
