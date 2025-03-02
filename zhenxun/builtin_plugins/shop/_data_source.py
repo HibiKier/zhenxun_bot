@@ -492,9 +492,10 @@ class ShopManage:
         for i, p in enumerate(user.props):
             if prop := uuid2goods.get(p):
                 icon = ""
-                icon_path = ICON_PATH / prop.icon
-                if icon_path.exists():
-                    icon = (icon_path, 33, 33)
+                if prop.icon:
+                    icon_path = ICON_PATH / prop.icon
+                    if icon_path.exists():
+                        icon = (icon_path, 33, 33)
                 data_list.append(
                     [
                         icon,

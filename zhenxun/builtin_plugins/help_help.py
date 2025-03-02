@@ -2,9 +2,9 @@ import os
 import random
 
 from nonebot import on_message
+from nonebot.adapters import Event
 from nonebot.matcher import Matcher
 from nonebot.plugin import PluginMetadata
-from nonebot.rule import to_me
 from nonebot_plugin_alconna import UniMsg
 from nonebot_plugin_session import EventSession
 
@@ -29,7 +29,13 @@ __plugin_meta__ = PluginMetadata(
     ).to_dict(),
 )
 
-_matcher = on_message(rule=to_me(), priority=996, block=False)
+
+async def rule(event: Event, message: UniMsg) -> bool:
+    text = message.extract_plain_text().strip()
+    return event.is_tome() and bool(text and len(text) < 20)
+
+
+_matcher = on_message(rule=rule, priority=996, block=False)
 
 
 _path = IMAGE_PATH / "_base" / "laugh"
@@ -47,6 +53,8 @@ async def _(matcher: Matcher, message: UniMsg, session: EventSession):
             if g.level < 0:
                 return
     if text := message.extract_plain_text().strip():
+        if len(text) > 100:
+            return
         if plugin := await PluginInfo.get_or_none(
             name=text,
             load_status=True,
