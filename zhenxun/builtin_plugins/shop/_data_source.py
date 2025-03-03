@@ -478,35 +478,42 @@ class ShopManage:
         user = await UserConsole.get_user(user_id, platform)
         if not user.props:
             return None
-        is_change = False
-        for uuid in list(user.props.keys()):
-            if user.props[uuid] <= 0:
-                is_change = True
-                del user.props[uuid]
-        if is_change:
-            await user.save(update_fields=["props"])
-        result = await GoodsInfo.filter(uuid__in=user.props.keys()).all()
-        data_list = []
-        uuid2goods = {item.uuid: item for item in result}
-        column_name = ["-", "使用ID", "名称", "数量", "简介"]
-        for i, p in enumerate(user.props):
-            if prop := uuid2goods.get(p):
-                icon = ""
-                icon_path = ICON_PATH / prop.icon
-                if icon_path.exists():
-                    icon = (icon_path, 33, 33)
-                data_list.append(
-                    [
-                        icon,
-                        i,
-                        prop.goods_name,
-                        user.props[p],
-                        prop.goods_description,
-                    ]
-                )
 
+        user.props = {uuid: count for uuid, count in user.props.items() if count > 0}
+
+        goods_list = await GoodsInfo.filter(uuid__in=user.props.keys()).all()
+        goods_by_uuid = {item.uuid: item for item in goods_list}
+
+        table_rows = []
+        for i, prop_uuid in enumerate(user.props):
+            prop = goods_by_uuid.get(prop_uuid)
+            if not prop:
+                continue
+
+            icon = ""
+            if prop.icon:
+                icon_path = ICON_PATH / prop.icon
+                icon = (icon_path, 33, 33) if icon_path.exists() else ""
+
+            table_rows.append(
+                [
+                    icon,
+                    i,
+                    prop.goods_name,
+                    user.props[prop_uuid],
+                    prop.goods_description,
+                ]
+            )
+
+        if not table_rows:
+            return None
+
+        column_name = ["-", "使用ID", "名称", "数量", "简介"]
         return await ImageTemplate.table_page(
-            f"{name}的道具仓库", "", column_name, data_list
+            f"{name}的道具仓库",
+            "通过 使用道具[ID/名称] 令道具生效",
+            column_name,
+            table_rows,
         )
 
     @classmethod
