@@ -22,8 +22,11 @@ BASE_PATH.mkdir(parents=True, exist_ok=True)
 driver = nonebot.get_driver()
 
 
-old_file = DATA_PATH / "custom_welcome_msg" / "custom_welcome_msg.json"
-if old_file.exists():
+def __migrate():
+    """首次数据迁移"""
+    old_file = DATA_PATH / "custom_welcome_msg" / "custom_welcome_msg.json"
+    if not old_file.exists():
+        return
     try:
         old_data: dict[str, str] = json.load(old_file.open(encoding="utf8"))
         for group_id, message in old_data.items():
@@ -53,6 +56,7 @@ def migrate(path: Path):
     参数:
         path: 路径
     """
+    __migrate()
     text_file = path / "text.json"
     if not text_file.exists():
         return

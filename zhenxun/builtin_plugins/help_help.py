@@ -54,27 +54,29 @@ _path = IMAGE_PATH / "_base" / "laugh"
 @_matcher.handle()
 async def _(matcher: Matcher, message: UniMsg, session: EventSession):
     text = message.extract_plain_text().strip()
-    if plugin := await PluginInfo.get_or_none(
+    plugin = await PluginInfo.get_or_none(
         name=text,
         load_status=True,
         plugin_type=PluginType.NORMAL,
         block_type__isnull=True,
         status=True,
-    ):
-        image = None
-        if _path.exists():
-            if files := os.listdir(_path):
-                image = _path / random.choice(files)
-        message_list = []
-        if image:
-            message_list.append(image)
-        message_list.append(
-            "桀桀桀，预判到会有 '笨蛋' 把功能名称当命令用，特地前来嘲笑！"
-            f"但还是好心来帮帮你啦！\n请at我发送 '帮助{plugin.name}' 或者"
-            f" '帮助{plugin.id}' 来获取该功能帮助！"
-        )
-        logger.info(
-            "检测到功能名称当命令使用，已发送帮助信息", "功能帮助", session=session
-        )
-        await MessageUtils.build_message(message_list).send(reply_to=True)
-        matcher.stop_propagation()
+    )
+
+    if not plugin:
+        return
+
+    image = None
+    if _path.exists():
+        if files := os.listdir(_path):
+            image = _path / random.choice(files)
+    message_list = []
+    if image:
+        message_list.append(image)
+    message_list.append(
+        "桀桀桀，预判到会有 '笨蛋' 把功能名称当命令用，特地前来嘲笑！"
+        f"但还是好心来帮帮你啦！\n请at我发送 '帮助{plugin.name}' 或者"
+        f" '帮助{plugin.id}' 来获取该功能帮助！"
+    )
+    logger.info("检测到功能名称当命令使用，已发送帮助信息", "功能帮助", session=session)
+    await MessageUtils.build_message(message_list).send(reply_to=True)
+    matcher.stop_propagation()
