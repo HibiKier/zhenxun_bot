@@ -1,11 +1,16 @@
 from pathlib import Path
+from typing_extensions import Self
 
 import nonebot
 from pydantic import BaseModel, Field
+import pytz
+from pytz.tzinfo import BaseTzInfo
 
 from .utils import ConfigsManager
 
 __all__ = ["BotConfig", "Config"]
+
+from ..utils.compat import model_validator
 
 
 class BotSetting(BaseModel):
@@ -19,7 +24,19 @@ class BotSetting(BaseModel):
     """平台超级用户"""
     qbot_id_data: dict[str, str] = Field(default_factory=dict)
     """官bot id:账号id"""
-    time_zone: str = "Asia/Shanghai"
+    time_zone: str = Field(default="Asia/Shanghai", description="时区")
+
+    @model_validator(mode="after")
+    def check_timezone(self) -> Self:
+        try:
+            pytz.timezone(self.time_zone)
+        except pytz.UnknownTimeZoneError as e:
+            raise ValueError(f"时区 {self.time_zone} 不存在") from e
+        return self
+
+    @property
+    def timezone(self) -> BaseTzInfo:
+        return pytz.timezone(self.time_zone)
 
     def get_qbot_uid(self, qbot_id: str) -> str | None:
         """获取官bot账号id
