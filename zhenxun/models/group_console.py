@@ -107,7 +107,6 @@ class GroupConsole(Model):
         return group
 
     @classmethod
-    @CacheRoot.listener(CacheType.GROUPS)
     async def get_or_create(
         cls,
         defaults: dict | None = None,
@@ -132,6 +131,9 @@ class GroupConsole(Model):
         await group.save(
             using_db=using_db, update_fields=["block_plugin", "block_task"]
         )
+        if is_create:
+            if cache := await CacheRoot.get_cache(CacheType.GROUPS):
+                await cache.update(group.group_id, group)
         return group, is_create
 
     @classmethod

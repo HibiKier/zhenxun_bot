@@ -9,6 +9,7 @@ from tortoise.exceptions import MultipleObjectsReturned
 from zhenxun.configs.config import Config
 from zhenxun.models.ban_console import BanConsole
 from zhenxun.models.group_console import GroupConsole
+from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.services.cache import Cache
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import CacheType, PluginType
@@ -27,7 +28,8 @@ _flmt = FreqLimiter(300)
 
 async def is_ban(user_id: str | None, group_id: str | None):
     cache = Cache[list[BanConsole]](CacheType.BAN)
-    return await cache.get(user_id, group_id)
+    result = await cache.get(user_id, group_id) or await cache.get(user_id)
+    return result and result[0].ban_time > 0
 
 
 # 检查是否被ban
@@ -80,8 +82,18 @@ async def _(matcher: Matcher, bot: Bot, session: Uninfo):
                         time_str = f"{hours} 小时 {minute}分钟"
                     else:
                         time_str = f"{minute} 分钟"
-            if time != -1 and ban_result and _flmt.check(user_id):
+            db_plugin = await Cache[PluginInfo](CacheType.PLUGINS).get(
+                matcher.plugin_name
+            )
+            if (
+                db_plugin
+                # and not db_plugin.ignore_prompt
+                and time != -1
+                and ban_result
+                and _flmt.check(user_id)
+            ):
                 _flmt.start_cd(user_id)
+                logger.debug(f"ban检测发送插件: {matcher.plugin_name}")
                 await MessageUtils.build_message(
                     [
                         At(flag="user", target=user_id),
