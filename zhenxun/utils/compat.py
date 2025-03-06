@@ -4,6 +4,7 @@ from nonebot.compat import PYDANTIC_V2
 
 __all__ = ("model_validator",)
 
+# todo)) 等nb更新切换到nb提供的兼容层
 if PYDANTIC_V2:
     from pydantic import field_validator as field_validator
     from pydantic import model_validator as model_validator

@@ -6,11 +6,11 @@ from pydantic import BaseModel, Field
 import pytz
 from pytz.tzinfo import BaseTzInfo
 
+from zhenxun.utils.compat import model_validator
+
 from .utils import ConfigsManager
 
 __all__ = ["BotConfig", "Config"]
-
-from ..utils.compat import model_validator
 
 
 class BotSetting(BaseModel):
