@@ -194,7 +194,6 @@ class ShopManage:
             "num": num,
             "text": text,
             "goods_name": goods.name,
-            "message": message,
         }
 
     @classmethod
@@ -203,8 +202,9 @@ class ShopManage:
         args: MappingProxyType,
         param: ShopParam,
         session: Uninfo,
+        message: UniMsg,
         **kwargs,
-    ) -> list[Any]:
+    ) -> dict:
         """解析参数
 
         参数:
@@ -212,31 +212,30 @@ class ShopManage:
             param: ShopParam
 
         返回:
-            list[Any]: 参数
+            dict: 参数
         """
-        param_list = []
         _bot = param.bot
         param.bot = None
-        param_json = {**param.to_dict(), **param.extra_data}
-        param_json["bot"] = _bot
-        for par in args.keys():
-            if par in ["shop_param"]:
-                param_list.append(param)
-            elif par in ["session"]:
-                param_list.append(session)
-            elif par in ["message"]:
-                param_list.append(kwargs.get("message"))
-            elif par not in ["args", "kwargs"]:
-                param_list.append(param_json.get(par))
-                if kwargs.get(par) is not None:
-                    del kwargs[par]
-        return param_list
+        param_json = {
+            "bot": _bot,
+            "kwargs": kwargs,
+            **param.to_dict(),
+            **param.extra_data,
+            "session": session,
+            "message": message,
+        }
+        for key in list(param_json.keys()):
+            if key not in args:
+                del param_json[key]
+        return param_json
 
     @classmethod
     async def run_before_after(
         cls,
         goods: Goods,
         param: ShopParam,
+        session: Uninfo,
+        message: UniMsg,
         run_type: Literal["after", "before"],
         **kwargs,
     ):
@@ -250,16 +249,19 @@ class ShopManage:
         fun_list = goods.before_handle if run_type == "before" else goods.after_handle
         if fun_list:
             for func in fun_list:
-                args = inspect.signature(func).parameters
-                if args and next(iter(args.keys())) != "kwargs":
+                if args := inspect.signature(func).parameters:
                     if asyncio.iscoroutinefunction(func):
-                        await func(*cls.__parse_args(args, param, **kwargs))
+                        await func(
+                            **cls.__parse_args(args, param, session, message, **kwargs)
+                        )
                     else:
-                        func(*cls.__parse_args(args, param, **kwargs))
+                        func(
+                            **cls.__parse_args(args, param, session, message, **kwargs)
+                        )
                 elif asyncio.iscoroutinefunction(func):
-                    await func(**kwargs)
+                    await func()
                 else:
-                    func(**kwargs)
+                    func()
 
     @classmethod
     async def __run(
@@ -267,6 +269,7 @@ class ShopManage:
         goods: Goods,
         param: ShopParam,
         session: Uninfo,
+        message: UniMsg,
         **kwargs,
     ) -> str | UniMessage | None:
         """运行道具函数
@@ -280,18 +283,20 @@ class ShopManage:
         """
         args = inspect.signature(goods.func).parameters  # type: ignore
         if goods.func:
-            if args and next(iter(args.keys())) != "kwargs":
+            if args:
                 return (
-                    await goods.func(*cls.__parse_args(args, param, session, **kwargs))
+                    await goods.func(
+                        **cls.__parse_args(args, param, session, message, **kwargs)
+                    )
                     if asyncio.iscoroutinefunction(goods.func)
-                    else goods.func(*cls.__parse_args(args, param, session, **kwargs))
+                    else goods.func(
+                        **cls.__parse_args(args, param, session, message, **kwargs)
+                    )
                 )
             if asyncio.iscoroutinefunction(goods.func):
-                return await goods.func(
-                    **kwargs,
-                )
+                return await goods.func()
             else:
-                return goods.func(**kwargs)
+                return goods.func()
 
     @classmethod
     async def use(
@@ -339,12 +344,12 @@ class ShopManage:
         )
         if num > param.max_num_limit:
             return f"{goods_info.goods_name} 单次使用最大数量为{param.max_num_limit}..."
-        await cls.run_before_after(goods, param, "before", **kwargs)
-        result = await cls.__run(goods, param, session, **kwargs)
+        await cls.run_before_after(goods, param, session, message, "before", **kwargs)
+        result = await cls.__run(goods, param, session, message, **kwargs)
         await UserConsole.use_props(
             session.user.id, goods_info.uuid, num, PlatformUtils.get_platform(session)
         )
-        await cls.run_before_after(goods, param, "after", **kwargs)
+        await cls.run_before_after(goods, param, session, message, "after", **kwargs)
         if not result and param.send_success_msg:
             result = f"使用道具 {goods.name} {num} 次成功！"
         return result
@@ -473,35 +478,42 @@ class ShopManage:
         user = await UserConsole.get_user(user_id, platform)
         if not user.props:
             return None
-        is_change = False
-        for uuid in list(user.props.keys()):
-            if user.props[uuid] <= 0:
-                is_change = True
-                del user.props[uuid]
-        if is_change:
-            await user.save(update_fields=["props"])
-        result = await GoodsInfo.filter(uuid__in=user.props.keys()).all()
-        data_list = []
-        uuid2goods = {item.uuid: item for item in result}
-        column_name = ["-", "使用ID", "名称", "数量", "简介"]
-        for i, p in enumerate(user.props):
-            if prop := uuid2goods.get(p):
-                icon = ""
-                icon_path = ICON_PATH / prop.icon
-                if icon_path.exists():
-                    icon = (icon_path, 33, 33)
-                data_list.append(
-                    [
-                        icon,
-                        i,
-                        prop.goods_name,
-                        user.props[p],
-                        prop.goods_description,
-                    ]
-                )
 
+        user.props = {uuid: count for uuid, count in user.props.items() if count > 0}
+
+        goods_list = await GoodsInfo.filter(uuid__in=user.props.keys()).all()
+        goods_by_uuid = {item.uuid: item for item in goods_list}
+
+        table_rows = []
+        for i, prop_uuid in enumerate(user.props):
+            prop = goods_by_uuid.get(prop_uuid)
+            if not prop:
+                continue
+
+            icon = ""
+            if prop.icon:
+                icon_path = ICON_PATH / prop.icon
+                icon = (icon_path, 33, 33) if icon_path.exists() else ""
+
+            table_rows.append(
+                [
+                    icon,
+                    i,
+                    prop.goods_name,
+                    user.props[prop_uuid],
+                    prop.goods_description,
+                ]
+            )
+
+        if not table_rows:
+            return None
+
+        column_name = ["-", "使用ID", "名称", "数量", "简介"]
         return await ImageTemplate.table_page(
-            f"{name}的道具仓库", "", column_name, data_list
+            f"{name}的道具仓库",
+            "通过 使用道具[ID/名称] 令道具生效",
+            column_name,
+            table_rows,
         )
 
     @classmethod

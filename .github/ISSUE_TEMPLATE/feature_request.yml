@@ -1,7 +1,7 @@
 name: 功能建议
 title: "Feature: 功能描述"
 description: 提出关于项目新功能的想法
-labels: ["enhancement"]
+labels: [ "enhancement" ]
 body:
   - type: textarea
     id: problem
@@ -18,3 +18,10 @@ body:
       description: 请说明需要的功能或解决方法
     validations:
       required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 我有能力且愿意为这个功能贡献代码
+      options:
+        - label: 我有能力且愿意为这个功能贡献代码

@@ -125,7 +125,7 @@ async def _(session: Uninfo, arparma: Arparma, idx: Match[int]):
 
 @_del_matcher.handle()
 async def _(session: Uninfo, arparma: Arparma, idx: int):
-    result = await Manager.delete_group_message(session, int(idx))
+    result = await Manager.delete_group_message(session, idx)
     if not result:
         await MessageUtils.build_message("未查找到指定id的群组欢迎消息...").finish()
     await MessageUtils.build_message(result).send()
