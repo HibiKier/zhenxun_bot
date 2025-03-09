@@ -20,6 +20,7 @@ from zhenxun.utils.enum import (
     PluginLimitType,
     PluginType,
 )
+from zhenxun.utils.manager.priority_manager import HookPriorityManager
 
 from .manager import manager
 
@@ -95,7 +96,7 @@ async def _handle_setting(
         )
 
 
-@driver.on_startup
+@HookPriorityManager.on_startup()
 async def _():
     """
     初始化插件数据配置

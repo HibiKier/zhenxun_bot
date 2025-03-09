@@ -10,6 +10,7 @@ from zhenxun.configs.config import Config as gConfig
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger, logger_
 from zhenxun.utils.enum import PluginType
+from zhenxun.utils.manager.priority_manager import HookPriorityManager
 
 from .api.logs import router as ws_log_routes
 from .api.logs.log_manager import LOG_STORAGE
@@ -91,7 +92,7 @@ WsApiRouter.include_router(status_routes)
 WsApiRouter.include_router(chat_routes)
 
 
-@driver.on_startup
+@HookPriorityManager.on_startup()
 async def _():
     try:
 

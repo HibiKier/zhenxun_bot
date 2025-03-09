@@ -1,14 +1,20 @@
+import nonebot
 from nonebot.utils import is_coroutine_callable
 from tortoise import Tortoise
 from tortoise.connection import connections
 from tortoise.models import Model as Model_
 
 from zhenxun.configs.config import BotConfig
+from zhenxun.utils.exception import HookPriorityException
+from zhenxun.utils.manager.priority_manager import HookPriorityManager
 
 from .log import logger
 
 SCRIPT_METHOD = []
 MODELS: list[str] = []
+
+
+driver = nonebot.get_driver()
 
 
 class Model(Model_):
@@ -26,7 +32,7 @@ class Model(Model_):
             SCRIPT_METHOD.append((cls.__module__, func))
 
 
-class DbUrlIsNode(Exception):
+class DbUrlIsNode(HookPriorityException):
     """
     数据库链接地址为空
     """
@@ -42,9 +48,18 @@ class DbConnectError(Exception):
     pass
 
 
+@HookPriorityManager.on_startup(1)
 async def init():
     if not BotConfig.db_url:
-        raise DbUrlIsNode("数据库配置为空，请在.env.dev中配置DB_URL...")
+        # raise DbUrlIsNode("数据库配置为空，请在.env.dev中配置DB_URL...")
+        error = f"""
+***********************************************************************
+**********************************配置为空******************************
+请打开WebUi进行基础配置，配置地址：http://{driver.config.host}:{driver.config.port}
+***********************************************************************
+***********************************************************************
+        """
+        raise DbUrlIsNode("\n" + error.strip())
     try:
         await Tortoise.init(
             db_url=BotConfig.db_url,
