@@ -11,8 +11,6 @@ from zhenxun.models.chat_history import ChatHistory
 from zhenxun.services.log import logger
 from zhenxun.utils.enum import PluginType
 
-from .data_source import AdaptiveMessageQueue, HealthCheckConfig
-
 __plugin_meta__ = PluginMetadata(
     name="消息存储",
     description="消息存储，被动存储群消息",
@@ -34,48 +32,31 @@ __plugin_meta__ = PluginMetadata(
     ).to_dict(),
 )
 
+from .message_maneger import MessageProcessor
+
 driver: Driver = nonebot.get_driver()
+MeaasgeQueue: MessageProcessor | None = None
 
 
-class MessageQueueManager:
-    _instance: AdaptiveMessageQueue | None = None
-
-    @classmethod
-    def get_instance(cls) -> AdaptiveMessageQueue:
-        if cls._instance is None:
-            cls._instance = AdaptiveMessageQueue(
-                initial_batch_size=1000,
-                initial_flush_interval=60.0,
-                max_retry=3,
-                max_queue_size=50000,
-                health_check_config=HealthCheckConfig(
-                    max_delay_seconds=120.0,
-                    max_queue_size=40000,
-                    max_failure_rate=0.1,
-                    max_retry_count=100,
-                    max_load=0.9,
-                ),
-            )
-        return cls._instance
-
-
-@driver.on_startup
+@driver.on_bot_connect
 async def init_queue():
     """启动时初始化消息队列"""
     try:
-        queue = MessageQueueManager.get_instance()
-        await queue.start()
+        global MessageQueue
+        MessageQueue = MessageProcessor()
+        await MessageQueue.start()
         logger.info("消息队列初始化成功", "QueueInit", adapter="ChatHistory")
     except Exception as e:
         logger.error("消息队列初始化失败", "QueueInit", adapter="ChatHistory", e=e)
 
 
-@driver.on_shutdown
+@driver.on_bot_disconnect
 async def shutdown_queue():
     """关闭时停止消息队列"""
     try:
-        if queue := MessageQueueManager.get_instance():
-            await queue.stop()
+        global MessageQueue
+        if MessageQueue is not None:
+            await MessageQueue.stop()
             logger.info("消息队列已停止", "QueueShutdown", adapter="ChatHistory")
     except Exception as e:
         logger.error("消息队列停止失败", "QueueShutdown", adapter="ChatHistory", e=e)
@@ -93,7 +74,11 @@ chat_history = on_message(rule=rule, priority=1, block=False)
 async def _(message: UniMsg, session: Uninfo):
     """处理消息存储"""
     try:
-        queue = MessageQueueManager.get_instance()
+        global MessageQueue
+        if MessageQueue is None:
+            logger.warning("消息队列未初始化", "MessageQueue", session=session)
+            return
+
         history = ChatHistory(
             user_id=session.user.id,
             group_id=session.scene.id,
@@ -103,8 +88,10 @@ async def _(message: UniMsg, session: Uninfo):
             platform=session.scope,
         )
 
-        if not await queue.put(history):
+        if not await MessageQueue.add_message(history):
             logger.warning("消息入队失败", "MessageQueue", session=session)
+
+        logger.debug("消息入队成功", "MessageQueue", session=session)
 
     except Exception as e:
         logger.error("消息处理失败", "MessageQueue", session=session, e=e)
