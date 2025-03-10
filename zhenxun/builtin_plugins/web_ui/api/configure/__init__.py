@@ -43,12 +43,12 @@ async def _(setting: Setting) -> Result:
         if setting.db_url.startswith("sqlite"):
             db_path = Path(setting.db_url.split(":")[-1])
             db_path.parent.mkdir(parents=True, exist_ok=True)
-        env_text.replace('DB_URL = ""', f"DB_URL = {setting.db_url}")
+        env_text = env_text.replace('DB_URL = ""', f'DB_URL = "{setting.db_url}"')
     if setting.username:
         Config.set_config("web-ui", "username", setting.username)
-    Config.set_config("web-ui", "password", setting.password)
+    Config.set_config("web-ui", "password", setting.password, True)
     env_file.write_text(env_text, encoding="utf-8")
-    return Result.ok(info="基础配置设置完成!")
+    return Result.ok(info="设置成功，请重启真寻以完成配置！")
 
 
 @router.get(

@@ -103,7 +103,7 @@ def _generate_simple_config(exists_module: list[str]):
         temp_file.unlink()
 
 
-@HookPriorityManager.on_startup()
+@HookPriorityManager.on_startup(0)
 def _():
     """
     初始化插件数据配置
