@@ -126,3 +126,4 @@ def _():
         with plugins2config_file.open("w", encoding="utf8") as wf:
             _yaml.dump(_data, wf)
     _generate_simple_config(exists_module)
+    Config.reload()
