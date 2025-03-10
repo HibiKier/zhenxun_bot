@@ -8,6 +8,7 @@ import nonebot
 from zhenxun.configs.config import BotConfig, Config
 
 from ...base_model import Result
+from .data_source import test_db_connection
 from .model import Setting
 
 router = APIRouter(prefix="/configure")
@@ -48,3 +49,16 @@ async def _(setting: Setting) -> Result:
     Config.set_config("web-ui", "password", setting.password)
     env_file.write_text(env_text, encoding="utf-8")
     return Result.ok(info="基础配置设置完成!")
+
+
+@router.get(
+    "/test_db",
+    response_model=Result,
+    response_class=JSONResponse,
+    description="设置基础配置",
+)
+async def _(db_url: str) -> Result:
+    result = await test_db_connection(db_url)
+    if isinstance(result, str):
+        return Result.fail(result)
+    return Result.ok(info="数据库连接成功!")
