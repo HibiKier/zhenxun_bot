@@ -25,12 +25,10 @@ driver = nonebot.get_driver()
 async def _(setting: Setting) -> Result:
     password = Config.get_config("web-ui", "password")
     if password or BotConfig.db_url:
-        raise HTTPException(
-            status_code=400, detail="Configuration can only be set once"
-        )
+        return Result.fail("配置已存在，请先删除DB_URL内容和前端密码再进行设置。")
     env_file = Path() / ".env.dev"
     if not env_file.exists():
-        raise HTTPException(status_code=400, detail="Configuration file not found")
+        return Result.fail("配置文件.env.dev不存在。")
     env_text = env_file.read_text(encoding="utf-8")
     if setting.superusers:
         superusers = ", ".join([f'"{s}"' for s in setting.superusers])
