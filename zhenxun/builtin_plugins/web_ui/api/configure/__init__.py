@@ -1,7 +1,9 @@
 from pathlib import Path
 import re
+import subprocess
+import sys
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 import nonebot
 
@@ -15,6 +17,11 @@ router = APIRouter(prefix="/configure")
 
 driver = nonebot.get_driver()
 
+port = driver.config.port
+
+
+flag_file = Path() / ".configure_restart"
+
 
 @router.post(
     "/set_configure",
@@ -23,6 +30,7 @@ driver = nonebot.get_driver()
     description="设置基础配置",
 )
 async def _(setting: Setting) -> Result:
+    global port
     password = Config.get_config("web-ui", "password")
     if password or BotConfig.db_url:
         return Result.fail("配置已存在，请先删除DB_URL内容和前端密码再进行设置。")
@@ -37,6 +45,7 @@ async def _(setting: Setting) -> Result:
         env_text = env_text.replace("HOST = 127.0.0.1", f"HOST = {setting.host}")
     if setting.port:
         env_text = env_text.replace("PORT = 8080", f"PORT = {setting.port}")
+        port = setting.port
     if setting.db_url:
         if setting.db_url.startswith("sqlite"):
             db_path = Path(setting.db_url.split(":")[-1])
@@ -46,6 +55,7 @@ async def _(setting: Setting) -> Result:
         Config.set_config("web-ui", "username", setting.username)
     Config.set_config("web-ui", "password", setting.password, True)
     env_file.write_text(env_text, encoding="utf-8")
+    flag_file.touch()
     return Result.ok(info="设置成功，请重启真寻以完成配置！")
 
 
@@ -60,3 +70,20 @@ async def _(db_url: str) -> Result:
     if isinstance(result, str):
         return Result.fail(result)
     return Result.ok(info="数据库连接成功!")
+
+
+@router.post(
+    "/restart",
+    response_model=Result,
+    response_class=JSONResponse,
+    description="重启",
+)
+async def _() -> Result:
+    if not flag_file.exists():
+        return Result.fail("重启标志文件不存在...")
+    flag_file.unlink()
+    bat_path = Path() / "win启动.bat"
+    subprocess.Popen([bat_path, str(port)], shell=True)  # noqa: ASYNC220
+
+    # 退出当前进程
+    sys.exit(0)
