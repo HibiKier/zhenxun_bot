@@ -1,3 +1,5 @@
+import asyncio
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -21,8 +23,6 @@ driver = nonebot.get_driver()
 port = driver.config.port
 
 FILE_NAME = ".configure_restart"
-
-flag_file: Path | None = None
 
 
 @router.post(
@@ -57,7 +57,7 @@ async def _(setting: Setting) -> Result:
         Config.set_config("web-ui", "username", setting.username)
     Config.set_config("web-ui", "password", setting.password, True)
     env_file.write_text(env_text, encoding="utf-8")
-    flag_file = Path() / f"{FILE_NAME}_{time.time()}"
+    flag_file = Path() / f"{FILE_NAME}_{int(time.time())}"
     flag_file.touch()
     return Result.ok(info="设置成功，请重启真寻以完成配置！")
 
@@ -75,6 +75,13 @@ async def _(db_url: str) -> Result:
     return Result.ok(info="数据库连接成功!")
 
 
+async def run_restart_command(bat_path: Path, port: int):
+    """在后台执行重启命令"""
+    await asyncio.sleep(1)  # 确保 FastAPI 已返回响应
+    subprocess.Popen([bat_path, str(port)], shell=True)  # noqa: ASYNC220
+    sys.exit(0)  # 退出当前进程
+
+
 @router.post(
     "/restart",
     response_model=Result,
@@ -82,7 +89,10 @@ async def _(db_url: str) -> Result:
     description="重启",
 )
 async def _() -> Result:
-    global flag_file
+    flag_file = None
+    for file in os.listdir(Path()):
+        if file.startswith(FILE_NAME):
+            flag_file = Path() / file
     if not flag_file or not flag_file.exists():
         return Result.fail("重启标志文件不存在...")
     set_time = flag_file.name.split("_")[-1]
@@ -90,7 +100,7 @@ async def _() -> Result:
         return Result.fail("重启标志文件已过期，请重新设置配置。")
     flag_file.unlink()
     bat_path = Path() / "win启动.bat"
-    subprocess.Popen([bat_path, str(port)], shell=True)  # noqa: ASYNC220
-
-    # 退出当前进程
-    sys.exit(0)
+    try:
+        return Result.ok(info="执行重启命令成功")
+    finally:
+        asyncio.create_task(run_restart_command(bat_path, port))  # noqa: RUF006
