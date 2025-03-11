@@ -2,6 +2,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import time
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
@@ -19,8 +20,9 @@ driver = nonebot.get_driver()
 
 port = driver.config.port
 
+FILE_NAME = ".configure_restart"
 
-flag_file = Path() / ".configure_restart"
+flag_file: Path | None = None
 
 
 @router.post(
@@ -55,6 +57,7 @@ async def _(setting: Setting) -> Result:
         Config.set_config("web-ui", "username", setting.username)
     Config.set_config("web-ui", "password", setting.password, True)
     env_file.write_text(env_text, encoding="utf-8")
+    flag_file = Path() / f"{FILE_NAME}_{time.time()}"
     flag_file.touch()
     return Result.ok(info="设置成功，请重启真寻以完成配置！")
 
@@ -79,8 +82,12 @@ async def _(db_url: str) -> Result:
     description="重启",
 )
 async def _() -> Result:
-    if not flag_file.exists():
+    global flag_file
+    if not flag_file or not flag_file.exists():
         return Result.fail("重启标志文件不存在...")
+    set_time = flag_file.name.split("_")[-1]
+    if time.time() - float(set_time) > 10 * 60:
+        return Result.fail("重启标志文件已过期，请重新设置配置。")
     flag_file.unlink()
     bat_path = Path() / "win启动.bat"
     subprocess.Popen([bat_path, str(port)], shell=True)  # noqa: ASYNC220
