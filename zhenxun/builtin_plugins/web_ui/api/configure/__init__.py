@@ -1,6 +1,7 @@
 import asyncio
 import os
 from pathlib import Path
+import platform
 import re
 import subprocess
 import sys
@@ -89,6 +90,8 @@ async def run_restart_command(bat_path: Path, port: int):
     description="重启",
 )
 async def _() -> Result:
+    if platform.system() != "Windows":
+        return Result.fail("自动重启仅支持Windows系统，请尝试手动重启")
     flag_file = None
     for file in os.listdir(Path()):
         if file.startswith(FILE_NAME):
