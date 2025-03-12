@@ -60,7 +60,9 @@ async def _(setting: Setting) -> Result:
     env_file.write_text(env_text, encoding="utf-8")
     flag_file = Path() / f"{FILE_NAME}_{int(time.time())}"
     flag_file.touch()
-    return Result.ok(info="设置成功，请重启真寻以完成配置！")
+    return Result.ok(
+        platform.system() == "Windows", info="设置成功，请重启真寻以完成配置！"
+    )
 
 
 @router.get(
