@@ -8,9 +8,9 @@ on:
     paths:
       - "zhenxun/**"
       - "tests/**"
-      - ".github/workflows/pyright.yml"
       - "pyproject.toml"
       - "poetry.lock"
+      - ".github/workflows/pyright.yml"
 
 jobs:
   pyright:
