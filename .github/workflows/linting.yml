@@ -11,6 +11,7 @@ on:
       - "poetry.lock"
       - ".github/workflows/pyright.yml"
       - ".github/workflows/ruff.yml"
+      - ".github/workflows/linting.yml"
 
   pull_request:
     branches:
@@ -22,6 +23,7 @@ on:
       - "poetry.lock"
       - ".github/workflows/pyright.yml"
       - ".github/workflows/ruff.yml"
+      - ".github/workflows/linting.yml"
 
 jobs:
   ruff-call:

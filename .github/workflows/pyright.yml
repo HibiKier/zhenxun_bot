@@ -31,7 +31,7 @@ jobs:
           fi
         shell: bash
 
-      - name: Run Pyright
+      - name: Run Pyright Check
         uses: jakebailey/pyright-action@v2
         with:
           pylance-version: latest-release
