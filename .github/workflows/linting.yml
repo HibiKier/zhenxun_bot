@@ -1,31 +1,6 @@
 name: Sequential Lint and Type Check
 
-on:
-  push:
-    branches:
-      - "*"
-    paths:
-      - "zhenxun/**"
-      - "tests/**"
-      - "pyproject.toml"
-      - "poetry.lock"
-      - ".github/workflows/pyright.yml"
-      - ".github/workflows/ruff.yml"
-      - ".github/workflows/linting.yml"
-
-  pull_request:
-    branches:
-      - "*"
-    paths:
-      - "zhenxun/**"
-      - "tests/**"
-      - "pyproject.toml"
-      - "poetry.lock"
-      - ".github/workflows/pyright.yml"
-      - ".github/workflows/ruff.yml"
-      - ".github/workflows/linting.yml"
-
-  workflow_dispatch:
+on: [push, pull_request]
 
 jobs:
   ruff-call:

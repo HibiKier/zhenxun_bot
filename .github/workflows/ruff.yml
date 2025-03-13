@@ -2,6 +2,16 @@ name: Ruff Lint
 
 on:
   workflow_call:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    paths:
+      - "zhenxun/**"
+      - "tests/**"
+      - ".github/workflows/ruff.yml"
+      - "pyproject.toml"
+      - "poetry.lock"
 
 jobs:
   ruff:

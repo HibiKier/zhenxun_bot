@@ -2,6 +2,33 @@ name: Pyright Lint
 
 on:
   workflow_call:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    paths:
+      - "zhenxun/**"
+      - "tests/**"
+      - ".github/workflows/pyright.yml"
+      - "pyproject.toml"
+      - "poetry.lock"
+  workflow_dispatch:
+    inputs:
+      python-version:
+        description: "Python version"
+        required: false
+        type: choice
+        options:
+          - "all"
+          - "3.10"
+          - "3.11"
+          - "3.12"
+        default: "all"
+      debug-mode:
+        description: "enable debug mode"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   pyright:
