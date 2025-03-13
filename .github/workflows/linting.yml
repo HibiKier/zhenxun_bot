@@ -4,14 +4,24 @@ on:
   push:
     branches:
       - "*"
-  pull_request:
     paths:
       - "zhenxun/**"
       - "tests/**"
-      - ".github/workflows/ruff.yml"
-      - ".github/workflows/pyright.yml"
       - "pyproject.toml"
       - "poetry.lock"
+      - ".github/workflows/pyright.yml"
+      - ".github/workflows/ruff.yml"
+
+  pull_request:
+    branches:
+      - "*"
+    paths:
+      - "zhenxun/**"
+      - "tests/**"
+      - "pyproject.toml"
+      - "poetry.lock"
+      - ".github/workflows/pyright.yml"
+      - ".github/workflows/ruff.yml"
 
 jobs:
   ruff-call:
