@@ -25,6 +25,8 @@ on:
       - ".github/workflows/ruff.yml"
       - ".github/workflows/linting.yml"
 
+  workflow_dispatch:
+
 jobs:
   ruff-call:
     uses: ./.github/workflows/ruff.yml
