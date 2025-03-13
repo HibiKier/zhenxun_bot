@@ -1,6 +1,17 @@
 name: Sequential Lint and Type Check
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    paths:
+      - "zhenxun/**"
+      - "tests/**"
+      - ".github/workflows/ruff.yml"
+      - ".github/workflows/pyright.yml"
+      - "pyproject.toml"
+      - "poetry.lock"
 
 jobs:
   ruff-call:

@@ -1,17 +1,7 @@
 name: Ruff Lint
 
 on:
-  workflow_call: # 允许此工作流作为可重用工作流被调用
-  push:
-    branches:
-      - "*"
-  pull_request:
-    paths:
-      - "zhenxun/**"
-      - "tests/**"
-      - ".github/workflows/ruff.yml"
-      - "pyproject.toml"
-      - "poetry.lock"
+  workflow_call:
 
 jobs:
   ruff:
