@@ -1,7 +1,6 @@
 import asyncio
 import os
 from pathlib import Path
-import platform
 import re
 import subprocess
 import sys
@@ -22,6 +21,8 @@ router = APIRouter(prefix="/configure")
 driver = nonebot.get_driver()
 
 port = driver.config.port
+
+BAT_FILE = Path() / "win启动.bat"
 
 FILE_NAME = ".configure_restart"
 
@@ -58,11 +59,12 @@ async def _(setting: Setting) -> Result:
         Config.set_config("web-ui", "username", setting.username)
     Config.set_config("web-ui", "password", setting.password, True)
     env_file.write_text(env_text, encoding="utf-8")
+    for file in os.listdir(Path()):
+        if file.startswith(FILE_NAME):
+            Path(file).unlink()
     flag_file = Path() / f"{FILE_NAME}_{int(time.time())}"
     flag_file.touch()
-    return Result.ok(
-        platform.system() == "Windows", info="设置成功，请重启真寻以完成配置！"
-    )
+    return Result.ok(BAT_FILE.exists(), info="设置成功，请重启真寻以完成配置！")
 
 
 @router.get(
@@ -92,20 +94,19 @@ async def run_restart_command(bat_path: Path, port: int):
     description="重启",
 )
 async def _() -> Result:
-    if platform.system() != "Windows":
-        return Result.fail("自动重启仅支持Windows系统，请尝试手动重启")
-    flag_file = None
-    for file in os.listdir(Path()):
-        if file.startswith(FILE_NAME):
-            flag_file = Path() / file
+    if not BAT_FILE.exists():
+        return Result.fail("自动重启仅支持意见整合包，请尝试手动重启")
+    flag_file = next(
+        (Path() / file for file in os.listdir(Path()) if file.startswith(FILE_NAME)),
+        None,
+    )
     if not flag_file or not flag_file.exists():
         return Result.fail("重启标志文件不存在...")
     set_time = flag_file.name.split("_")[-1]
     if time.time() - float(set_time) > 10 * 60:
         return Result.fail("重启标志文件已过期，请重新设置配置。")
     flag_file.unlink()
-    bat_path = Path() / "win启动.bat"
     try:
         return Result.ok(info="执行重启命令成功")
     finally:
-        asyncio.create_task(run_restart_command(bat_path, port))  # noqa: RUF006
+        asyncio.create_task(run_restart_command(BAT_FILE, port))  # noqa: RUF006
