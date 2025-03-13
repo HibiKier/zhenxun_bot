@@ -1,7 +1,6 @@
 name: Pyright Lint
 
 on:
-  workflow_call: # 允许此工作流作为可重用工作流被调用
   push:
     branches:
       - "*"
@@ -12,59 +11,34 @@ on:
       - ".github/workflows/pyright.yml"
       - "pyproject.toml"
       - "poetry.lock"
-  workflow_dispatch:
-    inputs:
-      python-version:
-        description: "Python version"
-        required: false
-        type: choice
-        options:
-          - "all"
-          - "3.10"
-          - "3.11"
-          - "3.12"
-        default: "all"
-      debug-mode:
-        description: "enable debug mode"
-        required: false
-        type: boolean
-        default: false
 
 jobs:
   pyright:
     name: Pyright Lint
     runs-on: ubuntu-latest
+    concurrency:
+      group: pyright-${{ github.ref }}-${{ matrix.env }}
+      cancel-in-progress: true
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        env: [pydantic-v1, pydantic-v2]
       fail-fast: false
-    concurrency:
-      group: pyright-${{ github.ref }}-${{ matrix.python-version }}
-      cancel-in-progress: true
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+
+      - name: Setup Python environment
+        uses: ./.github/actions/setup-python
         with:
-          python-version: ${{ matrix.python-version }}
+          env-dir: ./envs/${{ matrix.env }}
+          no-root: true
 
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python -
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Cache Poetry packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-
-
-      - name: Install dependencies
-        run: poetry install
+      - run: |
+          (cd ./envs/${{ matrix.env }} && echo "$(poetry env info --path)/bin" >> $GITHUB_PATH)
+          if [ "${{ matrix.env }}" = "pydantic-v1" ]; then
+            sed -i 's/PYDANTIC_V2 = true/PYDANTIC_V2 = false/g' ./pyproject.toml
+          fi
+        shell: bash
 
       - name: Run Pyright
         uses: jakebailey/pyright-action@v2
