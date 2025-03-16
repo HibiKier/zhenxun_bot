@@ -54,9 +54,10 @@ async def _(setting: Setting) -> Result:
         if setting.db_url.startswith("sqlite"):
             base_dir = Path().resolve()
             db_path = Path(setting.db_url.split(":")[-1])
-            if db_path.is_absolute() and not db_path.is_relative_to(base_dir):
+            parent_path = db_path.parent
+            if parent_path.is_absolute() and not parent_path.is_relative_to(base_dir):
                 return Result.fail("数据库路径不在项目根目录内。")
-            db_path.parent.mkdir(parents=True, exist_ok=True)
+            parent_path.mkdir(parents=True, exist_ok=True)
         env_text = env_text.replace('DB_URL = ""', f'DB_URL = "{setting.db_url}"')
     if setting.username:
         Config.set_config("web-ui", "username", setting.username)
