@@ -1,3 +1,4 @@
+import contextlib
 from typing import Protocol
 
 from aiocache import cached
@@ -7,7 +8,13 @@ from strenum import StrEnum
 
 from zhenxun.utils.http_utils import AsyncHttpx
 
-from .const import CACHED_API_TTL, GIT_API_TREES_FORMAT, JSD_PACKAGE_API_FORMAT
+from .const import (
+    CACHED_API_TTL,
+    GIT_API_COMMIT_FORMAT,
+    GIT_API_PROXY_COMMIT_FORMAT,
+    GIT_API_TREES_FORMAT,
+    JSD_PACKAGE_API_FORMAT,
+)
 from .func import (
     get_fastest_archive_formats,
     get_fastest_raw_formats,
@@ -58,8 +65,28 @@ class RepoInfo(BaseModel):
             for url_format in url_formats
         ]
 
+    async def update_repo_commit(self):
+        with contextlib.suppress(Exception):
+            newest_commit = await self.get_newest_commit(
+                self.owner, self.repo, self.branch
+            )
+            if newest_commit:
+                self.branch = newest_commit
+                return True
+        return False
+
     def to_dict(self, **kwargs):
         return model_dump(self, **kwargs)
+
+    @classmethod
+    @cached(ttl=CACHED_API_TTL)
+    async def get_newest_commit(cls, owner: str, repo: str, branch: str) -> str:
+        commit_url = GIT_API_COMMIT_FORMAT.format(owner=owner, repo=repo, branch=branch)
+        commit_url_proxy = GIT_API_PROXY_COMMIT_FORMAT.format(
+            owner=owner, repo=repo, branch=branch
+        )
+        resp = await AsyncHttpx().get([commit_url, commit_url_proxy])
+        return "" if resp.status_code != 200 else resp.json()["sha"]
 
 
 class APIStrategy(Protocol):
