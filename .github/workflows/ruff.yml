@@ -2,16 +2,6 @@ name: Ruff Lint
 
 on:
   workflow_call:
-  push:
-    branches:
-      - "*"
-  pull_request:
-    paths:
-      - "zhenxun/**"
-      - "tests/**"
-      - ".github/workflows/ruff.yml"
-      - "pyproject.toml"
-      - "poetry.lock"
 
 jobs:
   ruff:
@@ -28,5 +18,3 @@ jobs:
         uses: astral-sh/ruff-action@v3
       - name: Run Ruff Check
         run: ruff check
-      - name: Run Ruff Format
-        run: ruff format

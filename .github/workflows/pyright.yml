@@ -2,16 +2,7 @@ name: Pyright Lint
 
 on:
   workflow_call:
-  push:
-    branches:
-      - "*"
-  pull_request:
-    paths:
-      - "zhenxun/**"
-      - "tests/**"
-      - ".github/workflows/pyright.yml"
-      - "pyproject.toml"
-      - "poetry.lock"
+
   workflow_dispatch:
     inputs:
       python-version:
