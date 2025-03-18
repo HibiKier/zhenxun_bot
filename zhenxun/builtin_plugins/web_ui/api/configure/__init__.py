@@ -53,7 +53,7 @@ async def _(setting: Setting) -> Result:
     if setting.db_url:
         if setting.db_url.startswith("sqlite"):
             base_dir = Path().resolve()
-            db_path = Path(setting.db_url.split(":")[-1])
+            db_path = Path(setting.db_url.split(":")[-1]).resolve()
             parent_path = db_path.parent
             if not parent_path.absolute().is_relative_to(base_dir):
                 return Result.fail("数据库路径不在项目根目录内。")
@@ -63,11 +63,12 @@ async def _(setting: Setting) -> Result:
         Config.set_config("web-ui", "username", setting.username)
     Config.set_config("web-ui", "password", setting.password, True)
     env_file.write_text(env_text, encoding="utf-8")
-    for file in os.listdir(Path()):
-        if file.startswith(FILE_NAME):
-            Path(file).unlink()
-    flag_file = Path() / f"{FILE_NAME}_{int(time.time())}"
-    flag_file.touch()
+    if BAT_FILE.exists():
+        for file in os.listdir(Path()):
+            if file.startswith(FILE_NAME):
+                Path(file).unlink()
+        flag_file = Path() / f"{FILE_NAME}_{int(time.time())}"
+        flag_file.touch()
     return Result.ok(BAT_FILE.exists(), info="设置成功，请重启真寻以完成配置！")
 
 
