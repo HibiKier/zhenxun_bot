@@ -75,11 +75,7 @@ _matcher = on_alconna(
         Subcommand("my-cost", help_text="我的金币"),
         Subcommand("my-props", help_text="我的道具"),
         Subcommand("buy", Args["name?", str]["num?", int], help_text="购买道具"),
-        Subcommand(
-            "use",
-            Args["name?", str]["num?", int]["at_users?", list[At]],
-            help_text="使用道具",
-        ),
+        Subcommand("use", Args["name?", str]["num?", int], help_text="使用道具"),
         Subcommand("gold-list", Args["num?", int], help_text="金币排行"),
     ),
     priority=5,
@@ -110,7 +106,7 @@ _matcher.shortcut(
 _matcher.shortcut(
     "使用道具(?P<name>.*?)",
     command="商店",
-    arguments=["use", "{%0}"],
+    arguments=["use", "{name}"],
     prefix=True,
 )
 
