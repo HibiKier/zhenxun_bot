@@ -5,7 +5,6 @@ from nonebot_plugin_alconna import (
     AlconnaQuery,
     Args,
     Arparma,
-    At,
     Match,
     Option,
     Query,
@@ -182,7 +181,6 @@ async def _(
     arparma: Arparma,
     name: Match[str],
     num: Query[int] = AlconnaQuery("num", 1),
-    at_users: Query[list[At]] = Query("at_users", []),
 ):
     if not name.available:
         await MessageUtils.build_message(
