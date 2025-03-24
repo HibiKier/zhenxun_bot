@@ -33,10 +33,10 @@
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
   "[python]": {
-    "editor.defaultFormatter": "charliermarsh.ruff", // 默认使用 Ruff 格式化
+    "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.wordBasedSuggestions": "allDocuments",
     "editor.formatOnType": true,
-    "editor.formatOnSave": true, // 保存时自动格式化
+    "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
       "source.fixAll.ruff": "explicit",
       "source.organizeImports": "explicit"

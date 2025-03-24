@@ -1,0 +1,20 @@
+name: Ruff Lint
+
+on:
+  workflow_call:
+
+jobs:
+  ruff:
+    name: Ruff Lint
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ruff-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Ruff
+        uses: astral-sh/ruff-action@v3
+      - name: Run Ruff Check
+        run: ruff check
