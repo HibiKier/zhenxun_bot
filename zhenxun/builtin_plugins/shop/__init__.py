@@ -5,6 +5,7 @@ from nonebot_plugin_alconna import (
     AlconnaQuery,
     Args,
     Arparma,
+    At,
     Match,
     Option,
     Query,
@@ -74,7 +75,11 @@ _matcher = on_alconna(
         Subcommand("my-cost", help_text="我的金币"),
         Subcommand("my-props", help_text="我的道具"),
         Subcommand("buy", Args["name?", str]["num?", int], help_text="购买道具"),
-        Subcommand("use", Args["name?", str]["num?", int], help_text="使用道具"),
+        Subcommand(
+            "use",
+            Args["name?", str]["num?", int]["at_users?", list[At]],
+            help_text="使用道具",
+        ),
         Subcommand("gold-list", Args["num?", int], help_text="金币排行"),
     ),
     priority=5,
@@ -105,7 +110,7 @@ _matcher.shortcut(
 _matcher.shortcut(
     "使用道具(?P<name>.*?)",
     command="商店",
-    arguments=["use", "{name}"],
+    arguments=["use", "{%0}"],
     prefix=True,
 )
 
@@ -181,6 +186,7 @@ async def _(
     arparma: Arparma,
     name: Match[str],
     num: Query[int] = AlconnaQuery("num", 1),
+    at_users: Query[list[At]] = Query("at_users", []),
 ):
     if not name.available:
         await MessageUtils.build_message(
