@@ -143,4 +143,4 @@ async def _(query: QueryModel) -> Result[BaseResultModel]:
 async def _(plugin_name: str | None = None) -> Result[dict]:
     if plugin_name:
         return Result.ok(ApiDataSource.SQL_DICT.get(plugin_name))
-    return Result.ok(str(ApiDataSource.SQL_DICT))
+    return Result.ok(ApiDataSource.SQL_DICT)
