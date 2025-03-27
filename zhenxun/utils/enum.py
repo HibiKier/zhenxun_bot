@@ -1,6 +1,13 @@
 from strenum import StrEnum
 
 
+class HookPriorityType(StrEnum):
+    STARTUP = "STARTUP"
+    """启动"""
+    SHUTDOWN = "SHUTDOWN"
+    """关闭"""
+
+
 class GoldHandle(StrEnum):
     """
     金币处理

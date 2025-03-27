@@ -16,6 +16,7 @@ from zhenxun.models.sign_log import SignLog
 from zhenxun.models.sign_user import SignUser
 from zhenxun.utils.http_utils import AsyncHttpx
 from zhenxun.utils.image_utils import BuildImage
+from zhenxun.utils.manager.priority_manager import HookPriorityManager
 from zhenxun.utils.platform import PlatformUtils
 
 from .config import (
@@ -54,7 +55,7 @@ LG_MESSAGE = [
 ]
 
 
-@driver.on_startup
+@HookPriorityManager.on_startup()
 async def init_image():
     SIGN_RESOURCE_PATH.mkdir(parents=True, exist_ok=True)
     SIGN_TODAY_CARD_PATH.mkdir(exist_ok=True, parents=True)

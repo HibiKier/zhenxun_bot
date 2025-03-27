@@ -126,6 +126,28 @@ AccessToken: PUBLIC_ZHENXUN_TEST
 - 提供了 cd，阻塞，每日次数等限制，仅仅通过简单的属性就可以生成一个限制，例如：`PluginCdBlock` 等
 - **更多详细请通过 [传送门](https://hibikier.github.io/zhenxun_bot/) 查看文档！**
 
+## 🐣 小白整合
+
+如果你系统是 **Windows** 且不想下载 Python  
+可以使用整合包（Python3.10+zhenxun+webui）
+
+文档地址：[整合包文档](https://hibikier.github.io/zhenxun_bot/beginner/)
+
+<details>
+<summary>下载地址</summary>
+
+- **百度云：**  
+  https://pan.baidu.com/s/1ph4yzx1vdNbkxm9VBKDdgQ?pwd=971j
+
+- **天翼云：**  
+  https://cloud.189.cn/web/share?code=jq67r2i2E7Fb  
+  访问码：8wxm
+
+- **Google Drive：**  
+  https://drive.google.com/file/d/1cc3Dqjk0x5hWGLNeMkrFwWl8BvsK6KfD/view?usp=drive_link
+
+</details>
+
 ## 🛠️ 简单部署
 
 ```bash

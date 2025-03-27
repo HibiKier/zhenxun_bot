@@ -18,6 +18,8 @@ from zhenxun.utils.utils import is_number
 
 from .config import BASE_PATH, DEFAULT_GITHUB_URL, EXTRA_GITHUB_URL
 
+BAT_FILE = Path() / "win启动.bat"
+
 
 def row_style(column: str, text: str) -> RowStyle:
     """被动技能文本风格
@@ -50,8 +52,26 @@ def install_requirement(plugin_path: Path):
         return
 
     try:
+        if BAT_FILE.exists():
+            command = [
+                "./Python310/python.exe",
+                "-m",
+                "pip",
+                "install",
+                "-r",
+                str(existing_requirements),
+            ]
+        else:
+            command = [
+                "poetry",
+                "run",
+                "pip",
+                "install",
+                "-r",
+                str(existing_requirements),
+            ]
         result = subprocess.run(
-            ["poetry", "run", "pip", "install", "-r", str(existing_requirements)],
+            command,
             check=True,
             capture_output=True,
             text=True,
