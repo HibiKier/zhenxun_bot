@@ -1,4 +1,4 @@
-from typing import Any, overload
+from typing import Any, cast, overload
 from typing_extensions import Self
 
 from tortoise import fields
@@ -80,23 +80,56 @@ class GroupConsole(Model):
             return "".join(cls.format(item) for item in data)
 
     @classmethod
+    async def __set_default_plugin_status(cls, group: Self) -> list[str]:
+        """设置新群组信息时默认插件关闭状态
+
+        参数:
+            group: GroupConsole对象
+
+        返回:
+            list[str]: 更新字段列表
+        """
+        task_modules = cast(
+            list[str],
+            await TaskInfo.filter(default_status=False).values_list(
+                "module", flat=True
+            ),
+        )
+        plugin_modules = cast(
+            list[str],
+            await PluginInfo.filter(
+                plugin_type__in=[PluginType.NORMAL, PluginType.DEPENDANT],
+                default_status=False,
+                load_status=True,
+            ).values_list("module", flat=True),
+        )
+
+        if not task_modules and not plugin_modules:
+            return []
+
+        update_fields = []
+
+        if task_modules:
+            group.block_task = cls.convert_module_format(task_modules)
+            update_fields.append("block_task")
+
+        if plugin_modules:
+            group.block_plugin = cls.convert_module_format(list(plugin_modules))
+            update_fields.append("block_plugin")
+
+        return update_fields
+
+    @classmethod
     async def create(
         cls, using_db: BaseDBAsyncClient | None = None, **kwargs: Any
     ) -> Self:
         """覆盖create方法"""
         group = await super().create(using_db=using_db, **kwargs)
-        if modules := await TaskInfo.filter(default_status=False).values_list(
-            "module", flat=True
-        ):
-            group.block_task = cls.convert_module_format(modules)  # type: ignore
-        if modules := await PluginInfo.filter(
-            plugin_type__in=[PluginType.NORMAL, PluginType.DEPENDANT],
-            default_status=False,
-        ).values_list("module", flat=True):
-            group.block_plugin = cls.convert_module_format(modules)  # type: ignore
-        await group.save(
-            using_db=using_db, update_fields=["block_plugin", "block_task"]
-        )
+
+        update_fields = await cls.__set_default_plugin_status(group)
+        if update_fields:
+            await group.save(using_db=using_db, update_fields=update_fields)
+
         return group
 
     @classmethod
@@ -110,20 +143,12 @@ class GroupConsole(Model):
         group, is_create = await super().get_or_create(
             defaults=defaults, using_db=using_db, **kwargs
         )
+
         if is_create:
-            if modules := await TaskInfo.filter(default_status=False).values_list(
-                "module", flat=True
-            ):
-                group.block_task = cls.convert_module_format(modules)  # type: ignore
-            if modules := await PluginInfo.filter(
-                plugin_type__in=[PluginType.NORMAL, PluginType.DEPENDANT],
-                default_status=False,
-                load_status=True,
-            ).values_list("module", flat=True):
-                group.block_plugin = cls.convert_module_format(modules)  # type: ignore
-        await group.save(
-            using_db=using_db, update_fields=["block_plugin", "block_task"]
-        )
+            update_fields = await cls.__set_default_plugin_status(group)
+            if update_fields:
+                await group.save(using_db=using_db, update_fields=update_fields)
+
         return group, is_create
 
     @classmethod
@@ -137,20 +162,12 @@ class GroupConsole(Model):
         group, is_create = await super().update_or_create(
             defaults=defaults, using_db=using_db, **kwargs
         )
+
         if is_create:
-            if modules := await TaskInfo.filter(default_status=False).values_list(
-                "module", flat=True
-            ):
-                group.block_task = cls.convert_module_format(modules)  # type: ignore
-            if modules := await PluginInfo.filter(
-                plugin_type__in=[PluginType.NORMAL, PluginType.DEPENDANT],
-                default_status=False,
-                load_status=True,
-            ).values_list("module", flat=True):
-                group.block_plugin = cls.convert_module_format(modules)  # type: ignore
-        await group.save(
-            using_db=using_db, update_fields=["block_plugin", "block_task"]
-        )
+            update_fields = await cls.__set_default_plugin_status(group)
+            if update_fields:
+                await group.save(using_db=using_db, update_fields=update_fields)
+
         return group, is_create
 
     @classmethod
