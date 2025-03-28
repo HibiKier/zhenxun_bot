@@ -64,7 +64,7 @@ class MessageUtils:
             if isinstance(msg, str):
                 if msg.startswith("base64://"):
                     message_list.append(Image(raw=BytesIO(base64.b64decode(msg[9:]))))
-                elif msg.startswith("http://"):
+                elif msg.startswith(("http://", "https://")):
                     message_list.append(Image(url=msg))
                 else:
                     message_list.append(Text(msg))
