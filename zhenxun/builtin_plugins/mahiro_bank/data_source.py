@@ -52,7 +52,7 @@ class BankManager:
             ]
         )
         sign_max_deposit: int = base_config.get("sign_max_deposit")
-        max_deposit = max(int(sign_user.impression * sign_max_deposit), 100)
+        max_deposit = max(int(float(sign_user.impression) * sign_max_deposit), 100)
         if user.gold < amount:
             return f"金币数量不足，当前你的金币为：{user.gold}."
         if bank_user.amount + amount > max_deposit:
