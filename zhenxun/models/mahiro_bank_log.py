@@ -1,8 +1,7 @@
 from tortoise import fields
 
 from zhenxun.services.db_context import Model
-
-from ..config import BankHandleType
+from zhenxun.utils.enum import BankHandleType
 
 
 class MahiroBankLog(Model):

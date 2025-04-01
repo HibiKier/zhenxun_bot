@@ -13,10 +13,8 @@ from zhenxun.models.mahiro_bank import MahiroBank
 from zhenxun.models.mahiro_bank_log import MahiroBankLog
 from zhenxun.models.sign_user import SignUser
 from zhenxun.models.user_console import UserConsole
-from zhenxun.utils.enum import GoldHandle
+from zhenxun.utils.enum import BankHandleType, GoldHandle
 from zhenxun.utils.platform import PlatformUtils
-
-from .config import BankHandleType
 
 base_config = Config.get("mahiro_bank")
 
