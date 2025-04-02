@@ -287,10 +287,10 @@ class BankManager:
         e_date.reverse()
         e_amount.reverse()
         date = 1
-        lasted_log = await MahiroBankLog.annotate().order_by("-create_time").first()
+        lasted_log = await MahiroBankLog.annotate().order_by("create_time").first()
         if lasted_log:
             date = now.date() - lasted_log.create_time.date()
-            date = date.days or 1
+            date = (date.days or 1) + 1
         data = {
             "amount_sum": bank_data[0]["amount_sum"],
             "user_count": bank_data[0]["user_count"],
