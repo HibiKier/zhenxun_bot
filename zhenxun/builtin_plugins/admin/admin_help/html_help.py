@@ -15,7 +15,8 @@ async def get_task() -> dict[str, str] | None:
         return {
             "name": "被动技能",
             "description": "控制群组中的被动技能状态",
-            "usage": "通过 开启/关闭群被动 来控制群被<br>----------<br>"
+            "usage": "通过 开启/关闭群被动 来控制群被动 <br>"
+            + " 示例：开启/关闭群被动早晚安 <br> ---------- <br> "
             + "<br>".join([task.name for task in task_list]),
         }
     return None

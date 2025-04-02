@@ -16,6 +16,7 @@
     "jsdelivr",
     "kaiheila",
     "lolicon",
+    "Mahiro",
     "nonebot",
     "onebot",
     "pixiv",
@@ -24,9 +25,9 @@
     "tobytes",
     "ujson",
     "unban",
+    "Uninfo",
     "userinfo",
-    "zhenxun",
-    "jsdelivr"
+    "zhenxun"
   ],
   "python.analysis.autoImportCompletions": true,
   "python.testing.pytestArgs": ["tests"],
