@@ -255,16 +255,21 @@ class BankManager:
                 MahiroBank.annotate(
                     amount_sum=Sum("amount"), user_count=Count("id")
                 ).values("amount_sum", "user_count"),
-                MahiroBankLog.filter(create_time__gte=now_start).count(),
+                MahiroBankLog.filter(create_time__gt=now_start).count(),
                 MahiroBankLog.filter(handle_type=BankHandleType.INTEREST)
                 .annotate(amount_sum=Sum("amount"))
                 .values("amount_sum"),
-                MahiroBankLog.filter(create_time__gte=now_start - timedelta(days=7))
+                MahiroBankLog.filter(
+                    create_time__gte=now_start - timedelta(days=7),
+                    handle_type=BankHandleType.DEPOSIT,
+                )
                 .annotate(count=Count("user_id", distinct=True))
                 .values("count"),
-                MahiroBank.annotate(
-                    date=RawSQL("DATE(create_time)"), total_amount=Sum("amount")
+                MahiroBankLog.filter(
+                    create_time__gte=now_start - timedelta(days=7),
+                    handle_type=BankHandleType.DEPOSIT,
                 )
+                .annotate(date=RawSQL("DATE(create_time)"), total_amount=Sum("amount"))
                 .group_by("date")
                 .values("date", "total_amount"),
             ]
