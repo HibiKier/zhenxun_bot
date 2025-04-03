@@ -10,7 +10,7 @@ from zhenxun.configs.config import Config as gConfig
 from zhenxun.configs.utils import PluginExtraData, RegisterConfig
 from zhenxun.services.log import logger, logger_
 from zhenxun.utils.enum import PluginType
-from zhenxun.utils.manager.priority_manager import HookPriorityManager
+from zhenxun.utils.manager.priority_manager import PriorityLifecycle
 
 from .api.configure import router as configure_router
 from .api.logs import router as ws_log_routes
@@ -94,7 +94,7 @@ WsApiRouter.include_router(status_routes)
 WsApiRouter.include_router(chat_routes)
 
 
-@HookPriorityManager.on_startup(0)
+@PriorityLifecycle.on_startup(priority=0)
 async def _():
     try:
 

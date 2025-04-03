@@ -11,7 +11,7 @@ from zhenxun.configs.config import Config
 from zhenxun.configs.path_config import DATA_PATH
 from zhenxun.configs.utils import RegisterConfig
 from zhenxun.services.log import logger
-from zhenxun.utils.manager.priority_manager import HookPriorityManager
+from zhenxun.utils.manager.priority_manager import PriorityLifecycle
 
 _yaml = YAML(pure=True)
 _yaml.allow_unicode = True
@@ -103,7 +103,7 @@ def _generate_simple_config(exists_module: list[str]):
         temp_file.unlink()
 
 
-@HookPriorityManager.on_startup(0)
+@PriorityLifecycle.on_startup(priority=0)
 def _():
     """
     初始化插件数据配置

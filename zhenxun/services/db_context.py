@@ -6,7 +6,7 @@ from tortoise.models import Model as Model_
 
 from zhenxun.configs.config import BotConfig
 from zhenxun.utils.exception import HookPriorityException
-from zhenxun.utils.manager.priority_manager import HookPriorityManager
+from zhenxun.utils.manager.priority_manager import PriorityLifecycle
 
 from .log import logger
 
@@ -48,7 +48,7 @@ class DbConnectError(Exception):
     pass
 
 
-@HookPriorityManager.on_startup(1)
+@PriorityLifecycle.on_startup(priority=1)
 async def init():
     if not BotConfig.db_url:
         # raise DbUrlIsNode("数据库配置为空，请在.env.dev中配置DB_URL...")

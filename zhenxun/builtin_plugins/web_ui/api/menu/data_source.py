@@ -33,7 +33,7 @@ default_menus = [
 ]
 
 
-class MenuManage:
+class MenuManager:
     def __init__(self) -> None:
         self.file = DATA_PATH / "web_ui" / "menu.json"
         self.menu = []
@@ -50,21 +50,18 @@ class MenuManage:
                             )
                         )
                     else:
-                        temp_menu.append(
-                            default_menus[
-                                next(
-                                    i
-                                    for i, m in enumerate(default_menus)
-                                    if m.module == module
-                                )
-                            ]
-                        )
+                        temp_menu.append(self.__get_menu_model(module))
                 self.menu = temp_menu
             except Exception as e:
                 logger.warning("菜单文件损坏，已重新生成...", "WebUi", e=e)
         if not self.menu:
             self.menu = default_menus
         self.save()
+
+    def __get_menu_model(self, module: str):
+        return default_menus[
+            next(i for i, m in enumerate(default_menus) if m.module == module)
+        ]
 
     def get_menus(self):
         return MenuData(menus=self.menu)
@@ -76,4 +73,4 @@ class MenuManage:
             json.dump(temp, f, ensure_ascii=False, indent=4)
 
 
-menu_manage = MenuManage()
+menu_manage = MenuManager()
