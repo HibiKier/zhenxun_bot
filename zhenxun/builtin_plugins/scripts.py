@@ -10,11 +10,12 @@ from zhenxun.configs.path_config import TEXT_PATH
 from zhenxun.models.group_console import GroupConsole
 from zhenxun.services.log import logger
 from zhenxun.utils.http_utils import AsyncHttpx
+from zhenxun.utils.manager.priority_manager import PriorityLifecycle
 
 driver: Driver = nonebot.get_driver()
 
 
-@driver.on_startup
+@PriorityLifecycle.on_startup()
 async def update_city():
     """
     部分插件需要中国省份城市
@@ -61,7 +62,7 @@ async def _():
     await update_city()
 
 
-@driver.on_startup
+@PriorityLifecycle.on_startup()
 async def _():
     """开启/禁用插件格式修改"""
     _, is_create = await GroupConsole.get_or_create(group_id=133133133)
