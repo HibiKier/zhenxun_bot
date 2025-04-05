@@ -14,7 +14,7 @@ async def do_something(session: Uninfo):
     if session.group:
         if not await GroupConsole.exists(group_id=session.group.id):
             await GroupConsole.create(group_id=session.group.id)
-            logger.info("添加当前群组ID信息" "", session=session)
+            logger.info("添加当前群组ID信息", session=session)
 
         if not await GroupInfoUser.exists(
             user_id=session.user.id, group_id=session.group.id
