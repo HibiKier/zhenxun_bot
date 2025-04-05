@@ -1,3 +1,5 @@
+import contextlib
+
 from nonebot.adapters import Bot, Event
 from nonebot.exception import IgnoredException
 from nonebot.matcher import Matcher
@@ -7,8 +9,8 @@ from tortoise.exceptions import IntegrityError
 
 from zhenxun.models.plugin_info import PluginInfo
 from zhenxun.models.user_console import UserConsole
-from zhenxun.services.log import logger
 from zhenxun.services.cache import Cache
+from zhenxun.services.log import logger
 from zhenxun.utils.enum import (
     CacheType,
     GoldHandle,
@@ -53,16 +55,22 @@ async def auth(
             group_id = session.group.id
     is_ignore = False
     cost_gold = 0
-    try:
+    with contextlib.suppress(ImportError):
         from nonebot.adapters.onebot.v11 import PokeNotifyEvent
 
         if matcher.type == "notice" and not isinstance(event, PokeNotifyEvent):
             """过滤除poke外的notice"""
             return
-    except ImportError:
-        pass
     user_cache = Cache[UserConsole](CacheType.USERS)
     if matcher.plugin and (module := matcher.plugin.name):
+        plugin = await Cache[PluginInfo](CacheType.PLUGINS).get(module)
+        if not plugin:
+            return logger.debug(f"插件:{module} 数据不存在，已跳过权限检查...")
+        if plugin.plugin_type == PluginType.HIDDEN:
+            return logger.debug(
+                f"插件: {plugin.name}:{plugin.module} 为HIDDEN，已跳过权限检查..."
+            )
+        user = None
         try:
             user = await user_cache.get(session.user.id)
         except IntegrityError as e:
@@ -72,38 +80,33 @@ async def auth(
                 session=session,
                 e=e,
             )
-            return
-        plugin = await Cache[PluginInfo](CacheType.PLUGINS).get(module)
-        if user and plugin:
-            if plugin.plugin_type == PluginType.HIDDEN:
-                logger.debug(
-                    f"插件: {plugin.name}:{plugin.module} "
-                    "为HIDDEN，已跳过权限检查..."
-                )
-                return
-            try:
-                cost_gold = await auth_cost(user, plugin, session)
-                if session.user.id in bot.config.superusers:
-                    if plugin.plugin_type == PluginType.SUPERUSER:
-                        raise IsSuperuserException()
-                    if not plugin.limit_superuser:
-                        cost_gold = 0
-                        raise IsSuperuserException()
-                await auth_bot(plugin, bot.self_id)
-                await auth_group(plugin, session, message)
-                await auth_admin(plugin, session)
-                await auth_plugin(plugin, session, event)
-                await auth_limit(plugin, session)
-            except IsSuperuserException:
-                logger.debug(
-                    "超级用户或被ban跳过权限检测...", "AuthChecker", session=session
-                )
-            except IgnoredException:
-                is_ignore = True
-                LimitManage.unblock(matcher.plugin.name, user_id, group_id, channel_id)
-            except AssertionError as e:
-                is_ignore = True
-                logger.debug("消息无法发送", session=session, e=e)
+        if not user:
+            return logger.debug(
+                "用户数据不存在，已跳过权限检查...", "AuthChecker", session=session
+            )
+        try:
+            cost_gold = await auth_cost(user, plugin, session)
+            if session.user.id in bot.config.superusers:
+                if plugin.plugin_type == PluginType.SUPERUSER:
+                    raise IsSuperuserException()
+                if not plugin.limit_superuser:
+                    cost_gold = 0
+                    raise IsSuperuserException()
+            await auth_bot(plugin, bot.self_id)
+            await auth_group(plugin, session, message)
+            await auth_admin(plugin, session)
+            await auth_plugin(plugin, session, event)
+            await auth_limit(plugin, session)
+        except IsSuperuserException:
+            logger.debug(
+                "超级用户或被ban跳过权限检测...", "AuthChecker", session=session
+            )
+        except IgnoredException:
+            is_ignore = True
+            LimitManage.unblock(matcher.plugin.name, user_id, group_id, channel_id)
+        except AssertionError as e:
+            is_ignore = True
+            logger.debug("消息无法发送", session=session, e=e)
     if cost_gold and user_id:
         """花费金币"""
         try:
